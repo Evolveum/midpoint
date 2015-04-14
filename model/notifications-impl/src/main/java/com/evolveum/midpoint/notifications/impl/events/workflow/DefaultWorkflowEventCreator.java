@@ -102,7 +102,7 @@ public class DefaultWorkflowEventCreator implements WorkflowEventCreator {
 
     @Override
     public WorkItemEvent createWorkItemCompleteEvent(String workItemName, String assigneeOid, PrismObject<? extends ProcessInstanceState> instanceState, String decision) {
-        return createWorkItemEvent(workItemName, assigneeOid, instanceState, ChangeType.ADD, decision);
+        return createWorkItemEvent(workItemName, assigneeOid, instanceState, ChangeType.DELETE, decision);
     }
 
     private WorkItemEvent createWorkItemEvent(String workItemName, String assigneeOid, PrismObject<? extends ProcessInstanceState> instanceState, ChangeType changeType, String decision) {

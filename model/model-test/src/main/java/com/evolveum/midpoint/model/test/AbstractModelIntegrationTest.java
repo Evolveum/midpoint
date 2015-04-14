@@ -71,6 +71,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -114,6 +115,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseTy
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -1990,9 +1992,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 		int expectedModifications = 0;
 		// There may be metadata modification, we tolerate that
-		Collection<? extends ItemDelta<?,?>> metadataDelta = focusDelta.findItemDeltasSubPath(new ItemPath(UserType.F_METADATA));
-		if (metadataDelta != null && !metadataDelta.isEmpty()) {
-			expectedModifications++;
+		for (ItemDelta<?,?> modification: focusDelta.getModifications()) {
+			if (modification.getPath().containsName(ObjectType.F_METADATA)) {
+				expectedModifications++;
+			}
 		}
 		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ENABLE_TIMESTAMP)) != null) {
 			expectedModifications++;
@@ -2405,14 +2408,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void assertEnableTimestampFocus(PrismObject<? extends FocusType> focus, 
 			XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) {
 		XMLGregorianCalendar userDisableTimestamp = focus.asObjectable().getActivation().getEnableTimestamp();
-		IntegrationTestTools.assertBetween("Wrong user enableTimestamp in "+focus, 
+		TestUtil.assertBetween("Wrong user enableTimestamp in "+focus, 
 				startTime, endTime, userDisableTimestamp);
 	}
 
 	protected void assertDisableTimestampFocus(PrismObject<? extends FocusType> focus, 
 			XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) {
 		XMLGregorianCalendar userDisableTimestamp = focus.asObjectable().getActivation().getDisableTimestamp();
-		IntegrationTestTools.assertBetween("Wrong user disableTimestamp in "+focus, 
+		TestUtil.assertBetween("Wrong user disableTimestamp in "+focus, 
 				startTime, endTime, userDisableTimestamp);
 	}
 	
@@ -2421,14 +2424,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		ActivationType activationType = shadow.asObjectable().getActivation();
 		assertNotNull("No activation in "+shadow, activationType);
 		XMLGregorianCalendar userDisableTimestamp = activationType.getEnableTimestamp();
-		IntegrationTestTools.assertBetween("Wrong shadow enableTimestamp in "+shadow, 
+		TestUtil.assertBetween("Wrong shadow enableTimestamp in "+shadow, 
 				startTime, endTime, userDisableTimestamp);
 	}
 
 	protected void assertDisableTimestampShadow(PrismObject<? extends ShadowType> shadow, 
 			XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) {
 		XMLGregorianCalendar userDisableTimestamp = shadow.asObjectable().getActivation().getDisableTimestamp();
-		IntegrationTestTools.assertBetween("Wrong shadow disableTimestamp in "+shadow, 
+		TestUtil.assertBetween("Wrong shadow disableTimestamp in "+shadow, 
 				startTime, endTime, userDisableTimestamp);
 	}
 	
@@ -2600,7 +2603,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected Task createTask(String operationName) {
+		if (!operationName.contains(".")) {
+			operationName = this.getClass().getName() + "." + operationName;
+		}
 		Task task = taskManager.createTaskInstance(operationName);
+		task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
 		return task;
 	}
 	
@@ -2796,5 +2803,30 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         	}
         }
 	}
+	
+	protected void assertEncryptedPassword(PrismObject<UserType> user, String expectedClearPassword) throws EncryptionException {
+		UserType userType = user.asObjectable();
+		ProtectedStringType protectedActualPassword = userType.getCredentials().getPassword().getValue();
+		String actualClearPassword = protector.decryptString(protectedActualPassword);
+		assertEquals("Wrong password for "+user, expectedClearPassword, actualClearPassword);
+	}
 
+	protected void assertPasswordMetadata(PrismObject<UserType> user, boolean create, XMLGregorianCalendar start, XMLGregorianCalendar end, String actorOid, String channel) {
+		PrismContainer<MetadataType> metadataContainer = user.findContainer(new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_METADATA));
+		assertNotNull("No password metadata in "+user, metadataContainer);
+		MetadataType metadataType = metadataContainer.getValue().asContainerable();
+		if (create) {
+			ObjectReferenceType creatorRef = metadataType.getCreatorRef();
+			assertNotNull("No creatorRef in password metadata in "+user, creatorRef);
+			assertEquals("Wrong creatorRef OID in password metadata in "+user, actorOid, creatorRef.getOid());
+			TestUtil.assertBetween("Wrong password create timestamp in password metadata in "+user, start, end, metadataType.getCreateTimestamp());
+			assertEquals("Wrong create channel", channel, metadataType.getCreateChannel());
+		} else {
+			ObjectReferenceType modifierRef = metadataType.getModifierRef();
+			assertNotNull("No modifierRef in password metadata in "+user, modifierRef);
+			assertEquals("Wrong modifierRef OID in password metadata in "+user, actorOid, modifierRef.getOid());
+			TestUtil.assertBetween("Wrong password modify timestamp in password metadata in "+user, start, end, metadataType.getModifyTimestamp());
+			assertEquals("Wrong modification channel", channel, metadataType.getModifyChannel());
+		}
+	}
 }

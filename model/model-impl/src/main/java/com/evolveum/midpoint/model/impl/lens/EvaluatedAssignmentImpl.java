@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.api.context.EvaluatedConstruction;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
@@ -33,7 +34,6 @@ import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -42,7 +42,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
@@ -93,7 +92,28 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		return constructions;
 	}
 
-    public Collection<Construction<F>> getConstructionSet(PlusMinusZero whichSet) {
+	/**
+	 * Construction is not a part of model-api. To avoid heavy refactoring at present time, there is not a classical
+	 * Construction-ConstructionImpl separation, but we use artificial (simplified) EvaluatedConstruction
+	 * API class instead.
+	 *
+	 * @return
+	 */
+	public DeltaSetTriple<EvaluatedConstruction> getEvaluatedConstructions(OperationResult result) throws SchemaException, ObjectNotFoundException {
+		DeltaSetTriple<EvaluatedConstruction> rv = new DeltaSetTriple<>();
+		for (PlusMinusZero whichSet : PlusMinusZero.values()) {
+			Collection<Construction<F>> constructionSet = constructions.getSet(whichSet);
+			if (constructionSet != null) {
+				for (Construction<F> construction : constructionSet) {
+					rv.addToSet(whichSet, new EvaluatedConstructionImpl(construction, result));
+				}
+			}
+		}
+		return rv;
+	}
+
+
+	public Collection<Construction<F>> getConstructionSet(PlusMinusZero whichSet) {
         switch (whichSet) {
             case ZERO: return getConstructions().getZeroSet();
             case PLUS: return getConstructions().getPlusSet();
@@ -164,8 +184,8 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	}
 
 	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.model.impl.lens.EvaluatedAssignment#isValid()
-	 */
+         * @see com.evolveum.midpoint.model.impl.lens.EvaluatedAssignment#isValid()
+         */
 	@Override
 	public boolean isValid() {
 		return isValid;

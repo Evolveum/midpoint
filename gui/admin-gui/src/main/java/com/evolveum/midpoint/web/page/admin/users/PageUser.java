@@ -21,27 +21,14 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.EvaluatedAbstractRole;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.api.context.EvaluatedConstruction;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.NotFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
@@ -49,7 +36,15 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.NoFocusNameSchemaException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -66,14 +61,7 @@ import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.prism.CheckTableHeader;
-import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
-import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
-import com.evolveum.midpoint.web.component.prism.SimpleErrorPanel;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.progress.ProgressReporter;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
@@ -95,26 +83,8 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -139,12 +109,14 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
 import javax.xml.namespace.QName;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * @author lazyman
@@ -1013,7 +985,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         window.setContent(new ResourcesPopup(window.getContentId()) {
 
             @Override
-            public SimpleUserResourceProvider getProvider(){
+            public SimpleUserResourceProvider getProvider() {
                 return provider;
             }
 
@@ -1063,7 +1035,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         });
         add(window);
 
-        ModalWindow assignmentPreviewPopup = new AssignmentPreviewDialog(MODAL_ID_ASSIGNMENTS_PREVIEW, null);
+        ModalWindow assignmentPreviewPopup = new AssignmentPreviewDialog(MODAL_ID_ASSIGNMENTS_PREVIEW, null, null);
         add(assignmentPreviewPopup);
     }
 
@@ -1393,33 +1365,181 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         LOGGER.debug("Recompute user assignments");
         Task task = createSimpleTask(OPERATION_RECOMPUTE_ASSIGNMENTS);
         OperationResult result = new OperationResult(OPERATION_RECOMPUTE_ASSIGNMENTS);
-        PrismObject<UserType> user = userModel.getObject().getObject();
-        ObjectDelta<UserType> delta = user.createModifyDelta();
-        List<ObjectType> assignments = new ArrayList<>();
+        ObjectDelta<UserType> delta;
+        Set<AssignmentsPreviewDto> assignmentDtoSet = new TreeSet<>();
 
         try {
-            ModelContext<UserType> modelContext = getModelInteractionService().previewChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+            reviveModels();
+
+            ObjectWrapper userWrapper = userModel.getObject();
+            delta = userWrapper.getObjectDelta();
+            if (userWrapper.getOldDelta() != null) {
+                delta = ObjectDelta.summarize(userWrapper.getOldDelta(), delta);
+            }
+
+            switch (userWrapper.getStatus()) {
+                case ADDING:
+                    PrismObject<UserType> user = delta.getObjectToAdd();
+                    prepareUserForAdd(user);
+                    getPrismContext().adopt(user, UserType.class);
+
+                    if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace("Delta before add user:\n{}", new Object[]{delta.debugDump(3)});
+                    }
+
+                    if (!delta.isEmpty()) {
+                        delta.revive(getPrismContext());
+                    } else {
+                        result.recordSuccess();
+                    }
+
+                    break;
+                case MODIFYING:
+                    prepareUserDeltaForModify(delta);
+
+                    if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace("Delta before modify user:\n{}", new Object[]{delta.debugDump(3)});
+                    }
+
+                    List<ObjectDelta<? extends ObjectType>> accountDeltas = modifyAccounts(result);
+                    Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
+
+                    if (!delta.isEmpty()) {
+                        delta.revive(getPrismContext());
+                        deltas.add(delta);
+                    }
+
+                    for (ObjectDelta accDelta : accountDeltas) {
+                        if (!accDelta.isEmpty()) {
+                             accDelta.revive(getPrismContext());
+                            deltas.add(accDelta);
+                        }
+                    }
+
+                    break;
+                default:
+                    error(getString("pageUser.message.unsupportedState", userWrapper.getStatus()));
+            }
+
+            ModelContext<UserType> modelContext = null;
+            try {
+                modelContext = getModelInteractionService().previewChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+            } catch (NoFocusNameSchemaException e) {
+                info(getString("pageUser.message.noUserName"));
+                target.add(getFeedbackPanel());
+                return;
+            }
 
             DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = modelContext.getEvaluatedAssignmentTriple();
-            Collection<? extends EvaluatedAssignment> evaluatedAssignments = evaluatedAssignmentTriple.getZeroSet();
-            EvaluatedAssignment<UserType> evaluatedAssignment = evaluatedAssignments.iterator().next();
-            DeltaSetTriple<? extends EvaluatedAbstractRole> rolesTriple = evaluatedAssignment.getRoles();
-            Collection<? extends EvaluatedAbstractRole> evaluatedRoles = rolesTriple.getZeroSet();
+            Collection<? extends EvaluatedAssignment> evaluatedAssignments = evaluatedAssignmentTriple.getNonNegativeValues();
 
-            for(EvaluatedAbstractRole role: evaluatedRoles){
-                assignments.add(role.getRole().asObjectable());
+            if (evaluatedAssignments.isEmpty()){
+                info(getString("pageUser.message.noAssignmentsAvailable"));
+                target.add(getFeedbackPanel());
+                return;
+            }
+
+            List<String> directAssignmentsOids = new ArrayList<>();
+            for (EvaluatedAssignment<UserType> evaluatedAssignment : evaluatedAssignments) {
+                if (!evaluatedAssignment.isValid()) {
+                    continue;
+                }
+                // roles and orgs
+                DeltaSetTriple<? extends EvaluatedAbstractRole> evaluatedRolesTriple = evaluatedAssignment.getRoles();
+                Collection<? extends EvaluatedAbstractRole> evaluatedRoles = evaluatedRolesTriple.getNonNegativeValues();
+                for (EvaluatedAbstractRole role: evaluatedRoles) {
+                    if (role.isEvaluateConstructions()) {
+                        assignmentDtoSet.add(createAssignmentsPreviewDto(role, task, result));
+                    }
+                }
+
+                // all resources
+                DeltaSetTriple<EvaluatedConstruction> evaluatedConstructionsTriple = evaluatedAssignment.getEvaluatedConstructions(result);
+                Collection<EvaluatedConstruction> evaluatedConstructions = evaluatedConstructionsTriple.getNonNegativeValues();
+                for (EvaluatedConstruction construction : evaluatedConstructions) {
+                    assignmentDtoSet.add(createAssignmentsPreviewDto(construction));
+                }
             }
 
             AssignmentPreviewDialog dialog = (AssignmentPreviewDialog) get(MODAL_ID_ASSIGNMENTS_PREVIEW);
-            dialog.updateData(target, assignments);
+            dialog.updateData(target, new ArrayList<>(assignmentDtoSet), directAssignmentsOids);
             dialog.show(target);
 
         } catch (Exception e) {
-            LOGGER.error("Could not create assignments preview.", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Could not create assignments preview.", e);
             error("Could not create assignments preview. Reason: " + e);
             target.add(getFeedbackPanel());
         }
     }
+
+    private AssignmentsPreviewDto createAssignmentsPreviewDto(EvaluatedAbstractRole evaluatedAbstractRole, Task task, OperationResult result) {
+        AssignmentsPreviewDto dto = new AssignmentsPreviewDto();
+        PrismObject<? extends AbstractRoleType> role = evaluatedAbstractRole.getRole();
+        dto.setTargetOid(role.getOid());
+        dto.setTargetName(getNameToDisplay(role));
+        dto.setTargetDescription(role.asObjectable().getDescription());
+        dto.setTargetClass(role.getCompileTimeClass());
+        dto.setDirect(evaluatedAbstractRole.isDirectlyAssigned());
+        if (evaluatedAbstractRole.getAssignment() != null) {
+            if (evaluatedAbstractRole.getAssignment().getTenantRef() != null) {
+                dto.setTenantName(nameFromReference(evaluatedAbstractRole.getAssignment().getTenantRef(), task, result));
+            }
+            if (evaluatedAbstractRole.getAssignment().getOrgRef() != null) {
+                dto.setOrgRefName(nameFromReference(evaluatedAbstractRole.getAssignment().getOrgRef(), task, result));
+            }
+        }
+        return dto;
+    }
+
+    private String getNameToDisplay(PrismObject<? extends AbstractRoleType> role) {
+        String n = PolyString.getOrig(role.asObjectable().getDisplayName());
+        if (StringUtils.isNotBlank(n)) {
+            return n;
+        }
+        return PolyString.getOrig(role.asObjectable().getName());
+    }
+
+    private String nameFromReference(ObjectReferenceType reference, Task task, OperationResult result) {
+        String oid = reference.getOid();
+        QName type = reference.getType();
+        Class<? extends ObjectType> clazz = getPrismContext().getSchemaRegistry().getCompileTimeClass(type);
+        PrismObject<? extends ObjectType> prismObject;
+        try {
+            prismObject = getModelService().getObject(clazz, oid, SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, result);
+        } catch (ObjectNotFoundException|SchemaException|SecurityViolationException|CommunicationException|ConfigurationException|RuntimeException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve name for {}: {}", e, clazz.getSimpleName(), oid);
+            return "Couldn't retrieve name for " + oid;
+        }
+        ObjectType object = prismObject.asObjectable();
+        if (object instanceof AbstractRoleType) {
+            return getNameToDisplay(object.asPrismObject());
+        } else {
+            return PolyString.getOrig(object.getName());
+        }
+    }
+
+    private AssignmentsPreviewDto createAssignmentsPreviewDto(EvaluatedConstruction evaluatedConstruction) {
+        AssignmentsPreviewDto dto = new AssignmentsPreviewDto();
+        PrismObject<ResourceType> resource = evaluatedConstruction.getResource();
+        dto.setTargetOid(resource.getOid());
+        dto.setTargetName(PolyString.getOrig(resource.asObjectable().getName()));
+        dto.setTargetDescription(resource.asObjectable().getDescription());
+        dto.setTargetClass(resource.getCompileTimeClass());
+        dto.setDirect(evaluatedConstruction.isDirectlyAssigned());
+        dto.setKind(evaluatedConstruction.getKind());
+        dto.setIntent(evaluatedConstruction.getIntent());
+        return dto;
+    }
+
+//    private void addObjectIfNotPresent(List<ObjectType> assignments, ObjectType objectType) {
+//        String oid = objectType.getOid();
+//        for (ObjectType existing : assignments) {
+//            if (oid.equals(existing.getOid())) {
+//                return;
+//            }
+//        }
+//        assignments.add(objectType);
+//    }
 
     private void savePerformed(AjaxRequestTarget target) {
         LOGGER.debug("Save user.");

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.api.context;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
 /**
  * @author semancik
@@ -27,4 +28,18 @@ public interface EvaluatedAbstractRole extends DebugDumpable {
 	
 	PrismObject<? extends AbstractRoleType> getRole();
 
+	boolean isDirectlyAssigned();
+
+	/**
+	 * True for roles whose constructions are evaluated - i.e. those roles that are considered to be applied
+	 * to the focal object (e.g. to the user).
+ 	 */
+	boolean isEvaluateConstructions();
+
+	/**
+	 * An assignment which assigns the given role (useful for knowing e.g. tenantRef or orgRef).
+	 * TODO consider providing here also the "magic assignment"
+	 * (https://wiki.evolveum.com/display/midPoint/Assignment+Configuration#AssignmentConfiguration-ConstructionVariables)
+	 */
+	AssignmentType getAssignment();
 }

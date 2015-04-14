@@ -213,10 +213,63 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         
         waitForSyncTaskStart(resourceDummyBlue);
 	}
-	
-	@Test
-    public void test210AddDummyBlueAccountWally() throws Exception {
-		final String TEST_NAME = "test210AddDummyBlueAccountWally";
+
+    /**
+     * Add wally to the green dummy resource. User should be created and linked.
+     */
+    @Test
+    public void test210AddDummyGreenAccountWally() throws Exception {
+        final String TEST_NAME = "test210AddDummyGreenAccountWally";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        rememberTimeBeforeSync();
+        prepareNotifications();
+
+        /// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        dummyResourceCtlGreen.addAccount(ACCOUNT_WALLY_DUMMY_USERNAME, "Wally Feed", "Scabb Island");
+
+        // Wait for sync task to pick up the change
+        waitForSyncTaskNextRun(resourceDummyGreen);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+
+        PrismObject<ShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, dummyResourceGreen, "green", "Wally Feed");
+        assertShadowOperationalData(accountWallyGreen, SynchronizationSituationType.LINKED);
+
+        PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
+        display("User wally", userWally);
+        assertNotNull("User wally was not created", userWally);
+        userWallyOid = userWally.getOid();
+        assertUser(userWally, userWallyOid, ACCOUNT_WALLY_DUMMY_USERNAME, "Wally Feed", null, null);
+        assertLinks(userWally, 1);
+
+        assertUsers(7);
+
+        assertLinked(userWally, accountWallyGreen);
+
+        // notifications
+        notificationManager.setDisabled(true);
+//        checkDummyTransportMessages("userPasswordNotifier", 1);                     // previously non-existing password is generated
+//        checkDummyTransportMessages("accountPasswordNotifier", 1);                  // password is then set on the account
+//        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 2);            // changes on green & blue (induced)
+//        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+//        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);        // account itself is not added (only the shadow is!)
+//        checkDummyTransportMessages("simpleUserNotifier", 1);
+//        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+
+    }
+
+    /**
+     * Add wally also to the blue dummy resource. User should be linked to this account.
+     */
+    @Test
+    public void test220AddDummyBlueAccountWally() throws Exception {
+		final String TEST_NAME = "test220AddDummyBlueAccountWally";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -230,23 +283,32 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         dummyResourceCtlBlue.addAccount(ACCOUNT_WALLY_DUMMY_USERNAME, "Wally Feed", "Scabb Island");
         
         // Wait for sync task to pick up the change
+        // However, blue is not authoritative regarding creating new users, so wally will not be created at this time
         waitForSyncTaskNextRun(resourceDummyBlue);
-		
+
+        // Make sure that the "kickback" sync cycle of the other resource runs to completion
+        // We want to check the state after it gets stable
+        // and it could spoil the next test
+        waitForSyncTaskNextRun(resourceDummyGreen);
+        waitForSyncTaskNextRun(resourceDummyBlue);
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
-        
+
+        PrismObject<ShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, dummyResourceGreen, "green", "Wally Feed");
+        assertShadowOperationalData(accountWallyGreen, SynchronizationSituationType.LINKED);
         PrismObject<ShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, "blue", "Wally Feed");
         assertShadowOperationalData(accountWallyBlue, SynchronizationSituationType.LINKED);
-        
+
         PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
         display("User wally", userWally);
         assertNotNull("User wally was not created", userWally);
-        userWallyOid = userWally.getOid();
         assertUser(userWally, userWallyOid, ACCOUNT_WALLY_DUMMY_USERNAME, "Wally Feed", null, null);
-        assertLinks(userWally, 1);
-        
+        assertLinks(userWally, 2);
+
+        assertLinked(userWally, accountWallyGreen);
         assertLinked(userWally, accountWallyBlue);
-        
+
         assertUsers(7);
 
         // notifications
@@ -258,65 +320,6 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 //        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);        // account itself is not added (only the shadow is!)
 //        checkDummyTransportMessages("simpleUserNotifier", 1);
 //        checkDummyTransportMessages("simpleUserNotifier-ADD", 1);
-
-    }
-	
-	
-	/**
-	 * Add wally also to the green dummy resource. This account should be linked to the existing user.
-	 */
-	@Test
-    public void test310AddDummyGreenAccountWally() throws Exception {
-		final String TEST_NAME = "test310AddDummyGreenAccountWally";
-        TestUtil.displayTestTile(this, TEST_NAME);
-
-        // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
-        rememberTimeBeforeSync();
-        prepareNotifications();
-
-		/// WHEN
-        TestUtil.displayWhen(TEST_NAME);
-        dummyResourceCtlGreen.addAccount(ACCOUNT_WALLY_DUMMY_USERNAME, "Wally Feed", "Scabb Island");
-        
-        // Wait for sync task to pick up the change
-        waitForSyncTaskNextRun(resourceDummyGreen);
-        
-        // Make sure that the "kickback" sync cycle of the other resource runs to completion
-        // We want to check the state after it gets stable
-        // and it could spoil the next test
-        waitForSyncTaskNextRun(resourceDummyBlue);
-        waitForSyncTaskNextRun(resourceDummyGreen);
-		
-        // THEN
-        TestUtil.displayThen(TEST_NAME);
-        
-        PrismObject<ShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, "blue", "Wally Feed");
-        if (allwaysCheckTimestamp) assertShadowOperationalData(accountWallyBlue, SynchronizationSituationType.LINKED);
-        PrismObject<ShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, dummyResourceGreen, "green", "Wally Feed");
-        assertShadowOperationalData(accountWallyGreen, SynchronizationSituationType.LINKED);
-        
-        PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
-        display("User wally", userWally);
-        assertNotNull("User wally disappeared", userWally);
-        assertUser(userWally, userWallyOid, ACCOUNT_WALLY_DUMMY_USERNAME, "Wally Feed", null, null);
-        assertLinks(userWally, 2);
-
-        assertLinked(userWally, accountWallyGreen);
-        assertLinked(userWally, accountWallyBlue);
-        
-        assertUsers(7);
-
-        // notifications
-        notificationManager.setDisabled(true);
-//        checkDummyTransportMessages("userPasswordNotifier", 1);                     // previously non-existing password is generated
-//        checkDummyTransportMessages("accountPasswordNotifier", 1);                  // password is then set on the account
-//        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 2);            // changes on green & blue (induced)
-//        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
-//        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);        // account itself is not added (only the shadow is!)
-//        checkDummyTransportMessages("simpleUserNotifier", 1);
-//        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
 
     }
 	
@@ -345,8 +348,8 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         // Make sure that the "kickback" sync cycle of the other resource runs to completion
         // We want to check the state after it gets stable
         // and it could spoil the next test
-        waitForSyncTaskNextRun(resourceDummyBlue);
         waitForSyncTaskNextRun(resourceDummyGreen);
+        waitForSyncTaskNextRun(resourceDummyBlue);
 		
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -762,8 +765,8 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
     }
 	
 	@Test
-    public void test510AddDummyBlueAccountWallyUserTemplate() throws Exception {
-		final String TEST_NAME = "test510AddDummyBlueAccountWallyUserTemplate";
+    public void test510AddDummyGreenAccountWallyUserTemplate() throws Exception {
+		final String TEST_NAME = "test510AddDummyGreenAccountWallyUserTemplate";
         TestUtil.displayTestTile(this, TEST_NAME);
         
         // GIVEN
@@ -771,22 +774,20 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         OperationResult result = task.getResult();
         rememberTimeBeforeSync();
 
-//        addObjectFromFile(USER_TEMPLATE_SYNC_FILENAME, UserTemplateType.class, result);
-      
-        assumeUserTemplate(USER_TEMPLATE_SYNC_OID, resourceDummyBlue.asObjectable(), null, result);
+        assumeUserTemplate(USER_TEMPLATE_SYNC_OID, resourceDummyGreen.asObjectable(), null, result);
         
 		/// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        dummyResourceCtlBlue.addAccount(ACCOUNT_WALLY_DUMMY_USERNAME, "Wally Feed", "Scabb Island");
+        dummyResourceCtlGreen.addAccount(ACCOUNT_WALLY_DUMMY_USERNAME, "Wally Feed", "Scabb Island");
         
         // Wait for sync task to pick up the change
-        waitForSyncTaskNextRun(resourceDummyBlue);
+        waitForSyncTaskNextRun(resourceDummyGreen);
 		
         // THEN
         TestUtil.displayThen(TEST_NAME);
         
-        PrismObject<ShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, "blue", "Wally Feed");
-        assertShadowOperationalData(accountWallyBlue, SynchronizationSituationType.LINKED);
+        PrismObject<ShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, dummyResourceGreen, "green", "Wally Feed");
+        assertShadowOperationalData(accountWallyGreen, SynchronizationSituationType.LINKED);
         
         PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
         display("User wally", userWally);
@@ -794,7 +795,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         userWallyOid = userWally.getOid();
         assertUser(userWally, userWallyOid, ACCOUNT_WALLY_DUMMY_USERNAME, "Wally Feed", null, "Wally Feed from Sync");
         assertLinks(userWally, 1);
-        assertLinked(userWally, accountWallyBlue);
+        assertLinked(userWally, accountWallyGreen);
         
         assertUsers(7 + getNumberOfExtraDummyUsers());
         
@@ -923,7 +924,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertNotNull("Synchronization is not specified", res.getSynchronization());
         ObjectSynchronizationType ost = determineSynchronization(res, UserType.class, syncConfigName);
         assertNotNull("object sync type is not specified", ost);
-        assertNotNull("user tempale not specified", ost.getObjectTemplateRef());
+        assertNotNull("user template not specified", ost.getObjectTemplateRef());
         assertEquals("Wrong user template in resource", templateOid, ost.getObjectTemplateRef().getOid());
         
 	}	

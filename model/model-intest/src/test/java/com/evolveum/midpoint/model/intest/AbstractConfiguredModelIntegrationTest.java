@@ -29,7 +29,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -404,7 +404,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 
 	@Override
 	protected Task createTask(String operationName) {
-		Task task = taskManager.createTaskInstance(operationName);
+		Task task = super.createTask(operationName);
 		task.setOwner(userAdministrator);
 		return task;
 	}
@@ -516,6 +516,10 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
         assertNotNull("no lastRecomputeTimestamp property", lastRecomputeTimestampProp);
         XMLGregorianCalendar lastRecomputeTimestamp = lastRecomputeTimestampProp.getRealValue();
         assertNotNull("null lastRecomputeTimestamp", lastRecomputeTimestamp);
-        IntegrationTestTools.assertBetween("lastRecomputeTimestamp", startCal, endCal, lastRecomputeTimestamp);
+        TestUtil.assertBetween("lastRecomputeTimestamp", startCal, endCal, lastRecomputeTimestamp);
+	}
+    
+    protected void assertPasswordMetadata(PrismObject<UserType> user, boolean create, XMLGregorianCalendar start, XMLGregorianCalendar end) {
+		assertPasswordMetadata(user, create, start, end, USER_ADMINISTRATOR_OID, SchemaConstants.CHANNEL_GUI_USER_URI);
 	}
 }

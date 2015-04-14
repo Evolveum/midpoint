@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -241,6 +242,17 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
             @Override
             protected void handlePartialError(OperationResult result) {
                 AssignmentTablePanel.this.handlePartialError(result);
+            }
+
+            @Override
+            protected PrismObject<UserType> getUserDefinition() {
+                try {
+                    return getPageBase().getSecurityEnforcer().getPrincipal().getUser().asPrismObject();
+                } catch (SecurityViolationException e) {
+                    LOGGER.error("Could not retrieve logged user for security evaluation.", e);
+                }
+
+                return null;
             }
         });
         add(assignWindow);

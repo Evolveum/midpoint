@@ -68,7 +68,9 @@ public class AssignmentPath implements DebugDumpable {
 	public boolean isEmpty() {
 		return segments.isEmpty();
 	}
-	
+
+	public int size() { return segments.size(); }
+
 	public int getEvaluationOrder() {
 		if (isEmpty()) {
 			return 0;

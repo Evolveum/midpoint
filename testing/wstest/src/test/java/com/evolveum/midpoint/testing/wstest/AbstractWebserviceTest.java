@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.testing.wstest;
 
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
@@ -25,6 +26,7 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.GetOperationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaOperationListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
@@ -60,12 +62,15 @@ import org.w3c.dom.*;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -101,9 +106,15 @@ public abstract class AbstractWebserviceTest {
     public static final File COMMON_DIR = new File("src/test/resources/common");
     
     public static final String ENDPOINT = "http://localhost:8080/midpoint/ws/model-3";
-    public static final String USER_ADMINISTRATOR_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
+    public static final String USER_ADMINISTRATOR_OID = SystemObjectsType.USER_ADMINISTRATOR.value();
     public static final String USER_ADMINISTRATOR_USERNAME = "administrator";
     public static final String USER_ADMINISTRATOR_PASSWORD = "5ecr3t";
+    
+    public static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
+ 	public static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
+ 	public static final String USER_JACK_USERNAME = "jack";
+ 	public static final String USER_JACK_GIVEN_NAME = "Jack";
+ 	public static final String USER_JACK_FAMILY_NAME = "Sparrow";
     
     // No authorization
  	public static final File USER_NOBODY_FILE = new File(COMMON_DIR, "user-nobody.xml");
@@ -138,15 +149,25 @@ public abstract class AbstractWebserviceTest {
 	
 	public static final File ROLE_MODIFIER_FILE = new File(COMMON_DIR, "role-modifier.xml");
 	public static final String ROLE_MODIFIER_OID = "82005ae4-d90b-11e4-bdcc-001e8c717e5b";
+	
+	public static final File RESOURCE_OPENDJ_FILE = new File(COMMON_DIR, "resource-opendj.xml");
+	public static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+	
+	public static final String CONNECTOR_LDAP_TYPE = "org.identityconnectors.ldap.LdapConnector";
  	
 	protected static final Pattern PATTERN_AUDIT_EVENT_ID = Pattern.compile(".*\\seid=([^,]+),\\s.*");
 	protected static final Pattern PATTERN_AUDIT_SESSION_ID = Pattern.compile(".*\\ssid=([^,]+),\\s.*");
 	protected static final Pattern PATTERN_AUDIT_TASK_ID = Pattern.compile(".*\\stid=([^,]+),\\s.*");
 	
     
-    public static final String NS_COMMON = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-    public static final String NS_TYPES = "http://prism.evolveum.com/xml/ns/public/types-3";
+    public static final String NS_COMMON = ModelClientUtil.NS_COMMON;
+    public static final String NS_TYPES = ModelClientUtil.NS_TYPES;
+    public static final String NS_RI = ModelClientUtil.NS_RI;
+    public static final String NS_ICFS = ModelClientUtil.NS_ICFS;
     protected static final QName TYPES_POLYSTRING_ORIG = new QName(NS_TYPES, "orig");
+    protected static final String CHANNEL_WS = "http://midpoint.evolveum.com/xml/ns/public/model/channels-3#webService";
+    
+    public static final QName ATTR_ICF_NAME_NAME = new QName(NS_ICFS, "name");
 
     protected static final QName COMMON_PATH = new QName(NS_COMMON, "path");
     protected static final QName COMMON_VALUE = new QName(NS_COMMON, "value");
@@ -155,42 +176,32 @@ public abstract class AbstractWebserviceTest {
     protected static ModelPortType modelPort;
     protected static SystemConfigurationType configurationType;
 
-    public static final String MULTIPLE_THREAD_USER_SEARCH_NAME = "Barbara";
-
 	private static final File SERVER_LOG_FILE = new File("/opt/tomcat/logs/idm.log");
 	private static final String AUDIT_LOGGER_NAME = "com.evolveum.midpoint.audit.log";
 	
-    public static Element MULTIPLE_THREAD_SEARCH_FILTER;
-
     @BeforeClass
-    public void beforeTests(){
+    public void beforeTests() throws Exception {
     	displayTestTitle("beforeTests");
-        init();
+    	startResources();
     }
     
 	/**
      * Takes care of system initialization. Need to be done before any tests are to be run.
      * */
-    protected void init() {
-        try {
-			MULTIPLE_THREAD_SEARCH_FILTER = parseElement(
-			        "<equal xmlns='http://prism.evolveum.com/xml/ns/public/query-2' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a' >" +
-			                "<path>c:givenName</path>" +
-			                "<value>" + MULTIPLE_THREAD_USER_SEARCH_NAME + "</value>" +
-			                "</equal>"
-			);
-		} catch (SAXException | IOException e) {
-			throw new IllegalStateException("Error creating XML document " + e.getMessage(), e);
-		}
+    protected void startResources() throws Exception {
     }
     
     @AfterClass
-    public void afterTests() throws FaultMessage {
+    public void afterTests() throws Exception {
     	displayTestTitle("afterTests");
         modelPort = createModelPort();
         cleanRepository();
+        stopResources();
         LOGGER.info("WebService test suite finished.");
     }
+    
+    protected void stopResources() throws Exception {
+    } 
 
     protected static ModelPortType createModelPort() {
     	return createModelPort(USER_ADMINISTRATOR_USERNAME, USER_ADMINISTRATOR_PASSWORD);
@@ -235,13 +246,6 @@ public abstract class AbstractWebserviceTest {
         return modelPort;
     }
     
-    private Object unmarshallFromFile(File file, String context) throws JAXBException {
-        JAXBContext jaxbContext = JAXBContext.newInstance(context);
-        javax.xml.bind.Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-        JAXBElement jaxbElement = (JAXBElement)jaxbUnmarshaller.unmarshal(file);
-        return jaxbElement.getValue();
-    }
-
     /**
      * Retrieves and returns actual system configuration
      * */
@@ -328,40 +332,19 @@ public abstract class AbstractWebserviceTest {
     protected static Element parseElement(String stringXml) throws SAXException, IOException {
     	return DOMUtil.getFirstChildElement(DOMUtil.parseDocument(stringXml));
     }
-
-    /**
-     *  Clean the repository after tests. Preserves user administrator
-     * */
-    protected void cleanRepository() throws FaultMessage {
-    	cleanObjects(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value());
-    	cleanObjects(RoleType.class, SystemObjectsType.ROLE_SUPERUSER.value(), SystemObjectsType.ROLE_END_USER.value());
+    
+    protected <O extends ObjectType> void deleteObject(Class<O> type, String oid) throws FaultMessage {
+    	deleteObject(type, oid, null);
     }
     
-    private <O extends ObjectType> void cleanObjects(Class<O> type, String... protectedOids) throws FaultMessage {
-    	Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
-        Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
-        PagingType paging = new PagingType();
-
-        modelPort.searchObjects(getTypeQName(type), null, null, objectListHolder, resultHolder);
-
-        List<String> protectedOidList = Arrays.asList(protectedOids);
-        ObjectListType objectList = objectListHolder.value;
-        for (ObjectType object: objectList.getObject()) {
-        	if (!protectedOidList.contains(object.getOid())) {
-        		display("Deleting "+type.getSimpleName()+" "+ModelClientUtil.toString(object));
-            	deleteObject(type, object.getOid());
-        	}
-        }
-    }
-    
-	protected <O extends ObjectType> void deleteObject(Class<O> type, String oid) throws FaultMessage {
+	protected <O extends ObjectType> void deleteObject(Class<O> type, String oid, ModelExecuteOptionsType options) throws FaultMessage {
     	ObjectDeltaListType deltaList = new ObjectDeltaListType();
     	ObjectDeltaType delta = new ObjectDeltaType();
     	delta.setObjectType(getTypeQName(type));
     	delta.setChangeType(ChangeTypeType.DELETE);
     	delta.setOid(oid);
 		deltaList.getDelta().add(delta);
-		ObjectDeltaOperationListType deltaOpList = modelPort.executeChanges(deltaList, null);
+		ObjectDeltaOperationListType deltaOpList = modelPort.executeChanges(deltaList, options);
 		assertSuccess(deltaOpList);
     }
 	
@@ -392,6 +375,13 @@ public abstract class AbstractWebserviceTest {
 		}
 		return objectListHolder.value.getObject().size();
 	}
+	
+	protected <F extends FocusType> String getSingleLinkOid(F focus) {
+		List<ObjectReferenceType> linkRefs = focus.getLinkRef();
+		assertEquals("Unexpected number of links for "+focus, 1, linkRefs.size());
+		return linkRefs.get(0).getOid();
+	}
+    
 
 	
 	protected void assertUser(UserType user, String expOid, String expName) {
@@ -414,6 +404,10 @@ public abstract class AbstractWebserviceTest {
     	}
 	}
 
+    protected void assertSuccess(Holder<OperationResultType> resultHolder) {
+		assertSuccess(resultHolder.value);
+	}
+    
 	protected void assertSuccess(OperationResultType result) {
 		assertEquals("Operation "+result.getOperation()+" failed:"+result.getStatus()+": " + result.getMessage(),
 				OperationResultStatusType.SUCCESS, result.getStatus());
@@ -422,6 +416,7 @@ public abstract class AbstractWebserviceTest {
 	
 	protected <F extends FaultType> void assertFaultMessage(FaultMessage fault, Class<F> expectedFaultInfoClass, String expectedMessage) {
     	FaultType faultInfo = fault.getFaultInfo();
+    	assertNotNull("No fault info in "+fault);
     	if (expectedFaultInfoClass != null && !expectedFaultInfoClass.isAssignableFrom(faultInfo.getClass())) {
     		AssertJUnit.fail("Expected that faultInfo will be of type "+expectedFaultInfoClass+", but it was "+faultInfo.getClass());
     	}
@@ -430,6 +425,7 @@ public abstract class AbstractWebserviceTest {
     		assertTrue("Wrong message in fault info: "+faultInfo.getMessage(), faultInfo.getMessage().contains(expectedMessage));
     	}
     	OperationResultType result = faultInfo.getOperationResult();
+    	assertNotNull("No result in faultInfo in "+fault, result);
     	assertEquals("Expected that resut in FaultInfo will be fatal error, but it was "+result.getStatus(),
     			OperationResultStatusType.FATAL_ERROR, result.getStatus());
 	}
@@ -463,6 +459,13 @@ public abstract class AbstractWebserviceTest {
 		String xmlString = ModelClientUtil.marshallToSting(object);
 		System.out.println(xmlString);
 		LOGGER.info("{}", xmlString);
+	}
+	
+	protected void display(OperationResultType result) throws JAXBException {
+		String xmlString = ModelClientUtil.marshallToSting(new QName(NS_COMMON,"result"), result, true);
+		System.out.println("Result:");
+		System.out.println(xmlString);
+		LOGGER.info("Result:\n{}", xmlString);
 	}
 
 	protected LogfileTestTailer createLogTailer() throws IOException {
@@ -593,7 +596,113 @@ public abstract class AbstractWebserviceTest {
         }
 	}
 
+	protected <O extends ObjectType> void assertModifyMetadata(O object, String actorOid, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) {
+        MetadataType metadata = object.getMetadata();
+        assertEquals("Wrong metadata modifierRef in "+object, actorOid, metadata.getModifierRef().getOid());
+        assertEquals("Wrong metadata modify channel in "+object, CHANNEL_WS, metadata.getModifyChannel());
+        TestUtil.assertBetween("Wrong password modifyTimestamp in "+object, startTs, endTs, metadata.getModifyTimestamp());		
+	}
 
+	protected <O extends ObjectType> void assertCreateMetadata(O object, String actorOid, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) {
+        MetadataType metadata = object.getMetadata();
+        assertEquals("Wrong metadata creatorRef in "+object, actorOid, metadata.getCreatorRef().getOid());
+        assertEquals("Wrong metadata create channel in "+object, CHANNEL_WS, metadata.getCreateChannel());
+        TestUtil.assertBetween("Wrong createTimestamp in "+object, startTs, endTs, metadata.getCreateTimestamp());		
+	}
+	
+	protected void assertPasswordModifyMetadata(UserType user, String actorOid, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) {
+        MetadataType passwordMetadata = user.getCredentials().getPassword().getMetadata();
+        assertEquals("Wrong password metadata modifierRef", actorOid, passwordMetadata.getModifierRef().getOid());
+        assertEquals("Wrong password metadata modify channel", CHANNEL_WS, passwordMetadata.getModifyChannel());
+        TestUtil.assertBetween("Wrong password modifyTimestamp", startTs, endTs, passwordMetadata.getModifyTimestamp());		
+	}
+
+	protected void assertPasswordCreateMetadata(UserType user, String actorOid, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) {
+        MetadataType passwordMetadata = user.getCredentials().getPassword().getMetadata();
+        assertEquals("Wrong password metadata creatorRef", actorOid, passwordMetadata.getCreatorRef().getOid());
+        assertEquals("Wrong password metadata create channel", CHANNEL_WS, passwordMetadata.getCreateChannel());
+        TestUtil.assertBetween("Wrong password createTimestamp", startTs, endTs, passwordMetadata.getCreateTimestamp());		
+	}
+	
+	protected void assertAttribute(ShadowType shadow, String attrName, String attrVal) {
+		assertAttribute(shadow, new QName(NS_RI, attrName), attrVal);
+	}
+	
+	protected void assertAttribute(ShadowType shadow, QName attrName, String attrVal) {
+		ShadowAttributesType attributes = shadow.getAttributes();
+		for (Object any: attributes.getAny()) {
+			if (any instanceof Element) {
+				Element element = (Element)any;
+				if (DOMUtil.getQName(element).equals(attrName)) {
+					assertEquals("Wrong attribute "+attrName+" in shadow "+ModelClientUtil.toString(shadow), attrVal, element.getTextContent());
+				}
+			} else if (any instanceof JAXBElement<?>) {
+				JAXBElement<?> jaxbElement = (JAXBElement<?>)any;
+				if (jaxbElement.getName().equals(attrName)) {
+					assertEquals("Wrong attribute "+attrName+" in shadow "+ModelClientUtil.toString(shadow), attrVal, jaxbElement.getValue().toString());
+				}
+			} else {
+				AssertJUnit.fail("Unexpected thing "+any+" in shadow attributes");
+			}
+		}
+	}
+	
+	protected void assertNoAttribute(ShadowType shadow, String attrName) {
+		assertNoAttribute(shadow, new QName(NS_RI, attrName));
+	}
+	
+	protected void assertNoAttribute(ShadowType shadow, QName attrName) {
+		ShadowAttributesType attributes = shadow.getAttributes();
+		for (Object any: attributes.getAny()) {
+			if (any instanceof Element) {
+				Element element = (Element)any;
+				if (DOMUtil.getQName(element).equals(attrName)) {
+					AssertJUnit.fail("Unexpected attribute "+attrName+" in shadow "+ModelClientUtil.toString(shadow)+": "+element.getTextContent());
+				}
+			} else if (any instanceof JAXBElement<?>) {
+				JAXBElement<?> jaxbElement = (JAXBElement<?>)any;
+				if (jaxbElement.getName().equals(attrName)) {
+					AssertJUnit.fail("Unexpected attribute "+attrName+" in shadow "+ModelClientUtil.toString(shadow)+": "+jaxbElement.getValue());
+				}
+			} else {
+				AssertJUnit.fail("Unexpected thing "+any+" in shadow attributes");
+			}
+		}
+		
+	}
+	
+    /**
+     *  Clean the repository after tests. Preserves user administrator
+     * */
+    protected void cleanRepository() throws FaultMessage {
+    	cleanObjects(UserType.class, false, SystemObjectsType.USER_ADMINISTRATOR.value());
+    	cleanObjects(RoleType.class, false, SystemObjectsType.ROLE_SUPERUSER.value(), SystemObjectsType.ROLE_END_USER.value());
+    	cleanObjects(ResourceType.class, false);
+    	cleanObjects(ShadowType.class, true);
+    }
+    
+    private <O extends ObjectType> void cleanObjects(Class<O> type, boolean raw, String... protectedOids) throws FaultMessage {
+    	Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+        Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
+
+        SelectorQualifiedGetOptionsType rootOpts = null;
+        ModelExecuteOptionsType execOpts = null;
+        if (raw) {
+        	rootOpts = ModelClientUtil.createRootGetOptions(ModelClientUtil.createRawGetOption());
+        	execOpts = ModelClientUtil.createRawExecuteOption();
+        }
+        
+        modelPort.searchObjects(getTypeQName(type), null, rootOpts, objectListHolder, resultHolder);
+
+        List<String> protectedOidList = Arrays.asList(protectedOids);
+        ObjectListType objectList = objectListHolder.value;
+        for (ObjectType object: objectList.getObject()) {
+        	if (!protectedOidList.contains(object.getOid())) {
+        		display("Deleting "+type.getSimpleName()+" "+ModelClientUtil.toString(object));
+				deleteObject(type, object.getOid(), execOpts);
+        	}
+        }
+    }
 	
     @Test
     public void test000SanityAndCleanup() throws Exception {
@@ -603,7 +712,6 @@ public abstract class AbstractWebserviceTest {
         
         configurationType = getConfiguration();
         checkAuditEnabled(configurationType);
-        
         
         cleanRepository();
     }

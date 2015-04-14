@@ -457,6 +457,9 @@ public class AssignmentEvaluator<F extends FocusType> {
 		
 		EvaluatedAbstractRoleImpl evalRole = new EvaluatedAbstractRoleImpl();
 		evalRole.setRole(roleType.asPrismObject());
+		evalRole.setEvaluateConstructions(assignmentPathSegment.isEvaluateConstructions());
+		evalRole.setAssignment(assignmentPath.last().getAssignment());
+		evalRole.setDirectlyAssigned(assignmentPath.size() == 1);
 		assignment.addRole(evalRole, mode);
 		
 		int evaluationOrder = assignmentPath.getEvaluationOrder();

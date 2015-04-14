@@ -2266,6 +2266,30 @@
         			</xsd:documentation>
         </xsd:annotation>
       </xsd:element>
+        <xsd:element name="enabled" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>Flag indicating if this synchronization specification is enabled. If it is not,
+                        then the system will ignore this definition.
+                        If enabled, the synchronization should start with most recent change
+                        after enabling synchronization. It will NOT pull in even the changes that
+                        were done during disabled synchronization.</p>
+
+                        <p>If this flag is not present the synchronization is assumed to be enabled.
+                        This flag is meant to act as a tool to temporarily disable synchronization without loosing the
+                        configuration and and state or for forcing the synchronization engine to "skip" some changes.</p>
+                        
+                        <p>Note that this is different than disabling/deleting the synchronization task. If the task
+                        is stopped, midPoint will not poll for changes at all. This means that the changes will
+                        still be "pending" on the resource and once the task is enabled it will pull such changes.
+                        On the other hand, disabling synchronization using this flag and leaving the task running will
+                        "acknowledge" all changes without doing anything.</p>
+                        
+                        <p>Also note that disabling synchronization using this flag will disable all the flavors, e.g.
+                        it will also disable import from resource.</p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
     </xsd:sequence>
   </xsd:complexType>
   <xsd:complexType name="LoginEventType">
@@ -6640,7 +6664,7 @@
                                 TODO: better documentation
                             </xsd:documentation>
               <xsd:appinfo>
-                <a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
+                <a:objectReferenceTargetType>tns:SecurityPolicyType</a:objectReferenceTargetType>
               </xsd:appinfo>
             </xsd:annotation>
           </xsd:element>

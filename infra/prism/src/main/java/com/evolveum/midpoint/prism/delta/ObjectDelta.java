@@ -256,31 +256,34 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
         }
     }
     
-    public <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedDelta<IV,ID> findPartial(ItemPath propertyPath) {
+    public <IV extends PrismValue,ID extends ItemDefinition> Collection<PartiallyResolvedDelta<IV,ID>> findPartial(ItemPath propertyPath) {
         if (changeType == ChangeType.ADD) {
             PartiallyResolvedItem<IV,ID> partialValue = objectToAdd.findPartial(propertyPath);
             if (partialValue == null || partialValue.getItem() == null) {
-                return null;
+                return new ArrayList<>(0);
             }
             Item<IV,ID> item = partialValue.getItem();
             ItemDelta<IV,ID> itemDelta = item.createDelta();
             itemDelta.addValuesToAdd(item.getClonedValues());
-            return new PartiallyResolvedDelta<IV,ID>(itemDelta, partialValue.getResidualPath());
+            Collection<PartiallyResolvedDelta<IV,ID>> deltas = new ArrayList<>(1);
+            deltas.add(new PartiallyResolvedDelta<IV,ID>(itemDelta, partialValue.getResidualPath()));
+            return deltas;
         } else if (changeType == ChangeType.MODIFY) {
+        	Collection<PartiallyResolvedDelta<IV,ID>> deltas = new ArrayList<>();
         	for (ItemDelta<?,?> modification: modifications) {
         		CompareResult compareComplex = modification.getPath().compareComplex(propertyPath);
         		if (compareComplex == CompareResult.EQUIVALENT) {
-        			return new PartiallyResolvedDelta<IV,ID>((ItemDelta<IV,ID>)modification, null);
-        		} else if (compareComplex == CompareResult.SUPERPATH) {
-        			return new PartiallyResolvedDelta<IV,ID>((ItemDelta<IV,ID>)modification, null);
+        			deltas.add(new PartiallyResolvedDelta<IV,ID>((ItemDelta<IV,ID>)modification, null));
         		} else if (compareComplex == CompareResult.SUBPATH) {
-        			return new PartiallyResolvedDelta<IV,ID>((ItemDelta<IV,ID>)modification,
-        					propertyPath.remainder(modification.getPath()));
+        			deltas.add(new PartiallyResolvedDelta<IV,ID>((ItemDelta<IV,ID>)modification, null));
+        		} else if (compareComplex == CompareResult.SUPERPATH) {
+        			deltas.add(new PartiallyResolvedDelta<IV,ID>((ItemDelta<IV,ID>)modification,
+        					modification.getPath().remainder(propertyPath)));
         		}
         	}
-            return null;
+            return deltas;
         } else {
-            return null;
+            return new ArrayList<>(0);
         }
     }
 

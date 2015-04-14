@@ -2406,6 +2406,16 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="metadata" type="tns:MetadataType" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Timestamps and general metadata describing the credential change.
+            		</xsd:documentation>
+            		<xsd:appinfo>
+            			<a:operational>true</a:operational>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
@@ -2461,6 +2471,39 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
+        	
+        	  	<xsd:element minOccurs="0" maxOccurs="1" name="questionAnswer" type="t:ProtectedStringType">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Answer to the question
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	
+        	  <xsd:element name="enabled" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>Flag indicating if this synchronization specification is enabled. If it is not,
+                        then the system will ignore this definition.
+                        If enabled, the synchronization should start with most recent change
+                        after enabling synchronization. It will NOT pull in even the changes that
+                        were done during disabled synchronization.</p>
+
+                        <p>If this flag is not present the synchronization is assumed to be enabled.
+                        This flag is meant to act as a tool to temporarily disable synchronization without loosing the
+                        configuration and and state or for forcing the synchronization engine to "skip" some changes.</p>
+                        
+                        <p>Note that this is different than disabling/deleting the synchronization task. If the task
+                        is stopped, midPoint will not poll for changes at all. This means that the changes will
+                        still be "pending" on the resource and once the task is enabled it will pull such changes.
+                        On the other hand, disabling synchronization using this flag and leaving the task running will
+                        "acknowledge" all changes without doing anything.</p>
+                        
+                        <p>Also note that disabling synchronization using this flag will disable all the flavors, e.g.
+                        it will also disable import from resource.</p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <!--  TODO: sabri  -->
         </xsd:sequence>
     </xsd:complexType>
@@ -8732,8 +8775,6 @@
                 	</xsd:element>
                 	<xsd:element name="credentials" type="tns:CredentialsPolicyType" minOccurs="0">
                 	</xsd:element>
-                    <!--  TODO: radovan -->
-                    
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -8777,6 +8818,72 @@
 		</xsd:sequence>
 	</xsd:complexType>
 	
+	 <xsd:complexType name="AbstractCredentialPolicyType" abstract="true">
+		<xsd:annotation>
+			<xsd:documentation>
+				Structure that specifies common elements to all the credential policies.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="resetMethod" type="c:CredentialsResetMethodType" minOccurs="0" maxOccurs="1">
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="CredentialsResetMethodType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Specifies the method of resetting the credential. This usually applies to a
+				self-service credential reset.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="resetType" type="c:CredentialsResetTypeType" minOccurs="0" maxOccurs="1" default="none">
+				<xsd:annotation>
+					<xsd:documentation>
+						The type of credential reset.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+    <xsd:simpleType name="CredentialsResetTypeType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="none">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Credential reset is disabled.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="securityQuestions">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Use security questions to reset the credential.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SECURITY_QUESTIONS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+             </xsd:restriction>
+    </xsd:simpleType>
+
 	 <xsd:complexType name="PasswordCredentialsPolicyType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -8787,18 +8894,22 @@
 				<a:container/>
 			</xsd:appinfo>
 		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element name="passwordPolicyRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Reference to the password policy settings.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                    			<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
-                    		</xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-		</xsd:sequence>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractCredentialPolicyType">
+				<xsd:sequence>
+					<xsd:element name="passwordPolicyRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+					    <xsd:annotation>
+					        <xsd:documentation>
+					            Reference to the password policy settings.
+					        </xsd:documentation>
+					        <xsd:appinfo>
+								<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
+							</xsd:appinfo>
+					    </xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
 	</xsd:complexType>
 	
 	<xsd:complexType name="SecurityQuestionsCredentialsPolicyType">
@@ -8812,20 +8923,31 @@
 				<a:container/>
 			</xsd:appinfo>
 		</xsd:annotation>
-		<xsd:sequence>
-			<!-- TODO: sabri 
-				settings that apply to all questions should go here, like this:
-				<xsd:element name="whatever" type="xsd:string" minOccurs="0"/>
-				This is good place to specify an overall policy, e.g. "display all questions" or "randomly select 3 questions".
-			 -->
-			 <xsd:element name="question" type="tns:SecurityQuestionDefinitionType" minOccurs="0" maxOccurs="unbounded">
-			 	<xsd:annotation>
-			 		<xsd:documentation>
-			 			The set of all the security questions in this policy.
-			 		</xsd:documentation>
-			 	</xsd:annotation>
-			 </xsd:element>
-		</xsd:sequence>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractCredentialPolicyType">
+				<xsd:sequence>
+					<!-- TODO: sabri 
+						settings that apply to all questions should go here, like this:
+						<xsd:element name="whatever" type="xsd:string" minOccurs="0"/>
+						This is good place to specify an overall policy, e.g. "display all questions" or "randomly select 3 questions".
+					 -->
+					   <xsd:element name="questionNumber" type="xsd:int" minOccurs="0"  maxOccurs="1">
+		                <xsd:annotation>
+		                    <xsd:documentation>
+		                       Number of Questions in order to change the passwords
+		                    </xsd:documentation>
+		                </xsd:annotation>
+		            </xsd:element>
+					 <xsd:element name="question" type="tns:SecurityQuestionDefinitionType" minOccurs="0" maxOccurs="unbounded">
+					 	<xsd:annotation>
+					 		<xsd:documentation>
+					 			The set of all the security questions in this policy.
+					 		</xsd:documentation>
+					 	</xsd:annotation>
+					 </xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
 	</xsd:complexType>
 	
 	<xsd:complexType name="SecurityQuestionDefinitionType">
@@ -8861,6 +8983,13 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="questionText" type="xsd:string" maxOccurs="1">
+        	    <xsd:annotation>
+                    <xsd:documentation>
+                        The question itself, or the localization identifier to it.
+                    </xsd:documentation>
+                </xsd:annotation>
+        	</xsd:element>
 			<!-- TODO: sabri 
 				settings that apply to a specific security question should go here, like this:
 				<xsd:element name="something" type="xsd:string" minOccurs="0"/>
@@ -11032,4 +11161,3 @@
     <xsd:element name="decisionType" type="tns:DecisionType" />
 
 </xsd:schema>
-

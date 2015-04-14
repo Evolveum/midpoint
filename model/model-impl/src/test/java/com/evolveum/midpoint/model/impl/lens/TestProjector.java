@@ -539,7 +539,7 @@ public class TestProjector extends AbstractLensTest {
         start.add(XmlTypeConverter.createDuration(true, 0, 0, 25, 0, 0, 0));
         XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
         end.add(XmlTypeConverter.createDuration(true, 0, 0, 35, 0, 0, 0));
-        IntegrationTestTools.assertBetween("Wrong trigger timestamp", start, end, triggerType.getTimestamp());
+        TestUtil.assertBetween("Wrong trigger timestamp", start, end, triggerType.getTimestamp());
     }
 	
 	/**
@@ -1166,7 +1166,7 @@ public class TestProjector extends AbstractLensTest {
         // There is an inbound mapping for password that generates it if not present. it is triggered in this case.
         ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getSecondaryDelta();
         assertTrue(userSecondaryDelta.getChangeType() == ChangeType.MODIFY);
-        assertEquals("Unexpected number of modifications in user secondary delta", 5, userSecondaryDelta.getModifications().size());
+        assertEquals("Unexpected number of modifications in user secondary delta", 7, userSecondaryDelta.getModifications().size());
         ItemDelta modification = userSecondaryDelta.getModifications().iterator().next();
         assertEquals("Unexpected modification", PasswordType.F_VALUE, modification.getElementName());
         assertOriginWithSideEffectChanges(userSecondaryDelta, OriginType.INBOUND);
@@ -1244,6 +1244,9 @@ public class TestProjector extends AbstractLensTest {
         	if (firstName.equals(UserType.F_ACTIVATION) ||
         			firstName.equals(FocusType.F_ITERATION) || firstName.equals(FocusType.F_ITERATION_TOKEN)) {
         		PrismAsserts.assertOrigin(modification, OriginType.USER_POLICY);
+        		iterator.remove();
+        	}
+        	if (modification.getPath().containsName(ObjectType.F_METADATA)) {
         		iterator.remove();
         	}
         }

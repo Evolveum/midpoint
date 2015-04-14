@@ -62,9 +62,9 @@ public class LayerRefinedAttributeDefinition<T> extends RefinedAttributeDefiniti
 		return new LayerRefinedAttributeDefinition<T>(rAttrDef, layer);
 	}
 	
-	static List<LayerRefinedAttributeDefinition> wrapCollection(
+	static List<LayerRefinedAttributeDefinition<?>> wrapCollection(
 			Collection<? extends ItemDefinition> defs, LayerType layer) {
-		List outs = new ArrayList<LayerRefinedAttributeDefinition>(defs.size());
+		List outs = new ArrayList<LayerRefinedAttributeDefinition<?>>(defs.size());
 		for (ItemDefinition itemDef: defs) {
             if (itemDef instanceof LayerRefinedAttributeDefinition) {
                 outs.add(itemDef);
@@ -82,12 +82,12 @@ public class LayerRefinedAttributeDefinition<T> extends RefinedAttributeDefiniti
 	}
 
 	@Override
-	public ResourceAttribute instantiate() {
+	public ResourceAttribute<T> instantiate() {
 		return refinedAttributeDefinition.instantiate();
 	}
 
 	@Override
-	public ResourceAttribute instantiate(QName name) {
+	public ResourceAttribute<T> instantiate(QName name) {
 		return refinedAttributeDefinition.instantiate(name);
 	}
 

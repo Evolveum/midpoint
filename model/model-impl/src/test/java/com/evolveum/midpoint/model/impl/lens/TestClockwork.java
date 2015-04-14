@@ -69,7 +69,6 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -282,7 +281,7 @@ public class TestClockwork extends AbstractLensTest {
         start.add(XmlTypeConverter.createDuration(true, 0, 0, 25, 0, 0, 0));
         XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
         end.add(XmlTypeConverter.createDuration(true, 0, 0, 35, 0, 0, 0));
-        IntegrationTestTools.assertBetween("Wrong trigger timestamp", start, end, triggerType.getTimestamp());
+        TestUtil.assertBetween("Wrong trigger timestamp", start, end, triggerType.getTimestamp());
                 
     }
 	

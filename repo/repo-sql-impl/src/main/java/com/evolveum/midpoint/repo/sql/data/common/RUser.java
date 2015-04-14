@@ -201,7 +201,11 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         return hasPhoto;
     }
 
-    @OneToMany(mappedBy = "owner", orphanRemoval = true)
+    // setting orphanRemoval = false prevents:
+    //   (1) deletion of photos for RUsers that have no photos fetched (because fetching is lazy)
+    //   (2) even querying of m_user_photo table on RUser merge
+    // (see comments in SqlRepositoryServiceImpl.modifyObjectAttempt)
+    @OneToMany(mappedBy = "owner", orphanRemoval = false)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RUserPhoto> getJpegPhoto() {
         if (jpegPhoto == null) {

@@ -700,7 +700,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		assertNotNull("No metadata in "+objectType, metadata);
 		XMLGregorianCalendar createTimestamp = metadata.getCreateTimestamp();
 		assertNotNull("No createTimestamp in metadata of "+objectType, createTimestamp);
-		IntegrationTestTools.assertBetween("Wrong createTimestamp in metadata of "+objectType, startTime, endTime, createTimestamp);
+		TestUtil.assertBetween("Wrong createTimestamp in metadata of "+objectType, startTime, endTime, createTimestamp);
 		assertEquals("Wrong channel in metadata of "+objectType, SchemaConstants.CHANNEL_OBJECT_IMPORT_URI, metadata.getCreateChannel());
 	}
 

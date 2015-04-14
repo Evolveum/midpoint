@@ -82,9 +82,12 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -370,6 +373,12 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // This one should still be here, even if ignored
         IntegrationTestTools.assertAttribute(account, getAttributeQName(resourceDummy, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME), 
         		"cold");
+        
+        ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(account);
+        assertNotNull("No attribute container from "+account, attributesContainer);
+        Collection<ResourceAttribute<?>> identifiers = attributesContainer.getIdentifiers();
+        assertNotNull("No identifiers (null) in attributes container in "+accountOid, identifiers);
+        assertFalse("No identifiers (empty) in attributes container in "+accountOid, identifiers.isEmpty());
         
         assertSteadyResources();
 	}
@@ -2578,10 +2587,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	
 	@Test
     public void test200AddUserBlackbeardWithAccount() throws Exception {
-        TestUtil.displayTestTile(this, "test200AddUserBlackbeardWithAccount");
+		final String TEST_NAME = "test200AddUserBlackbeardWithAccount";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test200AddUserBlackbeardWithAccount");
+        Task task = createTask(TEST_NAME);
         // Use custom channel to trigger a special outbound mapping
         task.setChannel("http://pirates.net/avast");
         OperationResult result = task.getResult();
@@ -2608,6 +2618,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         ObjectReferenceType accountRefType = userBlackbeardType.getLinkRef().get(0);
         String accountOid = accountRefType.getOid();
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
+        
+        assertEncryptedPassword(userBlackbeard, "QueenAnne");
+        assertPasswordMetadata(userBlackbeard, true, startTime, endTime, USER_ADMINISTRATOR_OID, "http://pirates.net/avast");
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
@@ -2659,10 +2672,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	
 	@Test
     public void test210AddUserMorganWithAssignment() throws Exception {
-        TestUtil.displayTestTile(this, "test210AddUserMorganWithAssignment");
+		final String TEST_NAME = "test210AddUserMorganWithAssignment";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test210AddUserMorganWithAssignment");
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
         
@@ -2687,6 +2701,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         ObjectReferenceType accountRefType = userMorganType.getLinkRef().get(0);
         String accountOid = accountRefType.getOid();
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
+        
+        assertEncryptedPassword(userMorgan, "rum");
+        assertPasswordMetadata(userMorgan, true, startTime, endTime);
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
