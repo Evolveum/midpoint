@@ -60,17 +60,17 @@ public class AssignmentPreviewDialog extends ModalWindow{
 
     private boolean initialized;
     private List<String> directAssignments;
-    private IModel<List<? extends ObjectType>> data;
+    private IModel<List<AssignmentsPreviewDto>> data;
 
-    public AssignmentPreviewDialog(String id, final List<? extends ObjectType> data, List<String> directAssignments){
+    public AssignmentPreviewDialog(String id, final List<AssignmentsPreviewDto> data, List<String> directAssignments){
         super(id);
 
         this.directAssignments = directAssignments;
-        this.data = new LoadableModel<List<? extends ObjectType>>(false) {
+        this.data = new LoadableModel<List<AssignmentsPreviewDto>>(false) {
 
             @Override
-            protected List<? extends ObjectType> load() {
-                return data == null ? new ArrayList<ObjectType>() : data;
+            protected List<AssignmentsPreviewDto> load() {
+                return data == null ? new ArrayList<AssignmentsPreviewDto>() : data;
             }
         };
 
@@ -78,7 +78,7 @@ public class AssignmentPreviewDialog extends ModalWindow{
         showUnloadConfirmation(false);
         setCssClassName(ModalWindow.CSS_CLASS_GRAY);
         setCookieName(AssignmentPreviewDialog.class.getSimpleName() + ((int) (Math.random() * 100)));
-        setInitialWidth(650);
+        setInitialWidth(1100);
         setInitialHeight(500);
         setWidthUnit("px");
 
@@ -86,7 +86,7 @@ public class AssignmentPreviewDialog extends ModalWindow{
         setContent(content);
     }
 
-    public void updateData(AjaxRequestTarget target, List<? extends ObjectType> newData, List<String> directAssignments){
+    public void updateData(AjaxRequestTarget target, List<AssignmentsPreviewDto> newData, List<String> directAssignments){
         this.directAssignments = directAssignments;
         data.setObject(newData);
         target.add(get(getContentId() + ":" + ID_TABLE));
@@ -113,7 +113,7 @@ public class AssignmentPreviewDialog extends ModalWindow{
     }
 
     public void initLayout(WebMarkupContainer content){
-        List<IColumn<ObjectType, String>> columns = initColumns();
+        List<IColumn<AssignmentsPreviewDto, String>> columns = initColumns();
         ListDataProvider provider = new ListDataProvider(getPageBase(), data);
 
         TablePanel table = new TablePanel<>(ID_TABLE, provider, columns);
@@ -131,61 +131,71 @@ public class AssignmentPreviewDialog extends ModalWindow{
         content.add(cancelButton);
     }
 
-    private List<IColumn<ObjectType, String>> initColumns(){
-        List<IColumn<ObjectType, String>> columns = new ArrayList<>();
+    private List<IColumn<AssignmentsPreviewDto, String>> initColumns() {
+        List<IColumn<AssignmentsPreviewDto, String>> columns = new ArrayList<>();
 
-        columns.add(new LinkColumn<ObjectType>(createStringResource("AssignmentPreviewDialog.column.name"), "name"){
+        columns.add(new LinkColumn<AssignmentsPreviewDto>(createStringResource("AssignmentPreviewDialog.column.name"), AssignmentsPreviewDto.F_TARGET_NAME){
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<ObjectType> rowModel){
-                ObjectType role = rowModel.getObject();
-                chooseOperationPerformed(target, role);
+            public void onClick(AjaxRequestTarget target, IModel<AssignmentsPreviewDto> rowModel){
+                AssignmentsPreviewDto dto = rowModel.getObject();
+                chooseOperationPerformed(target, dto.getTargetOid(), dto.getTargetClass());
             }
         });
 
-        columns.add(new IconColumn<ObjectType>(createStringResource("")) {
+        columns.add(new IconColumn<AssignmentsPreviewDto>(createStringResource("")) {
 
             @Override
-            protected IModel<String> createIconModel(IModel<ObjectType> rowModel) {
-                ObjectType object = rowModel.getObject();
-                ObjectTypeGuiDescriptor guiDescriptor = ObjectTypeGuiDescriptor.getDescriptor(object.getClass());
-
+            protected IModel<String> createIconModel(IModel<AssignmentsPreviewDto> rowModel) {
+                ObjectTypeGuiDescriptor guiDescriptor = ObjectTypeGuiDescriptor.getDescriptor(rowModel.getObject().getTargetClass());
                 String icon = guiDescriptor != null ? guiDescriptor.getIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
-
                 return new Model<>(icon);
             }
         });
 
-        columns.add(new AbstractColumn<ObjectType, String>(createStringResource("Type")) {
+        columns.add(new AbstractColumn<AssignmentsPreviewDto, String>(createStringResource("Type")) {
 
             @Override
-            public void populateItem(Item<ICellPopulator<ObjectType>> cellItem, String componentId, final IModel<ObjectType> rowModel) {
+            public void populateItem(Item<ICellPopulator<AssignmentsPreviewDto>> cellItem, String componentId, final IModel<AssignmentsPreviewDto> rowModel) {
                 cellItem.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
 
                     @Override
                     public String getObject() {
-                        return directAssignments.contains(rowModel.getObject().getOid()) ?
+                        return rowModel.getObject().isDirect() ?
                                 createStringResource("AssignmentPreviewDialog.type.direct").getString() :
-                                createStringResource("AssignmentPreviewDialog.type.indirect").getObject();
+                                createStringResource("AssignmentPreviewDialog.type.indirect").getString();
                     }
                 }));
             }
         });
 
-        columns.add(new PropertyColumn<ObjectType, String>(createStringResource("AssignmentPreviewDialog.column.description"), "description"));
+        columns.add(new PropertyColumn<AssignmentsPreviewDto, String>(
+                createStringResource("AssignmentPreviewDialog.column.description"), AssignmentsPreviewDto.F_TARGET_DESCRIPTION));
+
+        columns.add(new PropertyColumn<AssignmentsPreviewDto, String>(
+                createStringResource("AssignmentPreviewDialog.column.tenant"), AssignmentsPreviewDto.F_TENANT_NAME));
+
+        columns.add(new PropertyColumn<AssignmentsPreviewDto, String>(
+                createStringResource("AssignmentPreviewDialog.column.orgRef"), AssignmentsPreviewDto.F_ORG_REF_NAME));
+
+        columns.add(new PropertyColumn<AssignmentsPreviewDto, String>(
+                createStringResource("AssignmentPreviewDialog.column.kind"), AssignmentsPreviewDto.F_KIND));
+
+        columns.add(new PropertyColumn<AssignmentsPreviewDto, String>(
+                createStringResource("AssignmentPreviewDialog.column.intent"), AssignmentsPreviewDto.F_INTENT));
 
         return columns;
     }
 
-    private void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object){
+    private void chooseOperationPerformed(AjaxRequestTarget target, String oid, Class clazz){
         PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, object.getOid());
+        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
 
-        if(object.getClass().equals(RoleType.class)){
+        if(clazz.equals(RoleType.class)){
             setResponsePage(PageRole.class, parameters);
-        } else if(object.getClass().equals(ResourceType.class)){
+        } else if(clazz.equals(ResourceType.class)){
             setResponsePage(PageResourceWizard.class, parameters);
-        } else if(object.getClass().equals(OrgType.class)){
+        } else if(clazz.equals(OrgType.class)){
             setResponsePage(PageOrgUnit.class, parameters);
         }
     }

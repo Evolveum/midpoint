@@ -13,24 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.model.api.context;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+package com.evolveum.midpoint.util.exception;
 
 /**
+ * Specific kind of SchemaException. Used e.g. to treat "no name" problems in previewChanges method nicely.
+ * SchemaException.propertyName:=UserType.F_NAME could be used as well, but it's a bit ambiguous.
+ * 
+ * A little bit experimental. (We certainly don't want to have millions of exception types.)
+ * 
  * @author mederly
- *
  */
-public interface EvaluatedConstruction extends DebugDumpable {
-	
-	PrismObject<ResourceType> getResource();
+public class NoFocusNameSchemaException extends SchemaException {
 
-	ShadowKindType getKind();
-
-	String getIntent();
-
-	boolean isDirectlyAssigned();
+    public NoFocusNameSchemaException(String message) {
+        super(message);
+    }
 }
