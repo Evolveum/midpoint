@@ -6,7 +6,7 @@ CREATE TABLE m_abstract_role (
 );
 
 CREATE TABLE m_assignment (
-  id                      INT2        NOT NULL,
+  id                      INT4        NOT NULL,
   owner_oid               VARCHAR(36) NOT NULL,
   administrativeStatus    INT4,
   archiveTimestamp        TIMESTAMP,
@@ -36,14 +36,26 @@ CREATE TABLE m_assignment (
   tenantRef_relation      VARCHAR(157),
   tenantRef_targetOid     VARCHAR(36),
   tenantRef_type          INT4,
-  extId                   INT2,
+  extId                   INT4,
   extOid                  VARCHAR(36),
   PRIMARY KEY (id, owner_oid)
 );
 
+CREATE TABLE m_assignment_ext_boolean (
+  eName                        VARCHAR(157) NOT NULL,
+  anyContainer_owner_id        INT4         NOT NULL,
+  anyContainer_owner_owner_oid VARCHAR(36)  NOT NULL,
+  booleanValue                 BOOLEAN      NOT NULL,
+  extensionType                INT4,
+  dynamicDef                   BOOLEAN,
+  eType                        VARCHAR(157),
+  valueType                    INT4,
+  PRIMARY KEY (eName, anyContainer_owner_id, anyContainer_owner_owner_oid, booleanValue)
+);
+
 CREATE TABLE m_assignment_ext_date (
   eName                        VARCHAR(157) NOT NULL,
-  anyContainer_owner_id        INT2         NOT NULL,
+  anyContainer_owner_id        INT4         NOT NULL,
   anyContainer_owner_owner_oid VARCHAR(36)  NOT NULL,
   dateValue                    TIMESTAMP    NOT NULL,
   extensionType                INT4,
@@ -55,7 +67,7 @@ CREATE TABLE m_assignment_ext_date (
 
 CREATE TABLE m_assignment_ext_long (
   eName                        VARCHAR(157) NOT NULL,
-  anyContainer_owner_id        INT2         NOT NULL,
+  anyContainer_owner_id        INT4         NOT NULL,
   anyContainer_owner_owner_oid VARCHAR(36)  NOT NULL,
   longValue                    INT8         NOT NULL,
   extensionType                INT4,
@@ -67,7 +79,7 @@ CREATE TABLE m_assignment_ext_long (
 
 CREATE TABLE m_assignment_ext_poly (
   eName                        VARCHAR(157) NOT NULL,
-  anyContainer_owner_id        INT2         NOT NULL,
+  anyContainer_owner_id        INT4         NOT NULL,
   anyContainer_owner_owner_oid VARCHAR(36)  NOT NULL,
   orig                         VARCHAR(255) NOT NULL,
   extensionType                INT4,
@@ -80,7 +92,7 @@ CREATE TABLE m_assignment_ext_poly (
 
 CREATE TABLE m_assignment_ext_reference (
   eName                        VARCHAR(157) NOT NULL,
-  anyContainer_owner_id        INT2         NOT NULL,
+  anyContainer_owner_id        INT4         NOT NULL,
   anyContainer_owner_owner_oid VARCHAR(36)  NOT NULL,
   targetoid                    VARCHAR(36)  NOT NULL,
   extensionType                INT4,
@@ -94,7 +106,7 @@ CREATE TABLE m_assignment_ext_reference (
 
 CREATE TABLE m_assignment_ext_string (
   eName                        VARCHAR(157) NOT NULL,
-  anyContainer_owner_id        INT2         NOT NULL,
+  anyContainer_owner_id        INT4         NOT NULL,
   anyContainer_owner_owner_oid VARCHAR(36)  NOT NULL,
   stringValue                  VARCHAR(255) NOT NULL,
   extensionType                INT4,
@@ -105,8 +117,9 @@ CREATE TABLE m_assignment_ext_string (
 );
 
 CREATE TABLE m_assignment_extension (
-  owner_id        INT2        NOT NULL,
+  owner_id        INT4        NOT NULL,
   owner_owner_oid VARCHAR(36) NOT NULL,
+  booleansCount   INT2,
   datesCount      INT2,
   longsCount      INT2,
   polysCount      INT2,
@@ -116,13 +129,13 @@ CREATE TABLE m_assignment_extension (
 );
 
 CREATE TABLE m_assignment_reference (
-  reference_type  INT4         NOT NULL,
-  owner_id        INT2         NOT NULL,
+  owner_id        INT4         NOT NULL,
   owner_owner_oid VARCHAR(36)  NOT NULL,
+  reference_type  INT4         NOT NULL,
   relation        VARCHAR(157) NOT NULL,
   targetOid       VARCHAR(36)  NOT NULL,
   containerType   INT4,
-  PRIMARY KEY (owner_id, owner_owner_oid, relation, targetOid)
+  PRIMARY KEY (owner_id, owner_owner_oid, reference_type, relation, targetOid)
 );
 
 CREATE TABLE m_audit_delta (
@@ -190,7 +203,7 @@ CREATE TABLE m_connector_target_system (
 );
 
 CREATE TABLE m_exclusion (
-  id                  INT2        NOT NULL,
+  id                  INT4        NOT NULL,
   owner_oid           VARCHAR(36) NOT NULL,
   policy              INT4,
   targetRef_relation  VARCHAR(157),
@@ -222,6 +235,24 @@ CREATE TABLE m_generic_object (
   PRIMARY KEY (oid)
 );
 
+CREATE TABLE m_lookup_table (
+  name_norm VARCHAR(255),
+  name_orig VARCHAR(255),
+  oid       VARCHAR(36) NOT NULL,
+  PRIMARY KEY (oid)
+);
+
+CREATE TABLE m_lookup_table_row (
+  id                  INT4        NOT NULL,
+  owner_oid           VARCHAR(36) NOT NULL,
+  row_key             VARCHAR(255),
+  label_norm          VARCHAR(255),
+  label_orig          VARCHAR(255),
+  lastChangeTimestamp TIMESTAMP,
+  row_value           VARCHAR(255),
+  PRIMARY KEY (id, owner_oid)
+);
+
 CREATE TABLE m_node (
   name_norm      VARCHAR(255),
   name_orig      VARCHAR(255),
@@ -232,6 +263,7 @@ CREATE TABLE m_node (
 
 CREATE TABLE m_object (
   oid                   VARCHAR(36) NOT NULL,
+  booleansCount         INT2,
   createChannel         VARCHAR(255),
   createTimestamp       TIMESTAMP,
   creatorRef_relation   VARCHAR(157),
@@ -256,6 +288,17 @@ CREATE TABLE m_object (
   tenantRef_type        INT4,
   version               INT4        NOT NULL,
   PRIMARY KEY (oid)
+);
+
+CREATE TABLE m_object_ext_boolean (
+  eName        VARCHAR(157) NOT NULL,
+  owner_oid    VARCHAR(36)  NOT NULL,
+  ownerType    INT4         NOT NULL,
+  booleanValue BOOLEAN      NOT NULL,
+  dynamicDef   BOOLEAN,
+  eType        VARCHAR(157),
+  valueType    INT4,
+  PRIMARY KEY (eName, owner_oid, ownerType, booleanValue)
 );
 
 CREATE TABLE m_object_ext_date (
@@ -352,12 +395,12 @@ CREATE TABLE m_org_org_type (
 );
 
 CREATE TABLE m_reference (
-  reference_type INT4         NOT NULL,
   owner_oid      VARCHAR(36)  NOT NULL,
+  reference_type INT4         NOT NULL,
   relation       VARCHAR(157) NOT NULL,
   targetOid      VARCHAR(36)  NOT NULL,
   containerType  INT4,
-  PRIMARY KEY (owner_oid, relation, targetOid)
+  PRIMARY KEY (owner_oid, reference_type, relation, targetOid)
 );
 
 CREATE TABLE m_report (
@@ -470,7 +513,7 @@ CREATE TABLE m_task_dependent (
 );
 
 CREATE TABLE m_trigger (
-  id             INT2        NOT NULL,
+  id             INT4        NOT NULL,
   owner_oid      VARCHAR(36) NOT NULL,
   handlerUri     VARCHAR(255),
   timestampValue TIMESTAMP,
@@ -547,6 +590,8 @@ CREATE INDEX iAssignmentAdministrative ON m_assignment (administrativeStatus);
 
 CREATE INDEX iAssignmentEffective ON m_assignment (effectiveStatus);
 
+CREATE INDEX iAExtensionBoolean ON m_assignment_ext_boolean (extensionType, eName, booleanValue);
+
 CREATE INDEX iAExtensionDate ON m_assignment_ext_date (extensionType, eName, dateValue);
 
 CREATE INDEX iAExtensionLong ON m_assignment_ext_long (extensionType, eName, longValue);
@@ -569,6 +614,12 @@ CREATE INDEX iFocusEffective ON m_focus (effectiveStatus);
 ALTER TABLE m_generic_object
 ADD CONSTRAINT uc_generic_object_name UNIQUE (name_norm);
 
+ALTER TABLE m_lookup_table
+ADD CONSTRAINT uc_lookup_name UNIQUE (name_norm);
+
+ALTER TABLE m_lookup_table_row
+ADD CONSTRAINT uc_row_key UNIQUE (row_key);
+
 ALTER TABLE m_node
 ADD CONSTRAINT uc_node_name UNIQUE (name_norm);
 
@@ -579,6 +630,10 @@ CREATE INDEX iObjectNameNorm ON m_object (name_norm);
 CREATE INDEX iObjectTypeClass ON m_object (objectTypeClass);
 
 CREATE INDEX iObjectCreateTimestamp ON m_object (createTimestamp);
+
+CREATE INDEX iExtensionBoolean ON m_object_ext_boolean (ownerType, eName, booleanValue);
+
+CREATE INDEX iExtensionBooleanDef ON m_object_ext_boolean (owner_oid, ownerType);
 
 CREATE INDEX iExtensionDate ON m_object_ext_date (ownerType, eName, dateValue);
 
@@ -667,6 +722,11 @@ ADD CONSTRAINT fk_assignment_owner
 FOREIGN KEY (owner_oid)
 REFERENCES m_object;
 
+ALTER TABLE m_assignment_ext_boolean
+ADD CONSTRAINT fk_assignment_ext_boolean
+FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
+REFERENCES m_assignment_extension;
+
 ALTER TABLE m_assignment_ext_date
 ADD CONSTRAINT fk_assignment_ext_date
 FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
@@ -732,9 +792,24 @@ ADD CONSTRAINT fk_generic_object
 FOREIGN KEY (oid)
 REFERENCES m_object;
 
+ALTER TABLE m_lookup_table
+ADD CONSTRAINT fk_lookup_table
+FOREIGN KEY (oid)
+REFERENCES m_object;
+
+ALTER TABLE m_lookup_table_row
+ADD CONSTRAINT fk_lookup_table_owner
+FOREIGN KEY (owner_oid)
+REFERENCES m_lookup_table;
+
 ALTER TABLE m_node
 ADD CONSTRAINT fk_node
 FOREIGN KEY (oid)
+REFERENCES m_object;
+
+ALTER TABLE m_object_ext_boolean
+ADD CONSTRAINT fk_object_ext_boolean
+FOREIGN KEY (owner_oid)
 REFERENCES m_object;
 
 ALTER TABLE m_object_ext_date
@@ -1066,10 +1141,10 @@ create table ACT_GE_PROPERTY (
 );
 
 insert into ACT_GE_PROPERTY
-values ('schema.version', '5.15.1', 1);
+values ('schema.version', '5.17.0.2', 1);
 
 insert into ACT_GE_PROPERTY
-values ('schema.history', 'create(5.15.1)', 1);
+values ('schema.history', 'create(5.17.0.2)', 1);
 
 insert into ACT_GE_PROPERTY
 values ('next.dbid', '1', 1);
@@ -1126,6 +1201,8 @@ create table ACT_RU_EXECUTION (
     SUSPENSION_STATE_ integer,
     CACHED_ENT_STATE_ integer,
     TENANT_ID_ varchar(255) default '',
+    NAME_ varchar(255),
+    LOCK_TIME_ timestamp,
     primary key (ID_)
 );
 
@@ -1162,6 +1239,7 @@ create table ACT_RE_PROCDEF (
     DGRM_RESOURCE_NAME_ varchar(4000),
     DESCRIPTION_ varchar(4000),
     HAS_START_FORM_KEY_ boolean,
+    HAS_GRAPHICAL_NOTATION_ boolean,
     SUSPENSION_STATE_ integer,
     TENANT_ID_ varchar(255) default '',
     primary key (ID_)
@@ -1186,6 +1264,7 @@ create table ACT_RU_TASK (
     CATEGORY_ varchar(255),
     SUSPENSION_STATE_ integer,
     TENANT_ID_ varchar(255) default '',
+    FORM_KEY_ varchar(255),
     primary key (ID_)
 );
 
@@ -1230,6 +1309,21 @@ create table ACT_RU_EVENT_SUBSCR (
     PROC_DEF_ID_ varchar(64),
     TENANT_ID_ varchar(255) default '',
     primary key (ID_)
+);
+
+create table ACT_EVT_LOG (
+    LOG_NR_ SERIAL PRIMARY KEY,
+    TYPE_ varchar(64),
+    PROC_DEF_ID_ varchar(64),
+    PROC_INST_ID_ varchar(64),
+    EXECUTION_ID_ varchar(64),
+    TASK_ID_ varchar(64),
+    TIME_STAMP_ timestamp not null,
+    USER_ID_ varchar(255),
+    DATA_ bytea,
+    LOCK_OWNER_ varchar(255),
+    LOCK_TIME_ timestamp null,
+    IS_PROCESSED_ smallint default 0
 );
 
 create index ACT_IDX_EXEC_BUSKEY on ACT_RU_EXECUTION(BUSINESS_KEY_);
@@ -1372,6 +1466,7 @@ create table ACT_HI_PROCINST (
     SUPER_PROCESS_INSTANCE_ID_ varchar(64),
     DELETE_REASON_ varchar(4000),
     TENANT_ID_ varchar(255) default '',
+    NAME_ varchar(255),
     primary key (ID_),
     unique (PROC_INST_ID_)
 );
@@ -1479,6 +1574,7 @@ create table ACT_HI_ATTACHMENT (
     PROC_INST_ID_ varchar(64),
     URL_ varchar(4000),
     CONTENT_ID_ varchar(64),
+    TIME_ timestamp,
     primary key (ID_)
 );
 
@@ -1504,6 +1600,7 @@ create index ACT_IDX_HI_DETAIL_NAME on ACT_HI_DETAIL(NAME_);
 create index ACT_IDX_HI_DETAIL_TASK_ID on ACT_HI_DETAIL(TASK_ID_);
 create index ACT_IDX_HI_PROCVAR_PROC_INST on ACT_HI_VARINST(PROC_INST_ID_);
 create index ACT_IDX_HI_PROCVAR_NAME_TYPE on ACT_HI_VARINST(NAME_, VAR_TYPE_);
+create index ACT_IDX_HI_PROCVAR_TASK_ID on ACT_HI_VARINST(TASK_ID_);
 create index ACT_IDX_HI_ACT_INST_PROCINST on ACT_HI_ACTINST(PROC_INST_ID_, ACT_ID_);
 create index ACT_IDX_HI_ACT_INST_EXEC on ACT_HI_ACTINST(EXECUTION_ID_, ACT_ID_);
 create index ACT_IDX_HI_IDENT_LNK_USER on ACT_HI_IDENTITYLINK(USER_ID_);
