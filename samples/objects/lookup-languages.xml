@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2015 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+  
+<lookupTable oid="eeb8c922-e2ad-11e4-9db9-001e8c717e5b"
+   xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+   xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+   xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+   xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+
+	<name>Languages</name>
+	
+	<row>
+		<key>en_US</key>
+		<label>English (United States)</label>
+	</row>
+
+	<row>
+		<key>en_GB</key>
+		<label>English (United Kingdom)</label>
+	</row>
+	
+	<row>
+		<key>sk_SK</key>
+		<label>Slovenčina</label>
+	</row>
+	
+	<row>
+		<key>cz_CZ</key>
+		<label>Čeština</label>
+	</row>
+
+	<row>
+		<key>fr_FR</key>
+		<label>Français</label>
+	</row>
+
+	<row>
+		<key>tr_TR</key>
+		<label>Türkçe</label>
+	</row>
+  
+
+</lookupTable>
