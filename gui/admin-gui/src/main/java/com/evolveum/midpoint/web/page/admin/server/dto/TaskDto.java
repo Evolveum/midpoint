@@ -21,14 +21,12 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -36,6 +34,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.*;
@@ -48,6 +47,7 @@ import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
 import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationStatusDto;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.wf.WfHistoryEventDto;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.wf.api.WfTaskExtensionItemsNames;
@@ -69,6 +69,7 @@ public class TaskDto extends Selectable {
 
     public static final String CLASS_DOT = TaskDto.class.getName() + ".";
     public static final String OPERATION_NEW = CLASS_DOT + "new";
+    public static final String OPERATION_LOAD_RESOURCE = CLASS_DOT + "loadResource";
 
     private static final transient Trace LOGGER = TraceManager.getTrace(TaskDto.class);
     public static final String F_MODEL_OPERATION_STATUS = "modelOperationStatus";
@@ -89,6 +90,7 @@ public class TaskDto extends Selectable {
     public static final String F_DRY_RUN = "dryRun";
     public static final String F_KIND = "kind";
     public static final String F_INTENT = "intent";
+    public static final String F_OBJECT_CLASS = "objectClass";
     public static final String F_WORKER_THREADS = "workerThreads";
     public static final String F_RESOURCE_REFERENCE = "resourceRef";
 
@@ -133,19 +135,23 @@ public class TaskDto extends Selectable {
     private boolean dryRun;
     private ShadowKindType kind;
     private String intent;
+    private String objectClass;
+    private List<QName> objectClassList;
 
     private Integer workerThreads;
 
     private TaskType taskType;
 
     //region Construction
-    public TaskDto(TaskType taskType, ModelService modelService, TaskService taskService, ModelInteractionService modelInteractionService, TaskManager taskManager, TaskDtoProviderOptions options, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+    public TaskDto(TaskType taskType, ModelService modelService, TaskService taskService, ModelInteractionService modelInteractionService,
+                   TaskManager taskManager, TaskDtoProviderOptions options, OperationResult parentResult, PageBase pageBase) throws SchemaException, ObjectNotFoundException {
         Validate.notNull(taskType, "Task must not be null.");
         Validate.notNull(modelService);
         Validate.notNull(taskService);
         Validate.notNull(modelInteractionService);
         Validate.notNull(taskManager);
         Validate.notNull(parentResult);
+        Validate.notNull(pageBase);
 
         this.taskType = taskType;
 
@@ -153,7 +159,7 @@ public class TaskDto extends Selectable {
         fillInTimestamps(taskType);
         fillInHandlerUriList(taskType);
         fillInScheduleAttributes(taskType);
-        fillInResourceReference(taskType, taskManager, thisOpResult, modelService);
+        fillInResourceReference(taskType, taskManager, thisOpResult, modelService, pageBase);
         fillInObjectRefAttributes(taskType, modelService, taskManager, options, thisOpResult);
         fillInParentTaskAttributes(taskType, taskService, options, thisOpResult);
         fillInOperationResultAttributes(taskType);
@@ -163,15 +169,39 @@ public class TaskDto extends Selectable {
         fillInWorkflowAttributes(taskType);
         thisOpResult.computeStatusIfUnknown();
 
-        //dryRun, intent, kind, workerThreads
+        //dryRun, intent, kind, objectCLass, workerThreads
         fillFromExtension(taskType);
     }
 
-    private void fillInResourceReference(TaskType task, TaskManager manager, OperationResult result, ModelService service){
+    private void fillInResourceReference(TaskType task, TaskManager manager, OperationResult result, ModelService service, PageBase pageBase){
         ObjectReferenceType ref = task.getObjectRef();
 
         if(ref != null && ResourceType.COMPLEX_TYPE.equals(ref.getType())){
             resourceRef = new TaskAddResourcesDto(ref.getOid(), getTaskObjectName(task, manager, service, result));
+        }
+
+        updateObjectClassList(pageBase);
+    }
+
+    private void updateObjectClassList(PageBase pageBase){
+        OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCE);
+        List<QName> objectClassList = new ArrayList<>();
+
+        if(resourceRef != null){
+            PrismObject<ResourceType> resource = WebModelUtils.loadObject(ResourceType.class, resourceRef.getOid(), result, pageBase);
+
+            try {
+                ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resource, pageBase.getPrismContext());
+                schema.getObjectClassDefinitions();
+
+                for(Definition def: schema.getDefinitions()){
+                    objectClassList.add(def.getTypeName());
+                }
+
+                setObjectClassList(objectClassList);
+            } catch (Exception e){
+                LoggingUtils.logException(LOGGER, "Couldn't load object class list from resource.", e);
+            }
         }
     }
 
@@ -197,6 +227,11 @@ public class TaskDto extends Selectable {
         PrismProperty<String> intentItem = task.getExtension().findProperty(SchemaConstants.MODEL_EXTENSION_INTENT);
         if(intentItem != null && intentItem.getRealValue() != null){
             intent = intentItem.getRealValue();
+        }
+
+        PrismProperty<QName> objectClassItem = task.getExtension().findProperty(SchemaConstants.OBJECTCLASS_PROPERTY_NAME);
+        if(objectClassItem != null && objectClassItem.getRealValue() != null){
+            objectClass = objectClassItem.getRealValue().getLocalPart();
         }
 
         PrismProperty<Integer> workerThreadsItem = task.getExtension().findProperty(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);
@@ -760,5 +795,131 @@ public class TaskDto extends Selectable {
 
     public void setKind(ShadowKindType kind) {
         this.kind = kind;
+    }
+
+    public String getObjectClass() {
+        return objectClass;
+    }
+
+    public void setObjectClass(String objectClass) {
+        this.objectClass = objectClass;
+    }
+
+    public List<QName> getObjectClassList() {
+        if(objectClassList == null){
+            objectClassList = new ArrayList<>();
+        }
+
+        return objectClassList;
+    }
+
+    public void setObjectClassList(List<QName> objectClassList) {
+        this.objectClassList = objectClassList;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof TaskDto)) return false;
+
+        TaskDto taskDto = (TaskDto) o;
+
+        if (dryRun != taskDto.dryRun) return false;
+        if (workflowProcessInstanceFinished != taskDto.workflowProcessInstanceFinished) return false;
+        if (workflowShadowTask != taskDto.workflowShadowTask) return false;
+        if (binding != taskDto.binding) return false;
+        if (completionTimestampLong != null ? !completionTimestampLong.equals(taskDto.completionTimestampLong) : taskDto.completionTimestampLong != null)
+            return false;
+        if (cronSpecification != null ? !cronSpecification.equals(taskDto.cronSpecification) : taskDto.cronSpecification != null)
+            return false;
+        if (handlerUriList != null ? !handlerUriList.equals(taskDto.handlerUriList) : taskDto.handlerUriList != null)
+            return false;
+        if (intent != null ? !intent.equals(taskDto.intent) : taskDto.intent != null) return false;
+        if (interval != null ? !interval.equals(taskDto.interval) : taskDto.interval != null) return false;
+        if (kind != taskDto.kind) return false;
+        if (lastRunFinishTimestampLong != null ? !lastRunFinishTimestampLong.equals(taskDto.lastRunFinishTimestampLong) : taskDto.lastRunFinishTimestampLong != null)
+            return false;
+        if (lastRunStartTimestampLong != null ? !lastRunStartTimestampLong.equals(taskDto.lastRunStartTimestampLong) : taskDto.lastRunStartTimestampLong != null)
+            return false;
+        if (misfireAction != taskDto.misfireAction) return false;
+        if (modelOperationStatusDto != null ? !modelOperationStatusDto.equals(taskDto.modelOperationStatusDto) : taskDto.modelOperationStatusDto != null)
+            return false;
+        if (nextRunStartTimeLong != null ? !nextRunStartTimeLong.equals(taskDto.nextRunStartTimeLong) : taskDto.nextRunStartTimeLong != null)
+            return false;
+        if (notStartAfter != null ? !notStartAfter.equals(taskDto.notStartAfter) : taskDto.notStartAfter != null)
+            return false;
+        if (notStartBefore != null ? !notStartBefore.equals(taskDto.notStartBefore) : taskDto.notStartBefore != null)
+            return false;
+        if (objectClass != null ? !objectClass.equals(taskDto.objectClass) : taskDto.objectClass != null) return false;
+        if (objectClassList != null ? !objectClassList.equals(taskDto.objectClassList) : taskDto.objectClassList != null)
+            return false;
+        if (objectRefName != null ? !objectRefName.equals(taskDto.objectRefName) : taskDto.objectRefName != null)
+            return false;
+        if (objectRefType != taskDto.objectRefType) return false;
+        if (opResult != null ? !opResult.equals(taskDto.opResult) : taskDto.opResult != null) return false;
+        if (parentTaskName != null ? !parentTaskName.equals(taskDto.parentTaskName) : taskDto.parentTaskName != null)
+            return false;
+        if (parentTaskOid != null ? !parentTaskOid.equals(taskDto.parentTaskOid) : taskDto.parentTaskOid != null)
+            return false;
+        if (recurrence != taskDto.recurrence) return false;
+        if (resourceRef != null ? !resourceRef.equals(taskDto.resourceRef) : taskDto.resourceRef != null) return false;
+        if (subtasks != null ? !subtasks.equals(taskDto.subtasks) : taskDto.subtasks != null) return false;
+        if (taskOperationResult != null ? !taskOperationResult.equals(taskDto.taskOperationResult) : taskDto.taskOperationResult != null)
+            return false;
+        if (taskType != null ? !taskType.equals(taskDto.taskType) : taskDto.taskType != null) return false;
+        if (workerThreads != null ? !workerThreads.equals(taskDto.workerThreads) : taskDto.workerThreads != null)
+            return false;
+        if (workflowDeltasIn != null ? !workflowDeltasIn.equals(taskDto.workflowDeltasIn) : taskDto.workflowDeltasIn != null)
+            return false;
+        if (workflowDeltasOut != null ? !workflowDeltasOut.equals(taskDto.workflowDeltasOut) : taskDto.workflowDeltasOut != null)
+            return false;
+        if (workflowHistory != null ? !workflowHistory.equals(taskDto.workflowHistory) : taskDto.workflowHistory != null)
+            return false;
+        if (workflowLastDetails != null ? !workflowLastDetails.equals(taskDto.workflowLastDetails) : taskDto.workflowLastDetails != null)
+            return false;
+        if (workflowProcessInstanceId != null ? !workflowProcessInstanceId.equals(taskDto.workflowProcessInstanceId) : taskDto.workflowProcessInstanceId != null)
+            return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = handlerUriList != null ? handlerUriList.hashCode() : 0;
+        result = 31 * result + (parentTaskName != null ? parentTaskName.hashCode() : 0);
+        result = 31 * result + (parentTaskOid != null ? parentTaskOid.hashCode() : 0);
+        result = 31 * result + (resourceRef != null ? resourceRef.hashCode() : 0);
+        result = 31 * result + (interval != null ? interval.hashCode() : 0);
+        result = 31 * result + (cronSpecification != null ? cronSpecification.hashCode() : 0);
+        result = 31 * result + (notStartBefore != null ? notStartBefore.hashCode() : 0);
+        result = 31 * result + (notStartAfter != null ? notStartAfter.hashCode() : 0);
+        result = 31 * result + (misfireAction != null ? misfireAction.hashCode() : 0);
+        result = 31 * result + (opResult != null ? opResult.hashCode() : 0);
+        result = 31 * result + (taskOperationResult != null ? taskOperationResult.hashCode() : 0);
+        result = 31 * result + (modelOperationStatusDto != null ? modelOperationStatusDto.hashCode() : 0);
+        result = 31 * result + (objectRefType != null ? objectRefType.hashCode() : 0);
+        result = 31 * result + (objectRefName != null ? objectRefName.hashCode() : 0);
+        result = 31 * result + (subtasks != null ? subtasks.hashCode() : 0);
+        result = 31 * result + (lastRunStartTimestampLong != null ? lastRunStartTimestampLong.hashCode() : 0);
+        result = 31 * result + (lastRunFinishTimestampLong != null ? lastRunFinishTimestampLong.hashCode() : 0);
+        result = 31 * result + (nextRunStartTimeLong != null ? nextRunStartTimeLong.hashCode() : 0);
+        result = 31 * result + (completionTimestampLong != null ? completionTimestampLong.hashCode() : 0);
+        result = 31 * result + (binding != null ? binding.hashCode() : 0);
+        result = 31 * result + (recurrence != null ? recurrence.hashCode() : 0);
+        result = 31 * result + (workflowShadowTask ? 1 : 0);
+        result = 31 * result + (workflowProcessInstanceId != null ? workflowProcessInstanceId.hashCode() : 0);
+        result = 31 * result + (workflowProcessInstanceFinished ? 1 : 0);
+        result = 31 * result + (workflowLastDetails != null ? workflowLastDetails.hashCode() : 0);
+        result = 31 * result + (workflowDeltasIn != null ? workflowDeltasIn.hashCode() : 0);
+        result = 31 * result + (workflowDeltasOut != null ? workflowDeltasOut.hashCode() : 0);
+        result = 31 * result + (workflowHistory != null ? workflowHistory.hashCode() : 0);
+        result = 31 * result + (dryRun ? 1 : 0);
+        result = 31 * result + (kind != null ? kind.hashCode() : 0);
+        result = 31 * result + (intent != null ? intent.hashCode() : 0);
+        result = 31 * result + (objectClass != null ? objectClass.hashCode() : 0);
+        result = 31 * result + (objectClassList != null ? objectClassList.hashCode() : 0);
+        result = 31 * result + (workerThreads != null ? workerThreads.hashCode() : 0);
+        result = 31 * result + (taskType != null ? taskType.hashCode() : 0);
+        return result;
     }
 }
