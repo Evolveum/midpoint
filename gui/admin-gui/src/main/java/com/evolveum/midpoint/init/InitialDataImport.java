@@ -200,7 +200,7 @@ public class InitialDataImport {
 
         ObjectDelta delta = ObjectDelta.createAddDelta(object);
         try {
-            model.executeChanges(WebMiscUtil.createDeltaCollection(delta), ModelExecuteOptions.createReevaluateSearchFilters(), task, result);
+            model.executeChanges(WebMiscUtil.createDeltaCollection(delta), ModelExecuteOptions.createIsImport(), task, result);
             result.recordSuccess();
             LOGGER.info("Created {} as part of initial import", object);
             return true;
