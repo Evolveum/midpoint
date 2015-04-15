@@ -115,8 +115,6 @@ public class OrgTreeTablePanel extends SimplePanel{
 
     @Override
     protected void initLayout() {
-       
-       
         WebMarkupContainer treeHeader = new WebMarkupContainer(ID_TREE_HEADER);
         treeHeader.setOutputMarkupId(true);
         add(treeHeader);

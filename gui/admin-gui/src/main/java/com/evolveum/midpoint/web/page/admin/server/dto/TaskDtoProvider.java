@@ -27,6 +27,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.apache.wicket.Component;
@@ -48,10 +49,12 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
     private static final String OPERATION_COUNT_TASKS = DOT_CLASS + "countTasks";
 
     private TaskDtoProviderOptions options;
+    private Component component;
 
     public TaskDtoProvider(Component component, TaskDtoProviderOptions options) {
         super(component);
         this.options = options;
+        this.component = component;
     }
 
     public TaskDtoProvider(Component component) {
@@ -84,7 +87,8 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
             List<PrismObject<TaskType>> tasks = getModel().searchObjects(TaskType.class, query, searchOptions, operationTask, result);
             for (PrismObject<TaskType> task : tasks) {
                 try {
-                    TaskDto taskDto = new TaskDto(task.asObjectable(), getModel(), getTaskService(), getModelInteractionService(), getTaskManager(), options, result);
+                    TaskDto taskDto = new TaskDto(task.asObjectable(), getModel(), getTaskService(),
+                            getModelInteractionService(), getTaskManager(), options, result, (PageBase)component);
                     getAvailableData().add(taskDto);
                 } catch (Exception ex) {
                     LoggingUtils.logException(LOGGER, "Unhandled exception when getting task {} details", ex, task.getOid());
