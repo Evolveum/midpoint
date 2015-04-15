@@ -34,6 +34,7 @@ public class EvaluatedConstructionImpl implements EvaluatedConstruction {
     private PrismObject<ResourceType> resource;
     private ShadowKindType kind;
     private String intent;
+    private boolean directlyAssigned;
 
     @Override
     public PrismObject<ResourceType> getResource() {
@@ -50,10 +51,20 @@ public class EvaluatedConstructionImpl implements EvaluatedConstruction {
         return intent;
     }
 
+    @Override
+    public boolean isDirectlyAssigned() {
+        return directlyAssigned;
+    }
+
+    public void setDirectlyAssigned(boolean directlyAssigned) {
+        this.directlyAssigned = directlyAssigned;
+    }
+
     public <F extends FocusType> EvaluatedConstructionImpl(Construction<F> construction, OperationResult result) throws SchemaException, ObjectNotFoundException {
         resource = construction.getResource(result).asPrismObject();
         kind = construction.getKind();
         intent = construction.getIntent();
+        directlyAssigned = construction.getAssignmentPath() == null || construction.getAssignmentPath().size() == 1;
     }
 
     @Override

@@ -34,4 +34,9 @@
     	<valueEnumerationRef oid="5783c174-d141-11e4-bb29-001e8c717e5b"/>
     </item>
     
+    <item>
+    	<ref>preferredLanguage</ref>
+    	<valueEnumerationRef oid="eeb8c922-e2ad-11e4-9db9-001e8c717e5b"/>
+    </item>
+    
 </objectTemplate>

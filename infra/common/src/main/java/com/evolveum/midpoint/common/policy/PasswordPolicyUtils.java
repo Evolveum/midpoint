@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -306,7 +307,8 @@ public class PasswordPolicyUtils {
 			if (l.isMustBeFirst() == null){
 				l.setMustBeFirst(false);
 			}
-			if (l.isMustBeFirst() && !validChars.contains(password.substring(0, 1))) {
+			// we check mustBeFirst only for non-empty passwords
+			if (StringUtils.isNotEmpty(password) && l.isMustBeFirst() && !validChars.contains(password.substring(0, 1))) {
 				String msg = "First character is not from allowed set. Allowed set: "
 						+ validChars.toString();
 				limitResult.addSubresult(new OperationResult("Check valid first char",

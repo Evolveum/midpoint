@@ -6,7 +6,7 @@ CREATE TABLE m_abstract_role (
 );
 
 CREATE TABLE m_assignment (
-  id                      SMALLINT    NOT NULL,
+  id                      INTEGER     NOT NULL,
   owner_oid               VARCHAR(36) NOT NULL,
   administrativeStatus    INTEGER,
   archiveTimestamp        TIMESTAMP,
@@ -36,14 +36,26 @@ CREATE TABLE m_assignment (
   tenantRef_relation      VARCHAR(157),
   tenantRef_targetOid     VARCHAR(36),
   tenantRef_type          INTEGER,
-  extId                   SMALLINT,
+  extId                   INTEGER,
   extOid                  VARCHAR(36),
   PRIMARY KEY (id, owner_oid)
 );
 
+CREATE TABLE m_assignment_ext_boolean (
+  eName                        VARCHAR(157) NOT NULL,
+  anyContainer_owner_id        INTEGER      NOT NULL,
+  anyContainer_owner_owner_oid VARCHAR(36)  NOT NULL,
+  booleanValue                 BOOLEAN      NOT NULL,
+  extensionType                INTEGER,
+  dynamicDef                   BOOLEAN,
+  eType                        VARCHAR(157),
+  valueType                    INTEGER,
+  PRIMARY KEY (eName, anyContainer_owner_id, anyContainer_owner_owner_oid, booleanValue)
+);
+
 CREATE TABLE m_assignment_ext_date (
   eName                        VARCHAR(157) NOT NULL,
-  anyContainer_owner_id        SMALLINT     NOT NULL,
+  anyContainer_owner_id        INTEGER      NOT NULL,
   anyContainer_owner_owner_oid VARCHAR(36)  NOT NULL,
   dateValue                    TIMESTAMP    NOT NULL,
   extensionType                INTEGER,
@@ -55,7 +67,7 @@ CREATE TABLE m_assignment_ext_date (
 
 CREATE TABLE m_assignment_ext_long (
   eName                        VARCHAR(157) NOT NULL,
-  anyContainer_owner_id        SMALLINT     NOT NULL,
+  anyContainer_owner_id        INTEGER      NOT NULL,
   anyContainer_owner_owner_oid VARCHAR(36)  NOT NULL,
   longValue                    BIGINT       NOT NULL,
   extensionType                INTEGER,
@@ -67,7 +79,7 @@ CREATE TABLE m_assignment_ext_long (
 
 CREATE TABLE m_assignment_ext_poly (
   eName                        VARCHAR(157) NOT NULL,
-  anyContainer_owner_id        SMALLINT     NOT NULL,
+  anyContainer_owner_id        INTEGER      NOT NULL,
   anyContainer_owner_owner_oid VARCHAR(36)  NOT NULL,
   orig                         VARCHAR(255) NOT NULL,
   extensionType                INTEGER,
@@ -80,7 +92,7 @@ CREATE TABLE m_assignment_ext_poly (
 
 CREATE TABLE m_assignment_ext_reference (
   eName                        VARCHAR(157) NOT NULL,
-  anyContainer_owner_id        SMALLINT     NOT NULL,
+  anyContainer_owner_id        INTEGER      NOT NULL,
   anyContainer_owner_owner_oid VARCHAR(36)  NOT NULL,
   targetoid                    VARCHAR(36)  NOT NULL,
   extensionType                INTEGER,
@@ -94,7 +106,7 @@ CREATE TABLE m_assignment_ext_reference (
 
 CREATE TABLE m_assignment_ext_string (
   eName                        VARCHAR(157) NOT NULL,
-  anyContainer_owner_id        SMALLINT     NOT NULL,
+  anyContainer_owner_id        INTEGER      NOT NULL,
   anyContainer_owner_owner_oid VARCHAR(36)  NOT NULL,
   stringValue                  VARCHAR(255) NOT NULL,
   extensionType                INTEGER,
@@ -105,8 +117,9 @@ CREATE TABLE m_assignment_ext_string (
 );
 
 CREATE TABLE m_assignment_extension (
-  owner_id        SMALLINT    NOT NULL,
+  owner_id        INTEGER     NOT NULL,
   owner_owner_oid VARCHAR(36) NOT NULL,
+  booleansCount   SMALLINT,
   datesCount      SMALLINT,
   longsCount      SMALLINT,
   polysCount      SMALLINT,
@@ -116,13 +129,13 @@ CREATE TABLE m_assignment_extension (
 );
 
 CREATE TABLE m_assignment_reference (
-  reference_type  INTEGER      NOT NULL,
-  owner_id        SMALLINT     NOT NULL,
+  owner_id        INTEGER      NOT NULL,
   owner_owner_oid VARCHAR(36)  NOT NULL,
+  reference_type  INTEGER      NOT NULL,
   relation        VARCHAR(157) NOT NULL,
   targetOid       VARCHAR(36)  NOT NULL,
   containerType   INTEGER,
-  PRIMARY KEY (owner_id, owner_owner_oid, relation, targetOid)
+  PRIMARY KEY (owner_id, owner_owner_oid, reference_type, relation, targetOid)
 );
 
 CREATE TABLE m_audit_delta (
@@ -190,7 +203,7 @@ CREATE TABLE m_connector_target_system (
 );
 
 CREATE TABLE m_exclusion (
-  id                  SMALLINT    NOT NULL,
+  id                  INTEGER     NOT NULL,
   owner_oid           VARCHAR(36) NOT NULL,
   policy              INTEGER,
   targetRef_relation  VARCHAR(157),
@@ -222,6 +235,24 @@ CREATE TABLE m_generic_object (
   PRIMARY KEY (oid)
 );
 
+CREATE TABLE m_lookup_table (
+  name_norm VARCHAR(255),
+  name_orig VARCHAR(255),
+  oid       VARCHAR(36) NOT NULL,
+  PRIMARY KEY (oid)
+);
+
+CREATE TABLE m_lookup_table_row (
+  id                  INTEGER     NOT NULL,
+  owner_oid           VARCHAR(36) NOT NULL,
+  row_key             VARCHAR(255),
+  label_norm          VARCHAR(255),
+  label_orig          VARCHAR(255),
+  lastChangeTimestamp TIMESTAMP,
+  row_value           VARCHAR(255),
+  PRIMARY KEY (id, owner_oid)
+);
+
 CREATE TABLE m_node (
   name_norm      VARCHAR(255),
   name_orig      VARCHAR(255),
@@ -232,6 +263,7 @@ CREATE TABLE m_node (
 
 CREATE TABLE m_object (
   oid                   VARCHAR(36) NOT NULL,
+  booleansCount         SMALLINT,
   createChannel         VARCHAR(255),
   createTimestamp       TIMESTAMP,
   creatorRef_relation   VARCHAR(157),
@@ -256,6 +288,17 @@ CREATE TABLE m_object (
   tenantRef_type        INTEGER,
   version               INTEGER     NOT NULL,
   PRIMARY KEY (oid)
+);
+
+CREATE TABLE m_object_ext_boolean (
+  eName        VARCHAR(157) NOT NULL,
+  owner_oid    VARCHAR(36)  NOT NULL,
+  ownerType    INTEGER      NOT NULL,
+  booleanValue BOOLEAN      NOT NULL,
+  dynamicDef   BOOLEAN,
+  eType        VARCHAR(157),
+  valueType    INTEGER,
+  PRIMARY KEY (eName, owner_oid, ownerType, booleanValue)
 );
 
 CREATE TABLE m_object_ext_date (
@@ -352,12 +395,12 @@ CREATE TABLE m_org_org_type (
 );
 
 CREATE TABLE m_reference (
-  reference_type INTEGER      NOT NULL,
   owner_oid      VARCHAR(36)  NOT NULL,
+  reference_type INTEGER      NOT NULL,
   relation       VARCHAR(157) NOT NULL,
   targetOid      VARCHAR(36)  NOT NULL,
   containerType  INTEGER,
-  PRIMARY KEY (owner_oid, relation, targetOid)
+  PRIMARY KEY (owner_oid, reference_type, relation, targetOid)
 );
 
 CREATE TABLE m_report (
@@ -470,7 +513,7 @@ CREATE TABLE m_task_dependent (
 );
 
 CREATE TABLE m_trigger (
-  id             SMALLINT    NOT NULL,
+  id             INTEGER     NOT NULL,
   owner_oid      VARCHAR(36) NOT NULL,
   handlerUri     VARCHAR(255),
   timestampValue TIMESTAMP,
@@ -547,6 +590,8 @@ CREATE INDEX iAssignmentAdministrative ON m_assignment (administrativeStatus);
 
 CREATE INDEX iAssignmentEffective ON m_assignment (effectiveStatus);
 
+CREATE INDEX iAExtensionBoolean ON m_assignment_ext_boolean (extensionType, eName, booleanValue);
+
 CREATE INDEX iAExtensionDate ON m_assignment_ext_date (extensionType, eName, dateValue);
 
 CREATE INDEX iAExtensionLong ON m_assignment_ext_long (extensionType, eName, longValue);
@@ -569,6 +614,12 @@ CREATE INDEX iFocusEffective ON m_focus (effectiveStatus);
 ALTER TABLE m_generic_object
 ADD CONSTRAINT uc_generic_object_name UNIQUE (name_norm);
 
+ALTER TABLE m_lookup_table
+ADD CONSTRAINT uc_lookup_name UNIQUE (name_norm);
+
+ALTER TABLE m_lookup_table_row
+ADD CONSTRAINT uc_row_key UNIQUE (row_key);
+
 ALTER TABLE m_node
 ADD CONSTRAINT uc_node_name UNIQUE (name_norm);
 
@@ -579,6 +630,10 @@ CREATE INDEX iObjectNameNorm ON m_object (name_norm);
 CREATE INDEX iObjectTypeClass ON m_object (objectTypeClass);
 
 CREATE INDEX iObjectCreateTimestamp ON m_object (createTimestamp);
+
+CREATE INDEX iExtensionBoolean ON m_object_ext_boolean (ownerType, eName, booleanValue);
+
+CREATE INDEX iExtensionBooleanDef ON m_object_ext_boolean (owner_oid, ownerType);
 
 CREATE INDEX iExtensionDate ON m_object_ext_date (ownerType, eName, dateValue);
 
@@ -667,6 +722,11 @@ ADD CONSTRAINT fk_assignment_owner
 FOREIGN KEY (owner_oid)
 REFERENCES m_object;
 
+ALTER TABLE m_assignment_ext_boolean
+ADD CONSTRAINT fk_assignment_ext_boolean
+FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
+REFERENCES m_assignment_extension;
+
 ALTER TABLE m_assignment_ext_date
 ADD CONSTRAINT fk_assignment_ext_date
 FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
@@ -732,9 +792,24 @@ ADD CONSTRAINT fk_generic_object
 FOREIGN KEY (oid)
 REFERENCES m_object;
 
+ALTER TABLE m_lookup_table
+ADD CONSTRAINT fk_lookup_table
+FOREIGN KEY (oid)
+REFERENCES m_object;
+
+ALTER TABLE m_lookup_table_row
+ADD CONSTRAINT fk_lookup_table_owner
+FOREIGN KEY (owner_oid)
+REFERENCES m_lookup_table;
+
 ALTER TABLE m_node
 ADD CONSTRAINT fk_node
 FOREIGN KEY (oid)
+REFERENCES m_object;
+
+ALTER TABLE m_object_ext_boolean
+ADD CONSTRAINT fk_object_ext_boolean
+FOREIGN KEY (owner_oid)
 REFERENCES m_object;
 
 ALTER TABLE m_object_ext_date
@@ -1112,177 +1187,196 @@ ALTER TABLE QRTZ_TRIGGERS ADD
   );
 
 create table ACT_GE_PROPERTY (
-  NAME_ varchar(64),
-  VALUE_ varchar(300),
-  REV_ integer,
-  primary key (NAME_)
+    NAME_ varchar(64),
+    VALUE_ varchar(300),
+    REV_ integer,
+    primary key (NAME_)
 );
 
 insert into ACT_GE_PROPERTY
-values ('schema.version', '5.15.1', 1);
+values ('schema.version', '5.17.0.2', 1);
 
 insert into ACT_GE_PROPERTY
-values ('schema.history', 'create(5.15.1)', 1);
+values ('schema.history', 'create(5.17.0.2)', 1);
 
 insert into ACT_GE_PROPERTY
 values ('next.dbid', '1', 1);
 
 create table ACT_GE_BYTEARRAY (
-  ID_ varchar(64),
-  REV_ integer,
-  NAME_ varchar(255),
-  DEPLOYMENT_ID_ varchar(64),
-  BYTES_ longvarbinary,
-  GENERATED_ bit,
-  primary key (ID_)
+    ID_ varchar(64),
+    REV_ integer,
+    NAME_ varchar(255),
+    DEPLOYMENT_ID_ varchar(64),
+    BYTES_ longvarbinary,
+    GENERATED_ bit,
+    primary key (ID_)
 );
 
 create table ACT_RE_DEPLOYMENT (
-  ID_ varchar(64),
-  NAME_ varchar(255),
-  CATEGORY_ varchar(255),
-  TENANT_ID_ varchar(255) default '',
-  DEPLOY_TIME_ timestamp,
-  primary key (ID_)
+    ID_ varchar(64),
+    NAME_ varchar(255),
+    CATEGORY_ varchar(255),
+    TENANT_ID_ varchar(255) default '',
+    DEPLOY_TIME_ timestamp,
+    primary key (ID_)
 );
 
 create table ACT_RE_MODEL (
-  ID_ varchar(64) not null,
-  REV_ integer,
-  NAME_ varchar(255),
-  KEY_ varchar(255),
-  CATEGORY_ varchar(255),
-  CREATE_TIME_ timestamp,
-  LAST_UPDATE_TIME_ timestamp,
-  VERSION_ integer,
-  META_INFO_ varchar(4000),
-  DEPLOYMENT_ID_ varchar(64),
-  EDITOR_SOURCE_VALUE_ID_ varchar(64),
-  EDITOR_SOURCE_EXTRA_VALUE_ID_ varchar(64),
-  TENANT_ID_ varchar(255) default '',
-  primary key (ID_)
+    ID_ varchar(64) not null,
+    REV_ integer,
+    NAME_ varchar(255),
+    KEY_ varchar(255),
+    CATEGORY_ varchar(255),
+    CREATE_TIME_ timestamp,
+    LAST_UPDATE_TIME_ timestamp,
+    VERSION_ integer,
+    META_INFO_ varchar(4000),
+    DEPLOYMENT_ID_ varchar(64),
+    EDITOR_SOURCE_VALUE_ID_ varchar(64),
+    EDITOR_SOURCE_EXTRA_VALUE_ID_ varchar(64),
+    TENANT_ID_ varchar(255) default '',
+    primary key (ID_)
 );
 
 create table ACT_RU_EXECUTION (
-  ID_ varchar(64),
-  REV_ integer,
-  PROC_INST_ID_ varchar(64),
-  BUSINESS_KEY_ varchar(255),
-  PARENT_ID_ varchar(64),
-  PROC_DEF_ID_ varchar(64),
-  SUPER_EXEC_ varchar(64),
-  ACT_ID_ varchar(255),
-  IS_ACTIVE_ bit,
-  IS_CONCURRENT_ bit,
-  IS_SCOPE_ bit,
-  IS_EVENT_SCOPE_ bit,
-  SUSPENSION_STATE_ integer,
-  CACHED_ENT_STATE_ integer,
-  TENANT_ID_ varchar(255) default '',
-  primary key (ID_)
+    ID_ varchar(64),
+    REV_ integer,
+    PROC_INST_ID_ varchar(64),
+    BUSINESS_KEY_ varchar(255),
+    PARENT_ID_ varchar(64),
+    PROC_DEF_ID_ varchar(64),
+    SUPER_EXEC_ varchar(64),
+    ACT_ID_ varchar(255),
+    IS_ACTIVE_ bit,
+    IS_CONCURRENT_ bit,
+    IS_SCOPE_ bit,
+    IS_EVENT_SCOPE_ bit,
+    SUSPENSION_STATE_ integer,
+    CACHED_ENT_STATE_ integer,
+    TENANT_ID_ varchar(255) default '',
+    NAME_ varchar(255),
+    LOCK_TIME_ timestamp,
+    primary key (ID_)
 );
 
 create table ACT_RU_JOB (
-  ID_ varchar(64) NOT NULL,
-  REV_ integer,
-  TYPE_ varchar(255) NOT NULL,
-  LOCK_EXP_TIME_ timestamp,
-  LOCK_OWNER_ varchar(255),
-  EXCLUSIVE_ boolean,
-  EXECUTION_ID_ varchar(64),
-  PROCESS_INSTANCE_ID_ varchar(64),
-  PROC_DEF_ID_ varchar(64),
-  RETRIES_ integer,
-  EXCEPTION_STACK_ID_ varchar(64),
-  EXCEPTION_MSG_ varchar(4000),
-  DUEDATE_ timestamp,
-  REPEAT_ varchar(255),
-  HANDLER_TYPE_ varchar(255),
-  HANDLER_CFG_ varchar(4000),
-  TENANT_ID_ varchar(255) default '',
-  primary key (ID_)
+    ID_ varchar(64) NOT NULL,
+    REV_ integer,
+    TYPE_ varchar(255) NOT NULL,
+    LOCK_EXP_TIME_ timestamp,
+    LOCK_OWNER_ varchar(255),
+    EXCLUSIVE_ boolean,
+    EXECUTION_ID_ varchar(64),
+    PROCESS_INSTANCE_ID_ varchar(64),
+    PROC_DEF_ID_ varchar(64),
+    RETRIES_ integer,
+    EXCEPTION_STACK_ID_ varchar(64),
+    EXCEPTION_MSG_ varchar(4000),
+    DUEDATE_ timestamp,
+    REPEAT_ varchar(255),
+    HANDLER_TYPE_ varchar(255),
+    HANDLER_CFG_ varchar(4000),
+    TENANT_ID_ varchar(255) default '',
+    primary key (ID_)
 );
 
 create table ACT_RE_PROCDEF (
-  ID_ varchar(64) NOT NULL,
-  REV_ integer,
-  CATEGORY_ varchar(255),
-  NAME_ varchar(255),
-  KEY_ varchar(255) NOT NULL,
-  VERSION_ integer NOT NULL,
-  DEPLOYMENT_ID_ varchar(64),
-  RESOURCE_NAME_ varchar(4000),
-  DGRM_RESOURCE_NAME_ varchar(4000),
-  DESCRIPTION_ varchar(4000),
-  HAS_START_FORM_KEY_ bit,
-  SUSPENSION_STATE_ integer,
-  TENANT_ID_ varchar(255) default '',
-  primary key (ID_)
+    ID_ varchar(64) NOT NULL,
+    REV_ integer,
+    CATEGORY_ varchar(255),
+    NAME_ varchar(255),
+    KEY_ varchar(255) NOT NULL,
+    VERSION_ integer NOT NULL,
+    DEPLOYMENT_ID_ varchar(64),
+    RESOURCE_NAME_ varchar(4000),
+    DGRM_RESOURCE_NAME_ varchar(4000),
+    DESCRIPTION_ varchar(4000),
+    HAS_START_FORM_KEY_ bit,
+    HAS_GRAPHICAL_NOTATION_ bit,
+    SUSPENSION_STATE_ integer,
+    TENANT_ID_ varchar(255) default '',
+    primary key (ID_)
 );
 
 create table ACT_RU_TASK (
-  ID_ varchar(64),
-  REV_ integer,
-  EXECUTION_ID_ varchar(64),
-  PROC_INST_ID_ varchar(64),
-  PROC_DEF_ID_ varchar(64),
-  NAME_ varchar(255),
-  PARENT_TASK_ID_ varchar(64),
-  DESCRIPTION_ varchar(4000),
-  TASK_DEF_KEY_ varchar(255),
-  OWNER_ varchar(255),
-  ASSIGNEE_ varchar(255),
-  DELEGATION_ varchar(64),
-  PRIORITY_ integer,
-  CREATE_TIME_ timestamp,
-  DUE_DATE_ timestamp,
-  CATEGORY_ varchar(255),
-  SUSPENSION_STATE_ integer,
-  TENANT_ID_ varchar(255) default '',
-  primary key (ID_)
+    ID_ varchar(64),
+    REV_ integer,
+    EXECUTION_ID_ varchar(64),
+    PROC_INST_ID_ varchar(64),
+    PROC_DEF_ID_ varchar(64),
+    NAME_ varchar(255),
+    PARENT_TASK_ID_ varchar(64),
+    DESCRIPTION_ varchar(4000),
+    TASK_DEF_KEY_ varchar(255),
+    OWNER_ varchar(255),
+    ASSIGNEE_ varchar(255),
+    DELEGATION_ varchar(64),
+    PRIORITY_ integer,
+    CREATE_TIME_ timestamp,
+    DUE_DATE_ timestamp,
+    CATEGORY_ varchar(255),
+    SUSPENSION_STATE_ integer,
+    TENANT_ID_ varchar(255) default '',
+    FORM_KEY_ varchar(255),
+    primary key (ID_)
 );
 
 create table ACT_RU_IDENTITYLINK (
-  ID_ varchar(64),
-  REV_ integer,
-  GROUP_ID_ varchar(255),
-  TYPE_ varchar(255),
-  USER_ID_ varchar(255),
-  TASK_ID_ varchar(64),
-  PROC_INST_ID_ varchar(64) null,
-  PROC_DEF_ID_ varchar(64),
-  primary key (ID_)
+    ID_ varchar(64),
+    REV_ integer,
+    GROUP_ID_ varchar(255),
+    TYPE_ varchar(255),
+    USER_ID_ varchar(255),
+    TASK_ID_ varchar(64),
+    PROC_INST_ID_ varchar(64) null,
+    PROC_DEF_ID_ varchar(64),
+    primary key (ID_)
 );
 
 create table ACT_RU_VARIABLE (
-  ID_ varchar(64) not null,
-  REV_ integer,
-  TYPE_ varchar(255) not null,
-  NAME_ varchar(255) not null,
-  EXECUTION_ID_ varchar(64),
-  PROC_INST_ID_ varchar(64),
-  TASK_ID_ varchar(64),
-  BYTEARRAY_ID_ varchar(64),
-  DOUBLE_ double,
-  LONG_ bigint,
-  TEXT_ varchar(4000),
-  TEXT2_ varchar(4000),
-  primary key (ID_)
+    ID_ varchar(64) not null,
+    REV_ integer,
+    TYPE_ varchar(255) not null,
+    NAME_ varchar(255) not null,
+    EXECUTION_ID_ varchar(64),
+    PROC_INST_ID_ varchar(64),
+    TASK_ID_ varchar(64),
+    BYTEARRAY_ID_ varchar(64),
+    DOUBLE_ double,
+    LONG_ bigint,
+    TEXT_ varchar(4000),
+    TEXT2_ varchar(4000),
+    primary key (ID_)
 );
 
 create table ACT_RU_EVENT_SUBSCR (
-  ID_ varchar(64) not null,
-  REV_ integer,
-  EVENT_TYPE_ varchar(255) not null,
-  EVENT_NAME_ varchar(255),
-  EXECUTION_ID_ varchar(64),
-  PROC_INST_ID_ varchar(64),
-  ACTIVITY_ID_ varchar(64),
-  CONFIGURATION_ varchar(255),
-  CREATED_ timestamp not null,
-  PROC_DEF_ID_ varchar(64),
-  TENANT_ID_ varchar(255) default '',
-  primary key (ID_)
+    ID_ varchar(64) not null,
+    REV_ integer,
+    EVENT_TYPE_ varchar(255) not null,
+    EVENT_NAME_ varchar(255),
+    EXECUTION_ID_ varchar(64),
+    PROC_INST_ID_ varchar(64),
+    ACTIVITY_ID_ varchar(64),
+    CONFIGURATION_ varchar(255),
+    CREATED_ timestamp not null,
+    PROC_DEF_ID_ varchar(64),
+    TENANT_ID_ varchar(255) default '',
+    primary key (ID_)
+);
+
+create table ACT_EVT_LOG (
+    LOG_NR_ identity,
+    TYPE_ varchar(64),
+    PROC_DEF_ID_ varchar(64),
+    PROC_INST_ID_ varchar(64),
+    EXECUTION_ID_ varchar(64),
+    TASK_ID_ varchar(64),
+    TIME_STAMP_ timestamp not null,
+    USER_ID_ varchar(255),
+    DATA_ longvarbinary,
+    LOCK_OWNER_ varchar(255),
+    LOCK_TIME_ timestamp,
+    IS_PROCESSED_ bit default 0
 );
 
 create index ACT_IDX_EXEC_BUSKEY on ACT_RU_EXECUTION(BUSINESS_KEY_);
@@ -1294,235 +1388,237 @@ create index ACT_IDX_VARIABLE_TASK_ID on ACT_RU_VARIABLE(TASK_ID_);
 create index ACT_IDX_ATHRZ_PROCEDEF on ACT_RU_IDENTITYLINK(PROC_DEF_ID_);
 
 alter table ACT_GE_BYTEARRAY
-add constraint ACT_FK_BYTEARR_DEPL
-foreign key (DEPLOYMENT_ID_)
-references ACT_RE_DEPLOYMENT;
+    add constraint ACT_FK_BYTEARR_DEPL
+    foreign key (DEPLOYMENT_ID_)
+    references ACT_RE_DEPLOYMENT;
 
 alter table ACT_RE_PROCDEF
-add constraint ACT_UNIQ_PROCDEF
-unique (KEY_,VERSION_, TENANT_ID_);
+    add constraint ACT_UNIQ_PROCDEF
+    unique (KEY_,VERSION_, TENANT_ID_);
 
 alter table ACT_RU_EXECUTION
-add constraint ACT_FK_EXE_PROCINST
-foreign key (PROC_INST_ID_)
-references ACT_RU_EXECUTION;
+    add constraint ACT_FK_EXE_PROCINST
+    foreign key (PROC_INST_ID_)
+    references ACT_RU_EXECUTION;
 
 alter table ACT_RU_EXECUTION
-add constraint ACT_FK_EXE_PARENT
-foreign key (PARENT_ID_)
-references ACT_RU_EXECUTION;
+    add constraint ACT_FK_EXE_PARENT
+    foreign key (PARENT_ID_)
+    references ACT_RU_EXECUTION;
 
 alter table ACT_RU_EXECUTION
-add constraint ACT_FK_EXE_SUPER
-foreign key (SUPER_EXEC_)
-references ACT_RU_EXECUTION;
+    add constraint ACT_FK_EXE_SUPER
+    foreign key (SUPER_EXEC_)
+    references ACT_RU_EXECUTION;
 
 alter table ACT_RU_EXECUTION
-add constraint ACT_FK_EXE_PROCDEF
-foreign key (PROC_DEF_ID_)
-references ACT_RE_PROCDEF (ID_);
+    add constraint ACT_FK_EXE_PROCDEF
+    foreign key (PROC_DEF_ID_)
+    references ACT_RE_PROCDEF (ID_);
 
 alter table ACT_RU_IDENTITYLINK
-add constraint ACT_FK_TSKASS_TASK
-foreign key (TASK_ID_)
-references ACT_RU_TASK;
+    add constraint ACT_FK_TSKASS_TASK
+    foreign key (TASK_ID_)
+    references ACT_RU_TASK;
 
 alter table ACT_RU_IDENTITYLINK
-add constraint ACT_FK_ATHRZ_PROCEDEF
-foreign key (PROC_DEF_ID_)
-references ACT_RE_PROCDEF;
+    add constraint ACT_FK_ATHRZ_PROCEDEF
+    foreign key (PROC_DEF_ID_)
+    references ACT_RE_PROCDEF;
 
 alter table ACT_RU_IDENTITYLINK
-add constraint ACT_FK_IDL_PROCINST
-foreign key (PROC_INST_ID_)
-references ACT_RU_EXECUTION (ID_);
+    add constraint ACT_FK_IDL_PROCINST
+    foreign key (PROC_INST_ID_)
+    references ACT_RU_EXECUTION (ID_);
 
 alter table ACT_RU_TASK
-add constraint ACT_FK_TASK_EXE
-foreign key (EXECUTION_ID_)
-references ACT_RU_EXECUTION;
+    add constraint ACT_FK_TASK_EXE
+    foreign key (EXECUTION_ID_)
+    references ACT_RU_EXECUTION;
 
 alter table ACT_RU_TASK
-add constraint ACT_FK_TASK_PROCINST
-foreign key (PROC_INST_ID_)
-references ACT_RU_EXECUTION;
+    add constraint ACT_FK_TASK_PROCINST
+    foreign key (PROC_INST_ID_)
+    references ACT_RU_EXECUTION;
 
 alter table ACT_RU_TASK
-add constraint ACT_FK_TASK_PROCDEF
-foreign key (PROC_DEF_ID_)
-references ACT_RE_PROCDEF;
+  add constraint ACT_FK_TASK_PROCDEF
+  foreign key (PROC_DEF_ID_)
+  references ACT_RE_PROCDEF;
 
 alter table ACT_RU_VARIABLE
-add constraint ACT_FK_VAR_EXE
-foreign key (EXECUTION_ID_)
-references ACT_RU_EXECUTION;
+    add constraint ACT_FK_VAR_EXE
+    foreign key (EXECUTION_ID_)
+    references ACT_RU_EXECUTION;
 
 alter table ACT_RU_VARIABLE
-add constraint ACT_FK_VAR_PROCINST
-foreign key (PROC_INST_ID_)
-references ACT_RU_EXECUTION;
+    add constraint ACT_FK_VAR_PROCINST
+    foreign key (PROC_INST_ID_)
+    references ACT_RU_EXECUTION;
 
 alter table ACT_RU_VARIABLE
-add constraint ACT_FK_VAR_BYTEARRAY
-foreign key (BYTEARRAY_ID_)
-references ACT_GE_BYTEARRAY;
+    add constraint ACT_FK_VAR_BYTEARRAY
+    foreign key (BYTEARRAY_ID_)
+    references ACT_GE_BYTEARRAY;
 
 alter table ACT_RU_JOB
-add constraint ACT_FK_JOB_EXCEPTION
-foreign key (EXCEPTION_STACK_ID_)
-references ACT_GE_BYTEARRAY;
+    add constraint ACT_FK_JOB_EXCEPTION
+    foreign key (EXCEPTION_STACK_ID_)
+    references ACT_GE_BYTEARRAY;
 
 alter table ACT_RU_EVENT_SUBSCR
-add constraint ACT_FK_EVENT_EXEC
-foreign key (EXECUTION_ID_)
-references ACT_RU_EXECUTION;
+    add constraint ACT_FK_EVENT_EXEC
+    foreign key (EXECUTION_ID_)
+    references ACT_RU_EXECUTION;
 
 alter table ACT_RE_MODEL
-add constraint ACT_FK_MODEL_SOURCE
-foreign key (EDITOR_SOURCE_VALUE_ID_)
-references ACT_GE_BYTEARRAY (ID_);
+    add constraint ACT_FK_MODEL_SOURCE
+    foreign key (EDITOR_SOURCE_VALUE_ID_)
+    references ACT_GE_BYTEARRAY (ID_);
 
 alter table ACT_RE_MODEL
-add constraint ACT_FK_MODEL_SOURCE_EXTRA
-foreign key (EDITOR_SOURCE_EXTRA_VALUE_ID_)
-references ACT_GE_BYTEARRAY (ID_);
+    add constraint ACT_FK_MODEL_SOURCE_EXTRA
+    foreign key (EDITOR_SOURCE_EXTRA_VALUE_ID_)
+    references ACT_GE_BYTEARRAY (ID_);
 
 alter table ACT_RE_MODEL
-add constraint ACT_FK_MODEL_DEPLOYMENT
-foreign key (DEPLOYMENT_ID_)
-references ACT_RE_DEPLOYMENT (ID_);
+    add constraint ACT_FK_MODEL_DEPLOYMENT
+    foreign key (DEPLOYMENT_ID_)
+    references ACT_RE_DEPLOYMENT (ID_);
 
 create table ACT_HI_PROCINST (
-  ID_ varchar(64) not null,
-  PROC_INST_ID_ varchar(64) not null,
-  BUSINESS_KEY_ varchar(255),
-  PROC_DEF_ID_ varchar(64) not null,
-  START_TIME_ timestamp not null,
-  END_TIME_ timestamp,
-  DURATION_ bigint,
-  START_USER_ID_ varchar(255),
-  START_ACT_ID_ varchar(255),
-  END_ACT_ID_ varchar(255),
-  SUPER_PROCESS_INSTANCE_ID_ varchar(64),
-  DELETE_REASON_ varchar(4000),
-  TENANT_ID_ varchar(255) default '',
-  primary key (ID_),
-  unique (PROC_INST_ID_)
+    ID_ varchar(64) not null,
+    PROC_INST_ID_ varchar(64) not null,
+    BUSINESS_KEY_ varchar(255),
+    PROC_DEF_ID_ varchar(64) not null,
+    START_TIME_ timestamp not null,
+    END_TIME_ timestamp,
+    DURATION_ bigint,
+    START_USER_ID_ varchar(255),
+    START_ACT_ID_ varchar(255),
+    END_ACT_ID_ varchar(255),
+    SUPER_PROCESS_INSTANCE_ID_ varchar(64),
+    DELETE_REASON_ varchar(4000),
+    TENANT_ID_ varchar(255) default '',
+    NAME_ varchar(255),
+    primary key (ID_),
+    unique (PROC_INST_ID_)
 );
 
 create table ACT_HI_ACTINST (
-  ID_ varchar(64) not null,
-  PROC_DEF_ID_ varchar(64) not null,
-  PROC_INST_ID_ varchar(64) not null,
-  EXECUTION_ID_ varchar(64) not null,
-  ACT_ID_ varchar(255) not null,
-  TASK_ID_ varchar(64),
-  CALL_PROC_INST_ID_ varchar(64),
-  ACT_NAME_ varchar(255),
-  ACT_TYPE_ varchar(255) not null,
-  ASSIGNEE_ varchar(255),
-  START_TIME_ timestamp not null,
-  END_TIME_ timestamp,
-  DURATION_ bigint,
-  TENANT_ID_ varchar(255) default '',
-  primary key (ID_)
+    ID_ varchar(64) not null,
+    PROC_DEF_ID_ varchar(64) not null,
+    PROC_INST_ID_ varchar(64) not null,
+    EXECUTION_ID_ varchar(64) not null,
+    ACT_ID_ varchar(255) not null,
+    TASK_ID_ varchar(64),
+    CALL_PROC_INST_ID_ varchar(64),
+    ACT_NAME_ varchar(255),
+    ACT_TYPE_ varchar(255) not null,
+    ASSIGNEE_ varchar(255),
+    START_TIME_ timestamp not null,
+    END_TIME_ timestamp,
+    DURATION_ bigint,
+    TENANT_ID_ varchar(255) default '',
+    primary key (ID_)
 );
 
 create table ACT_HI_TASKINST (
-  ID_ varchar(64) not null,
-  PROC_DEF_ID_ varchar(64),
-  TASK_DEF_KEY_ varchar(255),
-  PROC_INST_ID_ varchar(64),
-  EXECUTION_ID_ varchar(64),
-  NAME_ varchar(255),
-  PARENT_TASK_ID_ varchar(64),
-  DESCRIPTION_ varchar(4000),
-  OWNER_ varchar(255),
-  ASSIGNEE_ varchar(255),
-  START_TIME_ timestamp not null,
-  CLAIM_TIME_ timestamp,
-  END_TIME_ timestamp,
-  DURATION_ bigint,
-  DELETE_REASON_ varchar(4000),
-  PRIORITY_ integer,
-  DUE_DATE_ timestamp,
-  FORM_KEY_ varchar(255),
-  CATEGORY_ varchar(255),
-  TENANT_ID_ varchar(255) default '',
-  primary key (ID_)
+    ID_ varchar(64) not null,
+    PROC_DEF_ID_ varchar(64),
+    TASK_DEF_KEY_ varchar(255),
+    PROC_INST_ID_ varchar(64),
+    EXECUTION_ID_ varchar(64),
+    NAME_ varchar(255),
+    PARENT_TASK_ID_ varchar(64),
+    DESCRIPTION_ varchar(4000),
+    OWNER_ varchar(255),
+    ASSIGNEE_ varchar(255),
+    START_TIME_ timestamp not null,
+    CLAIM_TIME_ timestamp,
+    END_TIME_ timestamp,
+    DURATION_ bigint,
+    DELETE_REASON_ varchar(4000),
+    PRIORITY_ integer,
+    DUE_DATE_ timestamp,
+    FORM_KEY_ varchar(255),
+    CATEGORY_ varchar(255),
+    TENANT_ID_ varchar(255) default '',
+    primary key (ID_)
 );
 
 create table ACT_HI_VARINST (
-  ID_ varchar(64) not null,
-  PROC_INST_ID_ varchar(64),
-  EXECUTION_ID_ varchar(64),
-  TASK_ID_ varchar(64),
-  NAME_ varchar(255) not null,
-  VAR_TYPE_ varchar(100),
-  REV_ integer,
-  BYTEARRAY_ID_ varchar(64),
-  DOUBLE_ double,
-  LONG_ bigint,
-  TEXT_ varchar(4000),
-  TEXT2_ varchar(4000),
-  CREATE_TIME_ timestamp,
-  LAST_UPDATED_TIME_ timestamp,
-  primary key (ID_)
+    ID_ varchar(64) not null,
+    PROC_INST_ID_ varchar(64),
+    EXECUTION_ID_ varchar(64),
+    TASK_ID_ varchar(64),
+    NAME_ varchar(255) not null,
+    VAR_TYPE_ varchar(100),
+    REV_ integer,
+    BYTEARRAY_ID_ varchar(64),
+    DOUBLE_ double,
+    LONG_ bigint,
+    TEXT_ varchar(4000),
+    TEXT2_ varchar(4000),
+    CREATE_TIME_ timestamp,
+    LAST_UPDATED_TIME_ timestamp,
+    primary key (ID_)
 );
 
 create table ACT_HI_DETAIL (
-  ID_ varchar(64) not null,
-  TYPE_ varchar(255) not null,
-  TIME_ timestamp not null,
-  NAME_ varchar(255),
-  PROC_INST_ID_ varchar(64),
-  EXECUTION_ID_ varchar(64),
-  TASK_ID_ varchar(64),
-  ACT_INST_ID_ varchar(64),
-  VAR_TYPE_ varchar(255),
-  REV_ integer,
-  BYTEARRAY_ID_ varchar(64),
-  DOUBLE_ double,
-  LONG_ bigint,
-  TEXT_ varchar(4000),
-  TEXT2_ varchar(4000),
-  primary key (ID_)
+    ID_ varchar(64) not null,
+    TYPE_ varchar(255) not null,
+    TIME_ timestamp not null,
+    NAME_ varchar(255),
+    PROC_INST_ID_ varchar(64),
+    EXECUTION_ID_ varchar(64),
+    TASK_ID_ varchar(64),
+    ACT_INST_ID_ varchar(64),
+    VAR_TYPE_ varchar(255),
+    REV_ integer,
+    BYTEARRAY_ID_ varchar(64),
+    DOUBLE_ double,
+    LONG_ bigint,
+    TEXT_ varchar(4000),
+    TEXT2_ varchar(4000),
+    primary key (ID_)
 );
 
 create table ACT_HI_COMMENT (
-  ID_ varchar(64) not null,
-  TYPE_ varchar(255),
-  TIME_ timestamp not null,
-  USER_ID_ varchar(255),
-  TASK_ID_ varchar(64),
-  PROC_INST_ID_ varchar(64),
-  ACTION_ varchar(255),
-  MESSAGE_ varchar(4000),
-  FULL_MSG_ longvarbinary,
-  primary key (ID_)
+    ID_ varchar(64) not null,
+    TYPE_ varchar(255),
+    TIME_ timestamp not null,
+    USER_ID_ varchar(255),
+    TASK_ID_ varchar(64),
+    PROC_INST_ID_ varchar(64),
+    ACTION_ varchar(255),
+    MESSAGE_ varchar(4000),
+    FULL_MSG_ longvarbinary,
+    primary key (ID_)
 );
 
 create table ACT_HI_ATTACHMENT (
-  ID_ varchar(64) not null,
-  REV_ integer,
-  USER_ID_ varchar(255),
-  NAME_ varchar(255),
-  DESCRIPTION_ varchar(4000),
-  TYPE_ varchar(255),
-  TASK_ID_ varchar(64),
-  PROC_INST_ID_ varchar(64),
-  URL_ varchar(4000),
-  CONTENT_ID_ varchar(64),
-  primary key (ID_)
+    ID_ varchar(64) not null,
+    REV_ integer,
+    USER_ID_ varchar(255),
+    NAME_ varchar(255),
+    DESCRIPTION_ varchar(4000),
+    TYPE_ varchar(255),
+    TASK_ID_ varchar(64),
+    PROC_INST_ID_ varchar(64),
+    URL_ varchar(4000),
+    CONTENT_ID_ varchar(64),
+    TIME_ timestamp,
+    primary key (ID_)
 );
 create table ACT_HI_IDENTITYLINK (
-  ID_ varchar(64),
-  GROUP_ID_ varchar(255),
-  TYPE_ varchar(255),
-  USER_ID_ varchar(255),
-  TASK_ID_ varchar(64),
-  PROC_INST_ID_ varchar(64) null,
-  primary key (ID_)
+    ID_ varchar(64),
+    GROUP_ID_ varchar(255),
+    TYPE_ varchar(255),
+    USER_ID_ varchar(255),
+    TASK_ID_ varchar(64),
+    PROC_INST_ID_ varchar(64) null,
+    primary key (ID_)
 );
 
 create index ACT_IDX_HI_PRO_INST_END on ACT_HI_PROCINST(END_TIME_);
@@ -1536,6 +1632,7 @@ create index ACT_IDX_HI_DETAIL_NAME on ACT_HI_DETAIL(NAME_);
 create index ACT_IDX_HI_DETAIL_TASK_ID on ACT_HI_DETAIL(TASK_ID_);
 create index ACT_IDX_HI_PROCVAR_PROC_INST on ACT_HI_VARINST(PROC_INST_ID_);
 create index ACT_IDX_HI_PROCVAR_NAME_TYPE on ACT_HI_VARINST(NAME_, VAR_TYPE_);
+create index ACT_IDX_HI_PROCVAR_TASK_ID on ACT_HI_VARINST(TASK_ID_);
 create index ACT_IDX_HI_ACT_INST_PROCINST on ACT_HI_ACTINST(PROC_INST_ID_, ACT_ID_);
 create index ACT_IDX_HI_IDENT_LNK_USER on ACT_HI_IDENTITYLINK(USER_ID_);
 create index ACT_IDX_HI_IDENT_LNK_TASK on ACT_HI_IDENTITYLINK(TASK_ID_);
@@ -1544,50 +1641,50 @@ create index ACT_IDX_HI_IDENT_LNK_PROCINST on ACT_HI_IDENTITYLINK(PROC_INST_ID_)
 create index ACT_IDX_HI_ACT_INST_EXEC on ACT_HI_ACTINST(EXECUTION_ID_, ACT_ID_);
 
 create table ACT_ID_GROUP (
-  ID_ varchar(64),
-  REV_ integer,
-  NAME_ varchar(255),
-  TYPE_ varchar(255),
-  primary key (ID_)
+    ID_ varchar(64),
+    REV_ integer,
+    NAME_ varchar(255),
+    TYPE_ varchar(255),
+    primary key (ID_)
 );
 
 create table ACT_ID_MEMBERSHIP (
-  USER_ID_ varchar(64),
-  GROUP_ID_ varchar(64),
-  primary key (USER_ID_, GROUP_ID_)
+    USER_ID_ varchar(64),
+    GROUP_ID_ varchar(64),
+    primary key (USER_ID_, GROUP_ID_)
 );
 
 create table ACT_ID_USER (
-  ID_ varchar(64),
-  REV_ integer,
-  FIRST_ varchar(255),
-  LAST_ varchar(255),
-  EMAIL_ varchar(255),
-  PWD_ varchar(255),
-  PICTURE_ID_ varchar(64),
-  primary key (ID_)
+    ID_ varchar(64),
+    REV_ integer,
+    FIRST_ varchar(255),
+    LAST_ varchar(255),
+    EMAIL_ varchar(255),
+    PWD_ varchar(255),
+    PICTURE_ID_ varchar(64),
+    primary key (ID_)
 );
 
 create table ACT_ID_INFO (
-  ID_ varchar(64),
-  REV_ integer,
-  USER_ID_ varchar(64),
-  TYPE_ varchar(64),
-  KEY_ varchar(255),
-  VALUE_ varchar(255),
-  PASSWORD_ longvarbinary,
-  PARENT_ID_ varchar(255),
-  primary key (ID_)
+    ID_ varchar(64),
+    REV_ integer,
+    USER_ID_ varchar(64),
+    TYPE_ varchar(64),
+    KEY_ varchar(255),
+    VALUE_ varchar(255),
+    PASSWORD_ longvarbinary,
+    PARENT_ID_ varchar(255),
+    primary key (ID_)
 );
 
 alter table ACT_ID_MEMBERSHIP
-add constraint ACT_FK_MEMB_GROUP
-foreign key (GROUP_ID_)
-references ACT_ID_GROUP;
+    add constraint ACT_FK_MEMB_GROUP
+    foreign key (GROUP_ID_)
+    references ACT_ID_GROUP;
 
 alter table ACT_ID_MEMBERSHIP
-add constraint ACT_FK_MEMB_USER
-foreign key (USER_ID_)
-references ACT_ID_USER;
+    add constraint ACT_FK_MEMB_USER
+    foreign key (USER_ID_)
+    references ACT_ID_USER;
 
 commit;
