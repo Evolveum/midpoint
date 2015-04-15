@@ -81,6 +81,10 @@
         </appender>
         <rootLoggerAppender>IDM_LOG</rootLoggerAppender>
         <rootLoggerLevel>INFO</rootLoggerLevel>
+        <auditing>
+            <enabled>false</enabled>
+            <details>false</details>
+        </auditing>
     </logging>
     <cleanupPolicy>
         <auditRecords>
