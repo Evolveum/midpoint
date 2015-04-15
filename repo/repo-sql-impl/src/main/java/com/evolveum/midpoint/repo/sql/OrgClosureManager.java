@@ -290,7 +290,7 @@ public class OrgClosureManager {
                                 columns++;
                             }
                             if (columns > 0) {
-                                LOGGER.info("There are {} columns in {} (obtained via DatabaseMetaData)", columns, CLOSURE_TABLE_NAME);
+                                LOGGER.debug("There are {} columns in {} (obtained via DatabaseMetaData)", columns, CLOSURE_TABLE_NAME);
                                 if (columns != 3) {
                                     wrongNumberOfColumns.setValue(true);
                                 }
@@ -302,7 +302,7 @@ public class OrgClosureManager {
                                 ResultSet rs = stmt.executeQuery("select * from " + CLOSURE_TABLE_NAME);
                                 int cols = rs.getMetaData().getColumnCount();
                                 if (cols > 0) {
-                                    LOGGER.info("There are {} columns in {} (obtained via resultSet.getMetaData())", cols, CLOSURE_TABLE_NAME);
+                                    LOGGER.debug("There are {} columns in {} (obtained via resultSet.getMetaData())", cols, CLOSURE_TABLE_NAME);
                                     if (cols != 3) {
                                         wrongNumberOfColumns.setValue(true);
                                     }
@@ -351,7 +351,7 @@ public class OrgClosureManager {
      * Thorough check is conducted by recomputing the closure table.
      */
     public void checkAndOrRebuild(SqlRepositoryServiceImpl service, boolean check, boolean rebuild, boolean stopOnFailure, boolean quickCheckOnly, OperationResult result) {
-        LOGGER.info("Org closure check/rebuild request: check={}, rebuild={}", check?(quickCheckOnly?"quick":"thorough"):"none", rebuild);
+        LOGGER.debug("Org closure check/rebuild request: check={}, rebuild={}", check?(quickCheckOnly?"quick":"thorough"):"none", rebuild);
         if (!isEnabled()) {
             result.recordWarning("Organizational closure processing is disabled.");
             return;
