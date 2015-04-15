@@ -16,7 +16,9 @@
 
 package com.evolveum.midpoint.web.page.login;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.menu.top.LocalePanel;
@@ -24,6 +26,8 @@ import com.evolveum.midpoint.web.component.menu.top.TopMenuBar;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.PasswordTextField;
@@ -42,12 +46,24 @@ public class PageLogin extends PageBase {
     private static final String ID_USERNAME = "username";
     private static final String ID_PASSWORD = "password";
 
+	protected static final String OPERATION_LOAD_RESET_PASSWORD_POLICY = "LOAD PASSWORD RESET POLICY";
+
+	
     public PageLogin() {
         TopMenuBar menuBar = getTopMenuBar();
         menuBar.addOrReplace(new LocalePanel(TopMenuBar.ID_RIGHT_PANEL));
-
+        
+    	Task task = getPageBase().createSimpleTask(OPERATION_LOAD_RESET_PASSWORD_POLICY);
+		OperationResult subResult = result.createSubresult(OPERATION_LOAD_RESET_PASSWORD_POLICY);	  
+    	getMidpointApplication().getModel().getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null,
+			task, result);
+        
+       
         Form form = new Form(ID_LOGIN_FORM) {
-
+        	
+        	ge
+        
+        	
             @Override
             protected void onSubmit() {
                 MidPointAuthWebSession session = MidPointAuthWebSession.getSession();
@@ -56,12 +72,15 @@ public class PageLogin extends PageBase {
                 PasswordTextField password = (PasswordTextField) get(ID_PASSWORD);
                 if (session.authenticate(username.getModelObject(), password.getModelObject())) {
                     setResponsePage(PageDashboard.class);
+                    
+                    
                 }
             }
         };
 
         form.add(new RequiredTextField(ID_USERNAME, new Model<String>()));
         form.add(new PasswordTextField(ID_PASSWORD, new Model<String>()));
+        
         add(form);
     }
 
@@ -69,4 +88,8 @@ public class PageLogin extends PageBase {
     protected IModel<String> createPageTitleModel() {
         return new Model<>("");
     }
+    
+	public PageBase getPageBase() {
+		return (PageBase) getPage();
+	}
 }

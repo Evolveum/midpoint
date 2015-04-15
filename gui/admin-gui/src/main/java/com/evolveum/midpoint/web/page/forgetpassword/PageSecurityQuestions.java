@@ -436,7 +436,7 @@ public class PageSecurityQuestions extends PageBase {
 		}
 
 		if(questionNumber==correctAnswers){
-			resetPassword(principalModel.getObject().asObjectable());
+			resetPassword(principalModel.getObject().asObjectable(),target);
 
 		}
 		else{
@@ -525,7 +525,7 @@ public class PageSecurityQuestions extends PageBase {
 		return (PageBase) getPage();
 	}
 
-	private void resetPassword(UserType user){
+	private void resetPassword(UserType user,AjaxRequestTarget target){
 
 
 		Task task = createSimpleTask(OPERATION_RESET_PASSWORD);
@@ -539,14 +539,27 @@ public class PageSecurityQuestions extends PageBase {
 		String newPassword="";
 		PageBase page = (PageBase) getPage();
 
-		ModelService model = page.getModelService();
+		ModelService modelService = page.getModelService();
 		try {
 			
-			systemConfig = model.getObject(SystemConfigurationType.class,
+			systemConfig = modelService.getObject(SystemConfigurationType.class,
 					SystemObjectsType.SYSTEM_CONFIGURATION.value(), options, task, result);
 			if(systemConfig.asObjectable().getNotificationConfiguration()!=null){
-				PrismObject<ValuePolicyType> valPolicy =model.getObject(ValuePolicyType.class, systemConfig.asObjectable().getGlobalPasswordPolicyRef().getOid(), options, task, result);	
-				newPassword=ValuePolicyGenerator.generate(valPolicy.asObjectable().getStringPolicy(), valPolicy.asObjectable().getStringPolicy().getLimitations().getMinLength(), result);
+				//New password is automatically reset according to the global Security policy with the minumum number of chars
+				if (systemConfig.asObjectable().getGlobalPasswordPolicyRef()!=null)
+				{
+					PrismObject<ValuePolicyType> valPolicy =modelService.getObject(ValuePolicyType.class, systemConfig.asObjectable().getGlobalPasswordPolicyRef().getOid(), options, task, result);	
+					newPassword=ValuePolicyGenerator.generate(valPolicy.asObjectable().getStringPolicy(), valPolicy.asObjectable().getStringPolicy().getLimitations().getMinLength(), result);
+				}
+				else{
+					//TODO What if there is no policy? What should be done to provide a new automatic password
+					  warn(getString("pageSecurityQuestions.message.noPolicySet"));
+		                target.add(getFeedbackPanel());
+		                setAuthenticationNull();
+		                return;
+				}
+				
+				
 
 			}else{
 			//TODO localization
