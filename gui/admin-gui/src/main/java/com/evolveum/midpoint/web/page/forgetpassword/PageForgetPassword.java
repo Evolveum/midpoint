@@ -210,14 +210,6 @@ public class PageForgetPassword extends PageBase {
 		} 
 
 
-
-
-
-
-
-
-
-
 	}
 
 }
