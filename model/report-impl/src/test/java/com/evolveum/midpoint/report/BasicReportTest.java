@@ -61,6 +61,7 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -750,7 +751,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		LOGGER.info("jasper report template: " + new String(Base64.decodeBase64(reportType.getTemplateStyle())));
 		//WHEN 	
 		TestUtil.displayWhen(TEST_NAME);
-		reportManager.runReport(reportType.asPrismObject(), new ArrayList(), task, result);
+		reportManager.runReport(reportType.asPrismObject(), new PrismContainer(null), task, result);
 		
 		// THEN
         TestUtil.displayThen(TEST_NAME);
@@ -1260,7 +1261,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			
 			//WHEN 	
 			TestUtil.displayWhen(TEST_NAME);
-			reportManager.runReport(reportType.asPrismObject(), new ArrayList(), task, result);
+			reportManager.runReport(reportType.asPrismObject(), new PrismContainer(null), task, result);
 			
 			// THEN
 	        TestUtil.displayThen(TEST_NAME);
@@ -1365,7 +1366,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			
 			//WHEN 	
 			TestUtil.displayWhen(TEST_NAME);
-			reportManager.runReport(reportType.asPrismObject(), new ArrayList(), task, result);
+			reportManager.runReport(reportType.asPrismObject(), new PrismContainer(null), task, result);
 			
 			// THEN
 	        TestUtil.displayThen(TEST_NAME);
@@ -1431,7 +1432,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			
 			//WHEN 	
 			TestUtil.displayWhen(TEST_NAME);
-			reportManager.runReport(reportType.asPrismObject(), new ArrayList(), task, result);
+			reportManager.runReport(reportType.asPrismObject(), new PrismContainer(null), task, result);
 			
 			// THEN
 	        TestUtil.displayThen(TEST_NAME);
@@ -1470,7 +1471,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			
 			//WHEN 	
 			TestUtil.displayWhen(TEST_NAME);
-			reportManager.runReport(reportType.asPrismObject(), new ArrayList(), task, result);
+			reportManager.runReport(reportType.asPrismObject(), new PrismContainer(null), task, result);
 			
 			// THEN
 	        TestUtil.displayThen(TEST_NAME);
