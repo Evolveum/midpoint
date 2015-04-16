@@ -39,11 +39,11 @@ public class MyPasswordQuestionsPanel extends InputPanel {
                 public MyPasswordQuestionsPanel(String id, SecurityQuestionAnswerDTO model) {
                                super(ID_QA_PANEL);
                                
-                               System.out.println("Question: "+model.getQuestionItself());
+                              // System.out.println("Question: "+model.getQuestionItself());
                           mod.setPwdQuestion(model.getQuestionItself());
                           
                               mod.setPwdAnswer(model.getPwdAnswer());
-                              System.out.println("Answer: "+mod.getPwdAnswer());
+                            //  System.out.println("Answer: "+mod.getPwdAnswer());
                                initLayout();
                 }
                
