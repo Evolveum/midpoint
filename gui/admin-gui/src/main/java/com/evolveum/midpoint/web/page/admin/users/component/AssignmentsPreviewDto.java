@@ -16,6 +16,9 @@
 
 package com.evolveum.midpoint.web.page.admin.users.component;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 import java.io.Serializable;
@@ -167,21 +170,54 @@ public class AssignmentsPreviewDto implements Serializable, Comparable {
     @Override
     public int compareTo(Object o) {
         if (!(o instanceof AssignmentsPreviewDto)) {
-            return -1;
+            return -1;      // should not occur
         }
+
+        if (this.equals(o)) {
+            return 0;
+        }
+
         AssignmentsPreviewDto other = (AssignmentsPreviewDto) o;
-        if (this.getTargetName() != null) {
-            if (other.getTargetName() != null) {
-                return this.getTargetName().compareTo(other.getTargetName());
-            } else {
-                return -1;      // named are before unnamed
+
+        // firstly sorting by type: orgs -> roles -> resources -> all the other (in the future)
+        int co1 = getClassOrder(this.getTargetClass());
+        int co2 = getClassOrder(other.getTargetClass());
+        if (co1 != co2) {
+            return co1 - co2;
+        }
+
+        // then by name
+        if (this.getTargetName() != null && other.getTargetName() != null) {
+            int order = this.getTargetName().compareToIgnoreCase(other.getTargetName());
+            if (order != 0) {
+                return order;
             }
+        } else if (this.getTargetName() != null && other.getTargetName() == null) {
+            return -1;      // named are before unnamed
+        } else if (this.getTargetName() == null && other.getTargetName() != null) {
+            return 1;       // unnamed are after named
         } else {
-            if (other.getTargetName() != null) {
-                return 1;       // unnamed are after named
-            } else {
-                return 0;       // undeterminable
-            }
+            // both unnamed - no decision
+        }
+
+        // if class and names are equal, the order can be arbitrary
+
+        if (this.hashCode() <= o.hashCode()) {
+            return -1;
+        } else {
+            return 1;
+        }
+    }
+
+    private int getClassOrder(Class targetClass) {
+        if (OrgType.class.equals(targetClass)) {
+            return 0;
+        } else if (RoleType.class.equals(targetClass)) {
+            return 1;
+        } else if (ResourceType.class.equals(targetClass)) {
+            return 2;
+        } else {
+            return 3;
         }
     }
 }

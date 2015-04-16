@@ -32,7 +32,7 @@ public enum ObjectTypeGuiDescriptor {
 
     GENERIC_OBJECT(ObjectTypes.GENERIC_OBJECT, "ObjectTypeGuiDescriptor.genericObject", "silk-page_white_code"),
 
-    RESOURCE(ObjectTypes.RESOURCE, "ObjectTypeGuiDescriptor.resource", "silk-server"),
+    RESOURCE(ObjectTypes.RESOURCE, "ObjectTypeGuiDescriptor.resource", "silk-drive"),
 
     USER(ObjectTypes.USER, "ObjectTypeGuiDescriptor.user", "silk-user"),
 
@@ -46,7 +46,7 @@ public enum ObjectTypeGuiDescriptor {
 
     OBJECT(ObjectTypes.OBJECT, "ObjectTypeGuiDescriptor.object", "silk-page_white"),
 
-    ROLE(ObjectTypes.ROLE, "ObjectTypeGuiDescriptor.role", "silk-medal_gold_3"),
+    ROLE(ObjectTypes.ROLE, "ObjectTypeGuiDescriptor.role", "silk-user_suit"),
 
     VALUE_POLICY(ObjectTypes.PASSWORD_POLICY, "ObjectTypeGuiDescriptor.valuePolicy", "silk-lock"),
 

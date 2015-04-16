@@ -17,11 +17,15 @@
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MisfireActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
@@ -31,6 +35,7 @@ public class TaskAddDto implements Serializable {
     public static final String F_DRY_RUN = "dryRun";
     public static final String F_KIND = "kind";
     public static final String F_INTENT = "intent";
+    public static final String F_OBJECT_CLASS = "objectClass";
     public static final String F_RESOURCE = "resource";
     public static final String F_CATEGORY = "category";
     public static final String F_NAME = "name";
@@ -67,6 +72,8 @@ public class TaskAddDto implements Serializable {
     private boolean dryRun;
     private ShadowKindType kind;
     private String intent;
+    private String objectClass;
+    private List<QName> objectClassList;
 	
 	public String getCategory() {
 		return category;
@@ -194,5 +201,80 @@ public class TaskAddDto implements Serializable {
 
     public void setIntent(String intent) {
         this.intent = intent;
+    }
+
+    public String getObjectClass() {
+        return objectClass;
+    }
+
+    public void setObjectClass(String objectClass) {
+        this.objectClass = objectClass;
+    }
+
+    public List<QName> getObjectClassList() {
+        if(objectClassList == null){
+            objectClassList = new ArrayList<>();
+        }
+
+        return objectClassList;
+    }
+
+    public void setObjectClassList(List<QName> objectClassList) {
+        this.objectClassList = objectClassList;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof TaskAddDto)) return false;
+
+        TaskAddDto that = (TaskAddDto) o;
+
+        if (bound != that.bound) return false;
+        if (dryRun != that.dryRun) return false;
+        if (reccuring != that.reccuring) return false;
+        if (runUntilNodeDown != that.runUntilNodeDown) return false;
+        if (suspendedState != that.suspendedState) return false;
+        if (category != null ? !category.equals(that.category) : that.category != null) return false;
+        if (cron != null ? !cron.equals(that.cron) : that.cron != null) return false;
+        if (intent != null ? !intent.equals(that.intent) : that.intent != null) return false;
+        if (interval != null ? !interval.equals(that.interval) : that.interval != null) return false;
+        if (kind != that.kind) return false;
+        if (misfireAction != that.misfireAction) return false;
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (notStartAfter != null ? !notStartAfter.equals(that.notStartAfter) : that.notStartAfter != null)
+            return false;
+        if (notStartBefore != null ? !notStartBefore.equals(that.notStartBefore) : that.notStartBefore != null)
+            return false;
+        if (objectClass != null ? !objectClass.equals(that.objectClass) : that.objectClass != null) return false;
+        if (objectClassList != null ? !objectClassList.equals(that.objectClassList) : that.objectClassList != null)
+            return false;
+        if (resource != null ? !resource.equals(that.resource) : that.resource != null) return false;
+        if (threadStop != that.threadStop) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = category != null ? category.hashCode() : 0;
+        result = 31 * result + (resource != null ? resource.hashCode() : 0);
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (reccuring ? 1 : 0);
+        result = 31 * result + (bound ? 1 : 0);
+        result = 31 * result + (interval != null ? interval.hashCode() : 0);
+        result = 31 * result + (cron != null ? cron.hashCode() : 0);
+        result = 31 * result + (notStartBefore != null ? notStartBefore.hashCode() : 0);
+        result = 31 * result + (notStartAfter != null ? notStartAfter.hashCode() : 0);
+        result = 31 * result + (runUntilNodeDown ? 1 : 0);
+        result = 31 * result + (suspendedState ? 1 : 0);
+        result = 31 * result + (threadStop != null ? threadStop.hashCode() : 0);
+        result = 31 * result + (misfireAction != null ? misfireAction.hashCode() : 0);
+        result = 31 * result + (dryRun ? 1 : 0);
+        result = 31 * result + (kind != null ? kind.hashCode() : 0);
+        result = 31 * result + (intent != null ? intent.hashCode() : 0);
+        result = 31 * result + (objectClass != null ? objectClass.hashCode() : 0);
+        result = 31 * result + (objectClassList != null ? objectClassList.hashCode() : 0);
+        return result;
     }
 }

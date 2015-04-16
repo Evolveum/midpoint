@@ -23,14 +23,14 @@
         <Append>true</Append>
         <File>${catalina.base}/logs/idm.log</File>
         <encoder>
-            <pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
+            <pattern>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${catalina.base}/logs/idm.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <fileNamePattern>${catalina.base}/logs/idm-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
                 <maxFileSize>100MB</maxFileSize>
             </timeBasedFileNamingAndTriggeringPolicy>
-            <maxHistory>20</maxHistory>
+            <maxHistory>10</maxHistory>
             <cleanHistoryOnStart>true</cleanHistoryOnStart>
         </rollingPolicy>
     </appender>
@@ -43,14 +43,14 @@
         <Append>true</Append>
         <File>${catalina.base}/logs/idm-profile.log</File>
         <encoder>
-            <pattern>%date [%X{subSystem}] %-5level: %message%n</pattern>
+            <pattern>%date %level: %msg%n</pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${catalina.base}/logs/idm-profile.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <fileNamePattern>${catalina.base}/logs/idm-profile-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
                 <maxFileSize>100MB</maxFileSize>
             </timeBasedFileNamingAndTriggeringPolicy>
-            <maxHistory>20</maxHistory>
+            <maxHistory>10</maxHistory>
         </rollingPolicy>
     </appender>
     <!-- Appender for profiling purposes -->

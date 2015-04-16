@@ -107,7 +107,7 @@ public class InitialDataImport {
     }
 
     public void init() throws SchemaException {
-        LOGGER.info("Starting initial object import.");
+        LOGGER.info("Starting initial object import (if necessary).");
 
         OperationResult mainResult = new OperationResult(OPERATION_INITIAL_OBJECTS_IMPORT);
         Task task = taskManager.createTaskInstance(OPERATION_INITIAL_OBJECTS_IMPORT);
@@ -117,7 +117,7 @@ public class InitialDataImport {
         int errors = 0;
 
         File[] files = getInitialImportObjects();
-        LOGGER.info("Importing files {}.", Arrays.toString(files));
+        LOGGER.debug("Files to be imported: {}.", Arrays.toString(files));
         
         // We need to provide a fake Spring security context here.
         // We have to fake it because we do not have anything in the repository yet. And to get
@@ -138,7 +138,7 @@ public class InitialDataImport {
 
         for (File file : files) {
             try {
-                LOGGER.info("Initial import of file {}.", file.getName());
+                LOGGER.debug("Considering initial import of file {}.", file.getName());
                 PrismObject object = prismContext.parseObject(file);
                 if (ReportType.class.equals(object.getCompileTimeClass())) {
                     ReportTypeUtil.applyDefinition(object, prismContext);
@@ -200,7 +200,8 @@ public class InitialDataImport {
 
         ObjectDelta delta = ObjectDelta.createAddDelta(object);
         try {
-            model.executeChanges(WebMiscUtil.createDeltaCollection(delta), ModelExecuteOptions.createReevaluateSearchFilters(), task, result);
+            LOGGER.info("Starting initial import of file {}.", file.getName());
+            model.executeChanges(WebMiscUtil.createDeltaCollection(delta), ModelExecuteOptions.createIsImport(), task, result);
             result.recordSuccess();
             LOGGER.info("Created {} as part of initial import", object);
             return true;
