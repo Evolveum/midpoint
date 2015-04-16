@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.report.impl;
+package com.evolveum.midpoint.report.api;
 
 import javax.xml.namespace.QName;
 

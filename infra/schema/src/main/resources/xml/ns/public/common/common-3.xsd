@@ -10650,10 +10650,14 @@
     </xsd:complexType>
     
     <xsd:complexType name="ReportParameterType">
-        <xsd:sequence>
-            <xsd:element name="name" type="xsd:string"/>
-            <xsd:element name="type" type="xsd:string"/>
-            <xsd:element name="value" type="xsd:string"/>
+     <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+       <xsd:sequence>
+            <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
+            </xsd:any>
         </xsd:sequence>
     </xsd:complexType>
     

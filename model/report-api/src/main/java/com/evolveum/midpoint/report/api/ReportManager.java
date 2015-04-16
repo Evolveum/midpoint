@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.report.api;
 
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -44,7 +45,7 @@ public interface ReportManager {
      * @param report
      * @param parentResult describes report which has to be created
      */
-    void runReport(PrismObject<ReportType> object, List<ReportParameterType> params, Task task, OperationResult parentResult);
+    void runReport(PrismObject<ReportType> object, PrismContainer<ReportParameterType> params, Task task, OperationResult parentResult);
 
     /**
      * todo comments [lazyman]
