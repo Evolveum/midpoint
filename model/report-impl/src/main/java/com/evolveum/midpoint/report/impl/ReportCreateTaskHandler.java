@@ -160,34 +160,18 @@ public class ReportCreateTaskHandler implements TaskHandler{
 			Map<String, Object> parameters = completeReport(parentReport, result);
 			
 			PrismContainer<ReportParameterType> reportParams = (PrismContainer) task.getExtensionItem(ReportConstants.REPORT_PARAMS_PROPERTY_NAME);
-			if (reportParams != null){
-			PrismContainerValue<ReportParameterType> reportParamsValues = reportParams.getValue();
-			List<Item<?,?>> items = reportParamsValues.getItems();
-			for (Item item : items){
-				PrismProperty pp = (PrismProperty) item;
-				Object value = pp.getRealValue();
-				String paramName = ItemPath.getName(pp.getPath().lastNamed()).getLocalPart();
-				parameters.put(paramName, value);
-			}
-			
-			
-			
-//			
-//			for (PrismPropertyValue<ReportParameterType> paramValue : getV){
-//				ReportParameterType val = paramValue.getValue();
-//				Class clazz = Class.forName(val.getType());
-//				Object value = null;
-//				if (XmlTypeConverter.canConvert(clazz)){
-//					value =  XmlTypeConverter.toJavaValue(val.getValue(), clazz);
-//				} else {
-//					XNode xnode = prismContext.getParserDom().parse(val.getValue());
-//					 value = prismContext.getBeanConverter().unmarshall(xnode, clazz);
-//					
-//				}
-				
-//			}
-			}
-			
+			if (reportParams != null) {
+				PrismContainerValue<ReportParameterType> reportParamsValues = reportParams.getValue();
+				List<Item<?, ?>> items = reportParamsValues.getItems();
+				if (items != null) {
+					for (Item item : items) {
+						PrismProperty pp = (PrismProperty) item;
+						Object value = pp.getRealValue();
+						String paramName = ItemPath.getName(pp.getPath().lastNamed()).getLocalPart();
+						parameters.put(paramName, value);
+					}
+				}
+			}			
 			
 			JasperReport jasperReport = ReportTypeUtil.loadJasperReport(parentReport);
 			LOGGER.trace("compile jasper design, create jasper report : {}", jasperReport);

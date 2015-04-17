@@ -163,14 +163,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
         task.setObjectRef(object.getOid(), ReportType.COMPLEX_TYPE);
         try {
         	if (paramContainer != null && !paramContainer.isEmpty()){
-//        		PrismContainerDefinition<ReportParameterType> propertyDef = prismContext.getSchemaRegistry().findContainerDefinitionByElementName(ReportConstants.REPORT_PARAMS_PROPERTY_NAME);
-//        		PrismContainer<ReportParameterType> container = propertyDef.instantiate();
-//        		for (ReportParameterType reportParam : params){
-//        			container.add(reportParam.asPrismContainerValue());
-//        		}
-        		
         		task.setExtensionContainer(paramContainer);
-        		
         	}
 		} catch (SchemaException e) {
 			throw new SystemException(e);
