@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
+import org.apache.cxf.aegis.type.XMLTypeCreator;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -17,8 +19,15 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -171,20 +180,32 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto>{
 	private void runConfirmPerformed(AjaxRequestTarget target, IModel<ReportDto> model, List<JasperReportParameterDto> params){		
 		ReportDto reportDto = model.getObject();
     	
-    	List<ReportParameterType> reportParams = new ArrayList<ReportParameterType>();
+//    	List<ReportParameterType> reportParams = new ArrayList<ReportParameterType>();
+		PrismContainerDefinition<ReportParameterType> paramContainterDef = getPrismContext().getSchemaRegistry().findContainerDefinitionByElementName(ReportConstants.REPORT_PARAMS_PROPERTY_NAME);
+		PrismContainer<ReportParameterType> paramContainer = paramContainterDef.instantiate();
 		try {
+			
+			ReportParameterType reportParam = new ReportParameterType();
+			PrismContainerValue<ReportParameterType> reportParamValue = reportParam.asPrismContainerValue();
+			reportParamValue.revive(getPrismContext());
+			paramContainer.add(reportParamValue);
     	for (JasperReportParameterDto paramDto : params){
-    		ReportParameterType parameterType = new ReportParameterType();
-    		parameterType.setName(paramDto.getName());
-    		parameterType.setType(paramDto.getTypeAsString());
-    		String 	value = null;
-    		if (XmlTypeConverter.canConvert(paramDto.getType())){
-    			value = XmlTypeConverter.toXmlTextContent(paramDto.getValue(), null);
-    		} else{
-    			value = getPrismContext().serializeAnyData(paramDto.getValue(), SchemaConstants.C_REPORT_PARAM_VALUE, PrismContext.LANG_XML);
+    		if (paramDto.getValue() == null){
+    			continue;
     		}
-    		parameterType.setValue(value);
-    		reportParams.add(parameterType);
+    		QName typeName = null;
+    		if (XmlTypeConverter.canConvert(paramDto.getType())){
+    			typeName = XsdTypeMapper.toXsdType(paramDto.getType());
+    		} else {
+    			typeName = getPrismContext().getBeanConverter().determineTypeForClass(paramDto.getType());
+    		}
+    		PrismPropertyDefinition def = new PrismPropertyDefinition<>(new QName(ReportConstants.NS_EXTENSION, paramDto.getName()), typeName, getPrismContext());
+    		def.setDynamic(true);
+    		def.setRuntimeSchema(true);
+    		PrismProperty prop = def.instantiate();
+    		prop.addRealValue(paramDto.getValue());
+    		reportParamValue.add(prop);
+    		//setPropertyRealValue(new QName(ReportConstants.NS_EXTENSION, paramDto.getName()), paramDto.getValue(), getPrismContext());
     	}
 		} catch (SchemaException | ClassNotFoundException e) {
 			OperationResult result = new OperationResult("Parameters serialization");
@@ -193,7 +214,7 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto>{
 			return;
 		}
     	
-    	runConfirmPerformed(target, reportDto.getObject().asObjectable(), reportParams);
+    	runConfirmPerformed(target, reportDto.getObject().asObjectable(), paramContainer);
     	
     	
 	}
@@ -203,7 +224,7 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto>{
 	}
 	
 	protected void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType2,
-			List<ReportParameterType> paramsMap) {}
+			PrismContainer<ReportParameterType> reportParam) {}
 	private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {
 
         public EmptyOnBlurAjaxFormUpdatingBehaviour() {

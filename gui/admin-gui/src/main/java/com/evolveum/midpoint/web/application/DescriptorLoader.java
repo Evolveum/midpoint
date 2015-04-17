@@ -58,7 +58,7 @@ public final class DescriptorLoader {
     }
 
     public void loadData(MidPointApplication application) {
-        LOGGER.info("Loading data from descriptor files.");
+        LOGGER.debug("Loading data from descriptor files.");
 
         String baseFileName = "/WEB-INF/descriptor.xml";
         String customFileName = "/WEB-INF/classes/descriptor.xml";
@@ -163,7 +163,7 @@ public final class DescriptorLoader {
             throws InstantiationException, IllegalAccessException {
 
         for (String pac : packages) {
-            LOGGER.info("Scanning package package {} for page annotations", new Object[]{pac});
+            LOGGER.debug("Scanning package package {} for page annotations", new Object[]{pac});
 
             Set<Class> classes = ClassPathUtil.listClasses(pac);
             for (Class clazz : classes) {

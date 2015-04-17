@@ -53,6 +53,7 @@ import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.api.hooks.ReadHook;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -157,19 +158,12 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
      */
     
     @Override
-    public void runReport(PrismObject<ReportType> object, List<ReportParameterType> params, Task task, OperationResult parentResult) {    	
+    public void runReport(PrismObject<ReportType> object, PrismContainer<ReportParameterType> paramContainer, Task task, OperationResult parentResult) {    	
         task.setHandlerUri(ReportCreateTaskHandler.REPORT_CREATE_TASK_URI);
         task.setObjectRef(object.getOid(), ReportType.COMPLEX_TYPE);
         try {
-        	if (params != null && !params.isEmpty()){
-        		PrismPropertyDefinition propertyDef = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(ReportConstants.REPORT_PARAMS_PROPERTY_NAME);
-        		PrismProperty<ReportParameterType> paramProperty = propertyDef.instantiate();
-        		for (ReportParameterType reportParam : params){
-        			paramProperty.addRealValue(reportParam);
-        		}
-        		
-        		task.addExtensionProperty(paramProperty);
-        		
+        	if (paramContainer != null && !paramContainer.isEmpty()){
+        		task.setExtensionContainer(paramContainer);
         	}
 		} catch (SchemaException e) {
 			throw new SystemException(e);

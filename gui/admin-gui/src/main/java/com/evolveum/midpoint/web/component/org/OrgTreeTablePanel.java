@@ -115,8 +115,6 @@ public class OrgTreeTablePanel extends SimplePanel{
 
     @Override
     protected void initLayout() {
-       
-       
         WebMarkupContainer treeHeader = new WebMarkupContainer(ID_TREE_HEADER);
         treeHeader.setOutputMarkupId(true);
         add(treeHeader);
@@ -135,9 +133,7 @@ public class OrgTreeTablePanel extends SimplePanel{
                 super.renderHead(response);
 
                 //method computes height based on document.innerHeight() - screen height;
-                response.render(OnDomReadyHeaderItem.forScript("updateHeight('" + getMarkupId()
-                        + "', ['#" + OrgTreeTablePanel.this.get(ID_FORM).getMarkupId() + "'], ['#"
-                        + OrgTreeTablePanel.this.get(ID_TREE_HEADER).getMarkupId() + "'])"));
+                response.render(OnDomReadyHeaderItem.forScript(computeTreeHeight()));
             }
         };
         add(treeContainer);
@@ -183,6 +179,12 @@ public class OrgTreeTablePanel extends SimplePanel{
 
         initTables();
         initSearch();
+    }
+
+    protected CharSequence computeTreeHeight(){
+        return "updateHeight('" + getMarkupId()
+                + "', ['#" + OrgTreeTablePanel.this.get(ID_FORM).getMarkupId() + "'], ['#"
+                + OrgTreeTablePanel.this.get(ID_TREE_HEADER).getMarkupId() + "'])";
     }
 
     private void initTables() {

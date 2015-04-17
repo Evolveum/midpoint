@@ -30,7 +30,7 @@ import org.apache.wicket.model.AbstractPropertyModel;
  * */
 public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
 
-    private final String expression;
+    protected final String expression;
     private LookupTableType lookupTable;
 
     public LookupPropertyModel(Object modelObject, String expression, LookupTableType lookupTable){

@@ -48,6 +48,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -55,12 +58,14 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.parser.XNodeSerializer;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.RawTypeUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -154,25 +159,19 @@ public class ReportCreateTaskHandler implements TaskHandler{
 			ReportType parentReport = objectResolver.resolve(task.getObjectRef(), ReportType.class, null, "resolving report", result);
 			Map<String, Object> parameters = completeReport(parentReport, result);
 			
-			PrismProperty<ReportParameterType> reportParams = task.getExtensionProperty(ReportConstants.REPORT_PARAMS_PROPERTY_NAME);
-			if (reportParams != null){
-			List<PrismPropertyValue<ReportParameterType>> reportParamsValues = reportParams.getValues();
-			
-			for (PrismPropertyValue<ReportParameterType> paramValue : reportParamsValues){
-				ReportParameterType val = paramValue.getValue();
-				Class clazz = Class.forName(val.getType());
-				Object value = null;
-				if (XmlTypeConverter.canConvert(clazz)){
-					value =  XmlTypeConverter.toJavaValue(val.getValue(), clazz);
-				} else {
-					XNode xnode = prismContext.getParserDom().parse(val.getValue());
-					 value = prismContext.getBeanConverter().unmarshall(xnode, clazz);
-					
+			PrismContainer<ReportParameterType> reportParams = (PrismContainer) task.getExtensionItem(ReportConstants.REPORT_PARAMS_PROPERTY_NAME);
+			if (reportParams != null) {
+				PrismContainerValue<ReportParameterType> reportParamsValues = reportParams.getValue();
+				List<Item<?, ?>> items = reportParamsValues.getItems();
+				if (items != null) {
+					for (Item item : items) {
+						PrismProperty pp = (PrismProperty) item;
+						Object value = pp.getRealValue();
+						String paramName = ItemPath.getName(pp.getPath().lastNamed()).getLocalPart();
+						parameters.put(paramName, value);
+					}
 				}
-				parameters.put(val.getName(), value);
-			}
-			}
-			
+			}			
 			
 			JasperReport jasperReport = ReportTypeUtil.loadJasperReport(parentReport);
 			LOGGER.trace("compile jasper design, create jasper report : {}", jasperReport);

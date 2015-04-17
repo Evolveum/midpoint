@@ -288,6 +288,10 @@
             		<artifactId>jaxb-core</artifactId>
             		<groupId>com.sun.xml.bind</groupId>
             	</exclusion>
+      <!--      	<exclusion>
+            		<artifactId>javax.servlet</artifactId>
+            		<groupId>org.eclipse.jetty.orbit</groupId>
+            	</exclusion> -->
             </exclusions>
         </dependency>
         <dependency>
@@ -524,6 +528,7 @@
             <artifactId>connector-csvfile</artifactId>
             <scope>runtime</scope>
         </dependency>
+     
         <!-- end connectors -->
 
         <!-- logging bridges to slf4j -->

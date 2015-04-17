@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -178,7 +179,14 @@ public class ReportWebService implements ReportPortType, ReportPort {
 		if (parameters != null) {
 			params = new HashMap<QName, Object>();
 			for (EntryType entry : parameters.getEntry()) {
-				params.put(new QName(entry.getKey()), (Serializable) entry.getEntryValue());
+				Object obj = entry.getEntryValue();
+				Serializable value = null;
+				if (obj instanceof JAXBElement){
+					value = (Serializable) ((JAXBElement) obj).getValue();
+				} else {
+					value = (Serializable) entry.getEntryValue();
+				}
+				params.put(new QName(entry.getKey()), value);
 			}
 		}
 		return params;

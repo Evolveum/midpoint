@@ -36,6 +36,7 @@
         <xsd:annotation>
             <xsd:appinfo>
             	<a:minOccurs>0</a:minOccurs>
+            	<a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>

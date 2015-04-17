@@ -8926,11 +8926,6 @@
 		<xsd:complexContent>
 			<xsd:extension base="tns:AbstractCredentialPolicyType">
 				<xsd:sequence>
-					<!-- TODO: sabri 
-						settings that apply to all questions should go here, like this:
-						<xsd:element name="whatever" type="xsd:string" minOccurs="0"/>
-						This is good place to specify an overall policy, e.g. "display all questions" or "randomly select 3 questions".
-					 -->
 					   <xsd:element name="questionNumber" type="xsd:int" minOccurs="0"  maxOccurs="1">
 		                <xsd:annotation>
 		                    <xsd:documentation>
@@ -10650,10 +10645,14 @@
     </xsd:complexType>
     
     <xsd:complexType name="ReportParameterType">
-        <xsd:sequence>
-            <xsd:element name="name" type="xsd:string"/>
-            <xsd:element name="type" type="xsd:string"/>
-            <xsd:element name="value" type="xsd:string"/>
+     <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+       <xsd:sequence>
+            <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
+            </xsd:any>
         </xsd:sequence>
     </xsd:complexType>
     

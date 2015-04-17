@@ -66,12 +66,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OwnedObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SpecialObjectSpecificationType;
@@ -1329,8 +1332,59 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Test
-    public void test280AutzJackEndUserAndModify() throws Exception {
-		final String TEST_NAME = "test280AutzJackEndUserAndModify";
+    public void test280AutzJackEndUser() throws Exception {
+		final String TEST_NAME = "test280AutzJackEndUser";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);        
+        
+        assignRole(USER_JACK_OID, ROLE_END_USER_OID);
+        
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+        
+        login(USER_JACK_USERNAME);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+
+        assertGetAllow(UserType.class, USER_JACK_OID);
+        assertGetAllow(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+        assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
+        assertGetDeny(UserType.class, USER_GUYBRUSH_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+        
+        assertSearch(UserType.class, null, 1);
+        assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), 1);
+        assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()), 1);
+        assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), 0);
+        assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()), 0);
+        
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        assertAssignments(user, 2);
+        
+        user = getUser(USER_JACK_OID);
+       
+        assertGlobalStateUntouched();
+        
+        assertCredentialsPolicy(user);
+	}
+	
+	private void assertCredentialsPolicy(PrismObject<UserType> user) throws ObjectNotFoundException, SchemaException {
+		OperationResult result = new OperationResult("assertCredentialsPolicy");
+		CredentialsPolicyType credentialsPolicy = modelInteractionService.getCredentialsPolicy(user, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		assertNotNull("No credentials policy for "+user, credentialsPolicy);
+		SecurityQuestionsCredentialsPolicyType securityQuestions = credentialsPolicy.getSecurityQuestions();
+		assertEquals("Unexepected number of security questions for "+user, 2, securityQuestions.getQuestion().size());
+	}
+
+	@Test
+    public void test282AutzJackEndUserAndModify() throws Exception {
+		final String TEST_NAME = "test282AutzJackEndUserAndModify";
         TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);        
@@ -1368,8 +1422,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 
 
 	@Test
-    public void test281AutzJackModifyAndEndUser() throws Exception {
-		final String TEST_NAME = "test270AutzJackAssignApplicationRoles";
+    public void test283AutzJackModifyAndEndUser() throws Exception {
+		final String TEST_NAME = "test283AutzJackModifyAndEndUser";
         TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);        
