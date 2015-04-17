@@ -33,10 +33,12 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextType;
 
 /**
@@ -57,6 +59,7 @@ public interface ModelInteractionService {
 	static final String PREVIEW_CHANGES = CLASS_NAME_WITH_DOT + "previewChanges";
 	static final String GET_EDIT_OBJECT_DEFINITION = CLASS_NAME_WITH_DOT + "getEditObjectDefinition";
 	static final String GET_ASSIGNABLE_ROLE_SPECIFICATION = CLASS_NAME_WITH_DOT + "getAssignableRoleSpecification";
+	static final String GET_CREDENTIALS_POLICY = CLASS_NAME_WITH_DOT + "getCredentialsPolicy";
 	
 	/**
 	 * Computes the most likely changes triggered by the provided delta. The delta may be any change of any object, e.g.
@@ -126,4 +129,17 @@ public interface ModelInteractionService {
      * @param focus Object of the operation. The object (usually user) to whom the roles should be assigned.
      */
     <F extends FocusType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<F> focus, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException;
+    
+    /**
+     * Returns a credential policy that applies to the specified user. This method is designed to be used
+     * during credential reset so the GUI has enough information to set up the credential (e.g. password policies,
+     * security questions, etc).
+     * 
+     * @param user user for who the policy should apply
+     * @param parentResult
+     * @return applicable credentials policy or null
+     * @throws ObjectNotFoundException No system configuration or other major system inconsistency
+     * @throws SchemaException Wrong schema or content of security policy
+     */
+    CredentialsPolicyType getCredentialsPolicy(PrismObject<UserType> user, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 }

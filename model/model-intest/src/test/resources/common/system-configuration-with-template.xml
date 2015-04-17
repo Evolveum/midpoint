@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 	<name>System Configuration</name>
+	<globalSecurityPolicyRef oid="28bf845a-b107-11e3-85bc-001e8c717e5b"/>
 	<defaultUserTemplate>
 	    <name>Default User Template</name>
 	    <mapping>

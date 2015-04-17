@@ -340,6 +340,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	public static final String LOOKUP_LANGUAGES_OID = "70000000-0000-0000-1111-000000000001";
 	public static final String LOOKUP_LANGUAGES_NAME = "Languages";
 	
+	protected static final File SECURITY_POLICY_FILE = new File(COMMON_DIR, "security-policy.xml");
+	protected static final String SECURITY_POLICY_OID = "28bf845a-b107-11e3-85bc-001e8c717e5b";
+	
 	protected static final String NS_PIRACY = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
 	protected static final QName PIRACY_SHIP = new QName(NS_PIRACY, "ship");
 	protected static final QName PIRACY_TALES = new QName(NS_PIRACY, "tales");
