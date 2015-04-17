@@ -57,7 +57,13 @@ public class AssignableOrgPopupContent extends AssignablePopupContent{
 
                         @Override
                         public WebMarkupContainer getPanel(String panelId) {
-                            return new OrgTreeTablePanel(panelId, new Model(oid));
+                            return new OrgTreeTablePanel(panelId, new Model(oid)){
+
+                                @Override
+                                protected CharSequence computeTreeHeight() {
+                                    return "";
+                                }
+                            };
                         }
                     });
                 }
