@@ -26,6 +26,11 @@
 	<name>Role Types</name>
 	
 	<row>
+		<key>system</key>
+		<label>System</label>
+	</row>
+	
+	<row>
 		<key>application</key>
 		<label>Application</label>
 	</row>

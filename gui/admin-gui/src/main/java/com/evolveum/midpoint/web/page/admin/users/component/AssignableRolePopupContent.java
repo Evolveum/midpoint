@@ -18,14 +18,19 @@ import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentSearchDto;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.util.LookupPropertyModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.Application;
+import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.core.util.lang.PropertyResolver;
+import org.apache.wicket.core.util.lang.PropertyResolverConverter;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -81,7 +86,53 @@ public class AssignableRolePopupContent extends AssignablePopupContent{
         searchForm.add(basicSearch);
 
         DropDownChoice typeSearch = new DropDownChoice<>(ID_TYPE_SEARCH,
-                new PropertyModel<String>(searchModel, AssignmentSearchDto.F_SEARCH_ROLE_TYPE),
+                new LookupPropertyModel<String>(searchModel, AssignmentSearchDto.F_SEARCH_ROLE_TYPE, null){
+
+                    @Override
+                    public String getObject() {
+                        final Object target = getInnermostModelOrObject();
+
+                        if (target != null){
+                            String key = (String) PropertyResolver.getValue(expression, target);
+
+                            if(key == null){
+                                return null;
+                            }
+
+                            for(DisplayableValue<String> displayable: getLookupDisplayableList()){
+                                if(key.equals(displayable.getValue())){
+                                    return displayable.getLabel();
+                                }
+                            }
+                        }
+
+                        return null;
+                    }
+
+                    @Override
+                    public void setObject(String object) {
+                        final String expression = propertyExpression();
+
+                        PropertyResolverConverter prc;
+                        prc = new PropertyResolverConverter(Application.get().getConverterLocator(),
+                                Session.get().getLocale());
+
+                        if(object != null){
+                            String key;
+
+                            for(DisplayableValue<String> displayable: getLookupDisplayableList()){
+                                if(object.equals(displayable.getLabel())){
+                                    key = displayable.getValue();
+
+                                    PropertyResolver.setValue(expression, getInnermostModelOrObject(), key, prc);
+                                    return;
+                                }
+                            }
+                        }
+
+                        PropertyResolver.setValue(expression, getInnermostModelOrObject(), null, prc);
+                    }
+                },
                 createAvailableRoleTypesList());
         typeSearch.add(new OnChangeAjaxBehavior() {
 
@@ -90,29 +141,36 @@ public class AssignableRolePopupContent extends AssignablePopupContent{
                 assignmentSearchPerformed(target);
             }
         });
-        searchForm.add(typeSearch);
+        add(typeSearch);
 
         return createTable();
 	}
 
-    private List<String> createAvailableRoleTypesList(){
-        List<String> roleTypes = new ArrayList<>();
+    private List<DisplayableValue<String>> getLookupDisplayableList(){
+        List<DisplayableValue<String>> list = new ArrayList<>();
         ModelInteractionService interactionService = getPageBase().getModelInteractionService();
         OperationResult result = new OperationResult(OPERATION_LOAD_ROLE_TYPES);
 
         try {
             RoleSelectionSpecification roleSpecification = interactionService.getAssignableRoleSpecification(getUserDefinition(), result);
-            List<DisplayableValue<String>> displayableValues = roleSpecification.getRoleTypes();
-
-            if (displayableValues != null) {
-                for (DisplayableValue<String> displayable : displayableValues) {
-                    roleTypes.add(displayable.getValue());
-                }
-            }
+            return roleSpecification.getRoleTypes();
 
         } catch (SchemaException | ConfigurationException | ObjectNotFoundException e) {
             LOGGER.error("Could not retrieve available role types for search purposes.", e);
             result.recordFatalError("Could not retrieve available role types for search purposes.", e);
+        }
+
+        return list;
+    }
+
+    private List<String> createAvailableRoleTypesList(){
+        List<String> roleTypes = new ArrayList<>();
+        List<DisplayableValue<String>> displayableValues = getLookupDisplayableList();
+
+        if (displayableValues != null) {
+            for (DisplayableValue<String> displayable : displayableValues) {
+                roleTypes.add(displayable.getLabel());
+            }
         }
 
         return roleTypes;
@@ -176,14 +234,6 @@ public class AssignableRolePopupContent extends AssignablePopupContent{
 	    AssignmentSearchDto dto = searchModel.getObject();
 	    ObjectQuery query = null;
 
-//	    if(StringUtils.isEmpty(dto.getText())){
-//	        if(getProviderQuery() != null){
-//	            return getProviderQuery();
-//	        } else {
-//	            return null;
-//	        }
-//	    }
-
 	    try{
             List<ObjectFilter> filters = new ArrayList<>();
 
@@ -206,7 +256,7 @@ public class AssignableRolePopupContent extends AssignablePopupContent{
                 filters.add(typeEquals);
             }
 
-            query = ObjectQuery.createObjectQuery(AndFilter.createAnd(filters));
+            query = filters.isEmpty() ? null : ObjectQuery.createObjectQuery(AndFilter.createAnd(filters));
 
 	    } catch (Exception e){
 	        error(getString("OrgUnitBrowser.message.queryError") + " " + e.getMessage());

@@ -111,15 +111,31 @@
                 </dd>
             </dl>
 
-            <dl class="dl-horizontal">
-                <dt>
-                    <label><wicket:message key="SynchronizationStep.label.enabled" /></label>
-                    <i wicket:id="enabledTooltip" wicket:message="title:SynchronizationStep.tooltip.enabled"/>
-                </dt>
-                <dd>
-                    <input wicket:id="editorEnabled" type="checkbox" value="checked"/>
-                </dd>
-            </dl>
+            <div class="row">
+                <div class="col-xs-6">
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="SynchronizationStep.label.enabled" /></label>
+                            <i wicket:id="enabledTooltip" wicket:message="title:SynchronizationStep.tooltip.enabled"/>
+                        </dt>
+                        <dd>
+                            <input wicket:id="editorEnabled" type="checkbox" value="checked"/>
+                        </dd>
+                    </dl>
+                </div>
+
+                <div class="col-xs-6">
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="SynchronizationStep.label.reconcile" /></label>
+                            <i wicket:id="reconcileTooltip" wicket:message="title:SynchronizationStep.tooltip.reconcile"/>
+                        </dt>
+                        <dd>
+                            <input wicket:id="editorReconcile" type="checkbox" value="checked"/>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
 
             <!-- Correlation -->
             <dl class="dl-horizontal">
@@ -172,31 +188,15 @@
             </dl>
 
             <!-- Reconcile and Opportunistic -->
-            <div class="row">
-                <div class="col-xs-6">
-                    <dl class="dl-horizontal">
-                        <dt>
-                            <label><wicket:message key="SynchronizationStep.label.reconcile" /></label>
-                            <i wicket:id="reconcileTooltip" wicket:message="title:SynchronizationStep.tooltip.reconcile"/>
-                        </dt>
-                        <dd>
-                            <input wicket:id="editorReconcile" type="checkbox" value="checked"/>
-                        </dd>
-                    </dl>
-                </div>
-
-                <div class="col-xs-6">
-                    <dl class="dl-horizontal">
-                        <dt>
-                            <label><wicket:message key="SynchronizationStep.label.opportunistic" /></label>
-                            <i wicket:id="opportunisticTooltip" wicket:message="title:SynchronizationStep.tooltip.opportunistic"/>
-                        </dt>
-                        <dd>
-                            <input wicket:id="editorOpportunistic" type="checkbox" value="checked"/>
-                        </dd>
-                    </dl>
-                </div>
-            </div>
+            <dl class="dl-horizontal">
+                <dt>
+                    <label><wicket:message key="SynchronizationStep.label.opportunistic" /></label>
+                    <i wicket:id="opportunisticTooltip" wicket:message="title:SynchronizationStep.tooltip.opportunistic"/>
+                </dt>
+                <dd>
+                    <div wicket:id="editorOpportunistic" />
+                </dd>
+            </dl>
 
             <!-- Reaction -->
             <dl class="dl-horizontal">

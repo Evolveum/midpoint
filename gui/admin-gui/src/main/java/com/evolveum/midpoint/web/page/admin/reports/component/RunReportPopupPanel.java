@@ -190,6 +190,9 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto>{
 			reportParamValue.revive(getPrismContext());
 			paramContainer.add(reportParamValue);
     	for (JasperReportParameterDto paramDto : params){
+    		if (paramDto.getValue() == null){
+    			continue;
+    		}
     		QName typeName = null;
     		if (XmlTypeConverter.canConvert(paramDto.getType())){
     			typeName = XsdTypeMapper.toXsdType(paramDto.getType());

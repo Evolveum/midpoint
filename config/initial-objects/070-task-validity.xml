@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2015 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -14,12 +14,19 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<role oid="00000000-0000-0000-0000-000000000004"
+<task oid="00000000-0000-0000-0000-000000000006"
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-    <name>Superuser</name>
-    <description>Role that gives user full authorization in MidPoint.</description>
-    <authorization>
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#all</action>
-    </authorization>
-    <roleType>system</roleType>
-</role>
+
+    <name>Validity Scanner</name>
+    <description>A system task that maintains effective status of objects, based on their validity time constraints.</description>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>runnable</executionStatus>
+
+    <category>System</category>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/focus-validation-scanner/handler-3</handlerUri>
+    <recurrence>recurring</recurrence>
+    <binding>loose</binding>
+    <schedule>
+        <interval>900</interval>
+    </schedule>
+</task>

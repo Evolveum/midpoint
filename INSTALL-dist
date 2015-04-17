@@ -32,3 +32,6 @@ URL by default:
   http://<hostname>:<port>/midpoint
 
 where <hostname> and <port> are the hostname and port number of the web container.
+
+Login: administrator
+Password 5ecr3t
