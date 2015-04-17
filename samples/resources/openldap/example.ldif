@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2010-2014 Evolveum
+# Copyright (c) 2010-2015 Evolveum
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -130,4 +130,27 @@ description: Special LDAP acccount used by the IDM
   to access the LDAP data.
 ou: Administrators
 userPassword: secret
+
+dn: ou=Services,dc=example,dc=com
+objectclass: top
+objectclass: organizationalunit
+ou: Administrators
+
+dn: cn=apache,ou=Services,dc=example,dc=com
+objectclass: top
+objectclass: person
+cn: apache
+sn: Apache Web Server
+description: Service account for apache web server
+  authentication.
+userPassword: winnetou
+
+dn: cn=jira,ou=Services,dc=example,dc=com
+objectclass: top
+objectclass: person
+cn: jira
+sn: Atlassian Jira
+description: Service account for Jira
+  authentication.
+userPassword: jirajira
 
