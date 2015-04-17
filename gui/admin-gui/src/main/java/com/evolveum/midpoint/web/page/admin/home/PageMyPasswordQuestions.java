@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.lang.NullArgumentException;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
@@ -14,10 +15,14 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.form.validation.IFormValidator;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.string.StringValue;
+import org.aspectj.util.LangUtil.ProcessController.Thrown;
+
+import ch.qos.logback.classic.Logger;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -34,10 +39,12 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
@@ -70,6 +77,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
 
 @PageDescriptor(url = "/PasswordQuestions")
 public class PageMyPasswordQuestions extends PageAdminHome {
@@ -224,9 +232,8 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 			//Global Policy set question numbers
 			questionNumber=securityPolicy.asObjectable().getCredentials().getSecurityQuestions().getQuestionNumber();
 
-
-
-			LOGGER.debug("****************Policy QuestionNumber************** :"+questionNumber);
+			
+			LOGGER.debug("****************Policy QuestionNumber************** :"+questionNumber);			
 
 
 			// Actual Policy Question List
@@ -259,7 +266,7 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 					for(int userQuestint=0;userQuestint<userQuestionList.size();userQuestint++){
 						SecurityQuestionAnswerDTO answerDTO=  checkIfQuestionisValid(userQuestionList.get(userQuestint), policyQuestionList);
 						if (answerDTO!=null){
-
+							
 							MyPasswordQuestionsPanel panel=new MyPasswordQuestionsPanel(ID_PASSWORD_QUESTIONS_PANEL+ panelNumber,answerDTO);
 							pqPanels.add(panel);
 							panelNumber++;
@@ -321,14 +328,15 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 
 			}
 
-			//case that user has less number of questions than policy
-
-
+			
+				
+				
 
 
 
 
 		} catch (Exception ex) {
+			
 			ex.printStackTrace();
 			result.recordFatalError("Couldn't load system configuration.", ex);
 		}
@@ -372,6 +380,7 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 			}
 		};
 		mainForm.add(save);
+		
 
 		AjaxButton back = new AjaxButton(ID_BACK, createStringResource("PageBase.button.back")) {
 
@@ -386,8 +395,11 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 	}
 
 	private void savePerformed(AjaxRequestTarget target) {
-
-		updateQuestions(SecurityUtils.getPrincipalUser().getOid());
+		
+		/*
+		 * Oguzhan: added target variable to the updateQuestions method.
+		 */
+		updateQuestions(SecurityUtils.getPrincipalUser().getOid(), target);
 
 	}
 
@@ -463,7 +475,7 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 	}
 
 
-	private void updateQuestions(String useroid){
+	private void updateQuestions(String useroid, AjaxRequestTarget target){
 
 
 		Task task = createSimpleTask(OPERATION_SAVE_QUESTIONS);
@@ -471,8 +483,10 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 		SchemaRegistry registry = getPrismContext().getSchemaRegistry();
 
 
+		/*oguzhan:comment out unnecessary codes: 
 		String newPassword="";
 		PageBase page = (PageBase) getPage();
+		*/
 
 		SecurityQuestionAnswerType[] answerTypeList=new SecurityQuestionAnswerType[questionNumber];
 
@@ -484,14 +498,18 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 				SecurityQuestionAnswerType answerType = new SecurityQuestionAnswerType();
 				ProtectedStringType answer = new ProtectedStringType();
 				//	System.out.println("Answerrrrr:"+((TextField<String>)type.get(MyPasswordQuestionsPanel.F_ANSWER)).getModelObject());
-				answer.setClearValue(((TextField<String>)type.get(MyPasswordQuestionsPanel.F_ANSWER)).getModelObject());
+				answer.setClearValue(((TextField<String>)type.get(MyPasswordQuestionsPanel.F_ANSWER)).getModelObject());			
 				answerType.setQuestionAnswer(answer);
-
-				answerType.setQuestionIdentifier(getQuestionIdentifierFromQuestion(((Label)type.get(MyPasswordQuestionsPanel.F_QUESTION)).getDefaultModelObjectAsString()));
+				
+				answerType.setQuestionIdentifier(getQuestionIdentifierFromQuestion(((Label)type.get(MyPasswordQuestionsPanel.F_QUESTION)).getDefaultModelObjectAsString()));			
 				answerTypeList[listnum]=answerType;
 				listnum++;
+				/*oguzhan:
+				 * listnum is index value of the answerTypeList array */
 
 			}
+			
+			//if(answerTypeList.length !=)
 
 
 			// fill in answerType data here
@@ -528,13 +546,14 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 			System.out.println("Update Questions5");
 
 			 */
+			success(getString("message.success"));
+		    target.add(getFeedbackPanel());
 		} catch(Exception ex){
-
+			
+			
 
 			ex.printStackTrace();
 		}
-
-
 
 
 
