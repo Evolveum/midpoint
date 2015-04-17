@@ -72,7 +72,7 @@ It also contains inbound mappings and definition to enable synchronization.
 				<icfcldap:port>389</icfcldap:port>
 				<icfcldap:host>localhost</icfcldap:host>
 				<icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
-				<icfcldap:principal>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:principal>
+				<icfcldap:principal>cn=idm,ou=Administrators,dc=example,dc=com</icfcldap:principal>
 				<icfcldap:credentials>
 					<clearValue>secret</clearValue>
 	                	</icfcldap:credentials>

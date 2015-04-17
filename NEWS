@@ -1,28 +1,20 @@
-midPoint 3.1 "Sinan"
----------------------
+midPoint 3.1.1 "Sinan Update 1"
+-------------------------------
 
-* Resource wizard
-* Improved role and organization user interface
-* Improved entitlement GUI
-* Notification support for roles and organizations
-* GUI progress indicator for provisioning operations
-* Support for account lock-out attributes. Also for lock-out attributes
-  simulation.
-* Conditional roles and assignments/inducements.
-* Changes in assignment parameters are provisioned immediately,
-  reconciliation is no longer needed.
-* OID-bound mode for attributes.
-* Multi-tenancy improvements in GUI.
-* Generic synchronization improvements in GUI.
-* Improved provisioning dependencies.
-* Support for iteration in inbound expressions (object template).
-* Significant performance improvements
-** Improved performance of organization structure ("org closure table").
-** Improved import and reconciliation performance (parallelization).
-* Polygon versions of LDAP, DBTable and CSVFile connectors
-* Significantly improved paging support in LDAP connector
-* Support for case-insensitive attribute names.
-* Improved authorization and delegated administration support in GUI.
-* Support for "priority attributes" to work around some connector problems.
-* Improved reporting engine based on Jasper Reports.
-* Numerous user experience improvements.
+* Python scripting
+* Improved web service auditing and error handling and error responses
+* Extended model client utilities
+* Support for enumerated property values
+* Support for value lookup tables
+* GUI support for role owner and risk level
+* Improved role selection (support for role type)
+* Role assignment constraints: minimum and maxim role assignees
+* Validation plug-in
+* Schema refinement by using object template
+* Password recovery (security questions)
+* $actor variable in mappings
+* Resource wizard improvements
+* Web service error handling improvements
+* Improved support for organization managers
+* Improved workflow handlers
+* Various GUI usability improvements
