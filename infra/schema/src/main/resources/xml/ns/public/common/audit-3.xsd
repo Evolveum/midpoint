@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2015 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/audit-3"
+            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/audit-3"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+            xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+            xmlns:xenc="http://www.w3.org/2001/04/xmlenc#"
+            elementFormDefault="qualified"
+            jaxb:extensionBindingPrefixes="xjc"
+            jaxb:version="2.0">
+
+    <xsd:annotation>
+        <xsd:documentation>
+            Schema for audit event serialization.
+            
+            Version: 3.1.1
+            Recommended namespace prefix: audit
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:import namespace="http://www.w3.org/2001/XMLSchema" schemaLocation="http://www.w3.org/2001/XMLSchema">
+        <xsd:annotation>
+            <xsd:documentation>
+                Importing the schema of XSD schema definition explicitly. This causes that we can use "strict" matching
+                for the xsd:schema elements used in runtime.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:import>
+
+	<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        <xsd:annotation>
+            <xsd:documentation>
+                Common midPoint schema.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:import>
+
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"
+    			schemaLocation="http://prism.evolveum.com/xml/ns/public/annotation-3">
+        <xsd:annotation>
+            <xsd:documentation>
+                Common midPoint annotations used in various XSD schemas.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:import>
+    
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"
+    			schemaLocation="http://prism.evolveum.com/xml/ns/public/types-3">
+        <xsd:annotation>
+            <xsd:documentation>
+                Prism data types.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:import>
+    
+    <xsd:complexType name="AuditEventRecordType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Audit event record describes a single event (usually data change) in a format suitable for audit.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="timestamp" type="xsd:dateTime" minOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Timestamp when the event occured.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="eventIdentifier" type="xsd:string" minOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Unique identification of the event.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="sessionIdentifier" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Identitification of (interactive) session in which the event occured.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="taskIdentifier" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="taskOID" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="hostIdentifier" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="initiatorRef" type="c:ObjectReferenceType" minOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                    <xsd:appinfo>
+            			<a:objectReferenceTargetType>c:UserType</a:objectReferenceTargetType>
+            		</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="targetRef" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="targetOwnerRef" type="c:ObjectReferenceType" minOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                    <xsd:appinfo>
+            			<a:objectReferenceTargetType>c:UserType</a:objectReferenceTargetType>
+            		</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="eventType" type="tns:AuditEventTypeType" minOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="eventStage" type="tns:AuditEventStageType" minOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="delta" type="t:ObjectDeltaType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="channel" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="outcome" type="c:OperationResultStatusType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Operation outcome (success, failure)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="result" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        result (e.g. number of entries, returned object, business result of workflow task or process instance - approved, rejected)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="parameter" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="message" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="AuditEventTypeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="getObject">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="GET_OBJECT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="addObject">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ADD_OBJECT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="modifyObject">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MODIFY_OBJECT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="deleteObject">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DELETE_OBJECT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="executeChangesRaw">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXECUTE_CHANGES_RAW"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="synchronization">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SYNCHRONIZATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="createSession">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CREATE_SESSION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="terminateSession">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="TERMINATE_SESSION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="workItem">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="WORK_ITEM"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="workflowProcessInstance">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="WORKFLOW_PROCESS_INSTANCE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="reconciliation">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RECONCILIATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="AuditEventStageType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="request">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REQUEST"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="execution">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXECUTION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+</xsd:schema>
+
