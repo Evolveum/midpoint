@@ -2,8 +2,11 @@ package com.evolveum.midpoint.report.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 
@@ -12,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
@@ -23,6 +27,7 @@ import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptE
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -172,6 +177,9 @@ public class ReportServiceImpl implements ReportService {
 		ExpressionVariables variables = new ExpressionVariables();
 		variables.addVariableDefinitions(parameters);
 		
+		//special variable for audit report
+		variables.addVariableDefinition(new QName("auditParams"), getConvertedParams(parameters));
+		
 		Task task = taskManager.createTaskInstance(ReportService.class.getName() + ".searchObjects()");
 		OperationResult parentResult = task.getResult();
 		
@@ -184,8 +192,12 @@ public class ReportServiceImpl implements ReportService {
 			if (Collection.class.isAssignableFrom(o.getClass())) {
 				Collection resultSet = (Collection) o;
 				if (resultSet != null && !resultSet.isEmpty()){
-					if (resultSet.iterator().next() instanceof PrismObject){
-						results.addAll((Collection<? extends PrismObject<? extends ObjectType>>) o);
+					for (Object obj : resultSet){
+						if (obj instanceof PrismObject){
+							results.add((PrismObject) obj);
+						} else if (obj instanceof Objectable){
+							results.add(((Objectable) obj).asPrismObject());
+						}
 					}
 				}
 				
@@ -196,6 +208,66 @@ public class ReportServiceImpl implements ReportService {
 		
 		return results;
 	}
+	
+	public Collection<AuditEventRecord> evaluateAuditScript(String script, Map<QName, Object> parameters) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException{
+		Collection<AuditEventRecord> results = new ArrayList<AuditEventRecord>();
+		
+//		
+		ExpressionVariables variables = new ExpressionVariables();
+//		variables.addVariableDefinitions(parameters);
+//		
+		//special variable for audit report
+		variables.addVariableDefinition(new QName("auditParams"), getConvertedParams(parameters));
+		
+		Task task = taskManager.createTaskInstance(ReportService.class.getName() + ".searchObjects()");
+		OperationResult parentResult = task.getResult();
+		
+		Collection<FunctionLibrary> functions = createFunctionLibraries();
+		
+		Jsr223ScriptEvaluator scripts = new Jsr223ScriptEvaluator("Groovy", prismContext, prismContext.getDefaultProtector());
+		Object o = scripts.evaluateReportScript(script, variables, objectResolver, functions, "desc", parentResult);
+		if (o != null){
+
+			if (Collection.class.isAssignableFrom(o.getClass())) {
+				Collection resultSet = (Collection) o;
+				if (resultSet != null && !resultSet.isEmpty()){
+					for (Object obj : resultSet){
+						if (!(obj instanceof AuditEventRecord)){
+							LOGGER.warn("Skipping result, not an audit event record " + obj);
+							continue;
+						}
+						results.add((AuditEventRecord) obj);
+					}
+						
+				}
+				
+			} else {
+				results.add((AuditEventRecord) o);
+			}
+		}
+		
+		return results;
+	}
+	
+	private Map<String, Object> getConvertedParams(Map<QName, Object> parameters){
+		if (parameters == null){
+			return null;
+		}
+		
+		Map<String, Object> resultParams = new HashMap<String, Object>();
+		Set<Entry<QName, Object>> paramEntries = parameters.entrySet();
+		for (Entry<QName, Object> e : paramEntries){
+			if (e.getValue() instanceof PrismPropertyValue){
+				resultParams.put(e.getKey().getLocalPart(), ((PrismPropertyValue) e.getValue()).getValue());
+			} else {
+				resultParams.put(e.getKey().getLocalPart(), e.getValue());
+			}
+		}
+		
+		return resultParams;
+	}
+	
+	
 	
 	private Collection<FunctionLibrary> createFunctionLibraries(){
 		FunctionLibrary functionLib = ExpressionUtil.createBasicFunctionLibrary(prismContext, prismContext.getDefaultProtector());

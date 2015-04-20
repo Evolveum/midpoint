@@ -37,7 +37,6 @@ public class DatePanel extends InputPanel {
         DateInput date = new DateInput(ID_INPUT, new XmlGregorianCalendarModel(model));
         add(date);
     }
-
     @Override
     public FormComponent getBaseFormComponent() {
         return (FormComponent) get(ID_INPUT);
