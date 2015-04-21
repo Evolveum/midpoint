@@ -17,6 +17,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.validator.AbstractValidator;
@@ -240,7 +241,7 @@ public class JasperReportConfigurationPanel extends SimplePanel<ReportDto> {
         	public void populateItem(Item<ICellPopulator<JasperReportParameterDto>> cellItem,
         			String componentId, IModel<JasperReportParameterDto> rowModel) {
         		// TODO Auto-generated method stub
-        		CheckBoxPanel checkBox = new CheckBoxPanel(componentId, new PropertyModel<Boolean>(rowModel, getPropertyExpression()),  new PropertyModel<Boolean>(rowModel, getPropertyExpression()));
+        		CheckBoxPanel checkBox = new CheckBoxPanel(componentId, new PropertyModel<Boolean>(rowModel, getPropertyExpression()),  new Model<Boolean>(true));
         		cellItem.add(checkBox);	
         	}
         	
