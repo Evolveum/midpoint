@@ -14,11 +14,13 @@ import net.sf.jasperreports.engine.JRParameter;
 import net.sf.jasperreports.engine.JRValueParameter;
 import net.sf.jasperreports.engine.JasperReportsContext;
 import net.sf.jasperreports.engine.base.JRBaseParameter;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import net.sf.jasperreports.engine.fill.JRFillParameter;
 import net.sf.jasperreports.engine.query.JRAbstractQueryExecuter;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -68,6 +70,29 @@ public class MidPointQueryExecutor extends JRAbstractQueryExecuter{
 		JRParameter[] params = dataset.getParameters();
 		Map<QName, Object> expressionParameters = new HashMap<QName, Object>();
 		for (JRParameter param : params){
+			LOGGER.trace(((JRBaseParameter)param).getName());
+			Object v = getParameterValue(param.getName());
+			try{ 
+			expressionParameters.put(new QName(param.getName()), new PrismPropertyValue(v));
+			} catch (Exception e){
+				//just skip properties that are not important for midpoint
+			}
+			
+			LOGGER.trace("p.val: {}", v);
+		}
+		return expressionParameters;
+	}
+	
+	private Map<QName, Object> getPromptingParameters(){
+		JRParameter[] params = dataset.getParameters();
+		Map<QName, Object> expressionParameters = new HashMap<QName, Object>();
+		for (JRParameter param : params){
+			if (param.isSystemDefined()){
+				continue;
+			}
+			if (!param.isForPrompting()){
+				continue;
+			}
 			LOGGER.trace(((JRBaseParameter)param).getName());
 			Object v = getParameterValue(param.getName());
 			try{ 
@@ -153,7 +178,12 @@ public class MidPointQueryExecutor extends JRAbstractQueryExecuter{
 			if (query != null){
 				results = reportService.searchObjects(query, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
 			} else {
-				results = reportService.evaluateScript(script, getParameters());
+				if (script.contains("AuditEventRecord")){
+					Collection<AuditEventRecord> audtiEventRecords = reportService.evaluateAuditScript(script, getPromptingParameters());
+					return new JRBeanCollectionDataSource(audtiEventRecords);
+				} else {
+					results = reportService.evaluateScript(script, getParameters());
+				}
 			}
 		} catch (SchemaException | ObjectNotFoundException | SecurityViolationException
 				| CommunicationException | ConfigurationException | ExpressionEvaluationException e) {

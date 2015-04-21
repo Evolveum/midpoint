@@ -78,15 +78,15 @@ public class SqlRepositoryConfiguration {
     public static final String PROPERTY_SKIP_ORG_CLOSURE_STRUCTURE_CHECK = "skipOrgClosureStructureCheck";
     public static final String PROPERTY_STOP_ON_ORG_CLOSURE_STARTUP_FAILURE = "stopOnOrgClosureStartupFailure";
 
-    private String database;
+    private String database = Database.H2.name();
 
     //embedded configuration
-    private boolean embedded;
-    private boolean asServer;
+    private boolean embedded = true;
+    private boolean asServer = false;
     private String baseDir;
     private String fileName;
     private boolean tcpSSL;
-    private int port;
+    private int port = 5437;
     private boolean dropIfExists;
     //connection for hibernate
     private String driverClassName;
@@ -96,8 +96,8 @@ public class SqlRepositoryConfiguration {
     private String hibernateDialect;
     private String hibernateHbm2ddl;
     private String dataSource;
-    private int minPoolSize;
-    private int maxPoolSize;
+    private int minPoolSize = 8;
+    private int maxPoolSize = 20;
     private boolean useZip;
 
     private TransactionIsolation transactionIsolation;
@@ -116,27 +116,27 @@ public class SqlRepositoryConfiguration {
     private boolean stopOnOrgClosureStartupFailure;
 
     public SqlRepositoryConfiguration(Configuration configuration) {
-        setDatabase(configuration.getString(PROPERTY_DATABASE, Database.H2.name()));
+        setDatabase(configuration.getString(PROPERTY_DATABASE, database));
 
         computeDefaultDatabaseParameters();
 
-        setAsServer(configuration.getBoolean(PROPERTY_AS_SERVER, false));
+        setAsServer(configuration.getBoolean(PROPERTY_AS_SERVER, embedded));
         setBaseDir(configuration.getString(PROPERTY_BASE_DIR, baseDir));
         setDriverClassName(configuration.getString(PROPERTY_DRIVER_CLASS_NAME, driverClassName));
-        setEmbedded(configuration.getBoolean(PROPERTY_EMBEDDED, true));
+        setEmbedded(configuration.getBoolean(PROPERTY_EMBEDDED, embedded));
         setHibernateDialect(configuration.getString(PROPERTY_HIBERNATE_DIALECT, hibernateDialect));
         setHibernateHbm2ddl(configuration.getString(PROPERTY_HIBERNATE_HBM2DDL, hibernateHbm2ddl));
         setJdbcPassword(configuration.getString(PROPERTY_JDBC_PASSWORD, jdbcPassword));
         setJdbcUrl(configuration.getString(PROPERTY_JDBC_URL, jdbcUrl));
         setJdbcUsername(configuration.getString(PROPERTY_JDBC_USERNAME, jdbcUsername));
-        setPort(configuration.getInt(PROPERTY_PORT, 5437));
+        setPort(configuration.getInt(PROPERTY_PORT, port));
         setTcpSSL(configuration.getBoolean(PROPERTY_TCP_SSL, tcpSSL));
         setFileName(configuration.getString(PROPERTY_FILE_NAME, fileName));
         setDropIfExists(configuration.getBoolean(PROPERTY_DROP_IF_EXISTS, dropIfExists));
         setDataSource(configuration.getString(PROPERTY_DATASOURCE, null));
-        setMinPoolSize(configuration.getInt(PROPERTY_MIN_POOL_SIZE, 8));
-        setMaxPoolSize(configuration.getInt(PROPERTY_MAX_POOL_SIZE, 20));
-        setUseZip(configuration.getBoolean(PROPERTY_USE_ZIP, false));
+        setMinPoolSize(configuration.getInt(PROPERTY_MIN_POOL_SIZE, minPoolSize));
+        setMaxPoolSize(configuration.getInt(PROPERTY_MAX_POOL_SIZE, maxPoolSize));
+        setUseZip(configuration.getBoolean(PROPERTY_USE_ZIP, useZip));
 
         computeDefaultConcurrencyParameters();
 
@@ -159,10 +159,6 @@ public class SqlRepositoryConfiguration {
     }
 
     private void computeDefaultDatabaseParameters() {
-        if (getDatabase() == null) {
-            setDatabase(Database.H2.name());
-        }
-
         if (Database.H2.name().equalsIgnoreCase(getDatabase())) {
             embedded = true;
             hibernateHbm2ddl = "update";
