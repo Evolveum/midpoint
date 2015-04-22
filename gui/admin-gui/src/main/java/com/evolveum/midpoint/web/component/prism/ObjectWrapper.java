@@ -384,10 +384,14 @@ public class ObjectWrapper implements Serializable, Revivable {
         ConnectorType connectorType = connector.asObjectable();
         PrismSchema schema = ConnectorTypeUtil.parseConnectorSchema(connectorType, connector.getPrismContext());
         PrismContainerDefinition definition = ConnectorTypeUtil.findConfigurationContainerDefintion(connectorType, schema);
-        
+
         ContainerStatus status = container != null ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
         if (container == null) {
-            container =  definition.instantiate();
+			// brutal hack - the definition has (errorneously) set maxOccurs = unbounded. But there can be only one configuration container.
+			// See MID-2317 and related issues
+			PrismContainerDefinition definitionFixed = definition.clone();
+			definitionFixed.setMaxOccurs(1);
+			container = definitionFixed.instantiate();
         }
         
         return createContainerWrapper(container, new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION), pageBase);

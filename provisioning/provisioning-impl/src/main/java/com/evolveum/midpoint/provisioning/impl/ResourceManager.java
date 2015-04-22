@@ -44,6 +44,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -534,6 +535,10 @@ public class ResourceManager {
 		// the element is global in the connector schema. therefore it does not have correct maxOccurs
 		configurationContainerDefintion.adoptElementDefinitionFrom(configurationContainer.getDefinition());
 		configurationContainer.applyDefinition(configurationContainerDefintion, true);
+		
+		PrismObjectDefinition<ResourceType> objectDefinition = resource.getDefinition();
+		PrismObjectDefinition<ResourceType> clonedObjectDefinition = objectDefinition.cloneWithReplacedDefinition(ResourceType.F_CONNECTOR_CONFIGURATION, configurationContainerDefintion);
+		resource.setDefinition(clonedObjectDefinition);
 	}
 
 	public void testConnection(PrismObject<ResourceType> resource, OperationResult parentResult) {

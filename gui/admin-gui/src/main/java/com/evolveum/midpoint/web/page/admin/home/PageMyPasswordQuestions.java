@@ -21,6 +21,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.string.StringValue;
 import org.aspectj.util.LangUtil.ProcessController.Thrown;
+import org.eclipse.core.internal.runtime.PrintStackUtil;
 
 import ch.qos.logback.classic.Logger;
 
@@ -225,9 +226,11 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 
 			Task task = getPageBase().createSimpleTask(OPERATION_LOAD_QUESTION_POLICY);
 			OperationResult subResult = result.createSubresult(OPERATION_LOAD_QUESTION_POLICY);	  
+			try{
 			PrismObject<SystemConfigurationType> config = getPageBase().getModelService().getObject(
 					SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null,
 					task, result);
+			
 			PrismObject<SecurityPolicyType> securityPolicy = getModelService().getObject(SecurityPolicyType.class,config.asObjectable().getGlobalSecurityPolicyRef().getOid(), null, task, subResult);
 			//Global Policy set question numbers
 			questionNumber=securityPolicy.asObjectable().getCredentials().getSecurityQuestions().getQuestionNumber();
@@ -237,8 +240,84 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 
 
 			// Actual Policy Question List
+			
+				
+			
 			policyQuestionList = securityPolicy.asObjectable().getCredentials().getSecurityQuestions().getQuestion();
+			}catch(Exception ex){
+			
+				System.out.println("Access");
+				List<SecurityQuestionAnswerDTO> userQuestionList= model.getObject().getSecurityAnswers();
+				int panelNumber=0;
+				PrismObject<UserType> user = null;
+				
+				
 
+				Collection options = SelectorOptions.createCollection(UserType.F_CREDENTIALS,
+						GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+				Task taskTwo = createSimpleTask("LOAD USER WRAPPER");
+				user = getModelService().getObject(UserType.class, SecurityUtils.getPrincipalUser().getOid(), options, taskTwo, result);
+			
+				OperationResult parentResult = new OperationResult(OPERATION_LOAD_QUESTION_POLICY);
+				questionNumber = getModelInteractionService().getCredentialsPolicy(user, parentResult).getSecurityQuestions().getQuestionNumber();
+				
+				policyQuestionList=getModelInteractionService().getCredentialsPolicy(user, parentResult).getSecurityQuestions().getQuestion();
+				if(userQuestionList==null){
+					
+						for(int i=0;i<questionNumber;i++){
+							System.out.println("Adding panel element");
+							SecurityQuestionAnswerDTO a=new SecurityQuestionAnswerDTO(policyQuestionList.get(panelNumber).getIdentifier(),"",policyQuestionList.get(panelNumber).getQuestionText());
+							MyPasswordQuestionsPanel panel=new MyPasswordQuestionsPanel(ID_PASSWORD_QUESTIONS_PANEL+ panelNumber,a);
+							pqPanels.add(panel);
+							panelNumber++;
+						}
+						
+					System.out.println(getModelInteractionService().getCredentialsPolicy(user, parentResult).getSecurityQuestions().getQuestionNumber());
+					//TODO Warn user 
+
+
+				}else{
+					System.out.println("Else");
+					for(int userQuestint=0;userQuestint<userQuestionList.size();userQuestint++){
+					//	SecurityQuestionAnswerDTO answerDTO=  checkIfQuestionisValid(userQuestionList.get(userQuestint), policyQuestionList);
+						SecurityQuestionAnswerDTO answerDTO=  checkIfQuestionisValid(userQuestionList.get(userQuestint), policyQuestionList);
+						if (userQuestionList.get(userQuestint)!=null){
+							
+							MyPasswordQuestionsPanel panel=new MyPasswordQuestionsPanel(ID_PASSWORD_QUESTIONS_PANEL+ panelNumber,userQuestionList.get(userQuestint));
+							pqPanels.add(panel);
+							panelNumber++;
+						}
+
+					}
+					//rest of the questions
+					//TODO same questions check should be implemented
+					/*
+					int difference=questionNumber-panelNumber;
+					for(int i=0;i<difference;i++){
+						System.out.println("Adding panel element");
+						SecurityQuestionAnswerDTO a=new SecurityQuestionAnswerDTO(policyQuestionList.get(panelNumber).getIdentifier(),"",policyQuestionList.get(panelNumber).getQuestionText());
+						MyPasswordQuestionsPanel panel=new MyPasswordQuestionsPanel(ID_PASSWORD_QUESTIONS_PANEL+ panelNumber,a);
+						pqPanels.add(panel);
+						panelNumber++;
+
+					}
+					*/
+
+				}
+				add(mainForm);
+				mainForm.add(getPanels(pqPanels));
+
+
+
+
+
+
+
+				initButtons(mainForm);
+				return;
+
+				
+			}
 			//User's pre set Question List
 			List<SecurityQuestionAnswerDTO> userQuestionList= model.getObject().getSecurityAnswers();
 
