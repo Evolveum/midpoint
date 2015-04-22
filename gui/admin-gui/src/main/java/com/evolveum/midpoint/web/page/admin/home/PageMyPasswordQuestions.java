@@ -245,22 +245,25 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 			
 			policyQuestionList = securityPolicy.asObjectable().getCredentials().getSecurityQuestions().getQuestion();
 			}catch(Exception ex){
-				ex.printStackTrace();
+			
 				System.out.println("Access");
 				List<SecurityQuestionAnswerDTO> userQuestionList= model.getObject().getSecurityAnswers();
 				int panelNumber=0;
-				if(userQuestionList==null){
-					PrismObject<UserType> user = null;
+				PrismObject<UserType> user = null;
 				
-					
+				
 
-						Collection options = SelectorOptions.createCollection(UserType.F_CREDENTIALS,
-								GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
-						Task taskTwo = createSimpleTask("LOAD USER WRAPPER");
-						user = getModelService().getObject(UserType.class, SecurityUtils.getPrincipalUser().getOid(), options, taskTwo, result);
-						OperationResult parentResult = new OperationResult(OPERATION_LOAD_USER);
-						questionNumber = getModelInteractionService().getCredentialsPolicy(user, parentResult).getSecurityQuestions().getQuestionNumber();
-						policyQuestionList=getModelInteractionService().getCredentialsPolicy(user, parentResult).getSecurityQuestions().getQuestion();
+				Collection options = SelectorOptions.createCollection(UserType.F_CREDENTIALS,
+						GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+				Task taskTwo = createSimpleTask("LOAD USER WRAPPER");
+				user = getModelService().getObject(UserType.class, SecurityUtils.getPrincipalUser().getOid(), options, taskTwo, result);
+			
+				OperationResult parentResult = new OperationResult(OPERATION_LOAD_QUESTION_POLICY);
+				questionNumber = getModelInteractionService().getCredentialsPolicy(user, parentResult).getSecurityQuestions().getQuestionNumber();
+				
+				policyQuestionList=getModelInteractionService().getCredentialsPolicy(user, parentResult).getSecurityQuestions().getQuestion();
+				if(userQuestionList==null){
+					
 						for(int i=0;i<questionNumber;i++){
 							System.out.println("Adding panel element");
 							SecurityQuestionAnswerDTO a=new SecurityQuestionAnswerDTO(policyQuestionList.get(panelNumber).getIdentifier(),"",policyQuestionList.get(panelNumber).getQuestionText());
@@ -277,7 +280,7 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 					System.out.println("Else");
 					for(int userQuestint=0;userQuestint<userQuestionList.size();userQuestint++){
 					//	SecurityQuestionAnswerDTO answerDTO=  checkIfQuestionisValid(userQuestionList.get(userQuestint), policyQuestionList);
-						
+						SecurityQuestionAnswerDTO answerDTO=  checkIfQuestionisValid(userQuestionList.get(userQuestint), policyQuestionList);
 						if (userQuestionList.get(userQuestint)!=null){
 							
 							MyPasswordQuestionsPanel panel=new MyPasswordQuestionsPanel(ID_PASSWORD_QUESTIONS_PANEL+ panelNumber,userQuestionList.get(userQuestint));
