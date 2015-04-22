@@ -107,7 +107,7 @@ public class PageSecurityQuestions extends PageBase {
 	private static final String OPERATION_RESET_PASSWORD = DOT_CLASS + "resetPassword";
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_BACK = "back";
-	private static final String ID_SAVE = "save";
+	private static final String ID_SAVE = "send";
 
 	private static final String SESSION_ATTRIBUTE_POID="pOid";
 
