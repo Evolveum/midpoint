@@ -191,6 +191,11 @@ public class MappingTypeDto implements Serializable {
                 mappingObject.setExpression(new ExpressionType());
             }
 
+            //TODO - dirty fix for MID-2335
+            if(ExpressionUtil.ExpressionEvaluatorType.SCRIPT.equals(expressionType)){
+                expression = expression.replace("<script>", "<script xmlns=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\">");
+            }
+
             mappingObject.getExpression().getExpressionEvaluator().clear();
             mappingObject.getExpression().getExpressionEvaluator().add(deserializeExpression(prismContext, expression));
         }
@@ -198,6 +203,11 @@ public class MappingTypeDto implements Serializable {
         if(condition != null){
             if(mappingObject.getCondition() != null){
                 mappingObject.setCondition(new ExpressionType());
+            }
+
+            //TODO - dirty fix for MID-2335
+            if(ExpressionUtil.ExpressionEvaluatorType.SCRIPT.equals(conditionType)){
+                condition = condition.replace("<script>", "<script xmlns=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\">");
             }
 
             mappingObject.getCondition().getExpressionEvaluator().clear();
