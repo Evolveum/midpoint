@@ -15,6 +15,10 @@
  */
 package com.evolveum.midpoint.audit.api;
 
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
+
 /**
  * @author semancik
  *
@@ -51,7 +55,7 @@ public enum AuditEventType {
 
     WORKFLOW_PROCESS_INSTANCE,
     
-    RECONCILIATION
+    RECONCILIATION;
 
     /**
      * Queury session, modify session
@@ -66,5 +70,75 @@ public enum AuditEventType {
 	 */
 	
 	// backup, restores
+    
+    public static AuditEventType toAuditEventType(AuditEventTypeType event){
+    	if (event == null){
+    		return null;
+    	}
+    	
+    	switch (event){
+			case ADD_OBJECT:
+				return AuditEventType.ADD_OBJECT;
+			case CREATE_SESSION:
+				return AuditEventType.CREATE_SESSION;
+			case DELETE_OBJECT:
+				return AuditEventType.DELETE_OBJECT;
+			case EXECUTE_CHANGES_RAW:
+				return AuditEventType.EXECUTE_CHANGES_RAW;
+			case GET_OBJECT:
+				return AuditEventType.GET_OBJECT;
+			case MODIFY_OBJECT:
+				return AuditEventType.MODIFY_OBJECT;
+			case RECONCILIATION:
+				return AuditEventType.RECONCILIATION;
+			case SYNCHRONIZATION:
+				return AuditEventType.SYNCHRONIZATION;
+			case TERMINATE_SESSION:
+				return AuditEventType.TERMINATE_SESSION;
+			case WORK_ITEM:
+				return AuditEventType.WORK_ITEM;
+			case WORKFLOW_PROCESS_INSTANCE:
+				return AuditEventType.WORKFLOW_PROCESS_INSTANCE;
+			default:
+				throw new IllegalArgumentException("Unknown audit event type: " + event);
+					
+    	}
+    	
+    }
+    
+    public static AuditEventTypeType fromAuditEventType(AuditEventType event){
+    	if (event == null){
+    		return null;
+    	}
+    	
+    	switch (event){
+			case ADD_OBJECT:
+				return AuditEventTypeType.ADD_OBJECT;
+			case CREATE_SESSION:
+				return AuditEventTypeType.CREATE_SESSION;
+			case DELETE_OBJECT:
+				return AuditEventTypeType.DELETE_OBJECT;
+			case EXECUTE_CHANGES_RAW:
+				return AuditEventTypeType.EXECUTE_CHANGES_RAW;
+			case GET_OBJECT:
+				return AuditEventTypeType.GET_OBJECT;
+			case MODIFY_OBJECT:
+				return AuditEventTypeType.MODIFY_OBJECT;
+			case RECONCILIATION:
+				return AuditEventTypeType.RECONCILIATION;
+			case SYNCHRONIZATION:
+				return AuditEventTypeType.SYNCHRONIZATION;
+			case TERMINATE_SESSION:
+				return AuditEventTypeType.TERMINATE_SESSION;
+			case WORK_ITEM:
+				return AuditEventTypeType.WORK_ITEM;
+			case WORKFLOW_PROCESS_INSTANCE:
+				return AuditEventTypeType.WORKFLOW_PROCESS_INSTANCE;
+			default:
+				throw new IllegalArgumentException("Unknown audit event type: " + event);
+					
+    	}
+    	
+    }
 
 }

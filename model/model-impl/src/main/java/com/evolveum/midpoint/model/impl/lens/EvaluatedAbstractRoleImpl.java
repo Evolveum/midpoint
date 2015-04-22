@@ -19,6 +19,7 @@ import com.evolveum.midpoint.model.api.context.EvaluatedAbstractRole;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
 /**
  * @author semancik
@@ -27,7 +28,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 public class EvaluatedAbstractRoleImpl implements EvaluatedAbstractRole {
 	
 	PrismObject<? extends AbstractRoleType> role;
-	
+	private boolean directlyAssigned;
+	private boolean evaluateConstructions;
+	private AssignmentType assignment;
+
 	@Override
 	public PrismObject<? extends AbstractRoleType> getRole() {
 		return role;
@@ -35,6 +39,33 @@ public class EvaluatedAbstractRoleImpl implements EvaluatedAbstractRole {
 
 	public void setRole(PrismObject<? extends AbstractRoleType> role) {
 		this.role = role;
+	}
+
+	@Override
+	public boolean isDirectlyAssigned() {
+		return directlyAssigned;
+	}
+
+	public void setDirectlyAssigned(boolean directlyAssigned) {
+		this.directlyAssigned = directlyAssigned;
+	}
+
+	@Override
+	public boolean isEvaluateConstructions() {
+		return evaluateConstructions;
+	}
+
+	public void setEvaluateConstructions(boolean evaluateConstructions) {
+		this.evaluateConstructions = evaluateConstructions;
+	}
+
+	@Override
+	public AssignmentType getAssignment() {
+		return assignment;
+	}
+
+	public void setAssignment(AssignmentType assignment) {
+		this.assignment = assignment;
 	}
 
 	@Override
@@ -48,6 +79,8 @@ public class EvaluatedAbstractRoleImpl implements EvaluatedAbstractRole {
 		DebugUtil.debugDumpLabel(sb, "EvaluatedAbstractRole", indent);
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "Role", role, indent + 1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "Assignment", String.valueOf(assignment), indent + 1);
 		return sb.toString();
 	}
 	

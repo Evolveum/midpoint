@@ -139,6 +139,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.AuthorizationException;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -155,6 +156,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
@@ -172,6 +174,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyLimitationsT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
@@ -1295,6 +1298,38 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			return roleTypeDval;
 		}
 		return null;
+	}
+	
+	@Override
+	public CredentialsPolicyType getCredentialsPolicy(PrismObject<UserType> user, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		// TODO: check for user membership in an organization (later versions)
+		
+		OperationResult result = parentResult.createMinorSubresult(GET_CREDENTIALS_POLICY);
+		try {
+			PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
+			if (systemConfiguration == null) {
+				result.recordNotApplicableIfUnknown();
+				return null;
+			}
+			ObjectReferenceType secPolicyRef = systemConfiguration.asObjectable().getGlobalSecurityPolicyRef();
+			if (secPolicyRef == null) {
+				result.recordNotApplicableIfUnknown();
+				return null;			
+			}
+			SecurityPolicyType securityPolicyType;
+			securityPolicyType = objectResolver.resolve(secPolicyRef, SecurityPolicyType.class, null, "security policy referred from system configuration", result);
+			if (securityPolicyType == null) {
+				result.recordNotApplicableIfUnknown();
+				return null;			
+			}
+			CredentialsPolicyType credentialsPolicyType = securityPolicyType.getCredentials();
+			result.recordSuccess();
+			return credentialsPolicyType;
+		} catch (ObjectNotFoundException | SchemaException e) {
+			result.recordFatalError(e);
+			throw e;
+		}
+
 	}
 
 	private PrismObject<SystemConfigurationType> getSystemConfiguration(OperationResult result) throws ObjectNotFoundException, SchemaException {

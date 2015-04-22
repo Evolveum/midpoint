@@ -52,6 +52,13 @@ public class AssignmentPathSegment implements DebugDumpable {
 		return assignmentIdi;
 	}
 
+	public AssignmentType getAssignment() {
+		if (assignmentIdi == null || assignmentIdi.getItemNew() == null || assignmentIdi.getItemNew().isEmpty()) {
+			return null;
+		}
+		return ((PrismContainer<AssignmentType>) assignmentIdi.getItemNew()).getValue().asContainerable();
+	}
+
 	public void setAssignmentIdi(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi) {
 		this.assignmentIdi = assignmentIdi;
 	}
@@ -189,6 +196,4 @@ public class AssignmentPathSegment implements DebugDumpable {
 		DebugUtil.debugDumpWithLabel(sb, "varThisObject", varThisObject==null?"null":varThisObject.toString(), indent + 1);
 		return sb.toString();
 	}
-	
-	
 }

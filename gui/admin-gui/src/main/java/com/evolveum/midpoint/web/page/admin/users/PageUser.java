@@ -18,13 +18,16 @@ package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.EvaluatedAbstractRole;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.api.context.EvaluatedConstruction;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -33,8 +36,14 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.NoFocusNameSchemaException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -104,7 +113,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * @author lazyman
@@ -973,7 +985,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         window.setContent(new ResourcesPopup(window.getContentId()) {
 
             @Override
-            public SimpleUserResourceProvider getProvider(){
+            public SimpleUserResourceProvider getProvider() {
                 return provider;
             }
 
@@ -1023,7 +1035,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         });
         add(window);
 
-        ModalWindow assignmentPreviewPopup = new AssignmentPreviewDialog(MODAL_ID_ASSIGNMENTS_PREVIEW, null);
+        ModalWindow assignmentPreviewPopup = new AssignmentPreviewDialog(MODAL_ID_ASSIGNMENTS_PREVIEW, null, null);
         add(assignmentPreviewPopup);
     }
 
@@ -1354,7 +1366,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         Task task = createSimpleTask(OPERATION_RECOMPUTE_ASSIGNMENTS);
         OperationResult result = new OperationResult(OPERATION_RECOMPUTE_ASSIGNMENTS);
         ObjectDelta<UserType> delta;
-        List<ObjectType> assignments = new ArrayList<>();
+        Set<AssignmentsPreviewDto> assignmentDtoSet = new TreeSet<>();
 
         try {
             reviveModels();
@@ -1409,35 +1421,125 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
                     error(getString("pageUser.message.unsupportedState", userWrapper.getStatus()));
             }
 
-            ModelContext<UserType> modelContext = getModelInteractionService().previewChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+            ModelContext<UserType> modelContext = null;
+            try {
+                modelContext = getModelInteractionService().previewChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+            } catch (NoFocusNameSchemaException e) {
+                info(getString("pageUser.message.noUserName"));
+                target.add(getFeedbackPanel());
+                return;
+            }
 
             DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = modelContext.getEvaluatedAssignmentTriple();
-            Collection<? extends EvaluatedAssignment> evaluatedAssignments = evaluatedAssignmentTriple.getZeroSet();
+            Collection<? extends EvaluatedAssignment> evaluatedAssignments = evaluatedAssignmentTriple.getNonNegativeValues();
 
-            if(evaluatedAssignments.isEmpty()){
+            if (evaluatedAssignments.isEmpty()){
                 info(getString("pageUser.message.noAssignmentsAvailable"));
                 target.add(getFeedbackPanel());
                 return;
             }
 
-            EvaluatedAssignment<UserType> evaluatedAssignment = evaluatedAssignments.iterator().next();
-            DeltaSetTriple<? extends EvaluatedAbstractRole> rolesTriple = evaluatedAssignment.getRoles();
-            Collection<? extends EvaluatedAbstractRole> evaluatedRoles = rolesTriple.getZeroSet();
+            List<String> directAssignmentsOids = new ArrayList<>();
+            for (EvaluatedAssignment<UserType> evaluatedAssignment : evaluatedAssignments) {
+                if (!evaluatedAssignment.isValid()) {
+                    continue;
+                }
+                // roles and orgs
+                DeltaSetTriple<? extends EvaluatedAbstractRole> evaluatedRolesTriple = evaluatedAssignment.getRoles();
+                Collection<? extends EvaluatedAbstractRole> evaluatedRoles = evaluatedRolesTriple.getNonNegativeValues();
+                for (EvaluatedAbstractRole role: evaluatedRoles) {
+                    if (role.isEvaluateConstructions()) {
+                        assignmentDtoSet.add(createAssignmentsPreviewDto(role, task, result));
+                    }
+                }
 
-            for(EvaluatedAbstractRole role: evaluatedRoles){
-                assignments.add(role.getRole().asObjectable());
+                // all resources
+                DeltaSetTriple<EvaluatedConstruction> evaluatedConstructionsTriple = evaluatedAssignment.getEvaluatedConstructions(result);
+                Collection<EvaluatedConstruction> evaluatedConstructions = evaluatedConstructionsTriple.getNonNegativeValues();
+                for (EvaluatedConstruction construction : evaluatedConstructions) {
+                    assignmentDtoSet.add(createAssignmentsPreviewDto(construction));
+                }
             }
 
             AssignmentPreviewDialog dialog = (AssignmentPreviewDialog) get(MODAL_ID_ASSIGNMENTS_PREVIEW);
-            dialog.updateData(target, assignments);
+            dialog.updateData(target, new ArrayList<>(assignmentDtoSet), directAssignmentsOids);
             dialog.show(target);
 
         } catch (Exception e) {
-            LOGGER.error("Could not create assignments preview.", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Could not create assignments preview.", e);
             error("Could not create assignments preview. Reason: " + e);
             target.add(getFeedbackPanel());
         }
     }
+
+    private AssignmentsPreviewDto createAssignmentsPreviewDto(EvaluatedAbstractRole evaluatedAbstractRole, Task task, OperationResult result) {
+        AssignmentsPreviewDto dto = new AssignmentsPreviewDto();
+        PrismObject<? extends AbstractRoleType> role = evaluatedAbstractRole.getRole();
+        dto.setTargetOid(role.getOid());
+        dto.setTargetName(getNameToDisplay(role));
+        dto.setTargetDescription(role.asObjectable().getDescription());
+        dto.setTargetClass(role.getCompileTimeClass());
+        dto.setDirect(evaluatedAbstractRole.isDirectlyAssigned());
+        if (evaluatedAbstractRole.getAssignment() != null) {
+            if (evaluatedAbstractRole.getAssignment().getTenantRef() != null) {
+                dto.setTenantName(nameFromReference(evaluatedAbstractRole.getAssignment().getTenantRef(), task, result));
+            }
+            if (evaluatedAbstractRole.getAssignment().getOrgRef() != null) {
+                dto.setOrgRefName(nameFromReference(evaluatedAbstractRole.getAssignment().getOrgRef(), task, result));
+            }
+        }
+        return dto;
+    }
+
+    private String getNameToDisplay(PrismObject<? extends AbstractRoleType> role) {
+        String n = PolyString.getOrig(role.asObjectable().getDisplayName());
+        if (StringUtils.isNotBlank(n)) {
+            return n;
+        }
+        return PolyString.getOrig(role.asObjectable().getName());
+    }
+
+    private String nameFromReference(ObjectReferenceType reference, Task task, OperationResult result) {
+        String oid = reference.getOid();
+        QName type = reference.getType();
+        Class<? extends ObjectType> clazz = getPrismContext().getSchemaRegistry().getCompileTimeClass(type);
+        PrismObject<? extends ObjectType> prismObject;
+        try {
+            prismObject = getModelService().getObject(clazz, oid, SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, result);
+        } catch (ObjectNotFoundException|SchemaException|SecurityViolationException|CommunicationException|ConfigurationException|RuntimeException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve name for {}: {}", e, clazz.getSimpleName(), oid);
+            return "Couldn't retrieve name for " + oid;
+        }
+        ObjectType object = prismObject.asObjectable();
+        if (object instanceof AbstractRoleType) {
+            return getNameToDisplay(object.asPrismObject());
+        } else {
+            return PolyString.getOrig(object.getName());
+        }
+    }
+
+    private AssignmentsPreviewDto createAssignmentsPreviewDto(EvaluatedConstruction evaluatedConstruction) {
+        AssignmentsPreviewDto dto = new AssignmentsPreviewDto();
+        PrismObject<ResourceType> resource = evaluatedConstruction.getResource();
+        dto.setTargetOid(resource.getOid());
+        dto.setTargetName(PolyString.getOrig(resource.asObjectable().getName()));
+        dto.setTargetDescription(resource.asObjectable().getDescription());
+        dto.setTargetClass(resource.getCompileTimeClass());
+        dto.setDirect(evaluatedConstruction.isDirectlyAssigned());
+        dto.setKind(evaluatedConstruction.getKind());
+        dto.setIntent(evaluatedConstruction.getIntent());
+        return dto;
+    }
+
+//    private void addObjectIfNotPresent(List<ObjectType> assignments, ObjectType objectType) {
+//        String oid = objectType.getOid();
+//        for (ObjectType existing : assignments) {
+//            if (oid.equals(existing.getOid())) {
+//                return;
+//            }
+//        }
+//        assignments.add(objectType);
+//    }
 
     private void savePerformed(AjaxRequestTarget target) {
         LOGGER.debug("Save user.");

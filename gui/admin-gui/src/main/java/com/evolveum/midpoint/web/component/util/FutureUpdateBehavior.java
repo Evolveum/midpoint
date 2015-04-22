@@ -72,7 +72,7 @@ public abstract class FutureUpdateBehavior<T> extends AbstractAjaxTimerBehavior 
     }
 
     private void handleError(Exception ex, AjaxRequestTarget target) {
-        LoggingUtils.logException(LOGGER, "Error occurred while fetching data", ex);
+        LoggingUtils.logUnexpectedException(LOGGER, "Error occurred while fetching data", ex);
 
         stop(target);
         onUpdateError(target, ex);

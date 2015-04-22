@@ -304,7 +304,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	}
 
 	private List<RefinedAttributeDefinition<?>> cloneDefinitions(Collection<? extends RefinedAttributeDefinition<?>> origDefs) {
-    	if (this.attributeDefinitions == null) {
+    	if (origDefs == null) {
     		return null;
     	}
 		List<RefinedAttributeDefinition<?>> clonedAttributes = new ArrayList<>();

@@ -1,11 +1,9 @@
 package com.evolveum.midpoint.report.ds.impl;
 
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.xml.bind.JAXBElement;
-import javax.xml.ws.BindingProvider;
 
 import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JRDataset;
@@ -16,12 +14,8 @@ import net.sf.jasperreports.engine.JasperReportsContext;
 import net.sf.jasperreports.engine.base.JRBaseParameter;
 import net.sf.jasperreports.engine.query.JRAbstractQueryExecuter;
 
-import org.apache.cxf.frontend.ClientProxy;
-import org.apache.cxf.interceptor.LoggingInInterceptor;
-import org.apache.cxf.interceptor.LoggingOutInterceptor;
-import org.apache.cxf.ws.security.wss4j.WSS4JOutInterceptor;
-import org.apache.wss4j.dom.WSConstants;
-import org.apache.wss4j.dom.handler.WSHandlerConstants;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -36,14 +30,13 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_3.SelectorQualified
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ParamsType;
 import com.evolveum.midpoint.xml.ns._public.report.report_3.ReportPortType;
-import com.evolveum.midpoint.xml.ns._public.report.report_3.ReportService;
 
 public class MidPointRemoteQueryExecutor extends JRAbstractQueryExecuter{
 	
 	// Configuration
-	public static final String ADM_USERNAME = "administrator";
-	public static final String ADM_PASSWORD = "5ecr3t";
-	private static final String DEFAULT_ENDPOINT_URL = "http://localhost:8080/midpoint/ws/report-3";
+//	public static final String ADM_USERNAME = "administrator";
+//	public static final String ADM_PASSWORD = "5ecr3t";
+//	private static final String DEFAULT_ENDPOINT_URL = "http://localhost:8080/midpoint/ws/report-3";
 
 	private String query;
 	private ReportPortType reportPort;
@@ -59,15 +52,6 @@ public class MidPointRemoteQueryExecutor extends JRAbstractQueryExecuter{
 	@Override
 	protected void parseQuery() {
 		query = getStringQuery();
-
-//		ParamsType params = getParameters();
-//		LOGGER.trace("Report query: " + queryString);
-//		ObjectQuery q;
-//		if (StringUtils.isEmpty(queryString)) {
-//			q = null;
-//		} else {
-//			query = reportPort.parseQuery(queryString, params);
-//		}
 	}
 	
 	
@@ -85,7 +69,25 @@ public class MidPointRemoteQueryExecutor extends JRAbstractQueryExecuter{
 	protected MidPointRemoteQueryExecutor(JasperReportsContext jasperReportsContext, JRDataset dataset,
 			Map<String, ? extends JRValueParameter> parametersMap) {
 		super(jasperReportsContext, dataset, parametersMap);
-		reportPort = createReportPort(null);
+		ApplicationContext applicationContext = new ClassPathXmlApplicationContext("ctx-report-ds-context.xml");
+		MidPointClientConfiguration clientConfig = (MidPointClientConfiguration) applicationContext.getBean("clientConfig");
+//		Properties prop = new Properties();
+//		String propFileName = "client.properties";
+//		 
+//		InputStream inputStream = getClass().getClassLoader().getResourceAsStream(propFileName);
+// 
+//		try {
+//			prop.load(inputStream);
+//		} catch (Exception e) {
+//			throw new RuntimeException(e);
+//		}
+//	
+//		MidPointClientConfiguration clientConfig = new MidPointClientConfiguration();
+//		clientConfig.setEndpoint((String) prop.get("service.endpoint"));
+//		clientConfig.setUsername((String) prop.get("auth.username"));
+//		clientConfig.setPassword((String) prop.get("auht.password"));
+		reportPort = clientConfig.createReportPort();
+//		reportPort = createReportPort();
 		parseQuery();
 	}
 
@@ -136,42 +138,42 @@ public class MidPointRemoteQueryExecutor extends JRAbstractQueryExecuter{
 		 throw new UnsupportedOperationException("QueryExecutor.getParameterReplacement() not supported");
 	}
 	
-	private static ReportPortType createReportPort(String[] args) {
-		String endpointUrl = DEFAULT_ENDPOINT_URL;
-		
-		if (args != null && args.length > 0) {
-			endpointUrl = args[0];
-		}
-
-		System.out.println("Endpoint URL: "+endpointUrl);
-
-        // uncomment this if you want to use Fiddler or any other proxy
-        //ProxySelector.setDefault(new MyProxySelector("127.0.0.1", 8888));
-		
-		ReportService reportService = new ReportService();
-		ReportPortType reportPort = reportService.getReportPort();
-		BindingProvider bp = (BindingProvider)reportPort;
-		Map<String, Object> requestContext = bp.getRequestContext();
-		requestContext.put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, endpointUrl);
-		
-		org.apache.cxf.endpoint.Client client = ClientProxy.getClient(reportPort);
-		org.apache.cxf.endpoint.Endpoint cxfEndpoint = client.getEndpoint();
-		
-		Map<String,Object> outProps = new HashMap<String,Object>();
-		
-		outProps.put(WSHandlerConstants.ACTION, WSHandlerConstants.USERNAME_TOKEN);
-		outProps.put(WSHandlerConstants.USER, ADM_USERNAME);
-		outProps.put(WSHandlerConstants.PASSWORD_TYPE, WSConstants.PW_DIGEST);
-		outProps.put(WSHandlerConstants.PW_CALLBACK_CLASS, ClientPasswordHandler.class.getName());
-		
-		WSS4JOutInterceptor wssOut = new WSS4JOutInterceptor(outProps);
-		cxfEndpoint.getOutInterceptors().add(wssOut);
-        // enable the following to get client-side logging of outgoing requests and incoming responses
-        cxfEndpoint.getOutInterceptors().add(new LoggingOutInterceptor());
-        cxfEndpoint.getInInterceptors().add(new LoggingInInterceptor());
-
-		return reportPort;
-	}
+//	private static ReportPortType createReportPort(String[] args) {
+//		String endpointUrl = DEFAULT_ENDPOINT_URL;
+//		
+//		if (args != null && args.length > 0) {
+//			endpointUrl = args[0];
+//		}
+//
+//		System.out.println("Endpoint URL: "+endpointUrl);
+//
+//        // uncomment this if you want to use Fiddler or any other proxy
+//        //ProxySelector.setDefault(new MyProxySelector("127.0.0.1", 8888));
+//		
+//		ReportService reportService = new ReportService();
+//		ReportPortType reportPort = reportService.getReportPort();
+//		BindingProvider bp = (BindingProvider)reportPort;
+//		Map<String, Object> requestContext = bp.getRequestContext();
+//		requestContext.put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, endpointUrl);
+//		
+//		org.apache.cxf.endpoint.Client client = ClientProxy.getClient(reportPort);
+//		org.apache.cxf.endpoint.Endpoint cxfEndpoint = client.getEndpoint();
+//		
+//		Map<String,Object> outProps = new HashMap<String,Object>();
+//		
+//		outProps.put(WSHandlerConstants.ACTION, WSHandlerConstants.USERNAME_TOKEN);
+//		outProps.put(WSHandlerConstants.USER, ADM_USERNAME);
+//		outProps.put(WSHandlerConstants.PASSWORD_TYPE, WSConstants.PW_DIGEST);
+//		outProps.put(WSHandlerConstants.PW_CALLBACK_CLASS, ClientPasswordHandler.class.getName());
+//		
+//		WSS4JOutInterceptor wssOut = new WSS4JOutInterceptor(outProps);
+//		cxfEndpoint.getOutInterceptors().add(wssOut);
+//        // enable the following to get client-side logging of outgoing requests and incoming responses
+//        cxfEndpoint.getOutInterceptors().add(new LoggingOutInterceptor());
+//        cxfEndpoint.getInInterceptors().add(new LoggingInInterceptor());
+//
+//		return reportPort;
+//	}
 	
 	private String getStringQuery(){
 		if (dataset.getQuery() == null){

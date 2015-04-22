@@ -141,7 +141,7 @@ public class NotificationChangeHook implements ChangeHook {
         if (task.getOwner() != null) {
             event.setRequester(new SimpleObjectRefImpl(notificationsUtil, task.getOwner().asObjectable()));
         } else {
-            LOGGER.warn("No owner for task " + task + ", therefore no requester will be set for event " + event.getId());
+            LOGGER.debug("No owner for task " + task + ", therefore no requester will be set for event " + event.getId());
         }
 
         // if no OID in object (occurs in 'add' operation), we artificially insert it into the object)

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2014 Evolveum
+  ~ Copyright (c) 2014-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -21,7 +21,13 @@
    xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
    xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext">
+   
     <name>Role Template</name>
+    
+    <item>
+    	<ref>roleType</ref>
+    	<valueEnumerationRef oid="d5fa5e92-e450-11e4-b281-001e8c717e5b"/>
+    </item>
     
     <mapping>
     	<name>Responsibility metarole assignment</name>

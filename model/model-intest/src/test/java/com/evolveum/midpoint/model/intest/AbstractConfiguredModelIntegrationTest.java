@@ -104,7 +104,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String RESOURCE_DUMMY_DRINK = "rum";
 	
 	// RED resource has STRONG mappings
-	protected static final String RESOURCE_DUMMY_RED_FILENAME = COMMON_DIR + "/resource-dummy-red.xml";
+	protected static final File RESOURCE_DUMMY_RED_FILE = new File(COMMON_DIR, "resource-dummy-red.xml");
 	protected static final String RESOURCE_DUMMY_RED_OID = "10000000-0000-0000-0000-000000000104";
 	protected static final String RESOURCE_DUMMY_RED_NAME = "red";
 	protected static final String RESOURCE_DUMMY_RED_NAMESPACE = MidPointConstants.NS_RI;
@@ -339,6 +339,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	public static final File LOOKUP_LANGUAGES_FILE = new File(COMMON_DIR, "lookup-languages.xml");
 	public static final String LOOKUP_LANGUAGES_OID = "70000000-0000-0000-1111-000000000001";
 	public static final String LOOKUP_LANGUAGES_NAME = "Languages";
+	
+	protected static final File SECURITY_POLICY_FILE = new File(COMMON_DIR, "security-policy.xml");
+	protected static final String SECURITY_POLICY_OID = "28bf845a-b107-11e3-85bc-001e8c717e5b";
 	
 	protected static final String NS_PIRACY = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
 	protected static final QName PIRACY_SHIP = new QName(NS_PIRACY, "ship");
