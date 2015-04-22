@@ -51,19 +51,12 @@ public class PageLogin extends PageBase {
 	
     public PageLogin() {
         TopMenuBar menuBar = getTopMenuBar();
-        menuBar.addOrReplace(new LocalePanel(TopMenuBar.ID_RIGHT_PANEL));
-        
-    	Task task = getPageBase().createSimpleTask(OPERATION_LOAD_RESET_PASSWORD_POLICY);
-		OperationResult subResult = result.createSubresult(OPERATION_LOAD_RESET_PASSWORD_POLICY);	  
-    	getMidpointApplication().getModel().getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null,
-			task, result);
+        menuBar.addOrReplace(new LocalePanel(TopMenuBar.ID_RIGHT_PANEL));        
         
        
         Form form = new Form(ID_LOGIN_FORM) {
-        	
-        	ge
         
-        	
+  	
             @Override
             protected void onSubmit() {
                 MidPointAuthWebSession session = MidPointAuthWebSession.getSession();
