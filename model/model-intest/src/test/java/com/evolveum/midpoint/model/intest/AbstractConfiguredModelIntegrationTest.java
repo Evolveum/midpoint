@@ -104,7 +104,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String RESOURCE_DUMMY_DRINK = "rum";
 	
 	// RED resource has STRONG mappings
-	protected static final String RESOURCE_DUMMY_RED_FILENAME = COMMON_DIR + "/resource-dummy-red.xml";
+	protected static final File RESOURCE_DUMMY_RED_FILE = new File(COMMON_DIR, "resource-dummy-red.xml");
 	protected static final String RESOURCE_DUMMY_RED_OID = "10000000-0000-0000-0000-000000000104";
 	protected static final String RESOURCE_DUMMY_RED_NAME = "red";
 	protected static final String RESOURCE_DUMMY_RED_NAMESPACE = MidPointConstants.NS_RI;

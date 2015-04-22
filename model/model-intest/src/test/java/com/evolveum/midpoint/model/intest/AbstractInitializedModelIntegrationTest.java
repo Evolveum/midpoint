@@ -172,7 +172,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		dummyResourceCtlRed = DummyResourceContoller.create(RESOURCE_DUMMY_RED_NAME, resourceDummyRed);
 		dummyResourceCtlRed.extendSchemaPirate();
 		dummyResourceRed = dummyResourceCtlRed.getDummyResource();
-		resourceDummyRed = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_RED_FILENAME, RESOURCE_DUMMY_RED_OID, initTask, initResult); 
+		resourceDummyRed = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_RED_FILE, RESOURCE_DUMMY_RED_OID, initTask, initResult); 
 		resourceDummyRedType = resourceDummyRed.asObjectable();
 		dummyResourceCtlRed.setResource(resourceDummyRed);
 		
