@@ -19,19 +19,25 @@ package com.evolveum.midpoint.web.page.login;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.menu.top.LocalePanel;
 import com.evolveum.midpoint.web.component.menu.top.TopMenuBar;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
+import com.evolveum.midpoint.web.page.forgetpassword.PageForgetPassword;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.markup.html.form.RequiredTextField;
+import org.apache.wicket.markup.html.link.BookmarkablePageLink;
+import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -70,13 +76,31 @@ public class PageLogin extends PageBase {
                 }
             }
         };
+        OperationResult parentResult = new OperationResult(OPERATION_LOAD_RESET_PASSWORD_POLICY);
+        
+        try {
+		 CredentialsPolicyType creds=	getModelInteractionService().getCredentialsPolicy(null, parentResult);
+		 BookmarkablePageLink<String> link = new BookmarkablePageLink<String>("forgetpassword", PageForgetPassword.class);
+		 boolean linkIsVisible=false;
+		 if(creds!=null ){
+				if(creds.getSecurityQuestions().getQuestionNumber()!=null){
+					linkIsVisible=true;
+					
+			}
+		
+		}
+		 link.setVisible(linkIsVisible);
+			form.add(link);
+        }catch (ObjectNotFoundException | SchemaException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
         form.add(new RequiredTextField(ID_USERNAME, new Model<String>()));
         form.add(new PasswordTextField(ID_PASSWORD, new Model<String>()));
         
         add(form);
     }
-
     @Override
     protected IModel<String> createPageTitleModel() {
         return new Model<>("");
