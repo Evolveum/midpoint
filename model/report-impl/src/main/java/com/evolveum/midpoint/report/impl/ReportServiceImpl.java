@@ -157,7 +157,10 @@ public class ReportServiceImpl implements ReportService {
 	Task task = taskManager.createTaskInstance(ReportService.class.getName() + ".searchObjects()");
 	OperationResult parentResult = task.getResult();
 	
-	options.add(new SelectorOptions(GetOperationOptions.createResolveNames()));
+//	options.add(new SelectorOptions(GetOperationOptions.createResolveNames()));
+	GetOperationOptions getOptions = GetOperationOptions.createResolveNames();
+	getOptions.setRaw(Boolean.TRUE);
+	options = SelectorOptions.createCollection(getOptions);
 	List<PrismObject<? extends ObjectType>> results;
 	try {
 		results = model.searchObjects(clazz, queryForSearch, options, task, parentResult);
