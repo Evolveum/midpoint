@@ -163,7 +163,39 @@ public class BasicExpressionFunctions {
 		polyString.recompute(prismContext.getDefaultPolyStringNormalizer());
 		return polyString.getNorm();
 	}
+	
+	/**
+	 * Normalize a PolyString value.
+	 * 
+	 * @param orig original value to normalize
+	 * @return normalized value
+	 */
+	public String norm(PolyString orig) {
+		if (orig == null){
+			return null;
+		}
+		if (orig.getNorm() != null) {
+			return orig.getNorm();
+		}
+		orig.recompute(prismContext.getDefaultPolyStringNormalizer());
+		return orig.getNorm();
+	}
 
+	/**
+	 * Normalize a PolyStringType value.
+	 * 
+	 * @param orig original value to normalize
+	 * @return normalized value
+	 */
+	public String norm(PolyStringType orig) {
+		if (orig == null){
+			return null;
+		}
+		PolyString polyString = orig.toPolyString();
+		return norm(polyString);
+	}
+
+	
 	/**
 	 * Converts whatever it gets to a string. But it does it in a sensitive way.
 	 * E.g. it tries to detect collections and returns the first element (if there is only one). 
