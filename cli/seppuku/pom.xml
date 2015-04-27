@@ -83,7 +83,7 @@
                             <transformers>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.evolveum.midpoint.tools.seppuku.Main</mainClass>
+                                    <mainClass>com.evolveum.midpoint.cli.seppuku.Main</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>

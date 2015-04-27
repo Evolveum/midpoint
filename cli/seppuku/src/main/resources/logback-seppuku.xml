@@ -15,5 +15,5 @@
   ~ limitations under the License.
   -->
 <included>
-    <!--<logger name="com.evolveum.midpoint.tools.seppuku" level="TRACE"/>-->
+    <!--<logger name="com.evolveum.midpoint.cli.seppuku" level="TRACE"/>-->
 </included>

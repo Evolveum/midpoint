@@ -29,7 +29,7 @@
     </appender>
 
     <appender name="LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <filter class="com.evolveum.midpoint.tools.ninja.util.ConsoleFilter"/>
+        <filter class="com.evolveum.midpoint.cli.ninja.util.ConsoleFilter"/>
         <Append>true</Append>
         <File>ninja.log</File>
         <encoder>
@@ -56,7 +56,7 @@
         <appender-ref ref="STDERR"/>
     </logger>
 
-    <logger name="com.evolveum.midpoint.tools.ninja" level="ERROR"/>
+    <logger name="com.evolveum.midpoint.cli.seppuku" level="ERROR"/>
 
     <include optional="true" file="./logback-seppuku.xml"/>
 </configuration>

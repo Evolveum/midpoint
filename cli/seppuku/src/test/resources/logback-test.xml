@@ -34,7 +34,7 @@
         <appender-ref ref="LOG"/>
     </root>
 
-    <logger name="com.evolveum.midpoint.tools.seppuku" level="TRACE"/>
+    <logger name="com.evolveum.midpoint.cli.seppuku" level="TRACE"/>
 
     <logger name="com.evolveum.midpoint" level="DEBUG"/>
 </configuration>
