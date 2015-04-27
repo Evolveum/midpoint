@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -255,7 +255,7 @@ public class TestParseGenericObject {
 		PrismContainerDefinition<?> extensionContainerDefinition = extensionContainer.getDefinition();
 		assertTrue("Extension container definition is NOT dynamic", extensionContainerDefinition.isDynamic());
 		PrismContainerValue<?> extensionContainerValue = extensionContainer.getValue();
-		List<Item<?>> extensionItems = extensionContainerValue.getItems();
+		List<Item<?,?>> extensionItems = extensionContainerValue.getItems();
 		assertEquals("Wrong number of extension items", 5, extensionItems.size());
 
 		// COMPLEX RUN TIME PROPERTIES...NOT SUPPORTED WITH NEW PARSERS..

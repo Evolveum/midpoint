@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -858,7 +858,7 @@ public class ChangeExecutor {
 		sb.append(" delta of ").append(objectDelta.getObjectTypeClass().getSimpleName());
 		sb.append(" ]---------------------\n");
 		DebugUtil.debugDumpLabel(sb, "Channel", 0);
-		sb.append(" ").append(getChannel(context, task)).append("\n");
+		sb.append(" ").append(LensUtil.getChannel(context, task)).append("\n");
 		if (context != null) {
 			DebugUtil.debugDumpLabel(sb, "Wave", 0);
 			sb.append(" ").append(context.getExecutionWave()).append("\n");
@@ -922,15 +922,16 @@ public class ChangeExecutor {
 
     	applyMetadata(context, task, objectTypeToAdd, result);
     	
+    	if (options == null && context != null) {
+    		options = context.getOptions();
+    	}
+    	
         String oid;
         if (objectTypeToAdd instanceof TaskType) {
             oid = addTask((TaskType) objectTypeToAdd, result);
         } else if (objectTypeToAdd instanceof NodeType) {
             throw new UnsupportedOperationException("NodeType cannot be added using model interface");
         } else if (ObjectTypes.isManagedByProvisioning(objectTypeToAdd)) {
-        	if (options == null && context != null) {
-        		options = context.getOptions();
-        	}
         	ProvisioningOperationOptions provisioningOptions = copyFromModelOptions(options);
         	
         	// TODO: this is probably wrong. We should not have special case for a channel!
@@ -1040,13 +1041,7 @@ public class ChangeExecutor {
     }
     
 	private <T extends ObjectType, F extends ObjectType> void applyMetadata(LensContext<F> context, Task task, T objectTypeToAdd, OperationResult result) throws SchemaException {
-		MetadataType metaData = new MetadataType();
-		String channel = getChannel(context, task);
-		metaData.setCreateChannel(channel);
-		metaData.setCreateTimestamp(clock.currentTimeXMLGregorianCalendar());
-		if (task.getOwner() != null) {
-			metaData.setCreatorRef(ObjectTypeUtil.createObjectRef(task.getOwner()));
-		}
+		MetadataType metaData = LensUtil.createCreateMetadata(context, clock.currentTimeXMLGregorianCalendar(), task);
         if (workflowManager != null) {
             metaData.getCreateApproverRef().addAll(workflowManager.getApprovedBy(task, result));
         }
@@ -1054,33 +1049,16 @@ public class ChangeExecutor {
 		objectTypeToAdd.setMetadata(metaData);
 	}
     
-    private <F extends ObjectType> String getChannel(LensContext<F> context, Task task){
-    	if (context != null && context.getChannel() != null){
-    		return context.getChannel();
-    	} else if (task.getChannel() != null){
-    		return task.getChannel();
-    	}
-    	return null;
-    }
+    
     
     private <T extends ObjectType, F extends ObjectType> void applyMetadata(ObjectDelta<T> change, LensElementContext<T> objectContext, 
     		Class objectTypeClass, Task task, LensContext<F> context, OperationResult result) throws SchemaException {
-        String channel = getChannel(context, task);
+        String channel = LensUtil.getChannel(context, task);
 
-    	PrismObjectDefinition def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(objectTypeClass);
+    	PrismObjectDefinition<T> def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(objectTypeClass);
 
-        if (channel != null) {
-            PropertyDelta delta = PropertyDelta.createModificationReplaceProperty((new ItemPath(ObjectType.F_METADATA, MetadataType.F_MODIFY_CHANNEL)), def, channel);
-            ((Collection) change.getModifications()).add(delta);
-        }
-        PropertyDelta delta = PropertyDelta.createModificationReplaceProperty((new ItemPath(ObjectType.F_METADATA, MetadataType.F_MODIFY_TIMESTAMP)), def, XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
-        ((Collection) change.getModifications()).add(delta);
-        if (task.getOwner() != null) {
-            ReferenceDelta refDelta = ReferenceDelta.createModificationReplace((new ItemPath(ObjectType.F_METADATA,
-                    MetadataType.F_MODIFIER_REF)), def, task.getOwner().getOid());
-            ((Collection) change.getModifications()).add(refDelta);
-        }
-
+    	((Collection) change.getModifications()).addAll(LensUtil.createModifyMetadataDeltas(context, new ItemPath(ObjectType.F_METADATA), def, clock.currentTimeXMLGregorianCalendar(), task));
+    	
         List<PrismReferenceValue> approverReferenceValues = new ArrayList<PrismReferenceValue>();
 
         if (workflowManager != null) {
@@ -1257,11 +1235,11 @@ public class ChangeExecutor {
     	
     	QName FAKE_SCRIPT_ARGUMENT_NAME = new QName(SchemaConstants.NS_C, "arg");
     	
-    	PrismPropertyDefinition scriptArgumentDefinition = new PrismPropertyDefinition(FAKE_SCRIPT_ARGUMENT_NAME,
+    	PrismPropertyDefinition<String> scriptArgumentDefinition = new PrismPropertyDefinition<>(FAKE_SCRIPT_ARGUMENT_NAME,
 				DOMUtil.XSD_STRING, prismContext);
     	
     	String shortDesc = "Provisioning script argument expression";
-    	Expression<PrismPropertyValue<String>> expression = expressionFactory.makeExpression(argument, scriptArgumentDefinition, shortDesc, result);
+    	Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(argument, scriptArgumentDefinition, shortDesc, result);
     	
     	
     	ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task, result);

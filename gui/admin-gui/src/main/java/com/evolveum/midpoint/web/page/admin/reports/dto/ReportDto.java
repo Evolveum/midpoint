@@ -55,17 +55,25 @@ public class ReportDto implements Serializable {
     public ReportDto() {
     }
     
-    public ReportDto(ReportType reportType){
+    public ReportDto(byte[] reportJrxml) {
+    	this.jasperReportDto = new JasperReportDto(reportJrxml);
+    }
+    
+    public ReportDto(ReportType reportType, boolean onlyForPromptingParams) {
     	this.oid = reportType.getOid();
     	this.name = reportType.getName().getOrig();
     	this.exportType = reportType.getExport();
     	this.searchOnResource = false;
     	this.description = reportType.getDescription();
 //    	this.xml = new String(Base64.decodeBase64(reportType.getTemplate()));
-    	this.jasperReportDto = new JasperReportDto(reportType.getTemplate());
+    	this.jasperReportDto = new JasperReportDto(reportType.getTemplate(), onlyForPromptingParams);
     	this.templateStyle = reportType.getTemplateStyle();
     	this.parent = reportType.isParent();
     	this.reportType = reportType;
+    }
+    
+    public ReportDto(ReportType reportType){
+    	this(reportType, false);
     }
 
     public ReportDto(String name, String description) {
@@ -92,11 +100,17 @@ public class ReportDto implements Serializable {
     }
 
     public PrismObject<ReportType> getObject() {
+    	if (reportType == null){
+    		reportType = new ReportType();
+    		//TODO FIXME temporary every new report will be set as parent report
+    		reportType.setParent(Boolean.TRUE);
+    	}
     	reportType.setName(new PolyStringType(name));
     	reportType.setExport(exportType);
     	reportType.setTemplate(jasperReportDto.getTemplate());
     	reportType.setTemplateStyle(templateStyle);
     	reportType.setDescription(description);
+    	 
         return reportType.asPrismObject();
     }
 

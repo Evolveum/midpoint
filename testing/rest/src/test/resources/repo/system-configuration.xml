@@ -32,6 +32,14 @@
 			<package>com.evolveum.midpoint.util</package>
 			<level>DEBUG</level>
 		</classLogger>
+		<classLogger>
+			<package>com.evolveum.midpoint.model</package>
+			<level>DEBUG</level>
+		</classLogger>
+		<classLogger>
+			<package>PROFILING</package>
+			<level>TRACE</level>
+		</classLogger>
 		<appender xsi:type="FileAppenderConfigurationType" name="IDM_LOG" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 			<pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
             <fileName>target/test.log</fileName>

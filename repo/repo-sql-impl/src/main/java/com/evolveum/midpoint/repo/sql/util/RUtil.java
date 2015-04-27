@@ -36,7 +36,6 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
-import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -374,6 +373,14 @@ public final class RUtil {
         return s.longValue();
     }
 
+    public static Long toLong(Integer i) {
+        if (i == null) {
+            return null;
+        }
+
+        return i.longValue();
+    }
+
     public static Short toShort(Long l) {
         if (l == null) {
             return null;
@@ -384,6 +391,18 @@ public final class RUtil {
         }
 
         return l.shortValue();
+    }
+
+    public static Integer toInteger(Long l) {
+        if (l == null) {
+            return null;
+        }
+
+        if (l > Integer.MAX_VALUE || l < Integer.MIN_VALUE) {
+            throw new IllegalArgumentException("Couldn't cast value to Integer " + l);
+        }
+
+        return l.intValue();
     }
 
     public static String getDebugString(RObject object) {

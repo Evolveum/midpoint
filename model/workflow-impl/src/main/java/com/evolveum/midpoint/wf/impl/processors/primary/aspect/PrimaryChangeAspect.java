@@ -29,6 +29,8 @@ import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildJobCreationInstr
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpJob;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PrimaryChangeProcessorConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.QuestionFormType;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessSpecificState;
 
@@ -64,13 +66,13 @@ public interface PrimaryChangeAspect {
      * If yes, it takes these deltas out of the original change and prepares instruction(s) to start wf process(es).
      *
      * @param modelContext Original model context (e.g. to be able to get information about whole context of the operation)
+     * @param wfConfigurationType
      * @param change Change to be examined and modified by implementation of this method
      * @param taskFromModel General context of the operation - the method should not modify the task.
-     * @param result Operation result - the method should report any errors here (TODO what about creating subresults?)
-     * @return list of start process instructions
+     * @param result Operation result - the method should report any errors here (TODO what about creating subresults?)    @return list of start process instructions
      * @see com.evolveum.midpoint.wf.impl.jobs.JobCreationInstruction
      */
-    List<PcpChildJobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) throws SchemaException;
+    List<PcpChildJobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) throws SchemaException;
 
     /**
      * On process instance end, prepares deltaOut based in deltaIn and information gathered during approval process.
@@ -138,4 +140,13 @@ public interface PrimaryChangeAspect {
      * @return external representation
      */
     ProcessSpecificState externalizeProcessInstanceState(Map<String, Object> variables);
+
+    /**
+     * Returns true if this aspect is enabled by default, i.e. even if not listed in primary change processor configuration.
+     */
+    boolean isEnabledByDefault();
+
+    boolean isEnabled(PrimaryChangeProcessorConfigurationType processorConfigurationType);
+
+    String getBeanName();
 }

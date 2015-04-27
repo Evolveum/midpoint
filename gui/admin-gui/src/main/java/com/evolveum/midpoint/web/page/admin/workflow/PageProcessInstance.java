@@ -103,12 +103,14 @@ public class PageProcessInstance extends PageAdminWorkItems {
                 }
             }
             ProcessInstanceState processInstanceState = (ProcessInstanceState) processInstance.getState();
-            String shadowTaskOid = processInstanceState.getShadowTaskOid();
             Task shadowTask = null;
-            try {
-                shadowTask = getTaskManager().getTask(shadowTaskOid, result);
-            } catch (ObjectNotFoundException e) {
-                // task is already deleted, no problem here
+            if (processInstanceState != null) {
+                String shadowTaskOid = processInstanceState.getShadowTaskOid();
+                try {
+                    shadowTask = getTaskManager().getTask(shadowTaskOid, result);
+                } catch (ObjectNotFoundException e) {
+                    // task is already deleted, no problem here
+                }
             }
             return new ProcessInstanceDto(processInstance, shadowTask);
         } catch (Exception ex) {

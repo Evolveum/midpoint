@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ public class ResourceCarefulAntUtil {
 		final PrismObjectDefinition<ResourceType> resourceDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceType.class);
 		ants.add(new CarefulAnt<ResourceType>() {
 			@Override
-			public ItemDelta<?> createDelta(int iteration) {
+			public ItemDelta<?,?> createDelta(int iteration) {
 				return  PropertyDelta.createModificationReplaceProperty(ResourceType.F_DESCRIPTION, 
 		    			resourceDef, "Blah "+iteration);
 			}
@@ -70,7 +70,7 @@ public class ResourceCarefulAntUtil {
     	ants.add(new CarefulAnt<ResourceType>() {
     		SchemaHandlingType schemaHandling;
 			@Override
-			public ItemDelta<?> createDelta(int iteration) throws SchemaException {
+			public ItemDelta<?,?> createDelta(int iteration) throws SchemaException {
 				schemaHandling = createNewSchemaHandling(resourceFile, iteration, prismContext);
 				return ContainerDelta.createModificationReplace(ResourceType.F_SCHEMA_HANDLING,
 						prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(SchemaHandlingType.class),
@@ -85,7 +85,7 @@ public class ResourceCarefulAntUtil {
     	ants.add(new CarefulAnt<ResourceType>() {
     		SchemaDefinitionType xmlSchemaDef;
 			@Override
-			public ItemDelta<?> createDelta(int iteration) throws SchemaException {
+			public ItemDelta<?,?> createDelta(int iteration) throws SchemaException {
 				xmlSchemaDef = createNewXmlSchemaDef(resourceFile, iteration, prismContext);
 				return PropertyDelta.createModificationReplaceProperty(
 						new ItemPath(ResourceType.F_SCHEMA, XmlSchemaType.F_DEFINITION),

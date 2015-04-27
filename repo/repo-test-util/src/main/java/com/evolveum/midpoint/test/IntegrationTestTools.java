@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,8 +74,6 @@ import org.opends.server.types.SearchResultEntry;
 import org.testng.AssertJUnit;
 import org.w3c.dom.Element;
 
-import javax.xml.datatype.DatatypeConstants;
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import java.util.Arrays;
@@ -694,38 +692,6 @@ public class IntegrationTestTools {
 		for (ScriptHistoryEntry script : scriptsHistory) {
 			display("Script", script);
 		}
-	}
-
-	public static void assertBetween(String message, XMLGregorianCalendar start, XMLGregorianCalendar end,
-			XMLGregorianCalendar actual) {
-		assertNotNull(message + " is null", actual);
-		if (start != null) {
-			assertTrue(message+": expected time to be after "+start+" but it was "+actual, 
-				actual.compare(start) == DatatypeConstants.GREATER || actual.compare(start) == DatatypeConstants.EQUAL);
-		}
-		if (end != null) {
-			assertTrue(message+": expected time to be before "+end+" but it was "+actual, 
-				actual.compare(end) == DatatypeConstants.LESSER || actual.compare(end) == DatatypeConstants.EQUAL);
-		}
-	}
-
-	public static void assertEqualsTimestamp(String message, XMLGregorianCalendar expected, XMLGregorianCalendar actual) {
-		assertNotNull(message+"; expected "+expected, actual);
-		assertTrue(message+"; expected "+expected+" but was "+actual, expected.compare(actual) == 0);
-	}
-
-	public static void assertCreateTimestamp(PrismObject<? extends ObjectType> object, XMLGregorianCalendar start,
-			XMLGregorianCalendar end) {
-		MetadataType metadata = object.asObjectable().getMetadata();
-		assertNotNull("No metadata in "+object, metadata);
-		assertBetween("createTimestamp in "+object, start, end, metadata.getCreateTimestamp());
-	}
-
-	public static void assertModifyTimestamp(PrismObject<? extends ObjectType> object, XMLGregorianCalendar start,
-			XMLGregorianCalendar end) {
-		MetadataType metadata = object.asObjectable().getMetadata();
-		assertNotNull("No metadata in "+object, metadata);
-		assertBetween("modifyTimestamp in "+object, start, end, metadata.getModifyTimestamp());
 	}
 
 	public static <T> void assertExtensionProperty(PrismObject<? extends ObjectType> object, QName propertyName, T... expectedValues) {

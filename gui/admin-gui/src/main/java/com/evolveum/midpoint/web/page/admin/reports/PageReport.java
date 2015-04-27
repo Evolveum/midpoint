@@ -99,13 +99,26 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
 
         initLayout();
     }
+    
+    public PageReport(final ReportDto reportDto) {
+    	model = new LoadableModel<ReportDto>(reportDto, false) {
+    		
+    		@Override
+    		protected ReportDto load() {
+    			// never called
+    			return reportDto;
+    		}
+    		
+		};
+		initLayout();
+    }
 
     private ReportDto loadReport() {
         StringValue reportOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
 
         OperationResult result = new OperationResult(OPERATION_LOAD_REPORT);
         PrismObject<ReportType> prismReport = WebModelUtils.loadObject(ReportType.class, reportOid.toString(), result, this);
-
+        
         if (prismReport == null) {
             LOGGER.error("Couldn't load report.");
             throw new RestartResponseException(PageReports.class);
@@ -292,13 +305,23 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
 
             //TODO TODO TODO
             PrismObject<ReportType> newReport = model.getObject().getObject();
-            PrismObject<ReportType> oldReport = WebModelUtils.loadObject(ReportType.class, newReport.getOid(),
-                    result, this);
+			ObjectDelta<ReportType> delta = null;
+			if (newReport.getOid() == null) {
+				getPrismContext().adopt(newReport);
+				delta = ObjectDelta.createAddDelta(newReport);
+				delta.setPrismContext(getPrismContext());
+			} else {
+				PrismObject<ReportType> oldReport = WebModelUtils.loadObject(ReportType.class,
+						newReport.getOid(), result, this);
 
-            if (oldReport != null) {
-                ObjectDelta<ReportType> delta = oldReport.diff(newReport);
-                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
-            }
+				if (oldReport != null) {
+					delta = oldReport.diff(newReport);
+				}
+			}
+			if (delta != null) {
+				getModelService()
+						.executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+			}
         } catch (Exception e) {
             result.recordFatalError("Couldn't save report.", e);
         } finally {

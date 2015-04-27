@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -114,8 +114,8 @@ public class MappingFactory {
 		this.profiling = profiling;
 	}
 
-	public <V extends PrismValue> Mapping<V> createMapping(MappingType mappingType, String shortDesc) {
-		Mapping<V> mapping = new Mapping<>(mappingType, shortDesc, expressionFactory, securityEnforcer);
+	public <V extends PrismValue, D extends ItemDefinition> Mapping<V,D> createMapping(MappingType mappingType, String shortDesc) {
+		Mapping<V,D> mapping = new Mapping<>(mappingType, shortDesc, expressionFactory, securityEnforcer);
 		mapping.setFilterManager(filterManager);
 		mapping.setProfiling(profiling);
 		return mapping;

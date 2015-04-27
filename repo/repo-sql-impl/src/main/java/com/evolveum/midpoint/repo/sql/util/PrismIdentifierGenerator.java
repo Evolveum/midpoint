@@ -97,7 +97,7 @@ public class PrismIdentifierGenerator {
         }
 
         if (LookupTableType.class.isAssignableFrom(parent.getCompileTimeClass())) {
-            containers.add(parent.findContainer(LookupTableType.F_TABLE));
+            containers.add(parent.findContainer(LookupTableType.F_ROW));
         }
 
         if (FocusType.class.isAssignableFrom(parent.getCompileTimeClass())) {

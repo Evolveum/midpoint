@@ -241,10 +241,14 @@
 	            <situation>unlinked</situation>
 	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
 	        </reaction>
-	        <reaction>
+			<!-- We don't want the this resource to be authoritative w.r.t. creating user objects. This causes
+			     conflicts with green resource, which is also authoritative in this respect. Conflicts appear
+			     when one of the accounts is deleted. Synchronization processes then (sometimes) re-create
+			     the user because of the existence of the other account. -->
+	        <!-- <reaction>
 	            <situation>unmatched</situation>
 	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser"/>
-	        </reaction>
+	        </reaction> -->
 	        <reaction>
 	            <situation>unmatched</situation>
 	            <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#NoNsEnSe</channel>

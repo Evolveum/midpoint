@@ -3,6 +3,8 @@ package com.evolveum.midpoint.report.impl;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.io.Serializable;
+import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
+import javax.xml.bind.JAXBElement;
 
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRTemplate;
@@ -19,6 +22,8 @@ import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.export.JRCsvExporter;
+import net.sf.jasperreports.engine.export.JRRtfExporter;
 import net.sf.jasperreports.engine.export.JRXhtmlExporter;
 import net.sf.jasperreports.engine.export.JRXlsExporter;
 import net.sf.jasperreports.engine.export.oasis.JROdsExporter;
@@ -32,23 +37,40 @@ import net.sf.jasperreports.export.ExporterInput;
 import net.sf.jasperreports.export.ExporterOutput;
 import net.sf.jasperreports.export.SimpleExporterInput;
 import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
+import net.sf.jasperreports.export.SimpleWriterExporterOutput;
+import net.sf.jasperreports.export.WriterExporterOutput;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.param.ParameterSpecification;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.parser.QueryConvertor;
+import com.evolveum.midpoint.prism.parser.XNodeSerializer;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.RawTypeUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.schema.util.ParamsTypeUtil;
 import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
@@ -64,10 +86,14 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ParamsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SubreportType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 @Component
 public class ReportCreateTaskHandler implements TaskHandler{
@@ -131,12 +157,26 @@ public class ReportCreateTaskHandler implements TaskHandler{
 		
 		try {
 			ReportType parentReport = objectResolver.resolve(task.getObjectRef(), ReportType.class, null, "resolving report", result);
+			Map<String, Object> parameters = completeReport(parentReport, result);
+			
+			PrismContainer<ReportParameterType> reportParams = (PrismContainer) task.getExtensionItem(ReportConstants.REPORT_PARAMS_PROPERTY_NAME);
+			if (reportParams != null) {
+				PrismContainerValue<ReportParameterType> reportParamsValues = reportParams.getValue();
+				List<Item<?, ?>> items = reportParamsValues.getItems();
+				if (items != null) {
+					for (Item item : items) {
+						PrismProperty pp = (PrismProperty) item;
+						Object value = pp.getRealValue();
+						String paramName = ItemPath.getName(pp.getPath().lastNamed()).getLocalPart();
+						parameters.put(paramName, value);
+					}
+				}
+			}			
 			
 			JasperReport jasperReport = ReportTypeUtil.loadJasperReport(parentReport);
-			
 			LOGGER.trace("compile jasper design, create jasper report : {}", jasperReport);
-    		Map<String, Object> parameters = completeReport(parentReport, result);
-			
+    		
+    		
     		LOGGER.trace("All Report parameters : {}", parameters);
     		JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters);
     		LOGGER.trace("fill report : {}", jasperPrint);
@@ -243,13 +283,6 @@ public class ReportCreateTaskHandler implements TaskHandler{
 			params.put(PARAMETER_REPORT_OID, reportType.getOid());
 			params.put(PARAMETER_OPERATION_RESULT, parentResult);
 			params.put(ReportService.PARAMETER_REPORT_SERVICE, reportService);
-//			params.put(MidPointQueryExecutorFactory.PARAMETER_MIDPOINT_CONNECTION, modelService);
-//			params.put(MidPointQueryExecutorFactory.PARAMETER_PRISM_CONTEXT, prismContext);
-//			params.put(MidPointQueryExecutorFactory.PARAMETER_TASK_MANAGER, taskManager);
-//			params.put(MidPointQueryExecutorFactory.PARAMETER_EXPRESSION_FACTORY, expressionFactory);
-//			params.put(MidPointQueryExecutorFactory.PARAMETER_AUDIT_SERVICE, auditService);
-//			ReportFunctions reportFunctions = new ReportFunctions(prismContext, modelService, taskManager, auditService);
-//    		params.put(MidPointQueryExecutorFactory.PARAMETER_REPORT_FUNCTIONS, reportFunctions);
 			
 			return params;
 	    }
@@ -308,10 +341,16 @@ public class ReportCreateTaskHandler implements TaskHandler{
 	        	case XML_EMBED :
 	        		JasperExportManager.exportReportToXmlFile(jasperPrint, destinationFileName, true);
 	        		break;
+	        	case XHTML :
 	        	case HTML :	
 	        		JasperExportManager.exportReportToHtmlFile(jasperPrint, destinationFileName);
 	        		break;
-              	case CSV : 
+              	case CSV :  
+              		JRCsvExporter csvExporter = new JRCsvExporter();
+              		csvExporter.setExporterInput(new SimpleExporterInput(jasperPrint));
+              		csvExporter.setExporterOutput(new SimpleWriterExporterOutput(destinationFileName));
+              		csvExporter.exportReport();
+              		break;
               	case RTF :
 	          	case XLS :
 	          	case ODT :
@@ -319,7 +358,7 @@ public class ReportCreateTaskHandler implements TaskHandler{
 	          	case DOCX :
 	          	case XLSX :
 	          	case PPTX :
-	          	case XHTML :
+	          	
 	          	case JXL : 		          		
 	          		ExporterInput input = new SimpleExporterInput(jasperPrint);
 	          		ExporterOutput output = new SimpleOutputStreamExporterOutput(destinationFileName);
@@ -341,7 +380,9 @@ public class ReportCreateTaskHandler implements TaskHandler{
 	private Exporter createExporter(ExportType type) {
 		switch (type) {
 			case CSV:
+				return new JRCsvExporter();
 			case RTF:
+				return new JRRtfExporter();
 			case XLS:
 				return new JRXlsExporter();
 			case ODT:
@@ -354,8 +395,6 @@ public class ReportCreateTaskHandler implements TaskHandler{
 				return new JRXlsxExporter();
 			case PPTX:
 				return new JRPptxExporter();
-			case XHTML:
-				return new JRXhtmlExporter();
 			default:
 				return null;
 		}

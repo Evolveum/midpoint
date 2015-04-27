@@ -66,10 +66,10 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     private ObjectClassComplexTypeDefinition objectClassDefinition;
     private ResourceObjectTypeDefinitionType schemaHandlingObjectTypeDefinitionType;
     private ResourceType resourceType;
-    private Collection<? extends RefinedAttributeDefinition> identifiers;
-	private Collection<? extends RefinedAttributeDefinition> secondaryIdentifiers;
+    private Collection<? extends RefinedAttributeDefinition<?>> identifiers;
+	private Collection<? extends RefinedAttributeDefinition<?>> secondaryIdentifiers;
 	private Collection<ResourceObjectPattern> protectedObjectPatterns;
-	private List<RefinedAttributeDefinition> attributeDefinitions;
+	private List<RefinedAttributeDefinition<?>> attributeDefinitions;
 	private Collection<RefinedAssociationDefinition> associations = new ArrayList<RefinedAssociationDefinition>();
 	private ResourceObjectReferenceType baseContext; 
 	
@@ -90,7 +90,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     		ObjectClassComplexTypeDefinition objectClassDefinition) {
         super(objectClassDefinition.getTypeName(), prismContext);
         Validate.notNull(objectClassDefinition, "ObjectClass definition must not be null");
-        attributeDefinitions = new ArrayList<RefinedAttributeDefinition>();
+        attributeDefinitions = new ArrayList<>();
         this.resourceType = resourceType;
         this.objectClassDefinition = objectClassDefinition;
     }
@@ -108,17 +108,17 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     }
 
     @Override
-    public ResourceAttributeDefinition getDescriptionAttribute() {
+    public ResourceAttributeDefinition<?> getDescriptionAttribute() {
         return objectClassDefinition.getDescriptionAttribute();
     }
 
     @Override
-    public void setDescriptionAttribute(ResourceAttributeDefinition descriptionAttribute) {
+    public void setDescriptionAttribute(ResourceAttributeDefinition<?> descriptionAttribute) {
         throw new UnsupportedOperationException("Parts of refined account are immutable");
     }
 
     @Override
-    public RefinedAttributeDefinition getNamingAttribute() {
+    public RefinedAttributeDefinition<?> getNamingAttribute() {
         return substituteRefinedAttributeDefinition(objectClassDefinition.getNamingAttribute());
     }
     
@@ -166,7 +166,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	}
 
 	@Override
-    public RefinedAttributeDefinition getDisplayNameAttribute() {
+    public RefinedAttributeDefinition<?> getDisplayNameAttribute() {
         return substituteRefinedAttributeDefinition(objectClassDefinition.getDisplayNameAttribute());
     }
 
@@ -176,7 +176,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     }
     
     @Override
-	public Collection<? extends RefinedAttributeDefinition> getIdentifiers() {
+	public Collection<? extends RefinedAttributeDefinition<?>> getIdentifiers() {
 		if (identifiers == null) {
 			identifiers = createIdentifiersCollection();
 		}
@@ -184,15 +184,15 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	}
 
 	@Override
-	public Collection<? extends RefinedAttributeDefinition> getSecondaryIdentifiers() {
+	public Collection<? extends RefinedAttributeDefinition<?>> getSecondaryIdentifiers() {
 		if (secondaryIdentifiers == null) {
 			secondaryIdentifiers = createIdentifiersCollection();
 		}
 		return secondaryIdentifiers;
 	}
 
-	private Collection<? extends RefinedAttributeDefinition> createIdentifiersCollection() {
-		return new ArrayList<RefinedAttributeDefinition>();
+	private Collection<? extends RefinedAttributeDefinition<?>> createIdentifiersCollection() {
+		return new ArrayList<>();
 	}
 	
 	public Collection<RefinedAssociationDefinition> getAssociations() {
@@ -274,22 +274,53 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     private void copyDefinitionData(RefinedObjectClassDefinition clone) {
         super.copyDefinitionData(clone);
         clone.intent = this.intent;
-        clone.attributeDefinitions = this.attributeDefinitions;
+        clone.kind = this.kind;
+        clone.attributeDefinitions = cloneDefinitions(this.attributeDefinitions);
+        clone.identifiers = cloneDefinitions(this.identifiers);
+        clone.secondaryIdentifiers = cloneDefinitions(this.secondaryIdentifiers);
+        clone.associations = cloneAssociations(this.associations);
+        clone.baseContext = this.baseContext;
         clone.description = this.description;
         clone.displayName = this.displayName;
         clone.isDefault = this.isDefault;
-        clone.objectClassDefinition = this.objectClassDefinition;
+        clone.objectClassDefinition = this.objectClassDefinition.clone();
         clone.objectDefinition = this.objectDefinition;
         clone.resourceType = this.resourceType;
+        clone.protectedObjectPatterns = this.protectedObjectPatterns;
+        clone.resourceType = this.resourceType;
+        clone.schemaHandlingObjectTypeDefinitionType = this.schemaHandlingObjectTypeDefinitionType;
     }
 
-    @Override
-    public RefinedAttributeDefinition findAttributeDefinition(QName elementQName) {
+    private Collection<RefinedAssociationDefinition> cloneAssociations(
+			Collection<RefinedAssociationDefinition> origAsoc) {
+    	if (origAsoc == null) {
+    		return null;
+    	}
+    	Collection<RefinedAssociationDefinition> cloned = new ArrayList<>();
+    	for (RefinedAssociationDefinition rAsocDef: origAsoc) {
+    		cloned.add(rAsocDef.clone());
+    	}
+		return cloned;
+	}
+
+	private List<RefinedAttributeDefinition<?>> cloneDefinitions(Collection<? extends RefinedAttributeDefinition<?>> origDefs) {
+    	if (origDefs == null) {
+    		return null;
+    	}
+		List<RefinedAttributeDefinition<?>> clonedAttributes = new ArrayList<>();
+		for (RefinedAttributeDefinition<?> attributeDefinition: origDefs) {
+			clonedAttributes.add(attributeDefinition.clone());
+		}
+		return clonedAttributes;
+	}
+
+	@Override
+    public <X> RefinedAttributeDefinition<X> findAttributeDefinition(QName elementQName) {
         return findItemDefinition(elementQName, RefinedAttributeDefinition.class);
     }
 
     @Override
-    public RefinedAttributeDefinition findAttributeDefinition(String elementLocalname) {
+    public <X> RefinedAttributeDefinition<X> findAttributeDefinition(String elementLocalname) {
         QName elementQName = new QName(getResourceNamespace(), elementLocalname);
         return findAttributeDefinition(elementQName);
     }
@@ -335,7 +366,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     }
     
     @Override
-    public Collection<? extends RefinedAttributeDefinition> getAttributeDefinitions() {
+    public Collection<? extends RefinedAttributeDefinition<?>> getAttributeDefinitions() {
         return attributeDefinitions;
     }
     
@@ -373,8 +404,8 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         this.objectDefinition = refinedObjectDef;
     }
 
-	public RefinedAttributeDefinition getAttributeDefinition(QName attributeName) {
-        for (RefinedAttributeDefinition attrDef : attributeDefinitions) {
+	public RefinedAttributeDefinition<?> getAttributeDefinition(QName attributeName) {
+        for (RefinedAttributeDefinition<?> attrDef : attributeDefinitions) {
             if (QNameUtil.match(attrDef.getName(), attributeName)) {
                 return attrDef;
             }
@@ -383,7 +414,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     }
 
 
-    public void add(RefinedAttributeDefinition refinedAttributeDefinition) {
+    public void add(RefinedAttributeDefinition<?> refinedAttributeDefinition) {
         attributeDefinitions.add(refinedAttributeDefinition);
     }
 
@@ -393,7 +424,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     }
     
     public boolean containsAttributeDefinition(QName attributeName) {
-        for (RefinedAttributeDefinition rAttributeDef : attributeDefinitions) {
+        for (RefinedAttributeDefinition<?> rAttributeDef : attributeDefinitions) {
             if (QNameUtil.match(rAttributeDef.getName(), attributeName)) {
                 return true;
             }
@@ -440,7 +471,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 		
 		// Deprecated
 		if (patternType.getName() != null) {
-			RefinedAttributeDefinition attributeDefinition = rAccountDef.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA,"name"));
+			RefinedAttributeDefinition<String> attributeDefinition = rAccountDef.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA,"name"));
 			ResourceAttribute<String> attr = attributeDefinition.instantiate();
 			attr.setRealValue(patternType.getName());
 			resourceObjectPattern.addIdentifier(attr);

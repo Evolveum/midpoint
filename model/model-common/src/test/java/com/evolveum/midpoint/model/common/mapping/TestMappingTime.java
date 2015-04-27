@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,7 @@ public class TestMappingTime {
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
     			UserType.F_EMPLOYEE_TYPE, evaluator.getPrismContext(), "CAPTAIN");
     	
-		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				MAPPING_TIME_FROM_TO_FILENAME, 
     			TEST_NAME, "title", delta);
 		mapping.setNow(TIME_PAST);
@@ -99,7 +99,7 @@ public class TestMappingTime {
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
     			UserType.F_EMPLOYEE_TYPE, evaluator.getPrismContext(), "CAPTAIN");
     	
-		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				MAPPING_TIME_FROM_TO_FILENAME, 
     			TEST_NAME, "title", delta);
 		mapping.setNow(TIME_BETWEEN);
@@ -127,7 +127,7 @@ public class TestMappingTime {
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
     			UserType.F_EMPLOYEE_TYPE, evaluator.getPrismContext(), "CAPTAIN");
     	
-		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				MAPPING_TIME_FROM_TO_FILENAME, 
     			TEST_NAME, "title", delta);
 		mapping.setNow(TIME_FUTURE);
@@ -150,7 +150,7 @@ public class TestMappingTime {
     	System.out.println("===[ "+TEST_NAME+"]===");
     	
     	// GIVEN
-		Mapping<PrismPropertyValue<Boolean>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = evaluator.createMapping(
 				MAPPING_TIME_ACTIVATION, 
     			TEST_NAME, "title", null);
 		
@@ -179,7 +179,7 @@ public class TestMappingTime {
     	System.out.println("===[ "+TEST_NAME+"]===");
     	
     	// GIVEN
-		Mapping<PrismPropertyValue<Boolean>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = evaluator.createMapping(
 				MAPPING_TIME_ACTIVATION, 
     			TEST_NAME, "title", null);
 		
@@ -214,7 +214,7 @@ public class TestMappingTime {
     	PrismObject<UserType> userOld = evaluator.getUserOld();
 		userOld.asObjectable().getActivation().setDisableTimestamp(null);
     	
-		Mapping<PrismPropertyValue<Boolean>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = evaluator.createMapping(
 				MAPPING_TIME_ACTIVATION, 
     			TEST_NAME, "title", null, userOld);
 		
@@ -252,7 +252,7 @@ public class TestMappingTime {
     			new ItemPath(UserType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP), evaluator.getPrismContext(),
     			disableTimestamp);
     	
-		Mapping<PrismPropertyValue<Boolean>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = evaluator.createMapping(
 				MAPPING_TIME_ACTIVATION, 
     			TEST_NAME, "title", delta, userOld);
 		
@@ -289,7 +289,7 @@ public class TestMappingTime {
     			new ItemPath(UserType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP), evaluator.getPrismContext(),
     			disableTimestamp);
     	
-		Mapping<PrismPropertyValue<Boolean>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = evaluator.createMapping(
 				MAPPING_TIME_ACTIVATION, 
     			TEST_NAME, "title", delta, userOld);
 		
@@ -318,7 +318,7 @@ public class TestMappingTime {
 		assertNull("Unexpected output triple: "+outputTriple, outputTriple);
 	}
 
-	private void assertNextRecompute(Mapping<?> mapping, XMLGregorianCalendar expected) {
+	private void assertNextRecompute(Mapping<?,?> mapping, XMLGregorianCalendar expected) {
 		XMLGregorianCalendar nextRecomputeTime = mapping.getNextRecomputeTime();
 		assertEquals("Wrong nextRecomputeTime in mapping "+mapping, expected, nextRecomputeTime);
 	}

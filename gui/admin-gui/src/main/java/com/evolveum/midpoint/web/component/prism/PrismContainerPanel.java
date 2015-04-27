@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.PageBase;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -37,14 +38,16 @@ import org.apache.wicket.model.PropertyModel;
 public class PrismContainerPanel extends Panel {
 
     private boolean showHeader;
+    private PageBase pageBase;
 
     public PrismContainerPanel(String id, IModel<ContainerWrapper> model, Form form) {
-        this(id, model, true, form);
+        this(id, model, true, form, null);
     }
 
-    public PrismContainerPanel(String id, final IModel<ContainerWrapper> model, boolean showHeader, Form form) {
+    public PrismContainerPanel(String id, final IModel<ContainerWrapper> model, boolean showHeader, Form form, PageBase pageBase) {
         super(id);
         this.showHeader = showHeader;
+        this.pageBase = pageBase;
 
         add(new AttributeAppender("class", new Model<>("attributeComponent"), " "));
         add(new VisibleEnableBehaviour() {
@@ -90,12 +93,16 @@ public class PrismContainerPanel extends Panel {
 
             @Override
             protected void populateItem(ListItem<PropertyWrapper> item) {
-                item.add(new PrismPropertyPanel("property", item.getModel(), form));
+                item.add(new PrismPropertyPanel("property", item.getModel(), form, pageBase));
                 item.add(AttributeModifier.append("class", createStyleClassModel(item.getModel())));
             }
         };
         properties.setReuseItems(true);
         add(properties);
+    }
+
+    protected PageBase getPageBase(){
+        return pageBase;
     }
 
     private IModel<String> createStyleClassModel(final IModel<PropertyWrapper> wrapper) {

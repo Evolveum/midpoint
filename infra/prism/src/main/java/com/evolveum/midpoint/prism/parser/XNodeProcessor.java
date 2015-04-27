@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Evolveum
+ * Copyright (c) 2014-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.parser.util.XNodeProcessorUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
@@ -73,11 +74,17 @@ public class XNodeProcessor {
     public static final String ARTIFICIAL_OBJECT_NAME = "anObject";
 
     private PrismContext prismContext;
+    private XNodeProcessorEvaluationMode mode = XNodeProcessorEvaluationMode.STRICT;
 	
 	public XNodeProcessor() { }
 	
 	public XNodeProcessor(PrismContext prismContext) {
 		this.prismContext = prismContext;
+	}
+
+	public XNodeProcessor(PrismContext prismContext, XNodeProcessorEvaluationMode mode) {
+		this.prismContext = prismContext;
+		this.mode = mode;
 	}
 
 	public SchemaRegistry getSchemaRegistry() {
@@ -90,6 +97,18 @@ public class XNodeProcessor {
 
 	public void setPrismContext(PrismContext prismContext) {
 		this.prismContext = prismContext;
+	}
+	
+	public XNodeProcessorEvaluationMode getMode() {
+		return mode;
+	}
+
+	public void setMode(XNodeProcessorEvaluationMode mode) {
+		this.mode = mode;
+	}
+
+	private boolean isStrict() {
+		return mode == XNodeProcessorEvaluationMode.STRICT;
 	}
 
     //region Parsing prism objects
@@ -305,15 +324,32 @@ public class XNodeProcessor {
 				continue;
 			}
 			ItemDefinition itemDef = locateItemDefinition(containerDef, itemQName, xentry.getValue());
-			if (itemDef == null) {
+			if (itemDef == null) {				
 				if (containerDef.isRuntimeSchema()) {
-					// No definition for item, but the schema is runtime. the definition may come later.
-					// Null is OK here.
+					PrismSchema itemSchema = getSchemaRegistry().findSchemaByNamespace(itemQName.getNamespaceURI());
+					if (itemSchema != null) {
+						// If we already have schema for this namespace then a missing element is
+						// an error. We positively know that it is not in the schema.
+						if (isStrict()) {
+							throw new SchemaException("Item " + itemQName + " has no definition (schema present, in container "+containerDef+")"  + "while parsing " + xmap.debugDump(), itemQName);
+						} else {
+							// Just skip item
+							continue;
+						}
+					} else {
+						// No definition for item, but the schema is runtime. the definition may come later.
+						// Null is OK here. The item will be parsed as "raw"
+					}
 				} else {
-					throw new SchemaException("Item " + itemQName + " has no definition (in container "+containerDef+")"  + "while parsing " + xmap.debugDump(), itemQName);
+					if (isStrict()) {
+						throw new SchemaException("Item " + itemQName + " has no definition (in container "+containerDef+")"  + "while parsing " + xmap.debugDump(), itemQName);
+					} else {
+						// Just skip item
+						continue;
+					}
 				}
 			}
-			Item<?> item = parseItem(xentry.getValue(), itemQName, itemDef);
+			Item<?,?> item = parseItem(xentry.getValue(), itemQName, itemDef);
 			// Merge must be here, not just add. Some items (e.g. references) have alternative
 			// names and representations and these cannot be processed as one map or list
             if (item != null) {
@@ -449,12 +485,17 @@ public class XNodeProcessor {
         if (prismContext.getBeanConverter().canProcess(typeName) && !typeName.equals(PolyStringType.COMPLEX_TYPE) && !typeName.equals(ItemPathType.COMPLEX_TYPE)) {
             // Primitive elements may also have complex Java representations (e.g. enums)
             return prismContext.getBeanConverter().unmarshallPrimitive(xprim, typeName);
-        } else if (def != null && def.isRuntimeSchema() && def.getAllowedValues() != null && def.getAllowedValues().length > 0){
+        } else if (def != null && def.isRuntimeSchema() && def.getAllowedValues() != null && def.getAllowedValues().size() > 0){
         	//TODO: ugly hack to support enum in extension schemas --- need to be fixed
         	
         		realValue = xprim.getParsedValue(DOMUtil.XSD_STRING);
-        		if (!isAllowed(realValue, def.getAllowedValues())){
-        			throw new SchemaException("Illegal value found in property "+xprim+". Allowed values are: "+  def.getAllowedValues());
+        		if (!isAllowed(realValue, def.getAllowedValues())) {
+        			if (isStrict()) {
+        				throw new SchemaException("Illegal value found in property "+xprim+". Allowed values are: "+  def.getAllowedValues());
+        			} else {
+        				// just skip the value
+        				return null;
+        			}
         		}
         	
         } else {
@@ -479,9 +520,9 @@ public class XNodeProcessor {
         return realValue;
     }
     
-    private <T> boolean isAllowed(T realValue, Object[] allowedValues){
-    	for (Object o : allowedValues){
-    		if (realValue.equals(((DisplayableValue)o).getValue())){
+    private <T> boolean isAllowed(T realValue, Collection<DisplayableValue<T>> collection){
+    	for (DisplayableValue<T> o : collection){
+    		if (realValue.equals(o.getValue())){
     			return true;
     		}
     	}
@@ -908,20 +949,20 @@ public class XNodeProcessor {
 	 * method to call. Value elements have the same element name. They may be
 	 * elements of a property or a container.
 	 */
-	public <V extends PrismValue> Item<V> parseItem(XNode xnode, QName itemName, ItemDefinition itemDef)
+	public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> parseItem(XNode xnode, QName itemName, ItemDefinition itemDef)
 			throws SchemaException {
 		if (itemDef == null) {
 			// Assume property in a container with runtime definition
-			return (Item<V>) parsePrismPropertyRaw(xnode, itemName, prismContext);
+			return (Item<IV,ID>) parsePrismPropertyRaw(xnode, itemName, prismContext);
 		}
         if (itemDef instanceof PrismObjectDefinition) {
             return parseObject(xnode, itemName, (PrismObjectDefinition) itemDef);
         } else if (itemDef instanceof PrismContainerDefinition) {
-			return (Item<V>) parseContainerInternal(xnode, itemName, (PrismContainerDefinition<?>) itemDef);
+			return (Item<IV,ID>) parseContainerInternal(xnode, itemName, (PrismContainerDefinition<?>) itemDef);
 		} else if (itemDef instanceof PrismPropertyDefinition) {
-			return (Item<V>) parsePrismProperty(xnode, itemName, (PrismPropertyDefinition) itemDef);
+			return (Item<IV,ID>) parsePrismProperty(xnode, itemName, (PrismPropertyDefinition) itemDef);
 		} else if (itemDef instanceof PrismReferenceDefinition) {
-			return (Item<V>) parsePrismReference(xnode, itemName, (PrismReferenceDefinition) itemDef);
+			return (Item<IV,ID>) parsePrismReference(xnode, itemName, (PrismReferenceDefinition) itemDef);
 		} else {
 			throw new IllegalArgumentException("Attempt to parse unknown definition type " + itemDef.getClass().getName());
 		}
@@ -1126,7 +1167,7 @@ public class XNodeProcessor {
 //        return serializer.serializeContainerValueAsRoot(cval, elementName);
 //    }
 
-    public <V extends PrismValue> XNode serializeItem(Item<V> item) throws SchemaException {
+    public <IV extends PrismValue,ID extends ItemDefinition> XNode serializeItem(Item<IV,ID> item) throws SchemaException {
 		XNodeSerializer serializer = createSerializer();
 		return serializer.serializeItem(item);
 	}
@@ -1146,7 +1187,7 @@ public class XNodeProcessor {
         return serializer.serializeItemValue(pval, null);
     }
 
-    public <V extends PrismValue> RootXNode serializeItemAsRoot(Item<V> item) throws SchemaException {
+    public <IV extends PrismValue,ID extends ItemDefinition> RootXNode serializeItemAsRoot(Item<IV,ID> item) throws SchemaException {
         XNodeSerializer serializer = createSerializer();
         return serializer.serializeItemAsRoot(item);
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -78,7 +79,8 @@ public class NameStep extends WizardStep {
     //filtered, based on selection
     private LoadableModel<List<PrismObject<ConnectorType>>> connectorTypes;
 
-    public NameStep(IModel<PrismObject<ResourceType>> model) {
+    public NameStep(IModel<PrismObject<ResourceType>> model, PageBase pageBase) {
+        super(pageBase);
         this.resourceModel = model;
 
         connectorsModel = new LoadableModel<List<PrismObject<ConnectorType>>>(false) {
@@ -372,10 +374,11 @@ public class NameStep extends WizardStep {
 
     private void discoverConnectors(ConnectorHostType host) {
         PageBase page = (PageBase) getPage();
-        OperationResult result = new OperationResult(OPERATION_DISCOVER_CONNECTORS);
+        Task task = page.createSimpleTask(OPERATION_DISCOVER_CONNECTORS);
+        OperationResult result = task.getResult();
         try {
             ModelService model = page.getModelService();
-            model.discoverConnectors(host, result);
+            model.discoverConnectors(host, task, result);
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't discover connectors", ex);
         } finally {

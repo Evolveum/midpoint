@@ -57,6 +57,7 @@ import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -112,6 +113,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -278,7 +280,7 @@ public class AssignmentProcessor {
             AssignmentType assignmentType = assignmentCVal.asContainerable();
             PrismContainerValue<AssignmentType> assignmentCValOld = assignmentCVal;
             PrismContainerValue<AssignmentType> assignmentCValNew = assignmentCVal;
-            ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
+            ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
             assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
             
             boolean forceRecon = false;
@@ -292,7 +294,7 @@ public class AssignmentProcessor {
             	assignmentPlacementDesc = "delta for "+source;
             } else {
             	assignmentPlacementDesc = source.toString();
-            	Collection<? extends ItemDelta<?>> assignmentItemDeltas = getExecutionWaveAssignmentItemDeltas(focusContext, assignmentCVal.getId());
+            	Collection<? extends ItemDelta<?,?>> assignmentItemDeltas = getExecutionWaveAssignmentItemDeltas(focusContext, assignmentCVal.getId());
             	if (assignmentItemDeltas != null && !assignmentItemDeltas.isEmpty()) {
             		// Small changes inside assignment, but otherwise the assignment stays as it is (not added or deleted)
             		assignmentIdi.setSubItemDeltas(assignmentItemDeltas);
@@ -484,12 +486,12 @@ public class AssignmentProcessor {
         
         // PROCESSING FOCUS
         
-        Map<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> focusOutputTripleMap = new HashMap<>();
+        Map<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> focusOutputTripleMap = new HashMap<>();
         collectFocusTripleFromMappings(evaluatedAssignmentTriple.getPlusSet(), focusOutputTripleMap, PlusMinusZero.PLUS);
         collectFocusTripleFromMappings(evaluatedAssignmentTriple.getMinusSet(), focusOutputTripleMap, PlusMinusZero.MINUS);
         collectFocusTripleFromMappings(evaluatedAssignmentTriple.getZeroSet(), focusOutputTripleMap, PlusMinusZero.ZERO);
         ObjectDeltaObject<F> focusOdo = focusContext.getObjectDeltaObject();
-		Collection<ItemDelta<? extends PrismValue>> focusDeltas = objectTemplateProcessor.computeItemDeltas(focusOutputTripleMap,
+		Collection<ItemDelta<?,?>> focusDeltas = objectTemplateProcessor.computeItemDeltas(focusOutputTripleMap,
 				focusOdo, focusContext.getObjectDefinition(), "focus mappings in assignments of "+focusContext.getHumanReadableName());
 		LOGGER.trace("Computed focus deltas: {}", focusDeltas);
 		focusContext.applyProjectionWaveSecondaryDeltas(focusDeltas);
@@ -941,7 +943,7 @@ public class AssignmentProcessor {
 		return all;
 	}
 	
-	private <F extends FocusType> EvaluatedAssignmentImpl<F> evaluateAssignment(ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi,
+	private <F extends FocusType> EvaluatedAssignmentImpl<F> evaluateAssignment(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
 			boolean evaluateOld, LensContext<F> context, ObjectType source, AssignmentEvaluator<F> assignmentEvaluator, 
 			String assignmentPlacementDesc, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
         try{
@@ -1154,9 +1156,8 @@ public class AssignmentProcessor {
 		constructionType.setResourceRef(ObjectTypeUtil.createObjectRef(accountContext.getResource()));
 		assignment.setConstruction(constructionType);
 		assignmentDelta.addValueToAdd(assignment.asPrismContainerValue());
-		assignmentDelta.applyDefinition(prismContext.getSchemaRegistry()
-				.findObjectDefinitionByCompileTimeClass(focusClass)
-				.findContainerDefinition(FocusType.F_ASSIGNMENT));
+		PrismContainerDefinition<AssignmentType> containerDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(focusClass).findContainerDefinition(FocusType.F_ASSIGNMENT);
+		assignmentDelta.applyDefinition(containerDefinition);
 		context.getFocusContext().swallowToProjectionWaveSecondaryDelta(assignmentDelta);
 		
 	}
@@ -1509,7 +1510,7 @@ public class AssignmentProcessor {
         return assignmentDelta;
     }
     
-	private <F extends FocusType> Collection<? extends ItemDelta<?>> getExecutionWaveAssignmentItemDeltas(LensFocusContext<F> focusContext, Long id) throws SchemaException {
+	private <F extends FocusType> Collection<? extends ItemDelta<?,?>> getExecutionWaveAssignmentItemDeltas(LensFocusContext<F> focusContext, Long id) throws SchemaException {
         ObjectDelta<? extends FocusType> focusDelta = (ObjectDelta<? extends FocusType>) focusContext.getWaveDelta(focusContext.getLensContext().getExecutionWave());
         if (focusDelta == null) {
             return null;
@@ -1526,19 +1527,19 @@ public class AssignmentProcessor {
 		return focusContext.getObjectDefinition().findContainerDefinition(FocusType.F_ASSIGNMENT);
 	}
     
-    private <V extends PrismValue, F extends FocusType> XMLGregorianCalendar collectFocusTripleFromMappings(
+    private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> XMLGregorianCalendar collectFocusTripleFromMappings(
     		Collection<EvaluatedAssignmentImpl<F>> evaluatedAssignmnents, 
-    		Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap,
+    		Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap,
     		PlusMinusZero plusMinusZero) throws SchemaException {
 		
 		XMLGregorianCalendar nextRecomputeTime = null;
 		
 		for (EvaluatedAssignmentImpl<F> ea: evaluatedAssignmnents) {
-			Collection<Mapping<V>> focusMappings = (Collection)ea.getFocusMappings();
-			for (Mapping<V> mapping: focusMappings) {
+			Collection<Mapping<V,D>> focusMappings = (Collection)ea.getFocusMappings();
+			for (Mapping<V,D> mapping: focusMappings) {
 				
 				ItemPath itemPath = mapping.getOutputPath();
-				DeltaSetTriple<ItemValueWithOrigin<V>> outputTriple = ItemValueWithOrigin.createOutputTriple(mapping);
+				DeltaSetTriple<ItemValueWithOrigin<V,D>> outputTriple = ItemValueWithOrigin.createOutputTriple(mapping);
 				if (outputTriple == null) {
 					continue;
 				}
@@ -1551,7 +1552,7 @@ public class AssignmentProcessor {
 					outputTriple.clearZeroSet();
 					outputTriple.clearPlusSet();
 				}
-				DeltaSetTriple<ItemValueWithOrigin<V>> mapTriple = (DeltaSetTriple<ItemValueWithOrigin<V>>) outputTripleMap.get(itemPath);
+				DeltaSetTriple<ItemValueWithOrigin<V,D>> mapTriple = (DeltaSetTriple<ItemValueWithOrigin<V,D>>) outputTripleMap.get(itemPath);
 				if (mapTriple == null) {
 					outputTripleMap.put(itemPath, outputTriple);
 				} else {

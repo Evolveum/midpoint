@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.component.menu.top;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.web.component.util.BaseSimplePanel;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
+import com.evolveum.midpoint.web.page.admin.home.PageMyPasswordQuestions;
 import com.evolveum.midpoint.web.page.admin.home.PageMyPasswords;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 
@@ -38,6 +39,7 @@ public class UserMenuPanel extends BaseSimplePanel {
     private static final String ID_LOGOUT_LINK = "logoutLink";
     private static final String ID_EDIT_PROFILE = "editProfile";
     private static final String ID_RESET_PASSWORDS = "resetPasswords";
+    private static final String ID_EDIT_PASSWORD_QUESTIONS = "editPasswordQuestions";
 
     public UserMenuPanel(String id) {
         super(id);
@@ -69,6 +71,10 @@ public class UserMenuPanel extends BaseSimplePanel {
         LabeledBookmarkableLink resetPasswords = new LabeledBookmarkableLink(ID_RESET_PASSWORDS,
                 new MenuItem(createStringResource("UserMenuPanel.resetPasswords"), PageMyPasswords.class));
         add(resetPasswords);
+        
+        LabeledBookmarkableLink editPasswordQ = new LabeledBookmarkableLink(ID_EDIT_PASSWORD_QUESTIONS,
+                new MenuItem(createStringResource("UserMenuPanel.editPasswordQuestions"), PageMyPasswordQuestions.class));
+        add(editPasswordQ);
     }
 
     private String getShortUserName() {

@@ -59,6 +59,7 @@ import org.activiti.engine.TaskService;
 import org.activiti.engine.form.FormProperty;
 import org.activiti.engine.task.IdentityLink;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBException;
@@ -81,6 +82,7 @@ public class MiscDataUtil {
     public static final String ORG_PREFIX = "org";
 
     @Autowired
+    @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
 
     @Autowired

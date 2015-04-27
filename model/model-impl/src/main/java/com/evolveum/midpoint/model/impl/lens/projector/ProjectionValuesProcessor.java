@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -575,7 +575,7 @@ public class ProjectionValuesProcessor {
 				}
 			}
 		} else if (primaryDelta.isModify()) {
-			for(ItemDelta<?> modification: primaryDelta.getModifications()) {
+			for(ItemDelta<?,?> modification: primaryDelta.getModifications()) {
 				if (modification.getParentPath().equivalent(SchemaConstants.PATH_ATTRIBUTES)) {
 					PropertyDelta<?> attrDelta = (PropertyDelta<?>) modification;
 					RefinedAttributeDefinition rAttrDef = rAccountDef.findAttributeDefinition(attrDelta.getElementName());

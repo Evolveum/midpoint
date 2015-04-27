@@ -30,11 +30,11 @@ public interface Container<T extends RObject> extends EntityState, Serializable 
 
     String getOwnerOid();
 
-    Short getId();
+    Integer getId();
 
     void setOwner(T owner);
 
     void setOwnerOid(String ownerOid);
 
-    void setId(Short id);
+    void setId(Integer id);
 }

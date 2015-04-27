@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -193,7 +193,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+        Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
         modifications.add(createAssignmentModification(ORG_SCUMM_BAR_OID, OrgType.COMPLEX_TYPE, null, null, null, true));
         modifications.add(createAssignmentModification(ORG_SAVE_ELAINE_OID, OrgType.COMPLEX_TYPE, null, null, null, true));
         ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
@@ -283,7 +283,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+        Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
         modifications.add(createAssignmentModification(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE, null, null, null, true));
         modifications.add(createAssignmentModification(ROLE_DEFENDER_OID, RoleType.COMPLEX_TYPE, null, null, null, true));
         ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
@@ -407,7 +407,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+        Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
         modifications.add(createAssignmentModification(ORG_SCUMM_BAR_OID, OrgType.COMPLEX_TYPE, null, null, null, true));
         modifications.add(createAssignmentModification(ORG_SAVE_ELAINE_OID, OrgType.COMPLEX_TYPE, null, null, null, true));
         ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
@@ -437,7 +437,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
 
-        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+        Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 
         // this is now forbidden
 //        Long id = findAssignmentIdForTarget(jack, ORG_MINISTRY_OF_OFFENSE_OID);
@@ -513,7 +513,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+        Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
         modifications.add((createAssignmentModification(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE, SchemaConstants.ORG_MANAGER, null, null, false)));
         modifications.add((createAssignmentModification(ORG_SCUMM_BAR_OID, OrgType.COMPLEX_TYPE, null, null, null, false)));
         modifications.add((createAssignmentModification(ORG_SAVE_ELAINE_OID, OrgType.COMPLEX_TYPE, null, null, null, false)));
@@ -568,7 +568,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+        Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
         modifications.add((createAssignmentModification(ROLE_DEFENDER_OID, RoleType.COMPLEX_TYPE, null, null, null, false)));
         ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
@@ -603,7 +603,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+        Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
         modifications.add((createAssignmentModification(ROLE_DEFENDER_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
         modifications.add((createAssignmentModification(ORG_MINISTRY_OF_DEFENSE_OID, OrgType.COMPLEX_TYPE, null, null, null, false)));
         ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
@@ -638,7 +638,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+        Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
         modifications.add((createAssignmentModification(ROLE_DEFENDER_OID, RoleType.COMPLEX_TYPE, null, null, null, false)));
         ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
@@ -1088,7 +1088,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
 
-        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+        Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 
         modifications.add(createAssignmentModification(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE, null, null, null, false));
         modifications.add(createAssignmentModification(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE, SchemaConstants.ORG_MANAGER, null, null, true));
@@ -1123,7 +1123,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
 
-        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+        Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 
         modifications.add(createAssignmentModification(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE, SchemaConstants.ORG_MANAGER, null, null, false));
         modifications.add(createAssignmentModification(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE, null, null, null, true));
@@ -1199,7 +1199,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
         Long id = findAssignmentIdForTarget(jack, ORG_MINISTRY_OF_OFFENSE_OID);
 
-        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+        Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 
         PrismReferenceDefinition referenceDefinition = getUserDefinition()
                 .findItemDefinition(

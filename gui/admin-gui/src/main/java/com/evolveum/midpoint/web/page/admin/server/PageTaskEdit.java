@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.web.page.admin.server;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -26,6 +28,7 @@ import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -59,13 +62,15 @@ import com.evolveum.midpoint.web.page.admin.server.workflowInformation.WorkflowI
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
+import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteSettings;
+import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTextField;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
@@ -74,14 +79,12 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.ResourceModel;
+import org.apache.wicket.model.*;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
+import org.apache.wicket.util.string.Strings;
 
+import javax.xml.namespace.QName;
 import java.util.*;
 
 /**
@@ -105,6 +108,7 @@ public class PageTaskEdit extends PageAdminTasks {
     private static final String OPERATION_RESUME_TASK = DOT_CLASS + "resumeTask";
     private static final String OPERATION_RUN_NOW_TASK = DOT_CLASS + "runNowTask";
     private static final String OPERATION_LOAD_RESOURCES = DOT_CLASS + "createResourceList";
+    private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_IDENTIFIER = "identifier";
@@ -113,6 +117,7 @@ public class PageTaskEdit extends PageAdminTasks {
     private static final String ID_RESOURCE_REF = "resourceRef";
     private static final String ID_KIND = "kind";
     private static final String ID_INTENT = "intent";
+    private static final String ID_OBJECT_CLASS = "objectClass";
     private static final String ID_WORKER_THREADS = "workerThreads";
     private static final String ID_MODEL_OPERATION_STATUS_LABEL = "modelOperationStatusLabel";
     private static final String ID_MODEL_OPERATION_STATUS_PANEL = "modelOperationStatusPanel";
@@ -217,7 +222,8 @@ public class PageTaskEdit extends PageAdminTasks {
 	}
 
     private TaskDto prepareTaskDto(TaskType task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        TaskDto taskDto = new TaskDto(task, getModelService(), getTaskService(), getModelInteractionService(), getTaskManager(), TaskDtoProviderOptions.fullOptions(), result);
+        TaskDto taskDto = new TaskDto(task, getModelService(), getTaskService(), getModelInteractionService(),
+                getTaskManager(), TaskDtoProviderOptions.fullOptions(), result, this);
         for (TaskType child : task.getSubtask()) {
             taskDto.addChildTaskDto(prepareTaskDto(child, result));
         }
@@ -280,16 +286,16 @@ public class PageTaskEdit extends PageAdminTasks {
         panel.add(modelOpBehaviour);
         mainForm.add(panel);
 
-		SortableDataProvider<OperationResult, String> provider = new ListDataProvider<OperationResult>(this,
+		SortableDataProvider<OperationResult, String> provider = new ListDataProvider<>(this,
 				new PropertyModel<List<OperationResult>>(model, "opResult"));
-		TablePanel result = new TablePanel<OperationResult>("operationResult", provider, initResultColumns());
+		TablePanel result = new TablePanel<>("operationResult", provider, initResultColumns());
 		result.setStyle("padding-top: 0px;");
 		result.setShowPaging(false);
 		result.setOutputMarkupId(true);
         result.add(hiddenWhenEditing);
 		mainForm.add(result);
 
-		DropDownChoice threadStop = new DropDownChoice("threadStop", new Model<ThreadStopActionType>() {
+		DropDownChoice threadStop = new DropDownChoice<>("threadStop", new Model<ThreadStopActionType>() {
 
 			@Override
 			public ThreadStopActionType getObject() {
@@ -325,7 +331,7 @@ public class PageTaskEdit extends PageAdminTasks {
 	}
 
 	private void initMainInfo(Form mainForm) {
-		RequiredTextField<String> name = new RequiredTextField<String>(ID_NAME, new PropertyModel<String>(
+		RequiredTextField<String> name = new RequiredTextField<>(ID_NAME, new PropertyModel<String>(
 				model, TaskDto.F_NAME));
 		name.add(new VisibleEnableBehaviour() {
 
@@ -347,7 +353,7 @@ public class PageTaskEdit extends PageAdminTasks {
         });
         mainForm.add(nameLabel);
 
-        TextArea<String> description = new TextArea<String>(ID_DESCRIPTION, new PropertyModel<String>(
+        TextArea<String> description = new TextArea<>(ID_DESCRIPTION, new PropertyModel<String>(
                 model, TaskDto.F_DESCRIPTION));
         description.add(new VisibleEnableBehaviour() {
 
@@ -377,7 +383,7 @@ public class PageTaskEdit extends PageAdminTasks {
 		Label category = new Label("category", new PropertyModel(model, "category"));
 		mainForm.add(category);
 
-        LinkPanel parent = new LinkPanel(ID_PARENT, new PropertyModel(model, TaskDto.F_PARENT_TASK_NAME)) {
+        LinkPanel parent = new LinkPanel(ID_PARENT, new PropertyModel<>(model, TaskDto.F_PARENT_TASK_NAME)) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 String oid = model.getObject().getParentTaskOid();
@@ -449,8 +455,9 @@ public class PageTaskEdit extends PageAdminTasks {
 
             @Override
             public boolean isEnabled() {
-                if(!edit)
+                if(!edit){
                     return false;
+                }
 
                 TaskDto dto = model.getObject();
                 boolean sync = TaskCategory.LIVE_SYNCHRONIZATION.equals(dto.getCategory());
@@ -459,9 +466,40 @@ public class PageTaskEdit extends PageAdminTasks {
                 return sync || recon || importAccounts;
             }
         });
+        resource.add(new AjaxFormComponentUpdatingBehavior("onchange") {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCE);
+                List<QName> objectClassList = new ArrayList<>();
+
+                TaskAddResourcesDto resourcesDto = model.getObject().getResource();
+
+                if(resourcesDto != null){
+                    PrismObject<ResourceType> resource = WebModelUtils.loadObject(ResourceType.class, resourcesDto.getOid(), result, PageTaskEdit.this);
+
+                    try {
+                        ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resource, getPrismContext());
+                        schema.getObjectClassDefinitions();
+
+                        for(Definition def: schema.getDefinitions()){
+                            objectClassList.add(def.getTypeName());
+                        }
+
+                        model.getObject().setObjectClassList(objectClassList);
+                    } catch (Exception e){
+                        LoggingUtils.logException(LOGGER, "Couldn't load object class list from resource.", e);
+                        error("Couldn't load object class list from resource.");
+                    }
+
+                }
+
+                target.add(get(ID_MAIN_FORM + ":" + ID_OBJECT_CLASS));
+            }
+        });
         mainForm.add(resource);
 
-        final DropDownChoice kind = new DropDownChoice(ID_KIND,
+        final DropDownChoice kind = new DropDownChoice<>(ID_KIND,
                 new PropertyModel<ShadowKindType>(model, TaskDto.F_KIND),
                 new AbstractReadOnlyModel<List<ShadowKindType>>() {
 
@@ -487,11 +525,15 @@ public class PageTaskEdit extends PageAdminTasks {
 
             @Override
             public boolean isEnabled() {
-                if(!edit)
+                if(!edit){
                     return false;
+                }
 
                 TaskDto dto = model.getObject();
-                return TaskCategory.RECONCILIATION.equals(dto.getCategory());
+                boolean sync = TaskCategory.LIVE_SYNCHRONIZATION.equals(dto.getCategory());
+                boolean recon = TaskCategory.RECONCILIATION.equals(dto.getCategory());
+                boolean importAccounts = TaskCategory.IMPORTING_ACCOUNTS.equals(dto.getCategory());
+                return sync || recon || importAccounts;
             }
         });
         mainForm.add(kind);
@@ -503,13 +545,45 @@ public class PageTaskEdit extends PageAdminTasks {
 
             @Override
             public boolean isEnabled() {
-                if(!edit)
+                if(!edit){
                     return false;
+                }
 
                 TaskDto dto = model.getObject();
-                return TaskCategory.RECONCILIATION.equals(dto.getCategory());
+                boolean sync = TaskCategory.LIVE_SYNCHRONIZATION.equals(dto.getCategory());
+                boolean recon = TaskCategory.RECONCILIATION.equals(dto.getCategory());
+                boolean importAccounts = TaskCategory.IMPORTING_ACCOUNTS.equals(dto.getCategory());
+                return sync || recon || importAccounts;
             }
         });
+
+        AutoCompleteSettings autoCompleteSettings = new AutoCompleteSettings();
+        autoCompleteSettings.setShowListOnEmptyInput(true);
+        final AutoCompleteTextField<String> objectClass = new AutoCompleteTextField<String>(ID_OBJECT_CLASS,
+                new PropertyModel<String>(model, TaskDto.F_OBJECT_CLASS), autoCompleteSettings) {
+
+            @Override
+            protected Iterator<String> getChoices(String input) {
+
+                return prepareObjectClassChoiceList(input);
+            }
+        };
+        objectClass.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isEnabled() {
+                if(!edit){
+                    return false;
+                }
+
+                TaskDto dto = model.getObject();
+                boolean sync = TaskCategory.LIVE_SYNCHRONIZATION.equals(dto.getCategory());
+                boolean recon = TaskCategory.RECONCILIATION.equals(dto.getCategory());
+                boolean importAccounts = TaskCategory.IMPORTING_ACCOUNTS.equals(dto.getCategory());
+                return sync || recon || importAccounts;
+            }
+        });
+        mainForm.add(objectClass);
 
         final TextField<Integer> workerThreads = new TextField<>(ID_WORKER_THREADS, new PropertyModel<Integer>(model, TaskDto.F_WORKER_THREADS));
         mainForm.add(workerThreads);
@@ -543,6 +617,30 @@ public class PageTaskEdit extends PageAdminTasks {
 		});
 		mainForm.add(node);
 	}
+
+    private Iterator<String> prepareObjectClassChoiceList(String input){
+        List<String> choices = new ArrayList<>();
+
+        if(model.getObject().getResource() == null){
+            return choices.iterator();
+        }
+
+        if(Strings.isEmpty(input)){
+            for(QName q: model.getObject().getObjectClassList()){
+                choices.add(q.getLocalPart());
+                Collections.sort(choices);
+            }
+        } else {
+            for(QName q: model.getObject().getObjectClassList()){
+                if(q.getLocalPart().startsWith(input)){
+                    choices.add(q.getLocalPart());
+                }
+                Collections.sort(choices);
+            }
+        }
+
+        return choices.iterator();
+    }
 
     private List<ShadowKindType> createShadowKindTypeList(){
         List<ShadowKindType> kindList = new ArrayList<>();
@@ -926,7 +1024,7 @@ public class PageTaskEdit extends PageAdminTasks {
 	}
 
     private List<ObjectDelta<? extends ObjectType>> prepareChanges(Task updatedTask) {
-        Collection<ItemDelta<?>> modifications = updatedTask.getPendingModifications();
+        Collection<? extends ItemDelta<?,?>> modifications = updatedTask.getPendingModifications();
         List<ObjectDelta<? extends ObjectType>> retval = new ArrayList<ObjectDelta<? extends ObjectType>>();
         retval.add(ObjectDelta.createModifyDelta(updatedTask.getOid(), modifications, TaskType.class, getPrismContext()));
         return retval;
@@ -1026,6 +1124,29 @@ public class PageTaskEdit extends PageAdminTasks {
 
             if(intent != null){
                 existingTask.deleteExtensionProperty(intent);
+            }
+        }
+
+        if(dto.getObjectClass() != null && StringUtils.isNotEmpty(dto.getObjectClass())){
+            PrismPropertyDefinition def = registry.findPropertyDefinitionByElementName(SchemaConstants.OBJECTCLASS_PROPERTY_NAME);
+            PrismProperty objectClassProperty = new PrismProperty(SchemaConstants.OBJECTCLASS_PROPERTY_NAME);
+            objectClassProperty.setRealValue(def);
+
+            QName objectClass = null;
+            for(QName q: model.getObject().getObjectClassList()){
+                if(q.getLocalPart().equals(dto.getObjectClass())){
+                    objectClass = q;
+                }
+            }
+
+            objectClassProperty.setRealValue(objectClass);
+            existingTask.addExtensionProperty(objectClassProperty);
+
+        } else {
+            PrismProperty objectClass = existingTask.getExtensionProperty(SchemaConstants.OBJECTCLASS_PROPERTY_NAME);
+
+            if(objectClass != null){
+                existingTask.deleteExtensionProperty(objectClass);
             }
         }
 

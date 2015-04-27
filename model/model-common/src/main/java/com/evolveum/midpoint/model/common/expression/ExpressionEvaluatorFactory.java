@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,8 +36,8 @@ public interface ExpressionEvaluatorFactory {
 	
 	QName getElementName();
 	
-	<V extends PrismValue> ExpressionEvaluator<V> createEvaluator(Collection<JAXBElement<?>> evaluatorElements, 
-			ItemDefinition outputDefinition, String contextDescription, OperationResult result) 
+	<V extends PrismValue,D extends ItemDefinition> ExpressionEvaluator<V,D> createEvaluator(Collection<JAXBElement<?>> evaluatorElements, 
+			D outputDefinition, String contextDescription, OperationResult result) 
 					throws SchemaException, ObjectNotFoundException;
 
 }

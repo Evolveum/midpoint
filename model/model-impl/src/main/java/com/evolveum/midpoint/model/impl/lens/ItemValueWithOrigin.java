@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
@@ -30,14 +31,14 @@ import com.evolveum.midpoint.util.DebugUtil;
  * @author semancik
  *
  */
-public class ItemValueWithOrigin<V extends PrismValue> implements DebugDumpable {
+public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition> implements DebugDumpable {
 	
 	private V itemValue;
-	private Mapping<V> mapping;
+	private Mapping<V,D> mapping;
 	private Construction construction;
 	
 	public ItemValueWithOrigin(V propertyValue,
-			Mapping<V> mapping, Construction accountConstruction) {
+			Mapping<V,D> mapping, Construction accountConstruction) {
 		super();
 		this.itemValue = propertyValue;
 		this.mapping = mapping;
@@ -59,7 +60,7 @@ public class ItemValueWithOrigin<V extends PrismValue> implements DebugDumpable 
         this.itemValue = value;
     }
 	
-	public Mapping<?> getMapping() {
+	public Mapping<V,D> getMapping() {
 		return mapping;
 	}
 	
@@ -74,13 +75,13 @@ public class ItemValueWithOrigin<V extends PrismValue> implements DebugDumpable 
 		return itemValue.equalsRealValue(pvalue);
 	}
 	
-	public ItemValueWithOrigin<V> clone() {
-		ItemValueWithOrigin<V> clone = new ItemValueWithOrigin<V>(itemValue, mapping, construction);
+	public ItemValueWithOrigin<V,D> clone() {
+		ItemValueWithOrigin<V,D> clone = new ItemValueWithOrigin<>(itemValue, mapping, construction);
 		copyValues(clone);
 		return clone;
 	}
 
-	protected void copyValues(ItemValueWithOrigin<V> clone) {
+	protected void copyValues(ItemValueWithOrigin<V,D> clone) {
 		if (this.itemValue != null) {
 			clone.itemValue = (V) this.itemValue.clone();
 		}
@@ -90,25 +91,25 @@ public class ItemValueWithOrigin<V extends PrismValue> implements DebugDumpable 
 		clone.construction = this.construction;
 	}
 	
-	public static <V extends PrismValue> DeltaSetTriple<ItemValueWithOrigin<V>> createOutputTriple(Mapping<V> mapping) {
+	public static <V extends PrismValue, D extends ItemDefinition> DeltaSetTriple<ItemValueWithOrigin<V,D>> createOutputTriple(Mapping<V,D> mapping) {
 		PrismValueDeltaSetTriple<V> outputTriple = mapping.getOutputTriple();
 		if (outputTriple == null) {
 			return null;
 		}
-		Collection<ItemValueWithOrigin<V>> zeroIvwoSet = convertSet(outputTriple.getZeroSet(), mapping);
-		Collection<ItemValueWithOrigin<V>> plusIvwoSet = convertSet(outputTriple.getPlusSet(), mapping);
-		Collection<ItemValueWithOrigin<V>> minusIvwoSet = convertSet(outputTriple.getMinusSet(), mapping);
-		DeltaSetTriple<ItemValueWithOrigin<V>> ivwoTriple = new DeltaSetTriple<ItemValueWithOrigin<V>>(zeroIvwoSet, plusIvwoSet, minusIvwoSet);
+		Collection<ItemValueWithOrigin<V,D>> zeroIvwoSet = convertSet(outputTriple.getZeroSet(), mapping);
+		Collection<ItemValueWithOrigin<V,D>> plusIvwoSet = convertSet(outputTriple.getPlusSet(), mapping);
+		Collection<ItemValueWithOrigin<V,D>> minusIvwoSet = convertSet(outputTriple.getMinusSet(), mapping);
+		DeltaSetTriple<ItemValueWithOrigin<V,D>> ivwoTriple = new DeltaSetTriple<>(zeroIvwoSet, plusIvwoSet, minusIvwoSet);
 		return ivwoTriple;
 	}
 	
-	private static <V extends PrismValue> Collection<ItemValueWithOrigin<V>> convertSet(Collection<V> valueSet, Mapping<V> mapping) {
+	private static <V extends PrismValue, D extends ItemDefinition> Collection<ItemValueWithOrigin<V,D>> convertSet(Collection<V> valueSet, Mapping<V,D> mapping) {
 		if (valueSet == null) {
 			return null;
 		}
-		Collection<ItemValueWithOrigin<V>> ivwoSet = new ArrayList<ItemValueWithOrigin<V>>(valueSet.size());
+		Collection<ItemValueWithOrigin<V,D>> ivwoSet = new ArrayList<>(valueSet.size());
 		for (V value: valueSet) {
-			ItemValueWithOrigin<V> ivwo = new ItemValueWithOrigin<V>(value, mapping, null);
+			ItemValueWithOrigin<V,D> ivwo = new ItemValueWithOrigin<>(value, mapping, null);
 			ivwoSet.add(ivwo);
 		}
 		return ivwoSet;

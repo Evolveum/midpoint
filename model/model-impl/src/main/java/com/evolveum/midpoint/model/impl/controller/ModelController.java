@@ -16,6 +16,9 @@
 package com.evolveum.midpoint.model.impl.controller;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,7 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressio
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.python.antlr.PythonParser.continue_stmt_return;
+import org.jfree.util.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -135,6 +138,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.exception.AuthorizationException;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -147,14 +152,14 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableTableType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -169,6 +174,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyLimitationsT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
@@ -305,10 +311,13 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			ref.setOid(oid);
 			ref.setType(ObjectTypes.getObjectType(clazz).getTypeQName());
             Utils.clearRequestee(task);
+            
             object = objectResolver.getObject(clazz, oid, options, task, result).asPrismObject();
             
+            applySchemasAndSecurity(object, rootOptions, null, task, result);
 			resolve(object, options, task, result);
             resolveNames(object, options, task, result);
+            
 		} catch (SchemaException e) {
 			ModelUtils.recordFatalError(result, e);
 			throw e;
@@ -338,12 +347,11 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		
 		result.cleanupResult();
 		
-        postProcessObject(object, rootOptions, result);
 		return object;
 	}
 
 	protected void resolve(PrismObject<?> object, Collection<SelectorOptions<GetOperationOptions>> options,
-			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
 		if (object == null || options == null) {
 			return;
 		}
@@ -408,7 +416,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
     }
 
 
-    private void resolve(PrismObject<?> object, SelectorOptions<GetOperationOptions> option, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private void resolve(PrismObject<?> object, SelectorOptions<GetOperationOptions> option, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
 		if (!GetOperationOptions.isResolve(option.getOptions())) {
 			return;
 		}
@@ -420,7 +428,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		resolve (object, path, option, task, result);
 	}
 		
-	private void resolve(PrismObject<?> object, ItemPath path, SelectorOptions<GetOperationOptions> option, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+	private <O extends ObjectType> void resolve(PrismObject<?> object, ItemPath path, SelectorOptions<GetOperationOptions> option, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
 		if (path == null || path.isEmpty()) {
 			return;
 		}
@@ -432,9 +440,10 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			return;//throw new SchemaException("Cannot resolve: No reference "+refName+" in "+object);
 		}
 		for (PrismReferenceValue refVal: reference.getValues()) {
-			PrismObject<?> refObject = refVal.getObject();
+			PrismObject<O> refObject = refVal.getObject();
 			if (refObject == null) {
 				refObject = objectResolver.resolve(refVal, object.toString(), option.getOptions(), task, result);
+				applySchemasAndSecurity(refObject, option.getOptions(), null, task, result);
 				refVal.setObject(refObject);
 			}
 			if (!rest.isEmpty()) {
@@ -886,7 +895,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		}
 		applyObjectTemplateToDefinition(objectDefinition, objectTemplateType, result);
 		
-		applySecurityConstraints(objectDefinition, new ItemPath(), securityConstraints,
+		applySecurityConstraints(objectDefinition, ItemPath.EMPTY_PATH, securityConstraints,
 				securityConstraints.getActionDecision(ModelAuthorizationAction.READ.getUrl(), phase),
 				securityConstraints.getActionDecision(ModelAuthorizationAction.ADD.getUrl(), phase),
 				securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase), phase);
@@ -924,62 +933,97 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			}
 			ItemPath itemPath = ref.getItemPath();
 			ItemDefinition itemDef = objectDefinition.findItemDefinition(itemPath);
-			if (itemDef == null) {
-				throw new SchemaException("No definition for item "+itemPath+" in object type "+objectDefinition.getTypeName()+" as specified in item definition in "+objectTemplateType);
-			}
+			applyObjectTemplateItem(itemDef, templateItemDefType, "item "+itemPath+" in object type "+objectDefinition.getTypeName()+" as specified in item definition in "+objectTemplateType);
 			
-			String displayName = templateItemDefType.getDisplayName();
-			if (displayName != null) {
-				itemDef.setDisplayName(displayName);
-			}
-			
-			Integer displayOrder = templateItemDefType.getDisplayOrder();
-			if (displayOrder != null) {
-				itemDef.setDisplayOrder(displayOrder);
-			}
-			
-			List<PropertyLimitationsType> limitations = templateItemDefType.getLimitations();
-			if (limitations != null) {
-				PropertyLimitationsType limitationsType = MiscSchemaUtil.getLimitationsType(limitations, LayerType.PRESENTATION);
-				if (limitationsType != null) {
-					if (limitationsType.getMinOccurs() != null) {
-						itemDef.setMinOccurs(XsdTypeMapper.multiplicityToInteger(limitationsType.getMinOccurs()));
-					}
-					if (limitationsType.getMaxOccurs() != null) {
-						itemDef.setMaxOccurs(XsdTypeMapper.multiplicityToInteger(limitationsType.getMaxOccurs()));
-					}
-					if (limitationsType.isIgnore() != null) {
-						itemDef.setIgnored(limitationsType.isIgnore());
-					}
-					PropertyAccessType accessType = limitationsType.getAccess();
-					if (accessType != null) {
-						if (accessType.isAdd() != null) {
-							itemDef.setCanAdd(accessType.isAdd());
-						}
-						if (accessType.isModify() != null) {
-							itemDef.setCanModify(accessType.isModify());
-						}
-						if (accessType.isRead() != null) {
-							itemDef.setCanRead(accessType.isRead());
-						}
-					}
-				}
-			}
-			
-			ObjectReferenceType valueEnumerationRef = templateItemDefType.getValueEnumerationRef();
-			if (valueEnumerationRef != null) {
-				PrismReferenceValue valueEnumerationRVal = MiscSchemaUtil.objectReferenceTypeToReferenceValue(valueEnumerationRef);
-				itemDef.setValueEnumerationRef(valueEnumerationRVal);
-			}			
 		}
 	}
 	
+	private <O extends ObjectType> void applyObjectTemplateToObject(PrismObject<O> object, ObjectTemplateType objectTemplateType, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		if (objectTemplateType == null) {
+			return;
+		}
+		for (ObjectReferenceType includeRef: objectTemplateType.getIncludeRef()) {
+			PrismObject<ObjectTemplateType> subTemplate = cacheRepositoryService.getObject(ObjectTemplateType.class, includeRef.getOid(), null, result);
+			applyObjectTemplateToObject(object, subTemplate.asObjectable(), result);
+		}
+		for (ObjectTemplateItemDefinitionType templateItemDefType: objectTemplateType.getItem()) {
+			ItemPathType ref = templateItemDefType.getRef();
+			if (ref == null) {
+				throw new SchemaException("No 'ref' in item definition in "+objectTemplateType);
+			}
+			ItemPath itemPath = ref.getItemPath();
+			ItemDefinition itemDefFromObject = object.getDefinition().findItemDefinition(itemPath);
+			applyObjectTemplateItem(itemDefFromObject, templateItemDefType, "item "+itemPath+" in " + object
+					+ " as specified in item definition in "+objectTemplateType);
+			Item<?, ?> item = object.findItem(itemPath);
+			if (item != null) {
+				ItemDefinition itemDef = item.getDefinition();
+				if (itemDef != itemDefFromObject) {
+					applyObjectTemplateItem(itemDef, templateItemDefType, "item "+itemPath+" in " + object
+							+ " as specified in item definition in "+objectTemplateType);
+				}
+			}
+			
+		}
+	}
+	
+	private <IV extends PrismValue,ID extends ItemDefinition> void applyObjectTemplateItem(ID itemDef,
+			ObjectTemplateItemDefinitionType templateItemDefType, String desc) throws SchemaException {
+		if (itemDef == null) {
+			throw new SchemaException("No definition for "+desc);
+		}
+		
+		String displayName = templateItemDefType.getDisplayName();
+		if (displayName != null) {
+			itemDef.setDisplayName(displayName);
+		}
+		
+		Integer displayOrder = templateItemDefType.getDisplayOrder();
+		if (displayOrder != null) {
+			itemDef.setDisplayOrder(displayOrder);
+		}
+		
+		List<PropertyLimitationsType> limitations = templateItemDefType.getLimitations();
+		if (limitations != null) {
+			PropertyLimitationsType limitationsType = MiscSchemaUtil.getLimitationsType(limitations, LayerType.PRESENTATION);
+			if (limitationsType != null) {
+				if (limitationsType.getMinOccurs() != null) {
+					itemDef.setMinOccurs(XsdTypeMapper.multiplicityToInteger(limitationsType.getMinOccurs()));
+				}
+				if (limitationsType.getMaxOccurs() != null) {
+					itemDef.setMaxOccurs(XsdTypeMapper.multiplicityToInteger(limitationsType.getMaxOccurs()));
+				}
+				if (limitationsType.isIgnore() != null) {
+					itemDef.setIgnored(limitationsType.isIgnore());
+				}
+				PropertyAccessType accessType = limitationsType.getAccess();
+				if (accessType != null) {
+					if (accessType.isAdd() != null) {
+						itemDef.setCanAdd(accessType.isAdd());
+					}
+					if (accessType.isModify() != null) {
+						itemDef.setCanModify(accessType.isModify());
+					}
+					if (accessType.isRead() != null) {
+						itemDef.setCanRead(accessType.isRead());
+					}
+				}
+			}
+		}
+		
+		ObjectReferenceType valueEnumerationRef = templateItemDefType.getValueEnumerationRef();
+		if (valueEnumerationRef != null) {
+			PrismReferenceValue valueEnumerationRVal = MiscSchemaUtil.objectReferenceTypeToReferenceValue(valueEnumerationRef);
+			itemDef.setValueEnumerationRef(valueEnumerationRVal);
+		}			
+	}
+
 	private <D extends ItemDefinition> void applySecurityConstraints(D itemDefinition, ItemPath itemPath, ObjectSecurityConstraints securityConstraints,
-			AuthorizationDecisionType defaultReadDecition, AuthorizationDecisionType defaultAddDecition, AuthorizationDecisionType defaultModifyDecition,
+			AuthorizationDecisionType defaultReadDecision, AuthorizationDecisionType defaultAddDecision, AuthorizationDecisionType defaultModifyDecision,
             AuthorizationPhaseType phase) {
-		AuthorizationDecisionType readDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.READ.getUrl(), defaultReadDecition, phase);
-		AuthorizationDecisionType addDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.ADD.getUrl(), defaultAddDecition, phase);
-		AuthorizationDecisionType modifyDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.MODIFY.getUrl(), defaultModifyDecition, phase);
+		AuthorizationDecisionType readDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.READ.getUrl(), defaultReadDecision, phase);
+		AuthorizationDecisionType addDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.ADD.getUrl(), defaultAddDecision, phase);
+		AuthorizationDecisionType modifyDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.MODIFY.getUrl(), defaultModifyDecision, phase);
 //		LOGGER.trace("Decision for {}: {}", itemPath, readDecision);
 		if (readDecision != AuthorizationDecisionType.ALLOW) {
 			itemDefinition.setCanRead(false);
@@ -1203,11 +1247,11 @@ public class ModelController implements ModelService, ModelInteractionService, T
 				if (valueEnumerationRef == null || valueEnumerationRef.getOid() == null) {
 					return spec;
 				}
-				Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_TABLE, 
+				Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_ROW,
 		    			GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
 				PrismObject<LookupTableType> lookup = cacheRepositoryService.getObject(LookupTableType.class, valueEnumerationRef.getOid(), 
 						options, result);
-				for (LookupTableTableType row: lookup.asObjectable().getTable()) {
+				for (LookupTableRowType row: lookup.asObjectable().getRow()) {
 					PolyStringType polyLabel = row.getLabel();
 					String key = row.getKey();
 					String label = key;
@@ -1255,13 +1299,49 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		}
 		return null;
 	}
+	
+	@Override
+	public CredentialsPolicyType getCredentialsPolicy(PrismObject<UserType> user, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		// TODO: check for user membership in an organization (later versions)
+		
+		OperationResult result = parentResult.createMinorSubresult(GET_CREDENTIALS_POLICY);
+		try {
+			PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
+			if (systemConfiguration == null) {
+				result.recordNotApplicableIfUnknown();
+				return null;
+			}
+			ObjectReferenceType secPolicyRef = systemConfiguration.asObjectable().getGlobalSecurityPolicyRef();
+			if (secPolicyRef == null) {
+				result.recordNotApplicableIfUnknown();
+				return null;			
+			}
+			SecurityPolicyType securityPolicyType;
+			securityPolicyType = objectResolver.resolve(secPolicyRef, SecurityPolicyType.class, null, "security policy referred from system configuration", result);
+			if (securityPolicyType == null) {
+				result.recordNotApplicableIfUnknown();
+				return null;			
+			}
+			CredentialsPolicyType credentialsPolicyType = securityPolicyType.getCredentials();
+			result.recordSuccess();
+			return credentialsPolicyType;
+		} catch (ObjectNotFoundException | SchemaException e) {
+			result.recordFatalError(e);
+			throw e;
+		}
+
+	}
 
 	private PrismObject<SystemConfigurationType> getSystemConfiguration(OperationResult result) throws ObjectNotFoundException, SchemaException {
         PrismObject<SystemConfigurationType> config = cacheRepositoryService.getObject(SystemConfigurationType.class,
                 SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("System configuration version read from repo: " + config.getVersion());
+        	if (config == null) {
+        		LOGGER.warn("No system configuration object");
+        	} else {
+        		LOGGER.trace("System configuration version read from repo: " + config.getVersion());
+        	}
         }
         return config;
     }
@@ -1363,7 +1443,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			RepositoryCache.exit();
 		}
 		
-		postProcessObjects(list, rootOptions, result);
+		applySchemasAndSecurityToObjects(list, rootOptions, null, task, result);
 
 		return list;
 	}
@@ -1409,7 +1489,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
                         }
                     }
                     resolveNames(object, options, task, parentResult);
-                    postProcessObject(object, rootOptions, parentResult);
+                    applySchemasAndSecurity(object, rootOptions, null, task, parentResult);
                 } catch (SchemaException | ObjectNotFoundException | SecurityViolationException
                         | CommunicationException | ConfigurationException ex) {
                     parentResult.recordFatalError(ex);
@@ -1550,7 +1630,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	
 	@Override
 	public PrismObject<UserType> findShadowOwner(String accountOid, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SecurityViolationException, SchemaException {
+			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException {
 		Validate.notEmpty(accountOid, "Account oid must not be null or empty.");
 		Validate.notNull(parentResult, "Result type must not be null.");
 
@@ -1571,11 +1651,18 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			LoggingUtils.logException(LOGGER, "Account with oid {} doesn't exists", ex, accountOid);
 			result.recordFatalError("Account with oid '" + accountOid + "' doesn't exists", ex);
 			throw ex;
-		} catch (Exception ex) {
+		} catch (RuntimeException ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
 					+ " for account with oid {}", ex, accountOid);
 			result.recordFatalError("Couldn't list account shadow owner for account with oid '"
 					+ accountOid + "'.", ex);
+			throw ex;
+		} catch (Error ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
+					+ " for account with oid {}", ex, accountOid);
+			result.recordFatalError("Couldn't list account shadow owner for account with oid '"
+					+ accountOid + "'.", ex);
+			throw ex;
 		} finally {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace(result.dump(false));
@@ -1585,7 +1672,16 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		}
 
 		if (user != null) {
-			postProcessObject(user, null, result);
+			try {
+				applySchemasAndSecurity(user, null, null, task, result);
+			} catch (SchemaException | SecurityViolationException | ConfigurationException
+					| ObjectNotFoundException ex) {
+				LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
+						+ " for account with oid {}", ex, accountOid);
+				result.recordFatalError("Couldn't list account shadow owner for account with oid '"
+						+ accountOid + "'.", ex);
+				throw ex;
+			}
 		}
 		
 		return user;
@@ -1808,13 +1904,29 @@ public class ModelController implements ModelService, ModelInteractionService, T
 
 	@Override
 	public void importObjectsFromFile(File input, ImportOptionsType options, Task task,
-			OperationResult parentResult) {
-		// OperationResult result =
-		// parentResult.createSubresult(IMPORT_OBJECTS_FROM_FILE);
-		// TODO Auto-generated method stub
-		RepositoryCache.enter();
-		RepositoryCache.exit();
-		throw new NotImplementedException();
+			OperationResult parentResult) throws FileNotFoundException {
+		 OperationResult result = parentResult.createSubresult(IMPORT_OBJECTS_FROM_FILE);
+		 FileInputStream fis;
+		 try {
+			fis = new FileInputStream(input);
+		} catch (FileNotFoundException e) {
+			String msg = "Error reading from file "+input+": "+e.getMessage();
+			result.recordFatalError(msg, e);
+			throw e;
+		}
+		try {
+			importObjectsFromStream(fis, options, task, parentResult);
+		} catch (RuntimeException e) {
+			result.recordFatalError(e);
+			throw e;
+		} finally {
+			try {
+				fis.close();
+			} catch (IOException e) {
+				Log.error("Error closing file "+input+": "+e.getMessage(), e);
+			}
+		}
+		result.computeStatus();
 	}
 
 	@Override
@@ -1842,8 +1954,8 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	 * com.evolveum.midpoint.common.result.OperationResult)
 	 */
 	@Override
-	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult)
-			throws CommunicationException, SecurityViolationException, SchemaException {
+	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, Task task, OperationResult parentResult)
+			throws CommunicationException, SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException {
 		RepositoryCache.enter();
 		OperationResult result = parentResult.createSubresult(DISCOVER_CONNECTORS);
 		Set<ConnectorType> discoverConnectors;
@@ -1854,25 +1966,29 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			RepositoryCache.exit();
 			throw e;
 		}
-		postProcessObjectTypes(discoverConnectors, null, result);
+		applySchemasAndSecurityToObjectTypes(discoverConnectors, null, null, task, result);
 		result.computeStatus("Connector discovery failed");
 		RepositoryCache.exit();
 		result.cleanupResult();
 		return discoverConnectors;
 	}
 	
-	private <T extends ObjectType> void postProcessObjectTypes(Collection<T> objectTypes, GetOperationOptions options, OperationResult result) throws SecurityViolationException, SchemaException {
+	private <T extends ObjectType> void applySchemasAndSecurityToObjectTypes(Collection<T> objectTypes, 
+			GetOperationOptions options, AuthorizationPhaseType phase, Task task, OperationResult result) 
+					throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException {
 		for (T objectType: objectTypes) {
-			postProcessObject(objectType.asPrismObject(), options, result);
+			applySchemasAndSecurity(objectType.asPrismObject(), options, phase, task, result);
 		}
 	}
 	
-	private <T extends ObjectType> void postProcessObjects(Collection<PrismObject<T>> objects, GetOperationOptions options, OperationResult result) throws SecurityViolationException, SchemaException {
+	private <T extends ObjectType> void applySchemasAndSecurityToObjects(Collection<PrismObject<T>> objects, 
+			GetOperationOptions options, AuthorizationPhaseType phase, Task task, OperationResult result) 
+					throws SecurityViolationException, SchemaException {
 		for (PrismObject<T> object: objects) {
-			OperationResult subresult = new OperationResult(ModelController.class.getName()+".postProcessObject");
-			try {			
-				postProcessObject(object, options, subresult);
-			} catch (IllegalArgumentException|IllegalStateException|SchemaException|SecurityViolationException e) {
+			OperationResult subresult = new OperationResult(ModelController.class.getName()+".applySchemasAndSecurityToObjects");
+			try {	
+				applySchemasAndSecurity(object, options, phase, task, subresult);
+			} catch (IllegalArgumentException|IllegalStateException|SchemaException|SecurityViolationException|ConfigurationException|ObjectNotFoundException e) {
 				LOGGER.error("Error post-processing object {}: {}", new Object[]{object, e.getMessage(), e});
 				OperationResultType fetchResult = object.asObjectable().getFetchResult();
 				if (fetchResult == null) {
@@ -1886,68 +2002,50 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		}
 	}
 	
-	/**
-	 * Validate the objects, remove any non-visible properties (security) and so on. This method is called for
-	 * any object that is returned from the Model Service.  
-	 */
-	private <T extends ObjectType> void postProcessObject(PrismObject<T> object, GetOperationOptions options, OperationResult result) throws SecurityViolationException, SchemaException {
-		validateObject(object, options, result);
-		try {
-			ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(object, null);
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Security constrains for {}:\n{}", object, securityConstraints==null?"null":securityConstraints.debugDump());
-			}
-			if (securityConstraints == null) {
-				throw new SecurityViolationException("Access denied");
-			}
-			AuthorizationDecisionType globalDecision = securityConstraints.getActionDecision(ModelAuthorizationAction.READ.getUrl(), null);
-			if (globalDecision == AuthorizationDecisionType.DENY) {
-				// shortcut
-				throw new SecurityViolationException("Access denied");
-			}
-			if (globalDecision == AuthorizationDecisionType.ALLOW && securityConstraints.hasNoItemDecisions()) {
-				// shortcut, nothing to do
-			} else {
-				removeDeniedItems((List)object.getValue().getItems(), securityConstraints, globalDecision);
-				if (object.isEmpty()) {
-					// let's make it explicit
-					throw new SecurityViolationException("Access denied");
-				}
-			}
-			
-		} catch (SecurityViolationException | SchemaException e) {
-			result.recordFatalError(e);
-			throw e;
-		}
-	}
 	
-	private void removeDeniedItems(List<Item<? extends PrismValue>> items, ObjectSecurityConstraints securityContraints, AuthorizationDecisionType defaultDecision) {
+	private void applySecurityConstraints(List<Item<?,?>> items, ObjectSecurityConstraints securityConstraints, 
+			AuthorizationDecisionType defaultReadDecision, AuthorizationDecisionType defaultAddDecision, AuthorizationDecisionType defaultModifyDecision, 
+			AuthorizationPhaseType phase) {
 		if (items == null) {
 			return;
 		}
-		Iterator<Item<?>> iterator = items.iterator();
+		Iterator<Item<?,?>> iterator = items.iterator();
 		while (iterator.hasNext()) {
-			Item<? extends PrismValue> item = iterator.next();
+			Item<?,?> item = iterator.next();
 			ItemPath itemPath = item.getPath();
-			AuthorizationDecisionType itemDecision = securityContraints.findItemDecision(itemPath, ModelAuthorizationAction.READ.getUrl(), null);
+			AuthorizationDecisionType itemReadDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.READ.getUrl(), defaultReadDecision, phase);
+			AuthorizationDecisionType itemAddDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.ADD.getUrl(), defaultReadDecision, phase);
+			AuthorizationDecisionType itemModifyDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.MODIFY.getUrl(), defaultReadDecision, phase);
+			ItemDefinition<?> itemDef = item.getDefinition();
+			if (itemDef != null) {
+				if (itemReadDecision != AuthorizationDecisionType.ALLOW) {
+					itemDef.setCanRead(false);
+				}
+				if (itemAddDecision != AuthorizationDecisionType.ALLOW) {
+					itemDef.setCanAdd(false);
+				}
+				if (itemModifyDecision != AuthorizationDecisionType.ALLOW) {
+					itemDef.setCanModify(false);
+				}
+			}
 			if (item instanceof PrismContainer<?>) {
-				if (itemDecision == AuthorizationDecisionType.DENY) {
+				if (itemReadDecision == AuthorizationDecisionType.DENY) {
 					// Explicitly denied access to the entire container
 					iterator.remove();
 				} else {
 					// No explicit decision (even ALLOW is not final here as something may be denied deeper inside)
-					AuthorizationDecisionType subDefaultDecision = defaultDecision;
-					if (itemDecision == AuthorizationDecisionType.ALLOW) {
+					AuthorizationDecisionType subDefaultReadDecision = defaultReadDecision;
+					if (itemReadDecision == AuthorizationDecisionType.ALLOW) {
 						// This means allow to all subitems unless otherwise denied.
-						subDefaultDecision = AuthorizationDecisionType.ALLOW;
+						subDefaultReadDecision = AuthorizationDecisionType.ALLOW;
 					}
 					List<? extends PrismContainerValue<?>> values = ((PrismContainer<?>)item).getValues();
 					Iterator<? extends PrismContainerValue<?>> vi = values.iterator();
 					while (vi.hasNext()) {
 						PrismContainerValue<?> cval = vi.next();
-						List<Item<?>> subitems = cval.getItems();
+						List<Item<?,?>> subitems = cval.getItems();
 						if (subitems != null) {
-							removeDeniedItems(subitems, securityContraints, subDefaultDecision);
+							applySecurityConstraints(subitems, securityConstraints, subDefaultReadDecision, itemAddDecision, itemModifyDecision, phase);
 							if (subitems.isEmpty()) {
 								vi.remove();
 							}
@@ -1958,12 +2056,67 @@ public class ModelController implements ModelService, ModelInteractionService, T
 					}
 				}
 			} else {
-				if (itemDecision == AuthorizationDecisionType.DENY || (itemDecision == null && defaultDecision == null)) {
+				if (itemReadDecision == AuthorizationDecisionType.DENY || (itemReadDecision == null && defaultReadDecision == null)) {
 					iterator.remove();
 				}
 			}
 		}
 	}
+	
+	/**
+	 * Validate the objects, apply security to the object definition, remove any non-visible properties (security),
+	 * apply object template definitions and so on. This method is called for
+	 * any object that is returned from the Model Service.  
+	 */
+	protected <O extends ObjectType> void applySchemasAndSecurity(PrismObject<O> object, GetOperationOptions rootOptions,
+			AuthorizationPhaseType phase, Task task, OperationResult parentResult) 
+					throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+    	OperationResult result = parentResult.createMinorSubresult(ModelController.class.getName()+".applySchemasAndSecurity");
+    	validateObject(object, rootOptions, result);
+    	
+    	PrismObjectDefinition<O> objectDefinition = object.deepCloneDefinition(true);
+    	
+    	try {
+			ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(object, null);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Security constrains for {}:\n{}", object, securityConstraints==null?"null":securityConstraints.debugDump());
+			}
+			if (securityConstraints == null) {
+				throw new AuthorizationException("Access denied");
+			}
+			AuthorizationDecisionType globalReadDecision = securityConstraints.getActionDecision(ModelAuthorizationAction.READ.getUrl(), phase);
+			if (globalReadDecision == AuthorizationDecisionType.DENY) {
+				// shortcut
+				throw new AuthorizationException("Access denied");
+			}
+			AuthorizationDecisionType globalAddDecision = securityConstraints.getActionDecision(ModelAuthorizationAction.ADD.getUrl(), phase);
+			AuthorizationDecisionType globalModifyDecision = securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase);
+			applySecurityConstraints((List)object.getValue().getItems(), securityConstraints, globalReadDecision,
+					globalAddDecision, globalModifyDecision, phase);
+			if (object.isEmpty()) {
+				// let's make it explicit
+				throw new AuthorizationException("Access denied");
+			}
+			
+			applySecurityConstraints(objectDefinition, ItemPath.EMPTY_PATH, securityConstraints, globalReadDecision, globalAddDecision, globalModifyDecision, phase);
+			
+		} catch (SecurityViolationException | SchemaException e) {
+			result.recordFatalError(e);
+			throw e;
+		}
+		
+		ObjectTemplateType objectTemplateType;
+		try {
+			objectTemplateType = determineObjectTemplate(object.getCompileTimeClass(), AuthorizationPhaseType.REQUEST, result);
+		} catch (ConfigurationException | ObjectNotFoundException e) {
+			result.recordFatalError(e);
+			throw e;
+		}
+		applyObjectTemplateToObject(object, objectTemplateType, result);
+		
+		result.computeStatus();
+		result.recordSuccessIfUnknown();
+    }
 	
 	private <T extends ObjectType> void validateObject(PrismObject<T> object, GetOperationOptions options, OperationResult result) {
 		try {

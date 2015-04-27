@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -198,11 +198,11 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	}
 
 	@Override
-	public <X extends PrismValue> PartiallyResolvedItem<X> findPartial(ItemPath path) {
+	public <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path) {
 		if (path == null || path.isEmpty()) {
-			return new PartiallyResolvedItem<X>((Item<X>)getParent(), null);
+			return new PartiallyResolvedItem<IV,ID>((Item<IV,ID>)getParent(), null);
 		}
-		return new PartiallyResolvedItem<X>((Item<X>)getParent(), path);
+		return new PartiallyResolvedItem<IV,ID>((Item<IV,ID>)getParent(), path);
 	}
 
 	private boolean compareLocalPart(QName a, QName b) {
@@ -247,7 +247,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 					+": no definition for object type "+targetTypeName);
 		}
 		// this should do it
-		object.applyDefinition(objectDefinition, force);
+		object.applyDefinition((PrismObjectDefinition)objectDefinition, force);
 	}
 
 	@Override

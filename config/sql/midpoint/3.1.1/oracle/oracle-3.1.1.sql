@@ -9,7 +9,7 @@ CREATE TABLE m_abstract_role (
 ) INITRANS 30;
 
 CREATE TABLE m_assignment (
-  id                      NUMBER(5, 0)      NOT NULL,
+  id                      NUMBER(10, 0)     NOT NULL,
   owner_oid               VARCHAR2(36 CHAR) NOT NULL,
   administrativeStatus    NUMBER(10, 0),
   archiveTimestamp        TIMESTAMP,
@@ -39,14 +39,26 @@ CREATE TABLE m_assignment (
   tenantRef_relation      VARCHAR2(157 CHAR),
   tenantRef_targetOid     VARCHAR2(36 CHAR),
   tenantRef_type          NUMBER(10, 0),
-  extId                   NUMBER(5, 0),
+  extId                   NUMBER(10, 0),
   extOid                  VARCHAR2(36 CHAR),
   PRIMARY KEY (id, owner_oid)
 ) INITRANS 30;
 
+CREATE TABLE m_assignment_ext_boolean (
+  eName                        VARCHAR2(157 CHAR) NOT NULL,
+  anyContainer_owner_id        NUMBER(10, 0)      NOT NULL,
+  anyContainer_owner_owner_oid VARCHAR2(36 CHAR)  NOT NULL,
+  booleanValue                 NUMBER(1, 0)       NOT NULL,
+  extensionType                NUMBER(10, 0),
+  dynamicDef                   NUMBER(1, 0),
+  eType                        VARCHAR2(157 CHAR),
+  valueType                    NUMBER(10, 0),
+  PRIMARY KEY (eName, anyContainer_owner_id, anyContainer_owner_owner_oid, booleanValue)
+) INITRANS 30;
+
 CREATE TABLE m_assignment_ext_date (
   eName                        VARCHAR2(157 CHAR) NOT NULL,
-  anyContainer_owner_id        NUMBER(5, 0)       NOT NULL,
+  anyContainer_owner_id        NUMBER(10, 0)      NOT NULL,
   anyContainer_owner_owner_oid VARCHAR2(36 CHAR)  NOT NULL,
   dateValue                    TIMESTAMP          NOT NULL,
   extensionType                NUMBER(10, 0),
@@ -58,7 +70,7 @@ CREATE TABLE m_assignment_ext_date (
 
 CREATE TABLE m_assignment_ext_long (
   eName                        VARCHAR2(157 CHAR) NOT NULL,
-  anyContainer_owner_id        NUMBER(5, 0)       NOT NULL,
+  anyContainer_owner_id        NUMBER(10, 0)      NOT NULL,
   anyContainer_owner_owner_oid VARCHAR2(36 CHAR)  NOT NULL,
   longValue                    NUMBER(19, 0)      NOT NULL,
   extensionType                NUMBER(10, 0),
@@ -70,7 +82,7 @@ CREATE TABLE m_assignment_ext_long (
 
 CREATE TABLE m_assignment_ext_poly (
   eName                        VARCHAR2(157 CHAR) NOT NULL,
-  anyContainer_owner_id        NUMBER(5, 0)       NOT NULL,
+  anyContainer_owner_id        NUMBER(10, 0)      NOT NULL,
   anyContainer_owner_owner_oid VARCHAR2(36 CHAR)  NOT NULL,
   orig                         VARCHAR2(255 CHAR) NOT NULL,
   extensionType                NUMBER(10, 0),
@@ -83,7 +95,7 @@ CREATE TABLE m_assignment_ext_poly (
 
 CREATE TABLE m_assignment_ext_reference (
   eName                        VARCHAR2(157 CHAR) NOT NULL,
-  anyContainer_owner_id        NUMBER(5, 0)       NOT NULL,
+  anyContainer_owner_id        NUMBER(10, 0)      NOT NULL,
   anyContainer_owner_owner_oid VARCHAR2(36 CHAR)  NOT NULL,
   targetoid                    VARCHAR2(36 CHAR)  NOT NULL,
   extensionType                NUMBER(10, 0),
@@ -97,7 +109,7 @@ CREATE TABLE m_assignment_ext_reference (
 
 CREATE TABLE m_assignment_ext_string (
   eName                        VARCHAR2(157 CHAR) NOT NULL,
-  anyContainer_owner_id        NUMBER(5, 0)       NOT NULL,
+  anyContainer_owner_id        NUMBER(10, 0)      NOT NULL,
   anyContainer_owner_owner_oid VARCHAR2(36 CHAR)  NOT NULL,
   stringValue                  VARCHAR2(255 CHAR) NOT NULL,
   extensionType                NUMBER(10, 0),
@@ -108,8 +120,9 @@ CREATE TABLE m_assignment_ext_string (
 ) INITRANS 30;
 
 CREATE TABLE m_assignment_extension (
-  owner_id        NUMBER(5, 0)      NOT NULL,
+  owner_id        NUMBER(10, 0)     NOT NULL,
   owner_owner_oid VARCHAR2(36 CHAR) NOT NULL,
+  booleansCount   NUMBER(5, 0),
   datesCount      NUMBER(5, 0),
   longsCount      NUMBER(5, 0),
   polysCount      NUMBER(5, 0),
@@ -119,7 +132,7 @@ CREATE TABLE m_assignment_extension (
 ) INITRANS 30;
 
 CREATE TABLE m_assignment_reference (
-  owner_id        NUMBER(5, 0)       NOT NULL,
+  owner_id        NUMBER(10, 0)      NOT NULL,
   owner_owner_oid VARCHAR2(36 CHAR)  NOT NULL,
   reference_type  NUMBER(10, 0)      NOT NULL,
   relation        VARCHAR2(157 CHAR) NOT NULL,
@@ -193,7 +206,7 @@ CREATE TABLE m_connector_target_system (
 ) INITRANS 30;
 
 CREATE TABLE m_exclusion (
-  id                  NUMBER(5, 0)      NOT NULL,
+  id                  NUMBER(10, 0)     NOT NULL,
   owner_oid           VARCHAR2(36 CHAR) NOT NULL,
   policy              NUMBER(10, 0),
   targetRef_relation  VARCHAR2(157 CHAR),
@@ -233,7 +246,7 @@ CREATE TABLE m_lookup_table (
 ) INITRANS 30;
 
 CREATE TABLE m_lookup_table_row (
-  id                  NUMBER(5, 0)      NOT NULL,
+  id                  NUMBER(10, 0)     NOT NULL,
   owner_oid           VARCHAR2(36 CHAR) NOT NULL,
   row_key             VARCHAR2(255 CHAR),
   label_norm          VARCHAR2(255 CHAR),
@@ -253,6 +266,7 @@ CREATE TABLE m_node (
 
 CREATE TABLE m_object (
   oid                   VARCHAR2(36 CHAR) NOT NULL,
+  booleansCount         NUMBER(5, 0),
   createChannel         VARCHAR2(255 CHAR),
   createTimestamp       TIMESTAMP,
   creatorRef_relation   VARCHAR2(157 CHAR),
@@ -277,6 +291,17 @@ CREATE TABLE m_object (
   tenantRef_type        NUMBER(10, 0),
   version               NUMBER(10, 0)     NOT NULL,
   PRIMARY KEY (oid)
+) INITRANS 30;
+
+CREATE TABLE m_object_ext_boolean (
+  eName        VARCHAR2(157 CHAR) NOT NULL,
+  owner_oid    VARCHAR2(36 CHAR)  NOT NULL,
+  ownerType    NUMBER(10, 0)      NOT NULL,
+  booleanValue NUMBER(1, 0)       NOT NULL,
+  dynamicDef   NUMBER(1, 0),
+  eType        VARCHAR2(157 CHAR),
+  valueType    NUMBER(10, 0),
+  PRIMARY KEY (eName, owner_oid, ownerType, booleanValue)
 ) INITRANS 30;
 
 CREATE TABLE m_object_ext_date (
@@ -498,7 +523,7 @@ CREATE TABLE m_task_dependent (
 ) INITRANS 30;
 
 CREATE TABLE m_trigger (
-  id             NUMBER(5, 0)      NOT NULL,
+  id             NUMBER(10, 0)     NOT NULL,
   owner_oid      VARCHAR2(36 CHAR) NOT NULL,
   handlerUri     VARCHAR2(255 CHAR),
   timestampValue TIMESTAMP,
@@ -575,6 +600,8 @@ CREATE INDEX iAssignmentAdministrative ON m_assignment (administrativeStatus) IN
 
 CREATE INDEX iAssignmentEffective ON m_assignment (effectiveStatus) INITRANS 30;
 
+CREATE INDEX iAExtensionBoolean ON m_assignment_ext_boolean (extensionType, eName, booleanValue) INITRANS 30;
+
 CREATE INDEX iAExtensionDate ON m_assignment_ext_date (extensionType, eName, dateValue) INITRANS 30;
 
 CREATE INDEX iAExtensionLong ON m_assignment_ext_long (extensionType, eName, longValue) INITRANS 30;
@@ -600,6 +627,9 @@ ADD CONSTRAINT uc_generic_object_name UNIQUE (name_norm) INITRANS 30;
 ALTER TABLE m_lookup_table
 ADD CONSTRAINT uc_lookup_name UNIQUE (name_norm) INITRANS 30;
 
+ALTER TABLE m_lookup_table_row
+ADD CONSTRAINT uc_row_key UNIQUE (row_key) INITRANS 30;
+
 ALTER TABLE m_node
 ADD CONSTRAINT uc_node_name UNIQUE (name_norm) INITRANS 30;
 
@@ -610,6 +640,10 @@ CREATE INDEX iObjectNameNorm ON m_object (name_norm) INITRANS 30;
 CREATE INDEX iObjectTypeClass ON m_object (objectTypeClass) INITRANS 30;
 
 CREATE INDEX iObjectCreateTimestamp ON m_object (createTimestamp) INITRANS 30;
+
+CREATE INDEX iExtensionBoolean ON m_object_ext_boolean (ownerType, eName, booleanValue) INITRANS 30;
+
+CREATE INDEX iExtensionBooleanDef ON m_object_ext_boolean (owner_oid, ownerType) INITRANS 30;
 
 CREATE INDEX iExtensionDate ON m_object_ext_date (ownerType, eName, dateValue) INITRANS 30;
 
@@ -698,6 +732,11 @@ ADD CONSTRAINT fk_assignment_owner
 FOREIGN KEY (owner_oid)
 REFERENCES m_object;
 
+ALTER TABLE m_assignment_ext_boolean
+ADD CONSTRAINT fk_assignment_ext_boolean
+FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
+REFERENCES m_assignment_extension;
+
 ALTER TABLE m_assignment_ext_date
 ADD CONSTRAINT fk_assignment_ext_date
 FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
@@ -776,6 +815,11 @@ REFERENCES m_lookup_table;
 ALTER TABLE m_node
 ADD CONSTRAINT fk_node
 FOREIGN KEY (oid)
+REFERENCES m_object;
+
+ALTER TABLE m_object_ext_boolean
+ADD CONSTRAINT fk_object_ext_boolean
+FOREIGN KEY (owner_oid)
 REFERENCES m_object;
 
 ALTER TABLE m_object_ext_date

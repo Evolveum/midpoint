@@ -70,6 +70,7 @@ import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.AuthorizationException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -525,7 +526,7 @@ public class Clockwork {
 		if (delta.isAdd() || delta.isDelete()) {
 			return true;
 		}
-		Collection<? extends ItemDelta<?>> attrDeltas = delta.findItemDeltasSubPath(new ItemPath(ShadowType.F_ATTRIBUTES));
+		Collection<? extends ItemDelta<?,?>> attrDeltas = delta.findItemDeltasSubPath(new ItemPath(ShadowType.F_ATTRIBUTES));
 		if (attrDeltas != null && !attrDeltas.isEmpty()) {
 			return true;
 		}
@@ -876,22 +877,31 @@ public class Clockwork {
 				sb.toString());
 	}
 	
-	private <F extends ObjectType> void authorizeContextRequest(LensContext<F> context, Task task, OperationResult result) throws SecurityViolationException, SchemaException {
-		final LensFocusContext<F> focusContext = context.getFocusContext();
-		OwnerResolver ownerResolver = null;
-		if (focusContext != null) {
-			ownerResolver = new OwnerResolver() {
-				@Override
-				public <F extends FocusType> PrismObject<F> resolveOwner(PrismObject<ShadowType> shadow) {
-					return (PrismObject<F>) focusContext.getObjectCurrent();
-				}
-			};
-			authorizeElementContext(context, focusContext, ownerResolver, true, task, result);
+	private <F extends ObjectType> void authorizeContextRequest(LensContext<F> context, Task task, OperationResult parentResult) throws SecurityViolationException, SchemaException {
+		OperationResult result = parentResult.createMinorSubresult(Clockwork.class.getName()+".authorizeRequest");
+		try {
+			
+			final LensFocusContext<F> focusContext = context.getFocusContext();
+			OwnerResolver ownerResolver = null;
+			if (focusContext != null) {
+				ownerResolver = new OwnerResolver() {
+					@Override
+					public <F extends FocusType> PrismObject<F> resolveOwner(PrismObject<ShadowType> shadow) {
+						return (PrismObject<F>) focusContext.getObjectCurrent();
+					}
+				};
+				authorizeElementContext(context, focusContext, ownerResolver, true, task, result);
+			}
+			for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
+				authorizeElementContext(context, projectionContext, ownerResolver, false, task, result);
+			}
+			context.setRequestAuthorized(true);
+			result.recordSuccess();
+			
+		} catch (SecurityViolationException | SchemaException e) {
+			result.recordFatalError(e);
+			throw e;
 		}
-		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
-			authorizeElementContext(context, projectionContext, ownerResolver, false, task, result);
-		}
-		context.setRequestAuthorized(true);
 	}
 	
 	private <F extends ObjectType, O extends ObjectType> ObjectSecurityConstraints authorizeElementContext(LensContext<F> context, LensElementContext<O> elementContext,
@@ -916,13 +926,13 @@ public class Clockwork {
 					if (assignmentItemDecision == AuthorizationDecisionType.ALLOW) {
 						// Nothing to do, operation is allowed for all values
 					} else if (assignmentItemDecision == AuthorizationDecisionType.DENY) {
-						throw new SecurityViolationException("Access denied");
+						throw new AuthorizationException("Access denied");
 					} else {
 						AuthorizationDecisionType actionDecision = securityConstraints.getActionDecision(operationUrl, AuthorizationPhaseType.REQUEST);
 						if (actionDecision == AuthorizationDecisionType.ALLOW) {
 							// Nothing to do, operation is allowed for all values
 						} else if (actionDecision == AuthorizationDecisionType.DENY) {
-							throw new SecurityViolationException("Access denied");
+							throw new AuthorizationException("Access denied");
 						} else {
 							// No explicit decision for assignment modification yet
 							// process each assignment individually

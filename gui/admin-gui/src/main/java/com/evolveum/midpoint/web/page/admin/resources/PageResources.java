@@ -49,6 +49,7 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.resources.component.ContentPanel;
@@ -592,7 +593,9 @@ public class PageResources extends PageAdminResources {
     private void discoveryRemotePerformed(AjaxRequestTarget target) {
         target.add(getFeedbackPanel());
 
-        OperationResult result = new OperationResult(OPERATION_CONNECTOR_DISCOVERY);
+        PageBase page = (PageBase) getPage();
+        Task task = page.createSimpleTask(OPERATION_CONNECTOR_DISCOVERY);
+        OperationResult result = task.getResult();
         List<SelectableBean<ConnectorHostType>> selected = WebMiscUtil.getSelectedData(getConnectorHostTable());
         if (selected.isEmpty()) {
             warn(getString("pageResources.message.noHostSelected"));
@@ -602,7 +605,7 @@ public class PageResources extends PageAdminResources {
         for (SelectableBean<ConnectorHostType> bean : selected) {
             ConnectorHostType host = bean.getValue();
             try {
-                getModelService().discoverConnectors(host, result);
+                getModelService().discoverConnectors(host, task, result);
             } catch (Exception ex) {
                 result.recordFatalError("Fail to discover connectors on host '" + host.getHostname()
                         + ":" + host.getPort() + "'", ex);

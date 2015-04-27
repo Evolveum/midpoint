@@ -54,6 +54,8 @@
             			schemaLocation="http://prism.evolveum.com/xml/ns/public/query-3"/>
             <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3" 
             			schemaLocation="http://prism.evolveum.com/xml/ns/public/types-3"/>
+        	<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/audit-3" 
+            			schemaLocation="../../public/common/audit-3.xsd"/>
 
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/gui/admin-1"
                         schemaLocation="../../public/gui/admin-1.xsd"/>

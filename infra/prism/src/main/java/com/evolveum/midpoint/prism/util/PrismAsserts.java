@@ -167,11 +167,11 @@ public class PrismAsserts {
 	}
 
 	public static void assertNoItem(PrismContainer<?> object, ItemPath itemPath) {
-		Item<?> item = object.findItem(itemPath);
+		Item<?,?> item = object.findItem(itemPath);
 		assert item == null : "Unexpected item "+item+" in "+object;
 	}
 	
-	public static void assertNotEmpty(Item<?> item) {
+	public static void assertNotEmpty(Item<?,?> item) {
 		assert !item.isEmpty() : "Item "+item+" is empty";
 	}
 	
@@ -180,7 +180,7 @@ public class PrismAsserts {
 			@Override
 			public void visit(Visitable visitable) {
 				if (visitable != null && visitable instanceof Item) {
-					assertNotEmpty((Item<?>)visitable);
+					assertNotEmpty((Item<?,?>)visitable);
 				}
 			}
 		};
@@ -292,14 +292,14 @@ public class PrismAsserts {
 	
 	public static void assertParentConsistency(PrismContainerValue<?> pval) {
 		if (pval.getItems() != null) {
-			for (Item<?> item : pval.getItems()) {
+			for (Item<?,?> item : pval.getItems()) {
 				assert item.getParent() == pval : "Wrong parent in " + item;
 				assertParentConsistency(item);
 			}
 		}
 	}
 
-	public static void assertParentConsistency(Item<?> item) {
+	public static void assertParentConsistency(Item<?,?> item) {
 		for (PrismValue pval: item.getValues()) {
 			assert pval.getParent() == item : "Wrong parent of "+pval+" in "+PrettyPrinter.prettyPrint(item.getElementName());
 			if (pval instanceof PrismContainerValue) {
@@ -472,27 +472,27 @@ public class PrismAsserts {
 		assert false : message+": Delta for "+expectedClass+" of type "+expectedChangeType+" was not found in collection "+deltas;
 	}
 		
-	public static <V extends PrismValue> void assertNoReplace(ItemDelta<V> delta) {
+	public static <IV extends PrismValue,ID extends ItemDefinition> void assertNoReplace(ItemDelta<IV,ID> delta) {
 		assertNoReplace(null, delta);
 	}
 	
-	public static <V extends PrismValue> void assertNoReplace(String message, ItemDelta<V> delta) {
+	public static <IV extends PrismValue,ID extends ItemDefinition> void assertNoReplace(String message, ItemDelta<IV,ID> delta) {
 		assertNoSet(message, "replace", delta.getValuesToReplace());
 	}
 	
-	public static <V extends PrismValue> void assertNoAdd(ItemDelta<V> delta) {
+	public static <IV extends PrismValue,ID extends ItemDefinition> void assertNoAdd(ItemDelta<IV,ID> delta) {
 		assertNoAdd(null, delta);
 	}
 
-	public static <V extends PrismValue> void assertNoAdd(String message, ItemDelta<V> delta) {
+	public static <IV extends PrismValue,ID extends ItemDefinition> void assertNoAdd(String message, ItemDelta<IV,ID> delta) {
 		assertNoSet(message, "add", delta.getValuesToAdd());
 	}
 	
-	public static <V extends PrismValue> void assertNoDelete(ItemDelta<V> delta) {
+	public static <IV extends PrismValue,ID extends ItemDefinition> void assertNoDelete(ItemDelta<IV,ID> delta) {
 		assertNoDelete(null, delta);
 	}
 
-	public static <V extends PrismValue> void assertNoDelete(String message, ItemDelta<V> delta) {
+	public static <IV extends PrismValue,ID extends ItemDefinition> void assertNoDelete(String message, ItemDelta<IV,ID> delta) {
 		assertNoSet(message, "delete", delta.getValuesToDelete());
 	}
 

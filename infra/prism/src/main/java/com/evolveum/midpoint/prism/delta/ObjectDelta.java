@@ -68,7 +68,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     /**
      * Set of relative property deltas. Valid only if changeType==MODIFY
      */
-    private Collection<? extends ItemDelta<?>> modifications;
+    private Collection<? extends ItemDelta<?,?>> modifications;
 
     /**
      * Class of the object that we describe.
@@ -95,7 +95,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     	if (isAdd()) {
     		objectToAdd.accept(visitor);
     	} else if (isModify()) {
-	    	for (ItemDelta<?> delta : getModifications()){
+	    	for (ItemDelta<?,?> delta : getModifications()){
 	    		delta.accept(visitor);
 	    	}
     	}
@@ -189,7 +189,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
         }
     }
 
-    public Collection<? extends ItemDelta> getModifications() {
+    public Collection<? extends ItemDelta<?,?>> getModifications() {
         return modifications;
     }
 
@@ -224,28 +224,29 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
 	}
 
 	public void addModifications(Collection<? extends ItemDelta> itemDeltas) {
-    	for (ItemDelta<?> modDelta: itemDeltas) {
+    	for (ItemDelta<?,?> modDelta: itemDeltas) {
     		addModification(modDelta);
     	}
     }
     
-    public void addModifications(ItemDelta<?>... itemDeltas) {
-    	for (ItemDelta<?> modDelta: itemDeltas) {
+    public void addModifications(ItemDelta<?,?>... itemDeltas) {
+    	for (ItemDelta<?,?> modDelta: itemDeltas) {
     		addModification(modDelta);
     	}
     }
     
-    public <V extends PrismValue> ItemDelta<V> findItemDelta(ItemPath propertyPath) {
+    public <IV extends PrismValue,ID extends ItemDefinition> ItemDelta<IV,ID> findItemDelta(ItemPath propertyPath) {
     	return findItemDelta(propertyPath, ItemDelta.class, Item.class);
     }
     
-    private <D extends ItemDelta, I extends Item> D findItemDelta(ItemPath propertyPath, Class<D> deltaType, Class<I> itemType) {
+    private <IV extends PrismValue,ID extends ItemDefinition, I extends Item<IV,ID>,DD extends ItemDelta<IV,ID>> 
+    		DD findItemDelta(ItemPath propertyPath, Class<DD> deltaType, Class<I> itemType) {
         if (changeType == ChangeType.ADD) {
             I item = objectToAdd.findItem(propertyPath, itemType);
             if (item == null) {
                 return null;
             }
-            D itemDelta = createEmptyDelta(propertyPath, item.getDefinition(), deltaType, item.getClass());
+            DD itemDelta = createEmptyDelta(propertyPath, item.getDefinition(), deltaType, item.getClass());
             itemDelta.addValuesToAdd(item.getClonedValues());
             return itemDelta;
         } else if (changeType == ChangeType.MODIFY) {
@@ -255,31 +256,34 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
         }
     }
     
-    public <V extends PrismValue> PartiallyResolvedDelta<V> findPartial(ItemPath propertyPath) {
+    public <IV extends PrismValue,ID extends ItemDefinition> Collection<PartiallyResolvedDelta<IV,ID>> findPartial(ItemPath propertyPath) {
         if (changeType == ChangeType.ADD) {
-            PartiallyResolvedItem<V> partialValue = objectToAdd.findPartial(propertyPath);
+            PartiallyResolvedItem<IV,ID> partialValue = objectToAdd.findPartial(propertyPath);
             if (partialValue == null || partialValue.getItem() == null) {
-                return null;
+                return new ArrayList<>(0);
             }
-            Item<V> item = partialValue.getItem();
-            ItemDelta<V> itemDelta = item.createDelta();
+            Item<IV,ID> item = partialValue.getItem();
+            ItemDelta<IV,ID> itemDelta = item.createDelta();
             itemDelta.addValuesToAdd(item.getClonedValues());
-            return new PartiallyResolvedDelta<V>(itemDelta, partialValue.getResidualPath());
+            Collection<PartiallyResolvedDelta<IV,ID>> deltas = new ArrayList<>(1);
+            deltas.add(new PartiallyResolvedDelta<IV,ID>(itemDelta, partialValue.getResidualPath()));
+            return deltas;
         } else if (changeType == ChangeType.MODIFY) {
-        	for (ItemDelta<?> modification: modifications) {
+        	Collection<PartiallyResolvedDelta<IV,ID>> deltas = new ArrayList<>();
+        	for (ItemDelta<?,?> modification: modifications) {
         		CompareResult compareComplex = modification.getPath().compareComplex(propertyPath);
         		if (compareComplex == CompareResult.EQUIVALENT) {
-        			return new PartiallyResolvedDelta<V>((ItemDelta<V>)modification, null);
-        		} else if (compareComplex == CompareResult.SUPERPATH) {
-        			return new PartiallyResolvedDelta<V>((ItemDelta<V>)modification, null);
+        			deltas.add(new PartiallyResolvedDelta<IV,ID>((ItemDelta<IV,ID>)modification, null));
         		} else if (compareComplex == CompareResult.SUBPATH) {
-        			return new PartiallyResolvedDelta<V>((ItemDelta<V>)modification,
-        					propertyPath.remainder(modification.getPath()));
+        			deltas.add(new PartiallyResolvedDelta<IV,ID>((ItemDelta<IV,ID>)modification, null));
+        		} else if (compareComplex == CompareResult.SUPERPATH) {
+        			deltas.add(new PartiallyResolvedDelta<IV,ID>((ItemDelta<IV,ID>)modification,
+        					modification.getPath().remainder(propertyPath)));
         		}
         	}
-            return null;
+            return deltas;
         } else {
-            return null;
+            return new ArrayList<>(0);
         }
     }
 
@@ -378,7 +382,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     /**
 	 * Returns all item deltas at or below a specified path.
 	 */
-	public Collection<? extends ItemDelta<?>> findItemDeltasSubPath(ItemPath itemPath) {
+	public Collection<? extends ItemDelta<?,?>> findItemDeltasSubPath(ItemPath itemPath) {
 		return ItemDelta.findItemDeltasSubPath(modifications, itemPath);
 	}
 
@@ -414,7 +418,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
         if (modifications == null || modifications.isEmpty()) {
         	return true;
         }
-        for (ItemDelta<?> mod: modifications) {
+        for (ItemDelta<?,?> mod: modifications) {
         	if (!mod.isEmpty()) {
         		return false;
         	}
@@ -429,7 +433,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     	if (modifications != null) {
     		Iterator<? extends ItemDelta> iterator = modifications.iterator();
     		while (iterator.hasNext()) {
-    			ItemDelta<?> modification = iterator.next();
+    			ItemDelta<?,?> modification = iterator.next();
     			modification.normalize();
     			if (modification.isEmpty()) {
     				iterator.remove();
@@ -452,7 +456,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
         ObjectDelta<T> clone = new ObjectDelta<T>(this.objectTypeClass, this.changeType, this.prismContext);
         clone.oid = this.oid;
         clone.modifications = createEmptyModifications();
-        for (ItemDelta<?> thisModification: this.modifications) {
+        for (ItemDelta<?,?> thisModification: this.modifications) {
         	((Collection)clone.modifications).add(thisModification.clone());
         }
         if (this.objectToAdd == null) {
@@ -600,12 +604,12 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     }
     
     public void mergeModifications(Collection<? extends ItemDelta> modificationsToMerge) throws SchemaException {
-        for (ItemDelta<?> propDelta : modificationsToMerge) {
+        for (ItemDelta<?,?> propDelta : modificationsToMerge) {
         	mergeModification(propDelta);
         }
     }
     
-    public void mergeModification(ItemDelta<?> modificationToMerge) throws SchemaException {
+    public void mergeModification(ItemDelta<?,?> modificationToMerge) throws SchemaException {
         if (changeType == ChangeType.ADD) {
         	modificationToMerge.applyTo(objectToAdd);
         } else if (changeType == ChangeType.MODIFY) {
@@ -669,7 +673,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
      * Incorporates the property delta into the existing property deltas
      * (regardless of the change type).
      */
-    public void swallow(ItemDelta<?> newItemDelta) throws SchemaException {
+    public void swallow(ItemDelta<?,?> newItemDelta) throws SchemaException {
         if (changeType == ChangeType.MODIFY) {
             // TODO: check for conflict
             addModification(newItemDelta);
@@ -680,19 +684,19 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
         // nothing to do for DELETE
     }
 
-    private Collection<? extends ItemDelta<?>> createEmptyModifications() {
+    private Collection<? extends ItemDelta<?,?>> createEmptyModifications() {
     	// Lists are easier to debug
-        return new ArrayList<ItemDelta<?>>();
+        return new ArrayList<ItemDelta<?,?>>();
     }
     
-    public <X> PropertyDelta<X> createPropertyModification(QName name, PrismPropertyDefinition propertyDefinition) {
+    public <X> PropertyDelta<X> createPropertyModification(QName name, PrismPropertyDefinition<X> propertyDefinition) {
     	PropertyDelta<X> propertyDelta = new PropertyDelta<X>(name, propertyDefinition, prismContext);
     	return addModification(propertyDelta);
     }
     
     public <X> PropertyDelta<X> createPropertyModification(ItemPath path) {
 	    PrismObjectDefinition<T> objDef = getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(getObjectTypeClass());
-		PrismPropertyDefinition propDef = objDef.findPropertyDefinition(path);
+		PrismPropertyDefinition<X> propDef = objDef.findPropertyDefinition(path);
 		return createPropertyModification(path, propDef);
     }
 	    
@@ -996,6 +1000,9 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     	ContainerDelta<C> containerDelta = objectDelta.createContainerModification(propertyPath);
     	if (containerValues != null && containerValues.length > 0) {
 	    	containerDelta.setValuesToReplace(containerValues);
+    	} else {
+    		// Means: clear all values
+    		containerDelta.setValuesToReplace();
     	}
     }
     
@@ -1244,7 +1251,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     		objectToAdd.assertDefinitions("add delta in "+sourceDescription);
     	}
     	if (changeType == ChangeType.MODIFY) {
-    		for (ItemDelta<?> mod: modifications) {
+    		for (ItemDelta<?,?> mod: modifications) {
     			mod.assertDefinitions(tolerateRawElements, "modify delta for "+getOid()+" in "+sourceDescription);
     		}
     	}
@@ -1255,7 +1262,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     		objectToAdd.revive(prismContext);
     	}
     	if (modifications != null) {
-    		for (ItemDelta<?> modification: modifications) {
+    		for (ItemDelta<?,?> modification: modifications) {
     			modification.revive(prismContext);
     		}
     	}
@@ -1270,7 +1277,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     		objectToAdd.applyDefinition(objectDefinition, force);
     	}
     	if (modifications != null) {
-    		for (ItemDelta<?> modification: modifications) {
+    		for (ItemDelta modification: modifications) {
     			ItemPath path = modification.getPath();
     			ItemDefinition itemDefinition = objectDefinition.findItemDefinition(path);
     			modification.applyDefinition(itemDefinition, force);

@@ -28,9 +28,9 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.query.OrgFilter;
-
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.icf.dummy.resource.DummyGroup;
@@ -65,6 +65,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
@@ -171,7 +172,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		dummyResourceCtlRed = DummyResourceContoller.create(RESOURCE_DUMMY_RED_NAME, resourceDummyRed);
 		dummyResourceCtlRed.extendSchemaPirate();
 		dummyResourceRed = dummyResourceCtlRed.getDummyResource();
-		resourceDummyRed = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_RED_FILENAME, RESOURCE_DUMMY_RED_OID, initTask, initResult); 
+		resourceDummyRed = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_RED_FILE, RESOURCE_DUMMY_RED_OID, initTask, initResult); 
 		resourceDummyRedType = resourceDummyRed.asObjectable();
 		dummyResourceCtlRed.setResource(resourceDummyRed);
 		
@@ -241,6 +242,8 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		dummyResourceCtlBlue.addAccount(ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", "Melee Island");
 		
 		repoAddObjectFromFile(LOOKUP_LANGUAGES_FILE, ObjectTemplateType.class, initResult);
+		
+		repoAddObjectFromFile(SECURITY_POLICY_FILE, SecurityPolicyType.class, initResult);
 		
 		// User Templates
 		repoAddObjectFromFile(USER_TEMPLATE_FILENAME, ObjectTemplateType.class, initResult);

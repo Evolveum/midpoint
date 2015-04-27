@@ -145,12 +145,12 @@ public class PageResourceWizard extends PageAdminResources {
 
     private void initLayout() {
         WizardModel wizardModel = new WizardModel();
-        wizardModel.add(new NameStep(model));
-        wizardModel.add(new ConfigurationStep(model, isNewResource));
-        wizardModel.add(new SchemaStep(model));
-        wizardModel.add(new SchemaHandlingStep(model));
-        wizardModel.add(new CapabilityStep(model));
-        wizardModel.add(new SynchronizationStep(model));
+        wizardModel.add(new NameStep(model, this));
+        wizardModel.add(new ConfigurationStep(model, isNewResource, this));
+        wizardModel.add(new SchemaStep(model, this));
+        wizardModel.add(new SchemaHandlingStep(model, this));
+        wizardModel.add(new CapabilityStep(model, this));
+        wizardModel.add(new SynchronizationStep(model, this));
 
         Wizard wizard = new Wizard(ID_WIZARD, new Model(wizardModel));
         wizard.setOutputMarkupId(true);

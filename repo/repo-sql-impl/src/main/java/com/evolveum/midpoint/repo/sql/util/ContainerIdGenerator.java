@@ -42,9 +42,11 @@ public class ContainerIdGenerator implements IdentifierGenerator {
         return generate((Container) object);
     }
 
-    private Short generate(Container container) {
+    private Integer generate(Container container) {
         if (container.getId() != null && container.getId() != 0) {
-            LOGGER.trace("Created id='{}' for '{}'.", new Object[]{container.getId(), toString(container)});
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Created id='{}' for '{}'.", container.getId(), toString(container));
+            }
             return container.getId();
         }
 

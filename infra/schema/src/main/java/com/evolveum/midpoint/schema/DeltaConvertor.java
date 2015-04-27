@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,7 +102,9 @@ public class DeltaConvertor {
             ObjectType objectToAddElement = objectDeltaType.getObjectToAdd();
 //            PrismObject<T> objectToAdd = prismContext.getXnodeProcessor().parseObject(objectToAddElement.getXnode());
 //            PrismObject<T> objectToAdd = prismContext.getJaxbDomHack().parseObjectFromJaxb(objectToAddElement);
-            objectDelta.setObjectToAdd(objectToAddElement.asPrismObject());
+            if (objectToAddElement != null) {
+                objectDelta.setObjectToAdd(objectToAddElement.asPrismObject());
+            }
             return objectDelta;
         } else if (objectDeltaType.getChangeType() == ChangeTypeType.MODIFY) {
         	ObjectDelta<T> objectDelta = new ObjectDelta<T>(type, ChangeType.MODIFY, prismContext);
@@ -175,7 +177,7 @@ public class DeltaConvertor {
         ObjectModificationType modType = new ObjectModificationType();
         modType.setOid(delta.getOid());
         List<ItemDeltaType> propModTypes = modType.getItemDelta();
-        for (ItemDelta<?> propDelta : delta.getModifications()) {
+        for (ItemDelta<?,?> propDelta : delta.getModifications()) {
             Collection<ItemDeltaType> propPropModTypes;
             try {
                 propPropModTypes = toPropertyModificationTypes(propDelta);
@@ -219,7 +221,7 @@ public class DeltaConvertor {
 		} else if (objectDelta.getChangeType() == ChangeType.MODIFY) {
 		    ObjectModificationType modType = new ObjectModificationType();
 		    modType.setOid(objectDelta.getOid());
-		    for (ItemDelta<?> propDelta : objectDelta.getModifications()) {
+		    for (ItemDelta<?,?> propDelta : objectDelta.getModifications()) {
 		        Collection<ItemDeltaType> propPropModTypes;
 		        try {
 		            propPropModTypes = toPropertyModificationTypes(propDelta);
@@ -271,7 +273,7 @@ public class DeltaConvertor {
      * Creates delta from PropertyModificationType (XML). The values inside the PropertyModificationType are converted to java.
      * That's the reason this method needs schema and objectType (to locate the appropriate definitions).
      */
-    public static <V extends PrismValue> ItemDelta<V> createItemDelta(ItemDeltaType propMod,
+    public static <IV extends PrismValue,ID extends ItemDefinition> ItemDelta<IV,ID> createItemDelta(ItemDeltaType propMod,
             Class<? extends Objectable> objectType, PrismContext prismContext) throws SchemaException {
         Validate.notNull("No prismContext in DeltaConvertor.createItemDelta call");
         PrismObjectDefinition<? extends Objectable> objectDefinition = prismContext.getSchemaRegistry().
@@ -279,7 +281,7 @@ public class DeltaConvertor {
         return createItemDelta(propMod, objectDefinition);
     }
 
-    public static <V extends PrismValue> ItemDelta<V> createItemDelta(ItemDeltaType propMod, PrismContainerDefinition<?> pcDef, boolean allowRawValues) throws
+    public static <IV extends PrismValue,ID extends ItemDefinition> ItemDelta<IV,ID> createItemDelta(ItemDeltaType propMod, PrismContainerDefinition<?> pcDef, boolean allowRawValues) throws
     SchemaException {
     	ItemPathType parentPathType = propMod.getPath();
     	ItemPath parentPath = null;
@@ -305,7 +307,7 @@ public class DeltaConvertor {
         }
         QName elementName = parentPath.lastNamed().getName();
         Item item = RawTypeUtil.getParsedItem(containingPcd, propMod.getValue(), elementName, containerDef);//propMod.getValue().getParsedValue(containingPcd);
-        ItemDelta<V> itemDelta = item.createDelta(parentPath);
+        ItemDelta<IV,ID> itemDelta = item.createDelta(parentPath);
         if (propMod.getModificationType() == ModificationTypeType.ADD) {
         	itemDelta.addValuesToAdd(PrismValue.resetParentCollection(PrismValue.cloneCollection(item.getValues())));
         } else if (propMod.getModificationType() == ModificationTypeType.DELETE) {
@@ -318,7 +320,7 @@ public class DeltaConvertor {
 
     }
     	
-    public static <V extends PrismValue> ItemDelta<V> createItemDelta(ItemDeltaType propMod, PrismContainerDefinition<?> pcDef) throws
+    public static <IV extends PrismValue,ID extends ItemDefinition> ItemDelta<IV,ID> createItemDelta(ItemDeltaType propMod, PrismContainerDefinition<?> pcDef) throws
             SchemaException {
     	return createItemDelta(propMod, pcDef, false);
     }

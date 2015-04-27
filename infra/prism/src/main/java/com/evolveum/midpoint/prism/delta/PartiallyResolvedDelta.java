@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,29 +15,32 @@
  */
 package com.evolveum.midpoint.prism.delta;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 
 /**
  * @author semancik
  *
  */
-public class PartiallyResolvedDelta<V extends PrismValue> {
+public class PartiallyResolvedDelta<V extends PrismValue,D extends ItemDefinition> implements DebugDumpable {
 	
-	private ItemDelta<V> delta;
+	private ItemDelta<V,D> delta;
 	private ItemPath residualPath;
 	
-	public PartiallyResolvedDelta(ItemDelta<V> itemDelta, ItemPath residualPath) {
+	public PartiallyResolvedDelta(ItemDelta<V,D> itemDelta, ItemPath residualPath) {
 		super();
 		this.delta = itemDelta;
 		this.residualPath = residualPath;
 	}
 
-	public ItemDelta<V> getDelta() {
+	public ItemDelta<V,D> getDelta() {
 		return delta;
 	}
 
-	public void setDelta(ItemDelta<V> itemDelta) {
+	public void setDelta(ItemDelta<V,D> itemDelta) {
 		this.delta = itemDelta;
 	}
 
@@ -78,6 +81,22 @@ public class PartiallyResolvedDelta<V extends PrismValue> {
 		} else if (!residualPath.equivalent(other.residualPath))     // TODO: ok?
 			return false;
 		return true;
+	}
+	
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("PartiallyResolvedDelta\n");
+		DebugUtil.debugDumpWithLabel(sb, "delta", delta, indent + 1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "residual path", residualPath==null?"null":residualPath.toString(), indent + 1);
+		return sb.toString();
 	}
 
 	@Override

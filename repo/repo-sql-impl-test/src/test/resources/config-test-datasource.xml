@@ -23,10 +23,9 @@
         </global>
         <repository>
             <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.testing.TestSqlRepositoryFactory</repositoryServiceFactoryClass>
+            <database>h2</database>
             <embedded>false</embedded>
             <dataSource>java:comp/env/jdbc/db</dataSource>
-            <hibernateHbm2ddl>update</hibernateHbm2ddl>
-            <hibernateDialect>org.hibernate.dialect.H2Dialect</hibernateDialect>
         </repository>
         <audit>
             <auditService>

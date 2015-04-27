@@ -236,6 +236,7 @@ public class LoggingConfigurationManager {
 						sb.append(a.getMaxHistory());
 						sb.append("</maxHistory>\n");
 					}
+					sb.append("\t\t\t<cleanHistoryOnStart>true</cleanHistoryOnStart>");
 	
 					// file triggering
 					// if max size is defined

@@ -122,6 +122,9 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 		schemaRegistry.registerPrismDefaultSchemaResource("xml/ns/public/common/common-3.xsd", "c", 
 				com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory.class.getPackage());         // declared by default
 		
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/common/audit-3.xsd", "aud", 
+				com.evolveum.midpoint.xml.ns._public.common.audit_3.ObjectFactory.class.getPackage());         	
+		
 		schemaRegistry.registerPrismSchemaResource("xml/ns/public/common/api-types-3.xsd", "apti",
 				com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectFactory.class.getPackage());
 
@@ -143,6 +146,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 				com.evolveum.midpoint.xml.ns._public.connector.icf_1.resource_schema_3.ObjectFactory.class.getPackage(), true); // declared by default
 		
 		schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/extension-3.xsd", "mext");
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/report/extension-3.xsd", "rext");
 
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/context/model-context-3.xsd", "mctx",
                 com.evolveum.midpoint.xml.ns._public.model.model_context_3.ObjectFactory.class.getPackage());

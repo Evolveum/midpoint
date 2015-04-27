@@ -53,7 +53,7 @@ public class RAssignmentReference implements ObjectReference {
     //owner
     private RAssignment owner;
     private String ownerOid;
-    private Short ownerId;
+    private Integer ownerId;
     //other primary key fields
     private String targetOid;
     private String relation;
@@ -81,7 +81,7 @@ public class RAssignmentReference implements ObjectReference {
 
     @Id
     @Column(name = "owner_id")
-    public Short getOwnerId() {
+    public Integer getOwnerId() {
         if (ownerId == null && owner != null) {
             ownerId = owner.getId();
         }
@@ -131,7 +131,7 @@ public class RAssignmentReference implements ObjectReference {
         this.ownerOid = ownerOid;
     }
 
-    public void setOwnerId(Short ownerId) {
+    public void setOwnerId(Integer ownerId) {
         this.ownerId = ownerId;
     }
 

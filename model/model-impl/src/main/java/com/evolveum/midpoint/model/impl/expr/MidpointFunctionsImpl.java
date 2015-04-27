@@ -1048,7 +1048,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	}
 
 	@Override
-	public PrismObject<UserType> findShadowOwner(String accountOid) throws ObjectNotFoundException, SecurityViolationException, SchemaException {
+	public PrismObject<UserType> findShadowOwner(String accountOid) throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException {
 		return modelService.findShadowOwner(accountOid, getCurrentTask(), getCurrentResult());
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ import org.apache.commons.lang.StringUtils;
  * @author Radovan Semancik
  * 
  */
-public abstract class ItemDefinition extends Definition implements Serializable {
+public abstract class ItemDefinition<I extends Item> extends Definition implements Serializable {
 
 	private static final long serialVersionUID = -2643332934312107274L;
 	protected QName name;
@@ -287,14 +287,14 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 	 * used as an element name for the instance. The instance will otherwise be empty.
 	 * @return created item instance
 	 */
-	abstract public Item instantiate();
+	abstract public I instantiate();
 
 	/**
 	 * Create an item instance. Definition name will use provided name.
 	 * for the instance. The instance will otherwise be empty.
 	 * @return created item instance
 	 */
-	abstract public Item instantiate(QName name);
+	abstract public I instantiate(QName name);
 
     // add namespace from the definition if it's safe to do so
     protected QName addNamespaceIfApplicable(QName name) {
@@ -320,9 +320,9 @@ public abstract class ItemDefinition extends Definition implements Serializable 
     
     abstract public ItemDelta createEmptyDelta(ItemPath path);
     
-    abstract public ItemDefinition clone();
+    abstract public ItemDefinition<I> clone();
     	
-	protected void copyDefinitionData(ItemDefinition clone) {
+	protected void copyDefinitionData(ItemDefinition<I> clone) {
 		super.copyDefinitionData(clone);
 		clone.name = this.name;
 		clone.minOccurs = this.minOccurs;
@@ -341,7 +341,7 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 	 *                  cloned as separate instances in the clone.
 	 * 
 	 */
-	public ItemDefinition deepClone(boolean ultraDeep) {
+	public ItemDefinition<I> deepClone(boolean ultraDeep) {
 		if (ultraDeep) {
 			return deepClone(null);
 		} else {
@@ -349,7 +349,7 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		}
 	}
 	
-	ItemDefinition deepClone(Map<QName,ComplexTypeDefinition> ctdMap) {
+	ItemDefinition<I> deepClone(Map<QName,ComplexTypeDefinition> ctdMap) {
 		return clone();
 	}
 	

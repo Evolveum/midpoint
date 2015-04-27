@@ -35,6 +35,7 @@ import com.evolveum.midpoint.web.component.wizard.WizardUtil;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.*;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ResourceObjectTypeDefinitionTypeDto;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.SchemaHandlingDto;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -120,7 +121,8 @@ public class SchemaHandlingStep extends WizardStep {
     private IModel<PrismObject<ResourceType>> resourceModel;
     private IModel<SchemaHandlingDto> model;
 
-    public SchemaHandlingStep(final IModel<PrismObject<ResourceType>> resourceModel) {
+    public SchemaHandlingStep(final IModel<PrismObject<ResourceType>> resourceModel, PageBase pageBase) {
+        super(pageBase);
         this.resourceModel = resourceModel;
 
         model = new LoadableModel<SchemaHandlingDto>(false) {

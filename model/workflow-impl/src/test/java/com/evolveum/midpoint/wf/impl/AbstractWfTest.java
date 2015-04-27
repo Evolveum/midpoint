@@ -41,7 +41,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -178,22 +177,24 @@ public class AbstractWfTest extends AbstractInternalModelIntegrationTest {
 
         ObjectReferenceType approver = role2.getApprovalSchema().getLevel().get(0).getApproverRef().get(0);
         assertEquals("Wrong OID of Role2's approver", R2BOSS_OID, approver.getOid());
-
-        primaryChangeProcessor.setEnabled(true);
-        generalChangeProcessor.setEnabled(false);
 	}
 
     protected void checkUserApprovers(String oid, List<String> expectedApprovers, OperationResult result) throws SchemaException, ObjectNotFoundException {
         PrismObject<UserType> user = repositoryService.getObject(UserType.class, oid, null, result);
-        checkUserApprovers(user, expectedApprovers, user.asObjectable().getMetadata().getModifyApproverRef(), result);
+        checkApprovers(user, expectedApprovers, user.asObjectable().getMetadata().getModifyApproverRef(), result);
     }
 
     protected void checkUserApproversForCreate(String oid, List<String> expectedApprovers, OperationResult result) throws SchemaException, ObjectNotFoundException {
         PrismObject<UserType> user = repositoryService.getObject(UserType.class, oid, null, result);
-        checkUserApprovers(user, expectedApprovers, user.asObjectable().getMetadata().getCreateApproverRef(), result);
+        checkApprovers(user, expectedApprovers, user.asObjectable().getMetadata().getCreateApproverRef(), result);
     }
 
-    protected void checkUserApprovers(PrismObject<UserType> user, List<String> expectedApprovers, List<ObjectReferenceType> realApprovers, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    protected void checkApproversForCreate(Class<? extends ObjectType> clazz, String oid, List<String> expectedApprovers, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        PrismObject<? extends ObjectType> object = repositoryService.getObject(clazz, oid, null, result);
+        checkApprovers(object, expectedApprovers, object.asObjectable().getMetadata().getCreateApproverRef(), result);
+    }
+
+    protected void checkApprovers(PrismObject<? extends ObjectType> object, List<String> expectedApprovers, List<ObjectReferenceType> realApprovers, OperationResult result) throws SchemaException, ObjectNotFoundException {
         HashSet<String> realApproversSet = new HashSet<String>();
         for (ObjectReferenceType approver : realApprovers) {
             realApproversSet.add(approver.getOid());

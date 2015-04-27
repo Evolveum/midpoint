@@ -19,11 +19,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.api.context.EvaluatedConstruction;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
@@ -31,7 +34,6 @@ import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -40,7 +42,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
@@ -53,12 +54,12 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	
 	private static final Trace LOGGER = TraceManager.getTrace(EvaluatedAssignmentImpl.class);
 
-	private ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi;
+	private ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi;
 	private DeltaSetTriple<Construction<F>> constructions;
 	private DeltaSetTriple<EvaluatedAbstractRoleImpl> roles;
 	private Collection<PrismReferenceValue> orgRefVals;
 	private Collection<Authorization> authorizations;
-	private Collection<Mapping<? extends PrismPropertyValue<?>>> focusMappings;
+	private Collection<Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>>> focusMappings;
 	private PrismObject<?> target;
 	private boolean isValid;
 	private boolean forceRecon;         // used also to force recomputation of parentOrgRefs
@@ -71,11 +72,11 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		focusMappings = new ArrayList<>();
 	}
 
-	public ItemDeltaItem<PrismContainerValue<AssignmentType>> getAssignmentIdi() {
+	public ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> getAssignmentIdi() {
 		return assignmentIdi;
 	}
 
-	public void setAssignmentIdi(ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi) {
+	public void setAssignmentIdi(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi) {
 		this.assignmentIdi = assignmentIdi;
 	}
 	
@@ -91,7 +92,28 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		return constructions;
 	}
 
-    public Collection<Construction<F>> getConstructionSet(PlusMinusZero whichSet) {
+	/**
+	 * Construction is not a part of model-api. To avoid heavy refactoring at present time, there is not a classical
+	 * Construction-ConstructionImpl separation, but we use artificial (simplified) EvaluatedConstruction
+	 * API class instead.
+	 *
+	 * @return
+	 */
+	public DeltaSetTriple<EvaluatedConstruction> getEvaluatedConstructions(OperationResult result) throws SchemaException, ObjectNotFoundException {
+		DeltaSetTriple<EvaluatedConstruction> rv = new DeltaSetTriple<>();
+		for (PlusMinusZero whichSet : PlusMinusZero.values()) {
+			Collection<Construction<F>> constructionSet = constructions.getSet(whichSet);
+			if (constructionSet != null) {
+				for (Construction<F> construction : constructionSet) {
+					rv.addToSet(whichSet, new EvaluatedConstructionImpl(construction, result));
+				}
+			}
+		}
+		return rv;
+	}
+
+
+	public Collection<Construction<F>> getConstructionSet(PlusMinusZero whichSet) {
         switch (whichSet) {
             case ZERO: return getConstructions().getZeroSet();
             case PLUS: return getConstructions().getPlusSet();
@@ -141,11 +163,11 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		authorizations.add(authorization);
 	}
 
-	public Collection<Mapping<? extends PrismPropertyValue<?>>> getFocusMappings() {
+	public Collection<Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>>> getFocusMappings() {
 		return focusMappings;
 	}
 
-	public void addFocusMapping(Mapping<? extends PrismPropertyValue<?>> focusMapping) {
+	public void addFocusMapping(Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>> focusMapping) {
 		this.focusMappings.add(focusMapping);
 	}
 
@@ -162,8 +184,8 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	}
 
 	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.model.impl.lens.EvaluatedAssignment#isValid()
-	 */
+         * @see com.evolveum.midpoint.model.impl.lens.EvaluatedAssignment#isValid()
+         */
 	@Override
 	public boolean isValid() {
 		return isValid;
@@ -241,7 +263,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		if (!focusMappings.isEmpty()) {
 			sb.append("\n");
 			DebugUtil.debugDumpLabel(sb, "Focus Mappings", indent+1);
-			for (Mapping<? extends PrismPropertyValue<?>> mapping: focusMappings) {
+			for (Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>> mapping: focusMappings) {
 				sb.append("\n");
 				DebugUtil.indentDebugDump(sb, indent+2);
 				sb.append(mapping.toString());

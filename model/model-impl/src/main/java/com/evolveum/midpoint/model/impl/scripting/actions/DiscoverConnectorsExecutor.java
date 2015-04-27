@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,8 +77,8 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
                 PrismObject<ConnectorHostType> connectorHostTypePrismObject = (PrismObject) item;
                 Set<ConnectorType> newConnectors;
                 try {
-					newConnectors = modelService.discoverConnectors(connectorHostTypePrismObject.asObjectable(), result);
-                } catch (CommunicationException | SecurityViolationException | SchemaException e) {
+					newConnectors = modelService.discoverConnectors(connectorHostTypePrismObject.asObjectable(), context.getTask(), result);
+                } catch (CommunicationException | SecurityViolationException | SchemaException | ConfigurationException | ObjectNotFoundException e) {
                     throw new ScriptExecutionException("Couldn't discover connectors from " + connectorHostTypePrismObject, e);
                 }
                 context.println("Discovered " + newConnectors.size() + " new connector(s) from " + connectorHostTypePrismObject);

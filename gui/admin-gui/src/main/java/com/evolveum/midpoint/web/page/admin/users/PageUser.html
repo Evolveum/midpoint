@@ -20,9 +20,12 @@
 <wicket:extend>
 	<div wicket:id="resourcePopup" />
 	<div wicket:id="assignablePopup" />
+	<div wicket:id="assignableOrgPopup" />
 
 	<div wicket:id="confirmDeleteAccountPopup"/>
     <div wicket:id="confirmDeleteAssignmentPopup"/>
+
+    <div wicket:id="assignmentsPreviewPopup" />
 
     <form wicket:id="mainForm" autocomplete="off" class="form-horizontal">
 
@@ -99,7 +102,7 @@
                 <a class="btn btn-default" wicket:id="back"/>
             </span>
             <!-- todo implement previes -->
-            <!--<a class="btn btn-success">Preview</a>-->
+            <a class="btn btn-info" wicket:id="recomputeAssignments" />
             <a class="btn btn-primary" wicket:id="save"/>
             <a class="btn btn-danger" wicket:id="abort"/>
         </div>

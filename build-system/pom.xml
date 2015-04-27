@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -148,12 +148,7 @@
             </dependency>
             <dependency>
 				<groupId>org.codehaus.groovy</groupId>
-				<artifactId>groovy</artifactId>
-				<version>${groovy.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.codehaus.groovy</groupId>
-				<artifactId>groovy-jsr223</artifactId>
+				<artifactId>groovy-all</artifactId>
 				<version>${groovy.version}</version>
 			</dependency>
 			<dependency>
@@ -220,7 +215,7 @@
             <dependency>
                 <groupId>commons-codec</groupId>
                 <artifactId>commons-codec</artifactId>
-                <version>1.5</version>
+                <version>1.10</version>
             </dependency>
             <dependency>
                 <groupId>commons-collections</groupId>
@@ -360,6 +355,11 @@
 	  			<groupId>org.apache.cxf</groupId>
 				<artifactId>cxf-rt-frontend-jaxrs</artifactId>
 				<version>${cxf.version}</version>
+			</dependency>
+			<dependency>
+			   <groupId>org.apache.cxf</groupId>
+			   <artifactId>cxf-rt-rs-client</artifactId>
+			   <version>${cxf.version}</version>
 			</dependency>
 			<dependency>
 			   <groupId>org.apache.cxf</groupId>
@@ -606,6 +606,23 @@
                         <groupId>com.fasterxml.jackson.core</groupId>
                         <artifactId>jackson-annotations</artifactId>
                     </exclusion>
+                    <!-- use in midPoint 3.2
+                    <exclusion>
+                        <groupId>org.apache.lucene</groupId>
+                        <artifactId>lucene-core</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.lucene</groupId>
+                        <artifactId>lucene-analyzers-common</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.lucene</groupId>
+                        <artifactId>lucene-queryparser</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>jfree</groupId>
+                        <artifactId>jfreechart</artifactId>
+                    </exclusion> -->
                 </exclusions>
             </dependency>
 
@@ -873,6 +890,23 @@
 				          </execution>
 				        </executions>
 				      </plugin>   -->
+                    <plugin>
+                        <groupId>pl.project13.maven</groupId>
+                        <artifactId>git-commit-id-plugin</artifactId>
+                        <version>2.1.11</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>revision</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-shade-plugin</artifactId>
+                        <version>2.3</version>
+                    </plugin>
                 </plugins>
             </build>
             <reporting>

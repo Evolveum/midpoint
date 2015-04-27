@@ -56,7 +56,7 @@ using an Identity Connector Framework connector.
 		<icfc:configurationProperties
 					xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csvfile/com.evolveum.polygon.csvfile.CSVFileConnector">
 
-				<icfccsvfile:filePath>/var/tmp/midpoint-flatfile.csv</icfccsvfile:filePath>
+				<icfccsvfile:filePath>C:/csv/midpoint-flatfile.csv</icfccsvfile:filePath>
 				<icfccsvfile:encoding>utf-8</icfccsvfile:encoding>
 				<icfccsvfile:valueQualifier>"</icfccsvfile:valueQualifier>
 				<icfccsvfile:fieldDelimiter>,</icfccsvfile:fieldDelimiter>

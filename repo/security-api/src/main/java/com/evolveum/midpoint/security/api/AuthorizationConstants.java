@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,8 +36,11 @@ public class AuthorizationConstants {
 	public static final QName AUTZ_ALL_QNAME = new QName(NS_AUTHORIZATION, "all");
 	public static final String AUTZ_ALL_URL = QNameUtil.qNameToUri(AUTZ_ALL_QNAME);
 	
-	public static final QName AUTZ_REST_QNAME = new QName(NS_AUTHORIZATION, "all");
-	public static final String AUTZ_REST_URL = QNameUtil.qNameToUri(AUTZ_REST_QNAME);
+	public static final QName AUTZ_REST_ALL_QNAME = new QName(NS_AUTHORIZATION_REST, "all");
+	public static final String AUTZ_REST_ALL_URL = QNameUtil.qNameToUri(AUTZ_REST_ALL_QNAME);
+	
+	public static final QName AUTZ_WS_ALL_QNAME = new QName(NS_AUTHORIZATION_WS, "all");
+	public static final String AUTZ_WS_ALL_URL = QNameUtil.qNameToUri(AUTZ_WS_ALL_QNAME);
 	
 //	public static final QName AUTZ_DEVEL_QNAME = new QName(NS_AUTHORIZATION, "devel");
 	public static final String AUTZ_NO_ACCESS_URL = NS_AUTHORIZATION + "#noAccess";
@@ -186,6 +189,10 @@ public class AuthorizationConstants {
 	
 	public static final QName AUTZ_UI_MY_PASSWORDS_QNAME = new QName(NS_AUTHORIZATION, "myPasswords");
 	public static final String AUTZ_UI_MY_PASSWORDS_URL = QNameUtil.qNameToUri(AUTZ_UI_MY_PASSWORDS_QNAME);
+	
+	public static final QName AUTZ_UI_MY_QUESTIONS_QNAME = new QName(NS_AUTHORIZATION, "myQuestions");
+	public static final String AUTZ_UI_MY_QUESTIONS_URL = QNameUtil.qNameToUri(AUTZ_UI_MY_QUESTIONS_QNAME);
+	
 	
 	public static final QName AUTZ_UI_HOME_ALL_QNAME = new QName(NS_AUTHORIZATION, "home");
 	public static final String AUTZ_UI_HOME_ALL_URL = QNameUtil.qNameToUri(AUTZ_UI_HOME_ALL_QNAME);

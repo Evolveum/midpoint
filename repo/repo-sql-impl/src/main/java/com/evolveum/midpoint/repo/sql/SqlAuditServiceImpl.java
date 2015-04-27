@@ -17,10 +17,14 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventRecord;
+import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
+import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
 import com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
@@ -28,6 +32,7 @@ import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -47,12 +52,15 @@ import org.hibernate.transform.RootEntityResultTransformer;
 import org.hibernate.transform.Transformers;
 
 import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * @author lazyman
@@ -103,9 +111,23 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         try {
             session = beginTransaction();
             Query q = session.createQuery(query);
-            for (String paramName : params.keySet()){
-            	q.setParameter(paramName, params.get(paramName));
+            Set<Entry<String, Object>> paramSet = params.entrySet();
+            for (Entry<String, Object> p : paramSet){
+            	if (p.getValue() == null){
+            		q.setParameter(p.getKey(), null);
+            		continue;
+            	}
+            	if (XMLGregorianCalendar.class.isAssignableFrom(p.getValue().getClass())){
+            		q.setParameter(p.getKey(), MiscUtil.asDate((XMLGregorianCalendar) p.getValue()));
+            	} else if (p.getValue() instanceof AuditEventType){
+            		q.setParameter(p.getKey(), RAuditEventType.toRepo((AuditEventType) p.getValue()));
+            	} else if (p.getValue() instanceof AuditEventStage){
+            		q.setParameter(p.getKey(), RAuditEventStage.toRepo((AuditEventStage) p.getValue()));
+            	} else {
+            		q.setParameter(p.getKey(), p.getValue());
+            	}
             }
+          
 //            q.setResultTransformer(Transformers.aliasToBean(RAuditEventRecord.class));
             List resultList = q.list();
             

@@ -25,7 +25,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismContainerValue<V>> implements PrismContainerable<V> {
+public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismContainerValue<V>,PrismContainerDefinition<V>> implements PrismContainerable<V> {
 
 	public ContainerDelta(PrismContainerDefinition itemDefinition, PrismContext prismContext) {
 		super(itemDefinition, prismContext);
@@ -74,7 +74,7 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 	}
     
     @Override
-	public void setDefinition(ItemDefinition definition) {
+	public void setDefinition(PrismContainerDefinition<V> definition) {
     	if (!(definition instanceof PrismContainerDefinition)) {
 			throw new IllegalArgumentException("Cannot apply "+definition+" to container delta");
 		}
@@ -86,7 +86,7 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 	}
 
 	@Override
-	public void applyDefinition(ItemDefinition definition) throws SchemaException {
+	public void applyDefinition(PrismContainerDefinition<V> definition) throws SchemaException {
 		if (!(definition instanceof PrismContainerDefinition)) {
 			throw new IllegalArgumentException("Cannot apply definition "+definition+" to container delta "+this);
 		}
@@ -136,12 +136,12 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 	}
 
 	@Override
-	public ItemDelta<?> getSubDelta(ItemPath path) {
+	public ItemDelta<?,?> getSubDelta(ItemPath path) {
 		if (path.isEmpty()) {
 			return this;
 		}
 		ItemDefinition itemDefinition = getDefinition().findItemDefinition(path);
-		ItemDelta<?> itemDelta = itemDefinition.createEmptyDelta(getPath().subPath(path));
+		ItemDelta<?,?> itemDelta = itemDefinition.createEmptyDelta(getPath().subPath(path));
 		itemDelta.addValuesToAdd(findItemValues(path, getValuesToAdd()));
 		itemDelta.addValuesToDelete(findItemValues(path, getValuesToDelete()));
 		itemDelta.setValuesToReplace(findItemValues(path, getValuesToReplace()));
@@ -157,7 +157,7 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 		}
 		Collection<PrismValue> subValues = new ArrayList<PrismValue>();
 		for (PrismContainerValue<V> cvalue: cvalues) {
-			Item<?> item = cvalue.findItem(path);
+			Item<?,?> item = cvalue.findItem(path);
 			if (item != null) {
 				subValues.addAll(item.getValues());
 			}
@@ -189,7 +189,7 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 					if (container != null) {
 						PrismContainerValue<Containerable> containerCVal = container.findValue(id);
 						if (containerCVal != null) {
-							for (Item<?> containerItem: containerCVal.getItems()) {
+							for (Item<?,?> containerItem: containerCVal.getItems()) {
 								deltaCVal.add(containerItem.clone());
 							}
 							continue;

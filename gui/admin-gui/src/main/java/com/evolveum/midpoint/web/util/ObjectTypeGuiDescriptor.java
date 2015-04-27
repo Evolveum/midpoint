@@ -32,7 +32,7 @@ public enum ObjectTypeGuiDescriptor {
 
     GENERIC_OBJECT(ObjectTypes.GENERIC_OBJECT, "ObjectTypeGuiDescriptor.genericObject", "silk-page_white_code"),
 
-    RESOURCE(ObjectTypes.RESOURCE, "ObjectTypeGuiDescriptor.resource", "silk-server"),
+    RESOURCE(ObjectTypes.RESOURCE, "ObjectTypeGuiDescriptor.resource", "silk-drive"),
 
     USER(ObjectTypes.USER, "ObjectTypeGuiDescriptor.user", "silk-user"),
 
@@ -46,7 +46,7 @@ public enum ObjectTypeGuiDescriptor {
 
     OBJECT(ObjectTypes.OBJECT, "ObjectTypeGuiDescriptor.object", "silk-page_white"),
 
-    ROLE(ObjectTypes.ROLE, "ObjectTypeGuiDescriptor.role", "silk-medal_gold_3"),
+    ROLE(ObjectTypes.ROLE, "ObjectTypeGuiDescriptor.role", "silk-user_suit"),
 
     VALUE_POLICY(ObjectTypes.PASSWORD_POLICY, "ObjectTypeGuiDescriptor.valuePolicy", "silk-lock"),
 
@@ -64,7 +64,9 @@ public enum ObjectTypeGuiDescriptor {
 
     SECURITY_POLICY(ObjectTypes.SECURITY_POLICY, "ObjectTypeGuiDescriptor.securityPolicy", ""),
 
-    USER_ORG_MANAGER(SchemaConstants.ORG_MANAGER, "ObjectTypeGuiDescriptor.orgManager", "silk-user_red");
+    USER_ORG_MANAGER(SchemaConstants.ORG_MANAGER, "ObjectTypeGuiDescriptor.orgManager", "silk-user_red"),
+
+    LOOKUP_TABLE(ObjectTypes.LOOKUP_TABLE, "ObjectTypeGuiDescriptor.lookupTable", "");
 
     public static final String ERROR_ICON = "silk-error";
     public static final String ERROR_LOCALIZATION_KEY = "ObjectTypeGuiDescriptor.unknown";

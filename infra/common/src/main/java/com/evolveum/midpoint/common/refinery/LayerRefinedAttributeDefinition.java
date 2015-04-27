@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
@@ -39,30 +41,30 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
  * @author semancik
  *
  */
-public class LayerRefinedAttributeDefinition extends RefinedAttributeDefinition {
+public class LayerRefinedAttributeDefinition<T> extends RefinedAttributeDefinition<T> {
 	
-	private RefinedAttributeDefinition refinedAttributeDefinition;
+	private RefinedAttributeDefinition<T> refinedAttributeDefinition;
 	private LayerType layer;
 	private Boolean overrideCanRead = null;
 	private Boolean overrideCanAdd = null;
 	private Boolean overrideCanModify = null;
 
-	private LayerRefinedAttributeDefinition(RefinedAttributeDefinition refinedAttributeDefinition, LayerType layer) {
+	private LayerRefinedAttributeDefinition(RefinedAttributeDefinition<T> refinedAttributeDefinition, LayerType layer) {
 		super(refinedAttributeDefinition, refinedAttributeDefinition.getPrismContext());
 		this.refinedAttributeDefinition = refinedAttributeDefinition;
 		this.layer = layer;
 	}
 
-	static LayerRefinedAttributeDefinition wrap(RefinedAttributeDefinition rAttrDef, LayerType layer) {
+	static <T> LayerRefinedAttributeDefinition<T> wrap(RefinedAttributeDefinition<T> rAttrDef, LayerType layer) {
 		if (rAttrDef == null) {
 			return null;
 		}
-		return new LayerRefinedAttributeDefinition(rAttrDef, layer);
+		return new LayerRefinedAttributeDefinition<T>(rAttrDef, layer);
 	}
 	
-	static List<LayerRefinedAttributeDefinition> wrapCollection(
+	static List<LayerRefinedAttributeDefinition<?>> wrapCollection(
 			Collection<? extends ItemDefinition> defs, LayerType layer) {
-		List outs = new ArrayList<LayerRefinedAttributeDefinition>(defs.size());
+		List outs = new ArrayList<LayerRefinedAttributeDefinition<?>>(defs.size());
 		for (ItemDefinition itemDef: defs) {
             if (itemDef instanceof LayerRefinedAttributeDefinition) {
                 outs.add(itemDef);
@@ -80,12 +82,12 @@ public class LayerRefinedAttributeDefinition extends RefinedAttributeDefinition 
 	}
 
 	@Override
-	public ResourceAttribute instantiate() {
+	public ResourceAttribute<T> instantiate() {
 		return refinedAttributeDefinition.instantiate();
 	}
 
 	@Override
-	public ResourceAttribute instantiate(QName name) {
+	public ResourceAttribute<T> instantiate(QName name) {
 		return refinedAttributeDefinition.instantiate(name);
 	}
 
@@ -253,7 +255,7 @@ public class LayerRefinedAttributeDefinition extends RefinedAttributeDefinition 
 	}
 
 	@Override
-	public PropertyDelta createEmptyDelta(ItemPath path) {
+	public PropertyDelta<T> createEmptyDelta(ItemPath path) {
 		return refinedAttributeDefinition.createEmptyDelta(path);
 	}
 
@@ -328,17 +330,17 @@ public class LayerRefinedAttributeDefinition extends RefinedAttributeDefinition 
 	}
 
 	@Override
-	public Class getTypeClass() {
+	public Class<T> getTypeClass() {
 		return refinedAttributeDefinition.getTypeClass();
 	}
 
 	@Override
-	public ResourceAttributeDefinition getAttributeDefinition() {
+	public ResourceAttributeDefinition<T> getAttributeDefinition() {
 		return refinedAttributeDefinition.getAttributeDefinition();
 	}
 
 	@Override
-	public void setAttributeDefinition(ResourceAttributeDefinition attributeDefinition) {
+	public void setAttributeDefinition(ResourceAttributeDefinition<T> attributeDefinition) {
 		refinedAttributeDefinition.setAttributeDefinition(attributeDefinition);
 	}
 
@@ -348,12 +350,12 @@ public class LayerRefinedAttributeDefinition extends RefinedAttributeDefinition 
 	}
 
 	@Override
-	public boolean isValidFor(QName elementQName, Class<? extends ItemDefinition> clazz) {
+	public boolean isValidFor(QName elementQName, Class clazz) {
 		return isValidFor(elementQName, clazz, false);
 	}
 
 	@Override
-	public boolean isValidFor(QName elementQName, Class<? extends ItemDefinition> clazz, boolean caseInsensitive) {
+	public boolean isValidFor(QName elementQName, Class clazz, boolean caseInsensitive) {
 		return refinedAttributeDefinition.isValidFor(elementQName, clazz, caseInsensitive);
 	}
 
@@ -450,7 +452,7 @@ public class LayerRefinedAttributeDefinition extends RefinedAttributeDefinition 
 	}
 
 	@Override
-	public Object[] getAllowedValues() {
+	public Collection<? extends DisplayableValue<T>> getAllowedValues() {
 		return refinedAttributeDefinition.getAllowedValues();
 	}
 

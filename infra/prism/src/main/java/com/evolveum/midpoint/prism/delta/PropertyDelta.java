@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,34 +51,34 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author Radovan Semancik
  * @see ObjectDelta
  */
-public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValue<T>> {
+public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValue<T>,PrismPropertyDefinition<T>> {
 
-    public PropertyDelta(PrismPropertyDefinition propertyDefinition, PrismContext prismContext) {
+    public PropertyDelta(PrismPropertyDefinition<T> propertyDefinition, PrismContext prismContext) {
         super(propertyDefinition, prismContext);
     }
     
-    public PropertyDelta(QName name, PrismPropertyDefinition propertyDefinition, PrismContext prismContext) {
+    public PropertyDelta(QName name, PrismPropertyDefinition<T> propertyDefinition, PrismContext prismContext) {
     	super(name, propertyDefinition, prismContext);
     }
 
-    public PropertyDelta(ItemPath parentPath, QName name, PrismPropertyDefinition propertyDefinition, PrismContext prismContext) {
+    public PropertyDelta(ItemPath parentPath, QName name, PrismPropertyDefinition<T> propertyDefinition, PrismContext prismContext) {
     	super(parentPath, name, propertyDefinition, prismContext);
     }
 
-    public PropertyDelta(ItemPath propertyPath, PrismPropertyDefinition propertyDefinition, PrismContext prismContext) {
+    public PropertyDelta(ItemPath propertyPath, PrismPropertyDefinition<T> propertyDefinition, PrismContext prismContext) {
     	super(propertyPath, propertyDefinition, prismContext);
     }
     
-    public PrismPropertyDefinition getPropertyDefinition() {
-		return (PrismPropertyDefinition) super.getDefinition();
+    public PrismPropertyDefinition<T> getPropertyDefinition() {
+		return super.getDefinition();
 	}
 
-	void setPropertyDefinition(PrismPropertyDefinition propertyDefinition) {
+	void setPropertyDefinition(PrismPropertyDefinition<T> propertyDefinition) {
 		super.setDefinition(propertyDefinition);
 	}
 	
     @Override
-	public void setDefinition(ItemDefinition definition) {
+	public void setDefinition(PrismPropertyDefinition<T> definition) {
     	if (!(definition instanceof PrismPropertyDefinition)) {
 			throw new IllegalArgumentException("Cannot apply "+definition+" to property delta");
 		}
@@ -86,7 +86,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
 	}
 
 	@Override
-	public void applyDefinition(ItemDefinition definition) throws SchemaException {
+	public void applyDefinition(PrismPropertyDefinition<T> definition) throws SchemaException {
     	if (!(definition instanceof PrismPropertyDefinition)) {
     		throw new IllegalArgumentException("Cannot apply "+definition+" to a property delta "+this);
     	}
@@ -370,7 +370,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     	return modifications;
     }
 
-	public static PropertyDelta findPropertyDelta(Collection<? extends ItemDelta> modifications, ItemPath propertyPath) {
+	public static <T> PropertyDelta<T> findPropertyDelta(Collection<? extends ItemDelta> modifications, ItemPath propertyPath) {
     	for (ItemDelta delta: modifications) {
     		if (delta instanceof PropertyDelta && delta.getPath().equivalent(propertyPath)) {
     			return (PropertyDelta) delta;
@@ -379,7 +379,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     	return null;
     }
     
-    public static PropertyDelta findPropertyDelta(Collection<? extends ItemDelta> modifications, QName propertyName) {
+    public static <T> PropertyDelta<T> findPropertyDelta(Collection<? extends ItemDelta> modifications, QName propertyName) {
     	for (ItemDelta delta: modifications) {
     		if (delta instanceof PropertyDelta && delta.getParentPath().isEmpty() &&
     				QNameUtil.match(delta.getElementName(),propertyName)) {

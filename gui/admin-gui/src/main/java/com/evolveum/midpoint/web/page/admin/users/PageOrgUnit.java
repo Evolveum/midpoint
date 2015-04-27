@@ -48,6 +48,7 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -463,7 +464,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 
             @Override
             protected void populateItem(ListItem<PropertyWrapper> item) {
-                PrismPropertyPanel propertyPanel = new PrismPropertyPanel(ID_EXTENSION_PROPERTY, item.getModel(), form);
+                PrismPropertyPanel propertyPanel = new PrismPropertyPanel(ID_EXTENSION_PROPERTY, item.getModel(), form, PageOrgUnit.this);
                 propertyPanel.get("labelContainer:label").add(new AttributeAppender("style", "font-weight:bold;"));
                 propertyPanel.get("labelContainer").add(new AttributeModifier("class", ID_LABEL_SIZE + " control-label"));
                 item.add(propertyPanel);

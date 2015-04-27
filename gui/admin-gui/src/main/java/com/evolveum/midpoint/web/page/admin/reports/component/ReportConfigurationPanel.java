@@ -72,30 +72,11 @@ public class ReportConfigurationPanel extends SimplePanel<ReportDto> {
                 createStringResource("ObjectType.description"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         add(description);
 
-        CheckBox searchOnResourceCheckbox = new CheckBox(ID_SEARCH_ON_RESOURCE, new PropertyModel<Boolean>(getModel(), ID_SEARCH_ON_RESOURCE));
-        add(searchOnResourceCheckbox);
-        
         IModel choices = WebMiscUtil.createReadonlyModelFromEnum(ExportType.class);
         IChoiceRenderer renderer = new EnumChoiceRenderer();
-//        ReportDto dto = new ReportDto();
-//        dto.setExportType(getModel().getObject().asObjectable().getExport());
         DropDownFormGroup exportType = new DropDownFormGroup(ID_EXPORT_TYPE, new
                 PropertyModel<ExportType>(getModel(), ReportDto.F_EXPORT_TYPE), choices, renderer,
                 createStringResource("ReportType.export"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         add(exportType);
-//
-//        //todo useHibernateSession and orientation
-//
-//        IModel<ObjectWrapper> wrapper = new LoadableModel<ObjectWrapper>(false) {
-//
-//            @Override
-//            protected ObjectWrapper load() {
-//                PrismObject<ReportType> report = getModel().getObject().getObject();
-//
-//                return new ObjectWrapper(null, null, report, null, ContainerStatus.MODIFYING);
-//            }
-//        };
-//        PrismObjectPanel properties = new PrismObjectPanel(ID_PROPERTIES, wrapper, null, null);
-//        add(properties);
     }
 }

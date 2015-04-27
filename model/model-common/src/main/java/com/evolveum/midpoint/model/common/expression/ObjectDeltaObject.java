@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PartiallyResolvedItem;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -41,32 +42,32 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * @author Radovan Semancik
  *
  */
-public class ObjectDeltaObject<T extends ObjectType> extends ItemDeltaItem<PrismContainerValue<T>> implements DebugDumpable {
+public class ObjectDeltaObject<O extends ObjectType> extends ItemDeltaItem<PrismContainerValue<O>,PrismObjectDefinition<O>> implements DebugDumpable {
 	
-	private PrismObject<T> oldObject;
-	private ObjectDelta<T> delta;
-	private PrismObject<T> newObject;
+	private PrismObject<O> oldObject;
+	private ObjectDelta<O> delta;
+	private PrismObject<O> newObject;
 	
-	public ObjectDeltaObject(PrismObject<T> oldObject, ObjectDelta<T> delta, PrismObject<T> newObject) {
+	public ObjectDeltaObject(PrismObject<O> oldObject, ObjectDelta<O> delta, PrismObject<O> newObject) {
 		super();
 		this.oldObject = oldObject;
 		this.delta = delta;
 		this.newObject = newObject;
 	}
 
-	public PrismObject<T> getOldObject() {
+	public PrismObject<O> getOldObject() {
 		return oldObject;
 	}
 		
-	public ObjectDelta<T> getObjectDelta() {
+	public ObjectDelta<O> getObjectDelta() {
 		return delta;
 	}
 		
-	public PrismObject<T> getNewObject() {
+	public PrismObject<O> getNewObject() {
 		return newObject;
 	}
 
-	public PrismObject<T> getAnyObject() {
+	public PrismObject<O> getAnyObject() {
 		if (newObject != null) {
 			return newObject;
 		}
@@ -74,12 +75,12 @@ public class ObjectDeltaObject<T extends ObjectType> extends ItemDeltaItem<Prism
 	}
 	
 	@Override
-	public ItemDelta<PrismContainerValue<T>> getDelta() {
+	public ItemDelta<PrismContainerValue<O>,PrismObjectDefinition<O>> getDelta() {
 		throw new UnsupportedOperationException("You probably wanted to call getObjectDelta()");
 	}
 
 	@Override
-	public void setDelta(ItemDelta<PrismContainerValue<T>> delta) {
+	public void setDelta(ItemDelta<PrismContainerValue<O>,PrismObjectDefinition<O>> delta) {
 		throw new UnsupportedOperationException("You probably wanted to call setObjectDelta()");
 	}
 
@@ -89,8 +90,8 @@ public class ObjectDeltaObject<T extends ObjectType> extends ItemDeltaItem<Prism
 	}
 
 	@Override
-	public ItemDefinition getDefinition() {
-		PrismObject<T> anyObject = getAnyObject();
+	public PrismObjectDefinition<O> getDefinition() {
+		PrismObject<O> anyObject = getAnyObject();
 		if (anyObject != null) {
 			return anyObject.getDefinition();
 		}
@@ -101,19 +102,19 @@ public class ObjectDeltaObject<T extends ObjectType> extends ItemDeltaItem<Prism
 	}
 
 	@Override
-	public <V extends PrismValue> ItemDeltaItem<V> findIdi(ItemPath path) {
-		Item<V> subItemOld = null;
+	public <IV extends PrismValue,ID extends ItemDefinition> ItemDeltaItem<IV,ID> findIdi(ItemPath path) {
+		Item<IV,ID> subItemOld = null;
 		ItemPath subResidualPath = null;
 		if (oldObject != null) {
-			PartiallyResolvedItem<V> partialOld = oldObject.findPartial(path);
+			PartiallyResolvedItem<IV,ID> partialOld = oldObject.findPartial(path);
 			if (partialOld != null) {
 				subItemOld = partialOld.getItem();
 				subResidualPath = partialOld.getResidualPath();
 			}
 		}
-		Item<V> subItemNew = null;
+		Item<IV,ID> subItemNew = null;
 		if (newObject != null) {
-			PartiallyResolvedItem<V> partialNew = newObject.findPartial(path);
+			PartiallyResolvedItem<IV,ID> partialNew = newObject.findPartial(path);
 			if (partialNew != null) {
 				subItemNew = partialNew.getItem();
 				if (subResidualPath == null) {
@@ -121,14 +122,14 @@ public class ObjectDeltaObject<T extends ObjectType> extends ItemDeltaItem<Prism
 				}
 			}
 		}
-		ItemDelta<V> itemDelta = null;
-		Collection<? extends ItemDelta<?>> subSubItemDeltas = null;
+		ItemDelta<IV,ID> itemDelta = null;
+		Collection<? extends ItemDelta<?,?>> subSubItemDeltas = null;
 		if (delta != null) {
 			if (delta.getChangeType() == ChangeType.ADD) {
-				PrismObject<T> objectToAdd = delta.getObjectToAdd();
-	            PartiallyResolvedItem<V> partialValue = objectToAdd.findPartial(path);
+				PrismObject<O> objectToAdd = delta.getObjectToAdd();
+	            PartiallyResolvedItem<IV,ID> partialValue = objectToAdd.findPartial(path);
 	            if (partialValue != null && partialValue.getItem() != null) {
-		            Item<V> item = partialValue.getItem();
+		            Item<IV,ID> item = partialValue.getItem();
 		            itemDelta = item.createDelta();
 		            itemDelta.addValuesToAdd(item.getClonedValues());
 	            } else {
@@ -137,9 +138,9 @@ public class ObjectDeltaObject<T extends ObjectType> extends ItemDeltaItem<Prism
 			} else if (delta.getChangeType() == ChangeType.DELETE) {
 				if (subItemOld != null) {
 					ItemPath subPath = subItemOld.getPath().remainder(path);
-					PartiallyResolvedItem<V> partialValue = subItemOld.findPartial(subPath);
+					PartiallyResolvedItem<IV,ID> partialValue = subItemOld.findPartial(subPath);
 		            if (partialValue != null && partialValue.getItem() != null) {
-			            Item<V> item = partialValue.getItem();
+			            Item<IV,ID> item = partialValue.getItem();
 			            itemDelta = item.createDelta();
 			            itemDelta.addValuesToDelete(item.getClonedValues());
 		            } else {
@@ -147,13 +148,13 @@ public class ObjectDeltaObject<T extends ObjectType> extends ItemDeltaItem<Prism
 		            }
 				}
 			} else if (delta.getChangeType() == ChangeType.MODIFY) {
-				for (ItemDelta<?> modification: delta.getModifications()) {
+				for (ItemDelta<?,?> modification: delta.getModifications()) {
 	        		CompareResult compareComplex = modification.getPath().compareComplex(path);
 	        		if (compareComplex == CompareResult.EQUIVALENT) {
 	        			if (itemDelta != null) {
 	        				throw new IllegalStateException("Conflicting modification in delta "+delta+": "+itemDelta+" and "+modification);
 	        			}
-	        			itemDelta = (ItemDelta<V>) modification;
+	        			itemDelta = (ItemDelta<IV,ID>) modification;
 	        		} else if (compareComplex == CompareResult.SUPERPATH) {
 	        			if (subSubItemDeltas == null) {
 	        				subSubItemDeltas = new ArrayList<>();
@@ -163,12 +164,12 @@ public class ObjectDeltaObject<T extends ObjectType> extends ItemDeltaItem<Prism
 	        			if (itemDelta != null) {
 	        				throw new IllegalStateException("Conflicting modification in delta "+delta+": "+itemDelta+" and "+modification);
 	        			}
-	        			itemDelta = (ItemDelta<V>) modification.getSubDelta(path);	        			
+	        			itemDelta = (ItemDelta<IV,ID>) modification.getSubDelta(path);	        			
 	        		}
 	        	}
 			}
 		}
-		ItemDeltaItem<V> subIdi = new ItemDeltaItem<V>(subItemOld, itemDelta, subItemNew);
+		ItemDeltaItem<IV,ID> subIdi = new ItemDeltaItem<IV,ID>(subItemOld, itemDelta, subItemNew);
 		subIdi.setSubItemDeltas(subSubItemDeltas);
 		subIdi.setResolvePath(path);
 		subIdi.setResidualPath(subResidualPath);
@@ -200,7 +201,7 @@ public class ObjectDeltaObject<T extends ObjectType> extends ItemDeltaItem<Prism
 		return new ObjectDeltaObject<T>(oldObject, delta, newObject);
 	}
 	
-	public static <T extends ObjectType> ObjectDeltaObject<T> create(PrismObject<T> oldObject, ItemDelta<?>... itemDeltas) throws SchemaException {
+	public static <T extends ObjectType> ObjectDeltaObject<T> create(PrismObject<T> oldObject, ItemDelta<?,?>... itemDeltas) throws SchemaException {
 		ObjectDelta<T> objectDelta = oldObject.createDelta(ChangeType.MODIFY);
 		objectDelta.addModifications(itemDeltas);
 		return create(oldObject, objectDelta);
@@ -269,7 +270,7 @@ public class ObjectDeltaObject<T extends ObjectType> extends ItemDeltaItem<Prism
 		return sb.toString();
 	}
 
-	private void dumpObject(StringBuilder sb, PrismObject<T> object, String label, int indent) {
+	private void dumpObject(StringBuilder sb, PrismObject<O> object, String label, int indent) {
 		sb.append("\n");
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append(label).append(":");

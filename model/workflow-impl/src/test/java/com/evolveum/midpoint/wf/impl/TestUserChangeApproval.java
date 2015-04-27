@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -792,19 +791,21 @@ public class TestUserChangeApproval extends AbstractWfTest {
         assertNotNull("no activationDef", activationDef);
 
         Long assignmentId = jack.getAssignment().get(0).getId();
+        PrismPropertyDefinition<XMLGregorianCalendar> validFromDef = activationDef.findPropertyDefinition(ActivationType.F_VALID_FROM);
         PropertyDelta<XMLGregorianCalendar> validFromDelta = new PropertyDelta<>(
                 new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT),
                         new IdItemPathSegment(assignmentId),
                         new NameItemPathSegment(AssignmentType.F_ACTIVATION),
                         new NameItemPathSegment(ActivationType.F_VALID_FROM)),
-                activationDef.findPropertyDefinition(ActivationType.F_VALID_FROM), prismContext);
+                        validFromDef, prismContext);
         validFromDelta.setValueToReplace(new PrismPropertyValue<>(validFrom));
+        PrismPropertyDefinition<XMLGregorianCalendar> validToDef = activationDef.findPropertyDefinition(ActivationType.F_VALID_TO);
         PropertyDelta<XMLGregorianCalendar> validToDelta = new PropertyDelta<>(
                 new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT),
                         new IdItemPathSegment(assignmentId),
                         new NameItemPathSegment(AssignmentType.F_ACTIVATION),
                         new NameItemPathSegment(ActivationType.F_VALID_TO)),
-                activationDef.findPropertyDefinition(ActivationType.F_VALID_TO), prismContext);
+                        validToDef, prismContext);
         validToDelta.setValueToReplace(new PrismPropertyValue<>(validTo));
 
         ObjectDelta<UserType> userDelta = new ObjectDelta<>(UserType.class, ChangeType.MODIFY, prismContext);

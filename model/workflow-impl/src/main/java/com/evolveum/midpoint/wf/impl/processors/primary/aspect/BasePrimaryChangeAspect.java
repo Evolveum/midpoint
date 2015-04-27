@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.wf.impl.processors.primary.aspect;
 
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -26,24 +27,33 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.impl.processes.ProcessInterfaceFinder;
+import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalProcessInterface;
+import com.evolveum.midpoint.wf.impl.processors.BaseConfigurationHelper;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpJob;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PrimaryChangeProcessorConfigurationType;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessSpecificState;
 
+import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
+import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Map;
 
 /**
  * @author mederly
  */
-public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect {
+public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, BeanNameAware {
 
     private static final Trace LOGGER = TraceManager.getTrace(BasePrimaryChangeAspect.class);
 
+    private String beanName;
+
     @Autowired
+    @Qualifier("cacheRepositoryService")
     protected RepositoryService repositoryService;
 
     @Autowired
@@ -57,6 +67,29 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect {
 
     @Autowired
     protected ProcessInterfaceFinder processInterfaceFinder;
+
+    @Autowired
+    protected BaseConfigurationHelper baseConfigurationHelper;
+
+    @Autowired
+    protected PrismContext prismContext;
+
+    @Autowired
+    protected ItemApprovalProcessInterface itemApprovalProcessInterface;
+
+    @PostConstruct
+    public void init() {
+        changeProcessor.registerChangeAspect(this);
+    }
+
+    @Override
+    public String getBeanName() {
+        return beanName;
+    }
+
+    public void setBeanName(String name) {
+        this.beanName = name;
+    }
 
     @Override
     public List<ObjectDelta<Objectable>> prepareDeltaOut(ProcessEvent event, PcpJob pcpJob, OperationResult result) throws SchemaException {
@@ -76,4 +109,15 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect {
     public PrimaryChangeProcessor getChangeProcessor() {
         return changeProcessor;
     }
+
+    @Override
+    public boolean isEnabledByDefault() {
+        return false;       // overriden in selected aspects
+    }
+
+    @Override
+    public boolean isEnabled(PrimaryChangeProcessorConfigurationType processorConfigurationType) {
+        return primaryChangeAspectHelper.isEnabled(processorConfigurationType, this);
+    }
+
 }

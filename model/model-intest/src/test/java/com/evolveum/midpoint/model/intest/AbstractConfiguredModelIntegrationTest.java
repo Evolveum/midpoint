@@ -29,7 +29,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -72,7 +72,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	public static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
 	public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
 	
-	protected static final String USER_ADMINISTRATOR_FILENAME = COMMON_DIR + "/user-administrator.xml";
+	public static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
 	protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
 	protected static final String USER_ADMINISTRATOR_USERNAME = "administrator";
 		
@@ -104,7 +104,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String RESOURCE_DUMMY_DRINK = "rum";
 	
 	// RED resource has STRONG mappings
-	protected static final String RESOURCE_DUMMY_RED_FILENAME = COMMON_DIR + "/resource-dummy-red.xml";
+	protected static final File RESOURCE_DUMMY_RED_FILE = new File(COMMON_DIR, "resource-dummy-red.xml");
 	protected static final String RESOURCE_DUMMY_RED_OID = "10000000-0000-0000-0000-000000000104";
 	protected static final String RESOURCE_DUMMY_RED_NAME = "red";
 	protected static final String RESOURCE_DUMMY_RED_NAMESPACE = MidPointConstants.NS_RI;
@@ -161,7 +161,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String RESOURCE_DUMMY_FAKE_FILENAME = COMMON_DIR + "/resource-dummy-fake.xml";
 	protected static final String RESOURCE_DUMMY_FAKE_OID = "10000000-0000-0000-0000-00000000000f";
 
-	protected static final String ROLE_SUPERUSER_FILENAME = COMMON_DIR + "/role-superuser.xml";
+	public static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
 	protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
 
 	protected static final File ROLE_PIRATE_FILE = new File(COMMON_DIR, "role-pirate.xml");
@@ -340,6 +340,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	public static final String LOOKUP_LANGUAGES_OID = "70000000-0000-0000-1111-000000000001";
 	public static final String LOOKUP_LANGUAGES_NAME = "Languages";
 	
+	protected static final File SECURITY_POLICY_FILE = new File(COMMON_DIR, "security-policy.xml");
+	protected static final String SECURITY_POLICY_OID = "28bf845a-b107-11e3-85bc-001e8c717e5b";
+	
 	protected static final String NS_PIRACY = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
 	protected static final QName PIRACY_SHIP = new QName(NS_PIRACY, "ship");
 	protected static final QName PIRACY_TALES = new QName(NS_PIRACY, "tales");
@@ -349,6 +352,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final QName PIRACY_FUNERAL_TIMESTAMP = new QName(NS_PIRACY, "funeralTimestamp");
 	protected static final QName PIRACY_SEA_QNAME = new QName(NS_PIRACY, "sea");
 	protected static final QName PIRACY_COLORS = new QName(NS_PIRACY, "colors");
+	protected static final QName PIRACY_MARK = new QName(NS_PIRACY, "mark");
 
     protected static final ItemPath ROLE_EXTENSION_COST_CENTER_PATH = new ItemPath(RoleType.F_EXTENSION, new QName(NS_PIRACY, "costCenter"));
 
@@ -392,8 +396,8 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 		}
 		
 		// Users
-		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
-		repoAddObjectFromFile(ROLE_SUPERUSER_FILENAME, RoleType.class, initResult);
+		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult);
+		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RoleType.class, initResult);
 		login(userAdministrator);
 	}
     	
@@ -403,7 +407,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 
 	@Override
 	protected Task createTask(String operationName) {
-		Task task = taskManager.createTaskInstance(operationName);
+		Task task = super.createTask(operationName);
 		task.setOwner(userAdministrator);
 		return task;
 	}
@@ -515,6 +519,10 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
         assertNotNull("no lastRecomputeTimestamp property", lastRecomputeTimestampProp);
         XMLGregorianCalendar lastRecomputeTimestamp = lastRecomputeTimestampProp.getRealValue();
         assertNotNull("null lastRecomputeTimestamp", lastRecomputeTimestamp);
-        IntegrationTestTools.assertBetween("lastRecomputeTimestamp", startCal, endCal, lastRecomputeTimestamp);
+        TestUtil.assertBetween("lastRecomputeTimestamp", startCal, endCal, lastRecomputeTimestamp);
+	}
+    
+    protected void assertPasswordMetadata(PrismObject<UserType> user, boolean create, XMLGregorianCalendar start, XMLGregorianCalendar end) {
+		assertPasswordMetadata(user, create, start, end, USER_ADMINISTRATOR_OID, SchemaConstants.CHANNEL_GUI_USER_URI);
 	}
 }

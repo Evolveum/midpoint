@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Evolveum
+ * Copyright (c) 2014-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,12 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.impl.lens.Construction;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
-public interface MappingExtractor<V extends PrismValue, F extends FocusType> {
+public interface MappingExtractor<V extends PrismValue, D extends ItemDefinition, F extends FocusType> {
 
-	Collection<Mapping<V>> getMappings(Construction<F> construction);
+	Collection<Mapping<V,D>> getMappings(Construction<F> construction);
 	
 }

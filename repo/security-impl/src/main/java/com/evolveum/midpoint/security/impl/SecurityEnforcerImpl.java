@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 Evolveum
+ * Copyright (c) 2014-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,6 +73,7 @@ import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.AuthorizationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -342,7 +343,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		if (!allow) {
 			String username = getQuotedUsername(principal);
 			LOGGER.error("User {} not authorized for operation {}", username, operationUrl);
-			SecurityViolationException e = new SecurityViolationException("User "+username+" not authorized for operation "
+			AuthorizationException e = new AuthorizationException("User "+username+" not authorized for operation "
 			+operationUrl);
 //			+":\n"+((MidPointPrincipal)principal).debugDump());
 			result.recordFatalError(e.getMessage(), e);
@@ -499,14 +500,14 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		for (ItemPathType itemPathType: itemPaths) {
 			ItemPath itemPath = itemPathType.getItemPath();
 			if (object != null) {
-				Item<?> item = object.findItem(itemPath);
+				Item<?,?> item = object.findItem(itemPath);
 				if (item != null && !item.isEmpty()) {
 					LOGGER.trace("  applicable object item "+itemPath);
 					return true;
 				}
 			}
 			if (delta != null) {
-				ItemDelta<PrismValue> itemDelta = delta.findItemDelta(itemPath);
+				ItemDelta<?,?> itemDelta = delta.findItemDelta(itemPath);
 				if (itemDelta != null && !itemDelta.isEmpty()) {
 					LOGGER.trace("  applicable delta item "+itemPath);
 					return true;

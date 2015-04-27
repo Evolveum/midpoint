@@ -238,7 +238,7 @@ public abstract class TestParseUser {
 		
 		PrismContainer<Containerable> assignmentExtensionContainer = firstAssignmentValue.findContainer(AssignmentType.F_EXTENSION);
 		PrismAsserts.assertDefinition(assignmentExtensionContainer.getDefinition(), AssignmentType.F_EXTENSION, ExtensionType.COMPLEX_TYPE, 0, 1);
-		List<Item<?>> assignmentExtensionItems = assignmentExtensionContainer.getValue().getItems();
+		List<Item<?,?>> assignmentExtensionItems = assignmentExtensionContainer.getValue().getItems();
 		assertNotNull("No assignment extension items", assignmentExtensionItems);
 		assertEquals("Wrong number of assignment extension items", 1, assignmentExtensionItems.size());
 		PrismProperty<String> firstAssignmentExtensionItem = (PrismProperty<String>) assignmentExtensionItems.get(0);

@@ -93,7 +93,7 @@ public class SystemConfigurationDto implements Serializable {
 
     private ObjectViewDto<ValuePolicyType> loadPasswordPolicy(SystemConfigurationType config){
         ValuePolicyType passPolicy = config.getGlobalPasswordPolicy();
-
+        
         if(passPolicy != null){
             passPolicyDto = new ObjectViewDto<>(passPolicy.getOid(), passPolicy.getName().getOrig());
         }else {

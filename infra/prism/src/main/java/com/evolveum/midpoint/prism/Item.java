@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ import java.util.Map;
  *
  * @author Radovan Semancik
  */
-public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpable, Visitable, PathVisitable, Serializable, Revivable {
+public abstract class Item<V extends PrismValue, D extends ItemDefinition> implements Itemable, DebugDumpable, Visitable, PathVisitable, Serializable, Revivable {
 
     private static final long serialVersionUID = 510000191615288733L;
 
@@ -57,7 +57,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpa
 	// It may not work perfectly, but basic things should work
     protected QName elementName;
     protected PrismValue parent;
-    protected ItemDefinition definition;
+    protected D definition;
     private List<V> values = new ArrayList<V>();
     private transient Map<String,Object> userData = new HashMap<>();;
     
@@ -85,7 +85,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpa
      * The constructors should be used only occasionally (if used at all).
      * Use the factory methods in the ResourceObjectDefintion instead.
      */
-    Item(QName elementName, ItemDefinition definition, PrismContext prismContext) {
+    Item(QName elementName, D definition, PrismContext prismContext) {
         super();
         this.elementName = elementName;
         this.definition = definition;
@@ -100,7 +100,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpa
      *
      * @return applicable property definition
      */
-    public ItemDefinition getDefinition() {
+    public D getDefinition() {
         return definition;
     }
     
@@ -145,7 +145,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpa
      *
      * @param definition the definition to set
      */
-    public void setDefinition(ItemDefinition definition) {
+    public void setDefinition(D definition) {
     	checkDefinition(definition);
         this.definition = definition;
     }
@@ -433,7 +433,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpa
     /**
      * Merge all the values of other item to this item.
      */
-    public void merge(Item<V> otherItem) throws SchemaException {
+    public void merge(Item<V,D> otherItem) throws SchemaException {
     	for (V otherValue: otherItem.getValues()) {
     		if (!contains(otherValue)) {
     			add((V) otherValue.clone());
@@ -443,19 +443,19 @@ public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpa
 
     public abstract Object find(ItemPath path);
     
-    public abstract <X extends PrismValue> PartiallyResolvedItem<X> findPartial(ItemPath path);
+    public abstract <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path);
     
-    public Collection<? extends ItemDelta> diff(Item<V> other) {
+    public Collection<? extends ItemDelta> diff(Item<V,D> other) {
     	return diff(other, true, false);
     }
         
-    public Collection<? extends ItemDelta> diff(Item<V> other, boolean ignoreMetadata, boolean isLiteral) {
+    public Collection<? extends ItemDelta> diff(Item<V,D> other, boolean ignoreMetadata, boolean isLiteral) {
     	Collection<? extends ItemDelta> itemDeltas = new ArrayList<ItemDelta>();
 		diffInternal(other, itemDeltas, ignoreMetadata, isLiteral);
 		return itemDeltas;
     }
         
-    protected void diffInternal(Item<V> other, Collection<? extends ItemDelta> deltas, 
+    protected void diffInternal(Item<V,D> other, Collection<? extends ItemDelta> deltas, 
     		boolean ignoreMetadata, boolean isLiteral) {
     	ItemDelta delta = createDelta();
     	if (other == null) {
@@ -508,7 +508,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpa
     	}
     }
     
-	protected ItemDelta<V> fixupDelta(ItemDelta<V> delta, Item<V> other,
+	protected ItemDelta<V,D> fixupDelta(ItemDelta<V,D> delta, Item<V,D> other,
 			boolean ignoreMetadata) {
 		return delta;
 	}
@@ -517,9 +517,9 @@ public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpa
      * Creates specific subclass of ItemDelta appropriate for type of item that this definition
      * represents (e.g. PropertyDelta, ContainerDelta, ...)
      */
-	public abstract ItemDelta<V> createDelta();
+	public abstract ItemDelta<V,D> createDelta();
 	
-	public abstract ItemDelta<V> createDelta(ItemPath path);
+	public abstract ItemDelta<V,D> createDelta(ItemPath path);
 
 	@Override
 	public void accept(Visitor visitor) {
@@ -540,11 +540,11 @@ public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpa
 		}
 	}
 
-	public void applyDefinition(ItemDefinition definition) throws SchemaException {
+	public void applyDefinition(D definition) throws SchemaException {
 		applyDefinition(definition, true);
 	}
 	
-	public void applyDefinition(ItemDefinition definition, boolean force) throws SchemaException {
+	public void applyDefinition(D definition, boolean force) throws SchemaException {
 		if (definition != null) {
 			checkDefinition(definition);
 		}
@@ -582,6 +582,10 @@ public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpa
         // another item
         clone.parent = null;
         clone.userData = MiscUtil.cloneMap(this.userData);
+    }
+    
+    protected void propagateDeepCloneDefinition(boolean ultraDeep, D clonedDefinition) {
+    	// nothing to do by default
     }
     
 	public static <T extends Item> Collection<T> cloneCollection(Collection<T> items) {
@@ -669,7 +673,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpa
     	}
     }
     
-	protected abstract void checkDefinition(ItemDefinition def);
+	protected abstract void checkDefinition(D def);
 	
     public void assertDefinitions() throws SchemaException {
     	assertDefinitions("");
@@ -732,7 +736,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpa
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		Item<?> other = (Item<?>) obj;
+		Item<?,?> other = (Item<?,?>) obj;
 		if (elementName == null) {
 			if (other.elementName != null)
 				return false;
@@ -787,7 +791,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpa
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		Item<?> other = (Item<?>) obj;
+		Item<?,?> other = (Item<?,?>) obj;
 		if (definition == null) {
 			if (other.definition != null)
 				return false;
@@ -814,7 +818,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpa
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		Item<?> other = (Item<?>) obj;
+		Item<?,?> other = (Item<?,?>) obj;
 		if (definition == null) {
 			if (other.definition != null)
 				return false;

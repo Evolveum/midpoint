@@ -193,146 +193,19 @@
         <xsd:annotation>
             <xsd:documentation>
                 <p>
-                Common supertype for all identity objects. Defines basic properties
-                that each object must have to live in our system (identifier, name).
+	                Common supertype for all identity objects. Defines basic properties
+	                that each object must have to live in our system (identifier, name).
                 </p>
-
                 <p>
-                Objects consists of identifier and name (see definition below)
-                and a set of properties represented as XML elements in the
-                object's body. The properties are represented as first-level
-                XML elements (tags) of the object XML representation and may
-                be also contained in other tags (e.g. extension, attributes)
-                that are marked by a propertyContainer annotation. The QName
-                (namespace and local name) of the element holding the property
-                is considered to be a property name.
+                	All objects are identified by ﻿OID﻿﻿. The OID is an immutable identifier
+                	(usually UUID). Except the OID all the objects have human-readable name.
+                	The name is usually unique for each object type, but this is not a
+                	strict requirement.
                 </p>
-
-                <p>
-                Single-value properties must appear as a none or one instance
-                of the XML element holding the value.
-                </p>
-
-                <p>
-                Multi-value properties must appear as none or more instances of
-                the same XML element. Multi-valued properties are regarded as
-                unordered sets. Duplicate values are allowed, but duplicates
-                should not be preserved by the implementations. The implementations
-                should reduce duplicate values to a single value if it is
-                possible and efficient.
-                </p>
-
-                <p>
-                If an element for a specific property does not appear in the
-                object it means that the property value is undefined (property
-                does not exists). This is a different state as compared to
-                passing an empty XML element. Empty XML element means that the
-                property exists, but has an empty (null) value. Implementations
-                must be able to handle undefined (non-existent) properties, but
-                may NOT be able to handle empty (null) values. The use of empty
-                (null) values is DISCOURADGED.
-                </p>
-
-                <p>
-                It is not mandated by this specification how to pass ordered
-                lists and multi-value properties with duplicates. However it is
-                recommended to use single value properties with appropriate complex
-                XML data structures to hold such data.
-                </p>
-
-                <p>
-                The following XML snippet is an example of the object (omitting
-                namespace definitions, but assuming default namespace to be the
-                target namespace of this schema definition):
-                </p>
-
-                <pre>
-                <![CDATA[
-        <user oid="d3adm3a4" version="42">
-            <name>foobar</name>
-            <extension>
-              <foo:geekName>F00 B4r</foo:geekName>
-              <org:guild>Societus Geekus Europeus</org:guild>
-              <org:guild>Basset User Group</org:guild>
-              <pet:pet><pet:species>dog</pet:species><pet:breed>basset</pet:breed><pet:name>Doggie</pet:name></pet:pet>
-              <pet:pet><pet:species>mouse</pet:species><pet:breed>logitech</pet:breed><pet:name>Mousee</pet:name></pet:pet>
-              <com:shoppingPreferences>
-                  <com:tShirt><com:size>XXL</com:size><com:color>#000000</com:color></com:tShirt>
-                  <com:tie><com:preference>no thanks</com:preference></com:tie>
-              </com:shoppingPreferences>
-            </extension>
-            <fullName>Foo Bar</fullName>
-            <givenName>Foo</givenName>
-            <familyName>Bar</familyName>
-        </user>
-]]></pre>
-                <p>
-                The above example describes an object with identifier "d3adm3a4",
-                name "foobar" and type defined by its top-level element User that
-                corresponds to URI "http://midpoint.evolveum.com/xml/ns/identity/1#User".
-                The object has 7 properties. Three of them are standard
-                properties defined by this schema:
-                </p>
-
-                <p>
-                Standard properties "fullName", "givenName" and "familyName"
-                in default namespace. These are single-valued string properties.
-                </p>
-
-                <p>
-                All the other properties are non-standard "extended" properties,
-                but they are considered equal to the standard attributes. They are
-                quarantined in the &lt;extension&gt; tag only to avoid XSD unique
-                particle attribution (UPA) problems. In the above example the
-                non-standard properties are:
-                </p>
-
-                <p>
-                Property "geekName" in namespace defined by "foo" prefix. This is also
-                single-valued string property.
-                </p>
-
-                <p>
-                Multi-valued non-standard property "guild". It is a string property
-                with multiple values. Multiple values are represented by providing
-                multiple instances of XML elements in the document.
-                Such properties are typically used for roles, groups, etc.
-                </p>
-
-                <p>
-                Complex property "pet". This property is defined by
-                complex XML type, using XML sub-elements to
-                represent structured data. Note that the use of XML attributes
-                is discouraged in the properties, although it might be possible in
-                some cases. This is also multi-valued property.
-                </p>
-
-                <p>
-                Complex property "shoppingPreferences". This property is using
-                complex XML type to form a structure of XML elements to
-                represent data. This is a single-valued property.
-                Note that the sub-elements "tShirt" and "tie" are NOT considered
-                to be properties.
-                </p>
-
-                <p>
-                QName-URI mapping:
-                </p>
-
-                <p>
-                For the purpose of this schema and all components that are using it,
-                URIs and QNames are considered equivalent. This is required by WWW
-                architecture and also helps avoid some drawbacks and bugs in XML-related
-                implementations that usually do not deal QNames well.
-                </p>
-
-                <p>
-                The QNames are mapped to URIs by concatenating namespace URI and a local
-                name. If URI does not end with slash (/) or hash (#) character, slash is
-                concatenated to the URI before adding the local name. The URI-QName
-                mapping is the reverse process.
-                </p>
-
+				<p>
+					Note: object type is fixed, it cannot be changed. The object retains its
+					type from the time it was created to the end of its life.
+				</p>
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -346,40 +219,36 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                        Human-readable, mutable name of the object. It
-                        may also be an identifier (login name, group name).
-                        Should be unique in the respective context of
-                        interpretation. E.g. the name of the UserType subtype
-                        should be unique in the whole system.
-                        The name of the AccountType subtype should be unique in the
-                        scope of resource (target system) that it belongs to.
+	                        Human-readable, mutable name of the object. It
+	                        may also be an identifier (login name, group name).
+	                        It is usually unique in the respective context of
+	                        interpretation. E.g. the name of the UserType subtype
+	                        is usually unique in the whole system.
+	                        The name of the ShadowType subtype is usually unique in the
+	                        scope of resource (target system) that it belongs to.
                         </p>
 
                         <p>
-                        This may not be human-readable in a sense to display
-                        to a common end-user. It is intended to be displayed to
-                        IDM system administrator. Therefore it may contain quite
-                        a "ugly" structures such as LDAP DN or URL.
+	                        The name may not be human-readable in a sense to display
+	                        to a common end-user. It is intended to be displayed to
+	                        IDM system administrator. Therefore it may contain quite
+	                        a "ugly" structures such as LDAP DN or URL.
                         </p>
 
                         <p>
-                        Name is considered to be ordinary property of the object.
-                        Therefore it can be changed by invoking usual modifyObject
-                        operations. However, change of the name may have side
-                        effects (rename process).
+	                        Name is mutable. It is considered to be ordinary property
+	                        of the object. Therefore it can be changed by invoking
+	                        usual modifyObject operations. However, change of the name
+	                        may have side effects (rename process).
                         </p>
 
-                        <p>
-                		Name is mutable. It can change any time. However, a special
-                		handling may be needed in some cases (e.g. "rename" provisioning flow).
-                        </p>
 
                         <p>
-                        Although name is specified as optional by this schema, it
-                        is in fact mandatory for most object types. The reason for
-                        specifying the name as optional is that the name may be
-                        generated by the system instead of supplied by the clients.
-                        However, all objects stored in the repository must have a name.
+	                        Although name is specified as optional by this schema, it
+	                        is in fact mandatory for most object types. The reason for
+	                        specifying the name as optional is that the name may be
+	                        generated by the system instead of supplied by the clients.
+	                        However, all objects stored in the repository must have a name.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -393,7 +262,8 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                        Free-form textual description of the object.
+	                        Free-form textual description of the object. This is meant to
+	                        be displayed in the user interface.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -407,17 +277,17 @@
 				<xsd:annotation>
 					<xsd:documentation>
                         <p>
-						Result of the operation that fetched this instance of the object.
-						It is mostly used to indicate that the object is not complete or
-						there is some problem with the object. This is used instead of
-						exception if the object is part of larger structures (lists as in
-						list/search operations or composite objets). If not present then
-						the "SUCCESS" state is assumed.
+							Result of the operation that fetched this instance of the object.
+							It is mostly used to indicate that the object is not complete or
+							there is some problem with the object. This is used instead of
+							exception if the object is part of larger structures (lists as in
+							list/search operations or composite objets). If not present then
+							the "SUCCESS" state is assumed.
                         </p>
 
                         <p>
-						This field is TRANSIENT. It must only be used in runtime. It should
-						never be stored in the repository.
+							This field is TRANSIENT. It must only be used in runtime. It should
+							never be stored in the repository.
                         </p>
 					</xsd:documentation>
                     <xsd:appinfo>
@@ -430,11 +300,12 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                        Container that provides generic extensibility mechanism.
-                        Almost any extension property can be placed in this container.
-                        The extension is treated exactly the same as other object
-                        properties by the code (storage, modifications, etc), except
-                        that the system may not be able to understand their meaning.
+	                        Extension container that provides generic extensibility mechanism.
+	                        Almost any extension property can be placed in this container.
+	                        This mechanism is used to extend objects with new properties.
+	                        The extension is treated exactly the same as other object
+	                        properties by the code (storage, modifications, etc), except
+	                        that the system may not be able to understand their meaning.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -455,9 +326,9 @@
 	            <xsd:annotation>
 	                <xsd:documentation>
                         <p>
-	                    Set of the orgs (organizational units, projects, teams) that the object relates to.
-	                    This usually means that the object belongs to them but it may have other meanings as well
-	                    (e.g. user manages an organizational unit).
+		                    Set of the orgs (organizational units, projects, teams) that the object relates to.
+		                    This usually means that the object belongs to them but it may have other meanings as well
+		                    (e.g. user manages an organizational unit).
                         </p>
 	                </xsd:documentation>
 	                <xsd:appinfo>
@@ -473,7 +344,7 @@
 	        	<xsd:annotation>
 	        		<xsd:documentation>
                         <p>
-	        			Meta-data about object creation, modification, etc.
+	        				Meta-data about object creation, modification, etc.
                         </p>
 	        		</xsd:documentation>
                     <xsd:appinfo>
@@ -486,9 +357,9 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                        Reference to the tenant to which this object belongs. It is a computed value set automatically
-                        by midPoint. It is determined from the organizational structure. Even though this value is
-                        compted it is also stored in the repository due to performance reasons.
+	                        Reference to the tenant to which this object belongs. It is a computed value set automatically
+	                        by midPoint. It is determined from the organizational structure. Even though this value is
+	                        compted it is also stored in the repository due to performance reasons.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -502,54 +373,59 @@
         <xsd:attribute name="oid" type="xsd:string" use="optional">
             <xsd:annotation>
                 <xsd:documentation>
-                    System-wide immutable identifier for the object.
-                    Will be probably quite long and not human-readable. It
-                    should not be displayed to user. It has no meaning
-                    outside of IDM system and should not be directly
-                    passed to any third-party systems.
+                	<p>
+	                    System-wide immutable identifier for the object.
+	                    Will be probably quite long and not human-readable. It
+	                    should NOT be displayed to user.
+                    </p>
+					<p>
+                    	This identifier must be unique in the entire system.
+                    </p>
+					<p>
+	                    This attribute is immutable.
+	                    It cannot be changed. Any operation attempting
+	                    to change this identifier must fail.
+	                    However OID is not property and therefore cannot
+	                    be "addressed" in usual operations.
+                    </p>
+					<p>
+	                    OID must be provided for all objects that are persistently
+	                    stored. There may be detached objects without OID.
+	                    Such objects have the same structure as normal objects,
+	                    they are just not stored in the repository. E.g.
+	                    object that are only stored on resource and are
+	                    not replicated in the repository. Such objects
+	                    do not have OID therefore their XML representation
+	                    cannot contain oid attribute.
+                    </p>
+					<p>
+	                    The OID should be unique in both time and space. That
+	                    means that OIDs must be unique in the whole system
+	                    in any moment and should not be re-used. If an object is
+	                    deleted, the OID of that object should not be used by
+	                    a new object. The reason is to avoid problems with stale
+	                    links pointing to a wrong object and appearing valid.
+	                    However, this is not a strict requirement. Some marginal
+	                    probability of OID reuse is tolerated. The recommended
+	                    practice is to add some randomness to the process of
+	                    OID generation.
+                    </p>
 
-                    This identifier must be unique in the entire system.
-
-                    This attribute is immutable.
-                    It cannot be changed. Any operation attempting
-                    to change this identifier must fail.
-
-                    OID is not property and therefore cannot be "addressed"
-                    in usual operations.
-
-                    OID must be provided for all objects that are persistently
-                    stored. There may be detached objects without OID.
-                    Such objects have the same structure as normal objects,
-                    they are just not stored in the repository. E.g.
-                    object that are only stored on resource and are
-                    not replicated in the repository. Such objects
-                    do not have OID therefore their XML representation
-                    cannot contain oid attribute.
-
-                    The OID should be unique in both time and space. That
-                    means that OIDs must be unique in the whole system
-                    in any moment and should not be re-used. If an object is
-                    deleted, the OID of that object should not be used by
-                    a new object. The reason is to avoid problems with stale
-                    links pointing to a wrong object and appearing valid.
-                    However, this is not a strict requirement. Some marginal
-                    probability of OID reuse is tolerated. The recommended
-                    practice is to add some randomness to the process of
-                    OID generation.
-
-                    This attribute is NOT (necessarily) ASN.1 OID and should not
-                    be confused with it.
-
-                    The attribute is named "oid" meaning object identifier.
-                    It is not named "id" to avoid confusion with xml:id
-                    attribute as it is easy to confuse these two if
-                    namespace prefix is omitted. The confusion with ASN.1
-                    OID id not likely.
-
-                    The oid is XML attribute of this object instead of
-                    element because it has special purpose of identifying
-                    the object. It is also immutable, therefore we do not
-                    need to handle changes to it.
+					<p>
+	                    This attribute is NOT (necessarily) ASN.1 OID and should not
+	                    be confused with it.
+	                    The attribute is named "oid" meaning object identifier.
+	                    It is not named "id" to avoid confusion with xml:id
+	                    attribute as it is easy to confuse these two if
+	                    namespace prefix is omitted. The confusion with ASN.1
+	                    OID id not likely.
+                    </p>
+					<p>
+	                    The oid is XML attribute of this object instead of
+	                    element because it has special purpose of identifying
+	                    the object. It is also immutable, therefore we do not
+	                    need to handle changes to it.
+                    </p>
                 </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
@@ -557,15 +433,20 @@
         <xsd:attribute name="version" type="xsd:string" use="optional">
             <xsd:annotation>
                 <xsd:documentation>
-                    Version for optimistic locking.
-
-                    Contains the version in which this object was read from the
-                    repository, fetched from the resource, etc.
-
-                    Type of the version attribute is string, not integer to provide
-                    flexibility for various versioning schemes in implementation
-                    (e.g. ETags). The type really does not matter, the only
-                    things that matters is if the version is the same or different.
+                	<p>
+	                    Object version for the purposes of optimistic locking, cache
+	                    coherency, etc.
+                    </p>
+					<p>
+	                    Contains the version in which this object was read from the
+	                    repository, fetched from the resource, etc.
+                    </p>
+					<p>
+	                    Type of the version attribute is string, not integer to provide
+	                    flexibility for various versioning schemes in implementation
+	                    (e.g. ETags). The type really does not matter, the only
+	                    things that matters is if the version is the same or different.
+                    </p>
                 </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
@@ -577,8 +458,10 @@
     <xsd:complexType name="ObjectReferenceType">
         <xsd:annotation>
             <xsd:documentation>
-                Reference to an object. It contains OID of the object that it
-                refers to.
+            	<p>
+	                Reference to an object. It contains OID of the object that it
+	                refers to.
+                </p>
             </xsd:documentation>
             <xsd:appinfo>
             	<a:objectReference/>
@@ -589,9 +472,12 @@
             <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="1">
 			    <xsd:annotation>
 			        <xsd:documentation>
-			            Filter that can be used to dynamically lookup the reference OID e.g. during imports.
-			            It must not be used for normal operations and references with the filter must not
-			            be stored in the repository.
+			        	<p>
+				            Filter that can be used to dynamically lookup the reference OID e.g. during imports.
+				            It must not be used for normal operations. The filter may be stored in the repository
+				            to avoid data loss. But even if it is stored it will not be used beyond initial
+				            import or unless explicitly requested.
+			            </p>
 			        </xsd:documentation>
 			    </xsd:annotation>
             </xsd:element>
@@ -599,33 +485,38 @@
         <xsd:attribute name="oid" type="xsd:string" use="optional">
             <xsd:annotation>
                 <xsd:documentation>
-                    Target of the reference.
-
-                    Optional only during imports. The objects stored in the repository must have the OID
-                    value filled in.
+                	<p>
+	                    Target of the reference.
+                    </p>
+					<p>
+	                    Optional only during imports. The objects stored in the repository must have the OID
+	                    value filled in.
+                    </p>
                 </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
         <xsd:attribute name="type" type="xsd:QName" use="optional">
             <xsd:annotation>
                 <xsd:documentation>
-                    XSD type of the reference target object.
-
-                    It should be provided if the type is known (e.g. when
-                    reading object from the repository).
-
-                    The primary reason for this is to have some kind of
-                    type safety but especially to be able to use
-                    this in the XPaths that specify what references to resolve.
+                	<p>
+                    	Type of the reference target object.
+                    </p>
+					<p>
+	                    It has to be provided unless the schema explicitly defines
+	                    a non-polymorphic type for the reference target type. 
+                    </p>
                 </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
         <xsd:attribute name="relation" type="xsd:QName" use="optional">
             <xsd:annotation>
                 <xsd:documentation>
-                    The relation or a "role" of this reference. It may further specify
-                    the meaning of the reference. E.g. it may specify whether the objects
-                    linked by the reference are analogous, form a composition, aggregation, etc.
+                	<p>
+	                    The relation or a "role" of this reference. It may further specify
+	                    the meaning of the reference. E.g. it may specify whether the objects
+	                    linked by the reference are analogous, form a composition, aggregation, 
+	                    are mebers of the org or managers of the org, etc.
+                    </p>
                 </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
@@ -1944,11 +1835,12 @@
         <xsd:annotation>
             <xsd:documentation>
             	User object represents a physical user of the system.
-            	It differs from the account, as account represents a data structure in a target system. One user
-            	will typically have many accounts. Properties of User object describe the user as a person. 
-            	User object will usually be extended with employee details or customer details, but we define
-            	only a handful of the most common properties now. Other properties vary from implementation to
-            	implementation can be defined in the schema extension (the in the "extension" element).
+            	It differs from the account, as "account" represents a data structure in a target system while
+            	"user" represents data structure in midPoint. One user typically has many accounts.
+            	Properties of User object typically describe the user as a physical person.
+            	Therefore the user obect defines handful of properties that are commonly used to describe users
+            	in the IDM solutions (employees, customers, partners, etc.) Custom extensions are possible by utilizing
+            	the "extension" container.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
@@ -2042,10 +1934,18 @@
                     <xsd:element name="additionalName" type="t:PolyStringType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Middle name, patronymic, matronymic or any other name of a person. It is usually the
-                                middle component of the name, however that may be culture-dependent.
-
-                                Examples: Walker, John, Iljic
+                            	<p>
+	                                Middle name, patronymic, matronymic or any other name of a person. It is usually the
+	                                middle component of the name, however that may be culture-dependent.
+								</p>
+								<p>
+                                Examples:
+                                    <ul>
+                                        <li>Walker</li>
+                                        <li>John</li>
+                                        <li>Iljic</li>
+                                    </ul>
+                                </p> 
                             </xsd:documentation>
                             <xsd:appinfo>
 		                    	<a:displayName>Additional Name</a:displayName>
@@ -2057,14 +1957,23 @@
                     <xsd:element name="nickName" type="t:PolyStringType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Familiar or otherwise informal way to address a person.
-                                
-                                Examples: Bootstrap, Bobby
-                                
-                                The meaning of this property is to take part in the formatted full
-                                name of the person, e.g. William "Bootstrap" Turner. It is not intended
-                                to be used as a username or login name. This value is usually changable
-                                by the user itself and it defines how the user wants other to address him. 
+                            	<p>
+                                	Familiar or otherwise informal way to address a person.
+                                </p>
+                                <p>
+                                Examples:
+                                    <ul>
+                                        <li>Bootstrap</li>
+                                        <li>Bobby</li>
+                                    </ul>
+                                </p>  
+                                <p>
+	                                The meaning of this property is to take part in the formatted full
+	                                name of the person, e.g. William "Bootstrap" Turner. It is not intended
+	                                to be used as a username or login name. This value is usually changable
+	                                by the user itself and it defines how the user wants other to address him.
+	                                Therefore it is not ideal for use as an identifier.
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
 		                    	<a:displayName>Nickname</a:displayName>
@@ -2076,13 +1985,22 @@
                     <xsd:element name="honorificPrefix" type="t:PolyStringType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Honorific titles that go before the name.
-
-                                Examples: cpt., Ing., Sir
-
-                                This property is single-valued. If more
-                                than one title is applicable, they have to be represented in
-                                a single string (concatenated) form in the correct order.
+                            	<p>
+                                	Honorific titles that go before the name.
+                                </p>
+								<p>
+                                Examples:
+                                    <ul>
+                                        <li>cpt.</li>
+                                        <li>Ing.</li>
+                                        <li>Sir</li>
+                                    </ul>
+                                </p>
+                                <p>  
+	                                This property is single-valued. If more
+	                                than one title is applicable, they have to be represented in
+	                                a single string (concatenated) form in the correct order.
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
 		                    	<a:displayName>Honorific Prefix</a:displayName>
@@ -2094,13 +2012,21 @@
                     <xsd:element name="honorificSuffix" type="t:PolyStringType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Honorific titles that go after the name.
-
-                                Examples: PhD., KBE
-
-                                This property is single-valued. If more than
-                                one title is applicable, they have to be represented in
-                                a single string (concatenated) form in the correct order.
+                            	<p>
+                                	Honorific titles that go after the name.
+                                </p>
+								<p>
+                                Examples:
+                                    <ul>
+                                        <li>PhD.</li>
+                                        <li>KBE</li>
+                                    </ul>
+                                </p>
+                                <p>  
+	                                This property is single-valued. If more
+	                                than one title is applicable, they have to be represented in
+	                                a single string (concatenated) form in the correct order.
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
 		                    	<a:displayName>Honorific Suffix</a:displayName>
@@ -2112,10 +2038,18 @@
                     <xsd:element name="title" type="t:PolyStringType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                User's title defining a work position or a primary role in the
-                                organization.
-
-                                Examples: CEO, Security Officer, Assistant
+                            	<p>
+	                                User's title defining a work position or a primary role in the
+	                                organization.
+                                </p>
+								<p>
+                                Examples:
+                                    <ul>
+                                        <li>CEO</li>
+                                        <li>Security Officer</li>
+                                        <li>Assistant</li>
+                                    </ul>
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
 		                    	<a:displayName>Title</a:displayName>
@@ -2127,12 +2061,19 @@
                     <xsd:element name="preferredLanguage" type="xsd:string" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Indicates user's preferred language, usually for the purpose of localizing
-                                user interfaces. The format is ISO 639-1 two letter language code and the 
-                                ISO 3166-1 two letter country code separated by underscore. If not specified
-                                then system default locale is assumed.
-
-                                Examples: en_US, sk_SK
+                            	<p>
+	                                Indicates user's preferred language, usually for the purpose of localizing
+	                                user interfaces. The format is ISO 639-1 two letter language code and the 
+	                                ISO 3166-1 two letter country code separated by underscore. If not specified
+	                                then system default locale is assumed.
+                                </p>
+								<p>
+                                Examples:
+                                    <ul>
+                                        <li>en_US</li>
+                                        <li>sk_SK</li>
+                                    </ul>
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
 		                    	<a:displayName>Preferred Language</a:displayName>
@@ -2144,12 +2085,19 @@
                     <xsd:element name="locale" type="xsd:string" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Defines user's preference in displaying currency, dates and other items
-                                related to location and culture. The format ISO 639-1 two letter language code and the 
-                                ISO 3166-1 two letter country code separated by underscore. If not specified
-                                then system default locale is assumed.
-
-                                Examples: en_US, sk_SK
+                            	<p>
+	                                Defines user's preference in displaying currency, dates and other items
+	                                related to location and culture. The format ISO 639-1 two letter language code and the 
+	                                ISO 3166-1 two letter country code separated by underscore. If not specified
+	                                then system default locale is assumed.
+                                </p>
+								<p>
+                                Examples:
+                                    <ul>
+                                        <li>en_US</li>
+                                        <li>sk_SK</li>
+                                    </ul>
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
 		                    	<a:displayName>Locale</a:displayName>
@@ -2161,10 +2109,16 @@
                     <xsd:element name="timezone" type="xsd:string" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                User's preferred timezone. It is specified in the "tz database" (a.k.a "Olson")
-                                format. If not specified then system default timezone is assumed.
-
-                                Examples: Europe/Bratislava
+                            	<p>
+	                                User's preferred timezone. It is specified in the "tz database" (a.k.a "Olson")
+	                                format. If not specified then system default timezone is assumed.
+                                </p>
+								<p>
+                                Examples:
+                                    <ul>
+                                        <li>Europe/Bratislava</li>
+                                    </ul>
+                                </p> 
                             </xsd:documentation>
                             <xsd:appinfo>
 		                    	<a:displayName>Timezone</a:displayName>
@@ -2176,12 +2130,14 @@
                     <xsd:element name="emailAddress" type="xsd:string" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                E-Mail address of the user. This is the address
-                                supposed to be used for communication with the
-                                user. E.g. IDM system may send notifications
-                                to the e-mail address. It is NOT supposed to be
-                                full-featured e-mail address data structure
-                                e.g. for the purpose of complex address-book application.
+                            	<p>
+	                                E-Mail address of the user. This is the address
+	                                supposed to be used for communication with the
+	                                user. E.g. IDM system may send notifications
+	                                to the e-mail address. It is NOT supposed to be
+	                                full-featured e-mail address data structure
+	                                e.g. for the purpose of complex address-book application.
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>Email Address</a:displayName>
@@ -2193,7 +2149,9 @@
                     <xsd:element name="telephoneNumber" type="xsd:string" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Primary telephone number of the user.
+                            	<p>
+                                	Primary telephone number of the user.
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>Telephone Number</a:displayName>
@@ -2205,10 +2163,12 @@
                     <xsd:element name="employeeNumber" type="xsd:string" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Unique, business-oriented identifier of the employee.
-                                Typically used as correlation identifier and for
-                                auditing purposes. Should be immutable, but the
-                                specific properties and usage are deployment-specific.
+                            	<p>
+	                                Unique, business-oriented identifier of the employee.
+	                                Typically used as correlation identifier and for
+	                                auditing purposes. Should be immutable, but the
+	                                specific properties and usage are deployment-specific.
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>Employee Number</a:displayName>
@@ -2220,9 +2180,18 @@
                     <xsd:element name="employeeType" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Employee type specification such as internal employee,
-                                external or partner. The specific values are
-                                deployment-specific.
+                            	<p>
+	                                Employee type specification such as internal employee,
+	                                external or partner. The specific values are
+	                                deployment-specific. However it is generally assumed that this
+	                                will be enumeration of several type names or codes that define
+	                                "classes" of users.
+                                </p>
+                                <p>
+                                	Even though this property is named "employeeType" due to the historical
+                                	reasons it is used in a more generic way to mean general type of user.
+                                	Therefore it can be used to distinguish employees from customers, etc.
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>Employee Type</a:displayName>
@@ -2234,7 +2203,16 @@
                     <xsd:element name="costCenter" type="xsd:string" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                The name of the cost center.
+                            	<p>
+                                	The name, identifier or code of the cost center to which the user belongs.
+                                </p>
+                            	<p>
+                                	Please note that organization objects (OrgType) also have a costCenter property.
+                                	Therefore it is usual that if a user belongs to an organization the costCenter from
+                                	the organization is used. Therefore this property is usually used only for users that
+                                	do not belong to any organization or for users that have different cost center than
+                                	the one defined by the organization.
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>Cost Center</a:displayName>
@@ -2246,14 +2224,17 @@
                     <xsd:element name="organization" type="t:PolyStringType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Name or (preferably) immutable identifier of organization that the user belongs to.
-                                The format is deployment-specific. This property together with organizationalUnit
-                                may be used to provide easy-to-use data about organizational membership of the user.
-
-                                This is multi-valued property to allow membership of a user to several
-                                organizations. Please note that midPoint does not maintain ordering in
-                                multi-value properties therefore this is not usable to model a complex
-                                organization hierarchies. Use OrgType instead.
+                            	<p>
+	                                Name or (preferably) immutable identifier of organization that the user belongs to.
+	                                The format is deployment-specific. This property together with organizationalUnit
+	                                may be used to provide easy-to-use data about organizational membership of the user.
+								</p>
+								<p>
+	                                This is multi-valued property to allow membership of a user to several
+	                                organizations. Please note that midPoint does not maintain ordering in
+	                                multi-value properties therefore this is not usable to model a complex
+	                                organization hierarchies. Use OrgType instead.
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>Organization</a:displayName>
@@ -2265,14 +2246,17 @@
                     <xsd:element name="organizationalUnit" type="t:PolyStringType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Name or (preferrably) immutable identifier of organizational unit that the user belongs to.
-                                The format is deployment-specific. This property together with organization
-                                may be used to provide easy-to-use data about organizational membership of the user.
-
-                                This is multi-valued property to allow membership of a user to several
-                                organizational units. Please note that midPoint does not maintain ordering in
-                                multi-value properties therefore this is not usable to model a complex
-                                organization hierachies. Use OrgType instead.
+                            	<p>
+	                                Name or (preferrably) immutable identifier of organizational unit that the user belongs to.
+	                                The format is deployment-specific. This property together with organization
+	                                may be used to provide easy-to-use data about organizational membership of the user.
+                                </p>
+                                <p>
+	                                This is multi-valued property to allow membership of a user to several
+	                                organizational units. Please note that midPoint does not maintain ordering in
+	                                multi-value properties therefore this is not usable to model a complex
+	                                organization hierachies. Use OrgType instead.
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>Organizational Unit</a:displayName>
@@ -2284,10 +2268,12 @@
                     <xsd:element name="locality" type="t:PolyStringType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Primary locality of the user, the place where
-                                the user usually works, the country, city or
-                                building that he belongs to. The specific meaning
-                                and form of this property is deployment-specific.
+                            	<p>
+	                                Primary locality of the user, the place where
+	                                the user usually works, the country, city or
+	                                building that he belongs to. The specific meaning
+	                                and form of this property is deployment-specific.
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>Locality</a:displayName>
@@ -2299,7 +2285,9 @@
                     <xsd:element name="jpegPhoto" type="xsd:base64Binary" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Photo of the user.
+                            	<p>
+                                	Photo of the user.
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>Jpeg photo</a:displayName>
@@ -2418,6 +2406,16 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="metadata" type="tns:MetadataType" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Timestamps and general metadata describing the credential change.
+            		</xsd:documentation>
+            		<xsd:appinfo>
+            			<a:operational>true</a:operational>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
@@ -2473,7 +2471,23 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
-            <!--  TODO: sabri  -->
+        	
+        	  	<xsd:element minOccurs="0" maxOccurs="1" name="questionAnswer" type="t:ProtectedStringType">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Answer to the question
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	
+        	  <xsd:element name="enabled" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>Flag indicating that this particular question is enabled.
+                           It can be used to temporarily disable a question.</p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -2603,6 +2617,22 @@
                     <xsd:appinfo>
             			<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
                         <a:displayName>Tenant reference</a:displayName>
+            		</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="orgRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                        Reference to the organization (org. unit, project, ...) to which this assignment refers. This is an argument to the target of this
+                        assignment. E.g. is if frequently used to parametrize the role which is assigned by this assignment.
+                        However the exact interpretation of this value depends on the logic of the target role. It may be
+                        significant or it may be entirely ignored.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+            			<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
+                        <a:displayName>Org reference</a:displayName>
             		</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6412,20 +6442,24 @@
     <xsd:complexType name="AbstractRoleType" abstract="true">
         <xsd:annotation>
             <xsd:documentation>
-            	Abstract class that conins the "essence" of a role.
-            	This is kind of "Roleable" interface when speaking in Java terms.
-            	
-                A role implies assignments. The role may "grant" accounts on resources, 
-                attributes and entitlements for such accounts. The role can also assign
-                organizational units, other roles or various IDM objects
-                that can be assigned directly to user. Role is in fact just
-                a named set of assignments.
-
-                This is the basic building block of role-based access
-                control (RBAC) in the provisioning system. It defines what
-                rights (e.g. accounts) should be given to user, how they
-                should look like (attributes) and what groups or native
-                roles to assign to them (entitlements).
+            	<p>
+	            	Abstract class that conins the "essence" of a role.
+	            	This is kind of "Roleable" interface when speaking in Java terms.
+            	</p>
+				<p>            	
+	                A role implies assignments. The role may "grant" accounts on resources, 
+	                attributes and entitlements for such accounts. The role can also assign
+	                organizational units, other roles or various IDM objects
+	                that can be assigned directly to user. Role is in fact just
+	                a named set of assignments.
+                </p>
+				<p>
+	                This is the basic building block of role-based access
+	                control (RBAC) in the provisioning system. It defines what
+	                rights (e.g. accounts) should be given to user, how they
+	                should look like (attributes) and what groups or native
+	                roles to assign to them (entitlements).
+                </p>
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
@@ -6434,8 +6468,11 @@
                 	<xsd:element name="displayName" type="t:PolyStringType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                            	Human-readable name of the role or org. It may be quite long, container national characters
-                            	and there is no uniqueness requirement.
+                            	<p>
+	                            	Human-readable name of the role or org. It may be quite long, container national characters
+	                            	and there is no uniqueness requirement. It is used if the "name" property contains a code that
+	                            	is not entirelly user-friendly.
+                            	</p>
                             </xsd:documentation>
                             <xsd:appinfo>
 		                    	<a:displayName>Display Name</a:displayName>
@@ -6447,11 +6484,13 @@
                     <xsd:element name="identifier" type="xsd:string" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Identifier of the role or org. It should be a structured information usually used for
-                                refering to the role or org or correlating it in various systems. E.g. numeric organizational
-                                unit identifier, role code, etc. It should be unique in its "own" scope. E.g. an organizational
-                                unit identifier should be unique in the scope of all organizational units but it may conflict 
-                                with an identifier of a project.
+	                            <p>
+	                                Identifier of the role or org. It should be a structured information usually used for
+	                                refering to the role or org or correlating it in various systems. E.g. numeric organizational
+	                                unit identifier, role code, etc. It should be unique in its "own" scope. E.g. an organizational
+	                                unit identifier should be unique in the scope of all organizational units but it may conflict 
+	                                with an identifier of a project.
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
 		                    	<a:displayName>Identifier</a:displayName>
@@ -6463,7 +6502,20 @@
                    <xsd:element name="inducement" type="tns:AssignmentType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                            	TODO
+                            	<p>
+                            		Inducements define the privileges and "features" that other objects should have. It is
+                            		a form of indirect assignment.
+                            	</p>
+                            	<p>
+                            		Unlike assignments inducements do not apply to the object in which they are specified.
+                            		Inducements apply to the object that is has assigned the object which contains inducements.
+                            		E.g. inducements specified in a role will not be applied to the role itself.
+                            		The inducements will be applied to the user that is assigned to such role.
+                            	</p>
+                            	<p>
+                            		See <a href="https://wiki.evolveum.com/display/midPoint/Assignment+vs+Inducement">Assignment vs Inducement</a>
+                            		in midPoint wiki.
+                            	</p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>Inducement</a:displayName>
@@ -6473,22 +6525,35 @@
                     <xsd:element name="authorization" type="tns:AuthorizationType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Set of role authorizations.
+                            	<p>
+	                                Set of role authorizations. Authorization define fine-grained access to midPoint objects
+	                                and system functionality. The authorizations that are defined in a role apply to all
+	                                users that have this role assigned (such user is a "subject" of the authorizations).
+                                </p>
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="requestable" type="xsd:boolean" minOccurs="0" default="false">
                     	<xsd:annotation>
                     		<xsd:documentation>
-                    			If set to true then this role may be directly requested by the users.
+                    			<p>
+	                    			If set to true then this role may be directly requested by the users.
+	                    			The value of this property is only meant as a hint for role presentation.
+	                    			It does NOT define any access control mechanisms. For access control please
+	                    			use the authorization element.
+                    			</p>
                     		</xsd:documentation>
                     	</xsd:annotation>
                     </xsd:element>
 					<xsd:element name="exclusion" type="tns:ExclusionPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
 						<xsd:annotation>
 							<xsd:documentation>
-								Specification of excluded roles (part of Segregation of Duties policy).
-								DEPRECATED. Use policyConstraints instead.
+								<p>
+									Specification of excluded roles (part of Segregation of Duties policy).
+								</p>
+								<p>
+									DEPRECATED. Use policyConstraints instead.
+								</p>
 							</xsd:documentation>
 							<xsd:appinfo>
 								<a:deprecated>true</a:deprecated>
@@ -6498,79 +6563,105 @@
 					<xsd:element name="riskLevel" type="xsd:string" minOccurs="0">
                     	<xsd:annotation>
                     		<xsd:documentation>
-                    			Indication of the level of risk associated with the persissions that this role assigns.
-                    			This may be a numeric value, textual label are any other suitable machine-processable indication.
+                    			<p>
+	                    			Indication of the level of risk associated with the persissions that this role assigns.
+	                    			This may be a numeric value, textual label are any other suitable machine-processable indication.
+                    			</p>
                     		</xsd:documentation>
                     	</xsd:annotation>
                     </xsd:element>
 					<xsd:element name="ownerRef" type="c:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Owner of this role. The owner is a person (or group) that is responsible for maintenance of
-                                role definition.
-                                This reference may point to object of type UserType of OrgType.
+                            	<p>
+	                                Owner of this role. The owner is a person (or group) that is responsible for maintenance of
+	                                role definition.
+	                                This reference may point to object of type UserType of OrgType.
+                                </p>
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
 					<xsd:element name="approverRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Approvers for this role. The approver is a person (or group) that approves assignment
-                                of this role to other users.
-                                This reference may point to object of type UserType of OrgType.
+                            	<p>
+	                                Approvers for this role. The approver is a person (or group) that approves assignment
+	                                of this role to other users.
+	                                This reference may point to object of type UserType of OrgType.
+                                </p>
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="approverExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Approvers for this role. If specified, the expression(s) are evaluated and the result
-                                is used as a set of approvers (UserType, OrgType, RoleType, or any combination of them).
-                                May be used with approverRef element(s).
+                            	<p>
+	                                Approvers for this role. If specified, the expression(s) are evaluated and the result
+	                                is used as a set of approvers (UserType, OrgType, RoleType, or any combination of them).
+	                                May be used with approverRef element(s).
+                                </p>
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="approvalSchema" type="c:ApprovalSchemaType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                More complex (multi-level) approval schema. If used, it overrides both
-                                approverRef and approverExpression elements.
+                            	<p>
+	                                More complex (multi-level) approval schema. If used, it overrides both
+	                                approverRef and approverExpression elements.
+                                </p>
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="approvalProcess" type="xsd:string" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Name of custom approval process. If used, it overrides
-                                approverRef, approverExpression, and approvalSchema elements.
-
-                                For explicitness, only one of approverRef(s)/approverExpression(s),
-                                approvalSchema and approvalProcess should be specified.
+                            	<p>
+	                                Name of custom approval process. If used, it overrides
+	                                approverRef, approverExpression, and approvalSchema elements.
+                                </p>
+								<p>
+	                                For explicitness, only one of approverRef(s)/approverExpression(s),
+	                                approvalSchema and approvalProcess should be specified.
+                                </p>
+                                <p>
+                                    THIS PROPERTY (approvalProcess) IS NOT SUPPORTED YET.
+                                </p>
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="automaticallyApproved" type="c:ExpressionType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Condition specifying when the assignment is automatically approved (e.g. "user is
-                                from Board of Directors"). This is an expression that should yield a boolean value.
+                            	<p>
+	                                Condition specifying when the assignment is automatically approved (e.g. "user is
+	                                from Board of Directors"). This is an expression that should yield a boolean value.
+                                </p>
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="condition" type="tns:MappingType" minOccurs="0">
 		               <xsd:annotation>
 		                   <xsd:documentation>
-		                       The role is applied only if the condition is evaluated to true.
-		                       If condition is not present, it is assumed to be true.
+		                   		<p>
+			                       The role is applied only if the condition is evaluated to true.
+			                       The condition is used to define conditional roles.
+			                       If condition is not present, it is assumed to be true.
+		                       </p>
 		                   </xsd:documentation>
 		               </xsd:annotation>
 		           </xsd:element>
 		           <xsd:element name="policyConstraints" type="tns:PolicyConstraintsType" minOccurs="0" maxOccurs="1">
 						<xsd:annotation>
 							<xsd:documentation>
-								Set of governance, risk management, compliance (GRC) and similar policy contraints
-								that influence the identity model.
+								<p>
+									Set of governance, risk management, compliance (GRC) and similar policy constraints
+									that influence the identity model.
+								</p>
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.1.1</a:since>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
                 </xsd:sequence>
@@ -6581,7 +6672,9 @@
     <xsd:complexType name="AuthorizationType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                <p>
+                	Authorization define fine-grained access to midPoint objects and system functionality.
+                </p>
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -6799,22 +6892,37 @@
     <xsd:complexType name="RoleType">
         <xsd:annotation>
             <xsd:documentation>
-                A role that implies assignments.
-                The role may "grant" accounts on resources, attributes and
-                entitlements for such accounts. The role can also assign
-                organizational units, other roles or various IDM objects
-                that can be assigned directly to user. Role is in fact just
-                a named set of assignments.
-
-                The specific roles are also called technical role or IT role,
-                however this definition is an abstract definition of concept
-                that can span wide area of interpretation.
-
-                This is the basic building block of role-based access
-                control (RBAC) in the provisioning system. It defines what
-                rights (e.g. accounts) should be given to user, how they
-                should look like (attributes) and what groups or native
-                roles to assign to them (entitlements).
+            	<p>
+	                A role in the extended Role-Based Access Control (RBAC) sense.
+	                The roles specify privileges that the user (or other object) should have.
+                </p>
+                <p>
+	                The role may "grant" accounts on resources, attributes and
+	                entitlements for such accounts. The role can also assign
+	                organizational units, other roles or various IDM objects
+	                that can be assigned directly to user. From this point of
+	                view the role is in fact just a named set of assignments.
+                </p>
+				<p>
+	                The roles form the basic building block of midPoint's extended
+	                role-based access control (RBAC) mechanism. It defines what
+	                rights (e.g. accounts) should be given to user, how they
+	                should look like (attributes) and what groups or native
+	                roles to assign to them (entitlements).
+                </p>
+                <p>
+                	Roles can also specify user authorizations to access specific
+                	parts of midPoint. This is used to implement fine-grained authorization
+                	mechanism. When combined with organizational structure it forms a
+                	delegated administration mechanism.
+                </p>
+                <p>
+                	Roles can also be conditional, i.e. applicable only if a specific
+                	condition is true. Roles can be parametric, e.g. the expressions
+                	inside the role can use parameters that were specified at the time
+                	when the role was assigned (as opposed to parameters defined when
+                	the role was defined).
+                </p>
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
@@ -6823,11 +6931,32 @@
                     <xsd:element name="roleType" type="xsd:string" minOccurs="0">
                     	<xsd:annotation>
                     		<xsd:documentation>
-                    			Type of a role, usually denotes a "layer" or "purpose" of the role.
-                    			Such as "business", "IT", "asset", etc.
-                    			This field has no special meaning in the IDM computation logic. Its purpose
-                    			is to organize roles for presentation (GUI) and management. It may influence
-                    			role lifecycle in later midpoint releases. 
+                    			<p>
+                    				Type of a role, usually denotes a "layer" or "purpose" of the role.
+                    				Such as "business", "IT", "asset", etc.
+                    				This field has no special meaning in the IDM computation logic. Its purpose
+                    				is to organize roles for presentation (GUI) and management. Therefor it is
+                    				assumed that the values of the roleType will be an enumeration.
+                    			</p> 
+                    			<p>
+                    				In a complex RBAC structures the role type is usually defined by an
+                    				assignment of a meta-role. However, selecting the roles by (sometimes transitive)
+                    				meta-role assignment is not very efficient. Therefore the recommended
+                    				use is for a meta-role to set the value of (focal) role roleType property to
+                    				a simple string value (focusMapping in a meta-role is ideal for this purpose).
+                    				The roleType property should also be associated with a LookupTable (or similar mechanism)
+                    				to allow GUI to efficiently display and select role types.
+                    			</p>
+                    			<p>
+                                Examples:
+                                    <ul>
+                                        <li>application</li>
+                                        <li>business</li>
+                                        <li>it</li>
+                                        <li>technical</li>
+                                        <li>asset</li>
+                                    </ul>
+                                </p>
                     		</xsd:documentation>
                     	</xsd:annotation>
                     </xsd:element>
@@ -7343,12 +7472,30 @@
     <xsd:complexType name="OrgType">
         <xsd:annotation>
             <xsd:documentation>
-            	Organizational unit, division, section, object gropup, team or any other form of
-            	organizing things and/or people.
-            	
-            	OrgType is also a role (RoleType). This feature may not be used for majority of
-            	OrgType instances. But it is very useful if membership in an org unit automatically
-            	grants some accounts or roles.
+            	<p>
+	            	Organizational unit, division, section, object gropup, team, project or any other form of
+	            	organizing things and/or people. The OrgType objects are designed to form a hierarchical
+	            	organizational structure (or rather several parallel organizational structures).
+            	</p>
+            	<p>
+            		Orgs are designed for grouping of objects. Orgs usually group users, but they can group any kind
+            		of objects (roles, policies, resources, etc.) This can be used to create a flexible delegated
+            		administration setup.
+            	</p>
+            	<p>
+            		See <a href="https://wiki.evolveum.com/display/midPoint/Organizational+Structure">Organizational Structure</a>
+            		in midPoint wiki for a general introduction to the concepts.
+            	</p>
+            	<p>
+            		The OrgType is also used as a focal object for generic synchronization. In that case the Orgs can correspond
+            		to LDAP OUs or groups or any similar resource objects.
+            	</p>
+            	<p>
+	            	OrgType is also a role (RoleType). This feature may not be used for majority of
+	            	OrgType instances. But it is very useful if membership in an org unit automatically
+	            	grants some accounts or roles. Although roles and orgs are very similar there is one principal
+	            	difference: Orgs are designed for grouping, roles are designed for flexible policy definition.
+            	</p>
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
@@ -7358,7 +7505,26 @@
                     <xsd:element name="orgType" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Type of the org. This may specify whether it is department, division, project, team, ...
+                            	<p>
+                                	Type of the organizational tree. It is used to distinguish what a specific
+                                	Org represents. Whether it is a functional organizational unit, project, team,
+                                	etc. 
+                                </p>
+                                <p>
+                                	It is generally assumed that all Org objects in the same tree will have
+                                	the same value of this property. Although this is not a strict requirement
+                                	the operation in the scripting libraries and some pre-defined structures
+                                	work with this assumption. 
+                                </p>
+                                <p>
+                                Examples:
+                                    <ul>
+                                        <li>functional</li>
+                                        <li>project</li>
+                                        <li>team</li>
+                                        <li>realm</li>
+                                    </ul>
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>Type</a:displayName>
@@ -7370,9 +7536,11 @@
 					<xsd:element name="tenant" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Flag indicating whether this object is a tenant or not. Tenants are top-level
-                                organizational units of organizational structures that are designed to be independent
-                                of one another. It represents a "customer" is service provider environment.
+                            	<p>
+	                                Flag indicating whether this object is a tenant or not. Tenants are top-level
+	                                organizational units of organizational structures that are designed to be independent
+	                                of one another. It represents a "customer" is service provider environment.
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>Is tenant</a:displayName>
@@ -7384,7 +7552,9 @@
                     <xsd:element name="costCenter" type="xsd:string" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                The name of the cost center that applies to this org.
+                            	<p>
+                                	The name, identifier or code of the cost center that applies to this org.
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>Cost Center</a:displayName>
@@ -7396,10 +7566,12 @@
                     <xsd:element name="locality" type="t:PolyStringType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Primary locality of the org, the place where
-                                the org is usually placed, the country, city or
-                                building that it belongs to. The specific meaning
-                                and form of this property is deployment-specific.
+                            	<p>
+	                                Primary locality of the org, the place where
+	                                the org is usually placed, the country, city or
+	                                building that it belongs to. The specific meaning
+	                                and form of this property is deployment-specific.
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>Locality</a:displayName>
@@ -7411,7 +7583,9 @@
                     <xsd:element name="mailDomain" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Domain part of RFC822 e-mail address that applies to this organization.
+                            	<p>
+                                	Domain part of RFC822 e-mail address that applies to this organization.
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>Mail Domain</a:displayName>
@@ -7423,12 +7597,14 @@
                     <xsd:element name="displayOrder" type="xsd:int" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                The content of this property specifies an order in which the organization
-                                should be displayed relative to other organizations at the same level.
-                                Organizations will be displayed by sorting them by the values of displayOrder
-                                property (ascending). These that do not have any displayOrder annotation
-                                will be displayed last. Organizations with the same displayOrder
-                                are displayed in alphabetic order.
+                            	<p>
+	                                The content of this property specifies an order in which the organization
+	                                should be displayed relative to other organizations at the same level.
+	                                Organizations will be displayed by sorting them by the values of displayOrder
+	                                property (ascending). These that do not have any displayOrder annotation
+	                                will be displayed last. Organizations with the same displayOrder
+	                                are displayed in alphabetic order.
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>Display Order</a:displayName>
@@ -7440,9 +7616,9 @@
                     <xsd:element name="passwordPolicyRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Reference to the password policy settings which will be used for generate/validate password for this organization.
-
-                                TODO: better documentation
+                            	<p>
+                                	Reference to the password policy settings which will be used for generate/validate password for this organization.
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                     			<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
@@ -7490,7 +7666,7 @@
         <xsd:complexContent>
             <xsd:extension base="c:ObjectType">
                 <xsd:sequence>
-                	<xsd:element name="table" type="tns:LookupTableTableType" minOccurs="0" maxOccurs="unbounded"/>
+                	<xsd:element name="row" type="tns:LookupTableRowType" minOccurs="0" maxOccurs="unbounded"/>
                 	<!-- TODO: Maybe more settings describing the intended use of the lookup table. -->
                 	<!-- TODO: Lookup table synchronization settings? (e.g. resourceRef) -->
                 </xsd:sequence>
@@ -7499,10 +7675,10 @@
    </xsd:complexType>
    <xsd:element name="lookupTable" type="tns:LookupTableType" substitutionGroup="c:object"/>
    
-   <xsd:complexType name="LookupTableTableType">
+   <xsd:complexType name="LookupTableRowType">
        	<xsd:annotation>
     		<xsd:documentation>
-    			Data structure that represents entire content of the lookup table.
+    			Data structure that represents entire content of the lookup table, organized into table rows.
     			The delta semantics has a slightly different meaning for the lookup tables. Each key must be unique and the key
     			functions as an implicit identifier. E.g. adding a new row with a key that does not exist yet
     			will insert a new row. Adding a new row with key that already exists will overwrite existing row.
@@ -7586,6 +7762,24 @@
                 <xsd:sequence>
                     <xsd:element name="lifetime" type="c:PasswordLifeTimeType" minOccurs="1" maxOccurs="1"/>
                     <xsd:element name="stringPolicy" type="c:StringPolicyType" minOccurs="1" maxOccurs="1"/>
+                    <xsd:element name="minOccurs" type="xsd:string" minOccurs="0">
+                    	<xsd:annotation>
+                    		<xsd:documentation>
+                    			Minimal number of value occurences. minOccurs set to zero means that the value
+                    			is optional.
+                    			E.g. when applied to passwords the minOccurs=0 means that the policy will
+                    			accept no password at all. But it will still validate the password using
+                    			stringPolicy if a password is present.
+                    		</xsd:documentation>
+                    	</xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="maxOccurs" type="xsd:string" minOccurs="0">
+                    	<xsd:annotation>
+                    		<xsd:documentation>
+                    			Maximal number of value occurences.
+                    		</xsd:documentation>
+                    	</xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -7939,7 +8133,7 @@
                                 TODO: better documentation
                             </xsd:documentation>
                             <xsd:appinfo>
-                    			<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
+                    			<a:objectReferenceTargetType>tns:SecurityPolicyType</a:objectReferenceTargetType>
                     		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -8029,6 +8223,15 @@
                             <xsd:documentation>
                                 A configuration for user notifications. In future, it might be overriden e.g. at a level
                                 of a user.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    
+                    <xsd:element name="workflowConfiguration" type="tns:WfConfigurationType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                A configuration for workflows. Some static aspects (e.g. database connection for Activiti)
+                                are stored in the system configuration file.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -8624,8 +8827,6 @@
                 	</xsd:element>
                 	<xsd:element name="credentials" type="tns:CredentialsPolicyType" minOccurs="0">
                 	</xsd:element>
-                    <!--  TODO: radovan -->
-                    
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -8669,6 +8870,72 @@
 		</xsd:sequence>
 	</xsd:complexType>
 	
+	 <xsd:complexType name="AbstractCredentialPolicyType" abstract="true">
+		<xsd:annotation>
+			<xsd:documentation>
+				Structure that specifies common elements to all the credential policies.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="resetMethod" type="c:CredentialsResetMethodType" minOccurs="0" maxOccurs="1">
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="CredentialsResetMethodType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Specifies the method of resetting the credential. This usually applies to a
+				self-service credential reset.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="resetType" type="c:CredentialsResetTypeType" minOccurs="0" maxOccurs="1" default="none">
+				<xsd:annotation>
+					<xsd:documentation>
+						The type of credential reset.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+    <xsd:simpleType name="CredentialsResetTypeType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="none">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Credential reset is disabled.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="securityQuestions">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Use security questions to reset the credential.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SECURITY_QUESTIONS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+             </xsd:restriction>
+    </xsd:simpleType>
+
 	 <xsd:complexType name="PasswordCredentialsPolicyType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -8679,18 +8946,22 @@
 				<a:container/>
 			</xsd:appinfo>
 		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element name="passwordPolicyRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Reference to the password policy settings.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                    			<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
-                    		</xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-		</xsd:sequence>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractCredentialPolicyType">
+				<xsd:sequence>
+					<xsd:element name="passwordPolicyRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+					    <xsd:annotation>
+					        <xsd:documentation>
+					            Reference to the password policy settings.
+					        </xsd:documentation>
+					        <xsd:appinfo>
+								<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
+							</xsd:appinfo>
+					    </xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
 	</xsd:complexType>
 	
 	<xsd:complexType name="SecurityQuestionsCredentialsPolicyType">
@@ -8704,20 +8975,26 @@
 				<a:container/>
 			</xsd:appinfo>
 		</xsd:annotation>
-		<xsd:sequence>
-			<!-- TODO: sabri 
-				settings that apply to all questions should go here, like this:
-				<xsd:element name="whatever" type="xsd:string" minOccurs="0"/>
-				This is good place to specify an overall policy, e.g. "display all questions" or "randomly select 3 questions".
-			 -->
-			 <xsd:element name="question" type="tns:SecurityQuestionDefinitionType" minOccurs="0" maxOccurs="unbounded">
-			 	<xsd:annotation>
-			 		<xsd:documentation>
-			 			The set of all the security questions in this policy.
-			 		</xsd:documentation>
-			 	</xsd:annotation>
-			 </xsd:element>
-		</xsd:sequence>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractCredentialPolicyType">
+				<xsd:sequence>
+					   <xsd:element name="questionNumber" type="xsd:int" minOccurs="0"  maxOccurs="1">
+		                <xsd:annotation>
+		                    <xsd:documentation>
+		                       Number of Questions in order to change the passwords
+		                    </xsd:documentation>
+		                </xsd:annotation>
+		            </xsd:element>
+					 <xsd:element name="question" type="tns:SecurityQuestionDefinitionType" minOccurs="0" maxOccurs="unbounded">
+					 	<xsd:annotation>
+					 		<xsd:documentation>
+					 			The set of all the security questions in this policy.
+					 		</xsd:documentation>
+					 	</xsd:annotation>
+					 </xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
 	</xsd:complexType>
 	
 	<xsd:complexType name="SecurityQuestionDefinitionType">
@@ -8753,6 +9030,13 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="questionText" type="xsd:string" maxOccurs="1">
+        	    <xsd:annotation>
+                    <xsd:documentation>
+                        The question itself, or the localization identifier to it.
+                    </xsd:documentation>
+                </xsd:annotation>
+        	</xsd:element>
 			<!-- TODO: sabri 
 				settings that apply to a specific security question should go here, like this:
 				<xsd:element name="something" type="xsd:string" minOccurs="0"/>
@@ -8822,6 +9106,62 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="TASK_TRIGGER_SCANNER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000008">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ROLE_END_USER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000009">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REPORT_AUDIT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000100">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REPORT_RECONCILIATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000107">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REPORT_USER_ACCOUNTS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000108">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REPORT_USER_ORGS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000109">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REPORT_USER_ROLES"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000110">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REPORT_USERS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000111">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REPORT_SHADOW_OWNER"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -9900,18 +10240,84 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="GeneralChangeProcessorConfigurationType">
+    <!-- Workflow configuration -->
+
+    <xsd:complexType name="WfConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
-                Configuration for GeneralChangeProcessor (workflows).
-                We use JAXB because the structure is quite complex.
+                Configuration for workflows - for those parts not stored in the system config file.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="modelHookEnabled" minOccurs="0" type="xsd:boolean" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This property controls the workflow model hook - i.e. whether each request going
+                        through the model subsystem should be processed by the workflow hook. So, if disabled,
+                        all requests are executed immediately, without being processed by workflows.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- This will be enabled in midPoint 3.2 (for the time being it is quite complicated to deliver this
+                 information to all the places where we need it - existing "static" configuration is much simpler to manage)
+            <xsd:element name="processCheckInterval" minOccurs="0" type="xsd:int" default="10">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        For "dumb" wf processes, which require active shadowing tasks, sets the process
+                        instance check interval (in seconds).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="allowApproveOthersItems" minOccurs="0" type="xsd:boolean" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Whether appropriately privileged users (e.g. the administrator) can approve work items
+                        assigned to other users.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element> -->
+            <xsd:element name="primaryChangeProcessor" minOccurs="0" type="tns:PrimaryChangeProcessorConfigurationType" />
+            <xsd:element name="generalChangeProcessor" minOccurs="0" type="tns:GeneralChangeProcessorConfigurationType" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="WfChangeProcessorConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration for workflow change processor.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="scenario" minOccurs="0" maxOccurs="unbounded" type="tns:GeneralChangeProcessorScenarioType" />
+            <xsd:element name="enabled" minOccurs="0" type="xsd:boolean" default="true"/>
+            <xsd:element name="order" minOccurs="0" type="xsd:int">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Order in which the change processor should be invoked. (Unspecified means "at the end".)
+                        NOT IMPLEMENTED YET.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="generalChangeProcessorConfiguration" type="tns:GeneralChangeProcessorConfigurationType" />
+
+    <xsd:complexType name="GeneralChangeProcessorConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration for GeneralChangeProcessor.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:WfChangeProcessorConfigurationType">
+                <xsd:sequence>
+                    <xsd:element name="scenario" minOccurs="0" maxOccurs="unbounded" type="tns:GeneralChangeProcessorScenarioType" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
     <xsd:complexType name="GeneralChangeProcessorScenarioType">
         <xsd:annotation>
             <xsd:documentation>
@@ -9959,8 +10365,145 @@
 
         </xsd:sequence>
     </xsd:complexType>
-    
-    
+
+    <xsd:complexType name="PrimaryChangeProcessorConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration for PrimaryChangeProcessor.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:WfChangeProcessorConfigurationType">
+                <xsd:sequence>
+                    <xsd:element name="addUserAbstractRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
+                    <xsd:element name="modifyUserAbstractRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
+                    <xsd:element name="addUserResourceAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
+                    <xsd:element name="modifyUserResourceAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
+                    <xsd:element name="addAbstractRoleAbstractRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
+                    <xsd:element name="modifyAbstractRoleAbstractRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
+                    <xsd:element name="addAbstractRoleResourceAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
+                    <xsd:element name="modifyAbstractRoleResourceAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
+                    <xsd:element name="addAbstractRoleAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
+                    <xsd:element name="modifyAbstractRoleAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
+                    <xsd:element name="addUserAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
+                    <xsd:element name="modifyUserAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
+                    <xsd:element name="addResourceAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
+                    <xsd:element name="modifyResourceAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
+                    <xsd:element name="otherAspect" type="tns:GenericPcpAspectConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="PcpAspectConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration for a primary change processor aspect.
+
+                Some aspects do not require any configuration - for example, role and resource assignment ones.
+                They take all the approver information directly from the object (role or resource) being assigned.
+                However, there are some others (namely, role/resource/user/whatever add/modify aspects) that need
+                the explicit information about approver(s) in order to know where to route the request.
+
+                For the former aspects, the approver information specified here takes precedence over
+                approver information derived from the objects being used (e.g. role or resource).
+                More specifically, if any approver information is here, no approver information is
+                taken from the objects. This could be changed (e.g. by allowing to tune this behavior)
+                in the future.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="enabled" minOccurs="0" maxOccurs="1" type="xsd:boolean">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Whether the aspect is enabled or not.
+                        If not specified (but if aspect configuration is present), it is assumed to be true.
+                        However, if the whole aspect configuration is absent, only aspects marked as "enabled-by-default" are enabled.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="approverRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Approvers for this aspect. The approver is a person (or group) that approves carrying out
+                        action(s) relevant to this aspect. This reference may point to object of type UserType of OrgType.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="approverExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Approvers for this aspect. If specified, the expression(s) are evaluated and the result
+                        is used as a set of approvers (UserType, OrgType, or any combination of them).
+                        May be used with approverRef element(s).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="approvalSchema" type="c:ApprovalSchemaType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        More complex (multi-level) approval schema. If used, it overrides both
+                        approverRef and approverExpression elements.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="approvalProcess" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of custom approval process. If used, it overrides
+                        approverRef, approverExpression, and approvalSchema elements.
+
+                        For explicitness, only one of approverRef(s)/approverExpression(s),
+                        approvalSchema and approvalProcess should be specified.
+
+                        THIS PROPERTY (approvalProcess) IS NOT SUPPORTED YET.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="automaticallyApproved" type="c:ExpressionType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Condition specifying when the assignment is automatically approved (e.g. "user is
+                        from Board of Directors"). This is an expression that should yield a boolean value.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="GenericPcpAspectConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A generic configuration for a wf aspect.
+
+                It is meant for non-standard aspects. (Standard aspects use named properties in
+                PrimaryChangeProcessorConfigurationType container.)
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:PcpAspectConfigurationType">
+                <xsd:sequence>
+                    <xsd:element name="name" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Name of the aspect bean.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
     <!-- Report Types -->
     
     <xsd:simpleType name="ExportType">
@@ -10150,6 +10693,18 @@
         <xsd:sequence>
             <xsd:element name="name" type="xsd:string"/>
             <xsd:element name="reportRef" type="tns:ObjectReferenceType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="ReportParameterType">
+     <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+       <xsd:sequence>
+            <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
+            </xsd:any>
         </xsd:sequence>
     </xsd:complexType>
     
@@ -10657,4 +11212,3 @@
     <xsd:element name="decisionType" type="tns:DecisionType" />
 
 </xsd:schema>
-

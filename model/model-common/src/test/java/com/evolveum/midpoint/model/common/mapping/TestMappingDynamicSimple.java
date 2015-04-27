@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -595,7 +595,7 @@ public class TestMappingDynamicSimple {
     @Test
     public void testScriptExtraVariablesRef() throws Exception {
     	// GIVEN
-    	Mapping<PrismPropertyValue<String>> mapping = evaluator.createMapping("mapping-script-extra-variables.xml", 
+    	Mapping<PrismPropertyValue<String>,PrismPropertyDefinition<String>> mapping = evaluator.createMapping("mapping-script-extra-variables.xml", 
     			"testScriptExtraVariablesRef", "employeeType", null);
     	
     	Map<QName, Object> vars = new HashMap<QName, Object>();
@@ -622,7 +622,7 @@ public class TestMappingDynamicSimple {
     	// GIVEN
     	final String TEST_NAME = "testScriptExtraVariablesJaxb";
     	TestUtil.displayTestTile(TEST_NAME);
-    	Mapping<PrismPropertyValue<String>> mapping = evaluator.createMapping("mapping-script-extra-variables.xml", 
+    	Mapping<PrismPropertyValue<String>,PrismPropertyDefinition<String>> mapping = evaluator.createMapping("mapping-script-extra-variables.xml", 
     			TEST_NAME, "employeeType", null);
     	
     	Map<QName, Object> vars = new HashMap<QName, Object>();
@@ -685,7 +685,7 @@ public class TestMappingDynamicSimple {
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationDeleteProperty(UserType.class, evaluator.USER_OLD_OID, 
     			UserType.F_GIVEN_NAME, evaluator.getPrismContext(), PrismTestUtil.createPolyString("Jack"));
     	
-    	Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+    	Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
     			"mapping-script-fullname.xml",
     			TEST_NAME,
     			"fullName",					// target
@@ -715,7 +715,7 @@ public class TestMappingDynamicSimple {
     	PrismObject<UserType> userOld = evaluator.getUserOld();
 		userOld.asObjectable().setGivenName(null);
     	
-    	Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+    	Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
     			"mapping-script-fullname.xml",
     			TEST_NAME,
     			"fullName",					// target
@@ -743,7 +743,7 @@ public class TestMappingDynamicSimple {
     			UserType.F_GIVEN_NAME, evaluator.getPrismContext(), PrismTestUtil.createPolyString("Jack"));
     	delta.addModificationDeleteProperty(UserType.F_FAMILY_NAME, PrismTestUtil.createPolyString("Sparrow"));
     	
-    	Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+    	Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
     			"mapping-script-fullname.xml",
     			TEST_NAME,
     			"fullName",					// target
@@ -805,7 +805,7 @@ public class TestMappingDynamicSimple {
     	// GIVEN
     	final String TEST_NAME = "testScriptRootNodeRef";
     	TestUtil.displayTestTile(TEST_NAME);
-    	Mapping<PrismPropertyValue<String>> mapping = evaluator.createMapping("mapping-script-root-node.xml", 
+    	Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping("mapping-script-root-node.xml", 
     			TEST_NAME, "locality", null);
     	
         mapping.setRootNode(MiscSchemaUtil.createObjectReference(
@@ -818,7 +818,7 @@ public class TestMappingDynamicSimple {
 		mapping.evaluate(null, opResult);
     	
     	// THEN
-		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = mapping.getOutputTriple();
+		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
 		PrismAsserts.assertTripleZero(outputTriple, new PolyString("Black Pearl", "black pearl"));
     	PrismAsserts.assertTripleNoPlus(outputTriple);
     	PrismAsserts.assertTripleNoMinus(outputTriple);
@@ -829,7 +829,7 @@ public class TestMappingDynamicSimple {
     	// GIVEN
     	final String TEST_NAME = "testScriptRootNodeJaxb";
     	TestUtil.displayTestTile(TEST_NAME);
-    	Mapping<PrismPropertyValue<String>> mapping = evaluator.createMapping("mapping-script-root-node.xml", 
+    	Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping("mapping-script-root-node.xml", 
     			TEST_NAME, "locality", null);
     	
     	PrismObject<UserType> user = PrismTestUtil.parseObject(new File(MidPointTestConstants.OBJECTS_DIR, "c0c010c0-d34d-b33f-f00d-111111111111.xml"));
@@ -841,7 +841,7 @@ public class TestMappingDynamicSimple {
 		mapping.evaluate(null, opResult);
     	
     	// THEN
-		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = mapping.getOutputTriple();
+		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
 		PrismAsserts.assertTripleZero(outputTriple, new PolyString("Black Pearl", "black pearl"));
     	PrismAsserts.assertTripleNoPlus(outputTriple);
     	PrismAsserts.assertTripleNoMinus(outputTriple);
@@ -956,7 +956,7 @@ public class TestMappingDynamicSimple {
     	user.asObjectable().getEmployeeType().add("CAPTAIN");
     	ObjectDelta<UserType> delta = ObjectDelta.createAddDelta(user);
     	
-		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				"mapping-condition-nonempty.xml", 
     			TEST_NAME, "title", delta);
 		    	        
@@ -983,7 +983,7 @@ public class TestMappingDynamicSimple {
     	user.asObjectable().getEmployeeType().add("");
     	ObjectDelta<UserType> delta = ObjectDelta.createAddDelta(user);
     	
-		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				"mapping-condition-nonempty.xml", 
     			TEST_NAME, "title", delta);
 		    	        
@@ -1007,7 +1007,7 @@ public class TestMappingDynamicSimple {
     	user.asObjectable().getEmployeeType().clear();
     	ObjectDelta<UserType> delta = ObjectDelta.createAddDelta(user);
     	
-		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				"mapping-condition-nonempty.xml", 
     			TEST_NAME, "title", delta);
 		    	        
@@ -1032,7 +1032,7 @@ public class TestMappingDynamicSimple {
     	propDelta.addValueToDelete(new PrismPropertyValue<String>("LANDLUBER"));
     	delta.addModification(propDelta);
     	
-		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				"mapping-script-transform.xml", 
     			TEST_NAME, "organizationalUnit", delta);
 		
@@ -1063,7 +1063,7 @@ public class TestMappingDynamicSimple {
     	
     	PrismObject<UserType> user = evaluator.getUserDefinition().instantiate();
     	
-    	Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createInboudMapping("mapping-inbound.xml", TEST_NAME, delta, user.asObjectable(), account.asObjectable(), null, null);
+    	Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createInboudMapping("mapping-inbound.xml", TEST_NAME, delta, user.asObjectable(), account.asObjectable(), null, null);
     	
     	OperationResult opResult = new OperationResult(TEST_NAME);
     	mapping.evaluate(null, opResult);
@@ -1081,7 +1081,7 @@ public class TestMappingDynamicSimple {
     	
     	final StringPolicyType stringPolicy = evaluator.getStringPolicy();
     	// GIVEN
-    	Mapping<PrismPropertyValue<String>> mapping = evaluator.createMapping("mapping-generate.xml", 
+    	Mapping<PrismPropertyValue<String>,PrismPropertyDefinition<String>> mapping = evaluator.createMapping("mapping-generate.xml", 
     			TEST_NAME, stringPolicy, "employeeNumber", null);
     	
 //    	StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
@@ -1173,7 +1173,7 @@ public class TestMappingDynamicSimple {
     			new File(MidPointTestConstants.OBJECTS_DIR, policyFileName));
     	final StringPolicyType stringPolicy = valuePolicy.asObjectable().getStringPolicy();
     	// GIVEN
-    	Mapping<PrismPropertyValue<String>> mapping = evaluator.createMapping(mappingFileName, 
+    	Mapping<PrismPropertyValue<String>,PrismPropertyDefinition<String>> mapping = evaluator.createMapping(mappingFileName, 
     			TEST_NAME, stringPolicy, "employeeNumber", null);
     	    	
 		OperationResult opResult = new OperationResult(TEST_NAME);
@@ -1253,7 +1253,7 @@ public class TestMappingDynamicSimple {
     			new File(MidPointTestConstants.OBJECTS_DIR, policyFileName));
     	final StringPolicyType stringPolicy = valuePolicy.asObjectable().getStringPolicy();
     	// GIVEN
-    	Mapping<PrismPropertyValue<T>> mapping = evaluator.createMapping(mappingFileName, 
+    	Mapping<PrismPropertyValue<T>,PrismPropertyDefinition<T>> mapping = evaluator.createMapping(mappingFileName, 
     			TEST_NAME, stringPolicy, new ItemPath(
     					UserType.F_EXTENSION,
     					new QName(NS_EXTENSION, extensionPropName)), null);
@@ -1294,7 +1294,7 @@ public class TestMappingDynamicSimple {
     	final String TEST_NAME = "testGenerateProtectedString";
     	TestUtil.displayTestTile(TEST_NAME);
     	// GIVEN
-    	Mapping<PrismPropertyValue<ProtectedStringType>> mapping = evaluator.createMapping("mapping-generate.xml", 
+    	Mapping<PrismPropertyValue<ProtectedStringType>,PrismPropertyDefinition<ProtectedStringType>> mapping = evaluator.createMapping("mapping-generate.xml", 
     			TEST_NAME, SchemaConstants.PATH_PASSWORD_VALUE, null);
     	OperationResult opResult = new OperationResult(TEST_NAME);
     	

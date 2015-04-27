@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContainerable;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -199,7 +200,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		this.mappingEvaluationHelper = mappingEvaluationHelper;
 	}
 
-	public EvaluatedAssignmentImpl<F> evaluate(ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi, 
+	public EvaluatedAssignmentImpl<F> evaluate(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi, 
 			boolean evaluateOld, ObjectType source, String sourceDescription, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		assertSource(source, assignmentIdi);
@@ -229,7 +230,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		LOGGER.trace("Evaluate assignment {} (eval constr: {}, mode: {})", new Object[]{
 				assignmentPath, assignmentPathSegment.isEvaluateConstructions(), mode});
 		
-		ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi = assignmentPathSegment.getAssignmentIdi();
+		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = assignmentPathSegment.getAssignmentIdi();
 		AssignmentType assignmentType = LensUtil.getAssignmentType(assignmentIdi, evaluateOld);
 		
 		checkSchema(assignmentType, sourceDescription);
@@ -456,6 +457,9 @@ public class AssignmentEvaluator<F extends FocusType> {
 		
 		EvaluatedAbstractRoleImpl evalRole = new EvaluatedAbstractRoleImpl();
 		evalRole.setRole(roleType.asPrismObject());
+		evalRole.setEvaluateConstructions(assignmentPathSegment.isEvaluateConstructions());
+		evalRole.setAssignment(assignmentPath.last().getAssignment());
+		evalRole.setDirectlyAssigned(assignmentPath.size() == 1);
 		assignment.addRole(evalRole, mode);
 		
 		int evaluationOrder = assignmentPath.getEvaluationOrder();
@@ -474,7 +478,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 			if (!isApplicable(roleInducement.getFocusType(), roleType)){
 				continue;
 			}
-			ItemDeltaItem<PrismContainerValue<AssignmentType>> roleInducementIdi = new ItemDeltaItem<>();
+			ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> roleInducementIdi = new ItemDeltaItem<>();
 			roleInducementIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(roleInducement));
 			roleInducementIdi.recompute();
 			AssignmentPathSegment roleAssignmentPathSegment = new AssignmentPathSegment(roleInducementIdi, null);
@@ -511,7 +515,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 				LOGGER.trace("E{}: follow assignment {} in {}",
 					new Object[]{evaluationOrder, dumpAssignment(roleAssignment), roleType});
 			}
-			ItemDeltaItem<PrismContainerValue<AssignmentType>> roleAssignmentIdi = new ItemDeltaItem<>();
+			ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> roleAssignmentIdi = new ItemDeltaItem<>();
 			roleAssignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(roleAssignment));
 			roleAssignmentIdi.recompute();
 			AssignmentPathSegment roleAssignmentPathSegment = new AssignmentPathSegment(roleAssignmentIdi, null);
@@ -581,7 +585,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 	}
 	
-	private void assertSource(ObjectType source, ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi) {
+	private void assertSource(ObjectType source, ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi) {
 		if (source == null) {
 			throw new IllegalArgumentException("Source cannot be null (while evaluating assignment "+assignmentIdi.getAnyItem()+")");
 		}
@@ -601,7 +605,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 			if (extensionContainer.getDefinition() == null) {
 				throw new SchemaException("Extension does not have a definition in assignment "+assignmentType+" in "+sourceDescription);
 			}
-			for (Item<?> item: extensionContainer.getValue().getItems()) {
+			for (Item<?,?> item: extensionContainer.getValue().getItems()) {
 				if (item == null) {
 					throw new SchemaException("Null item in extension in assignment "+assignmentType+" in "+sourceDescription);
 				}
@@ -622,7 +626,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		} else {
 			desc = "condition in assignment in " + source;
 		}
-		Mapping<? extends PrismPropertyValue<Boolean>> mapping = mappingFactory.createMapping(conditionType,
+		Mapping<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = mappingFactory.createMapping(conditionType,
 				desc);
 		
 		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo);
@@ -635,12 +639,12 @@ public class AssignmentEvaluator<F extends FocusType> {
 
         LensUtil.addAssignmentPathVariables(mapping, assignmentPathVariables);
 
-		ItemDefinition outputDefinition = new PrismPropertyDefinition<Boolean>(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN, prismContext);
+        PrismPropertyDefinition<Boolean> outputDefinition = new PrismPropertyDefinition<Boolean>(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN, prismContext);
 		mapping.setDefaultTargetDefinition(outputDefinition);
 
 		LensUtil.evaluateMapping(mapping, lensContext, task, result);
 		
-		return (PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>>) mapping.getOutputTriple();
+		return mapping.getOutputTriple();
 	}
 
 

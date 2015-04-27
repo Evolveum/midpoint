@@ -26,6 +26,7 @@ import static org.testng.AssertJUnit.assertNull;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
@@ -42,11 +43,13 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -69,6 +72,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -256,7 +260,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
-        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -307,7 +311,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
-        dummyAuditService.asserHasDelta(ChangeType.DELETE, UserType.class);
+        dummyAuditService.assertHasDelta(ChangeType.DELETE, UserType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -346,7 +350,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(2);
-        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -407,7 +411,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
-        dummyAuditService.asserHasDelta(ChangeType.ADD, UserType.class);
+        dummyAuditService.assertHasDelta(ChangeType.ADD, UserType.class);
         dummyAuditService.assertExecutionSuccess();
         
         assertBasicGeGhoulashExtension(userDeGhoulash);
@@ -700,6 +704,129 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         
         // TODO: check task status
         
+    }
+    
+    @Test
+    public void test500EnumerationExtension() throws Exception {
+		final String TEST_NAME = "test500EnumerationExtension";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+        PrismPropertyDefinition<String> markDef = userDef.findPropertyDefinition(new ItemPath(UserType.F_EXTENSION, PIRACY_MARK));
+        
+        // WHEN
+        TestUtil.assertSetEquals("Wrong allowedValues in mark", MiscUtil.getValuesFromDisplayableValues(markDef.getAllowedValues()), 
+        		"pegLeg","noEye","hook","tatoo","scar","bravery");
+        
+        for (DisplayableValue<String> disp: markDef.getAllowedValues()) {
+        	if (disp.getValue().equals("pegLeg")) {
+        		assertEquals("Wrong pegLeg label", "Peg Leg", disp.getLabel());
+        	}
+        }
+    }
+    
+    @Test
+    public void test502EnumerationStoreGood() throws Exception {
+		final String TEST_NAME = "test502EnumerationStoreGood";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        
+        PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+        PrismPropertyDefinition<String> markDef = userDef.findPropertyDefinition(new ItemPath(UserType.F_EXTENSION, PIRACY_MARK));
+        
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+        
+        // WHEN
+        modifyObjectReplaceProperty(UserType.class, USER_GUYBRUSH_OID, new ItemPath(UserType.F_EXTENSION, PIRACY_MARK), 
+        		task, result, "bravery");
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        assertSuccess(result);
+        
+        PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
+        PrismProperty<String> markProp = user.findProperty(new ItemPath(UserType.F_EXTENSION, PIRACY_MARK));
+        assertEquals("Bad mark", "bravery", markProp.getRealValue());
+    }
+    
+    /**
+     * Guybrush has stored mark "bravery". Change schema so this value becomes illegal.
+     * They try to read it.
+     */
+    @Test // MID-2260
+    public void test510EnumerationGetBad() throws Exception {
+		final String TEST_NAME = "test510EnumerationGetBad";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+        PrismPropertyDefinition<String> markDef = userDef.findPropertyDefinition(new ItemPath(UserType.F_EXTENSION, PIRACY_MARK));
+        Iterator<? extends DisplayableValue<String>> iterator = markDef.getAllowedValues().iterator();
+        while (iterator.hasNext()) {
+        	DisplayableValue<String> disp = iterator.next();
+        	if (disp.getValue().equals("bravery")) {
+        		iterator.remove();
+        	}
+        }
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+        
+        // WHEN
+        PrismObject<UserType> user = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        assertSuccess(result);
+        
+        PrismProperty<String> markProp = user.findProperty(new ItemPath(UserType.F_EXTENSION, PIRACY_MARK));
+        assertEquals("Bad mark", null, markProp.getRealValue());
+    }
+    
+    /**
+     * Store value in extension/ship. Then remove extension/ship definition from the schema.
+     * The next read should NOT fail.
+     */
+    @Test
+    public void test520ShipReadBad() throws Exception {
+		final String TEST_NAME = "test520ShipReadBad";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+        
+        modifyObjectReplaceProperty(UserType.class, USER_GUYBRUSH_OID, new ItemPath(UserType.F_EXTENSION, PIRACY_SHIP), 
+        		task, result, "The Pink Lady");
+        result.computeStatus();
+        assertSuccess(result);
+        
+        PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+        PrismContainerDefinition<?> extensionDefinition = userDef.getExtensionDefinition();
+        List<? extends ItemDefinition> extensionDefs = extensionDefinition.getComplexTypeDefinition().getDefinitions();
+        Iterator<? extends ItemDefinition> iterator = extensionDefs.iterator();
+        while (iterator.hasNext()) {
+        	ItemDefinition itemDefinition = iterator.next();
+        	if (itemDefinition.getName().equals(PIRACY_SHIP)) {
+        		iterator.remove();
+        	}
+        }
+        
+        // WHEN
+        PrismObject<UserType> user = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        assertSuccess(result);        
     }
     
 	private <O extends ObjectType, T> void assertExtension(PrismObject<O> object, QName propName, T... expectedValues) {

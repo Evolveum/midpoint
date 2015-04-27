@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ public class ExpressionFactory {
 	
 	private Map<QName,ExpressionEvaluatorFactory> evaluatorFactoriesMap = new HashMap<QName, ExpressionEvaluatorFactory>();
 	private ExpressionEvaluatorFactory defaultEvaluatorFactory;
-	private Map<ExpressionIdentifier, Expression<?>> cache = new HashMap<ExpressionIdentifier, Expression<?>>();
+	private Map<ExpressionIdentifier, Expression<?,?>> cache = new HashMap<ExpressionIdentifier, Expression<?,?>>();
 	private PrismContext prismContext;
 	private ObjectResolver objectResolver;
 	
@@ -58,11 +58,11 @@ public class ExpressionFactory {
 		}
 	}
 
-	public <V extends PrismValue> Expression<V> makeExpression(ExpressionType expressionType, 
-			ItemDefinition outputDefinition, String shortDesc, OperationResult result) 
+	public <V extends PrismValue,D extends ItemDefinition> Expression<V,D> makeExpression(ExpressionType expressionType, 
+			D outputDefinition, String shortDesc, OperationResult result) 
 					throws SchemaException, ObjectNotFoundException {
 		ExpressionIdentifier eid = new ExpressionIdentifier(expressionType, outputDefinition);
-		Expression<V> expression = (Expression<V>) cache.get(eid);
+		Expression<V,D> expression = (Expression<V,D>) cache.get(eid);
 		if (expression == null) {
 			expression = createExpression(expressionType, outputDefinition, shortDesc, result);
 			cache.put(eid, expression);
@@ -70,10 +70,10 @@ public class ExpressionFactory {
 		return expression;
 	}
 
-	private <V extends PrismValue> Expression<V> createExpression(ExpressionType expressionType, 
-			ItemDefinition outputDefinition, String shortDesc, OperationResult result) 
+	private <V extends PrismValue,D extends ItemDefinition> Expression<V,D> createExpression(ExpressionType expressionType, 
+			D outputDefinition, String shortDesc, OperationResult result) 
 					throws SchemaException, ObjectNotFoundException {
-		Expression<V> expression = new Expression<V>(expressionType, outputDefinition, objectResolver, prismContext);
+		Expression<V,D> expression = new Expression<V,D>(expressionType, outputDefinition, objectResolver, prismContext);
 		expression.parse(this, shortDesc, result);
 		return expression;
 	}

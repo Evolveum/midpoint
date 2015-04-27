@@ -261,6 +261,16 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
+			<groupId>org.codehaus.groovy</groupId>
+			<artifactId>groovy-all</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+  <groupId>org.codehaus.groovy.modules.http-builder</groupId>
+  <artifactId>http-builder</artifactId>
+  <version>0.7</version>
+</dependency>
+        <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-cache</artifactId>
             <version>3.2-SNAPSHOT</version>
@@ -278,6 +288,10 @@
             		<artifactId>jaxb-core</artifactId>
             		<groupId>com.sun.xml.bind</groupId>
             	</exclusion>
+      <!--      	<exclusion>
+            		<artifactId>javax.servlet</artifactId>
+            		<groupId>org.eclipse.jetty.orbit</groupId>
+            	</exclusion> -->
             </exclusions>
         </dependency>
         <dependency>
@@ -514,6 +528,7 @@
             <artifactId>connector-csvfile</artifactId>
             <scope>runtime</scope>
         </dependency>
+     
         <!-- end connectors -->
 
         <!-- logging bridges to slf4j -->

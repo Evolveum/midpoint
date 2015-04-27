@@ -586,7 +586,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
                                     QName objectClass, MatchingRule<String> nameMatchingRule) {
 		assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule);
 		PrismContainer<Containerable> attributesContainer = accountShadow.findContainer(ShadowType.F_ATTRIBUTES);
-		List<Item<?>> attributes = attributesContainer.getValue().getItems();
+		List<Item<?,?>> attributes = attributesContainer.getValue().getItems();
 //		Collection secIdentifiers = ShadowUtil.getSecondaryIdentifiers(accountShadow);
 		if (attributes == null){
 			AssertJUnit.fail("No attributes in repo shadow");

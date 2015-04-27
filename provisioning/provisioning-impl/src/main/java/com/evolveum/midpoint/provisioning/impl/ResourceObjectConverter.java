@@ -547,6 +547,11 @@ public class ResourceObjectConverter {
 			}
 			
 			if (!ResourceTypeUtil.hasUpdateCapability(resource)){
+				if (operations == null || operations.isEmpty()){
+					LOGGER.debug("No modifications for connector object specified (after filtering). Skipping processing.");
+					parentResult.recordSuccess();
+					return new HashSet<PropertyModificationOperation>();
+				}
 				throw new UnsupportedOperationException("Resource does not support 'update' operation");
 			}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -69,6 +70,7 @@ import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.DisplayableValueImpl;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -76,6 +78,7 @@ import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -815,13 +818,13 @@ class DomToSchemaProcessor {
 	 * It creates either PropertyDefinition itself or one of its subclasses (ResourceObjectAttributeDefinition). The behavior
 	 * depends of the "mode" of the schema. This method is also processing annotations and other fancy property-relates stuff.
 	 */
-	private PrismPropertyDefinition createPropertyDefinition(XSType xsType, QName elementName, QName typeName, 
+	private <T> PrismPropertyDefinition<T> createPropertyDefinition(XSType xsType, QName elementName, QName typeName, 
 			ComplexTypeDefinition ctd, XSAnnotation annotation, XSParticle elementParticle) throws SchemaException {
-		PrismPropertyDefinition propDef;
+		PrismPropertyDefinition<T> propDef;
 		
 		SchemaDefinitionFactory definitionFactory = getDefinitionFactory();
 		
-		Object[] allowedValues= parseEnumAllowedValues(xsType);
+		Collection<? extends DisplayableValue<T>> allowedValues= parseEnumAllowedValues(xsType);
 		
 		Object defaultValue = parseDefaultValue(elementParticle, typeName);
 		
@@ -888,38 +891,38 @@ class DomToSchemaProcessor {
 		return null;
 	}
 
-	private Object[] parseEnumAllowedValues(XSType xsType){
+	private <T> Collection<? extends DisplayableValue<T>> parseEnumAllowedValues(XSType xsType){
 		if (xsType.isSimpleType()){
 			if (xsType.asSimpleType().isRestriction()){
 				XSRestrictionSimpleType restriction = xsType.asSimpleType().asRestriction();
 				List<XSFacet> enumerations = restriction.getDeclaredFacets(XSFacet.FACET_ENUMERATION);
-				List<DisplayableValueImpl> enumValues = new ArrayList<DisplayableValueImpl>(enumerations.size());
+				List<DisplayableValueImpl<T>> enumValues = new ArrayList<DisplayableValueImpl<T>>(enumerations.size());
 				for (XSFacet facet : enumerations){
-					String label = facet.getValue().value;
-					XSSchema facetSchema = facet.getSourceDocument().getSchema();
-					
+					String value = facet.getValue().value;
 					Element descriptionE = SchemaProcessorUtil.getAnnotationElement(facet.getAnnotation(), SCHEMA_DOCUMENTATION);
 					Element appInfo = SchemaProcessorUtil.getAnnotationElement(facet.getAnnotation(), SCHEMA_APP_INFO);
 					Element valueE = null;
 					if (appInfo != null){
-						NodeList list = appInfo.getElementsByTagNameNS("http://java.sun.com/xml/ns/jaxb", "typesafeEnumMember");
+						NodeList list = appInfo.getElementsByTagNameNS(PrismConstants.A_LABEL.getNamespaceURI(),
+								PrismConstants.A_LABEL.getLocalPart());
 						if (list.getLength() != 0){
 							valueE = (Element) list.item(0);
 						}
 					}
-					String value = null;
+					String label = null;
 					if (valueE != null){
-						value = valueE.getAttribute("name");
-						
+						label = valueE.getTextContent();
+					} else {
+						label = value;
 					}
 					
-					DisplayableValueImpl edv = new DisplayableValueImpl(value, label, descriptionE != null ? descriptionE.getTextContent() : null);
+					DisplayableValueImpl<T> edv = new DisplayableValueImpl(value, label, descriptionE != null ? descriptionE.getTextContent() : null);
 					
 					enumValues.add(edv);
 					
 				}
 				if (enumValues != null && !enumValues.isEmpty()){
-					return enumValues.toArray();
+					return enumValues;
 				}
 				
 			}

@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -37,10 +38,10 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.page.admin.users.component.AssignablePopupContent;
+import com.evolveum.midpoint.web.page.admin.users.component.AssignableOrgPopupContent;
+import com.evolveum.midpoint.web.page.admin.users.component.AssignableRolePopupContent;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -53,7 +54,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -78,6 +78,8 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
     private static final String ID_LIST = "assignmentList";
     private static final String ID_ROW = "assignmentEditor";
     private static final String ID_MODAL_ASSIGN = "assignablePopup";
+    private static final String ID_MODAL_ASSIGN_ORG = "assignableOrgPopup";
+    
     private static final String ID_MODAL_DELETE_ASSIGNMENT = "deleteAssignmentPopup";
 
     private LoadableModel<List<AssignmentEditorDto>> assignmentModel;
@@ -212,11 +214,53 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
     private void initModalWindows(){
         ModalWindow assignWindow = createModalWindow(ID_MODAL_ASSIGN,
                 createStringResource("AssignmentTablePanel.modal.title.selectAssignment"), 1100, 560);
-        assignWindow.setContent(new AssignablePopupContent(assignWindow.getContentId()){
+        assignWindow.setContent(new AssignableRolePopupContent(assignWindow.getContentId()){
 
             @Override
             protected void addPerformed(AjaxRequestTarget target, List<ObjectType> selected){
-                addSelectedAssignablePerformed(target, selected);
+                addSelectedAssignablePerformed(target, selected, ID_MODAL_ASSIGN);
+            }
+
+            @Override
+            public ObjectQuery getProviderQuery(){
+                if(getExcludeOid() == null){
+                    return null;
+                } else {
+                    ObjectQuery query = new ObjectQuery();
+                    List<String> oids = new ArrayList<>();
+                    oids.add(getExcludeOid());
+
+                    ObjectFilter oidFilter = InOidFilter.createInOid(oids);
+                    query.setFilter(NotFilter.createNot(oidFilter));
+                    return query;
+                }
+            }
+
+            @Override
+            protected void handlePartialError(OperationResult result) {
+                AssignmentTablePanel.this.handlePartialError(result);
+            }
+
+            @Override
+            protected PrismObject<UserType> getUserDefinition() {
+                try {
+                    return getPageBase().getSecurityEnforcer().getPrincipal().getUser().asPrismObject();
+                } catch (SecurityViolationException e) {
+                    LOGGER.error("Could not retrieve logged user for security evaluation.", e);
+                }
+
+                return null;
+            }
+        });
+        add(assignWindow);
+        
+        assignWindow = createModalWindow(ID_MODAL_ASSIGN_ORG,
+                createStringResource("AssignmentTablePanel.modal.title.selectAssignment"), 1100, 560);
+        assignWindow.setContent(new AssignableOrgPopupContent(assignWindow.getContentId()){
+
+            @Override
+            protected void addPerformed(AjaxRequestTarget target, List<ObjectType> selected){
+                addSelectedAssignablePerformed(target, selected, ID_MODAL_ASSIGN_ORG);
             }
 
             @Override
@@ -289,7 +333,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
 
                     @Override
                     public void onClick(AjaxRequestTarget target){
-                        showAssignablePopupPerformed(target, OrgType.class, OrgType.F_NAME);
+                        showAssignableOrgPopupPerformed(target);
                     }
                 });
         items.add(item);
@@ -330,11 +374,18 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
     private void showAssignablePopupPerformed(AjaxRequestTarget target, Class<? extends ObjectType> type,
                                               QName searchParameter){
         ModalWindow modal = (ModalWindow) get(ID_MODAL_ASSIGN);
-        AssignablePopupContent content = (AssignablePopupContent)modal.get(modal.getContentId());
+        AssignableRolePopupContent content = (AssignableRolePopupContent)modal.get(modal.getContentId());
         content.setType(type);
         content.setSearchParameter(searchParameter);
         showModalWindow(ID_MODAL_ASSIGN, target);
     }
+    
+    private void showAssignableOrgPopupPerformed(AjaxRequestTarget target){
+ModalWindow modal = (ModalWindow) get(ID_MODAL_ASSIGN);
+AssignableOrgPopupContent content = (AssignableOrgPopupContent)modal.get(modal.getContentId());
+content.setType(OrgType.class);
+showModalWindow(ID_MODAL_ASSIGN, target);
+}
 
     private void deleteAssignmentPerformed(AjaxRequestTarget target){
         List<AssignmentEditorDto> selected = getSelectedAssignments();
@@ -363,8 +414,8 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
         target.add(getPageBase().getFeedbackPanel(), get(ID_ASSIGNMENTS));
     }
 
-    private void addSelectedAssignablePerformed(AjaxRequestTarget target, List<ObjectType> newAssignments){
-        ModalWindow window = (ModalWindow) get(ID_MODAL_ASSIGN);
+    private void addSelectedAssignablePerformed(AjaxRequestTarget target, List<ObjectType> newAssignments, String popupId){
+        ModalWindow window = (ModalWindow) get(popupId);
         window.close(target);
 
         if(newAssignments.isEmpty()){

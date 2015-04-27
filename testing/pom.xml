@@ -46,6 +46,7 @@
 			<modules>
 				<module>longtest</module>
 				<module>story</module>
+				<module>rest</module>
 			</modules>
 		</profile>
 	    <profile>

@@ -109,12 +109,12 @@ public class XNodeSerializer {
     //endregion
 
     //region Serializing (any) items
-    public <V extends PrismValue> XNode serializeItem(Item<V> item) throws SchemaException {
+    public <IV extends PrismValue,ID extends ItemDefinition> XNode serializeItem(Item<IV,ID> item) throws SchemaException {
         ListXNode xlist = new ListXNode();
-        List<V> values = item.getValues();
+        List<IV> values = item.getValues();
         ItemDefinition definition = item.getDefinition();
 
-        for (V val: values) {
+        for (IV val: values) {
             XNode xsubnode = serializeItemValue(val, definition);
             xlist.add(xsubnode);
         }
@@ -168,7 +168,7 @@ public class XNodeSerializer {
         return new RootXNode(elementName, valueNode);
     }
 
-    public <V extends PrismValue> RootXNode serializeItemAsRoot(Item<V> item) throws SchemaException {
+    public <IV extends PrismValue,ID extends ItemDefinition> RootXNode serializeItemAsRoot(Item<IV,ID> item) throws SchemaException {
         Validate.notNull(item.getDefinition(), "Item without a definition");
         XNode valueNode = serializeItem(item);
         return new RootXNode(item.getDefinition().getName(), valueNode);
@@ -243,7 +243,7 @@ public class XNodeSerializer {
 			// document won't pass schema validation
 			for (ItemDefinition itemDef: containerDefinition.getDefinitions()) {
 				QName elementName = itemDef.getName();
-				Item<?> item = containerVal.findItem(elementName);
+				Item<?,?> item = containerVal.findItem(elementName);
 				if (item != null) {
 					XNode xsubnode = serializeItem(item);
 					xmap.put(elementName, xsubnode);
@@ -254,7 +254,7 @@ public class XNodeSerializer {
 		// There are some cases when we do not have list of all elements in a container.
 		// E.g. in run-time schema. Therefore we must also iterate over items and not just item definitions.
 		if (containerVal.getItems() != null){
-			for (Item<?> item : containerVal.getItems()) {
+			for (Item<?,?> item : containerVal.getItems()) {
 				QName elementName = item.getElementName();
 				if (serializedItems.contains(elementName)) {
 					continue;

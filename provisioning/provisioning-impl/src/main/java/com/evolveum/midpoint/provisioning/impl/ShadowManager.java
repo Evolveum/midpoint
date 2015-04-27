@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -674,10 +674,10 @@ public class ShadowManager {
 		}
 	}
 	
-	public <T> void normalizeDeltas(Collection<? extends ItemDelta<PrismPropertyValue<T>>> deltas,
+	public <T> void normalizeDeltas(Collection<? extends ItemDelta<PrismPropertyValue<T>,PrismPropertyDefinition<T>>> deltas,
 			RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
 		// TODO Auto-generated method stub
-		for (ItemDelta<PrismPropertyValue<T>> delta : deltas){
+		for (ItemDelta<PrismPropertyValue<T>,PrismPropertyDefinition<T>> delta : deltas){
 			if (!ShadowType.F_ATTRIBUTES.equals(ItemPath.getName(delta.getPath().first()))){
 				continue;
 			}
@@ -691,7 +691,7 @@ public class ShadowManager {
 		
 	}
 	
-	private <T> void normalizeDelta(ItemDelta<PrismPropertyValue<T>> delta, RefinedAttributeDefinition rAttrDef) throws SchemaException{
+	private <T> void normalizeDelta(ItemDelta<PrismPropertyValue<T>,PrismPropertyDefinition<T>> delta, RefinedAttributeDefinition rAttrDef) throws SchemaException{
 		MatchingRule<T> matchingRule = matchingRuleRegistry.getMatchingRule(rAttrDef.getMatchingRuleQName(), rAttrDef.getTypeName());
 		if (matchingRule != null) {
 			if (delta.getValuesToReplace() != null){

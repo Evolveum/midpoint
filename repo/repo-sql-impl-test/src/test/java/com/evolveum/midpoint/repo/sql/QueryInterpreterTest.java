@@ -16,9 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -40,6 +38,7 @@ import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -79,6 +78,8 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(QueryInterpreterTest.class);
     private static final File TEST_DIR = new File("./src/test/resources/query");
+
+    private static final QName SKIP_AUTOGENERATION = new QName("http://example.com/p", "skipAutogeneration");
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
@@ -821,6 +822,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             list.add(Projections.groupProperty(prefix + "datesCount"));
             list.add(Projections.groupProperty(prefix + "referencesCount"));
             list.add(Projections.groupProperty(prefix + "polysCount"));
+            list.add(Projections.groupProperty(prefix + "booleansCount"));
         } else {
             list.add(Projections.property(prefix + "fullObject"));
             list.add(Projections.property(prefix + "stringsCount"));
@@ -828,6 +830,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             list.add(Projections.property(prefix + "datesCount"));
             list.add(Projections.property(prefix + "referencesCount"));
             list.add(Projections.property(prefix + "polysCount"));
+            list.add(Projections.property(prefix + "booleansCount"));
         }
     }
 
@@ -1002,7 +1005,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         }
     }
 
-
     @Test
     public void test100ActivationQuery() throws Exception {
         PrismObjectDefinition<UserType> focusObjectDef = prismContext.getSchemaRegistry()
@@ -1159,6 +1161,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             projections.add(Projections.property("datesCount"));
             projections.add(Projections.property("referencesCount"));
             projections.add(Projections.property("polysCount"));
+            projections.add(Projections.property("booleansCount"));
 
             main.setProjection(projections);
 
@@ -1650,4 +1653,114 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 //            close(session);
 //        }
 //    }
+
+    @Test
+    public void test430QueryGenericBoolean() throws Exception {
+        Session session = open();
+        try {
+            Criteria main = session.createCriteria(RGenericObject.class, "g");
+
+            Criteria stringExt = main.createCriteria("booleans", "b", JoinType.LEFT_OUTER_JOIN);
+
+            //and
+            Conjunction c2 = Restrictions.conjunction();
+            c2.add(Restrictions.eq("b.ownerType", RObjectExtensionType.EXTENSION));
+            c2.add(Restrictions.eq("b.name", SKIP_AUTOGENERATION));
+            c2.add(Restrictions.eq("b.value", true));
+
+            main.add(c2);
+            ProjectionList projections = Projections.projectionList();
+            addFullObjectProjectionList("g", projections, false);
+            main.setProjection(projections);
+
+            String expected = HibernateToSqlTranslator.toSql(main);
+
+            EqualFilter eq = EqualFilter.createEqual(
+                    new ItemPath(ObjectType.F_EXTENSION, SKIP_AUTOGENERATION),
+                    GenericObjectType.class, prismContext, true);
+
+            String real = getInterpretedQuery(session, GenericObjectType.class, ObjectQuery.createObjectQuery(eq));
+
+            LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+            AssertJUnit.assertEquals(expected, real);
+
+            OperationResult result = new OperationResult("search");
+            List<PrismObject<GenericObjectType>> objects = repositoryService.searchObjects(GenericObjectType.class,
+                    ObjectQuery.createObjectQuery(eq), null, result);
+            result.computeStatus();
+            AssertJUnit.assertTrue(result.isSuccess());
+
+            AssertJUnit.assertNotNull(objects);
+            AssertJUnit.assertEquals(1, objects.size());
+
+            PrismObject<GenericObjectType> obj = objects.get(0);
+            AssertJUnit.assertTrue(obj.getCompileTimeClass().equals(GenericObjectType.class));
+
+            result = new OperationResult("count");
+            long count = repositoryService.countObjects(GenericObjectType.class, ObjectQuery.createObjectQuery(eq),
+                    result);
+            result.computeStatus();
+            AssertJUnit.assertTrue(result.isSuccess());
+            AssertJUnit.assertEquals(1, count);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test(enabled=false)
+    public void test440queryAssignmentExtensionBoolean() throws Exception {
+        Session session = open();
+        try {
+            Criteria main = session.createCriteria(RUser.class, "u");
+            Criteria a = main.createCriteria("assignments", "a");
+            a.add(Restrictions.eq("a.assignmentOwner", RAssignmentOwner.FOCUS));
+            Criteria e = a.createCriteria("a.extension");
+
+            Criteria b = e.createCriteria("booleans", "b");
+
+            Conjunction c1 = Restrictions.conjunction();
+            c1.add(Restrictions.eq("b.extensionType", RAssignmentExtensionType.EXTENSION));
+            c1.add(Restrictions.eq("b.name", SKIP_AUTOGENERATION));
+            c1.add(Restrictions.eq("b.value", true));
+
+            main.add(c1);
+            main.setProjection(Projections.property("u.fullObject"));
+
+            String expected = HibernateToSqlTranslator.toSql(main);
+
+            SchemaRegistry registry = prismContext.getSchemaRegistry();
+            PrismObjectDefinition userDef = registry.findObjectDefinitionByCompileTimeClass(UserType.class);
+            PrismContainerDefinition assignmentDef = userDef.findContainerDefinition(UserType.F_ASSIGNMENT);
+            PrismPropertyDefinition propDef = assignmentDef.createPropertyDefinition(SKIP_AUTOGENERATION, DOMUtil.XSD_BOOLEAN);
+
+            EqualFilter eq = EqualFilter.createEqual(
+                    new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_EXTENSION, SKIP_AUTOGENERATION),
+                    propDef, null, true);
+
+            String real = getInterpretedQuery(session, UserType.class, ObjectQuery.createObjectQuery(eq));
+
+            LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+            AssertJUnit.assertEquals(expected, real);
+
+            OperationResult result = new OperationResult("search");
+            List<PrismObject<UserType>> objects = repositoryService.searchObjects(UserType.class,
+                    ObjectQuery.createObjectQuery(eq), null, result);
+            result.computeStatus();
+            AssertJUnit.assertTrue(result.isSuccess());
+
+            AssertJUnit.assertNotNull(objects);
+            AssertJUnit.assertEquals(1, objects.size());
+
+            PrismObject<UserType> obj = objects.get(0);
+            AssertJUnit.assertTrue(obj.getCompileTimeClass().equals(UserType.class));
+
+            result = new OperationResult("count");
+            long count = repositoryService.countObjects(UserType.class, ObjectQuery.createObjectQuery(eq), result);
+            result.computeStatus();
+            AssertJUnit.assertTrue(result.isSuccess());
+            AssertJUnit.assertEquals(1, count);
+        } finally {
+            close(session);
+        }
+    }
 }

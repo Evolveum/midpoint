@@ -28,6 +28,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueAutoCompleteTextPanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
+import com.evolveum.midpoint.web.component.input.ThreeStateBooleanPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -37,6 +38,7 @@ import com.evolveum.midpoint.web.component.wizard.resource.component.synchroniza
 import com.evolveum.midpoint.web.component.wizard.resource.component.synchronization.SynchronizationReactionEditor;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ObjectSynchronizationTypeDto;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ResourceSynchronizationDto;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -118,7 +120,8 @@ public class SynchronizationStep extends WizardStep {
     private IModel<PrismObject<ResourceType>> resourceModel;
     private IModel<ResourceSynchronizationDto> model;
 
-    public SynchronizationStep(IModel<PrismObject<ResourceType>> resourceModel) {
+    public SynchronizationStep(IModel<PrismObject<ResourceType>> resourceModel, PageBase pageBase) {
+        super(pageBase);
         this.resourceModel = resourceModel;
 
         model = new LoadableModel<ResourceSynchronizationDto>(false) {
@@ -411,9 +414,9 @@ public class SynchronizationStep extends WizardStep {
                 ResourceSynchronizationDto.F_SELECTED + ".reconcile"));
         editor.add(editorReconcile);
 
-        CheckBox editorOpportunistic = new CheckBox(ID_EDITOR_OPPORTUNISTIC, new PropertyModel<Boolean>(model,
-                ResourceSynchronizationDto.F_SELECTED + ".opportunistic"));
-        editor.add(editorOpportunistic);
+        ThreeStateBooleanPanel opportunistic = new ThreeStateBooleanPanel(ID_EDITOR_OPPORTUNISTIC,
+                new PropertyModel<Boolean>(model, ResourceSynchronizationDto.F_SELECTED + ".opportunistic"));
+        editor.add(opportunistic);
 
         MultiValueTextEditPanel editorCorrelation = new MultiValueTextEditPanel<ConditionalSearchFilterType>(ID_EDITOR_EDITOR_CORRELATION,
                 new PropertyModel<List<ConditionalSearchFilterType>>(model, ObjectSynchronizationTypeDto.F_SELECTED + ".correlation"), false){

@@ -37,7 +37,7 @@ public class RAExtString implements RAExtValue {
     //owner entity
     private RAssignmentExtension anyContainer;
     private String ownerOid;
-    private Short ownerId;
+    private Integer ownerId;
 
     private RAssignmentExtensionType extensionType;
 
@@ -77,7 +77,7 @@ public class RAExtString implements RAExtValue {
 
     @Id
     @Column(name = "anyContainer_owner_id")
-    public Short getOwnerId() {
+    public Integer getOwnerId() {
         if (ownerId == null && anyContainer != null) {
             ownerId = anyContainer.getOwnerId();
         }
@@ -147,7 +147,7 @@ public class RAExtString implements RAExtValue {
         this.ownerOid = ownerOid;
     }
 
-    public void setOwnerId(Short ownerId) {
+    public void setOwnerId(Integer ownerId) {
         this.ownerId = ownerId;
     }
 

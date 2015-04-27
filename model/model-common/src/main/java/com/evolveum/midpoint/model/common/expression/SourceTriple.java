@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -27,25 +28,25 @@ import com.evolveum.midpoint.prism.path.ItemPath;
  * @author semancik
  *
  */
-public class SourceTriple<V extends PrismValue> extends PrismValueDeltaSetTriple<V> {
+public class SourceTriple<V extends PrismValue,D extends ItemDefinition> extends PrismValueDeltaSetTriple<V> {
 
-	private Source<V> source;
+	private Source<V,D> source;
 
-	public SourceTriple(Source<V> source) {
+	public SourceTriple(Source<V,D> source) {
 		super();
 		this.source = source;
 	}
 
-	public SourceTriple(Source<V> source, Collection<V> zeroSet, Collection<V> plusSet, Collection<V> minusSet) {
+	public SourceTriple(Source<V,D> source, Collection<V> zeroSet, Collection<V> plusSet, Collection<V> minusSet) {
 		super(zeroSet, plusSet, minusSet);
 		this.source = source;
 	}
 	
-	public Source<V> getSource() {
+	public Source<V,D> getSource() {
 		return source;
 	}
 
-	public void setSource(Source<V> source) {
+	public void setSource(Source<V,D> source) {
 		this.source = source;
 	}
 

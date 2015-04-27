@@ -58,6 +58,7 @@ public abstract class SchemaConstants {
 	public static final String NS_MATCHING_RULE = NS_MIDPOINT_PUBLIC + "/common/matching-rule-3";
     public static final String NS_WFCF = "http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-3";
     public static final String NS_WFPIS = "http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-3";
+    public static final String NS_FAULT = "http://midpoint.evolveum.com/xml/ns/public/common/fault-3";
 
 	// COMMON NAMESPACE
 	
@@ -71,6 +72,7 @@ public abstract class SchemaConstants {
 	public static final QName C_OBJECT_REF = new QName(NS_C, "objectRef");
 	public static final QName C_VALUE = new QName(NS_C, "value");
 	public static final QName C_PARAM_VALUE = new QName(NS_C, "paramValue");
+	public static final QName C_REPORT_PARAM_VALUE = new QName(NS_C, "reportParamValue");
 	public static final QName C_OID_ATTRIBUTE = new QName(NS_C, "oid");
 	public static final QName C_USER_TYPE = new QName(NS_C, "UserType");
 	public static final QName C_TASK_TYPE = new QName(NS_C, "TaskType");
@@ -154,6 +156,8 @@ public abstract class SchemaConstants {
 
 	public static final String NS_MODEL = NS_MIDPOINT_PUBLIC + "/model";
     public static final String NS_MODEL_WS = NS_MODEL + "/model-3";
+    
+    public static final String NS_REPORT = NS_MIDPOINT_PUBLIC + "/report";
 	
 	public static final String NS_MODEL_CHANNEL = NS_MODEL + "/channels-3";
 	public static final QName CHANNEL_WEB_SERVICE_QNAME = new QName(NS_MODEL_CHANNEL, "webService");
@@ -170,6 +174,7 @@ public abstract class SchemaConstants {
 	public static final QName MODEL_EXTENSION_DRY_RUN = new QName(NS_MODEL_EXTENSION, "dryRun");
     public static final QName MODEL_EXTENSION_KIND = new QName(NS_MODEL_EXTENSION, "kind");
     public static final QName MODEL_EXTENSION_INTENT = new QName(NS_MODEL_EXTENSION, "intent");
+    public static final QName OBJECTCLASS_PROPERTY_NAME = new QName(NS_MODEL_EXTENSION, "objectclass");
 	public static final QName MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME = new QName(NS_MODEL_EXTENSION, "lastScanTimestamp");
 
 	public static final String NS_MODEL_DISABLE_REASON = NS_MODEL + "/disableReason";
@@ -230,4 +235,6 @@ public abstract class SchemaConstants {
     public static final QName C_ASSIGNMENT = new QName(SchemaConstants.NS_C, "assignment");
 
     public static final QName C_NAME = new QName(SchemaConstants.NS_C, "name");
+    
+	public static final QName FAULT_MESSAGE_ELEMENT_NAME = new QName(NS_FAULT, "fault");
 }

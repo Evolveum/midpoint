@@ -58,11 +58,6 @@ public abstract class BaseChangeProcessor implements ChangeProcessor, BeanNameAw
         this.beanFactory = beanFactory;
     }
 
-    @Override
-    public boolean isEnabled() {
-        return enabled;
-    }
-
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }

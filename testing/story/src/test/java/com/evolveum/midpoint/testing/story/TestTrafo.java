@@ -326,8 +326,8 @@ public class TestTrafo extends AbstractStoryTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(3);
-        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
+        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -392,8 +392,8 @@ public class TestTrafo extends AbstractStoryTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(2);
-        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 
@@ -434,8 +434,8 @@ public class TestTrafo extends AbstractStoryTest {
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertExecutionDeltas(2);
-        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(ChangeType.DELETE, ShadowType.class);
+        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(ChangeType.DELETE, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -505,12 +505,12 @@ public class TestTrafo extends AbstractStoryTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(0,3);
-        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(0,ChangeType.ADD, ShadowType.class);
-        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(0,ChangeType.ADD, ShadowType.class);
+        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class);
         // Inbound
         dummyAuditService.assertExecutionDeltas(1,1);
-        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -580,8 +580,8 @@ public class TestTrafo extends AbstractStoryTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(2);
-        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -626,8 +626,8 @@ public class TestTrafo extends AbstractStoryTest {
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertExecutionDeltas(2);
-        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(ChangeType.DELETE, ShadowType.class);
+        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(ChangeType.DELETE, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
         
         // Clean up the data set by inbound. These could ruin next tests
@@ -740,14 +740,14 @@ public class TestTrafo extends AbstractStoryTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(0,3);
-        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class); // primary, link (2 deltas)
-        dummyAuditService.asserHasDelta(0,ChangeType.ADD, ShadowType.class); // AD account
+        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class); // primary, link (2 deltas)
+        dummyAuditService.assertHasDelta(0,ChangeType.ADD, ShadowType.class); // AD account
         dummyAuditService.assertExecutionDeltas(1,2);
-        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, UserType.class); // link
-        dummyAuditService.asserHasDelta(1,ChangeType.ADD, ShadowType.class); // Mail account
+        dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, UserType.class); // link
+        dummyAuditService.assertHasDelta(1,ChangeType.ADD, ShadowType.class); // Mail account
         dummyAuditService.assertExecutionDeltas(2,2);
-        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, UserType.class); // inbound
-        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, ShadowType.class); // AD account
+        dummyAuditService.assertHasDelta(2,ChangeType.MODIFY, UserType.class); // inbound
+        dummyAuditService.assertHasDelta(2,ChangeType.MODIFY, ShadowType.class); // AD account
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -856,15 +856,15 @@ public class TestTrafo extends AbstractStoryTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(0,3);
-        dummyAuditService.asserHasDelta(0,ChangeType.ADD, UserType.class); // primary
-        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class); // link
-        dummyAuditService.asserHasDelta(0,ChangeType.ADD, ShadowType.class); // AD account
+        dummyAuditService.assertHasDelta(0,ChangeType.ADD, UserType.class); // primary
+        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class); // link
+        dummyAuditService.assertHasDelta(0,ChangeType.ADD, ShadowType.class); // AD account
         dummyAuditService.assertExecutionDeltas(1,2);
-        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, UserType.class); // link
-        dummyAuditService.asserHasDelta(1,ChangeType.ADD, ShadowType.class); // Mail account
+        dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, UserType.class); // link
+        dummyAuditService.assertHasDelta(1,ChangeType.ADD, ShadowType.class); // Mail account
         dummyAuditService.assertExecutionDeltas(2,1);
 //        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, UserType.class); // inbound
-        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, ShadowType.class); // AD account
+        dummyAuditService.assertHasDelta(2,ChangeType.MODIFY, ShadowType.class); // AD account
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -975,17 +975,17 @@ public class TestTrafo extends AbstractStoryTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(0,3);
-        dummyAuditService.asserHasDelta(0,ChangeType.ADD, UserType.class); // primary
-        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class); // link
-        dummyAuditService.asserHasDelta(0,ChangeType.ADD, ShadowType.class); // AD account
+        dummyAuditService.assertHasDelta(0,ChangeType.ADD, UserType.class); // primary
+        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class); // link
+        dummyAuditService.assertHasDelta(0,ChangeType.ADD, ShadowType.class); // AD account
         dummyAuditService.assertExecutionDeltas(1,3);
-        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, UserType.class); // link, inbound (2 deltas)
-        dummyAuditService.asserHasDelta(1,ChangeType.ADD, ShadowType.class); // Mail account
+        dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, UserType.class); // link, inbound (2 deltas)
+        dummyAuditService.assertHasDelta(1,ChangeType.ADD, ShadowType.class); // Mail account
         dummyAuditService.assertExecutionDeltas(2,2);
-        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, UserType.class); // inbound
-        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, ShadowType.class); // AD account
+        dummyAuditService.assertHasDelta(2,ChangeType.MODIFY, UserType.class); // inbound
+        dummyAuditService.assertHasDelta(2,ChangeType.MODIFY, ShadowType.class); // AD account
         dummyAuditService.assertExecutionDeltas(3,1);
-        dummyAuditService.asserHasDelta(3,ChangeType.MODIFY, UserType.class); // inbound - SHOULD THIS BE HERE?? FIXME
+        dummyAuditService.assertHasDelta(3,ChangeType.MODIFY, UserType.class); // inbound - SHOULD THIS BE HERE?? FIXME
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -1096,17 +1096,17 @@ public class TestTrafo extends AbstractStoryTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(0,3);
-        dummyAuditService.asserHasDelta(0,ChangeType.ADD, UserType.class); // primary
-        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class); // link
-        dummyAuditService.asserHasDelta(0,ChangeType.ADD, ShadowType.class); // AD account
+        dummyAuditService.assertHasDelta(0,ChangeType.ADD, UserType.class); // primary
+        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class); // link
+        dummyAuditService.assertHasDelta(0,ChangeType.ADD, ShadowType.class); // AD account
         dummyAuditService.assertExecutionDeltas(1,3);
-        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, UserType.class); // link, inbound (2 deltas)
-        dummyAuditService.asserHasDelta(1,ChangeType.ADD, ShadowType.class); // Mail account
+        dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, UserType.class); // link, inbound (2 deltas)
+        dummyAuditService.assertHasDelta(1,ChangeType.ADD, ShadowType.class); // Mail account
         dummyAuditService.assertExecutionDeltas(2,2);
-        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, UserType.class); // inbound
-        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, ShadowType.class); // AD account
+        dummyAuditService.assertHasDelta(2,ChangeType.MODIFY, UserType.class); // inbound
+        dummyAuditService.assertHasDelta(2,ChangeType.MODIFY, ShadowType.class); // AD account
         dummyAuditService.assertExecutionDeltas(3,1);
-        dummyAuditService.asserHasDelta(3,ChangeType.MODIFY, UserType.class); // inbound - SHOULD THIS BE HERE?? FIXME
+        dummyAuditService.assertHasDelta(3,ChangeType.MODIFY, UserType.class); // inbound - SHOULD THIS BE HERE?? FIXME
         dummyAuditService.assertExecutionSuccess();
 	}
 
@@ -1232,17 +1232,17 @@ public class TestTrafo extends AbstractStoryTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(0,2);
-        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class); // primary
+        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class); // primary
 //        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class); // link
-        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, ShadowType.class); // AD account (outbound)
+        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, ShadowType.class); // AD account (outbound)
         dummyAuditService.assertExecutionDeltas(1,2);
-        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, UserType.class); // link, inbound (2 deltas)
-        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, ShadowType.class); // Mail account (outboud)
+        dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, UserType.class); // link, inbound (2 deltas)
+        dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, ShadowType.class); // Mail account (outboud)
         dummyAuditService.assertExecutionDeltas(2,2);
-        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, UserType.class); // inbound
-        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, ShadowType.class); // AD account (mail change compued from outboud)
+        dummyAuditService.assertHasDelta(2,ChangeType.MODIFY, UserType.class); // inbound
+        dummyAuditService.assertHasDelta(2,ChangeType.MODIFY, ShadowType.class); // AD account (mail change compued from outboud)
         dummyAuditService.assertExecutionDeltas(3,1);
-        dummyAuditService.asserHasDelta(3,ChangeType.MODIFY, UserType.class); // inbound - SHOULD THIS BE HERE?? FIXME
+        dummyAuditService.assertHasDelta(3,ChangeType.MODIFY, UserType.class); // inbound - SHOULD THIS BE HERE?? FIXME
         dummyAuditService.assertExecutionSuccess();
 	}
 
@@ -1356,17 +1356,17 @@ public class TestTrafo extends AbstractStoryTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(0,2);
-        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class); // primary
+        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class); // primary
 //        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class); // link
-        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, ShadowType.class); // AD account (outbound)
+        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, ShadowType.class); // AD account (outbound)
         dummyAuditService.assertExecutionDeltas(1,2);
-        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, UserType.class); // link, inbound (2 deltas)
-        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, ShadowType.class); // Mail account (outboud)
+        dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, UserType.class); // link, inbound (2 deltas)
+        dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, ShadowType.class); // Mail account (outboud)
         dummyAuditService.assertExecutionDeltas(2,2);
-        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, UserType.class); // inbound
-        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, ShadowType.class); // AD account (mail change compued from outboud)
+        dummyAuditService.assertHasDelta(2,ChangeType.MODIFY, UserType.class); // inbound
+        dummyAuditService.assertHasDelta(2,ChangeType.MODIFY, ShadowType.class); // AD account (mail change compued from outboud)
         dummyAuditService.assertExecutionDeltas(3,1);
-        dummyAuditService.asserHasDelta(3,ChangeType.MODIFY, UserType.class); // inbound - SHOULD THIS BE HERE?? FIXME
+        dummyAuditService.assertHasDelta(3,ChangeType.MODIFY, UserType.class); // inbound - SHOULD THIS BE HERE?? FIXME
         dummyAuditService.assertExecutionSuccess();
 	}
 

@@ -143,7 +143,7 @@ public class SelectorOptions<T> implements Serializable {
             new ItemPath(TaskType.F_SUBTASK),
             new ItemPath(TaskType.F_NODE_AS_OBSERVED),
             new ItemPath(TaskType.F_NEXT_RUN_START_TIMESTAMP),
-            new ItemPath(LookupTableType.F_TABLE)));
+            new ItemPath(LookupTableType.F_ROW)));
 
     public static boolean hasToLoadPath(ItemPath path, Collection<SelectorOptions<GetOperationOptions>> options) {
         List<SelectorOptions<GetOperationOptions>> retrieveOptions = filterRetrieveOptions(options);

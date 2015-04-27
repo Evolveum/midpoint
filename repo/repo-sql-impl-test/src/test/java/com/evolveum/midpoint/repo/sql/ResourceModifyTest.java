@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -140,8 +140,8 @@ public class ResourceModifyTest extends BaseSQLRepoTest {
     private void singleModify(CarefulAnt<ResourceType> ant, int iteration, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 
     	// GIVEN
-    	ItemDelta<?> itemDelta = ant.createDelta(iteration);
-		Collection<? extends ItemDelta<?>> modifications = MiscSchemaUtil.createCollection(itemDelta);
+    	ItemDelta<?,?> itemDelta = ant.createDelta(iteration);
+		Collection<? extends ItemDelta<?,?>> modifications = MiscSchemaUtil.createCollection(itemDelta);
 		
 		System.out.println("itemDelta: " + itemDelta.debugDump());
 		

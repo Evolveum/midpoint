@@ -195,7 +195,7 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Account
     }
 
     private AccountContentDto createAccountContentDto(PrismObject<ShadowType> object, OperationResult result)
-            throws SchemaException, SecurityViolationException {
+            throws SchemaException, SecurityViolationException, ConfigurationException {
 
         AccountContentDto dto = new AccountContentDto();
         dto.setAccountName(WebMiscUtil.getName(object));
@@ -231,7 +231,7 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Account
     }
 
     private PrismObject<UserType> loadOwner(String accountOid, OperationResult result)
-            throws SecurityViolationException, SchemaException {
+            throws SecurityViolationException, SchemaException, ConfigurationException {
 
         Task task = getPage().createSimpleTask(OPERATION_LOAD_OWNER);
         try {

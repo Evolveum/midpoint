@@ -1,9 +1,28 @@
+/*
+ * Copyright (c) 2010-2015 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.evolveum.midpoint.report.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 
@@ -13,6 +32,8 @@ import org.apache.commons.lang.Validate;
 import ch.qos.logback.classic.Logger;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -34,6 +55,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -187,6 +210,17 @@ public class ReportFunctions {
 			return new ArrayList<>();
 		}
 		
+		Map<String, Object> resultSet = new HashMap<String, Object>();
+		Set<Entry<String, Object>> paramSet = params.entrySet();
+		for (Entry<String, Object> p : paramSet){
+			if (p.getValue() instanceof AuditEventTypeType){
+				resultSet.put(p.getKey(), AuditEventType.toAuditEventType((AuditEventTypeType) p.getValue()));
+			} else if (p.getValue() instanceof AuditEventStageType){
+				resultSet.put(p.getKey(), AuditEventStage.toAuditEventStage((AuditEventStageType) p.getValue()));
+			} else {
+				resultSet.put(p.getKey(), p.getValue());
+			}
+		}
 		return auditService.listRecords(query, params);
 	}
 
@@ -196,7 +230,7 @@ public class ReportFunctions {
 		try {
 			PrismObject<UserType> owner = model.findShadowOwner(shadowOid, task, task.getResult());
 			return owner.asObjectable();
-		} catch (ObjectNotFoundException | SecurityViolationException | SchemaException e) {
+		} catch (ObjectNotFoundException | SecurityViolationException | SchemaException | ConfigurationException e) {
 			// TODO Auto-generated catch block
 			LOGGER.error("Could not find owner for shadow with oid " + shadowOid + ". Reason: " + e.getMessage());
 		}

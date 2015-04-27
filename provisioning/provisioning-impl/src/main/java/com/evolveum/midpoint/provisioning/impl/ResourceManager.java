@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,8 +44,11 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -401,7 +404,7 @@ public class ResourceManager {
 			return;
 		}
 		
-		Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 		
 		// Schema
 		if (fetchedSchema) {
@@ -441,7 +444,7 @@ public class ResourceManager {
 		ObjectDelta<ResourceType> capabilitiesReplaceDelta = ObjectDelta.createModificationReplaceContainer(ResourceType.class, resource.getOid(), 
 				ResourceType.F_CAPABILITIES, prismContext, capType.asPrismContainerValue().clone());
 		
-		modifications.addAll((Collection<? extends ItemDelta<?>>) capabilitiesReplaceDelta.getModifications());
+		modifications.addAll(capabilitiesReplaceDelta.getModifications());
 		
 		if (fetchedSchema) {
 			// We have successfully fetched the resource schema. Therefore the resource must be up.
@@ -522,7 +525,7 @@ public class ResourceManager {
 		if (configurationContainerDefintion == null) {
 			throw new SchemaException("No configuration container definition in schema of " + connectorType);
 		}
-		PrismContainer<Containerable> configurationContainer = ResourceTypeUtil
+		PrismContainer<ConnectorConfigurationType> configurationContainer = ResourceTypeUtil
 				.getConfigurationContainer(resource);
 		if (configurationContainer == null) {
 			throw new SchemaException("No configuration container in " + resource);
@@ -532,6 +535,10 @@ public class ResourceManager {
 		// the element is global in the connector schema. therefore it does not have correct maxOccurs
 		configurationContainerDefintion.adoptElementDefinitionFrom(configurationContainer.getDefinition());
 		configurationContainer.applyDefinition(configurationContainerDefintion, true);
+		
+		PrismObjectDefinition<ResourceType> objectDefinition = resource.getDefinition();
+		PrismObjectDefinition<ResourceType> clonedObjectDefinition = objectDefinition.cloneWithReplacedDefinition(ResourceType.F_CONNECTOR_CONFIGURATION, configurationContainerDefintion);
+		resource.setDefinition(clonedObjectDefinition);
 	}
 
 	public void testConnection(PrismObject<ResourceType> resource, OperationResult parentResult) {
@@ -863,7 +870,7 @@ public class ResourceManager {
         ResourceType resourceType = resource.asObjectable();
 //		ResourceType resourceType = completeResource(resource.asObjectable(), null, objectResult);
 		//TODO TODO TODO FIXME FIXME FIXME copied from ObjectImprted..union this two cases
-		PrismContainer<Containerable> configurationContainer = ResourceTypeUtil.getConfigurationContainer(resourceType);
+		PrismContainer<ConnectorConfigurationType> configurationContainer = ResourceTypeUtil.getConfigurationContainer(resourceType);
         if (configurationContainer == null || configurationContainer.isEmpty()) {
             // Nothing to check
             objectResult.recordWarning("The resource has no configuration");
@@ -881,7 +888,7 @@ public class ResourceManager {
        
         ReferenceDelta connectorRefDelta = ReferenceDelta.findReferenceModification(delta.getModifications(), ResourceType.F_CONNECTOR_REF);
         if (connectorRefDelta != null){
-        	Item<PrismReferenceValue> connectorRefNew = connectorRefDelta.getItemNewMatchingPath(null);
+        	Item<PrismReferenceValue,PrismReferenceDefinition> connectorRefNew = connectorRefDelta.getItemNewMatchingPath(null);
         	if (connectorRefNew.getValues().size() == 1){
         		PrismReferenceValue connectorRefValue = connectorRefNew.getValues().iterator().next();
         		if (connectorRefValue.getOid() != null && !connectorOid.equals(connectorRefValue.getOid())){
@@ -921,7 +928,7 @@ public class ResourceManager {
 			return;
 		}
         QName configContainerQName = new QName(connectorType.getNamespace(), ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart());
-		PrismContainerDefinition<?> configContainerDef = connectorSchema.findContainerDefinitionByElementName(configContainerQName);
+		PrismContainerDefinition<ConnectorConfigurationType> configContainerDef = connectorSchema.findContainerDefinitionByElementName(configContainerQName);
 		if (configContainerDef == null) {
 			objectResult.recordFatalError("Definition of configuration container " + configContainerQName + " not found in the schema of of " + connector);
             return;
@@ -936,33 +943,36 @@ public class ResourceManager {
      
         resourceType.asPrismObject().findContainer(ResourceType.F_CONNECTOR_CONFIGURATION).applyDefinition(configContainerDef);
  
-        for (ItemDelta<?> itemDelta : delta.getModifications()){
-        	if (itemDelta.getParentPath() == null){
-        		LOGGER.trace("No parent path defined for item delta {}", itemDelta);
-        		continue;
-        	}
-        	
-        	QName first = ItemPath.getName(itemDelta.getParentPath().first());
-        	
-        	if (first == null){
-        		continue;
-        	}
-        	
-        	if (itemDelta.getDefinition() == null && (ResourceType.F_CONNECTOR_CONFIGURATION.equals(first) || ResourceType.F_SCHEMA.equals(first))){
-        		ItemPath path = itemDelta.getPath().rest();
-        		ItemDefinition itemDef = configContainerDef.findItemDefinition(path);
-        		if (itemDef == null){
-        			LOGGER.warn("No definition found for item {}. Check your namespaces?", path);
-        			objectResult.recordWarning("No definition found for item delta: " + itemDelta +". Check your namespaces?" );
-//        			throw new SchemaException("No definition found for item " + path+ ". Check your namespaces?" );
-        			continue;
-        		}
-				itemDelta.applyDefinition(itemDef);
-        		
-        	}
+        for (ItemDelta<?,?> itemDelta : delta.getModifications()){
+        	applyItemDefinition(itemDelta, configContainerDef, objectResult);
         }
-        
-   
+	}
+	
+	private <V extends PrismValue, D extends ItemDefinition> void applyItemDefinition(ItemDelta<V,D> itemDelta, 
+			PrismContainerDefinition<ConnectorConfigurationType> configContainerDef, OperationResult objectResult) throws SchemaException {
+		if (itemDelta.getParentPath() == null){
+    		LOGGER.trace("No parent path defined for item delta {}", itemDelta);
+    		return;
+    	}
+    	
+    	QName first = ItemPath.getName(itemDelta.getParentPath().first());
+    	
+    	if (first == null){
+    		return;
+    	}
+    	
+    	if (itemDelta.getDefinition() == null && (ResourceType.F_CONNECTOR_CONFIGURATION.equals(first) || ResourceType.F_SCHEMA.equals(first))){
+    		ItemPath path = itemDelta.getPath().rest();
+    		D itemDef = configContainerDef.findItemDefinition(path);
+    		if (itemDef == null){
+    			LOGGER.warn("No definition found for item {}. Check your namespaces?", path);
+    			objectResult.recordWarning("No definition found for item delta: " + itemDelta +". Check your namespaces?" );
+//    			throw new SchemaException("No definition found for item " + path+ ". Check your namespaces?" );
+    			return;
+    		}
+			itemDelta.applyDefinition(itemDef);
+    		
+    	}
 	}
 	
 	public void applyDefinition(PrismObject<ResourceType> resource, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {

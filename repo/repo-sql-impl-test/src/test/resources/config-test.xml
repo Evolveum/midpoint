@@ -23,7 +23,7 @@
         </global>
         <repository>
             <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.testing.TestSqlRepositoryFactory</repositoryServiceFactoryClass>
-            <embedded>true</embedded>
+            <database>h2</database>
             <asServer>true</asServer>
 
             <port>5438</port>

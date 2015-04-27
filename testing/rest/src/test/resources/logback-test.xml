@@ -46,7 +46,7 @@
 	
 	<logger name="com.evolveum.midpoint.testing.rest" level="TRACE" />
 	<logger name="com.evolveum.midpoint.test" level="TRACE" />
-	<logger name="PROFILING" level="OFF" />
+	<logger name="PROFILING" level="TRACE" />
 	<root level="WARN">
 		<appender-ref ref="X" />
 	</root>

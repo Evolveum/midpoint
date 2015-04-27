@@ -242,6 +242,22 @@
             </xsd:documentation>
         </xsd:annotation>    
     </xsd:attribute>
+    
+    <xsd:attribute name="since" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                Version of data model in which was the item introduced.
+            </xsd:documentation>
+        </xsd:annotation>    
+    </xsd:attribute>
+    
+    <xsd:attribute name="label" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                Displayable label of enumeration item.
+            </xsd:documentation>
+        </xsd:annotation>    
+    </xsd:attribute>
 
 </xsd:schema>
 

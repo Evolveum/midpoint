@@ -16,14 +16,19 @@
 
 package com.evolveum.midpoint.report.api;
 
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 import java.io.InputStream;
+import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
 
 /**
  * todo comments [lazyman]
@@ -31,6 +36,7 @@ import java.io.InputStream;
  * WORK IN PROGRESS
  *
  * @author lazyman
+ * @author katkav
  */
 public interface ReportManager {
     /**
@@ -39,7 +45,7 @@ public interface ReportManager {
      * @param report
      * @param parentResult describes report which has to be created
      */
-    void runReport(PrismObject<ReportType> object, Task task, OperationResult parentResult);
+    void runReport(PrismObject<ReportType> object, PrismContainer<ReportParameterType> params, Task task, OperationResult parentResult);
 
     /**
      * todo comments [lazyman]

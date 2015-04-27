@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,12 +31,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
- * @author semancik
+ * Audit event record describes a single event (usually data change) in a format suitable for audit.
+ * 
+ * @author Radovan Semancik
  *
  */
 public class AuditEventRecord implements DebugDumpable {
 	
 	/**
+	 * Timestamp when the event occured.
 	 * Timestamp in millis.
 	 */
 	private Long timestamp;
@@ -46,7 +49,9 @@ public class AuditEventRecord implements DebugDumpable {
 	 */
 	private String eventIdentifier;
 	
-	// session ID
+	/**
+	 * Identitification of (interactive) session in which the event occured.
+	 */
 	private String sessionIdentifier;
 	
 	// channel???? (e.g. web gui, web service, ...)

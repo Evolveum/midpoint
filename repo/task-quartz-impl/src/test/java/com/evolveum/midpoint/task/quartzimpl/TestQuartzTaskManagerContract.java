@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -402,7 +402,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         //delta.addV(property.getValues());
         delta.setValuesToReplace(PrismValue.cloneCollection(property.getValues()));
 
-        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>(1);
+        Collection<ItemDelta<?,?>> modifications = new ArrayList<>(1);
         modifications.add(delta);
 
         // TODO fix this code

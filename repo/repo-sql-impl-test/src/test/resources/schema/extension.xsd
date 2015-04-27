@@ -45,6 +45,16 @@
 
     <xsd:element name="dead" type="xsd:string"/>
 
+    <xsd:element name="skipAutogeneration" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:indexed>true</a:indexed>
+                <a:displayName>Do not generate</a:displayName>
+                <a:displayOrder>10</a:displayOrder>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
     <!-- account shadow extension -->
 
     <xsd:complexType name="AccountShadowExtensionType">
@@ -79,6 +89,15 @@
             <xsd:element name="referenceType" type="c:ObjectReferenceType"/>
             <xsd:element name="polyType" type="t:PolyStringType"/>
             <xsd:element name="enumType" type="c:BeforeAfterType"/>
+            <xsd:element name="skipAutogeneration" type="xsd:boolean" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>true</a:indexed>
+                        <a:displayName>Do not generate</a:displayName>
+                        <a:displayOrder>10</a:displayOrder>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     
