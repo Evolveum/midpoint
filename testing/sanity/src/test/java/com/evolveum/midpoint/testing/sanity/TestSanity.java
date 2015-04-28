@@ -1664,10 +1664,12 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         assertNoRepoCache();
 
-        // WHEN ObjectTypes.USER.getTypeQName(), 
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
         OperationResultType result = modifyObjectViaModelWS(objectChange);
 
         // THEN
+        TestUtil.displayThen(TEST_NAME);
         assertNoRepoCache();
         displayJaxb("modifyObject result:", result, SchemaConstants.C_RESULT);
         TestUtil.assertSuccess("modifyObject has failed", result);
@@ -1707,6 +1709,15 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // check attributes in the shadow: should be only identifiers (ICF UID)
         String uid = checkRepoShadow(repoShadow);
 
+        // Check if LDAP account was updated
+
+        entry = openDJController.searchAndAssertByEntryUuid(uid);
+        assertOpenDJAccountJack(entry, "jack");
+
+        pwpAccountDisabled = OpenDJController.getAttributeValue(entry, "ds-pwp-account-disabled");
+        display("ds-pwp-account-disabled after change", pwpAccountDisabled);
+        assertFalse("LDAP account was not disabled", openDJController.isAccountEnabled(entry));
+        
         // Use getObject to test fetch of complete shadow
 
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
@@ -1715,10 +1726,12 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertNoRepoCache();
 
         // WHEN
+        TestUtil.displayWhen(TEST_NAME);
         modelWeb.getObject(ObjectTypes.SHADOW.getTypeQName(), accountShadowOidOpendj,
                 options, objectHolder, resultHolder);
 
         // THEN
+        TestUtil.displayThen(TEST_NAME);
         assertNoRepoCache();
         displayJaxb("getObject result", resultHolder.value, SchemaConstants.C_RESULT);
         TestUtil.assertSuccess("getObject has failed", resultHolder.value);
@@ -1741,14 +1754,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertNotNull("The account activation status was not present in shadow", modelShadow.getActivation().getAdministrativeStatus());
         assertEquals("The account was not disabled in the shadow", ActivationStatusType.DISABLED, modelShadow.getActivation().getAdministrativeStatus());
 
-        // Check if LDAP account was updated
-
-        entry = openDJController.searchAndAssertByEntryUuid(uid);
-        assertOpenDJAccountJack(entry, "jack");
-
-        pwpAccountDisabled = OpenDJController.getAttributeValue(entry, "ds-pwp-account-disabled");
-        display("ds-pwp-account-disabled after change", pwpAccountDisabled);
-        assertFalse("LDAP account was not disabled", openDJController.isAccountEnabled(entry));
     }
 
     /**
