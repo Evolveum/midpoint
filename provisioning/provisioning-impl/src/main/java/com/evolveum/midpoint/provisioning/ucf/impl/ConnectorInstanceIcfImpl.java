@@ -1970,7 +1970,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 		
         final boolean useConnectorPaging = pagedSearchCapabilityType != null;
-        if (!useConnectorPaging && query.getPaging() != null && 
+        if (!useConnectorPaging && query != null && query.getPaging() != null && 
         		(query.getPaging().getOffset() != null || query.getPaging().getMaxSize() != null)) {
         	InternalMonitor.recordConnectorSimulatedPagingSearchCount();
         }
