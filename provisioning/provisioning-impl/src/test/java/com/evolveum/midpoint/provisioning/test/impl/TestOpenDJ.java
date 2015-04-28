@@ -933,7 +933,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		display("Object after change",accountType);
 		
-//			assertFalse("Account was not disabled.", accountType.getActivation().isEnabled());
+		assertEquals("The account was not disabled in the shadow", ActivationStatusType.DISABLED, accountType.getActivation().getAdministrativeStatus());
 		
 		String uid = ShadowUtil.getSingleStringAttributeValue(accountType, ConnectorFactoryIcfImpl.ICFS_UID);		
 		assertNotNull(uid);
