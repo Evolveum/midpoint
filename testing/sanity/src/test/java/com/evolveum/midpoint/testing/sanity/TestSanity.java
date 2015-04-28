@@ -218,6 +218,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     private static final String RESOURCE_OPENDJ_FILENAME = REPO_DIR_NAME + "resource-opendj.xml";
     private static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+    private static final String RESOURCE_OPENDJ_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+    protected static final QName RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS = new QName(RESOURCE_OPENDJ_NS,"inetOrgPerson");
 
     private static final String RESOURCE_DERBY_FILENAME = REPO_DIR_NAME + "resource-derby.xml";
     private static final String RESOURCE_DERBY_OID = "ef2bc95b-76e0-59e2-86d6-999902d3abab";
@@ -228,7 +230,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     private static final String RESOURCE_DUMMY_FILENAME = REPO_DIR_NAME + "resource-dummy.xml";
     private static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
 
-    private static final String CONNECTOR_LDAP_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/org.identityconnectors.ldap.LdapConnector";
+    private static final String CONNECTOR_LDAP_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector";
     private static final String CONNECTOR_DBTABLE_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-databasetable/org.identityconnectors.databasetable.DatabaseTableConnector";
     
     private static final String CONNECTOR_BROKEN_FILENAME = REPO_DIR_NAME + "connector-broken.xml";
@@ -588,7 +590,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     private void checkOpenDjSchema(ResourceType resource, String source) throws SchemaException {
         ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
-        ObjectClassComplexTypeDefinition accountDefinition = schema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
+        ObjectClassComplexTypeDefinition accountDefinition = schema.findObjectClassDefinition(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
         assertNotNull("Schema does not define any account (resource from " + source + ")", accountDefinition);
         Collection<? extends ResourceAttributeDefinition> identifiers = accountDefinition.getIdentifiers();
         assertFalse("No account identifiers (resource from " + source + ")", identifiers == null || identifiers.isEmpty());
@@ -622,7 +624,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 	}
 	
 	private void checkOpenDjConfiguration(PrismObject<ResourceType> resource, String source) {
-		checkOpenResourceConfiguration(resource, CONNECTOR_LDAP_NAMESPACE, "credentials", 7, source);
+		checkOpenResourceConfiguration(resource, CONNECTOR_LDAP_NAMESPACE, "bindPassword", 8, source);
 	}
 		
 	private void checkOpenResourceConfiguration(PrismObject<ResourceType> resource, String connectorNamespace, String credentialsPropertyName,
@@ -638,10 +640,10 @@ public class TestSanity extends AbstractModelIntegrationTest {
 			// The is the heisenbug we are looking for. Just dump the entire damn thing.
 			display("Configuration with the heisenbug", configurationContainer.debugDump());
 		}
-		assertNotNull("No credentials property in "+resource+" from "+source, credentialsProp);
-		assertEquals("Wrong number of credentials property value in "+resource+" from "+source, 1, credentialsProp.getValues().size());
+		assertNotNull("No "+credentialsPropertyName+" property in "+resource+" from "+source, credentialsProp);
+		assertEquals("Wrong number of "+credentialsPropertyName+" property value in "+resource+" from "+source, 1, credentialsProp.getValues().size());
 		PrismPropertyValue<Object> credentialsPropertyValue = credentialsProp.getValues().iterator().next();
-		assertNotNull("No credentials property value in "+resource+" from "+source, credentialsPropertyValue);
+		assertNotNull("No "+credentialsPropertyName+" property value in "+resource+" from "+source, credentialsPropertyValue);
 		if (credentialsPropertyValue.isRaw()) {
 			Object rawElement = credentialsPropertyValue.getRawElement();
 			assertTrue("Wrong element class "+rawElement.getClass()+" in "+resource+" from "+source, rawElement instanceof MapXNode);
@@ -1316,7 +1318,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 ShadowType shadow = (ShadowType) objectType;
                 assertNotNull(shadow.getOid());
                 assertNotNull(shadow.getName());
-                assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeOpenDjrepo), "AccountObjectClass"), shadow.getObjectClass());
+                assertEquals(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS, shadow.getObjectClass());
                 assertEquals(RESOURCE_OPENDJ_OID, shadow.getResourceRef().getOid());
                 String icfUid = getAttributeValue(shadow, SchemaConstants.ICFS_UID);
                 assertNotNull("No ICF UID", icfUid);

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2014 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
           xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
           xmlns:func="http://midpoint.evolveum.com/xml/ns/public/function/basic-3"
           xmlns:my="http://whatever.com/my">
 
@@ -42,30 +43,26 @@
 		<filter>
             <q:equal>
             	<q:path>c:connectorType</q:path>
-                <q:value>org.identityconnectors.ldap.LdapConnector</q:value>
+                <q:value>com.evolveum.polygon.connector.ldap.LdapConnector</q:value>
             </q:equal>
         </filter>
     </connectorRef>
 
     <!-- Resource configuration section -->
-    <connectorConfiguration
-            xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/org.identityconnectors.ldap.LdapConnector"
-            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
-
-        <!-- Configuration specific for the LDAP connector -->
-        <icfc:configurationProperties>
-
-            <icfcldap:port>10389</icfcldap:port>
-            <icfcldap:host>localhost</icfcldap:host>
-            <icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
-            <icfcldap:principal>cn=directory manager</icfcldap:principal>
-            <icfcldap:credentials>
-                <clearValue>secret</clearValue>
-            </icfcldap:credentials>
-            <icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
-            <icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
-        </icfc:configurationProperties>
-
+    <connectorConfiguration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector">
+					   
+		<icfc:configurationProperties>
+			<icfcldap:port>10389</icfcldap:port>
+			<icfcldap:host>localhost</icfcldap:host>
+			<icfcldap:baseContext>dc=example,dc=com</icfcldap:baseContext>
+			<icfcldap:bindDn>cn=directory manager</icfcldap:bindDn>
+			<icfcldap:bindPassword><t:clearValue>secret</t:clearValue></icfcldap:bindPassword>
+			<icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
+			<icfcldap:vlvSortAttribute>entryUUID</icfcldap:vlvSortAttribute>
+ 			<icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
+ 			<icfcldap:operationalAttributes>isMemberOf</icfcldap:operationalAttributes>
+		</icfc:configurationProperties>
+    
         <!-- Generic ICF configuration -->
 
         <icfc:connectorPoolConfiguration>
@@ -117,7 +114,7 @@ This is now the only account type that midPoint can work with. -->
             <!-- Reference to the Resource Schema specifying
       object class for this account type -->
 
-            <objectClass>ri:AccountObjectClass</objectClass>
+            <objectClass>ri:inetOrgPerson</objectClass>
 
             <!-- Definition of __NAME__ attribute handling.
      ICF will put entry DN into __NAME__ attribute.-->
@@ -615,7 +612,7 @@ This is now the only account type that midPoint can work with. -->
         	<kind>entitlement</kind>
             <intent>ldapGroup</intent>
             <displayName>LDAP Group</displayName>
-            <objectClass>ri:GroupObjectClass</objectClass>
+            <objectClass>ri:groupOfUniqueNames</objectClass>
         </objectType>
         
     </schemaHandling>
