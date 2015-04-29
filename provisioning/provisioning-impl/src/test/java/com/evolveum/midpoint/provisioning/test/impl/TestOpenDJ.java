@@ -75,6 +75,7 @@ import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -338,9 +339,71 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 	}
 	
 	@Test
-	public void test006RefinedSchema() throws ObjectNotFoundException, CommunicationException, SchemaException,
-			ConfigurationException {
-		TestUtil.displayTestTile("test006RefinedSchema");
+	public void test006Schema() throws Exception {
+		final String TEST_NAME = "test006RefinedSchema";
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+
+		// WHEN
+		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resourceType, prismContext);
+		display("Resource schema", resourceSchema);
+
+
+		ObjectClassComplexTypeDefinition accountDef = resourceSchema.findObjectClassDefinition(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
+		assertNotNull("Account definition is missing", accountDef);
+		assertNotNull("Null identifiers in account", accountDef.getIdentifiers());
+		assertFalse("Empty identifiers in account", accountDef.getIdentifiers().isEmpty());
+		assertNotNull("Null secondary identifiers in account", accountDef.getSecondaryIdentifiers());
+		assertFalse("Empty secondary identifiers in account", accountDef.getSecondaryIdentifiers().isEmpty());
+		assertNotNull("No naming attribute in account", accountDef.getNamingAttribute());
+		assertFalse("No nativeObjectClass in account", StringUtils.isEmpty(accountDef.getNativeObjectClass()));
+
+		ResourceAttributeDefinition<String> uidDef = accountDef.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
+		assertEquals(1, uidDef.getMaxOccurs());
+		assertEquals(0, uidDef.getMinOccurs());
+		assertFalse("No UID display name", StringUtils.isBlank(uidDef.getDisplayName()));
+		assertFalse("UID has create", uidDef.canAdd());
+		assertFalse("UID has update", uidDef.canModify());
+		assertTrue("No UID read", uidDef.canRead());
+		assertTrue("UID definition not in identifiers", accountDef.getIdentifiers().contains(uidDef));
+
+		ResourceAttributeDefinition<String> nameDef = accountDef.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
+		assertEquals(1, nameDef.getMaxOccurs());
+		assertEquals(1, nameDef.getMinOccurs());
+		assertFalse("No NAME displayName", StringUtils.isBlank(nameDef.getDisplayName()));
+		assertTrue("No NAME create", nameDef.canAdd());
+		assertTrue("No NAME update", nameDef.canModify());
+		assertTrue("No NAME read", nameDef.canRead());
+		assertTrue("NAME definition not in identifiers", accountDef.getSecondaryIdentifiers().contains(nameDef));
+
+		ResourceAttributeDefinition<String> cnDef = accountDef.findAttributeDefinition("cn");
+		assertNotNull("No definition for cn", cnDef);
+		assertEquals(-1, cnDef.getMaxOccurs());
+		assertEquals(1, cnDef.getMinOccurs());
+		assertTrue("No cn create", cnDef.canAdd());
+		assertTrue("No cn update", cnDef.canModify());
+		assertTrue("No cn read", cnDef.canRead());
+		
+		ResourceAttributeDefinition<String> dsDef = accountDef.findAttributeDefinition("ds-pwp-account-disabled");
+		assertNotNull("No definition for ds-pwp-account-disabled", dsDef);
+		assertEquals(1, dsDef.getMaxOccurs());
+		assertEquals(0, dsDef.getMinOccurs());
+		assertTrue("No ds-pwp-account-disabled create", dsDef.canAdd());
+		assertTrue("No ds-pwp-account-disabled create", dsDef.canAdd());
+		assertTrue("No ds-pwp-account-disabled update", dsDef.canModify());
+		// TODO: MID-2358
+//		assertTrue("ds-pwp-account-disabled is NOT operational", dsDef.isOperational());
+
+		assertNull("The _PASSSWORD_ attribute sneaked into schema",
+				accountDef.findAttributeDefinition(new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));
+
+		assertShadows(1);
+	}
+	
+	@Test
+	public void test007RefinedSchema() throws Exception {
+		final String TEST_NAME = "test007RefinedSchema";
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 
 		// WHEN
@@ -363,7 +426,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertNotNull("No naming attribute in account", accountDef.getNamingAttribute());
 		assertFalse("No nativeObjectClass in account", StringUtils.isEmpty(accountDef.getNativeObjectClass()));
 
-		RefinedAttributeDefinition uidDef = accountDef.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
+		RefinedAttributeDefinition<String> uidDef = accountDef.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
 		assertEquals(1, uidDef.getMaxOccurs());
 		assertEquals(0, uidDef.getMinOccurs());
 		assertFalse("No UID display name", StringUtils.isBlank(uidDef.getDisplayName()));
@@ -372,7 +435,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertTrue("No UID read", uidDef.canRead());
 		assertTrue("UID definition not in identifiers", accountDef.getIdentifiers().contains(uidDef));
 
-		RefinedAttributeDefinition nameDef = accountDef.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
+		RefinedAttributeDefinition<String> nameDef = accountDef.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
 		assertEquals(1, nameDef.getMaxOccurs());
 		assertEquals(1, nameDef.getMinOccurs());
 		assertFalse("No NAME displayName", StringUtils.isBlank(nameDef.getDisplayName()));
@@ -382,13 +445,24 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertTrue("NAME definition not in identifiers", accountDef.getSecondaryIdentifiers().contains(nameDef));
 		assertEquals("Wrong NAME matching rule", StringIgnoreCaseMatchingRule.NAME, nameDef.getMatchingRuleQName());
 
-		RefinedAttributeDefinition cnDef = accountDef.findAttributeDefinition("cn");
+		RefinedAttributeDefinition<String> cnDef = accountDef.findAttributeDefinition("cn");
 		assertNotNull("No definition for cn", cnDef);
 		assertEquals(-1, cnDef.getMaxOccurs());
 		assertEquals(1, cnDef.getMinOccurs());
-		assertTrue("No fullname create", cnDef.canAdd());
-		assertTrue("No fullname update", cnDef.canModify());
-		assertTrue("No fullname read", cnDef.canRead());
+		assertTrue("No cn create", cnDef.canAdd());
+		assertTrue("No cn update", cnDef.canModify());
+		assertTrue("No cn read", cnDef.canRead());
+		
+		RefinedAttributeDefinition<String> dsDef = accountDef.findAttributeDefinition("ds-pwp-account-disabled");
+		assertNotNull("No definition for cn", dsDef);
+		assertEquals(1, dsDef.getMaxOccurs());
+		assertEquals(0, dsDef.getMinOccurs());
+		assertTrue("No ds-pwp-account-disabled create", dsDef.canAdd());
+		assertTrue("No ds-pwp-account-disabled update", dsDef.canModify());
+		assertTrue("No ds-pwp-account-disabled read", dsDef.canRead());
+		// TODO: MID-2358
+//		assertTrue("ds-pwp-account-disabled is NOT operational", dsDef.isOperational());
+		assertTrue("ds-pwp-account-disabled is NOT ignored", dsDef.isIgnored());
 
 		assertNull("The _PASSSWORD_ attribute sneaked into schema",
 				accountDef.findAttributeDefinition(new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));
@@ -924,10 +998,12 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		display("Object change",delta);
 
 		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		provisioningService.modifyObject(ShadowType.class, objectChange.getOid(),
 				delta.getModifications(), null, null, taskManager.createTaskInstance(), result);
 		
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
 		ShadowType accountType = provisioningService.getObject(ShadowType.class,
 				ACCOUNT_DISABLE_SIMULATED_OID, null, taskManager.createTaskInstance(), result).asObjectable();
 		
@@ -946,7 +1022,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		String disabled = openDJController.getAttributeValue(response, "ds-pwp-account-disabled");
 		assertNotNull("no ds-pwp-account-disabled attribute in account "+uid, disabled);
 
-        System.out.println("ds-pwp-account-disabled after change: " + disabled);
+        display("ds-pwp-account-disabled after change: " + disabled);
 
         assertEquals("ds-pwp-account-disabled not set to \"true\"", "true", disabled);
         
