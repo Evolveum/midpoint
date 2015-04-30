@@ -52,6 +52,7 @@ import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -67,11 +68,13 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -1710,6 +1713,79 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		}
 	}
 	
+	@Test
+	public void test600AddResourceOpenDjBadCredentials() throws Exception {
+		final String TEST_NAME = "test600AddResourceOpenDjBadCredentials";
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+				+ "." + TEST_NAME);
+
+		PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_OPENDJ_BAD_CREDENTIALS_FILE);
+		fillInConnectorRef(resource, LDAP_CONNECTOR_TYPE, result);
+
+		// WHEN
+		String addedObjectOid = provisioningService.addObject(resource, null, null, taskManager.createTaskInstance(), result);
+		
+		// THEN
+		result.computeStatus();
+		display(result);
+		assertSuccess(result);
+		
+		assertEquals("Wrong oid", RESOURCE_OPENDJ_BAD_CREDENTIALS_OID, addedObjectOid);
+	}
 	
+	@Test
+	public void test603ConnectionBadCredentials() throws Exception {
+		final String TEST_NAME = "test603ConnectionBadCredentials";
+		TestUtil.displayTestTile(TEST_NAME);
+
+		// WHEN
+		OperationResult	operationResult = provisioningService.testResource(RESOURCE_OPENDJ_BAD_CREDENTIALS_OID);
+		
+		display("Test connection result (expected failure)",operationResult);
+		TestUtil.assertFailure(operationResult);
+		
+		OperationResult initResult = operationResult.findSubresult(ConnectorTestOperation.CONNECTOR_INITIALIZATION.getOperation());
+		assertTrue("Unexpected connector initialization message: "+initResult.getMessage(), initResult.getMessage().contains("invalidCredentials"));
+		assertTrue("Unexpected connector initialization message: "+initResult.getMessage(), initResult.getMessage().contains("49"));
+	}
 	
+	@Test
+	public void test610AddResourceOpenDjBadBindDn() throws Exception {
+		final String TEST_NAME = "test610AddResourceOpenDjBadBindDn";
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+				+ "." + TEST_NAME);
+
+		PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_OPENDJ_BAD_BIND_DN_FILE);
+		fillInConnectorRef(resource, LDAP_CONNECTOR_TYPE, result);
+
+		// WHEN
+		String addedObjectOid = provisioningService.addObject(resource, null, null, taskManager.createTaskInstance(), result);
+		
+		// THEN
+		result.computeStatus();
+		display(result);
+		assertSuccess(result);
+		
+		assertEquals("Wrong oid", RESOURCE_OPENDJ_BAD_BIND_DN_OID, addedObjectOid);
+	}
+	
+	@Test
+	public void test613ConnectionBadBindDn() throws Exception {
+		final String TEST_NAME = "test613ConnectionBadBindDn";
+		TestUtil.displayTestTile(TEST_NAME);
+
+		// WHEN
+		OperationResult	operationResult = provisioningService.testResource(RESOURCE_OPENDJ_BAD_BIND_DN_OID);
+		
+		display("Test connection result (expected failure)",operationResult);
+		TestUtil.assertFailure(operationResult);
+		
+		OperationResult initResult = operationResult.findSubresult(ConnectorTestOperation.CONNECTOR_INITIALIZATION.getOperation());
+		assertTrue("Unexpected connector initialization message: "+initResult.getMessage(), initResult.getMessage().contains("invalidCredentials"));
+		assertTrue("Unexpected connector initialization message: "+initResult.getMessage(), initResult.getMessage().contains("49"));
+	}
 }
