@@ -188,28 +188,28 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
                                                           TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
 		
 		RefinedResourceSchema refinedSchema;
+		ObjectClassComplexTypeDefinition objectClass;
         try {
             refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, LayerType.MODEL, prismContext);
+        
+	        if (LOGGER.isTraceEnabled()) {
+	        	LOGGER.trace("Refined schema:\n{}", refinedSchema.debugDump());
+	        }
+	        
+	        if (shadowToImport != null) {
+	            objectClass = Utils.determineObjectClass(refinedSchema, shadowToImport);
+	        } else {
+	            objectClass = Utils.determineObjectClass(refinedSchema, coordinatorTask);
+	        }
+	        if (objectClass == null) {
+	            LOGGER.error("Import: No objectclass specified and no default can be determined.");
+	            opResult.recordFatalError("No objectclass specified and no default can be determined");
+	            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+	            return null;
+	        }
         } catch (SchemaException e) {
             LOGGER.error("Import: Schema error during processing account definition: {}",e.getMessage());
             opResult.recordFatalError("Schema error during processing account definition: "+e.getMessage(),e);
-            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-            return null;
-        }
-
-        if (LOGGER.isTraceEnabled()) {
-        	LOGGER.trace("Refined schema:\n{}", refinedSchema.debugDump());
-        }
-        
-        ObjectClassComplexTypeDefinition objectClass;
-        if (shadowToImport != null) {
-            objectClass = Utils.determineObjectClass(refinedSchema, shadowToImport);
-        } else {
-            objectClass = Utils.determineObjectClass(refinedSchema, coordinatorTask);
-        }
-        if (objectClass == null) {
-            LOGGER.error("Import: No objectclass specified and no default can be determined.");
-            opResult.recordFatalError("No objectclass specified and no default can be determined");
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return null;
         }

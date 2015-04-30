@@ -329,10 +329,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     
     private static final String  LDIF_HERMAN_FILENAME = REQUEST_DIR_NAME + "herman.ldif";
     
-    private static final QName IMPORT_OBJECTCLASS = new QName(
-            "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff",
-            "AccountObjectClass");
-
     private static final Trace LOGGER = TraceManager.getTrace(TestSanity.class);
 
 	private static final String NS_MY = "http://whatever.com/my";
@@ -3059,7 +3055,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         assertEqualsPolyString("Name doesn't match",  "uid=" + userName + ",ou=People,dc=example,dc=com", account.getName());
 //        assertEquals("Name doesn't match", "uid=" + userName + ",ou=People,dc=example,dc=com", account.getName());
-        Collection<String> localities = getAttributeValues(account, new QName(IMPORT_OBJECTCLASS.getNamespaceURI(), "l"));
+        Collection<String> localities = getAttributeValues(account, new QName(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS.getNamespaceURI(), "l"));
         assertNotNull("null value list for attribute 'l'", localities);
         assertEquals("unexpected number of values of attribute 'l'", 1, localities.size());
         assertEquals("Locality doesn't match", "middle of nowhere", localities.iterator().next());
@@ -3130,10 +3126,11 @@ public class TestSanity extends AbstractModelIntegrationTest {
         display("Entry from LDIF", addEntry);
 
         // WHEN
-        TaskType taskType = modelWeb.importFromResource(RESOURCE_OPENDJ_OID, IMPORT_OBJECTCLASS);
+        TestUtil.displayWhen(TEST_NAME);
+        TaskType taskType = modelWeb.importFromResource(RESOURCE_OPENDJ_OID, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
 
         // THEN
-
+        TestUtil.displayThen(TEST_NAME);
         assertNoRepoCache();
         displayJaxb("importFromResource result", taskType.getResult(), SchemaConstants.C_RESULT);
         AssertJUnit.assertEquals("importFromResource has failed", OperationResultStatusType.IN_PROGRESS, taskType.getResult().getStatus());
@@ -3742,8 +3739,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
     
     @Test
     public void test500NotifyChangeCreateAccount() throws Exception{
-//    	try{
-    		 TestUtil.displayTestTile("test500NotifyChangeCreateAccount");
+    	final String TEST_NAME = "test500NotifyChangeCreateAccount";
+		TestUtil.displayTestTile(TEST_NAME);
 
     	Entry ldifEntry = openDJController.addEntryFromLdifFile(LDIF_ANGELIKA_FILENAME);
         display("Entry from LDIF", ldifEntry);
@@ -3768,29 +3765,24 @@ public class TestSanity extends AbstractModelIntegrationTest {
         String icfUid = val.toString();
         
         ShadowType anglicaAccount = parseObjectType(new File(ACCOUNT_ANGELIKA_FILENAME), ShadowType.class);
-    	PrismProperty prop = anglicaAccount.asPrismObject().findOrCreateProperty(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_UID));
-    	prop.setValue(new PrismPropertyValue(icfUid));
+    	PrismProperty<String> prop = anglicaAccount.asPrismObject().findOrCreateProperty(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_UID));
+    	prop.setValue(new PrismPropertyValue<String>(icfUid));
     	anglicaAccount.setResourceRef(ObjectTypeUtil.createObjectRef(RESOURCE_OPENDJ_OID, ObjectTypes.RESOURCE));
     	
-    	OperationResult parentResult = new OperationResult("test500notifyChange.addAngelicaAccount");
-//    	repositoryService.addObject(anglicaAccount.asPrismObject(), null, parentResult);
+    	display("Angelica shadow: ", anglicaAccount.asPrismObject().debugDump());
     	
-    	display("Angelica shdow: ", anglicaAccount.asPrismObject().debugDump());
-    	
-//    	provisioningService.applyDefinition(anglicaAccount.asPrismObject(), parentResult);
-        
     	ResourceObjectShadowChangeDescriptionType changeDescription = new ResourceObjectShadowChangeDescriptionType();
     	ObjectDeltaType delta = new ObjectDeltaType();
     	delta.setChangeType(ChangeTypeType.ADD);
-//    	ObjectToAdd objToAdd = new ObjectToAdd();
-//    	objToAdd.setAny(anglicaAccount);
     	delta.setObjectToAdd(anglicaAccount);
     	delta.setObjectType(ShadowType.COMPLEX_TYPE);
-//    	delta.setOid(anglicaAccount.getOid());
     	changeDescription.setObjectDelta(delta);
     	changeDescription.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
     	
+    	// WHEN
     	TaskType task = modelWeb.notifyChange(changeDescription);
+    	
+    	// THEN
     	OperationResult result = OperationResult.createOperationResult(task.getResult());
     	display(result);
     	assertSuccess(result);
@@ -3804,39 +3796,32 @@ public class TestSanity extends AbstractModelIntegrationTest {
     	assertEquals("Expected one account ref in user", 1, user.getLinkRef().size());
     	String oid = user.getLinkRef().get(0).getOid();
     	
-    	ShadowType modelShadow = modelService.getObject(ShadowType.class, oid, null, taskManager.createTaskInstance(), result).asObjectable();
-    	
+    	PrismObject<ShadowType> modelShadow = modelService.getObject(ShadowType.class, oid, null, taskManager.createTaskInstance(), result);
     	
     	assertAttributeNotNull(modelShadow, ConnectorFactoryIcfImpl.ICFS_UID);
         assertAttribute(modelShadow, resourceTypeOpenDjrepo, "uid", "angelika");
         assertAttribute(modelShadow, resourceTypeOpenDjrepo, "givenName", "Angelika");
         assertAttribute(modelShadow, resourceTypeOpenDjrepo, "sn", "Marley");
         assertAttribute(modelShadow, resourceTypeOpenDjrepo, "cn", "Angelika Marley");
-//        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "displayName", "Jack Sparrow");
-//        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "l", "middle of nowhere");
-    	
-    	
-    	
-//    	} catch (Exception ex){
-//    		display("exception: ", ex);
-//    		throw ex;
-//    	}
+        
+        assertShadowLdapPassword(modelShadow, "piranhaDogs");
+
     }
     
     @Test
     public void test501NotifyChangeModifyAccount() throws Exception{
-    		 TestUtil.displayTestTile("test501NotifyChangeModifyAccount");
+    	final String TEST_NAME = "test501NotifyChangeModifyAccount";
+    	TestUtil.displayTestTile(TEST_NAME);
 
-    		 OperationResult parentResult = new OperationResult("test500notifyChange.addAngelicaAccount");	 
-    		 PrismObject<UserType> userAngelika = findUserByUsername(ANGELIKA_NAME);
-    		 assertNotNull("User with the name angelika must exist.", userAngelika);
-    	    	
-    	    	UserType user = userAngelika.asObjectable();
-    	    	assertNotNull("User with the name angelika must have one link ref.", user.getLinkRef());
-    	    	
-    	    	assertEquals("Expected one account ref in user", 1, user.getLinkRef().size());
-    	    	String oid = user.getLinkRef().get(0).getOid();
-    	    	
+		OperationResult parentResult = new OperationResult(TEST_NAME);	 
+		PrismObject<UserType> userAngelika = findUserByUsername(ANGELIKA_NAME);
+		assertNotNull("User with the name angelika must exist.", userAngelika);
+		
+		UserType user = userAngelika.asObjectable();
+		assertNotNull("User with the name angelika must have one link ref.", user.getLinkRef());
+		
+		assertEquals("Expected one account ref in user", 1, user.getLinkRef().size());
+		String oid = user.getLinkRef().get(0).getOid();
         
     	ResourceObjectShadowChangeDescriptionType changeDescription = new ResourceObjectShadowChangeDescriptionType();
     	ObjectDeltaType delta = new ObjectDeltaType();
@@ -3849,9 +3834,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     	mod1.setPath(path);
     	
     	RawType value = new RawType(new PrimitiveXNode<String>("newAngelika"), prismContext);
-    	//TODO: shouldn't it be JaxbElement<PolyString>? 
-//    	Element el = DOMUtil.createElement(DOMUtil.getDocument(), new QName(resourceTypeOpenDjrepo.getNamespace(), "givenName"));
-//    	el.setTextContent("newAngelika");
         mod1.getValue().add(value);
     	
     	delta.getItemDelta().add(mod1);
@@ -3866,7 +3848,10 @@ public class TestSanity extends AbstractModelIntegrationTest {
     	changeDescription.setOldShadowOid(oid);
     	changeDescription.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
     	
+    	// WHEN
     	TaskType task = modelWeb.notifyChange(changeDescription);
+    	
+    	// THEN
     	OperationResult result = OperationResult.createOperationResult(task.getResult());
     	display(result);
     	assertSuccess(result);
@@ -3882,57 +3867,33 @@ public class TestSanity extends AbstractModelIntegrationTest {
     
     @Test
     public void test502NotifyChangeModifyAccountPassword() throws Exception{
-    		 TestUtil.displayTestTile("test502NotifyChangeModifyAccountPassword");
-
-    		 OperationResult parentResult = new OperationResult("test500notifyChange.addAngelicaAccount");	 
-    		 PrismObject<UserType> userAngelika = findUserByUsername(ANGELIKA_NAME);
-    		 assertNotNull("User with the name angelika must exist.", userAngelika);
-    	    	
-    	    	UserType user = userAngelika.asObjectable();
-    	    	assertNotNull("User with the name angelika must have one link ref.", user.getLinkRef());
-    	    	
-    	    	assertEquals("Expected one account ref in user", 1, user.getLinkRef().size());
-    	    	String oid = user.getLinkRef().get(0).getOid();
-    	    	
-//    	    	PrismObject<ShadowType> angelicaAcc = modelService.getObject(ShadowType.class, oid, null, taskManager.createTaskInstance(), parentResult);
-//    	    	ShadowType angelicaShadowType = angelicaAcc.asObjectable();
-    	    	
-    	    	String newPassword = "newPassword";
-//    	    	ProtectedStringType decrypted= ModelClientUtil.createProtectedString(newPassword);
-//    	    	protector.encrypt(decrypted);
-//    	    	angelicaShadowType.getCredentials().getPassword().setValue(decrypted);
+    	final String TEST_NAME = "test502NotifyChangeModifyAccountPassword";
+    	TestUtil.displayTestTile(TEST_NAME);
+		
+		PrismObject<UserType> userAngelika = findUserByUsername(ANGELIKA_NAME);
+		assertNotNull("User with the name angelika must exist.", userAngelika);
+		
+		UserType user = userAngelika.asObjectable();
+		assertNotNull("User with the name angelika must have one link ref.", user.getLinkRef());
+		
+		assertEquals("Expected one account ref in user", 1, user.getLinkRef().size());
+		String oid = user.getLinkRef().get(0).getOid();
+		
+		String newPassword = "newPassword";
+		
+		openDJController.modifyReplace("uid="+ANGELIKA_NAME+","+openDJController.getSuffixPeople(), "userPassword", newPassword);
         
     	ResourceObjectShadowChangeDescriptionType changeDescription = new ResourceObjectShadowChangeDescriptionType();
     	ObjectDeltaType delta = new ObjectDeltaType();
     	delta.setChangeType(ChangeTypeType.MODIFY);
     	delta.setObjectType(ShadowType.COMPLEX_TYPE);
     	
-    	
-    	Document doc = DOMUtil.getDocument();
         ItemDeltaType passwordDelta = new ItemDeltaType();
         passwordDelta.setModificationType(ModificationTypeType.REPLACE);
         passwordDelta.setPath(ModelClientUtil.createItemPathType("credentials/password/value"));
         RawType passwordValue = new RawType(prismContext.getBeanConverter().marshall(ModelClientUtil.createProtectedString(newPassword)), prismContext);
         passwordDelta.getValue().add(passwordValue);
     	
-//    	ItemDeltaType mod1 = new ItemDeltaType();
-//    	mod1.setModificationType(ModificationTypeType.REPLACE);
-//    	ModelClientUtil.createProtectedString(clearValue)
-//    	XPathHolder xpath = new XPathHolder(SchemaConstants.PATH_PASSWORD);
-//    	Element path = xpath.toElement(SchemaConstantsGenerated.NS_TYPES, "path");
-//    	mod1.setPath(path);
-    	
-//    	String newPassword = "newPassword";
-//    	ItemDeltaType.Value value = new ItemDeltaType.Value();
-//    	Document doc = DOMUtil.getDocument();
-//    	Element el = DOMUtil.createElement(doc, SchemaConstantsGenerated.C_VALUE);
-//    	Element passwdEl = DOMUtil.createElement(doc, new QName(SchemaConstants.NS_C, "clearValue"));
-//    	passwdEl.setTextContent(newPassword);
-//    	el.appendChild(passwdEl);
-//        value.getAny().add(el);
-//        mod1.setValue(value);
-    	
-//    	delta.getModification().add(mod1);
         delta.getItemDelta().add(passwordDelta);
     	delta.setOid(oid);
     	
@@ -3946,7 +3907,10 @@ public class TestSanity extends AbstractModelIntegrationTest {
 //    	changeDescription.setCurrentShadow(angelicaShadowType);
     	changeDescription.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
     	
+    	// WHEN
     	TaskType task = modelWeb.notifyChange(changeDescription);
+    	
+    	// THEN
     	OperationResult result = OperationResult.createOperationResult(task.getResult());
     	display(result);
     	assertSuccess(result);
@@ -3954,12 +3918,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
     	PrismObject<UserType> userAngelikaAfterSync = findUserByUsername(ANGELIKA_NAME);
     	assertNotNull("User with the name angelika must exist.", userAngelikaAfterSync);
     	
-    	assertPassword(userAngelikaAfterSync, newPassword);
-    	
-//    	UserType userAfterSync = userAngelikaAfterSync.asObjectable();
-    	
-//    	PrismAsserts.assertEqualsPolyString("wrong given name in user angelika", PrismTestUtil.createPolyStringType("newAngelika"), userAfterSync.getGivenName());
-    	
+    	assertUserLdapPassword(userAngelikaAfterSync, newPassword);
+    	    	
     }
     
     @Test

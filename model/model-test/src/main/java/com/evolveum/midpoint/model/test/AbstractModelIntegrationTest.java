@@ -146,6 +146,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.access.SecurityConfig;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.encoding.LdapShaPasswordEncoder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
@@ -2450,7 +2451,36 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		String decryptedUserPassword = protector.decryptString(protectedStringType);
 		assertEquals("Wrong password in "+user, expectedPassword, decryptedUserPassword);
 	}
+
+	protected void assertUserLdapPassword(PrismObject<UserType> user, String expectedPassword) throws EncryptionException {
+		CredentialsType credentialsType = user.asObjectable().getCredentials();
+		assertNotNull("No credentials in "+user, credentialsType);
+		PasswordType passwordType = credentialsType.getPassword();
+		assertNotNull("No password in "+user, passwordType);
+		ProtectedStringType protectedStringType = passwordType.getValue();
+		assertLdapPassword(protectedStringType, expectedPassword, user);
+	}
+
+	protected void assertShadowLdapPassword(PrismObject<ShadowType> shadow, String expectedPassword) throws EncryptionException {
+		CredentialsType credentialsType = shadow.asObjectable().getCredentials();
+		assertNotNull("No credentials in "+shadow, credentialsType);
+		PasswordType passwordType = credentialsType.getPassword();
+		assertNotNull("No password in "+shadow, passwordType);
+		ProtectedStringType protectedStringType = passwordType.getValue();
+		assertLdapPassword(protectedStringType, expectedPassword, shadow);
+	}
 	
+	protected <O extends ObjectType> void assertLdapPassword(ProtectedStringType protectedStringType, String expectedPassword, PrismObject<O> source) throws EncryptionException {
+		assertNotNull("No password value in "+source, protectedStringType);
+		String decryptedUserPassword = protector.decryptString(protectedStringType);
+		assertNotNull("Null password in "+source, decryptedUserPassword);
+		if (decryptedUserPassword.startsWith("{") || decryptedUserPassword.contains("}")) {
+			assertTrue("Wrong password hash in "+source+": "+decryptedUserPassword+", expected "+expectedPassword, ldapShaPasswordEncoder.isPasswordValid(decryptedUserPassword, expectedPassword, null));
+		} else {
+			assertEquals("Wrong password in "+source, expectedPassword, decryptedUserPassword);
+		}
+	}
+
 	protected void assertGroupMember(DummyGroup group, String accountId) {
 		IntegrationTestTools.assertGroupMember(group, accountId);
 	}

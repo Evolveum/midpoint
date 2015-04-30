@@ -244,6 +244,12 @@ public class IntegrationTestTools {
 		assertAttribute(repoShadow, SchemaTestConstants.ICFS_NAME, value);
 	}
 
+	public static void assertAttributeNotNull(PrismObject<ShadowType> repoShadow, QName name) {
+		Collection<String> values = getAttributeValues(repoShadow, name);
+		assertEquals(1, values.size());
+		assertNotNull(values.iterator().next());
+	}
+	
 	public static void assertAttributeNotNull(ShadowType repoShadow, QName name) {
 		Collection<String> values = getAttributeValues(repoShadow, name);
 		assertEquals(1, values.size());

@@ -84,6 +84,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.authentication.encoding.LdapShaPasswordEncoder;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
 import org.testng.AssertJUnit;
@@ -123,6 +124,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractIntegrationTest.class);
 	
 	// Values used to check if something is unchanged or changed properly
+	
+	protected LdapShaPasswordEncoder ldapShaPasswordEncoder = new LdapShaPasswordEncoder();
 	
 	private long lastResourceSchemaFetchCount = 0;
 	private long lastConnectorSchemaParseCount = 0;

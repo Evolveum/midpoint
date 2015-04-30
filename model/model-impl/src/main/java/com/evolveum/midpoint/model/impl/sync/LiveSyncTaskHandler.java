@@ -192,7 +192,15 @@ public class LiveSyncTaskHandler implements TaskHandler {
             return runResult;
         }
         
-        ObjectClassComplexTypeDefinition objectClass = Utils.determineObjectClass(refinedSchema, task);        
+        ObjectClassComplexTypeDefinition objectClass;
+		try {
+			objectClass = Utils.determineObjectClass(refinedSchema, task);
+		} catch (SchemaException e) {
+			LOGGER.error("Live Sync: schema error: {}", e.getMessage());
+            opResult.recordFatalError(e);
+            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+            return runResult;
+		}        
         if (objectClass == null) {
             LOGGER.error("Live Sync: No objectclass specified and no default can be determined.");
             opResult.recordFatalError("No objectclass specified and no default can be determined");
