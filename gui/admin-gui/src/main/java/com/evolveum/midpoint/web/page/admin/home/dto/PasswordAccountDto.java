@@ -87,7 +87,7 @@ public class PasswordAccountDto extends Selectable implements Comparable<Passwor
     }
 
     private int compareString(String s1, String s2) {
-        if (s1 == s2) {
+        if (s1 != null && s1.equals(s2)) {
             return 0;
         }
 

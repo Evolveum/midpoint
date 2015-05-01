@@ -184,7 +184,7 @@ public class TabbedPanel<T extends ITab> extends Panel {
     protected void onBeforeRender() {
         int index = getSelectedTab();
 
-        if ((index == -1) || (getVisiblityCache().isVisible(index) == false)) {
+        if (index == -1 || getVisiblityCache().isVisible(index) == false) {
             // find first visible tab
             index = -1;
             for (int i = 0; i < tabs.getObject().size(); i++) {
@@ -241,7 +241,7 @@ public class TabbedPanel<T extends ITab> extends Panel {
      * Factory method for tab titles. Returned component can be anything that can attach to span
      * tags such as a fragment, panel, or a label
      *
-     * @param titleId    id of title component
+     * @param titleId    id of tiatle component
      * @param titleModel model containing tab title
      * @param index      index of tab
      * @return title component
