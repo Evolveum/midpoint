@@ -38,7 +38,7 @@
 			<filter>
 		        <q:equal>
 				<q:path>c:connectorType</q:path>
-		          <q:value>org.forgerock.openicf.scriptedsql.ScriptedSQLConnector</q:value>
+				<q:value>org.forgerock.openicf.connectors.scriptedsql.ScriptedSQLConnector</q:value>
 		        </q:equal>
 		      </filter>
 		</connectorRef>
@@ -49,7 +49,7 @@
 
             <!-- Configuration specific for the DBTable connector -->
 			<icfc:configurationProperties
-			   xmlns:icscscriptedsql="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.scriptedsql/org.forgerock.openicf.scriptedsql.ScriptedSQLConnector">
+			xmlns:icscscriptedsql="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.scriptedsql-connector/org.forgerock.openicf.connectors.scriptedsql.ScriptedSQLConnector">
 				<icscscriptedsql:port>3306</icscscriptedsql:port>
 				<icscscriptedsql:quoting></icscscriptedsql:quoting>
 				<icscscriptedsql:host>localhost</icscscriptedsql:host>

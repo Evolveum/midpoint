@@ -174,16 +174,8 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto>{
 		InputPanel panel = null;
 		if (type.isEnum()){
 			panel = WebMiscUtil.createEnumPanel(type, componentId, new PropertyModel(model, expression), this);
-//			FormComponent component = panel.getBaseFormComponent();
-//			component.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-//			return panel;
 		} else if (XMLGregorianCalendar.class.isAssignableFrom(type)){
 			panel = new DatePanel(componentId, new PropertyModel<XMLGregorianCalendar>(model, expression));
-//			c.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-//			FormComponent component = date.getBaseFormComponent();
-//			component.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-//			return date;
-//			return new DateInput(componentId, new XmlGregorianCalendarModel(new PropertyModel<XMLGregorianCalendar>(model, expression)));
 		} else {
 			panel = new TextPanel<String>(componentId, new PropertyModel<String>(model, expression));
 		}		

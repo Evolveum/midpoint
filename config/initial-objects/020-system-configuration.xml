@@ -52,12 +52,12 @@
         <classLogger>
             <!-- Standard useful logger -->
             <level>INFO</level>
-            <package>com.evolveum.midpoint.model.lens.projector.Projector</package>
+            <package>com.evolveum.midpoint.model.impl.lens.projector.Projector</package>
         </classLogger>
         <classLogger>
             <!-- Standard useful logger -->
             <level>INFO</level>
-            <package>com.evolveum.midpoint.model.lens.Clockwork</package>
+            <package>com.evolveum.midpoint.model.impl.lens.Clockwork</package>
         </classLogger>
 
         <appender xsi:type="c:FileAppenderConfigurationType" name="IDM_LOG"

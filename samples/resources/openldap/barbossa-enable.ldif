@@ -1,0 +1,4 @@
+dn: uid=barbossa, ou=People, dc=example,dc=com
+changetype: modify
+replace: midPointAccountStatus
+midPointAccountStatus: enabled
