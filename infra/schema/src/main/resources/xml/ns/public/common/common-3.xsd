@@ -366,7 +366,20 @@
             			<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
             		</xsd:appinfo>
                 </xsd:annotation>
-            </xsd:element>	       	
+            </xsd:element>
+
+            <xsd:element name="certificationItem" type="tns:AccessCertificationItemType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Certification items related to this object.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:operational>true</a:operational>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             
         </xsd:sequence>
        
@@ -781,39 +794,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="certificationRunRef" type="tns:ObjectReferenceType" minOccurs="0">
+            <xsd:element name="certificationCampaignRef" type="tns:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Certification run applied to this item.
+                        Certification campaign applied to this item.
                         (Should be set if and only if certificationStartedTimestamp is set.)
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:operational>true</a:operational>
                         <a:indexed>true</a:indexed>
-                        <a:objectReferenceTargetType>tns:AccessCertificationRunType</a:objectReferenceTargetType>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="certificationStatus" type="tns:CertificationStatusType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Certification status.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:operational>true</a:operational>
-                        <a:indexed>true</a:indexed>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="certifierToDecideRef" type="tns:ObjectReferenceType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Reference to the user that has to provide a decision about this data.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:operational>true</a:operational>
-                        <a:indexed>true</a:indexed>
-                        <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+                        <a:objectReferenceTargetType>tns:AccessCertificationCampaignType</a:objectReferenceTargetType>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -11216,11 +11206,11 @@
 
     <!-- Access certification -->
 
-    <xsd:complexType name="AccessCertificationTypeType">
+    <xsd:complexType name="AccessCertificationDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                Definition of an access certification type - a template for
-                a set of access certification runs (campaigns).
+                Definition of an access certification - a template for
+                a set of access certification campaigns.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
@@ -11231,13 +11221,16 @@
                             <xsd:documentation>
                                 Uniquely identifies this certification type e.g. to enable certification handlers
                                 register to it.
+
+                                TODO is this really necessary?
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="scope" type="tns:AccessCertificationScopeType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Specifies the standard scope of certifications of this type.
+                                Specifies the standard scope of certifications of this type. (In the future it can be overriden
+                                in specific certification campaign.)
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -11254,68 +11247,182 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="schedule" type="tns:AccessCertificationScheduleType" minOccurs="0">
+                    <xsd:element name="stage" type="tns:AccessCertificationStageDefinitionType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                When this certification is to be executed.
+                                Definition of individual stages.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-
-
-
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="accessCertificationType" type="tns:AccessCertificationTypeType" />
+    <xsd:element name="accessCertificationDefinition" type="tns:AccessCertificationDefinitionType" />
 
-    <xsd:complexType name="AccessCertificationRunType">
+    <xsd:complexType name="AccessCertificationStageDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                Definition of an access certification run (campaign).
+                Definition of an access certification campaign stage.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="number" type="xsd:int" minOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Stages are numbered from 1 onwards.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="days" type="xsd:int" minOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How many days should the stage last?
+                        (TODO make this a bit more general by including time units)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="reviewerSpecification" type="tns:AccessCertificationReviewerSpecificationType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AccessCertificationReviewerSpecificationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies how to select reviewers for a campaign stage.
+                The most general way is to provide an expression that computes the reviewer(s).
+                TODO provide also more specific ways (like user's manager, role's owner etc).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="reviewerExpression" type="tns:ExpressionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The most general way of specifying the reviewer. TODO describe inputs for such an expression
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AccessCertificationCampaignType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definition of an access certification campaign.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="c:ObjectType">
                 <xsd:sequence>
-                    <xsd:element name="typeRef" type="tns:ObjectReferenceType" minOccurs="0">
+                    <xsd:element name="definitionRef" type="tns:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Specifies the type for this certification run. (Optional, as there can be
-                                ad-hoc certifications with no type.)
+                                Specifies the definition for this certification campaign.
+                                (In the future this will probably be optional, as there will be also
+                                ad-hoc certifications with no pre-existing definition.)
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:objectReferenceTargetType>tns:AccessCertificationTypeType</a:objectReferenceTargetType>
+                                <a:objectReferenceTargetType>tns:AccessCertificationDefinitionType</a:objectReferenceTargetType>
                             </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="scope" type="tns:AccessCertificationScopeType" minOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Specifies the scope of this certification run.
-                                It is derived from the scope of the corresponding access certification type.
-                                (However, it may be augmented, or even replaced if necessary.)
-                            </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="ownerRef" type="tns:ObjectReferenceType" minOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Specifies the owner of this certification run.
+                                Specifies the owner of this certification campaign.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-
+                    <xsd:element name="start" type="xsd:dateTime" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                When this campaign has to start (or has started).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="end" type="xsd:dateTime" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                When this campaign has to finish (or has finished).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="currentStageNumber" type="xsd:int" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The stage this campaign is in.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="stage" type="tns:AccessCertificationStageType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Stages for this campaign (already finished, current, or planned).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <!-- this is now directly in ObjectType
+                    <xsd:element name="case" type="tns:AccessCertificationCaseType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Certification cases for this campaign.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element> -->
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="accessCertificationRun" type="tns:AccessCertificationRunType" />
+    <xsd:element name="accessCertificationCampaign" type="tns:AccessCertificationCampaignType" />
 
+    <xsd:complexType name="AccessCertificationStageType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies the scope of an access certification.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="number" type="xsd:int" minOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="start" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When this stage has to start (or has started).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="end" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When this stage has to finish (or has finished).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
 
     <xsd:complexType name="AccessCertificationScopeType">
         <xsd:annotation>
@@ -11327,79 +11434,277 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="objectType" type="xsd:QName" minOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Type of objects to be selected for certification.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="searchFilter" type="q:SearchFilterType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Filter to find objects for certification.
-                        By default, all objects of a given type will be selected.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="searchRefinement" type="c:ExpressionType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Refinement of search filter results. This can be any expression, whose input is an object
-                        that has passed the search filter specified above, and its output is a list of prism items
-                        to be really certified. It can be e.g. a path expression, mapping a user to a set of his
-                        assignments. Or it could be a groovy expression, doing the same, but selecting only
-                        the "risky" assignment (e.g. assignments to a roles of a given type/types).
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-    </xsd:complexType>
-    <xsd:complexType name="AccessCertificationScheduleType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Specifies the scope of an access certification.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:sequence>
-            <!-- TODO -->
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:simpleType name="CertificationStatusType">
+    <xsd:complexType name="AccessCertificationObjectBasedScopeType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AccessCertificationScopeType">
+                <xsd:sequence>
+                    <xsd:element name="objectType" type="xsd:QName" minOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Type of objects to be selected for certification.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="searchFilter" type="q:SearchFilterType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Filter to find objects for certification.
+                                By default, all objects of a given type will be selected.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="searchRefinement" type="c:ExpressionType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Refinement of search filter results. This can be any expression, whose input is an object
+                                that has passed the search filter specified above, and its output is a list of certification items.
+                                An example: a groovy expression, creating certification items by selecting user's
+                                "risky" assignments (e.g. assignments to a roles of a given type/types). Another example
+                                can be the computation of all assignments (direct and indirect ones), and selecting among these.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="AccessCertificationItemType">
         <xsd:annotation>
             <xsd:documentation>
-                An enumeration that defines possible states of an item-to-be-certified.
+                An item that has to be certified. For example, a specific assignment of a given user. Majority of items is probably
+                quite tangible and directly addressable (e.g. via user OID + assignment ID). Other, however, might be more elusive.
+                For example, the fact that user U has been (indirectly) assigned role R. We cannot point to the repo at any
+                specific place where this is defined. Even for tangible items there are questions like what if the assignment
+                with a given ID would be replaced in the meanwhile? Shouldn't we use a value to point to the given assignment?
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <!--
+            <xsd:element name="targetRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A quite abstract parameter - describing the object of the certification case (e.g. a role, a resource, ...).
+                        Used for selecting relevant cases for approvals.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:ObjectType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="targetQualification" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        E.g. kind+intent of a resource object (if target is a resource).
+
+                        TargetRef + targetQualification are used to group cases e.g. by role, by roleType,
+                        by resource, by resource object ... We could add more similar properties,
+                        as requirements evolve.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            -->
+
+            <xsd:element name="currentCase" type="tns:AccessCertificationCaseType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AccessCertificationAssignmentItemType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AccessCertificationItemType">
+                <xsd:sequence>
+                    <xsd:element name="assignment" type="tns:AssignmentType" minOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                TODO
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="AccessCertificationCaseType">
+        <xsd:annotation>
+            <xsd:documentation>
+                An item that has to be certified, viewed in the scope of a given certification campaign.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="campaignRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        To which campaing this case does belong?
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:AccessCertificationCampaignType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="reviewerRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Who are the reviewers?
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="decision" type="tns:AccessCertificationDecisionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Decision(s) done.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AccessCertificationDecisionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Decision that has been done regarding a given certification case.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="reviewerRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Who made this decision?
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="response" type="tns:AccessCertificationResponseType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The response.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="comment" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The reviewer's comment.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="timestamp" type="xsd:dateTime" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When the decision was made.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- TODO expiration, delegation ... -->
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="AccessCertificationResponseType">
+        <xsd:annotation>
+            <xsd:documentation>
+                An enumeration that defines possible reviewers' responses.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="certified">
+            <xsd:enumeration value="accept">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Item has been successfully certified. Nothing more has to be done.
+                        A.k.a. maintain, confirm, certify, approve, OK - the situation was approved and can be left
+                        as it is. It is possible to enter a date when the approval will expire. Until this time
+                        the item will be considered approved and will not be shown in the certification list
+                        for the given certifier. (We have to decide how to implement this feature. The most simple
+                        but not entirely correct solution is to set "validTo" date for a given assignment. But it
+                        wouldn't work e.g. for indirect assignments.)
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="CERTIFIED"/>
+                        <jaxb:typesafeEnumMember name="ACCEPT"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="awaitingDecision">
+            <xsd:enumeration value="revoke">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Item is awaiting certification decision.
+                        A.k.a. reject, remove, "not OK" - the situation is unacceptable and has to be eliminated
+                        or disabled. E.g. the assignment has to be removed or disabled.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="AWAITING_DECISION"/>
+                        <jaxb:typesafeEnumMember name="REVOKE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="inRemediation">
+            <xsd:enumeration value="reduce">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Item is in the process of being remediated.
+                        A.k.a. update - situation is not acceptable; however, simple elimination/disabling is not
+                        necessary or not appropriate - someone has to look at this and try to find another solution.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="IN_REMEDIATION"/>
+                        <jaxb:typesafeEnumMember name="REDUCE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="notDecided">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A.k.a. abstain - responsible person says he/she is not able to decide.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NOT_DECIDED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="delegate">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Responsible person delegates the decision to someone else.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DELEGATE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="noResponse">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        No response was provided by the given reviewer.
+                        (This state can be used e.g. to facilitate querying by state.)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NO_RESPONSE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
