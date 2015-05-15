@@ -165,11 +165,9 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 		return clonedValues;
 	}
 	
-	public Item getObjectItem(PrismObject object){
-		
+	public Item getObjectItem(Containerable object){
 		ItemPath path = getFullPath();
-		return object.findItem(path);
-		
+		return object.asPrismContainerValue().findItem(path);
 	}
 	
 	public Item getFilterItem() throws SchemaException{
@@ -212,27 +210,15 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 	}
 
 	@Override
-	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException{
-//		if (getObjectItem(object) == null && getValues() == null) {
-//			return true;
-//		}
-//		
-		Item filterItem = getFilterItem();
-		MatchingRule matching = getMatchingRuleFromRegistry(matchingRuleRegistry, filterItem);
+	public boolean match(Containerable object, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+		//Item filterItem = getFilterItem();
+		//MatchingRule matching = getMatchingRuleFromRegistry(matchingRuleRegistry, filterItem);
 		
 		Item item = getObjectItem(object);
 		
 		if (item == null){
 			return false;
 		}
-		
-//		if (item == null && getValues() == null) {
-//			return true;
-//		}
-//		
-//		if (item == null && getValues() != null) {
-//			return false;
-//		}
 		
 		if (!item.isEmpty() && (getValues() == null || getValues().isEmpty())){
 			return false;

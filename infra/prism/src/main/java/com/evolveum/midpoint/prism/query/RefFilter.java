@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Containerable;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.prism.Item;
@@ -169,7 +170,7 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue> {
 	}
 
 	@Override
-	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException{
+	public boolean match(Containerable object, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
 		Item item = getObjectItem(object);
 		Item filterItem = getFilterItem();		
 		return item.match(filterItem);

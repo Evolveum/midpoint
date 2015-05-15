@@ -16,15 +16,18 @@
 
 package com.evolveum.midpoint.certification.impl.handlers;
 
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationRunType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 
 /**
  * @author mederly
@@ -32,7 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationT
 public interface CertificationHandler {
 
     /**
-     * Creates a new Certification Run from a Certification Type and (prototype) Certification Run.
+     * Creates a new Certification Campaign from a Certification Type and (prototype) Certification Run.
      * By default, merges all the data from type and run (specific data from the run take precedence).
      * Individual handlers can modify this behavior if needed.
      *
@@ -43,19 +46,14 @@ public interface CertificationHandler {
      * @return
      * @throws SecurityViolationException
      */
-    AccessCertificationRunType createCertificationRunType(AccessCertificationTypeType certificationTypeType, AccessCertificationRunType runType, Task task, OperationResult result) throws SecurityViolationException;
+    AccessCertificationCampaignType createCampaign(AccessCertificationDefinitionType certificationDefinition, AccessCertificationCampaignType campaign, Task task, OperationResult result) throws SecurityViolationException;
 
     /**
-     * Records the certification run starting. First of all, it sets the following for each relevant object/assignment:
-     *
-     *  certificationStartedTimestamp := current time
-     *  certificationRunRef := current certification
-     *  certificationStatus := AWAITING_DECISION
-     *  certifierToDecideRef := certifier as determined by certification type
+     * Starts the campaign. E.g. creates all the certification cases.
      *
      * @param runType
      * @param task
      * @param result
      */
-    void recordRunStarted(AccessCertificationRunType runType, Task task, OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException;
+    void startStage(AccessCertificationDefinitionType certificationDefinition, AccessCertificationCampaignType runType, Task task, OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException;
 }

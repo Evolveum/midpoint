@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.certification.api;
 
 import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -27,10 +27,11 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationRunType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -39,28 +40,32 @@ import java.util.List;
 public interface CertificationManager {
 
     /**
-     * Starts a certification run.
+     * Starts a certification campaign.
      *
-     * @param certificationTypeType Certification type that is a "template" for this certification run. May be null - in that case,
-     *                              all the necessary information must be specified in runType parameter.
-     * @param runType If present, this can bring additional specifics that are to be merged with data in certification type.
+     * @param certificationDefinition Certification definition for this campaign.
+     * @param campaign Specific values for this campaign (optional).
      *                It must not be persistent, i.e. its OID must not be set.
      * @param task
      * @param parentResult
-     * @return Information about created run. It must be created in the repository as well.
+     * @return Information about created campaign. It will be created in the repository as well.
      */
-    AccessCertificationRunType startCertificationRun(AccessCertificationTypeType certificationTypeType, AccessCertificationRunType runType, Task task, OperationResult parentResult)
-            throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException;
+    AccessCertificationCampaignType createCampaign(AccessCertificationDefinitionType certificationDefinition, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult)
+            throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
+
+    void startStage(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType certDefinition, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
 
     /**
-     * Returns a set of certification cases that a given certifier should decide.
-     * TODO add search criteria
+     * Returns a set of certification cases that match a given query.
      *
-     * @param certifierOid
-     * @param paging Currently, only maxSize is supported
+     * @param campaignOid
+     * @param query
+     * @param task
+     * @param parentResult
      * @return
      * @throws SchemaException
      */
-    List<AccessCertificationCase> getCertificationCasesToDecide(String certifierOid, ObjectPaging paging) throws SchemaException;
+    List<AccessCertificationCaseType> searchCases(String campaignOid, ObjectQuery query, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+
+    void recordReviewerDecision(String campaignOid, long caseId, AccessCertificationDecisionType decision) throws ObjectNotFoundException, SchemaException;
 
 }

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.prism.query;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -35,7 +36,7 @@ public abstract class ObjectFilter implements DebugDumpable, Serializable, Reviv
 		
 	public abstract ObjectFilter clone();
 	
-	public abstract <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException;
+	public abstract boolean match(Containerable object, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException;
 	
 	protected void cloneValues(ObjectFilter clone) {
 	}

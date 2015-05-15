@@ -39,7 +39,11 @@
          </c:value>
 		</password>
 	</credentials>
-	<assignment>
-		<targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"/>
+	<assignment id="1">
+		<targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"/>       <!-- superuser -->
 	</assignment>
+    <assignment id="2">
+        <targetRef oid="00000000-d34d-b33f-f00d-000000000002" type="c:RoleType"/>       <!-- COO -->
+    </assignment>
+
 </user>

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.prism.query;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -85,8 +86,7 @@ public class NotFilter extends UnaryLogicalFilter {
 	}
 
 	@Override
-	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException{
+	public boolean match(Containerable object, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
 		return !getFilter().match(object, matchingRuleRegistry);
-		
 	}
 }

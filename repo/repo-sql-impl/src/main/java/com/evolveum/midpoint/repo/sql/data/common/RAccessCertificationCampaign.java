@@ -18,31 +18,24 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.data.common.enums.RExportType;
-import com.evolveum.midpoint.repo.sql.data.common.enums.ROrientationType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
 
-import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import java.util.Collection;
 
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(name = "uc_access_certification_type_name", columnNames = {"name_norm"}))
-@ForeignKey(name = "fk_access_certification_type")
-public class RAccessCertificationType extends RObject<AccessCertificationTypeType> {
+@Table(uniqueConstraints = @UniqueConstraint(name = "uc_access_certification_campaign_name", columnNames = {"name_norm"}))
+@ForeignKey(name = "fk_access_certification_campaign")
+public class RAccessCertificationCampaign extends RObject<AccessCertificationCampaignType> {
 
     private RPolyString name;
 
@@ -55,16 +48,15 @@ public class RAccessCertificationType extends RObject<AccessCertificationTypeTyp
         this.name = name;
     }
 
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
 
-        RAccessCertificationType rACT = (RAccessCertificationType) o;
+        RAccessCertificationCampaign rACR = (RAccessCertificationCampaign) o;
 
-        if (name != null ? !name.equals(rACT.name) : rACT.name != null)
+        if (name != null ? !name.equals(rACR.name) : rACR.name != null)
             return false;
         return true;
     }
@@ -76,8 +68,8 @@ public class RAccessCertificationType extends RObject<AccessCertificationTypeTyp
         return result;
     }
 
-    public static void copyFromJAXB(AccessCertificationTypeType jaxb, RAccessCertificationType repo, PrismContext prismContext,
-                                    IdGeneratorResult generatorResult)
+    public static void copyFromJAXB(AccessCertificationCampaignType jaxb, RAccessCertificationCampaign repo,
+                                    PrismContext prismContext, IdGeneratorResult generatorResult)
             throws DtoTranslationException {
 
         RObject.copyFromJAXB(jaxb, repo, prismContext, generatorResult);
@@ -86,13 +78,13 @@ public class RAccessCertificationType extends RObject<AccessCertificationTypeTyp
     }
 
     @Override
-    public AccessCertificationTypeType toJAXB(PrismContext prismContext,
-                             Collection<SelectorOptions<GetOperationOptions>> options)
+    public AccessCertificationCampaignType toJAXB(PrismContext prismContext,
+                                                  Collection<SelectorOptions<GetOperationOptions>> options)
             throws DtoTranslationException {
 
-        AccessCertificationTypeType object = new AccessCertificationTypeType();
+        AccessCertificationCampaignType object = new AccessCertificationCampaignType();
         RUtil.revive(object, prismContext);
-        RAccessCertificationType.copyToJAXB(this, object, prismContext, options);
+        RAccessCertificationCampaign.copyToJAXB(this, object, prismContext, options);
 
         return object;
     }

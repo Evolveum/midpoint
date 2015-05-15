@@ -27,8 +27,7 @@ import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationRunType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -78,7 +77,7 @@ public class PageCertificationRuns extends PageAdminWorkItems {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        ObjectDataProvider provider = new ObjectDataProvider(PageCertificationRuns.this, AccessCertificationRunType.class);
+        ObjectDataProvider provider = new ObjectDataProvider(PageCertificationRuns.this, AccessCertificationCampaignType.class);
         provider.setQuery(createQuery());
         TablePanel table = new TablePanel<>(ID_CERTIFICATION_RUNS_TABLE, provider, initColumns());
         table.setShowPaging(false);
@@ -86,15 +85,15 @@ public class PageCertificationRuns extends PageAdminWorkItems {
         mainForm.add(table);
     }
 
-    private List<IColumn<AccessCertificationRunType, String>> initColumns() {
-        List<IColumn<AccessCertificationRunType, String>> columns = new ArrayList<>();
+    private List<IColumn<AccessCertificationCampaignType, String>> initColumns() {
+        List<IColumn<AccessCertificationCampaignType, String>> columns = new ArrayList<>();
 
         IColumn column;
-        column = new LinkColumn<SelectableBean<AccessCertificationRunType>>(createStringResource("PageCertificationRuns.table.name"),
+        column = new LinkColumn<SelectableBean<AccessCertificationCampaignType>>(createStringResource("PageCertificationRuns.table.name"),
                 ReportType.F_NAME.getLocalPart(), "value.name") {
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationRunType>> rowModel) {
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
                 // TODO
             }
         };

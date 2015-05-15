@@ -17,13 +17,12 @@ package com.evolveum.midpoint.certification.test;
 
 import com.evolveum.midpoint.certification.impl.CertificationManagerImpl;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
@@ -52,19 +51,25 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 	public static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
 	protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
 
-    protected static final File CERT_TYPE_USER_ROLE_BASIC_FILE = new File(COMMON_DIR, "user-role-basic-certification.xml");
-    protected static final String CERT_TYPE_USER_ROLE_BASIC_OID = "33333333-0000-0000-0000-000000000001";
+	public static final File ROLE_CEO_FILE = new File(COMMON_DIR, "role-ceo.xml");
+	protected static final String ROLE_CEO_OID = "00000000-d34d-b33f-f00d-000000000001";
+
+	public static final File ROLE_COO_FILE = new File(COMMON_DIR, "role-coo.xml");
+	protected static final String ROLE_COO_OID = "00000000-d34d-b33f-f00d-000000000002";
+
+	protected static final File CERT_DEF_USER_ASSIGNMENT_BASIC_FILE = new File(COMMON_DIR, "user-assignment-basic-certification.xml");
+    protected static final String CERT_DEF_USER_ASSIGNMENT_BASIC_OID = "33333333-0000-0000-0000-000000000001";
 	
 	protected static final Trace LOGGER = TraceManager.getTrace(AbstractModelIntegrationTest.class);
 
     @Autowired
     protected CertificationManagerImpl certificationManager;
 
-	protected PrismObject<UserType> userAdministrator;
+	protected UserType userAdministrator;
 	
-	protected UserType userTypeJack;
+	protected UserType userJack;
 
-    protected PrismObject<AccessCertificationTypeType> userRoleBasicCertificationType;
+    protected AccessCertificationDefinitionType userRoleBasicCertificationDefinition;
 
     @Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -80,17 +85,21 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
 					"looks like the previous test haven't cleaned it up", e);
 		}
-				
-		// Administrator
-		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult);
+
+		// roles
 		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RoleType.class, initResult);
-		login(userAdministrator);
+		repoAddObjectFromFile(ROLE_CEO_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_COO_FILE, RoleType.class, initResult);
+
+		// Administrator
+		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult).asObjectable();
+		login(userAdministrator.asPrismObject());
 		
 		// Users
-		userTypeJack = repoAddObjectFromFile(USER_JACK_FILE, UserType.class, initResult).asObjectable();
+		userJack = repoAddObjectFromFile(USER_JACK_FILE, UserType.class, initResult).asObjectable();
 
         // Certifications
-        userRoleBasicCertificationType = repoAddObjectFromFile(CERT_TYPE_USER_ROLE_BASIC_FILE, AccessCertificationTypeType.class, initResult);
+        userRoleBasicCertificationDefinition = repoAddObjectFromFile(CERT_DEF_USER_ASSIGNMENT_BASIC_FILE, AccessCertificationDefinitionType.class, initResult).asObjectable();
 	}
 	
 

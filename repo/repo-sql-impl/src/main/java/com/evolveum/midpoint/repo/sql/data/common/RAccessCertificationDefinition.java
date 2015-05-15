@@ -23,8 +23,7 @@ import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationRunType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.Embedded;
@@ -34,9 +33,9 @@ import javax.persistence.UniqueConstraint;
 import java.util.Collection;
 
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(name = "uc_access_certification_run_name", columnNames = {"name_norm"}))
-@ForeignKey(name = "fk_access_certification_run")
-public class RAccessCertificationRun extends RObject<AccessCertificationRunType> {
+@Table(uniqueConstraints = @UniqueConstraint(name = "uc_access_certification_definition_name", columnNames = {"name_norm"}))
+@ForeignKey(name = "fk_access_certification_definition")
+public class RAccessCertificationDefinition extends RObject<AccessCertificationDefinitionType> {
 
     private RPolyString name;
 
@@ -56,9 +55,9 @@ public class RAccessCertificationRun extends RObject<AccessCertificationRunType>
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
 
-        RAccessCertificationRun rACR = (RAccessCertificationRun) o;
+        RAccessCertificationDefinition rACD = (RAccessCertificationDefinition) o;
 
-        if (name != null ? !name.equals(rACR.name) : rACR.name != null)
+        if (name != null ? !name.equals(rACD.name) : rACD.name != null)
             return false;
         return true;
     }
@@ -70,8 +69,8 @@ public class RAccessCertificationRun extends RObject<AccessCertificationRunType>
         return result;
     }
 
-    public static void copyFromJAXB(AccessCertificationRunType jaxb, RAccessCertificationRun repo, PrismContext prismContext,
-                                    IdGeneratorResult generatorResult)
+    public static void copyFromJAXB(AccessCertificationDefinitionType jaxb, RAccessCertificationDefinition repo,
+                                    PrismContext prismContext, IdGeneratorResult generatorResult)
             throws DtoTranslationException {
 
         RObject.copyFromJAXB(jaxb, repo, prismContext, generatorResult);
@@ -80,13 +79,13 @@ public class RAccessCertificationRun extends RObject<AccessCertificationRunType>
     }
 
     @Override
-    public AccessCertificationRunType toJAXB(PrismContext prismContext,
-                             Collection<SelectorOptions<GetOperationOptions>> options)
+    public AccessCertificationDefinitionType toJAXB(PrismContext prismContext,
+                                                    Collection<SelectorOptions<GetOperationOptions>> options)
             throws DtoTranslationException {
 
-        AccessCertificationRunType object = new AccessCertificationRunType();
+        AccessCertificationDefinitionType object = new AccessCertificationDefinitionType();
         RUtil.revive(object, prismContext);
-        RAccessCertificationRun.copyToJAXB(this, object, prismContext, options);
+        RAccessCertificationDefinition.copyToJAXB(this, object, prismContext, options);
 
         return object;
     }

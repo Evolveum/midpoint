@@ -19,19 +19,19 @@ package com.evolveum.midpoint.certification.test;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationRunType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CertificationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationAssignmentCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import static com.evolveum.midpoint.prism.util.PrismAsserts.assertReferenceValue;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.fail;
 
 /**
  * @author mederly
@@ -40,10 +40,12 @@ import static org.testng.AssertJUnit.assertNull;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class BasicCertificationTest extends AbstractCertificationTest {
 
-    @Test
-    public void test001StartCertification() throws Exception {
+    private String campaignOid;
 
-        final String TEST_NAME = "test001StartCertification";
+    @Test
+    public void test010CreateCampaign() throws Exception {
+
+        final String TEST_NAME = "test010CreateCampaign";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -52,24 +54,75 @@ public class BasicCertificationTest extends AbstractCertificationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        AccessCertificationRunType certificationRunType =
-                certificationManager.startCertificationRun(userRoleBasicCertificationType.asObjectable(), null, task, result);
+        AccessCertificationCampaignType campaign =
+                certificationManager.createCampaign(userRoleBasicCertificationDefinition, null, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        assertNotNull("null created cert run", certificationRunType);
-        UserType administrator = getUser(USER_ADMINISTRATOR_OID).asObjectable();
-        display("administrator", administrator);
-        MetadataType metadataType = administrator.getAssignment().get(0).getMetadata();
-        assertNotNull("no metadata in administrator's assignment", metadataType);
-        assertNotNull("no cert start time in administrator's assignment", metadataType.getCertificationStartedTimestamp());
-        assertNull("unexpected cert finish time in administrator's assignment", metadataType.getCertificationFinishedTimestamp());
-        assertReferenceValue(metadataType.asPrismContainerValue().findReference(MetadataType.F_CERTIFICATION_RUN_REF), certificationRunType.getOid());
-        assertReferenceValue(metadataType.asPrismContainerValue().findReference(MetadataType.F_CERTIFIER_TO_DECIDE_REF), administrator.getOid());
-        assertNull("unexpected certifier ref", metadataType.getCertifierRef());
-        assertEquals("wrong cert status", CertificationStatusType.AWAITING_DECISION, metadataType.getCertificationStatus());
+        assertNotNull("Created campaign is null", campaign);
+
+        campaignOid = campaign.getOid();
+
+        campaign = getObject(AccessCertificationCampaignType.class, campaignOid).asObjectable();
+        display("campaign", campaign);
+        assertEquals("Unexpected certification cases", 0, campaign.getCase().size());
+    }
+
+    @Test
+    public void test020StartFirstStage() throws Exception {
+
+        final String TEST_NAME = "test020StartFirstStage";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        AccessCertificationCampaignType campaign = getObject(AccessCertificationCampaignType.class, campaignOid).asObjectable();
+        certificationManager.startStage(campaign, userRoleBasicCertificationDefinition, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        campaign = getObject(AccessCertificationCampaignType.class, campaign.getOid()).asObjectable();
+        display("campaign in stage 1", campaign);
+
+        assertEquals("Wrong number of certification cases", 3, campaign.getCase().size());
+        checkCase(campaign, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID, userAdministrator);
+        checkCase(campaign, USER_ADMINISTRATOR_OID, ROLE_COO_OID, userAdministrator);
+        checkCase(campaign, USER_JACK_OID, ROLE_CEO_OID, userJack);
+    }
+
+    private AccessCertificationCaseType checkCase(AccessCertificationCampaignType campaign, String subjectOid, String targetOid, FocusType focus) {
+        AccessCertificationCaseType ccase = findCase(campaign, subjectOid, targetOid);
+        assertNotNull("Certification case for " + subjectOid + ":" + targetOid + " was not found", ccase);
+        assertEquals("Wrong class for case", AccessCertificationAssignmentCaseType.class, ccase.getClass());
+        AccessCertificationAssignmentCaseType acase = (AccessCertificationAssignmentCaseType) ccase;
+        long id = acase.getAssignment().getId();
+        for (AssignmentType assignment : focus.getAssignment()) {
+            if (id == assignment.getId()) {
+                assertEquals("Wrong assignment in certification case", assignment, acase.getAssignment());
+                return ccase;
+            }
+        }
+        fail("Assignment with ID " + id + " not found among assignments of " + focus);
+        return null;        // won't come here
+    }
+
+    private AccessCertificationCaseType findCase(AccessCertificationCampaignType campaign, String subjectOid, String targetOid) {
+        for (AccessCertificationCaseType acase : campaign.getCase()) {
+            if (acase.getTargetRef() != null && acase.getTargetRef().getOid().equals(targetOid) &&
+                    acase.getSubjectRef() != null && acase.getSubjectRef().getOid().equals(subjectOid)) {
+                return acase;
+            }
+        }
+        return null;
     }
 }

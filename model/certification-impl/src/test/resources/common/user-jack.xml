@@ -21,6 +21,9 @@
 		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
 		xmlns:xsd='http://www.w3.org/2001/XMLSchema'>
     <name>jack</name>
+    <assignment>
+        <targetRef oid="00000000-d34d-b33f-f00d-000000000001" type="c:RoleType"/>
+    </assignment>
     <activation>
     	<administrativeStatus>enabled</administrativeStatus>
     </activation>
@@ -45,5 +48,5 @@
             </value>
         </password>
     </credentials>
-    
+
 </user>

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.prism.query;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -111,8 +112,8 @@ public class LessFilter<T> extends ComparativeFilter<T> {
 	}
 
 	@Override
-	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) {
-		throw new UnsupportedOperationException("Matching object and greater filter not supported yet");
+	public boolean match(Containerable object, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+		throw new UnsupportedOperationException("Matching object and less filter not supported yet");
 	}
 	
 	@Override

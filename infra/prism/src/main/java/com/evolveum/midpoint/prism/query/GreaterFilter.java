@@ -114,7 +114,7 @@ public class GreaterFilter<T> extends ComparativeFilter<T> {
 	}
 
 	@Override
-	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) {
+	public boolean match(Containerable object, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
 		throw new UnsupportedOperationException("Matching object and greater filter not supported yet");
 	}
 	

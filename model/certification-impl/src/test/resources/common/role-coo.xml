@@ -1,4 +1,3 @@
-<?xml version="1.0"?>
 <!--
   ~ Copyright (c) 2010-2015 Evolveum
   ~
@@ -15,9 +14,7 @@
   ~ limitations under the License.
   -->
 
-<accessCertificationType xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-        oid="33333333-0000-0000-0000-000000000001">
-    <name>Basic User-Role Assignment Certification</name>
-    <description>Describes basic certification of user-role assignments. Each assignment is to be certified.</description>
-    <uri>http://midpoint.evolveum.com/xml/ns/public/certification/certification-3#user-role-basic</uri>
-</accessCertificationType>
+<role oid="00000000-d34d-b33f-f00d-000000000002"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>COO</name>
+</role>

@@ -1159,20 +1159,24 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 	}
 
 	public void applyDefinition(PrismContainerDefinition<C> containerDef, boolean force) throws SchemaException {
-		if (containerDef.isWildcard()) {
+        PrismContainerDefinition valueDefinition = getConcreteTypeDefinition();
+        if (valueDefinition == null) {
+            valueDefinition = containerDef;
+        }
+		if (valueDefinition.isWildcard()) {
 			// No point in aplying this. Nothing will change and there may be phantom errors.
 			return;
 		}
 		if (rawElements != null) {
 			for (Object rawElement: rawElements) {
-				Item<?,?> subitem = parseRawElement(rawElement, containerDef);
+				Item<?,?> subitem = parseRawElement(rawElement, valueDefinition);
 				merge(subitem);
 			}
 			rawElements = null;
 		}
 		if (rawXNode != null) {
-			XNodeProcessor xnodeProcessor = containerDef.getPrismContext().getXnodeProcessor();
-			PrismContainerValue<C> newCVal = xnodeProcessor.parsePrismContainerValue(rawXNode, containerDef);
+			XNodeProcessor xnodeProcessor = valueDefinition.getPrismContext().getXnodeProcessor();
+			PrismContainerValue<C> newCVal = xnodeProcessor.parsePrismContainerValue(rawXNode, valueDefinition);
 			// Maybe we need to manually reset parent on items?
 			addAll(newCVal.getItems());
 			rawXNode = null;
@@ -1183,7 +1187,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 					// Item has a definition already, no need to apply it
 					continue;
 				}
-				ItemDefinition itemDefinition = determineItemDefinition(item.getElementName(), containerDef);
+				ItemDefinition itemDefinition = determineItemDefinition(item.getElementName(), valueDefinition);
 				if (itemDefinition == null && item.getDefinition() != null && item.getDefinition().isDynamic()) {
 					// We will not apply the null definition here. The item has a dynamic definition that we don't
 					// want to destroy as it cannot be reconstructed later.
@@ -1520,7 +1524,9 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
         this.concreteTypeDefinition = null;
     }
 
-    private PrismContainerDefinition getConcreteTypeDefinition() {
+    // TODO change from PrismContainerDefinition to ComplexTypeDefinition
+    // because in current state there should be an element definition for each subtype that is to be resolvable in this way
+    public PrismContainerDefinition getConcreteTypeDefinition() {
         if (concreteTypeDefinition != null) {
             return concreteTypeDefinition;
         }

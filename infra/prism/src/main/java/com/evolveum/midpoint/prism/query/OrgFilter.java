@@ -16,11 +16,13 @@
 
 package com.evolveum.midpoint.prism.query;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class OrgFilter extends ObjectFilter {
 
@@ -164,7 +166,7 @@ public class OrgFilter extends ObjectFilter {
     }
 
     @Override
-    public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) {
+    public boolean match(Containerable object, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
         // TODO Auto-generated method stub
         return false;
     }
