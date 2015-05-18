@@ -988,7 +988,7 @@ public class ResourceObjectConverter {
 			final ResourceType resourceType, final RefinedObjectClassDefinition objectClassDef,
 			final ResultHandler<ShadowType> resultHandler, ObjectQuery query, final boolean fetchAssociations,
             final OperationResult parentResult) throws SchemaException,
-			CommunicationException, ObjectNotFoundException, ConfigurationException {
+			CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException {
 		
 		AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(objectClassDef, resourceType);
 		SearchHierarchyConstraints searchHierarchyConstraints = null;
@@ -1018,6 +1018,8 @@ public class ResourceObjectConverter {
 						throw new TunnelException(e);
 					} catch (ConfigurationException e) {
 						throw new TunnelException(e);
+					} catch (SecurityViolationException e) {
+						throw new TunnelException(e);
 					}
 					return resultHandler.handle(shadow);
 				} finally {
@@ -1039,6 +1041,11 @@ public class ResourceObjectConverter {
 					"Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
 			throw new CommunicationException("Error communicating with the connector " + connector + ": "
 					+ ex.getMessage(), ex);
+		} catch (SecurityViolationException ex) {
+			parentResult.recordFatalError(
+					"Security violation communicating with the connector " + connector + ": " + ex.getMessage(), ex);
+			throw new SecurityViolationException("Security violation communicating with the connector " + connector + ": "
+					+ ex.getMessage(), ex);
 		} catch (TunnelException e) {
 			Throwable cause = e.getCause();
 			if (cause instanceof SchemaException) {
@@ -1049,6 +1056,8 @@ public class ResourceObjectConverter {
 				throw (ObjectNotFoundException)cause;
 			} else if (cause instanceof ConfigurationException) {
 				throw (ConfigurationException)cause;
+			} else if (cause instanceof SecurityViolationException) {
+				throw (SecurityViolationException)cause;
 			} if (cause instanceof GenericFrameworkException) {
 				new GenericConnectorException(cause.getMessage(), cause);
 			} else {
@@ -1506,7 +1515,7 @@ public class ResourceObjectConverter {
 	 */
 	private PrismObject<ShadowType> postProcessResourceObjectRead(ConnectorInstance connector, ResourceType resourceType,
 			PrismObject<ShadowType> resourceObject, RefinedObjectClassDefinition objectClassDefinition, boolean fetchAssociations,
-            OperationResult parentResult) throws SchemaException, CommunicationException, GenericFrameworkException, ObjectNotFoundException, ConfigurationException {
+            OperationResult parentResult) throws SchemaException, CommunicationException, GenericFrameworkException, ObjectNotFoundException, ConfigurationException, SecurityViolationException {
 		
 		ShadowType resourceObjectType = resourceObject.asObjectable();
 		setProtectedFlag(resourceType, objectClassDefinition, resourceObject);

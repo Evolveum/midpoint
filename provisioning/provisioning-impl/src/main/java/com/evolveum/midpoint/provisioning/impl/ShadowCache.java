@@ -712,7 +712,7 @@ public abstract class ShadowCache {
 	
 	public void listShadows(final ResourceType resource, final QName objectClass,
 			final ShadowHandler<ShadowType> handler, final boolean readFromRepository, final OperationResult parentResult)
-			throws CommunicationException, ObjectNotFoundException, SchemaException, ConfigurationException {
+			throws CommunicationException, ObjectNotFoundException, SchemaException, ConfigurationException, SecurityViolationException {
 
 		InternalMonitor.recordShadowFetchOperation();
 		
@@ -730,7 +730,7 @@ public abstract class ShadowCache {
 	public SearchResultMetadata searchObjectsIterative(final QName objectClassName, final ResourceType resourceType,
 			ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, final ShadowHandler<ShadowType> handler,
 			boolean readFromRepository, final OperationResult parentResult)
-			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
+			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(resourceType, "Resource must not be null.");
 		Validate.notNull(objectClassName, "Object class must not be null.");
@@ -748,7 +748,7 @@ public abstract class ShadowCache {
 			final ResourceType resourceType, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, final ShadowHandler<ShadowType> handler,
 			final boolean readFromRepository, final OperationResult parentResult) throws SchemaException,
-			ObjectNotFoundException, CommunicationException, ConfigurationException {
+			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		final ResourceSchema resourceSchema = resourceTypeManager.getResourceSchema(resourceType, parentResult);
 

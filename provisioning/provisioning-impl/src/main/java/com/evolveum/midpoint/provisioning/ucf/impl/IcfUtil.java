@@ -209,6 +209,11 @@ class IcfUtil {
 			Exception newEx = new ObjectAlreadyExistsException(createMessageFromAllExceptions(null, icfException));
 			icfResult.recordFatalError("Object already exists: "+icfException.getMessage(), newEx);
 			return newEx;
+			
+		} else if (icfException instanceof PermissionDeniedException) {
+			Exception newEx = new SecurityViolationException(createMessageFromAllExceptions(null, icfException));
+			icfResult.recordFatalError("Security violation: "+icfException.getMessage(), newEx);
+			return newEx;
 
 		} else if (icfException instanceof ConnectionBrokenException) {
 			Exception newEx = new CommunicationException(createMessageFromAllExceptions("Connection broken", icfException));

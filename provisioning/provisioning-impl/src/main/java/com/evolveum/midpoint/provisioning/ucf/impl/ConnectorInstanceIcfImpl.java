@@ -1941,7 +1941,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
                                                               PagedSearchCapabilityType pagedSearchCapabilityType,
                                                               SearchHierarchyConstraints searchHierarchyConstraints,
                                                               OperationResult parentResult)
-            throws CommunicationException, GenericFrameworkException, SchemaException {
+            throws CommunicationException, GenericFrameworkException, SchemaException, SecurityViolationException {
 
 		// Result type for this operation
 		final OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
@@ -2089,6 +2089,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw (GenericFrameworkException) midpointEx;
 			} else if (midpointEx instanceof SchemaException) {
 				throw (SchemaException) midpointEx;
+			} else if (midpointEx instanceof SecurityViolationException) {
+				throw (SecurityViolationException) midpointEx;
 			} else if (midpointEx instanceof RuntimeException) {
 				throw (RuntimeException) midpointEx;
 			} else if (midpointEx instanceof Error) {

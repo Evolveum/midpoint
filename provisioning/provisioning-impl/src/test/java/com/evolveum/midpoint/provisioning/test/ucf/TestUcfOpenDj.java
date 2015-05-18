@@ -628,7 +628,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	}
 
 	@Test
-	public void testSearch() throws UcfException, SchemaException, CommunicationException {
+	public void testSearch() throws Exception {
 		TestUtil.displayTestTile("testSearch");
 		// GIVEN
 

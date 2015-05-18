@@ -188,7 +188,7 @@ public interface ConnectorInstance {
                                                               PagedSearchCapabilityType pagedSearchConfigurationType,
                                                               SearchHierarchyConstraints searchHierarchyConstraints,
                                                               OperationResult parentResult)
-            throws CommunicationException, GenericFrameworkException, SchemaException;
+            throws CommunicationException, GenericFrameworkException, SchemaException, SecurityViolationException;
 
     /**
      * Counts objects on resource.

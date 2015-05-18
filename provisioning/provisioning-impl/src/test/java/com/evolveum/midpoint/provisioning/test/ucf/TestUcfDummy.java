@@ -384,7 +384,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 	}
 	
 	@Test
-	public void test050Search() throws UcfException, SchemaException, CommunicationException {
+	public void test050Search() throws Exception {
 		TestUtil.displayTestTile("test050Search");
 		// GIVEN
 
