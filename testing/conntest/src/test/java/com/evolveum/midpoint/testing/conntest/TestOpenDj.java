@@ -90,4 +90,11 @@ public class TestOpenDj extends AbstractLdapConnTest {
 		return "Warlaz Kunjegjul (00000000)";
 	}
 
+	@Override
+	protected boolean isIdmAdminInteOrgPerson() {
+		return true;
+	}
+
+	
+	
 }

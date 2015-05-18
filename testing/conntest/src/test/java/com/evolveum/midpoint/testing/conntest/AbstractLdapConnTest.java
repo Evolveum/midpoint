@@ -139,8 +139,11 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	protected static final String ACCOUNT_IDM_DN = "uid=idm,ou=Administrators,dc=example,dc=com";
 	protected static final String ACCOUNT_0_UID = "u00000000";
 	protected static final String ACCOUNT_18_UID = "u00000018";
+	protected static final String ACCOUNT_19_UID = "u00000019";
 	protected static final String ACCOUNT_67_UID = "u00000067";
+	protected static final String ACCOUNT_68_UID = "u00000068";
 	protected static final String ACCOUNT_239_UID = "u00000239";
+	protected static final String ACCOUNT_240_UID = "u00000240";
 
 	private static final int NUMBER_OF_GENERATED_ACCOUNTS = 4000;
 	
@@ -173,6 +176,11 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
     public abstract String getStartSystemCommand();
     
     public abstract String getStopSystemCommand();
+    
+	protected boolean isIdmAdminInteOrgPerson() {
+		return false;
+	}
+
 
 	@AfterClass
     public static void stopResources() throws Exception {
@@ -336,7 +344,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         
         ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(getResourceOid(), getAccountObjectClass(), prismContext);
         
-        doSearch(TEST_NAME, query, NUMBER_OF_GENERATED_ACCOUNTS + 1, task, result);
+        doSearch(TEST_NAME, query, NUMBER_OF_GENERATED_ACCOUNTS + (isIdmAdminInteOrgPerson()?1:0), task, result);
         
         assertConnectorOperationIncrement(1);
         assertConnectorSimulatedPagingSearchIncrement(0);
@@ -471,7 +479,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	 * Explicit sorting.
 	 */
 	@Test
-    public void test182Seac50AccountsOffset20SortUid() throws Exception {
+    public void test182Search50AccountsOffset20SortUid() throws Exception {
 		final String TEST_NAME = "test182Seac50AccountsOffset20SortUid";
         TestUtil.displayTestTile(this, TEST_NAME);
         
@@ -487,8 +495,8 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         
 		List<PrismObject<ShadowType>> shadows = doSearch(TEST_NAME, query, 50, task, result);
         
-        assertAccountShadow(shadows.get(0), toDn(ACCOUNT_18_UID));
-        assertAccountShadow(shadows.get(49), toDn(ACCOUNT_67_UID));
+        assertAccountShadow(shadows.get(0), toDn(isIdmAdminInteOrgPerson()?ACCOUNT_18_UID:ACCOUNT_19_UID));
+        assertAccountShadow(shadows.get(49), toDn(isIdmAdminInteOrgPerson()?ACCOUNT_67_UID:ACCOUNT_68_UID));
         
         assertConnectorOperationIncrement(1);
         assertConnectorSimulatedPagingSearchIncrement(0);
@@ -500,7 +508,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	 * No explicit sorting.
 	 */
 	@Test
-    public void test184SeachFirst222AccountsOffset20SortUid() throws Exception {
+    public void test184SearchFirst222AccountsOffset20SortUid() throws Exception {
 		final String TEST_NAME = "test184SeachFirst222AccountsOffset20SortUid";
         TestUtil.displayTestTile(this, TEST_NAME);
         
@@ -516,8 +524,8 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         
 		List<PrismObject<ShadowType>> shadows = doSearch(TEST_NAME, query, 222, task, result);
         
-        assertAccountShadow(shadows.get(0), toDn(ACCOUNT_18_UID));
-        assertAccountShadow(shadows.get(221), toDn(ACCOUNT_239_UID));
+        assertAccountShadow(shadows.get(0), toDn(isIdmAdminInteOrgPerson()?ACCOUNT_18_UID:ACCOUNT_19_UID));
+        assertAccountShadow(shadows.get(221), toDn(isIdmAdminInteOrgPerson()?ACCOUNT_239_UID:ACCOUNT_240_UID));
                 
         assertConnectorOperationIncrement(1);
         assertConnectorSimulatedPagingSearchIncrement(0);
