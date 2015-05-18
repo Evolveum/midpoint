@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page;
 
+import com.evolveum.midpoint.certification.api.CertificationManager;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
@@ -79,6 +80,8 @@ public abstract class PageBase extends PageTemplate {
     private MidpointConfiguration midpointConfiguration;
     @SpringBean(name = "reportManager")
     private ReportManager reportManager;
+    @SpringBean(name = "certificationManager")
+    private CertificationManager certificationManager;
     @SpringBean(name = "accessDecisionManager")
     private SecurityEnforcer securityEnforcer;
     @SpringBean
@@ -124,6 +127,10 @@ public abstract class PageBase extends PageTemplate {
 
     public ReportManager getReportManager() {
         return reportManager;
+    }
+
+    public CertificationManager getCertificationManager() {
+        return certificationManager;
     }
 
     public ModelService getModelService() {

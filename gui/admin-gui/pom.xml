@@ -239,6 +239,11 @@
             <version>3.2-SNAPSHOT</version>
         </dependency>
         <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>certification-api</artifactId>
+            <version>3.2-SNAPSHOT</version>
+        </dependency>
+        <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>security-api</artifactId>
             <version>3.2-SNAPSHOT</version>
@@ -323,6 +328,12 @@
             		<groupId>com.sun.xml.bind</groupId>
             	</exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>certification-impl</artifactId>
+            <version>3.2-SNAPSHOT</version>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>

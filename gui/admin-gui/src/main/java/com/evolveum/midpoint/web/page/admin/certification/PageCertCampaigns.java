@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.web.page.admin.certification;
 
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
@@ -28,12 +30,12 @@ import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -41,24 +43,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author lazyman
+ * @author mederly
  */
-@PageDescriptor(url = "/admin/certificationRuns", action = {
+@PageDescriptor(url = "/admin/certificationCampaigns", action = {
         @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
                 label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,
                 description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION)
         })
-public class PageCertificationRuns extends PageAdminWorkItems {
+public class PageCertCampaigns extends PageAdminWorkItems {
 
-    private static final Trace LOGGER = TraceManager.getTrace(PageCertificationTypes.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PageCertCampaigns.class);
 
-    private static final String DOT_CLASS = PageCertificationTypes.class.getName() + ".";
-    private static final String OPERATION_RUN_CERTIFICATION = DOT_CLASS + "runCertification";
+    private static final String DOT_CLASS = PageCertCampaigns.class.getName() + ".";
+    private static final String OPERATION_START_CAMPAIGN = DOT_CLASS + "startCertificationCampaign";
 
     private static final String ID_MAIN_FORM = "mainForm";
-    private static final String ID_CERTIFICATION_RUNS_TABLE = "certificationRunsTable";
+    private static final String ID_CAMPAIGNS_TABLE = "campaignsTable";
 
-    public PageCertificationRuns() {
+    public PageCertCampaigns() {
         initLayout();
     }
 
@@ -77,10 +79,10 @@ public class PageCertificationRuns extends PageAdminWorkItems {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        ObjectDataProvider provider = new ObjectDataProvider(PageCertificationRuns.this, AccessCertificationCampaignType.class);
+        ObjectDataProvider provider = new ObjectDataProvider(PageCertCampaigns.this, AccessCertificationCampaignType.class);
         provider.setQuery(createQuery());
-        TablePanel table = new TablePanel<>(ID_CERTIFICATION_RUNS_TABLE, provider, initColumns());
-        table.setShowPaging(false);
+        TablePanel table = new TablePanel<>(ID_CAMPAIGNS_TABLE, provider, initColumns());
+        table.setShowPaging(true);
         table.setOutputMarkupId(true);
         mainForm.add(table);
     }
@@ -89,29 +91,32 @@ public class PageCertificationRuns extends PageAdminWorkItems {
         List<IColumn<AccessCertificationCampaignType, String>> columns = new ArrayList<>();
 
         IColumn column;
-        column = new LinkColumn<SelectableBean<AccessCertificationCampaignType>>(createStringResource("PageCertificationRuns.table.name"),
+        column = new LinkColumn<SelectableBean<AccessCertificationCampaignType>>(createStringResource("PageCertCampaigns.table.name"),
                 ReportType.F_NAME.getLocalPart(), "value.name") {
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
-                // TODO
+                // TODO show campaign details (or cases?)
             }
         };
         columns.add(column);
 
-        column = new PropertyColumn(createStringResource("PageCertificationRuns.table.description"), "value.description");
+        column = new PropertyColumn(createStringResource("PageCertCampaigns.table.description"), "value.description");
         columns.add(column);
 
-        column = new DoubleButtonColumn<SelectableBean<ReportType>>(new Model(), null) {
+        column = new PropertyColumn(createStringResource("PageCertCampaigns.table.stage"), "value.currentStageNumber");
+        columns.add(column);
+
+        column = new DoubleButtonColumn<SelectableBean<AccessCertificationCampaignType>>(new Model(), null) {
 
             @Override
             public String getFirstCap() {
-                return PageCertificationRuns.this.createStringResource("PageCertificationRuns.button.run").getString();
+                return PageCertCampaigns.this.createStringResource("PageCertCampaigns.button.start").getString();
             }
 
             @Override
             public String getSecondCap() {
-                return PageCertificationRuns.this.createStringResource("PageCertificationRuns.button.configure").getString();
+                return PageCertCampaigns.this.createStringResource("PageCertCampaigns.button.configure").getString();
             }
 
             @Override
@@ -120,12 +125,12 @@ public class PageCertificationRuns extends PageAdminWorkItems {
             }
 
             @Override
-            public void firstClicked(AjaxRequestTarget target, IModel<SelectableBean<ReportType>> model) {
-                //runReportPerformed(target, model.getObject().getValue());
+            public void firstClicked(AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationCampaignType>> model) {
+                startCampaignPerformed(target, model.getObject().getValue());
             }
 
             @Override
-            public void secondClicked(AjaxRequestTarget target, IModel<SelectableBean<ReportType>> model) {
+            public void secondClicked(AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationCampaignType>> model) {
                 //configurePerformed(target, model.getObject().getValue());
             }
         };
@@ -134,39 +139,26 @@ public class PageCertificationRuns extends PageAdminWorkItems {
         return columns;
     }
 
-//    private void runReportPerformed(AjaxRequestTarget target, ReportType report){
-//        LOGGER.debug("Run report performed for {}", new Object[]{report.asPrismObject()});
-//
-//        OperationResult result = new OperationResult(OPERATION_RUN_REPORT);
-//        try {
-//            Task task = createSimpleTask(OPERATION_RUN_REPORT);
-//            getReportManager().runReport(report.asPrismObject(), task, result);
-//        } catch (Exception ex) {
-//            result.recordFatalError(ex);
-//        } finally {
-//            result.computeStatusIfUnknown();
-//        }
-//
-//        showResult(result);
-//        target.add(getFeedbackPanel());
-//    }
+    private void startCampaignPerformed(AjaxRequestTarget target, AccessCertificationCampaignType campaign) {
+        LOGGER.debug("Start certification campaign performed for {}", campaign.asPrismObject());
 
-//    private void configurePerformed(AjaxRequestTarget target, ReportType report){
-//        PageParameters params = new PageParameters();
-//        params.add(OnePageParameterEncoder.PARAMETER, report.getOid());
-//        setResponsePage(PageReport.class, params);
-//    }
+        OperationResult result = new OperationResult(OPERATION_START_CAMPAIGN);
+        try {
+            Task task = createSimpleTask(OPERATION_START_CAMPAIGN);
+            getCertificationManager().startStage(campaign, task, result);
+        } catch (Exception ex) {
+            result.recordFatalError(ex);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
 
-//    private ObjectDataProvider getDataProvider(){
-//        DataTable table = getReportTable().getDataTable();
-//        return (ObjectDataProvider) table.getDataProvider();
-//    }
+        showResult(result);
+        target.add(getFeedbackPanel());
+    }
 
-//    private TablePanel getReportTable(){
-//        return (TablePanel) get(createComponentPath(ID_MAIN_FORM, ID_CERTIFICATION_RUNS_TABLE));
-//    }
 
     private ObjectQuery createQuery() {
+        // TODO filtering based on e.g. campaign state/stage (not started, active, finished)
         ObjectQuery query = new ObjectQuery();
         return query;
     }

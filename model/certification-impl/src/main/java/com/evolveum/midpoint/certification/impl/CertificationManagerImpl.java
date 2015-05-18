@@ -21,7 +21,9 @@ import com.evolveum.midpoint.certification.impl.handlers.CertificationHandler;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -86,7 +88,7 @@ import java.util.Map;
 /**
  * @author mederly
  */
-@Service
+@Service(value = "certificationManager")
 public class CertificationManagerImpl implements CertificationManager {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(CertificationManager.class);
@@ -184,7 +186,7 @@ public class CertificationManagerImpl implements CertificationManager {
             newCampaign.setTenantRef(definition.getTenantRef());
         }
 
-        newCampaign.setCurrentStageNumber(1);
+        newCampaign.setCurrentStageNumber(0);
 
         ObjectReferenceType typeRef = new ObjectReferenceType();
         typeRef.setType(AccessCertificationDefinitionType.COMPLEX_TYPE);
@@ -207,6 +209,7 @@ public class CertificationManagerImpl implements CertificationManager {
         try {
             CertificationHandler handler = findCertificationHandler(certDefinition);
             handler.startStage(certDefinition, campaign, task, result);
+            incrementStageNumber(campaign, task, result);
         } finally {
             result.computeStatus();
         }
@@ -241,8 +244,8 @@ public class CertificationManagerImpl implements CertificationManager {
     }
 
     @Override
-    public List<AccessCertificationCaseType> searchDecisions(String campaignOid, String reviewerOid,
-                                                             ObjectQuery query,
+    public List<AccessCertificationCaseType> searchDecisions(ObjectQuery campaignQuery, ObjectQuery caseQuery,
+                                                             String reviewerOid,
                                                              Collection<SelectorOptions<GetOperationOptions>> options,
                                                              Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
 
@@ -252,31 +255,38 @@ public class CertificationManagerImpl implements CertificationManager {
         ObjectFilter reviewerFilter = RefFilter.createReferenceEqual(
                 new ItemPath(AccessCertificationCaseType.F_REVIEWER_REF),
                 AccessCertificationCaseType.class, prismContext, reviewerRef.asReferenceValue());
-        if (query == null || query.getFilter() == null) {
+        if (caseQuery == null || caseQuery.getFilter() == null) {
             enhancedFilter = reviewerFilter;
         } else {
-            enhancedFilter = AndFilter.createAnd(query.getFilter(), reviewerFilter);
+            enhancedFilter = AndFilter.createAnd(caseQuery.getFilter(), reviewerFilter);
         }
 
         // retrieve cases, filtered
-        AccessCertificationCampaignType campaign = getCampaign(campaignOid, options, task, parentResult);
-        List<AccessCertificationCaseType> caseList = getCases(campaign, enhancedFilter, task, parentResult);
+        List<PrismObject<AccessCertificationCampaignType>> campaignObjects = modelService.searchObjects(AccessCertificationCampaignType.class, campaignQuery, options, task, parentResult);
+        List<AccessCertificationCaseType> caseList = new ArrayList<>();
+        for (PrismObject<AccessCertificationCampaignType> campaignObject : campaignObjects) {
+            AccessCertificationCampaignType campaign = campaignObject.asObjectable();
+            List<AccessCertificationCaseType> campaignCases = getCases(campaign, enhancedFilter, task, parentResult);
 
-        // sort and page cases
-        ObjectPaging paging = query != null ? query.getPaging() : null;
-        caseList = doSortingAndPaging(caseList, paging);
-
-        // remove irrelevant decisions from each case
-        int stage = getCurrentStageNumber(campaign);
-        for (AccessCertificationCaseType _case : caseList) {
-            Iterator<AccessCertificationDecisionType> decisionIterator = _case.getDecision().iterator();
-            while (decisionIterator.hasNext()) {
-                AccessCertificationDecisionType decision = decisionIterator.next();
-                if (decision.getStageNumber() != stage || !decision.getReviewerRef().getOid().equals(reviewerOid)) {
-                    decisionIterator.remove();
+            // remove irrelevant decisions from each case
+            // and add campaignRef
+            int stage = getCurrentStageNumber(campaign);
+            for (AccessCertificationCaseType _case : campaignCases) {
+                Iterator<AccessCertificationDecisionType> decisionIterator = _case.getDecision().iterator();
+                while (decisionIterator.hasNext()) {
+                    AccessCertificationDecisionType decision = decisionIterator.next();
+                    if (decision.getStageNumber() != stage || !decision.getReviewerRef().getOid().equals(reviewerOid)) {
+                        decisionIterator.remove();
+                    }
                 }
+                _case.setCampaignRef(ObjectTypeUtil.createObjectRef(campaignObject));
+                caseList.add(_case);
             }
         }
+
+        // sort and page cases
+        ObjectPaging paging = caseQuery != null ? caseQuery.getPaging() : null;
+        caseList = doSortingAndPaging(caseList, paging);
 
         return caseList;
     }
@@ -461,7 +471,7 @@ public class CertificationManagerImpl implements CertificationManager {
 
     private int getCurrentStageNumber(AccessCertificationCampaignType campaign) {
         if (campaign.getCurrentStageNumber() == null) {
-            return 1;
+            return 0;
         } else {
             return campaign.getCurrentStageNumber();
         }
@@ -475,4 +485,13 @@ public class CertificationManagerImpl implements CertificationManager {
         }
         return null;
     }
+
+    private void incrementStageNumber(AccessCertificationCampaignType campaign, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        PropertyDelta<Integer> stageNumberDelta = PropertyDelta.createReplaceDelta(getCampaignDefinition(),
+                AccessCertificationCampaignType.F_CURRENT_STAGE_NUMBER, getCurrentStageNumber(campaign) + 1);
+
+        // todo switch to model service
+        repositoryService.modifyObject(AccessCertificationCampaignType.class, campaign.getOid(), Arrays.asList(stageNumberDelta), result);
+    }
+
 }

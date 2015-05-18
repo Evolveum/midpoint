@@ -125,19 +125,24 @@ public interface CertificationManager {
      * to specified reviewer and current certification stage. Zero decisions means that the reviewer has not
      * provided any decision yet.
      *
-     * Query argument is the same as in the searchCases call.
+     * Query argument for cases is the same as in the searchCases call.
+     * Contrary to searchCases, this method allows to collect cases for more than one campaign
+     * (e.g. to present a reviewer all of his/her cases).
+     * So, instead of campaignOid there is a campaignQuery allowing to select one, more, and even all campaigns.
      *
-     * @param campaignOid OID of the campaign to query.
-     * @param campaignOid OID of the reviewer whose decisions we want to retrieve.
-     * @param query Specification of the cases to retrieve.
+     * Contrary to all the other methods, cases returned from this method have campaignRef set.
+     *
+     * @param campaignQuery Specification of campaigns to query.
+     * @param caseQuery Specification of the cases to retrieve.
+     * @param reviewerOid OID of the reviewer whose decisions we want to retrieve.
      * @param options Options to use (currently supported is RESOLVE_NAMES).
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
      * @return A list of relevant certification cases.
      */
 
-    List<AccessCertificationCaseType> searchDecisions(String campaignOid, String reviewerOid,
-                                                      ObjectQuery query,
+    List<AccessCertificationCaseType> searchDecisions(ObjectQuery campaignQuery, ObjectQuery caseQuery,
+                                                      String reviewerOid,
                                                       Collection<SelectorOptions<GetOperationOptions>> options,
                                                       Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException;
 

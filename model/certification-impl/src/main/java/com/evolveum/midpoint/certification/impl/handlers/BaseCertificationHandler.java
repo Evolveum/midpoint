@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -90,14 +91,14 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
         Validate.notNull(campaign, "certificationCampaign");
         Validate.notNull(campaign.getOid(), "certificationCampaign.oid");
 
-        int stageNumber = campaign.getCurrentStageNumber() != null ? campaign.getCurrentStageNumber() : 1;
+        int stageNumber = campaign.getCurrentStageNumber() != null ? campaign.getCurrentStageNumber() : 0;
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("startStage starting; campaign = {}, definition = {}, stage number = {}",
                     ObjectTypeUtil.toShortString(campaign), ObjectTypeUtil.toShortString(definition), stageNumber);
         }
 
-        if (stageNumber == 1) {
+        if (stageNumber == 0) {
             createCases(campaign, definition, task, result);
         } else {
             updateCases(campaign, definition, task, result);
@@ -107,7 +108,7 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
     }
 
     private void updateCases(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition, Task task, OperationResult result) {
-
+        // TODO
     }
 
     private void createCases(final AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition,

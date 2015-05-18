@@ -68,9 +68,9 @@ public enum ObjectTypeGuiDescriptor {
 
     LOOKUP_TABLE(ObjectTypes.LOOKUP_TABLE, "ObjectTypeGuiDescriptor.lookupTable", ""),
 
-    ACCESS_CERTIFICATION_TYPE(ObjectTypes.ACCESS_CERTIFICATION_TYPE, "ObjectTypeGuiDescriptor.accessCertificationType", ""),
+    ACCESS_CERTIFICATION_DEFINITION(ObjectTypes.ACCESS_CERTIFICATION_DEFINITION, "ObjectTypeGuiDescriptor.accessCertificationDefinition", ""),
 
-    ACCESS_CERTIFICATION_RUN(ObjectTypes.ACCESS_CERTIFICATION_RUN, "ObjectTypeGuiDescriptor.accessCertificationRun", "");
+    ACCESS_CERTIFICATION_CAMPAIGN(ObjectTypes.ACCESS_CERTIFICATION_CAMPAIGN, "ObjectTypeGuiDescriptor.accessCertificationCampaign", "");
 
     public static final String ERROR_ICON = "silk-error";
     public static final String ERROR_LOCALIZATION_KEY = "ObjectTypeGuiDescriptor.unknown";

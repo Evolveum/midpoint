@@ -22,8 +22,9 @@ import com.evolveum.midpoint.web.component.menu.top.MenuItem;
 import com.evolveum.midpoint.web.component.menu.top.TopMenuBar;
 import com.evolveum.midpoint.web.component.menu.top.UserMenuPanel;
 import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.admin.certification.PageCertificationRuns;
-import com.evolveum.midpoint.web.page.admin.certification.PageCertificationTypes;
+import com.evolveum.midpoint.web.page.admin.certification.PageCertCampaigns;
+import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
+import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinitions;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
@@ -167,8 +168,10 @@ public class PageAdmin extends PageBase {
 
     private MenuBarItem createCertificationItems() {
         MenuBarItem certification = new MenuBarItem(createStringResource("PageAdmin.menu.top.certification"), null);
-        certification.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.certification.types"), PageCertificationTypes.class));
-        certification.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.certification.current"), PageCertificationRuns.class));
+        certification.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.certification.definitions"), PageCertDefinitions.class));
+        certification.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.certification.campaigns"), PageCertCampaigns.class));
+        certification.addMenuItem(new MenuItem(null));
+        certification.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.certification.decisions"), PageCertDecisions.class));
 
         return certification;
     }

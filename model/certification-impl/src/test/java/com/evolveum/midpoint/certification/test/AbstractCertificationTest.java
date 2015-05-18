@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.certification.test;
 
+import com.evolveum.midpoint.certification.api.CertificationManager;
 import com.evolveum.midpoint.certification.impl.CertificationManagerImpl;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -63,7 +64,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 	protected static final Trace LOGGER = TraceManager.getTrace(AbstractModelIntegrationTest.class);
 
     @Autowired
-    protected CertificationManagerImpl certificationManager;
+    protected CertificationManager certificationManager;
 
 	protected UserType userAdministrator;
 	
