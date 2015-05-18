@@ -27,7 +27,7 @@ import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -77,7 +77,7 @@ public class PageCertificationTypes extends PageAdminWorkItems {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        ObjectDataProvider provider = new ObjectDataProvider(PageCertificationTypes.this, AccessCertificationTypeType.class);
+        ObjectDataProvider provider = new ObjectDataProvider(PageCertificationTypes.this, AccessCertificationDefinitionType.class);
         provider.setQuery(createQuery());
         TablePanel table = new TablePanel<>(ID_CERTIFICATION_TYPES_TABLE, provider, initColumns());
         table.setShowPaging(false);
@@ -85,15 +85,15 @@ public class PageCertificationTypes extends PageAdminWorkItems {
         mainForm.add(table);
     }
 
-    private List<IColumn<AccessCertificationTypeType, String>> initColumns() {
-        List<IColumn<AccessCertificationTypeType, String>> columns = new ArrayList<>();
+    private List<IColumn<AccessCertificationDefinitionType, String>> initColumns() {
+        List<IColumn<AccessCertificationDefinitionType, String>> columns = new ArrayList<>();
 
         IColumn column;
-        column = new LinkColumn<SelectableBean<AccessCertificationTypeType>>(createStringResource("PageCertificationTypes.table.name"),
+        column = new LinkColumn<SelectableBean<AccessCertificationDefinitionType>>(createStringResource("PageCertificationTypes.table.name"),
                 ReportType.F_NAME.getLocalPart(), "value.name"){
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationTypeType>> rowModel) {
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationDefinitionType>> rowModel) {
                 // TODO
             }
         };

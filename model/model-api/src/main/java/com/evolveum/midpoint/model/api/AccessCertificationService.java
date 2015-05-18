@@ -17,13 +17,23 @@
 package com.evolveum.midpoint.model.api;
 
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -32,11 +42,24 @@ import java.util.List;
  *
  * EXPERIMENTAL. May (and probably will) change in the future.
  *
+ * Please use CertificationManager for now.
+ *
  * @author mederly
  */
 public interface AccessCertificationService {
 
-    List<AccessCertificationCaseType> searchCases(String campaignOid, ObjectQuery query, Task task, OperationResult parentResult) throws SchemaException;
+    AccessCertificationCampaignType createCampaign(AccessCertificationDefinitionType certificationDefinition, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult)
+            throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
 
-    void recordReviewerDecision(String campaignOid, long caseId, AccessCertificationDecisionType decision) throws ObjectNotFoundException, SchemaException;
+    void startStage(AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
+
+    List<AccessCertificationCaseType> searchCases(String campaignOid, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException;
+
+    List<AccessCertificationCaseType> searchDecisions(String campaignOid, String reviewerOid,
+                                                      ObjectQuery query,
+                                                      Collection<SelectorOptions<GetOperationOptions>> options,
+                                                      Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException;
+
+    void recordReviewerDecision(String campaignOid, long caseId, AccessCertificationDecisionType decision,
+                                Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ObjectAlreadyExistsException;
 }

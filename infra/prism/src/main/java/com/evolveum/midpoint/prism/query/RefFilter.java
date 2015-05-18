@@ -87,7 +87,7 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue> {
 	}
 
     // beware, creating reference with (oid, ObjectType) may result in not matching a concrete reference of e.g. (oid, RoleType)
-	public static <O extends Objectable> RefFilter createReferenceEqual(QName propertyName, Class<O> type, PrismContext prismContext,
+	public static <O extends Containerable> RefFilter createReferenceEqual(QName propertyName, Class<O> type, PrismContext prismContext,
 			String... oids) throws SchemaException {
 		ItemPath path = new ItemPath(propertyName);
 		PrismReferenceDefinition refDefinition = (PrismReferenceDefinition) findItemDefinition(path, type, prismContext);
@@ -95,13 +95,13 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue> {
 	}
 
     // beware, creating reference with (oid, ObjectType) may result in not matching a concrete reference of e.g. (oid, RoleType)
-    public static <O extends Objectable> RefFilter createReferenceEqual(ItemPath path, Class<O> type, PrismContext prismContext,
+    public static <O extends Containerable> RefFilter createReferenceEqual(ItemPath path, Class<O> type, PrismContext prismContext,
                                                                         String... oids) throws SchemaException {
         PrismReferenceDefinition refDefinition = (PrismReferenceDefinition) findItemDefinition(path, type, prismContext);
         return createReferenceEqual(path, refDefinition, oids);
     }
 
-    public static <O extends Objectable> RefFilter createReferenceEqual(ItemPath path, Class<O> type, PrismContext prismContext,
+    public static <O extends Containerable> RefFilter createReferenceEqual(ItemPath path, Class<O> type, PrismContext prismContext,
                                                                         PrismReferenceValue... values) throws SchemaException {
         PrismReferenceDefinition refDefinition = (PrismReferenceDefinition) findItemDefinition(path, type, prismContext);
         return createReferenceEqual(path, refDefinition, values);

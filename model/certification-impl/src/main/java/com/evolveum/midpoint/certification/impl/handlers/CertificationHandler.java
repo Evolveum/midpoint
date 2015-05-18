@@ -46,7 +46,7 @@ public interface CertificationHandler {
      * @return
      * @throws SecurityViolationException
      */
-    AccessCertificationCampaignType createCampaign(AccessCertificationDefinitionType certificationDefinition, AccessCertificationCampaignType campaign, Task task, OperationResult result) throws SecurityViolationException;
+//    AccessCertificationCampaignType createCampaign(AccessCertificationDefinitionType certificationDefinition, AccessCertificationCampaignType campaign, Task task, OperationResult result) throws SecurityViolationException;
 
     /**
      * Starts the campaign. E.g. creates all the certification cases.

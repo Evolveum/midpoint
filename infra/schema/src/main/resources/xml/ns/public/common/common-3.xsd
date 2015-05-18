@@ -11523,6 +11523,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="accessCertificationCase" type="tns:AccessCertificationCaseType"/>
 
     <xsd:complexType name="AccessCertificationAssignmentCaseType">
         <xsd:annotation>

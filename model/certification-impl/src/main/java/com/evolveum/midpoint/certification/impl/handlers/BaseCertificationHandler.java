@@ -24,7 +24,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -32,7 +31,6 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -49,10 +47,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationD
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationObjectBasedScopeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationScopeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -62,7 +58,6 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -77,9 +72,6 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
     protected PrismContext prismContext;
 
     @Autowired
-    protected SecurityEnforcer securityEnforcer;
-
-    @Autowired
     protected ModelService modelService;
 
     // TODO temporary hack because of some problems in model service...
@@ -89,54 +81,6 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
 
     @Autowired
     protected CertificationManagerImpl certificationManager;
-
-    @Override
-    public AccessCertificationCampaignType createCampaign(AccessCertificationDefinitionType definition, AccessCertificationCampaignType campaign, Task task, OperationResult result) throws SecurityViolationException {
-        AccessCertificationCampaignType newCampaign = new AccessCertificationCampaignType(prismContext);
-        Date now = new Date();
-
-        if (campaign != null && campaign.getName() != null) {
-            campaign.setName(campaign.getName());
-        } else {
-            newCampaign.setName(new PolyStringType("Campaign for " + definition.getName().getOrig() + " started " + now));
-        }
-
-        if (campaign != null && campaign.getDescription() != null) {
-            newCampaign.setDescription(newCampaign.getDescription());
-        } else {
-            newCampaign.setDescription(definition.getDescription());
-        }
-
-        if (campaign != null && campaign.getOwnerRef() != null) {
-            newCampaign.setOwnerRef(campaign.getOwnerRef());
-        } else if (definition.getOwnerRef() != null) {
-            newCampaign.setOwnerRef(definition.getOwnerRef());
-        } else {
-            newCampaign.setOwnerRef(securityEnforcer.getPrincipal().toObjectReference());
-        }
-
-        if (campaign != null && campaign.getTenantRef() != null) {
-            newCampaign.setTenantRef(campaign.getTenantRef());
-        } else {
-            newCampaign.setTenantRef(definition.getTenantRef());
-        }
-
-        newCampaign.setCurrentStageNumber(1);
-
-        ObjectReferenceType typeRef = new ObjectReferenceType();
-        typeRef.setType(AccessCertificationDefinitionType.COMPLEX_TYPE);
-        typeRef.setOid(definition.getOid());
-        newCampaign.setDefinitionRef(typeRef);
-
-        return newCampaign;
-    }
-
-    protected ObjectReferenceType createCampaignRef(AccessCertificationCampaignType runType) {
-        ObjectReferenceType ort = new ObjectReferenceType();
-        ort.setType(AccessCertificationCampaignType.COMPLEX_TYPE);
-        ort.setOid(runType.getOid());
-        return ort;
-    }
 
     @Override
     public void startStage(final AccessCertificationDefinitionType definition, final AccessCertificationCampaignType campaign,
@@ -154,20 +98,20 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
         }
 
         if (stageNumber == 1) {
-            createCases(definition, campaign, task, result);
+            createCases(campaign, definition, task, result);
         } else {
-            updateCases(definition, campaign, task, result);
+            updateCases(campaign, definition, task, result);
         }
 
         LOGGER.trace("startStage finishing");
     }
 
-    private void updateCases(AccessCertificationDefinitionType definition, AccessCertificationCampaignType campaign, Task task, OperationResult result) {
+    private void updateCases(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition, Task task, OperationResult result) {
 
     }
 
-    private void createCases(AccessCertificationDefinitionType definition, final AccessCertificationCampaignType campaign, final Task task, final OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException {
-
+    private void createCases(final AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition,
+                             final Task task, final OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException {
         String campaignShortName = ObjectTypeUtil.toShortString(campaign);
 
         AccessCertificationScopeType scope = definition.getScope();
@@ -232,12 +176,13 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
             }
         }
 
+        // there are some problems with container IDs when using model - as a temporary hack we go directly into repo
+        // todo fix it and switch to model service
 //        ObjectDelta<AccessCertificationCampaignType> campaignDelta = ObjectDelta.createModifyDelta(campaign.getOid(),
 //                caseDelta, AccessCertificationCampaignType.class, prismContext);
+//        modelService.executeChanges((Collection) Arrays.asList(campaignDelta), null, task, result);
 
-        // todo switch to modelService
         repositoryService.modifyObject(AccessCertificationCampaignType.class, campaign.getOid(), Arrays.asList(caseDelta), result);
-        //modelService.executeChanges((Collection) Arrays.asList(campaignDelta), null, task, result);
         LOGGER.trace("Created {} cases for campaign {}", caseList.size(), campaignShortName);
     }
 
@@ -258,6 +203,7 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
     }
 
     protected Collection<? extends AccessCertificationCaseType> evaluateCaseExpression(ExpressionType caseExpression, PrismObject<ObjectType> object, Task task, OperationResult parentResult) {
+        // todo
         throw new UnsupportedOperationException("Not implemented yet.");
     }
 
