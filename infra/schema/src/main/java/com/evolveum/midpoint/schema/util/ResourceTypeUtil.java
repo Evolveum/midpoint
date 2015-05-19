@@ -29,6 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusTy
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDependencyStrictnessType;
@@ -89,7 +90,7 @@ public class ResourceTypeUtil {
 			return resource.getConnector();
 		} else if (resource.getConnectorRef() != null) {
 			return resolver.resolve(resource.getConnectorRef(), ConnectorType.class,
-					null, "resolving connector in " + resource ,parentResult);
+					null, "resolving connector in " + resource, parentResult);
 		} else {
 			return null;
 		}
@@ -485,6 +486,22 @@ public class ResourceTypeUtil {
 			return false;
 		}
 		return resource.getConsistency().isCaseIgnoreAttributeNames();
+	}
+
+	// always returns non-null value
+	public static List<ObjectReferenceType> getOwnerRef(ResourceType resource) {
+		if (resource.getBusiness() == null) {
+			return new ArrayList<>();
+		}
+		return resource.getBusiness().getOwnerRef();
+	}
+
+	// always returns non-null value
+	public static List<ObjectReferenceType> getApproverRef(ResourceType resource) {
+		if (resource.getBusiness() == null) {
+			return new ArrayList<>();
+		}
+		return resource.getBusiness().getApproverRef();
 	}
 
 }

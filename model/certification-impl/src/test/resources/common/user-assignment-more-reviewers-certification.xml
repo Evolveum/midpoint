@@ -16,15 +16,27 @@
   -->
 
 <accessCertificationDefinition xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-        oid="33333333-0000-0000-0000-000000000001">
-    <name>Basic User Assignment Certification</name>
-    <description>Describes basic certification of user assignments. Each assignment is to be certified.</description>
+        oid="33333333-0000-0000-0000-000000000002">
+    <name>User Assignment Cert (more reviewers)</name>
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/certification-3#user-assignment-basic</handlerUri>
     <stage>
         <number>1</number>
         <days>14</days>
         <reviewerSpecification>
+            <useTargetObjectOwner>true</useTargetObjectOwner>
             <defaultReviewerRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />   <!-- administrator -->
+            <additionalReviewerRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="UserType" />   <!-- jack -->
+            <approvalStrategy>oneApprovalApproves</approvalStrategy>
         </reviewerSpecification>
     </stage>
+    <stage>
+        <number>2</number>
+        <days>7</days>
+        <reviewerSpecification>
+            <useTargetObjectApprover>true</useTargetObjectApprover>
+            <additionalReviewerRef oid="c0c010c0-d34d-b33f-f00d-222222222222" type="UserType" />   <!-- chief reviewer -->
+            <approvalStrategy>allMustApprove</approvalStrategy>
+        </reviewerSpecification>
+    </stage>
+
 </accessCertificationDefinition>

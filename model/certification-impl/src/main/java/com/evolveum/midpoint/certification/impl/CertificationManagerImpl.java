@@ -20,15 +20,11 @@ import com.evolveum.midpoint.certification.api.CertificationManager;
 import com.evolveum.midpoint.certification.impl.handlers.CertificationHandler;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
@@ -97,8 +93,10 @@ public class CertificationManagerImpl implements CertificationManager {
 
     public static final String INTERFACE_DOT = CertificationManager.class.getName() + ".";
     public static final String OPERATION_CREATE_CAMPAIGN = INTERFACE_DOT + "createCampaign";
-    public static final String OPERATION_START_STAGE = INTERFACE_DOT + "startStage";
-    public static final String OPERATION_RECORD_REVIEWER_DECISION = INTERFACE_DOT + "recordReviewerDecision";
+    public static final String OPERATION_NEXT_STAGE = INTERFACE_DOT + "nextStage";
+    public static final String OPERATION_RECORD_DECISION = INTERFACE_DOT + "recordDecision";
+    public static final String OPERATION_SEARCH_CASES = INTERFACE_DOT + "searchCases";
+    public static final String OPERATION_SEARCH_DECISIONS = INTERFACE_DOT + "searchDecisions";
 
     @Autowired
     private PrismContext prismContext;
@@ -117,43 +115,49 @@ public class CertificationManagerImpl implements CertificationManager {
     @Qualifier("cacheRepositoryService")
     protected RepositoryService repositoryService;
 
-    private PrismObjectDefinition<AccessCertificationCampaignType> campaignObjectDefinition = null;
+    private PrismObjectDefinition<AccessCertificationCampaignType> campaignObjectDefinition = null;     // lazily evaluated
 
     private Map<String,CertificationHandler> registeredHandlers = new HashMap<>();
 
-    public void registerHandler(String typeUri, CertificationHandler handler) {
-        if (registeredHandlers.containsKey(typeUri)) {
-            throw new IllegalStateException("There is already a handler for certification type " + typeUri);
+    public void registerHandler(String handlerUri, CertificationHandler handler) {
+        if (registeredHandlers.containsKey(handlerUri)) {
+            throw new IllegalStateException("There is already a handler with URI " + handlerUri);
         }
-        registeredHandlers.put(typeUri, handler);
+        registeredHandlers.put(handlerUri, handler);
     }
 
     public CertificationHandler findCertificationHandler(AccessCertificationDefinitionType accessCertificationDefinitionType) {
         if (StringUtils.isBlank(accessCertificationDefinitionType.getHandlerUri())) {
-            throw new IllegalArgumentException("No handler URI for access certification definition " + accessCertificationDefinitionType);
+            throw new IllegalArgumentException("No handler URI for access certification definition " + ObjectTypeUtil.toShortString(accessCertificationDefinitionType));
         }
         CertificationHandler handler = registeredHandlers.get(accessCertificationDefinitionType.getHandlerUri());
         if (handler == null) {
-            throw new IllegalStateException("No handler for certification definition " + accessCertificationDefinitionType.getHandlerUri());
+            throw new IllegalStateException("No handler for URI " + accessCertificationDefinitionType.getHandlerUri());
         }
         return handler;
     }
 
     @Override
-    public AccessCertificationCampaignType createCampaign(AccessCertificationDefinitionType certDefinition, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
+    public AccessCertificationCampaignType createCampaign(AccessCertificationDefinitionType certDefinition, AccessCertificationCampaignType campaign,
+                                                          Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
         Validate.notNull(certDefinition, "certificationDefinition");
         Validate.notNull(certDefinition.getOid(), "certificationDefinition.oid");
         if (campaign != null) {
             Validate.isTrue(campaign.getOid() == null, "Certification campaign with non-null OID is not permitted.");
         }
+        Validate.notNull(task, "task");
+        Validate.notNull(parentResult, "parentResult");
 
         OperationResult result = parentResult.createSubresult(OPERATION_CREATE_CAMPAIGN);
         try {
             AccessCertificationCampaignType newCampaign = createCampaignObject(certDefinition, campaign, task, result);
             addObject(newCampaign, task, result);
             return newCampaign;
+        } catch (RuntimeException e) {
+            result.recordFatalError("Couldn't create certification campaign: unexpected exception: " + e.getMessage(), e);
+            throw e;
         } finally {
-            result.computeStatus();
+            result.computeStatusIfUnknown();
         }
     }
 
@@ -199,26 +203,37 @@ public class CertificationManagerImpl implements CertificationManager {
     }
 
     @Override
-    public void startStage(AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
+    public void nextStage(AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
         Validate.notNull(campaign, "campaign");
         Validate.notNull(campaign.getOid(), "campaign.oid");
         Validate.notNull(campaign.getDefinitionRef(), "campaign.definitionRef");
+        Validate.notNull(task, "task");
+        Validate.notNull(parentResult, "parentResult");
 
-        OperationResult result = parentResult.createSubresult(OPERATION_START_STAGE);
-
-        AccessCertificationDefinitionType certDefinition = resolveCertificationDef(campaign, task, result);
+        OperationResult result = parentResult.createSubresult(OPERATION_NEXT_STAGE);
 
         try {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("nextStage starting for {}", ObjectTypeUtil.toShortString(campaign));
+            }
+
+            AccessCertificationDefinitionType certDefinition = resolveCertificationDef(campaign, task, result);
+
             int currentStageNumber = getCurrentStageNumber(campaign);
             int stages = certDefinition.getStage().size();
+            LOGGER.trace("nextStage: currentStageNumber={}, stages={}", currentStageNumber, stages);
             if (currentStageNumber > stages) {
-                throw new IllegalStateException("This campaign is already closed.");
+                result.recordFatalError("Couldn't advance to the next stage: this campaign is already closed.");
+            } else {
+                CertificationHandler handler = findCertificationHandler(certDefinition);
+                handler.moveToNextStage(certDefinition, campaign, task, result);
+                incrementStageNumber(campaign, task, result);
             }
-            CertificationHandler handler = findCertificationHandler(certDefinition);
-            handler.startStage(certDefinition, campaign, task, result);
-            incrementStageNumber(campaign, task, result);
+        } catch (RuntimeException e) {
+            result.recordFatalError("Couldn't move to next certification campaign stage: unexpected exception: " + e.getMessage(), e);
+            throw e;
         } finally {
-            result.computeStatus();
+            result.computeStatusIfUnknown();
         }
     }
 
@@ -241,13 +256,27 @@ public class CertificationManagerImpl implements CertificationManager {
     public List<AccessCertificationCaseType> searchCases(String campaignOid, ObjectQuery query,
                                                          Collection<SelectorOptions<GetOperationOptions>> options,
                                                          Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
+
+        Validate.notEmpty(campaignOid, "campaignOid");
+        Validate.notNull(task, "task");
+        Validate.notNull(parentResult, "parentResult");
+
+        OperationResult result = parentResult.createSubresult(OPERATION_SEARCH_CASES);
+
         // temporary implementation: simply fetches the whole campaign and selects requested items by itself
-        ObjectFilter filter = query != null ? query.getFilter() : null;
-        ObjectPaging paging = query != null ? query.getPaging() : null;
-        AccessCertificationCampaignType campaign = getCampaign(campaignOid, options, task, parentResult);
-        List<AccessCertificationCaseType> caseList = getCases(campaign, filter, task, parentResult);
-        caseList = doSortingAndPaging(caseList, paging);
-        return caseList;
+        try {
+            ObjectFilter filter = query != null ? query.getFilter() : null;
+            ObjectPaging paging = query != null ? query.getPaging() : null;
+            AccessCertificationCampaignType campaign = getCampaign(campaignOid, options, task, result);
+            List<AccessCertificationCaseType> caseList = getCases(campaign, filter, task, result);
+            caseList = doSortingAndPaging(caseList, paging);
+            return caseList;
+        } catch (RuntimeException e) {
+            result.recordFatalError("Couldn't search for certification cases: unexpected exception: " + e.getMessage(), e);
+            throw e;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
     }
 
     @Override
@@ -256,46 +285,59 @@ public class CertificationManagerImpl implements CertificationManager {
                                                              Collection<SelectorOptions<GetOperationOptions>> options,
                                                              Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
 
-        // enhance filter with reviewerRef
-        ObjectFilter enhancedFilter;
-        ObjectReferenceType reviewerRef = ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER);
-        ObjectFilter reviewerFilter = RefFilter.createReferenceEqual(
-                new ItemPath(AccessCertificationCaseType.F_REVIEWER_REF),
-                AccessCertificationCaseType.class, prismContext, reviewerRef.asReferenceValue());
-        if (caseQuery == null || caseQuery.getFilter() == null) {
-            enhancedFilter = reviewerFilter;
-        } else {
-            enhancedFilter = AndFilter.createAnd(caseQuery.getFilter(), reviewerFilter);
-        }
+        Validate.notNull(reviewerOid, "reviewerOid");
+        Validate.notNull(task, "task");
+        Validate.notNull(parentResult, "parentResult");
 
-        // retrieve cases, filtered
-        List<PrismObject<AccessCertificationCampaignType>> campaignObjects = modelService.searchObjects(AccessCertificationCampaignType.class, campaignQuery, options, task, parentResult);
-        List<AccessCertificationCaseType> caseList = new ArrayList<>();
-        for (PrismObject<AccessCertificationCampaignType> campaignObject : campaignObjects) {
-            AccessCertificationCampaignType campaign = campaignObject.asObjectable();
-            List<AccessCertificationCaseType> campaignCases = getCases(campaign, enhancedFilter, task, parentResult);
+        OperationResult result = parentResult.createSubresult(OPERATION_SEARCH_DECISIONS);
 
-            // remove irrelevant decisions from each case
-            // and add campaignRef
-            int stage = getCurrentStageNumber(campaign);
-            for (AccessCertificationCaseType _case : campaignCases) {
-                Iterator<AccessCertificationDecisionType> decisionIterator = _case.getDecision().iterator();
-                while (decisionIterator.hasNext()) {
-                    AccessCertificationDecisionType decision = decisionIterator.next();
-                    if (decision.getStageNumber() != stage || !decision.getReviewerRef().getOid().equals(reviewerOid)) {
-                        decisionIterator.remove();
-                    }
-                }
-                _case.setCampaignRef(ObjectTypeUtil.createObjectRef(campaignObject));
-                caseList.add(_case);
+        try {
+            // enhance filter with reviewerRef
+            ObjectFilter enhancedFilter;
+            ObjectReferenceType reviewerRef = ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER);
+            ObjectFilter reviewerFilter = RefFilter.createReferenceEqual(
+                    new ItemPath(AccessCertificationCaseType.F_REVIEWER_REF),
+                    AccessCertificationCaseType.class, prismContext, reviewerRef.asReferenceValue());
+            if (caseQuery == null || caseQuery.getFilter() == null) {
+                enhancedFilter = reviewerFilter;
+            } else {
+                enhancedFilter = AndFilter.createAnd(caseQuery.getFilter(), reviewerFilter);
             }
+
+            // retrieve cases, filtered
+            List<PrismObject<AccessCertificationCampaignType>> campaignObjects = modelService.searchObjects(AccessCertificationCampaignType.class, campaignQuery, options, task, result);
+            List<AccessCertificationCaseType> caseList = new ArrayList<>();
+            for (PrismObject<AccessCertificationCampaignType> campaignObject : campaignObjects) {
+                AccessCertificationCampaignType campaign = campaignObject.asObjectable();
+                List<AccessCertificationCaseType> campaignCases = getCases(campaign, enhancedFilter, task, result);
+
+                // remove irrelevant decisions from each case
+                // and add campaignRef
+                int stage = getCurrentStageNumber(campaign);
+                for (AccessCertificationCaseType _case : campaignCases) {
+                    Iterator<AccessCertificationDecisionType> decisionIterator = _case.getDecision().iterator();
+                    while (decisionIterator.hasNext()) {
+                        AccessCertificationDecisionType decision = decisionIterator.next();
+                        if (decision.getStageNumber() != stage || !decision.getReviewerRef().getOid().equals(reviewerOid)) {
+                            decisionIterator.remove();
+                        }
+                    }
+                    _case.setCampaignRef(ObjectTypeUtil.createObjectRef(campaignObject));
+                    caseList.add(_case);
+                }
+            }
+
+            // sort and page cases
+            ObjectPaging paging = caseQuery != null ? caseQuery.getPaging() : null;
+            caseList = doSortingAndPaging(caseList, paging);
+
+            return caseList;
+        } catch (RuntimeException e) {
+            result.recordFatalError("Couldn't search for certification decisions: unexpected exception: " + e.getMessage(), e);
+            throw e;
+        } finally {
+            result.computeStatusIfUnknown();
         }
-
-        // sort and page cases
-        ObjectPaging paging = caseQuery != null ? caseQuery.getPaging() : null;
-        caseList = doSortingAndPaging(caseList, paging);
-
-        return caseList;
     }
 
     protected List<AccessCertificationCaseType> doSortingAndPaging(List<AccessCertificationCaseType> caseList, ObjectPaging paging) {
@@ -418,15 +460,15 @@ public class CertificationManagerImpl implements CertificationManager {
     }
 
     @Override
-    public void recordReviewerDecision(String campaignOid, long caseId, AccessCertificationDecisionType decision,
-                                       Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ObjectAlreadyExistsException {
+    public void recordDecision(String campaignOid, long caseId, AccessCertificationDecisionType decision,
+                               Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ObjectAlreadyExistsException {
 
         Validate.notNull(campaignOid, "campaignOid");
         Validate.notNull(decision, "decision");
         Validate.notNull(decision.getReviewerRef(), "decision.reviewerRef");
         Validate.notNull(decision.getReviewerRef().getOid(), "decision.reviewerRef.oid");
 
-        OperationResult result = parentResult.createSubresult(OPERATION_RECORD_REVIEWER_DECISION);
+        OperationResult result = parentResult.createSubresult(OPERATION_RECORD_DECISION);
         try {
             AccessCertificationCampaignType campaign = getCampaign(campaignOid, null, task, result);
             int currentStage = getCurrentStageNumber(campaign);
@@ -466,12 +508,15 @@ public class CertificationManagerImpl implements CertificationManager {
 
             repositoryService.modifyObject(AccessCertificationCampaignType.class, campaignOid, Arrays.asList(decisionDelta), result);
 
+        } catch (RuntimeException e) {
+            result.recordFatalError("Couldn't record reviewer decision: unexpected exception: " + e.getMessage(), e);
+            throw e;
         } finally {
-            result.computeStatus();
+            result.computeStatusIfUnknown();
         }
     }
 
-    private PrismObjectDefinition<?> getCampaignDefinition() {
+    public PrismObjectDefinition<?> getCampaignDefinition() {
         if (campaignObjectDefinition != null) {
             return campaignObjectDefinition;
         }
@@ -482,7 +527,7 @@ public class CertificationManagerImpl implements CertificationManager {
         return campaignObjectDefinition;
     }
 
-    private int getCurrentStageNumber(AccessCertificationCampaignType campaign) {
+    public int getCurrentStageNumber(AccessCertificationCampaignType campaign) {
         if (campaign.getCurrentStageNumber() == null) {
             return 0;
         } else {

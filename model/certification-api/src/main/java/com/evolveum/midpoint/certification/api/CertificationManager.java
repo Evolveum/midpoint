@@ -67,7 +67,7 @@ public interface CertificationManager {
      * Owner reference: if not specified neither in campaign nor in the certification definition,
      * current user will be used as the owner of the created campaign.
      *
-     * The campaign will NOT be started upon creation. It should be started explicitly by calling startStage method.
+     * The campaign will NOT be started upon creation. It should be started explicitly by calling nextStage method.
      *
      * @param certificationDefinition Certification definition for this campaign.
      * @param campaign Specific values for this campaign (optional).
@@ -91,7 +91,7 @@ public interface CertificationManager {
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
      */
-    void startStage(AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
+    void nextStage(AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
 
     /**
      * Returns a set of certification cases that match a given query.
@@ -155,7 +155,7 @@ public interface CertificationManager {
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
      */
-    void recordReviewerDecision(String campaignOid, long caseId, AccessCertificationDecisionType decision,
-                                Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ObjectAlreadyExistsException;
+    void recordDecision(String campaignOid, long caseId, AccessCertificationDecisionType decision,
+                        Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ObjectAlreadyExistsException;
 
 }

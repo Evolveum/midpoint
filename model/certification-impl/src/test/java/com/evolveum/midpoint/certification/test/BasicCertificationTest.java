@@ -42,7 +42,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -102,7 +101,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         AccessCertificationCampaignType campaign = getObject(AccessCertificationCampaignType.class, campaignOid).asObjectable();
-        certificationManager.startStage(campaign, task, result);
+        certificationManager.nextStage(campaign, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -219,7 +218,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         ObjectReferenceType administratorRef = ObjectTypeUtil.createObjectRef(USER_ADMINISTRATOR_OID, ObjectTypes.USER);
         decision.setReviewerRef(administratorRef);
         long id = superuserCase.asPrismContainerValue().getId();
-        certificationManager.recordReviewerDecision(campaignOid, id, decision, task, result);
+        certificationManager.recordDecision(campaignOid, id, decision, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);

@@ -3487,15 +3487,24 @@
         <xsd:sequence>
         	<xsd:element name="administrativeState" type="tns:ResourceAdministrativeStateType" minOccurs="0"/>
             <xsd:element name="approverRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Reference to the resource approver(s).
-                                It may point to user or organization.
-                                If more than one approver is specified they are considered equivalent. Any
-                                of the specified approvers may approve the request.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to the resource approver(s).
+                        It may point to user or organization.
+                        If more than one approver is specified they are considered equivalent. Any
+                        of the specified approvers may approve the request.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="ownerRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to the resource owner(s).
+                        It may point to user or organization.
+                        If more than one owner is specified they are considered equivalent.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
@@ -11269,7 +11278,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="reviewerSpecification" type="tns:AccessCertificationReviewerSpecificationType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="reviewerSpecification" type="tns:AccessCertificationReviewerSpecificationType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
@@ -11291,10 +11300,68 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="useTargetObjectOwner" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Indicates that target object (Org, Role, Resource) owner(s) should be used as reviewer(s).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="useTargetObjectApprover" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Indicates that target object (Org, Role, Resource) approver(s) should be used as reviewer(s).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="useSubjectManager" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Indicates that the subject's managers should be used. The interpretation depends on what kind
+                        of subject there is.
+
+                        For a user, the managers of all organizations to which he/she belongs, are taken.
+                        For an org, its managers are taken.
+                        For a role, if it has a parentOrgRef, managers of these are taken. If it has
+                        none, no reviewers are contributed by this option.
+
+                        NOT IMPLEMENTED YET
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="reviewerExpression" type="tns:ExpressionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         The most general way of specifying the reviewer. TODO describe inputs for such an expression
+                        If present, takes precedence over useXXX settings as well as over defaultReviewerRef;
+                        additionalReviewerRef still applies.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="defaultReviewerRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If no reviewer(s) are computed by other means, this/these should be used.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="additionalReviewerRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        These reviewers are always used.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="approvalStrategy" type="tns:AccessCertificationApprovalStrategyType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How to determine outcome of the approval process (e.g. if multiple reviewers are present)?
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -11691,6 +11758,58 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="NO_RESPONSE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="AccessCertificationApprovalStrategyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                An enumeration that defines possible strategies for approval result computation.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="oneApprovalApproves">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If at least one reviewer approves, the result is "APPROVED" regardless of the other votes.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ONE_APPROVAL_APPROVES"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="oneDenyDenies">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If at least one reviewer denies (either via revoke or reduce), the result is "NOT APPROVED".
+                        However, for the case to be approved, at least approval must be present.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ONE_DENY_DENIES"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="approvedIfNotDenied">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Approved if none of the reviewers denies (either via revoke or reduce).
+                        So e.g. if nobody says anything, the case is approved.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="APPROVED_IF_NOT_DENIED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="allMustApprove">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        All reviewers must approve, i.e. no revoke, reduce, noResponse is acceptable.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALL_MUST_APPROVE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

@@ -19,6 +19,9 @@ import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -109,6 +112,14 @@ public class CloneUtil {
 			return (T)SerializationUtils.clone((Serializable)orig);
 		}
 		throw new IllegalArgumentException("Cannot clone "+orig+" ("+origClass+")");
+	}
+
+	public static <T> Collection<T> cloneCollectionMembers(Collection<T> collection) {
+		List<T> clonedCollection = new ArrayList<>(collection.size());
+		for (T element : collection) {
+			clonedCollection.add(clone(element));
+		}
+		return clonedCollection;
 	}
 
 	private static <T> T cloneArray(T orig) {

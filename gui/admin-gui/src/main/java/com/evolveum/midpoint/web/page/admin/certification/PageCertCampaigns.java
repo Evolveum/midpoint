@@ -29,10 +29,8 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -159,7 +157,7 @@ public class PageCertCampaigns extends PageAdminWorkItems {
         OperationResult result = new OperationResult(OPERATION_START_CAMPAIGN);
         try {
             Task task = createSimpleTask(OPERATION_START_CAMPAIGN);
-            getCertificationManager().startStage(campaign, task, result);
+            getCertificationManager().nextStage(campaign, task, result);
         } catch (Exception ex) {
             result.recordFatalError(ex);
         } finally {

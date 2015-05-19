@@ -55,5 +55,5 @@ public interface CertificationHandler {
      * @param task
      * @param result
      */
-    void startStage(AccessCertificationDefinitionType certificationDefinition, AccessCertificationCampaignType runType, Task task, OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException;
+    void moveToNextStage(AccessCertificationDefinitionType certificationDefinition, AccessCertificationCampaignType runType, Task task, OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException;
 }

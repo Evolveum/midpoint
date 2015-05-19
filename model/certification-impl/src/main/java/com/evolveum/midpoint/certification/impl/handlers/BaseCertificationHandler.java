@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.certification.impl.handlers;
 
+import com.evolveum.midpoint.certification.impl.AccCertGeneralHelper;
 import com.evolveum.midpoint.certification.impl.CertificationManagerImpl;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
@@ -23,15 +24,22 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
+import com.evolveum.midpoint.prism.path.IdItemPathSegment;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -42,15 +50,18 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationObjectBasedScopeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationReviewerSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationScopeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,6 +88,9 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
     @Autowired
     protected ModelService modelService;
 
+    @Autowired
+    protected ObjectResolver objectResolver;
+
     // TODO temporary hack because of some problems in model service...
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -85,18 +99,21 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
     @Autowired
     protected CertificationManagerImpl certificationManager;
 
+    @Autowired
+    protected AccCertGeneralHelper helper;
+
     @Override
-    public void startStage(final AccessCertificationDefinitionType definition, final AccessCertificationCampaignType campaign,
-                           final Task task, OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException {
+    public void moveToNextStage(final AccessCertificationDefinitionType definition, final AccessCertificationCampaignType campaign,
+                                final Task task, OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException {
         Validate.notNull(definition, "certificationDefinition");
         Validate.notNull(definition.getOid(), "certificationDefinition.oid");
         Validate.notNull(campaign, "certificationCampaign");
         Validate.notNull(campaign.getOid(), "certificationCampaign.oid");
 
-        int stageNumber = campaign.getCurrentStageNumber() != null ? campaign.getCurrentStageNumber() : 0;
+        int stageNumber = certificationManager.getCurrentStageNumber(campaign);
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("startStage starting; campaign = {}, definition = {}, stage number = {}",
+            LOGGER.trace("moveToNextStage starting; campaign = {}, definition = {}, stage number = {}",
                     ObjectTypeUtil.toShortString(campaign), ObjectTypeUtil.toShortString(definition), stageNumber);
         }
 
@@ -106,11 +123,7 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
             updateCases(campaign, definition, task, result);
         }
 
-        LOGGER.trace("startStage finishing");
-    }
-
-    private void updateCases(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition, Task task, OperationResult result) {
-        // TODO
+        LOGGER.trace("nextStage finishing");
     }
 
     private void createCases(final AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition,
@@ -157,6 +170,7 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
         final List<AccessCertificationCaseType> caseList = new ArrayList<>();
 
         // create certification cases by executing the query and caseExpression on its results
+        // here the subclasses of this class come into play
         ResultHandler<ObjectType> handler = new ResultHandler<ObjectType>() {
             @Override
             public boolean handle(PrismObject<ObjectType> object, OperationResult parentResult) {
@@ -165,6 +179,9 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
             }
         };
         modelService.searchObjectsIterative(objectClass, query, (ResultHandler) handler, null, task, result);
+
+        AccessCertificationReviewerSpecificationType reviewerSpec =
+                findReviewersSpecification(campaign, definition, 1, task, result);
 
         // put the cases into repository
         ContainerDelta<AccessCertificationCaseType> caseDelta = ContainerDelta.createDelta(AccessCertificationCampaignType.F_CASE,
@@ -175,12 +192,7 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
             caseCVal.setId((long) (i + 1));
             caseDelta.addValueToAdd(caseCVal);
 
-            // TODO this is a temporary hack - we need to find correct reviewers for the case (at this or other place)
-            _case.getReviewerRef().clear();
-            ObjectReferenceType adminRef = ObjectTypeUtil.createObjectRef(
-                    SystemObjectsType.USER_ADMINISTRATOR.value(),
-                    ObjectTypes.USER);
-            _case.getReviewerRef().add(adminRef);
+            setupReviewersForCase(_case, campaign, reviewerSpec, task, result);
 
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Adding certification case:\n{}", caseCVal.debugDump());
@@ -195,6 +207,85 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
 
         repositoryService.modifyObject(AccessCertificationCampaignType.class, campaign.getOid(), Arrays.asList(caseDelta), result);
         LOGGER.trace("Created {} cases for campaign {}", caseList.size(), campaignShortName);
+    }
+
+    private AccessCertificationReviewerSpecificationType findReviewersSpecification(AccessCertificationCampaignType campaign,
+                                                                                    AccessCertificationDefinitionType definition,
+                                                                                    int stage, Task task, OperationResult result) {
+        AccessCertificationStageDefinitionType stageDef = helper.findStageDefinition(definition, stage);
+        return stageDef.getReviewerSpecification();
+    }
+
+    private void setupReviewersForCase(AccessCertificationCaseType _case, AccessCertificationCampaignType campaign,
+                                       AccessCertificationReviewerSpecificationType reviewerSpec, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+
+        _case.getReviewerRef().clear();
+        if (Boolean.TRUE.equals(reviewerSpec.isUseTargetObjectOwner())) {
+            cloneAndMerge(_case.getReviewerRef(), getTargetObjectOwners(_case, task, result));
+        }
+        if (Boolean.TRUE.equals(reviewerSpec.isUseTargetObjectApprover())) {
+            cloneAndMerge(_case.getReviewerRef(), getTargetObjectApprovers(_case, task, result));
+        }
+        if (Boolean.TRUE.equals(reviewerSpec.isUseSubjectManager())) {
+            cloneAndMerge(_case.getReviewerRef(), getSubjectManagers(_case, task, result));
+        }
+        // TODO evaluate reviewer expressions
+        if (_case.getReviewerRef().isEmpty()) {
+            cloneAndMerge(_case.getReviewerRef(), reviewerSpec.getDefaultReviewerRef());
+        }
+    }
+
+    private void cloneAndMerge(List<ObjectReferenceType> reviewers, Collection<ObjectReferenceType> newReviewers) {
+        if (newReviewers == null) {
+            return;
+        }
+        for (ObjectReferenceType newReviewer : newReviewers) {
+            if (!containsOid(reviewers, newReviewer.getOid())) {
+                reviewers.add(newReviewer.clone());
+            }
+        }
+    }
+
+    private boolean containsOid(List<ObjectReferenceType> reviewers, String oid) {
+        for (ObjectReferenceType reviewer : reviewers) {
+            if (reviewer.getOid().equals(oid)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // TODO implement this
+    private Collection<ObjectReferenceType> getSubjectManagers(AccessCertificationCaseType _case, Task task, OperationResult result) {
+        return null;
+    }
+
+    protected List<ObjectReferenceType> getTargetObjectOwners(AccessCertificationCaseType _case, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        if (_case.getTargetRef() == null) {
+            return null;
+        }
+        ObjectType target = objectResolver.resolve(_case.getTargetRef(), ObjectType.class, null, "resolving cert case target", result);
+        if (target instanceof AbstractRoleType) {
+            return Arrays.asList(((AbstractRoleType) target).getOwnerRef());
+        } else if (target instanceof ResourceType) {
+            return ResourceTypeUtil.getOwnerRef((ResourceType) target);
+        } else {
+            return null;
+        }
+    }
+
+    private Collection<ObjectReferenceType> getTargetObjectApprovers(AccessCertificationCaseType _case, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        if (_case.getTargetRef() == null) {
+            return null;
+        }
+        ObjectType target = objectResolver.resolve(_case.getTargetRef(), ObjectType.class, null, "resolving cert case target", result);
+        if (target instanceof AbstractRoleType) {
+            return ((AbstractRoleType) target).getApproverRef();
+        } else if (target instanceof ResourceType) {
+            return ResourceTypeUtil.getApproverRef((ResourceType) target);
+        } else {
+            return null;
+        }
     }
 
     // default implementation, depending only on the expressions provided
@@ -216,6 +307,33 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
     protected Collection<? extends AccessCertificationCaseType> evaluateCaseExpression(ExpressionType caseExpression, PrismObject<ObjectType> object, Task task, OperationResult parentResult) {
         // todo
         throw new UnsupportedOperationException("Not implemented yet.");
+    }
+
+    private void updateCases(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+        LOGGER.trace("Updating reviewers for cases in {}", ObjectTypeUtil.toShortString(campaign));
+        List<AccessCertificationCaseType> caseList = campaign.getCase();
+
+        int stageToBe = certificationManager.getCurrentStageNumber(campaign) + 1;
+
+        AccessCertificationReviewerSpecificationType reviewerSpec =
+                findReviewersSpecification(campaign, definition, stageToBe, task, result);
+
+        List<ReferenceDelta> reviewerDeltaList = new ArrayList<>(caseList.size());
+        for (int i = 0; i < caseList.size(); i++) {
+            AccessCertificationCaseType _case = caseList.get(i);
+            setupReviewersForCase(_case, campaign, reviewerSpec, task, result);
+            PrismReference reviewersRef = _case.asPrismContainerValue().findOrCreateReference(AccessCertificationCaseType.F_REVIEWER_REF);
+            ReferenceDelta reviewerDelta = ReferenceDelta.createModificationReplace(
+                    new ItemPath(
+                            new NameItemPathSegment(AccessCertificationCampaignType.F_CASE),
+                            new IdItemPathSegment(_case.asPrismContainerValue().getId()),
+                            new NameItemPathSegment(AccessCertificationCaseType.F_REVIEWER_REF)),
+                    certificationManager.getCampaignDefinition(), reviewersRef.getValues());
+            reviewerDeltaList.add(reviewerDelta);
+        }
+
+        repositoryService.modifyObject(AccessCertificationCampaignType.class, campaign.getOid(), reviewerDeltaList, result);
+        LOGGER.debug("Updated reviewers in {} cases for campaign {}", caseList.size(), ObjectTypeUtil.toShortString(campaign));
     }
 
     protected QName getDefaultObjectType() {
