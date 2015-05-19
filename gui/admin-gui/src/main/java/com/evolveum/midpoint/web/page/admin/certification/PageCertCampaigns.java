@@ -167,7 +167,12 @@ public class PageCertCampaigns extends PageAdminWorkItems {
         }
 
         showResult(result);
+        target.add(getCampaignsTable());
         target.add(getFeedbackPanel());
+    }
+
+    private TablePanel getCampaignsTable(){
+        return (TablePanel) get(createComponentPath(ID_MAIN_FORM, ID_CAMPAIGNS_TABLE));
     }
 
 

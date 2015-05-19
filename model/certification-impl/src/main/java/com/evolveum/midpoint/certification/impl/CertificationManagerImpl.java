@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -41,6 +42,7 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -431,6 +433,9 @@ public class CertificationManagerImpl implements CertificationManager {
             if (decision.getStageNumber() != 0 && decision.getStageNumber() != currentStage) {
                 throw new IllegalStateException("Cannot add decision with stage number (" + decision.getStageNumber() + ") other than current (" + currentStage + ")");
             }
+            if (decision.getTimestamp() == null) {
+                decision.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
+            }
             AccessCertificationCaseType _case = findCaseById(campaign, caseId);
             if (_case == null) {
                 throw new ObjectNotFoundException("Case " + caseId + " was not found in campaign " + ObjectTypeUtil.toShortString(campaign));
@@ -444,13 +449,16 @@ public class CertificationManagerImpl implements CertificationManager {
                 }
             }
             AccessCertificationDecisionType decisionWithCorrectId = decision.clone();
+            if (decisionWithCorrectId.getStageNumber() == 0) {
+                decisionWithCorrectId.setStageNumber(currentStage);
+            }
             decisionWithCorrectId.asPrismContainerValue().setId(existingDecisionId);        // may be null if this is a new decision
             ItemPath decisionPath = new ItemPath(
                     new NameItemPathSegment(AccessCertificationCampaignType.F_CASE),
                     new IdItemPathSegment(caseId),
                     new NameItemPathSegment(AccessCertificationCaseType.F_DECISION));
-            PropertyDelta decisionDelta =
-                    PropertyDelta.createModificationReplaceProperty(decisionPath, getCampaignDefinition(), decisionWithCorrectId);
+            ContainerDelta<AccessCertificationDecisionType> decisionDelta =
+                    ContainerDelta.createModificationReplace(decisionPath, AccessCertificationCampaignType.class, prismContext, decisionWithCorrectId);
 
 //            TODO: call model service instead of repository
 //            ObjectDelta<AccessCertificationCampaignType> campaignDelta = ObjectDelta.createModifyDelta(

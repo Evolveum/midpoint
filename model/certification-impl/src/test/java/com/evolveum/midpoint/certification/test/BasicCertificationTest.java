@@ -22,8 +22,10 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -31,18 +33,24 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationAssignmentCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 
 /**
@@ -164,6 +172,77 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         checkCase(caseList, USER_ADMINISTRATOR_OID, ROLE_CEO_OID, userAdministrator);
         assertEquals("Wrong target OID in case #0", ROLE_COO_OID, caseList.get(0).getTargetRef().getOid());
         assertEquals("Wrong target OID in case #1", ROLE_CEO_OID, caseList.get(1).getTargetRef().getOid());
+    }
+
+    @Test
+    public void test050SearchDecisions() throws Exception {
+        final String TEST_NAME = "test050SearchDecisions";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        List<AccessCertificationCaseType> caseList =
+                certificationManager.searchDecisions(null, null, USER_ADMINISTRATOR_OID, null, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        display("caseList", caseList);
+        assertEquals("Wrong number of certification cases", 4, caseList.size());
+        checkAllCases(caseList);
+    }
+
+    @Test
+    public void test100RecordDecision() throws Exception {
+        final String TEST_NAME = "test100RecordDecision";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        List<AccessCertificationCaseType> caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
+        AccessCertificationCaseType superuserCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID);
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        AccessCertificationDecisionType decision = new AccessCertificationDecisionType(prismContext);
+        decision.setResponse(AccessCertificationResponseType.ACCEPT);
+        decision.setComment("no comment");
+        decision.setStageNumber(0);     // will be replaced by current stage number
+        ObjectReferenceType administratorRef = ObjectTypeUtil.createObjectRef(USER_ADMINISTRATOR_OID, ObjectTypes.USER);
+        decision.setReviewerRef(administratorRef);
+        long id = superuserCase.asPrismContainerValue().getId();
+        certificationManager.recordReviewerDecision(campaignOid, id, decision, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
+        display("caseList", caseList);
+        checkAllCases(caseList);
+
+        superuserCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID);
+        assertEquals("changed case ID", Long.valueOf(id), superuserCase.asPrismContainerValue().getId());
+        assertEquals("wrong # of decisions", 1, superuserCase.getDecision().size());
+        AccessCertificationDecisionType storedDecision = superuserCase.getDecision().get(0);
+        assertEquals("wrong response", AccessCertificationResponseType.ACCEPT, storedDecision.getResponse());
+        assertEquals("wrong comment", "no comment", storedDecision.getComment());
+        assertEquals("wrong reviewerRef", administratorRef, storedDecision.getReviewerRef());
+        assertEquals("wrong stage number", 1, storedDecision.getStageNumber());
+        assertNotNull("missing timestamp", storedDecision.getTimestamp());
+        Date timestamp = XmlTypeConverter.toDate(storedDecision.getTimestamp());
+        Date expected = new Date();
+        assertTrue("date out of range; expected " + expected + ", found " + timestamp,
+                Math.abs(timestamp.getTime()-expected.getTime()) < 600000);     // 10 minutes
     }
 
     protected void checkAllCases(Collection<AccessCertificationCaseType> caseList) {
