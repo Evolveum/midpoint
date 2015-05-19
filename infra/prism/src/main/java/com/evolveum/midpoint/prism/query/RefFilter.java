@@ -23,6 +23,8 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.match.MatchingRule;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.prism.Item;
@@ -171,9 +173,48 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue> {
 
 	@Override
 	public boolean match(Containerable object, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-		Item item = getObjectItem(object);
-		Item filterItem = getFilterItem();		
-		return item.match(filterItem);
+
+		Item filterItem = getFilterItem();
+		Item objectItem = getObjectItem(object);
+
+		if (!super.match(object, matchingRuleRegistry)) {
+			return false;
+		}
+
+		boolean filterItemIsEmpty = getValues() == null || getValues().isEmpty();
+		boolean objectItemIsEmpty = objectItem == null || objectItem.isEmpty();
+
+		if (filterItemIsEmpty && objectItemIsEmpty) {
+			return true;
+		}
+
+		assert !filterItemIsEmpty;	// if both are empty, the previous statement causes 'return true'
+		assert !objectItemIsEmpty;	// if only one of them is empty, the super.match() returnsed false
+
+		List<Object> objectValues = objectItem.getValues();
+		for (Object v : objectValues) {
+			if (!(v instanceof PrismReferenceValue)) {
+				throw new IllegalArgumentException("Not supported prism value for ref equals filter. It must be an instance of PrismReferenceValue but it is " + v.getClass());
+			}
+			if (!isInFilterItem((PrismReferenceValue) v, filterItem)){
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	private boolean isInFilterItem(PrismReferenceValue v, Item filterItem) {
+		for (Object filterValue : filterItem.getValues()) {
+			if (!(filterValue instanceof PrismReferenceValue)) {
+				throw new IllegalArgumentException("Not supported prism value for ref equals filter. It must be an instance of PrismReferenceValue but it is " + v.getClass());
+			}
+			PrismReferenceValue filterRV = (PrismReferenceValue) filterValue;
+			if (filterRV.getOid().equals(v.getOid())) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override

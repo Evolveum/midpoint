@@ -207,6 +207,11 @@ public class CertificationManagerImpl implements CertificationManager {
         AccessCertificationDefinitionType certDefinition = resolveCertificationDef(campaign, task, result);
 
         try {
+            int currentStageNumber = getCurrentStageNumber(campaign);
+            int stages = certDefinition.getStage().size();
+            if (currentStageNumber > stages) {
+                throw new IllegalStateException("This campaign is already closed.");
+            }
             CertificationHandler handler = findCertificationHandler(certDefinition);
             handler.startStage(certDefinition, campaign, task, result);
             incrementStageNumber(campaign, task, result);

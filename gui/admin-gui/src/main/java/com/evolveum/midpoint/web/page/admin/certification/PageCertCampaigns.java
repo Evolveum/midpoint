@@ -25,17 +25,24 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -64,17 +71,6 @@ public class PageCertCampaigns extends PageAdminWorkItems {
         initLayout();
     }
 
-//    @Override
-//    protected IModel<String> createPageSubTitleModel(){
-//        return new AbstractReadOnlyModel<String>() {
-//
-//            @Override
-//            public String getObject() {
-//                return createStringResource("page.subTitle").getString();
-//            }
-//        };
-//    }
-
     private void initLayout() {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
@@ -91,6 +87,10 @@ public class PageCertCampaigns extends PageAdminWorkItems {
         List<IColumn<AccessCertificationCampaignType, String>> columns = new ArrayList<>();
 
         IColumn column;
+
+        column = new CheckBoxHeaderColumn<>();
+        columns.add(column);
+
         column = new LinkColumn<SelectableBean<AccessCertificationCampaignType>>(createStringResource("PageCertCampaigns.table.name"),
                 ReportType.F_NAME.getLocalPart(), "value.name") {
 
@@ -104,7 +104,19 @@ public class PageCertCampaigns extends PageAdminWorkItems {
         column = new PropertyColumn(createStringResource("PageCertCampaigns.table.description"), "value.description");
         columns.add(column);
 
-        column = new PropertyColumn(createStringResource("PageCertCampaigns.table.stage"), "value.currentStageNumber");
+        column = new AbstractColumn<SelectableBean<AccessCertificationCampaignType>, String>(createStringResource("PageCertCampaigns.table.stage")) {
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<AccessCertificationCampaignType>>> item, String componentId,
+                                     final IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+                item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
+                    @Override
+                    public Object getObject() {
+                        return rowModel.getObject().getValue().getCurrentStageNumber();
+                        // TODO provide also the total number of stages (taken from campaign definition)
+                    }
+                }));
+            }
+        };
         columns.add(column);
 
         column = new DoubleButtonColumn<SelectableBean<AccessCertificationCampaignType>>(new Model(), null) {
@@ -124,6 +136,7 @@ public class PageCertCampaigns extends PageAdminWorkItems {
                 return BUTTON_COLOR_CLASS.PRIMARY.toString();
             }
 
+            // TODO enable this button only if there is a stage to advance to
             @Override
             public void firstClicked(AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationCampaignType>> model) {
                 startCampaignPerformed(target, model.getObject().getValue());
@@ -131,6 +144,7 @@ public class PageCertCampaigns extends PageAdminWorkItems {
 
             @Override
             public void secondClicked(AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationCampaignType>> model) {
+                // TODO
                 //configurePerformed(target, model.getObject().getValue());
             }
         };

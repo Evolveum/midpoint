@@ -25,6 +25,7 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -32,6 +33,7 @@ import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -93,6 +95,10 @@ public class PageCertDefinitions extends PageAdminWorkItems {
         List<IColumn<AccessCertificationDefinitionType, String>> columns = new ArrayList<>();
 
         IColumn column;
+
+        column = new CheckBoxHeaderColumn<>();
+        columns.add(column);
+
         column = new LinkColumn<SelectableBean<AccessCertificationDefinitionType>>(createStringResource("PageCertDefinitions.table.name"),
                 ReportType.F_NAME.getLocalPart(), "value.name"){
 

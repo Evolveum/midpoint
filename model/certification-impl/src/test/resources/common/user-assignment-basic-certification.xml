@@ -20,4 +20,7 @@
     <name>Basic User Assignment Certification</name>
     <description>Describes basic certification of user assignments. Each assignment is to be certified.</description>
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/certification-3#user-assignment-basic</handlerUri>
+    <stage>
+        <number>1</number>
+    </stage>
 </accessCertificationDefinition>

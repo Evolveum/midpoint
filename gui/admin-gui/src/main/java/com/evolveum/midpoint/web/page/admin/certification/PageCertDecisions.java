@@ -24,6 +24,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.DirectlyEditablePropertyColumn;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.EditablePropertyColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -90,6 +92,9 @@ public class PageCertDecisions extends PageAdminWorkItems {
 
         IColumn column;
 
+        column = new CheckBoxHeaderColumn<>();
+        columns.add(column);
+
         column = new PropertyColumn(createStringResource("PageCertDecisions.table.subjectName"), CertDecisionDto.F_SUBJECT_NAME);
         columns.add(column);
 
@@ -100,10 +105,10 @@ public class PageCertDecisions extends PageAdminWorkItems {
         columns.add(column);
 
         // TODO replace by buttons
-        column = new EditablePropertyColumn(createStringResource("PageCertDecisions.table.decision"), CertDecisionDto.F_RESPONSE);
+        column = new DirectlyEditablePropertyColumn(createStringResource("PageCertDecisions.table.decision"), CertDecisionDto.F_RESPONSE);
         columns.add(column);
 
-        column = new EditablePropertyColumn(createStringResource("PageCertDecisions.table.comment"), CertDecisionDto.F_COMMENT);
+        column = new DirectlyEditablePropertyColumn(createStringResource("PageCertDecisions.table.comment"), CertDecisionDto.F_COMMENT);
         columns.add(column);
 
         return columns;

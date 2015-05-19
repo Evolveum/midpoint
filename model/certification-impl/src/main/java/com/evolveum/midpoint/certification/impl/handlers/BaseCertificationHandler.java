@@ -24,12 +24,12 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -48,7 +48,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationD
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationObjectBasedScopeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationScopeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -168,9 +170,17 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
         ContainerDelta<AccessCertificationCaseType> caseDelta = ContainerDelta.createDelta(AccessCertificationCampaignType.F_CASE,
                 AccessCertificationCampaignType.class, prismContext);
         for (int i = 0; i < caseList.size(); i++) {
-            PrismContainerValue<AccessCertificationCaseType> caseCVal = caseList.get(i).asPrismContainerValue();
-            caseCVal.setId((long) (i+1));
+            AccessCertificationCaseType _case = caseList.get(i);
+            PrismContainerValue<AccessCertificationCaseType> caseCVal = _case.asPrismContainerValue();
+            caseCVal.setId((long) (i + 1));
             caseDelta.addValueToAdd(caseCVal);
+
+            // TODO this is a temporary hack - we need to find correct reviewers for the case (at this or other place)
+            _case.getReviewerRef().clear();
+            ObjectReferenceType adminRef = ObjectTypeUtil.createObjectRef(
+                    SystemObjectsType.USER_ADMINISTRATOR.value(),
+                    ObjectTypes.USER);
+            _case.getReviewerRef().add(adminRef);
 
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Adding certification case:\n{}", caseCVal.debugDump());

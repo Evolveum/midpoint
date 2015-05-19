@@ -211,20 +211,17 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 
 	@Override
 	public boolean match(Containerable object, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-		//Item filterItem = getFilterItem();
-		//MatchingRule matching = getMatchingRuleFromRegistry(matchingRuleRegistry, filterItem);
-		
+
 		Item item = getObjectItem(object);
-		
-		if (item == null){
+
+		boolean filterItemIsEmpty = getValues() == null || getValues().isEmpty();
+		boolean objectItemIsEmpty = item == null || item.isEmpty();
+
+		if (filterItemIsEmpty && !objectItemIsEmpty) {
 			return false;
 		}
-		
-		if (!item.isEmpty() && (getValues() == null || getValues().isEmpty())){
-			return false;
-		}
-		
-		if (item.isEmpty() && (getValues() != null && !getValues().isEmpty())){
+
+		if (!filterItemIsEmpty && objectItemIsEmpty) {
 			return false;
 		}
 		
