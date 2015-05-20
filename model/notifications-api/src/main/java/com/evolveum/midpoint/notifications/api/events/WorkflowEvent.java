@@ -26,7 +26,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ItemApprovalProcessState;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ItemApprovalRequestType;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.PrimaryChangeProcessorState;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessSpecificState;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessorSpecificState;
 import org.apache.commons.lang.Validate;
+
+import java.io.Serializable;
 
 /**
  * @author mederly
@@ -118,6 +126,57 @@ abstract public class WorkflowEvent extends BaseEvent {
     @Override
     public boolean isRelatedToItem(ItemPath itemPath) {
         return false;
+    }
+
+    public ProcessorSpecificState getProcessorSpecificState() {
+        if (processInstanceState == null) {
+            return null;
+        }
+        return ((ProcessInstanceState) processInstanceState.asObjectable()).getProcessorSpecificState();
+    }
+
+    public ProcessSpecificState getProcessSpecificState() {
+        if (processInstanceState == null) {
+            return null;
+        }
+        return ((ProcessInstanceState) processInstanceState.asObjectable()).getProcessSpecificState();
+    }
+
+    public PrimaryChangeProcessorState getPrimaryChangeProcessorState() {
+        ProcessorSpecificState state = getProcessorSpecificState();
+        if (state instanceof PrimaryChangeProcessorState) {
+            return (PrimaryChangeProcessorState) state;
+        } else {
+            return null;
+        }
+    }
+
+    // the following three methods are specific to ItemApproval process
+    public ItemApprovalProcessState getItemApprovalProcessState() {
+        ProcessSpecificState state = getProcessSpecificState();
+        if (state instanceof ItemApprovalProcessState) {
+            return (ItemApprovalProcessState) state;
+        } else {
+            return null;
+        }
+    }
+
+    public ItemApprovalRequestType getItemApprovalRequest() {
+        ItemApprovalProcessState state = getItemApprovalProcessState();
+        if (state != null) {
+            return state.getApprovalRequest();
+        } else {
+            return null;
+        }
+    }
+
+    public Object getItemToApprove() {
+        ItemApprovalRequestType request = getItemApprovalRequest();
+        if (request != null) {
+            return request.getItemToApprove();
+        } else {
+            return null;
+        }
     }
 
     @Override
