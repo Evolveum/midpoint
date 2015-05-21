@@ -64,6 +64,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationD
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -465,8 +466,6 @@ public class CertificationManagerImpl implements CertificationManager {
 
         Validate.notNull(campaignOid, "campaignOid");
         Validate.notNull(decision, "decision");
-        Validate.notNull(decision.getReviewerRef(), "decision.reviewerRef");
-        Validate.notNull(decision.getReviewerRef().getOid(), "decision.reviewerRef.oid");
 
         OperationResult result = parentResult.createSubresult(OPERATION_RECORD_DECISION);
         try {
@@ -491,6 +490,14 @@ public class CertificationManagerImpl implements CertificationManager {
                 }
             }
             AccessCertificationDecisionType decisionWithCorrectId = decision.clone();
+
+            if (decisionWithCorrectId.getTimestamp() == null) {
+                decisionWithCorrectId.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
+            }
+            if (decisionWithCorrectId.getReviewerRef() == null) {
+                UserType currentUser = securityEnforcer.getPrincipal().getUser();
+                decisionWithCorrectId.setReviewerRef(ObjectTypeUtil.createObjectRef(currentUser));
+            }
             if (decisionWithCorrectId.getStageNumber() == 0) {
                 decisionWithCorrectId.setStageNumber(currentStage);
             }
