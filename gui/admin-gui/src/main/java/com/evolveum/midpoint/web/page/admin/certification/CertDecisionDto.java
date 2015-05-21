@@ -22,6 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import org.apache.commons.lang3.Validate;
 import org.apache.poi.ss.formula.functions.T;
 
 import java.io.Serializable;
@@ -43,6 +44,8 @@ public class CertDecisionDto extends Selectable {
     private AccessCertificationDecisionType decision;
 
     public CertDecisionDto(AccessCertificationCaseType _case) {
+        Validate.notNull(_case);
+
         this.certCase = _case;
         this.subjectName = getName(_case.getSubjectRef());
         this.targetName = getName(_case.getTargetRef());
@@ -103,5 +106,12 @@ public class CertDecisionDto extends Selectable {
         }
     }
 
+    public ObjectReferenceType getCampaignRef() {
+        return certCase.getCampaignRef();
+    }
+
+    public Long getCaseId() {
+        return certCase.asPrismContainerValue().getId();
+    }
 
 }
