@@ -30,7 +30,7 @@ import java.io.Serializable;
 /**
  * @author mederly
  */
-public class CertDecisionDto extends Selectable {
+public class CertDecisionDto extends Selectable implements Serializable{
 
     public static final String F_SUBJECT_NAME = "subjectName";
     public static final String F_TARGET_NAME = "targetName";
@@ -42,7 +42,9 @@ public class CertDecisionDto extends Selectable {
     private String subjectName;
     private String targetName;
     private AccessCertificationDecisionType decision;
-
+public CertDecisionDto() {
+	// TODO Auto-generated constructor stub
+}
     public CertDecisionDto(AccessCertificationCaseType _case) {
         Validate.notNull(_case);
 
@@ -113,5 +115,9 @@ public class CertDecisionDto extends Selectable {
     public Long getCaseId() {
         return certCase.asPrismContainerValue().getId();
     }
+
+	
+    
+    
 
 }
