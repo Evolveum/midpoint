@@ -16,6 +16,7 @@ package com.evolveum.midpoint.testing.conntest;
  */
 
 
+import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
@@ -67,8 +68,11 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -209,6 +213,8 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	protected abstract String getLdapBindDn();
 	
 	protected abstract String getLdapBindPassword();
+	
+	protected abstract int getSearchSizeLimit();
 
 	protected String getLdapSuffix() {
 		return "dc=example,dc=com";
@@ -531,7 +537,38 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         assertConnectorSimulatedPagingSearchIncrement(0);
     }
 	
-	private List<PrismObject<ShadowType>> doSearch(final String TEST_NAME, ObjectQuery query, int expectedSize, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+	/**
+	 * No paging. Allow incomplete results. This should violate sizelimit, but some results should
+	 * be returned anyway.
+	 */
+	@Test
+    public void test190SeachAllAccountsSizelimit() throws Exception {
+		final String TEST_NAME = "test190SeachAllAccountsSizelimit";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        query.setAllowPartialResults(true);
+        
+		SearchResultList<PrismObject<ShadowType>> resultList = doSearch(TEST_NAME, query, getSearchSizeLimit(), task, result);
+        
+        assertConnectorOperationIncrement(1);
+        assertConnectorSimulatedPagingSearchIncrement(0);
+        
+        SearchResultMetadata metadata = resultList.getMetadata();
+        assertTrue("Partial results not indicated", metadata.isPartialResults());
+    }
+	
+	// TODO: scoped search
+	
+	private SearchResultList<PrismObject<ShadowType>> doSearch(final String TEST_NAME, ObjectQuery query, int expectedSize, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+		return doSearch(TEST_NAME, query, null, expectedSize, task, result);
+	}
+	
+	private SearchResultList<PrismObject<ShadowType>> doSearch(final String TEST_NAME, ObjectQuery query, GetOperationOptions rootOptions, int expectedSize, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		final List<PrismObject<ShadowType>> foundObjects = new ArrayList<PrismObject<ShadowType>>(expectedSize);
         ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
 			@Override
@@ -548,20 +585,28 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 			}
 		};
 		
+		Collection<SelectorOptions<GetOperationOptions>> options = null;
+		if (rootOptions != null) {
+			options = SelectorOptions.createCollection(rootOptions);
+		}
+		
 		rememberConnectorOperationCount();
 		rememberConnectorSimulatedPagingSearchCount();
 		
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-		modelService.searchObjectsIterative(ShadowType.class, query, handler, null, task, result);
+		SearchResultMetadata searchResultMetadata = modelService.searchObjectsIterative(ShadowType.class, query, handler, options, task, result);
 		
 		// THEN
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 		
 		assertEquals("Unexpected number of accounts", expectedSize, foundObjects.size());
+		assertNotNull("No search metadata", searchResultMetadata);
 		
-		return foundObjects;
+		SearchResultList<PrismObject<ShadowType>> resultList = new SearchResultList<>(foundObjects, searchResultMetadata);
+		
+		return resultList;
 	}
 
 	

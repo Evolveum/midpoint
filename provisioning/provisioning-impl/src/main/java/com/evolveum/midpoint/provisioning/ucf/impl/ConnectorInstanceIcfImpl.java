@@ -2107,6 +2107,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			if (icfSearchResult.getRemainingPagedResults() >= 0) {
 				metadata.setApproxNumberOfAllResults(icfSearchResult.getRemainingPagedResults());
 			}
+			if (!icfSearchResult.isAllResultsReturned()) {
+				metadata.setPartialResults(true);
+			}
 		}
 
 		if (result.isUnknown()) {

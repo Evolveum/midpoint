@@ -75,5 +75,11 @@ public class Test389DsLocalhost extends AbstractLdapConnTest {
 	protected String getAccount0Cn() {
 		return "Warlaz Kunjegjul (00000000)";
 	}
+	
+	@Override
+	protected int getSearchSizeLimit() {
+		return 500;
+	}
+
 
 }

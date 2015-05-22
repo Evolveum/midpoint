@@ -17,6 +17,8 @@ package com.evolveum.midpoint.testing.conntest;
 
 import java.io.File;
 
+import org.testng.annotations.Test;
+
 /**
  * @author semancik
  *
@@ -72,6 +74,16 @@ public class TestOpenLdap extends AbstractLdapConnTest {
 	@Override
 	protected String getAccount0Cn() {
 		return "Riwibmix Juvotut (00000000)";
+	}
+
+	@Override
+	protected int getSearchSizeLimit() {
+		return 500;
+	}
+	
+	@Test
+    public void testEmpty() throws Exception {
+		
 	}
 	
 }

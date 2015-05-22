@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 Evolveum
+ * Copyright (c) 2014-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ public class SearchResultMetadata {
 	
 	private String pagingCookie;
 	private Integer approxNumberOfAllResults;
+	private boolean partialResults = false;
 	
 	/**
 	 * Returns the paging cookie. The paging cookie is used for optimization of paged searches.
@@ -64,6 +65,19 @@ public class SearchResultMetadata {
 	public void setApproxNumberOfAllResults(Integer approxNumberOfAllResults) {
 		this.approxNumberOfAllResults = approxNumberOfAllResults;
 	}
+	
+	/**
+	 * Flag indicating whether the search returned partial results.
+	 * If set to false then all the results requested by the query were returned.
+	 * If set to true then only some results requested by the query were returned.
+	 */
+	public boolean isPartialResults() {
+		return partialResults;
+	}
+
+	public void setPartialResults(boolean partialResults) {
+		this.partialResults = partialResults;
+	}
 
 	@Override
 	public int hashCode() {
@@ -72,6 +86,7 @@ public class SearchResultMetadata {
 		result = prime * result
 				+ ((approxNumberOfAllResults == null) ? 0 : approxNumberOfAllResults.hashCode());
 		result = prime * result + ((pagingCookie == null) ? 0 : pagingCookie.hashCode());
+		result = prime * result + (partialResults ? 1231 : 1237);
 		return result;
 	}
 
@@ -94,13 +109,15 @@ public class SearchResultMetadata {
 				return false;
 		} else if (!pagingCookie.equals(other.pagingCookie))
 			return false;
+		if (partialResults != other.partialResults)
+			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
 		return "SearchResultMetadata(pagingCookie=" + pagingCookie + ", approxNumberOfAllResults="
-				+ approxNumberOfAllResults + ")";
+				+ approxNumberOfAllResults + ", partialResults=" + partialResults + ")";
 	}
 
 }

@@ -885,6 +885,12 @@ public abstract class ShadowCache {
             }
             attributeQuery.setPaging(query.getPaging());
         }
+        if (query != null && query.isAllowPartialResults()) {
+        	if (attributeQuery == null){
+                attributeQuery = new ObjectQuery();
+            }
+        	attributeQuery.setAllowPartialResults(true);
+        }
         return attributeQuery;
     }
 
