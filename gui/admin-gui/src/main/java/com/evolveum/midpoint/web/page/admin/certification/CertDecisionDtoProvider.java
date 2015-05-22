@@ -111,7 +111,9 @@ public class CertDecisionDtoProvider extends BaseSortableDataProvider<CertDecisi
         try {
             Task task = getPage().createSimpleTask(OPERATION_COUNT_OBJECTS);
             CertificationManager certificationManager = getPage().getCertificationManager();
-            List<AccessCertificationCaseType> caseList = certificationManager.searchDecisions(campaignQuery, getQuery(), reviewerOid, null, task, result);
+            ObjectQuery query = getQuery().clone();
+            query.setPaging(null);          // when counting decisions we need to exclude offset+size (and sorting info is irrelevant)
+            List<AccessCertificationCaseType> caseList = certificationManager.searchDecisions(campaignQuery, query, reviewerOid, null, task, result);
             count = caseList.size();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't count objects.", ex);

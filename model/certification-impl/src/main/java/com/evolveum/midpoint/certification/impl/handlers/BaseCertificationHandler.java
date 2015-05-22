@@ -220,6 +220,10 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
                                        AccessCertificationReviewerSpecificationType reviewerSpec, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
         _case.getReviewerRef().clear();
+        if (reviewerSpec == null) {
+            return;     // TODO issue a warning here?
+        }
+
         if (Boolean.TRUE.equals(reviewerSpec.isUseTargetObjectOwner())) {
             cloneAndMerge(_case.getReviewerRef(), getTargetObjectOwners(_case, task, result));
         }
