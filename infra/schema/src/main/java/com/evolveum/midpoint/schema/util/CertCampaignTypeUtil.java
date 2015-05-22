@@ -19,6 +19,7 @@ package com.evolveum.midpoint.schema.util;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationRemediationStyleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
 
@@ -45,7 +46,7 @@ public class CertCampaignTypeUtil {
         throw new IllegalStateException("No stage " + stageNumber + " in " + ObjectTypeUtil.toShortString(definition));
     }
 
-
+    // campaign should have a definition included
     public static int getNumberOfStages(AccessCertificationCampaignType campaign) {
         return getDefinition(campaign).getStage().size();
     }
@@ -67,5 +68,16 @@ public class CertCampaignTypeUtil {
         } else {
             return campaign.getCurrentStageNumber();
         }
+    }
+
+    public static boolean isRemediationAutomatic(AccessCertificationDefinitionType definition) {
+        return definition.getRemediation() != null &&
+                AccessCertificationRemediationStyleType.AUTOMATED.equals(definition.getRemediation().getStyle());
+    }
+
+    public static boolean isCampaignClosed(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition) {
+        int currentStage = campaign.getCurrentStageNumber();
+        int stages = definition.getStage().size();
+        return currentStage > stages;
     }
 }

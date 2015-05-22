@@ -100,7 +100,7 @@ public interface CertificationManager {
      * @param task
      * @param result
      */
-    void closeCampaign(AccessCertificationCampaignType campaign, Task task, OperationResult result);
+    void closeCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException;
 
     /**
      * Returns a set of certification cases that match a given query.

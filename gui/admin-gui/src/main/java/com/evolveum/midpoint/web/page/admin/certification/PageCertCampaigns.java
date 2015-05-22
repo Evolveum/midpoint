@@ -251,7 +251,7 @@ public class PageCertCampaigns extends PageAdminWorkItems {
                 getCertificationManager().nextStage(campaign, task, result);
             } else if (currentStage == numOfStages) {
                 Task task = createSimpleTask(OPERATION_START_CAMPAIGN);
-                getCertificationManager().closeCampaign(campaign, task, result);
+                getCertificationManager().closeCampaign(campaign.getOid(), task, result);
             } else {
                 // should not occur
                 result.recordFatalError("Current stage number "+currentStage+" is illegal (number of stages: "+numOfStages+")");

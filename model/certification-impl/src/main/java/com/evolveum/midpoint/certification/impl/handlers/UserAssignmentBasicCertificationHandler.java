@@ -16,10 +16,22 @@
 
 package com.evolveum.midpoint.certification.impl.handlers;
 
+import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationAssignmentCaseType;
@@ -27,6 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.springframework.stereotype.Component;
@@ -34,6 +47,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -89,5 +103,30 @@ public class UserAssignmentBasicCertificationHandler extends BaseCertificationHa
             }
         }
         return caseList;
+    }
+
+    @Override
+    public void doRevoke(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign, Task task, OperationResult caseResult) throws CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+        if (!(aCase instanceof AccessCertificationAssignmentCaseType)) {
+            throw new IllegalStateException("Expected " + AccessCertificationAssignmentCaseType.class + ", got " + aCase.getClass() + " instead");
+        }
+        AccessCertificationAssignmentCaseType assignmentCase = (AccessCertificationAssignmentCaseType) aCase;
+        String subjectOid = assignmentCase.getSubjectRef().getOid();
+        Long assignmentId = assignmentCase.getAssignment().getId();
+        if (assignmentId == null) {
+            throw new IllegalStateException("No ID for an assignment to remove: " + assignmentCase.getAssignment());
+        }
+        Class clazz = ObjectTypes.getObjectTypeFromTypeQName(assignmentCase.getSubjectRef().getType()).getClassDefinition();
+        PrismContainerValue<AssignmentType> cval = new PrismContainerValue<>(prismContext);
+        cval.setId(assignmentId);
+
+        // quick "solution" - deleting without checking the assignment ID
+        ContainerDelta assignmentDelta = ContainerDelta.createModificationDelete(FocusType.F_ASSIGNMENT, clazz, prismContext, cval);
+        ObjectDelta objectDelta = ObjectDelta.createModifyDelta(subjectOid, Arrays.asList(assignmentDelta), clazz, prismContext);
+        LOGGER.info("Going to execute delta: {}", objectDelta.debugDump());
+        modelService.executeChanges((Collection) Arrays.asList(objectDelta), null, task, caseResult);
+        LOGGER.info("Case {} in {} (assignment {} of {}) was successfully revoked",
+                aCase.asPrismContainerValue().getId(), ObjectTypeUtil.toShortString(campaign),
+                assignmentId, subjectOid);
     }
 }

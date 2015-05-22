@@ -11240,7 +11240,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="resolution" type="tns:AccessCertificationRemediationSpecificationType" minOccurs="0">
+                    <xsd:element name="remediation" type="tns:AccessCertificationRemediationSpecificationType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 How the identified cases have to be resolved?
