@@ -481,10 +481,16 @@ public class CertificationManagerImpl implements CertificationManager {
             if (_case == null) {
                 throw new ObjectNotFoundException("Case " + caseId + " was not found in campaign " + ObjectTypeUtil.toShortString(campaign));
             }
+            ObjectReferenceType currentReviewerRef = decision.getReviewerRef();
+            if (currentReviewerRef == null) {
+                UserType currentUser = securityEnforcer.getPrincipal().getUser();
+                currentReviewerRef = ObjectTypeUtil.createObjectRef(currentUser);
+            }
+
             Long existingDecisionId = null;
             for (AccessCertificationDecisionType d : _case.getDecision()) {
                 if (d.getStageNumber() == currentStage &&
-                        d.getReviewerRef().getOid().equals(decision.getReviewerRef().getOid())) {
+                        d.getReviewerRef().getOid().equals(currentReviewerRef.getOid())) {
                     existingDecisionId = d.asPrismContainerValue().getId();
                     break;
                 }
@@ -495,8 +501,7 @@ public class CertificationManagerImpl implements CertificationManager {
                 decisionWithCorrectId.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
             }
             if (decisionWithCorrectId.getReviewerRef() == null) {
-                UserType currentUser = securityEnforcer.getPrincipal().getUser();
-                decisionWithCorrectId.setReviewerRef(ObjectTypeUtil.createObjectRef(currentUser));
+                decisionWithCorrectId.setReviewerRef(currentReviewerRef);
             }
             if (decisionWithCorrectId.getStageNumber() == 0) {
                 decisionWithCorrectId.setStageNumber(currentStage);
@@ -559,4 +564,8 @@ public class CertificationManagerImpl implements CertificationManager {
         repositoryService.modifyObject(AccessCertificationCampaignType.class, campaign.getOid(), Arrays.asList(stageNumberDelta), result);
     }
 
+    @Override
+    public void closeCampaign(AccessCertificationCampaignType campaign, Task task, OperationResult result) {
+
+    }
 }

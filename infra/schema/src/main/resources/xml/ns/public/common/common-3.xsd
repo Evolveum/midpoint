@@ -11240,6 +11240,13 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="resolution" type="tns:AccessCertificationRemediationSpecificationType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                How the identified cases have to be resolved?
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="stage" type="tns:AccessCertificationStageDefinitionType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -11810,6 +11817,56 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ALL_MUST_APPROVE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="AccessCertificationRemediationSpecificationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="style" type="tns:AccessCertificationRemediationStyleType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="AccessCertificationRemediationStyleType">
+        <xsd:annotation>
+            <xsd:documentation>
+                An enumeration that defines possible styles for certification case remediation.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="automated">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Resolution of revoked cases is fully automated.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="AUTOMATED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="reportOnly">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Non-conformant cases are only to be reported.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REPORT_ONLY"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

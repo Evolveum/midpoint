@@ -126,13 +126,6 @@ public class PageCertDecisions extends PageAdminWorkItems {
 				CertDecisionDto.F_TARGET_TYPE);
 		columns.add(column);
 
-		// TODO replace by buttons
-		column = new DirectlyEditablePropertyColumn(
-				createStringResource("PageCertDecisions.table.decision"),
-				CertDecisionDto.F_RESPONSE);		
-		
-		columns.add(column);
-		
 		column = new DoubleButtonColumn<CertDecisionDto>(new Model(), null) {
 			
 			@Override
@@ -146,21 +139,30 @@ public class PageCertDecisions extends PageAdminWorkItems {
 				return PageCertDecisions.this.createStringResource(
 						"PageCertDecisions.menu.revoke").getString();
 			}
+
 			@Override
-			 public boolean isFirstButtonEnabled(IModel<CertDecisionDto> model){
-					System.out.println("\n\n Response Object: "+model.getObject().getResponse() );
-			        return !model.getObject().getResponse().equalsIgnoreCase( AccessCertificationResponseType.ACCEPT.value());
-				
-			    }
+			public boolean isFirstButtonEnabled(IModel<CertDecisionDto> model) {
+				return !decisionEquals(model, AccessCertificationResponseType.ACCEPT);
+		    }
+
 			@Override
 			public String getFirstColorCssClass() {
-				return BUTTON_COLOR_CLASS.PRIMARY.toString();
+				return getDecisionButtonColor(getRowModel(), AccessCertificationResponseType.ACCEPT);
+			}
+
+			@Override
+			public boolean isSecondButtonEnabled(IModel<CertDecisionDto> model) {
+				return !decisionEquals(model, AccessCertificationResponseType.REVOKE);
+			}
+
+			@Override
+			public String getSecondColorCssClass() {
+				return getDecisionButtonColor(getRowModel(), AccessCertificationResponseType.REVOKE);
 			}
 
 			@Override
 			public void firstClicked(AjaxRequestTarget target,
 					IModel<CertDecisionDto> model) {
-			
 				acceptPerformed(target, model.getObject());
 			}
 
@@ -185,18 +187,25 @@ public class PageCertDecisions extends PageAdminWorkItems {
 				return PageCertDecisions.this.createStringResource(
 						"PageCertDecisions.menu.notDecided").getString();
 			}
-			
+
 			@Override
-			 public boolean isFirstButtonEnabled(IModel<CertDecisionDto> model){
-				if(CertDecisionDto.F_RESPONSE != AccessCertificationResponseType.REDUCE.value())
-			        return true;
-				else
-					return false;
-			    }
+			public boolean isFirstButtonEnabled(IModel<CertDecisionDto> model) {
+				return !decisionEquals(model, AccessCertificationResponseType.REDUCE);
+			}
 
 			@Override
 			public String getFirstColorCssClass() {
-				return BUTTON_COLOR_CLASS.PRIMARY.toString();
+				return getDecisionButtonColor(getRowModel(), AccessCertificationResponseType.REDUCE);
+			}
+
+			@Override
+			public boolean isSecondButtonEnabled(IModel<CertDecisionDto> model) {
+				return !decisionEquals(model, AccessCertificationResponseType.NOT_DECIDED);
+			}
+
+			@Override
+			public String getSecondColorCssClass() {
+				return getDecisionButtonColor(getRowModel(), AccessCertificationResponseType.NOT_DECIDED);
 			}
 
 			@Override
@@ -228,8 +237,23 @@ public class PageCertDecisions extends PageAdminWorkItems {
 			}
 
 			@Override
+			public boolean isFirstButtonEnabled(IModel<CertDecisionDto> model) {
+				return !decisionEquals(model, AccessCertificationResponseType.DELEGATE);
+			}
+
+			@Override
 			public String getFirstColorCssClass() {
-				return BUTTON_COLOR_CLASS.PRIMARY.toString();
+				return getDecisionButtonColor(getRowModel(), AccessCertificationResponseType.DELEGATE);
+			}
+
+			@Override
+			public boolean isSecondButtonEnabled(IModel<CertDecisionDto> model) {
+				return !decisionEquals(model, AccessCertificationResponseType.NOT_DECIDED);
+			}
+
+			@Override
+			public String getSecondColorCssClass() {
+				return getDecisionButtonColor(getRowModel(), AccessCertificationResponseType.NOT_DECIDED);
 			}
 
 			@Override
@@ -255,7 +279,19 @@ public class PageCertDecisions extends PageAdminWorkItems {
 		return columns;
 	}
 
-	
+	private String getDecisionButtonColor(IModel<CertDecisionDto> model, AccessCertificationResponseType response) {
+		if (decisionEquals(model, response)) {
+			return BUTTON_COLOR_CLASS.PRIMARY.toString();
+		} else {
+			return BUTTON_COLOR_CLASS.DEFAULT.toString();
+		}
+	}
+
+	private boolean decisionEquals(IModel<CertDecisionDto> model, AccessCertificationResponseType response) {
+		return model.getObject().getResponse() == response;
+	}
+
+
 	//TODO : I create different method for every action even handled by one method, system will need different methods after all implementation will over
 	private void acceptPerformed(AjaxRequestTarget target,
 			CertDecisionDto decisionDto) {
@@ -264,7 +300,7 @@ public class PageCertDecisions extends PageAdminWorkItems {
 		AccessCertificationDecisionType newDecision = new AccessCertificationDecisionType(prismContext);			
 		newDecision.setResponse(AccessCertificationResponseType.ACCEPT);
 		newDecision.setStageNumber(0);
-		System.out.println("\n\n"+newDecision.toString());		
+		System.out.println("\n\n" + newDecision.toString());
 		OperationResult result = new OperationResult(OPERATION_RECORD_ACCEPT);
 		try {
 			Task task = createSimpleTask(OPERATION_RECORD_ACCEPT);
@@ -279,6 +315,7 @@ public class PageCertDecisions extends PageAdminWorkItems {
 
 		showResult(result);
 
+		target.add(getDecisionsTable());
 		target.add(getFeedbackPanel());
 	}
 	
@@ -303,6 +340,7 @@ public class PageCertDecisions extends PageAdminWorkItems {
 
 		showResult(result);
 
+		target.add(getDecisionsTable());
 		target.add(getFeedbackPanel());
 	}
 	
@@ -328,6 +366,7 @@ public class PageCertDecisions extends PageAdminWorkItems {
 
 		showResult(result);
 
+		target.add(getDecisionsTable());
 		target.add(getFeedbackPanel());
 	}
 
@@ -341,4 +380,9 @@ public class PageCertDecisions extends PageAdminWorkItems {
 		ObjectQuery query = new ObjectQuery();
 		return query;
 	}
+
+	private TablePanel getDecisionsTable() {
+		return (TablePanel) get(createComponentPath(ID_MAIN_FORM, ID_DECISIONS_TABLE));
+	}
+
 }

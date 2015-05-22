@@ -390,34 +390,34 @@ public class ModelController implements ModelService, ModelInteractionService, T
         //rootOptionsNoResolve.setAllowNotFound(true);           // does not work reliably yet
 
         object.accept(new Visitor() {
-            @Override
-            public void visit(Visitable visitable) {
-                if (visitable instanceof PrismReferenceValue) {
-                    PrismReferenceValue refVal = (PrismReferenceValue) visitable;
-                    PrismObject<?> refObject = refVal.getObject();
-                    if (refObject == null) {
-                        try {
-                            // TODO what about security here?!
-                            // TODO use some minimalistic get options (e.g. retrieve name only)
-                            refObject = objectResolver.resolve(refVal, "", rootOptionsNoResolve, task, result);
-                        } catch (ObjectNotFoundException e) {
-                            // actually, this won't occur if AllowNotFound is set to true above (however, for now, it is not)
-                            result.muteError();
-                            result.muteLastSubresultError();
-                        }
-                    }
-                    String name;
-                    if (refObject != null) {
-                        name = PolyString.getOrig(refObject.asObjectable().getName());
-                    } else {
-                        name = "(object not found)";
-                    }
-                    if (StringUtils.isNotEmpty(name)) {
-                        refVal.setUserData(XNodeSerializer.USER_DATA_KEY_COMMENT, " " + name + " ");
-                    }
-                }
-            }
-        });
+			@Override
+			public void visit(Visitable visitable) {
+				if (visitable instanceof PrismReferenceValue) {
+					PrismReferenceValue refVal = (PrismReferenceValue) visitable;
+					PrismObject<?> refObject = refVal.getObject();
+					if (refObject == null) {
+						try {
+							// TODO what about security here?!
+							// TODO use some minimalistic get options (e.g. retrieve name only)
+							refObject = objectResolver.resolve(refVal, "", rootOptionsNoResolve, task, result);
+						} catch (ObjectNotFoundException e) {
+							// actually, this won't occur if AllowNotFound is set to true above (however, for now, it is not)
+							result.muteError();
+							result.muteLastSubresultError();
+						}
+					}
+					String name;
+					if (refObject != null) {
+						name = PolyString.getOrig(refObject.asObjectable().getName());
+					} else {
+						name = "(object not found)";
+					}
+					if (StringUtils.isNotEmpty(name)) {
+						refVal.setUserData(XNodeSerializer.USER_DATA_KEY_COMMENT, " " + name + " ");
+					}
+				}
+			}
+		});
     }
 
 
@@ -442,7 +442,11 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		QName refName = ItemPath.getName(first);
 		PrismReference reference = object.findReferenceByCompositeObjectElementName(refName);
 		if (reference == null) {
-			return;//throw new SchemaException("Cannot resolve: No reference "+refName+" in "+object);
+			// alternatively look up by reference name (e.g. linkRef)
+			reference = object.findReference(refName);
+			if (reference == null) {
+				return;//throw new SchemaException("Cannot resolve: No reference "+refName+" in "+object);
+			}
 		}
 		for (PrismReferenceValue refVal: reference.getValues()) {
 			PrismObject<O> refObject = refVal.getObject();
@@ -1441,7 +1445,8 @@ public class ModelController implements ModelService, ModelInteractionService, T
                         hook.invoke(object, options, task, result);
                     }
                 }
-                resolveNames(object, options, task, result);
+				resolve(object, options, task, result);
+				resolveNames(object, options, task, result);
             }
 
 		} finally {

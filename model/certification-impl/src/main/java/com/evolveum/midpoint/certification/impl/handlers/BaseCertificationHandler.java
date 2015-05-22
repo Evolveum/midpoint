@@ -270,7 +270,12 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
         }
         ObjectType target = objectResolver.resolve(_case.getTargetRef(), ObjectType.class, null, "resolving cert case target", result);
         if (target instanceof AbstractRoleType) {
-            return Arrays.asList(((AbstractRoleType) target).getOwnerRef());
+            ObjectReferenceType ownerRef = ((AbstractRoleType) target).getOwnerRef();
+            if (ownerRef != null) {
+                return Arrays.asList(ownerRef);
+            } else {
+                return null;
+            }
         } else if (target instanceof ResourceType) {
             return ResourceTypeUtil.getOwnerRef((ResourceType) target);
         } else {
@@ -332,7 +337,7 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
                             new NameItemPathSegment(AccessCertificationCampaignType.F_CASE),
                             new IdItemPathSegment(_case.asPrismContainerValue().getId()),
                             new NameItemPathSegment(AccessCertificationCaseType.F_REVIEWER_REF)),
-                    certificationManager.getCampaignDefinition(), reviewersRef.getValues());
+                    certificationManager.getCampaignDefinition(), CloneUtil.cloneCollectionMembers(reviewersRef.getValues()));
             reviewerDeltaList.add(reviewerDelta);
         }
 

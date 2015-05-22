@@ -94,6 +94,15 @@ public interface CertificationManager {
     void nextStage(AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
 
     /**
+     * Closes a campaign.
+     *
+     * @param campaign
+     * @param task
+     * @param result
+     */
+    void closeCampaign(AccessCertificationCampaignType campaign, Task task, OperationResult result);
+
+    /**
      * Returns a set of certification cases that match a given query.
      * The query can contain a filter and/or a paging instruction.
      * Filter can point to the following attributes:
@@ -157,5 +166,4 @@ public interface CertificationManager {
      */
     void recordDecision(String campaignOid, long caseId, AccessCertificationDecisionType decision,
                         Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ObjectAlreadyExistsException;
-
 }

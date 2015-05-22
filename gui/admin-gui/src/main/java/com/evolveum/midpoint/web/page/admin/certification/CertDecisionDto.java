@@ -94,18 +94,8 @@ public CertDecisionDto() {
         decision.setComment(value);
     }
 
-    // TODO reimplement the following 2 methods to use buttons
-
-    public String getResponse() {
-        return String.valueOf(decision.getResponse());
-    }
-
-    public void setResponse(String value) {
-        try {
-            decision.setResponse(AccessCertificationResponseType.fromValue(value));
-        } catch (IllegalArgumentException e) {
-            // TODO
-        }
+    public AccessCertificationResponseType getResponse() {
+        return decision.getResponse();
     }
 
     public ObjectReferenceType getCampaignRef() {
