@@ -74,6 +74,7 @@ import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -1395,8 +1396,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		rememberConnectorSimulatedPagingSearchCount();
 
 		// WHEN
-		List<PrismObject<ShadowType>> searchResults = 
-			provisioningService.searchObjects(ShadowType.class, query, null, result);
+		SearchResultList<PrismObject<ShadowType>> searchResults = provisioningService.searchObjects(ShadowType.class, query, null, result);
 		
 		// THEN
 		result.computeStatus();
@@ -1522,8 +1522,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		rememberConnectorSimulatedPagingSearchCount();
 
 		// WHEN
-		List<PrismObject<ShadowType>> searchResults = 
-			provisioningService.searchObjects(ShadowType.class, query, null, result);
+		SearchResultList<PrismObject<ShadowType>> searchResults = provisioningService.searchObjects(ShadowType.class, query, null, result);
 		
 		// THEN
 		result.computeStatus();
@@ -1535,7 +1534,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertConnectorOperationIncrement(1);
 		assertConnectorSimulatedPagingSearchIncrement(0);
 	}
-	
+		
 	private void assertSearchResults(List<PrismObject<ShadowType>> searchResults, String... expectedUids) {
 		assertEquals("Unexpected number of search results", expectedUids.length, searchResults.size());
 		int i = 0;

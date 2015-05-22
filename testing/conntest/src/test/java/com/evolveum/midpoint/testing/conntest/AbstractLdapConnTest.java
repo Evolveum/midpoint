@@ -16,6 +16,7 @@ package com.evolveum.midpoint.testing.conntest;
  */
 
 
+import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
@@ -333,6 +334,11 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         
         assertConnectorOperationIncrement(1);
         assertConnectorSimulatedPagingSearchIncrement(0);
+        
+        SearchResultMetadata metadata = shadows.getMetadata();
+        if (metadata != null) {
+        	assertFalse(metadata.isPartialResults());
+        }
 	}
 	
 
@@ -350,10 +356,15 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         
         ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(getResourceOid(), getAccountObjectClass(), prismContext);
         
-        doSearch(TEST_NAME, query, NUMBER_OF_GENERATED_ACCOUNTS + (isIdmAdminInteOrgPerson()?1:0), task, result);
+        SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, NUMBER_OF_GENERATED_ACCOUNTS + (isIdmAdminInteOrgPerson()?1:0), task, result);
         
         assertConnectorOperationIncrement(1);
         assertConnectorSimulatedPagingSearchIncrement(0);
+        
+        SearchResultMetadata metadata = searchResultList.getMetadata();
+        if (metadata != null) {
+        	assertFalse(metadata.isPartialResults());
+        }
     }
 	
 	/**
@@ -374,10 +385,15 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         paging.setMaxSize(50);
 		query.setPaging(paging);
         
-		doSearch(TEST_NAME, query, 50, task, result);
+		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 50, task, result);
                 
         assertConnectorOperationIncrement(1);
         assertConnectorSimulatedPagingSearchIncrement(0);
+        
+        SearchResultMetadata metadata = searchResultList.getMetadata();
+        if (metadata != null) {
+        	assertFalse(metadata.isPartialResults());
+        }
         
     }
 	
@@ -399,10 +415,15 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         paging.setMaxSize(222);
 		query.setPaging(paging);
 		
-		doSearch(TEST_NAME, query, 222, task, result);
+		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 222, task, result);
                 
         assertConnectorOperationIncrement(1);
         assertConnectorSimulatedPagingSearchIncrement(0);
+        
+        SearchResultMetadata metadata = searchResultList.getMetadata();
+        if (metadata != null) {
+        	assertFalse(metadata.isPartialResults());
+        }
     }
 	
 	
@@ -422,10 +443,15 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         paging.setMaxSize(50);
 		query.setPaging(paging);
         
-		doSearch(TEST_NAME, query, 50, task, result);
+		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 50, task, result);
         
         assertConnectorOperationIncrement(1);
         assertConnectorSimulatedPagingSearchIncrement(0);
+        
+        SearchResultMetadata metadata = searchResultList.getMetadata();
+        if (metadata != null) {
+        	assertFalse(metadata.isPartialResults());
+        }
         
     }
 	
@@ -448,10 +474,15 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         ObjectPaging paging = ObjectPaging.createPaging(20, 50);
 		query.setPaging(paging);
         
-		doSearch(TEST_NAME, query, 50, task, result);
+		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 50, task, result);
         
         assertConnectorOperationIncrement(1);
         assertConnectorSimulatedPagingSearchIncrement(0);
+        
+        SearchResultMetadata metadata = searchResultList.getMetadata();
+        if (metadata != null) {
+        	assertFalse(metadata.isPartialResults());
+        }
     }
 
 	/**
@@ -473,10 +504,16 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         ObjectPaging paging = ObjectPaging.createPaging(20, 222);
 		query.setPaging(paging);
         
-		doSearch(TEST_NAME, query, 222, task, result);
+		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 222, task, result);
         
         assertConnectorOperationIncrement(1);
         assertConnectorSimulatedPagingSearchIncrement(0);
+        
+        SearchResultMetadata metadata = searchResultList.getMetadata();
+        if (metadata != null) {
+        	assertFalse(metadata.isPartialResults());
+        }
+
     }
 	
 	/**
@@ -499,13 +536,19 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         paging.setOrderBy(getAttributeQName(resource, "uid"));
 		query.setPaging(paging);
         
-		List<PrismObject<ShadowType>> shadows = doSearch(TEST_NAME, query, 50, task, result);
+		SearchResultList<PrismObject<ShadowType>> shadows = doSearch(TEST_NAME, query, 50, task, result);
         
         assertAccountShadow(shadows.get(0), toDn(isIdmAdminInteOrgPerson()?ACCOUNT_18_UID:ACCOUNT_19_UID));
         assertAccountShadow(shadows.get(49), toDn(isIdmAdminInteOrgPerson()?ACCOUNT_67_UID:ACCOUNT_68_UID));
         
         assertConnectorOperationIncrement(1);
         assertConnectorSimulatedPagingSearchIncrement(0);
+        
+        SearchResultMetadata metadata = shadows.getMetadata();
+        if (metadata != null) {
+        	assertFalse(metadata.isPartialResults());
+        }
+
     }
 
 	/**
@@ -528,13 +571,18 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         paging.setOrderBy(getAttributeQName(resource, "uid"));
 		query.setPaging(paging);
         
-		List<PrismObject<ShadowType>> shadows = doSearch(TEST_NAME, query, 222, task, result);
+		SearchResultList<PrismObject<ShadowType>> shadows = doSearch(TEST_NAME, query, 222, task, result);
         
         assertAccountShadow(shadows.get(0), toDn(isIdmAdminInteOrgPerson()?ACCOUNT_18_UID:ACCOUNT_19_UID));
         assertAccountShadow(shadows.get(221), toDn(isIdmAdminInteOrgPerson()?ACCOUNT_239_UID:ACCOUNT_240_UID));
                 
         assertConnectorOperationIncrement(1);
         assertConnectorSimulatedPagingSearchIncrement(0);
+        
+        SearchResultMetadata metadata = shadows.getMetadata();
+        if (metadata != null) {
+        	assertFalse(metadata.isPartialResults());
+        }
     }
 	
 	/**
@@ -559,6 +607,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         assertConnectorSimulatedPagingSearchIncrement(0);
         
         SearchResultMetadata metadata = resultList.getMetadata();
+        assertNotNull("No search metadata", metadata);
         assertTrue("Partial results not indicated", metadata.isPartialResults());
     }
 	
@@ -602,7 +651,6 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 		TestUtil.assertSuccess(result);
 		
 		assertEquals("Unexpected number of accounts", expectedSize, foundObjects.size());
-		assertNotNull("No search metadata", searchResultMetadata);
 		
 		SearchResultList<PrismObject<ShadowType>> resultList = new SearchResultList<>(foundObjects, searchResultMetadata);
 		
