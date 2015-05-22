@@ -27,12 +27,4 @@ import org.springframework.stereotype.Component;
 @Component
 public class AccCertGeneralHelper {
 
-    public AccessCertificationStageDefinitionType findStageDefinition(AccessCertificationDefinitionType definition, int stageNumber) {
-        for (AccessCertificationStageDefinitionType stage : definition.getStage()) {
-            if (stage.getNumber() == stageNumber) {
-                return stage;
-            }
-        }
-        throw new IllegalStateException("No stage " + stageNumber + " in " + ObjectTypeUtil.toShortString(definition));
-    }
 }

@@ -16,12 +16,12 @@
 
 package com.evolveum.midpoint.web.page.admin.certification;
 
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -35,8 +35,9 @@ import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -48,7 +49,9 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -121,8 +124,22 @@ public class PageCertCampaigns extends PageAdminWorkItems {
                     public Object getObject() {
                         AccessCertificationCampaignType campaign = rowModel.getObject().getValue();
                         int currentStage = campaign.getCurrentStageNumber();
-                        int numOfStages = getNumberOfStages(campaign);
+                        int numOfStages = CertCampaignTypeUtil.getNumberOfStages(campaign);
                         return currentStage + "/" + numOfStages;
+                    }
+                }));
+            }
+        };
+        columns.add(column);
+
+        column = new AbstractColumn<SelectableBean<AccessCertificationCampaignType>, String>(createStringResource("PageCertCampaigns.table.deadline")) {
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<AccessCertificationCampaignType>>> item, String componentId,
+                                     final IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+                item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
+                    @Override
+                    public Object getObject() {
+                        return deadline(rowModel);
                     }
                 }));
             }
@@ -135,7 +152,7 @@ public class PageCertCampaigns extends PageAdminWorkItems {
             public boolean isFirstButtonEnabled(IModel<SelectableBean<AccessCertificationCampaignType>> model) {
                 final AccessCertificationCampaignType campaign = model.getObject().getValue();
                 int currentStage = campaign.getCurrentStageNumber();
-                int numOfStages = getNumberOfStages(campaign);
+                int numOfStages = CertCampaignTypeUtil.getNumberOfStages(campaign);
                 return currentStage <= numOfStages;
             }
 
@@ -143,7 +160,7 @@ public class PageCertCampaigns extends PageAdminWorkItems {
             public String getFirstCap() {
                 AccessCertificationCampaignType campaign = getRowModel().getObject().getValue();
                 int currentStage = campaign.getCurrentStageNumber();
-                int numOfStages = getNumberOfStages(campaign);
+                int numOfStages = CertCampaignTypeUtil.getNumberOfStages(campaign);
                 if (currentStage == 0) {
                     return PageCertCampaigns.this.createStringResource("PageCertCampaigns.button.startFirst").getString();
                 } else if (currentStage < numOfStages) {
@@ -179,19 +196,47 @@ public class PageCertCampaigns extends PageAdminWorkItems {
         return columns;
     }
 
-    private int getNumberOfStages(AccessCertificationCampaignType campaign) {
-        return getDefinition(campaign).getStage().size();
-    }
+    private String deadline(IModel<SelectableBean<AccessCertificationCampaignType>> campaignModel) {
+        AccessCertificationCampaignType campaign = campaignModel.getObject().getValue();
+        AccessCertificationStageType currentStage = CertCampaignTypeUtil.getCurrentStage(campaign);
+        XMLGregorianCalendar end;
+        Boolean stageLevelInfo;
+        if (campaign.getCurrentStageNumber() == null || campaign.getCurrentStageNumber() == 0) {
+            end = campaign.getEnd();
+            stageLevelInfo = false;
+        } else if (currentStage != null) {
+            end = currentStage.getEnd();
+            stageLevelInfo = true;
+        } else {
+            end = null;
+            stageLevelInfo = null;
+        }
 
-    private AccessCertificationDefinitionType getDefinition(AccessCertificationCampaignType campaign) {
-        if (campaign.getDefinitionRef() == null) {
-            throw new IllegalStateException("No definition reference in " + ObjectTypeUtil.toShortString(campaign));
+        if (end == null) {
+            return "";
+        } else {
+            long delta = XmlTypeConverter.toMillis(end) - System.currentTimeMillis();
+
+            // round to hours; we always round down
+            long precision = 3600000L;      // 1 hour
+            if (Math.abs(delta) > precision) {
+                delta = (delta / precision) * precision;
+            }
+
+            //todo i18n
+            if (delta > 0) {
+                String key = stageLevelInfo ? "PageCertCampaigns.inForStage" : "PageCertCampaigns.inForCampaign";
+                return new StringResourceModel(key, this, null, null,
+                        DurationFormatUtils.formatDurationWords(delta, true, true)).getString();
+            } else if (delta < 0) {
+                String key = stageLevelInfo ? "PageCertCampaigns.agoForStage" : "PageCertCampaigns.agoForCampaign";
+                return new StringResourceModel(key, this, null, null,
+                        DurationFormatUtils.formatDurationWords(-delta, true, true)).getString();
+            } else {
+                String key = stageLevelInfo ? "PageCertCampaigns.nowForStage" : "PageCertCampaigns.nowForCampaign";
+                return getString(key);
+            }
         }
-        PrismReferenceValue referenceValue = campaign.getDefinitionRef().asReferenceValue();
-        if (referenceValue.getObject() == null) {
-            throw new IllegalStateException("No definition object in " + ObjectTypeUtil.toShortString(campaign));
-        }
-        return (AccessCertificationDefinitionType) (referenceValue.getObject().asObjectable());
     }
 
     private void advanceOrCloseCampaignPerformed(AjaxRequestTarget target, AccessCertificationCampaignType campaign) {
@@ -200,7 +245,7 @@ public class PageCertCampaigns extends PageAdminWorkItems {
         OperationResult result = new OperationResult(OPERATION_START_CAMPAIGN);
         try {
             int currentStage = campaign.getCurrentStageNumber();
-            int numOfStages = getNumberOfStages(campaign);
+            int numOfStages = CertCampaignTypeUtil.getNumberOfStages(campaign);
             if (currentStage < numOfStages) {
                 Task task = createSimpleTask(OPERATION_START_CAMPAIGN);
                 getCertificationManager().nextStage(campaign, task, result);
@@ -222,7 +267,7 @@ public class PageCertCampaigns extends PageAdminWorkItems {
         target.add(getFeedbackPanel());
     }
 
-    private TablePanel getCampaignsTable(){
+    private TablePanel getCampaignsTable() {
         return (TablePanel) get(createComponentPath(ID_MAIN_FORM, ID_CAMPAIGNS_TABLE));
     }
 

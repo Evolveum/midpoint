@@ -11591,6 +11591,24 @@
     </xsd:annotation>
 </xsd:element>
 -->
+            <xsd:element name="reviewRequestedTimestamp" type="xsd:dateTime">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When was this certification case requested to be reviewed?
+                        (Can be found in certification.stage.start but we need to
+                        sort according to this value.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="deadline" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When should this certification case be reviewed?
+                        (Can be found in certification.stage.end but we need to
+                        sort according to this value.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="decision" type="tns:AccessCertificationDecisionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>

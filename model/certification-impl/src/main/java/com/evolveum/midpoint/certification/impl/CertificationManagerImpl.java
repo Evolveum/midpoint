@@ -45,6 +45,7 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
@@ -220,7 +221,7 @@ public class CertificationManagerImpl implements CertificationManager {
 
             AccessCertificationDefinitionType certDefinition = resolveCertificationDef(campaign, task, result);
 
-            int currentStageNumber = getCurrentStageNumber(campaign);
+            int currentStageNumber = CertCampaignTypeUtil.getCurrentStageNumber(campaign);
             int stages = certDefinition.getStage().size();
             LOGGER.trace("nextStage: currentStageNumber={}, stages={}", currentStageNumber, stages);
             if (currentStageNumber > stages) {
@@ -314,7 +315,7 @@ public class CertificationManagerImpl implements CertificationManager {
 
                 // remove irrelevant decisions from each case
                 // and add campaignRef
-                int stage = getCurrentStageNumber(campaign);
+                int stage = CertCampaignTypeUtil.getCurrentStageNumber(campaign);
                 for (AccessCertificationCaseType _case : campaignCases) {
                     Iterator<AccessCertificationDecisionType> decisionIterator = _case.getDecision().iterator();
                     while (decisionIterator.hasNext()) {
@@ -470,7 +471,7 @@ public class CertificationManagerImpl implements CertificationManager {
         OperationResult result = parentResult.createSubresult(OPERATION_RECORD_DECISION);
         try {
             AccessCertificationCampaignType campaign = getCampaign(campaignOid, null, task, result);
-            int currentStage = getCurrentStageNumber(campaign);
+            int currentStage = CertCampaignTypeUtil.getCurrentStageNumber(campaign);
             if (decision.getStageNumber() != 0 && decision.getStageNumber() != currentStage) {
                 throw new IllegalStateException("Cannot add decision with stage number (" + decision.getStageNumber() + ") other than current (" + currentStage + ")");
             }
@@ -539,14 +540,6 @@ public class CertificationManagerImpl implements CertificationManager {
         return campaignObjectDefinition;
     }
 
-    public int getCurrentStageNumber(AccessCertificationCampaignType campaign) {
-        if (campaign.getCurrentStageNumber() == null) {
-            return 0;
-        } else {
-            return campaign.getCurrentStageNumber();
-        }
-    }
-
     private AccessCertificationCaseType findCaseById(AccessCertificationCampaignType campaign, long caseId) {
         for (AccessCertificationCaseType _case : campaign.getCase()) {
             if (_case.asPrismContainerValue().getId() != null && _case.asPrismContainerValue().getId() == caseId) {
@@ -558,7 +551,7 @@ public class CertificationManagerImpl implements CertificationManager {
 
     private void incrementStageNumber(AccessCertificationCampaignType campaign, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         PropertyDelta<Integer> stageNumberDelta = PropertyDelta.createReplaceDelta(getCampaignDefinition(),
-                AccessCertificationCampaignType.F_CURRENT_STAGE_NUMBER, getCurrentStageNumber(campaign) + 1);
+                AccessCertificationCampaignType.F_CURRENT_STAGE_NUMBER, CertCampaignTypeUtil.getCurrentStageNumber(campaign) + 1);
 
         // todo switch to model service
         repositoryService.modifyObject(AccessCertificationCampaignType.class, campaign.getOid(), Arrays.asList(stageNumberDelta), result);
