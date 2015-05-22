@@ -97,7 +97,7 @@ public class TestOpenDj extends AbstractLdapConnTest {
 
 	@Override
 	protected int getSearchSizeLimit() {
-		return 500;
+		return 1000;
 	}
 
 	

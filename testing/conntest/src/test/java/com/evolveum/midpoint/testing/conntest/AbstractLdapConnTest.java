@@ -48,8 +48,10 @@ import org.testng.annotations.Test;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.cursor.EntryCursor;
+import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.exception.LdapException;
+import org.apache.directory.api.ldap.model.exception.LdapInvalidAttributeValueException;
 import org.apache.directory.api.ldap.model.message.BindRequest;
 import org.apache.directory.api.ldap.model.message.BindRequestImpl;
 import org.apache.directory.api.ldap.model.message.BindResponse;
@@ -60,6 +62,8 @@ import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
@@ -80,7 +84,9 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
@@ -162,7 +168,9 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	
 	private static String stopCommand;
 	
+	protected ObjectClassComplexTypeDefinition accountObjectClassDefinition;
 	protected String account0Oid;
+	protected String accountBarbossaOid;
 
     @Autowired
     private ReconciliationTaskHandler reconciliationTaskHandler;
@@ -299,8 +307,21 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 		TestUtil.assertSuccess("Test connection failed",operationResult);
 	}
 	
-	// TODO: search 
-
+	@Test
+    public void test020Schema() throws Exception {
+		final String TEST_NAME = "test020Schema";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
+        accountObjectClassDefinition = refinedSchema.findObjectClassDefinition(getAccountObjectClass());
+        assertNotNull("No definition for object class "+getAccountObjectClass(), accountObjectClassDefinition);
+        
+	}
+	
 	@Test
     public void test100SeachAccount0ByLdapUid() throws Exception {
 		final String TEST_NAME = "test100SeachAccount0ByLdapUid";
@@ -310,10 +331,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
-        ObjectClassComplexTypeDefinition objectClassDefinition = refinedSchema.findObjectClassDefinition(getAccountObjectClass());
-        assertNotNull("No definition for object class "+getAccountObjectClass(), objectClassDefinition);
-        ResourceAttributeDefinition ldapUidAttrDef = objectClassDefinition.findAttributeDefinition("uid");
+        ResourceAttributeDefinition ldapUidAttrDef = accountObjectClassDefinition.findAttributeDefinition("uid");
         
         ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(getResourceOid(), getAccountObjectClass(), prismContext);
         ObjectFilter additionalFilter = EqualFilter.createEqual(
@@ -679,17 +697,77 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         TestUtil.assertSuccess(result);
 
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        assertAttribute(entry, "title", null);
         
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         String shadowOid = getSingleLinkOid(user);
         PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
+        accountBarbossaOid = shadow.getOid();
         Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(shadow);
-        String icfsUid = (String) identifiers.iterator().next().getRealValue();
+        String accountBarbossaIcfUid = (String) identifiers.iterator().next().getRealValue();
+        assertNotNull("No identifier in "+shadow, accountBarbossaIcfUid);
         
-        assertEquals("Wrong ICFS UID", entry.get(ATTRIBUTE_ENTRY_UUID).getString(), icfsUid);
+        assertEquals("Wrong ICFS UID", entry.get(ATTRIBUTE_ENTRY_UUID).getString(), accountBarbossaIcfUid);
 	}
 	
-	// TODO: modify the account
+	@Test
+    public void test210ModifyAccountBarbossaTitle() throws Exception {
+		final String TEST_NAME = "test210ModifyAccountBarbossaTitle";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectDelta<ShadowType> delta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
+        QName attrQName = new QName(MidPointConstants.NS_RI, "title");
+        ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
+        PropertyDelta<String> attrDelta = PropertyDelta.createModificationReplaceProperty(
+        		new ItemPath(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
+        delta.addModification(attrDelta);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        assertAttribute(entry, "title", "Captain");
+        
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        String shadowOid = getSingleLinkOid(user);
+        assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
+	}
+	
+	@Test
+    public void test290ModifyUserBarbossaRename() throws Exception {
+		final String TEST_NAME = "test290ModifyUserBarbossaRename";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_BARBOSSA_OID, UserType.F_NAME, task, result, PrismTestUtil.createPolyString("cptbarbossa"));
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        Entry entry = assertLdapAccount("cptbarbossa", USER_BARBOSSA_FULL_NAME);
+        assertAttribute(entry, "title", "Captain");
+        
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        String shadowOid = getSingleLinkOid(user);
+        assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
+	}
 	
 	@Test
     public void test299UnAssignAccountBarbossa() throws Exception {
@@ -710,6 +788,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         TestUtil.assertSuccess(result);
 
         assertNoLdapAccount(USER_BARBOSSA_USERNAME);
+        assertNoLdapAccount("cptbarbossa");
         
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         assertNoLinkedAccount(user);
@@ -727,7 +806,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 //		sb.append("sn: ").append(name).append("\n");
 //	}
 	
-	protected Entry assertLdapAccount(String uid, String cn) throws LdapException, IOException, CursorException {
+	protected Entry getLdapAccountByUid(String uid) throws LdapException, IOException, CursorException {
 		LdapNetworkConnection connection = ldapConnect();
 		List<Entry> entries = ldapSearch(connection, "(uid="+uid+")");
 		ldapDisconnect(connection);
@@ -735,9 +814,27 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 		assertEquals("Unexpected number of entries for uid="+uid+": "+entries, 1, entries.size());
 		Entry entry = entries.get(0);
 
-		String dn = entry.getDn().toString();
-		assertEquals("Wrong cn in "+dn, cn, entry.get("cn").getString());
 		return entry;
+	}
+	
+	protected Entry assertLdapAccount(String uid, String cn) throws LdapException, IOException, CursorException {
+		Entry entry = getLdapAccountByUid(uid);
+		assertAttribute(entry, "cn", cn);
+		return entry;
+	}
+	
+	protected void assertAttribute(Entry entry, String attrName, String expectedValue) throws LdapInvalidAttributeValueException {
+		String dn = entry.getDn().toString();
+		Attribute ldapAttribute = entry.get(attrName);
+		if (ldapAttribute == null) {
+			if (expectedValue == null) {
+				return;
+			} else {
+				AssertJUnit.fail("No attribute "+attrName+" in "+dn+", expected: "+expectedValue);
+			}
+		} else {
+			assertEquals("Wrong attribute "+attrName+" in "+dn, expectedValue, ldapAttribute.getString());
+		}
 	}
 	
 	protected void assertNoLdapAccount(String uid) throws LdapException, IOException, CursorException {

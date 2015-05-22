@@ -669,6 +669,10 @@ public class PrismBeanConverter {
 
         Class<? extends Object> beanClass = bean.getClass();
 
+        if (beanClass == String.class) {
+        	return createPrimitiveXNode((String)bean, DOMUtil.XSD_STRING, false);
+        }
+        
         //check for enums
         if (beanClass.isEnum()){
 			String enumValue = inspector.findEnumFieldValue(beanClass, bean.toString());
