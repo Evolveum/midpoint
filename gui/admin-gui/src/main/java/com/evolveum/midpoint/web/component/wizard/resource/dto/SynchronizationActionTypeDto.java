@@ -54,10 +54,6 @@ public class SynchronizationActionTypeDto implements Serializable{
         public String getAction() {
             return action;
         }
-
-        public void setAction(String action) {
-            this.action = action;
-        }
     }
 
     public static final String F_ACTION_OBJECT = "actionObject";

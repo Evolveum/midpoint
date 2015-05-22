@@ -24,12 +24,13 @@ import org.apache.commons.lang.StringUtils;
 
 import javax.xml.namespace.QName;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
 /**
  * @author lazyman
  */
-public class ConnectorHostTypeComparator implements Comparator<PrismObject<ConnectorHostType>> {
+public class ConnectorHostTypeComparator implements Comparator<PrismObject<ConnectorHostType>>, Serializable {
 
     @Override
     public int compare(PrismObject<ConnectorHostType> host1, PrismObject<ConnectorHostType> host2) {

@@ -52,10 +52,6 @@ public class ExpressionUtil {
         public String getLanguage() {
             return language;
         }
-
-        public void setLanguage(String language) {
-            this.language = language;
-        }
     }
 
     public static final String SCRIPT_START_NS = "<c:script xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\">";
