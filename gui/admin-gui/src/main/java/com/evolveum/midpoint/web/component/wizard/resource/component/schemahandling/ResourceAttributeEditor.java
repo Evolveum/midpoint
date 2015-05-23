@@ -17,7 +17,9 @@ package com.evolveum.midpoint.web.component.wizard.resource.component.schemahand
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -40,6 +42,7 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -57,9 +60,7 @@ import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  *  @author shood
@@ -412,6 +413,17 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
             }
         }
 
+        Collections.sort(references, new Comparator<ItemPathType>() {
+
+            @Override
+            public int compare(ItemPathType o1, ItemPathType o2) {
+                String s1 = prepareReferenceDisplayValue(o1);
+                String s2 = prepareReferenceDisplayValue(o2);
+
+                return String.CASE_INSENSITIVE_ORDER.compare(s1, s2);
+            }
+        });
+
         return references;
     }
 
@@ -436,11 +448,24 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
     }
 
     private String prepareReferenceDisplayValue(ItemPathType object){
-        if(object != null && object.getItemPath() != null){
-            return object.getItemPath().toString();
+        if (object == null || object.getItemPath() == null) {
+            return "";
         }
 
-        return "";
+        ItemPath path = object.getItemPath();
+        if (path.getSegments().size() != 1) {
+            return path.toString();
+        }
+
+        QName name = ItemPathUtil.getOnlySegmentQName(path);
+
+        StringBuilder sb = new StringBuilder();
+        String prefix = SchemaConstants.NS_ICF_SCHEMA.equals(name.getNamespaceURI()) ? "icfs" : "ri";
+        sb.append(prefix);
+        sb.append(": ");
+        sb.append(name.getLocalPart());
+
+        return sb.toString();
     }
 
     private void limitationsEditPerformed(AjaxRequestTarget target){
