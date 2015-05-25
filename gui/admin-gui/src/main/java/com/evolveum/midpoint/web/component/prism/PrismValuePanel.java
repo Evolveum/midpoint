@@ -288,10 +288,6 @@ public class PrismValuePanel extends Panel {
         ObjectWrapper objectWrapper = valueWrapper.getProperty().getContainer().getObject();
         PrismProperty property = valueWrapper.getProperty().getItem();
         boolean required = property.getDefinition().getMinOccurs() > 0;
-        //enforcing required for user will be enabled later (MID-1048)
-        if (UserType.class.isAssignableFrom(objectWrapper.getObject().getCompileTimeClass())) {
-            required = false;
-        }
 
         Panel component = createTypedInputComponent(id);
 
