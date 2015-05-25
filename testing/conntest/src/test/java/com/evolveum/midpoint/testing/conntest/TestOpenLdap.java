@@ -19,26 +19,22 @@ import java.io.File;
 
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.test.util.MidPointTestConstants;
+
 /**
  * @author semancik
  *
  */
 public class TestOpenLdap extends AbstractLdapConnTest {
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.testing.conntest.AbstractLdapConnTest#getResourceOid()
-	 */
 	@Override
 	protected String getResourceOid() {
 		return "2a7c7130-7a34-11e4-bdf6-001e8c717e5b";
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.testing.conntest.AbstractLdapConnTest#getResourceFile()
-	 */
 	@Override
-	protected File getResourceFile() {
-		return new File(COMMON_DIR, "resource-openldap.xml");
+	protected File getBaseDir() {
+		return new File(MidPointTestConstants.TEST_RESOURCES_DIR, "openldap");
 	}
 
 	@Override
@@ -80,10 +76,9 @@ public class TestOpenLdap extends AbstractLdapConnTest {
 	protected int getSearchSizeLimit() {
 		return 500;
 	}
-	
-	@Test
-    public void testEmpty() throws Exception {
-		
+
+	@Override
+	protected String getSyncTaskOid() {
+		return "cd1e0ff2-0099-11e5-9e22-001e8c717e5b";
 	}
-	
 }

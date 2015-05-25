@@ -69,6 +69,7 @@ import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.DerbyController;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -916,5 +917,30 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			}
 		}
 	}
+	
+	protected void assertSyncToken(String syncTaskOid, Object expectedValue) throws ObjectNotFoundException, SchemaException {
+		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".assertSyncToken");
+		Task task = taskManager.getTask(syncTaskOid, result);
+		assertSyncToken(task, expectedValue, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+	}
+	
+	protected void assertSyncToken(String syncTaskOid, Object expectedValue, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		Task task = taskManager.getTask(syncTaskOid, result);
+		assertSyncToken(task, expectedValue, result);
+	}
+		
+	protected void assertSyncToken(Task task, Object expectedValue, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		PrismProperty<Object> syncTokenProperty = task.getExtensionProperty(SchemaConstants.SYNC_TOKEN);
+		if (expectedValue == null && syncTokenProperty == null) {
+			return;
+		}
+		if (!MiscUtil.equals(expectedValue, syncTokenProperty.getRealValue())) {
+			AssertJUnit.fail("Wrong sync token, expected: " + expectedValue + (expectedValue==null?"":(", "+expectedValue.getClass().getName())) +
+					", was: "+ syncTokenProperty.getRealValue() + (syncTokenProperty.getRealValue()==null?"":(", "+syncTokenProperty.getRealValue().getClass().getName())));
+		}
+	}
+
 
 }

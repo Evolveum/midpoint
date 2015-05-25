@@ -143,19 +143,6 @@ public class TestSynchronization extends AbstractIntegrationTest {
 		assertSyncToken(syncTask, 0, result);
 	}
 
-	private void assertSyncToken(String syncTaskOid, Object expectedValue, OperationResult result) throws ObjectNotFoundException, SchemaException {
-		Task task = taskManager.getTask(syncTaskOid, result);
-		assertSyncToken(task, expectedValue, result);
-	}
-		
-	private void assertSyncToken(Task task, Object expectedValue, OperationResult result) throws ObjectNotFoundException, SchemaException {
-		PrismProperty<Object> syncTokenProperty = task.getExtensionProperty(SchemaConstants.SYNC_TOKEN);
-		if (expectedValue == null && syncTokenProperty == null) {
-			return;
-		}
-		assertEquals("Wrong sync token", expectedValue, syncTokenProperty.getRealValue());
-	}
-
 	@Test
 	public void test100SyncAddWill() throws Exception {
 		final String TEST_NAME = "test100SyncAddWill";

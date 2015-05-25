@@ -19,26 +19,27 @@ import java.io.File;
 
 import org.testng.annotations.AfterClass;
 
+import com.evolveum.midpoint.test.util.MidPointTestConstants;
+
 /**
  * @author semancik
  *
  */
 public class Test389DsLocalhost extends AbstractLdapConnTest {
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.testing.conntest.AbstractLdapConnTest#getResourceOid()
-	 */
 	@Override
 	protected String getResourceOid() {
 		return "eaee8a88-ce54-11e4-a311-001e8c717e5b";
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.testing.conntest.AbstractLdapConnTest#getResourceFile()
-	 */
+	@Override
+	protected File getBaseDir() {
+		return new File(MidPointTestConstants.TEST_RESOURCES_DIR, "389ds");
+	}
+	
 	@Override
 	protected File getResourceFile() {
-		return new File(COMMON_DIR, "resource-389ds-localhost.xml");
+		return new File(getBaseDir(), "resource-localhost.xml");
 	}
 
 	@Override
@@ -81,5 +82,8 @@ public class Test389DsLocalhost extends AbstractLdapConnTest {
 		return 500;
 	}
 
-
+	@Override
+	protected String getSyncTaskOid() {
+		return "cd1e0ff2-0099-11e5-9e22-001e8c717e5b";
+	}
 }

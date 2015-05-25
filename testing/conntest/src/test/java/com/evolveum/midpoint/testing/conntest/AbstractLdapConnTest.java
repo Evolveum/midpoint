@@ -49,7 +49,11 @@ import org.apache.commons.lang.mutable.MutableInt;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.cursor.EntryCursor;
 import org.apache.directory.api.ldap.model.entry.Attribute;
+import org.apache.directory.api.ldap.model.entry.DefaultEntry;
+import org.apache.directory.api.ldap.model.entry.DefaultModification;
 import org.apache.directory.api.ldap.model.entry.Entry;
+import org.apache.directory.api.ldap.model.entry.Modification;
+import org.apache.directory.api.ldap.model.entry.ModificationOperation;
 import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.api.ldap.model.exception.LdapInvalidAttributeValueException;
 import org.apache.directory.api.ldap.model.message.BindRequest;
@@ -143,6 +147,8 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	private static final String ACCOUNT_LECHUCK_NAME = "lechuck";
 	private static final String ACCOUNT_CHARLES_NAME = "charles";
 	
+	private static final String LDAP_ACCOUNT_OBJECTCLASS = "inetOrgPerson";
+	
 	private static final String LDAP_GROUP_PIRATES_DN = "cn=Pirates,ou=groups,dc=example,dc=com";
 
 	private static final String ATTRIBUTE_ENTRY_UUID = "entryUuid";
@@ -157,6 +163,11 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	protected static final String ACCOUNT_240_UID = "u00000240";
 
 	private static final int NUMBER_OF_GENERATED_ACCOUNTS = 4000;
+
+	private static final String ACCOUNT_HT_UID = "ht";
+	private static final String ACCOUNT_HT_CN = "Herman Toothrot";
+	private static final String ACCOUNT_HT_GIVENNAME = "Herman";
+	private static final String ACCOUNT_HT_SN = "Toothrot";
 	
 	@Autowired(required = true)
 	protected MatchingRuleRegistry matchingRuleRegistry;
@@ -208,7 +219,17 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
     
 	protected abstract String getResourceOid();
 
-	protected abstract File getResourceFile();
+	protected abstract File getBaseDir();
+	
+	protected File getResourceFile() {
+		return new File(getBaseDir(), "resource.xml");
+	}
+	
+	protected File getSyncTaskFile() {
+		return new File(getBaseDir(), "task-sync.xml");
+	}
+	
+	protected abstract String getSyncTaskOid();
 	
 	protected QName getAccountObjectClass() {
 		return new QName(MidPointConstants.NS_RI, "inetOrgPerson");
@@ -795,6 +816,87 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	}
 
 	// TODO: sync tests
+	
+	@Test
+    public void test800ImportSyncTask() throws Exception {
+		final String TEST_NAME = "test800ImportSyncTask";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        addObject(getSyncTaskFile(), task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        waitForTaskStart(getSyncTaskOid(), true);
+        assertSyncToken(getSyncTaskOid(), (Integer)3);
+	}
+	
+	@Test
+    public void test810SyncAddAccountHt() throws Exception {
+		final String TEST_NAME = "test810SyncAddAccountHt";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        addLdapAccount(ACCOUNT_HT_UID, ACCOUNT_HT_CN, ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN);
+        waitForTaskNextRun(getSyncTaskOid(), true);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> user = findUserByUsername(ACCOUNT_HT_UID);
+        assertNotNull("No user "+ACCOUNT_HT_UID+" created", user);
+        assertUser(user, user.getOid(), ACCOUNT_HT_UID, ACCOUNT_HT_CN, ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN);
+
+        assertSyncToken(getSyncTaskOid(), (Integer)4);
+	}
+	
+	@Test
+    public void test812ModifyAccountHt() throws Exception {
+		final String TEST_NAME = "test812ModifyAccountHt";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        LdapNetworkConnection connection = ldapConnect();
+        Modification modCn = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "cn", "Horatio Torquemeda Marley");
+        connection.modify(toDn(ACCOUNT_HT_UID), modCn);
+		ldapDisconnect(connection);
+
+		waitForTaskNextRun(getSyncTaskOid(), true);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> user = findUserByUsername(ACCOUNT_HT_UID);
+        assertNotNull("No user "+ACCOUNT_HT_UID+" created", user);
+        assertUser(user, user.getOid(), ACCOUNT_HT_UID, "Horatio Torquemeda Marley", ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN);
+
+        assertSyncToken(getSyncTaskOid(), (Integer)5);
+
+	}
+	
+	// TODO: create object of a different object class. See that it is ignored by sync.
 
 //	private Entry createEntry(String uid, String name) throws IOException {
 //		StringBuilder sb = new StringBuilder();
@@ -859,6 +961,24 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 		return entries;
 	}
 
+	protected Entry addLdapAccount(String uid, String cn, String givenName, String sn) throws LdapException, IOException, CursorException {
+		LdapNetworkConnection connection = ldapConnect();
+		Entry entry = createAccountEntry(uid, cn, givenName, sn);
+		connection.add(entry);
+		display("Added LDAP account:"+entry);
+		ldapDisconnect(connection);
+		return entry;
+	}
+
+	private Entry createAccountEntry(String uid, String cn, String givenName, String sn) throws LdapException {
+		Entry entry = new DefaultEntry(toDn(uid),
+				"objectclass", LDAP_ACCOUNT_OBJECTCLASS,
+				"uid", uid,
+				"cn", cn,
+				"givenName", givenName,
+				"sn", sn);
+		return entry;
+	}
 
 	protected String toDn(String username) {
 		return "uid="+username+","+getPeopleLdapSuffix();
