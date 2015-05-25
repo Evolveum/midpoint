@@ -19,12 +19,13 @@ package com.evolveum.midpoint.web.component.wizard.resource.dto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
 /**
  * @author lazyman
  */
-public class ConnectorTypeComparator implements Comparator<ConnectorType> {
+public class ConnectorTypeComparator implements Comparator<ConnectorType>, Serializable {
 
     @Override
     public int compare(ConnectorType c1, ConnectorType c2) {

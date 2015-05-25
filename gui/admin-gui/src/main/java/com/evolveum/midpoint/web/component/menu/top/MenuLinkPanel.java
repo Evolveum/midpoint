@@ -22,7 +22,8 @@ public class MenuLinkPanel extends Panel {
     private void initLayout(IModel<MenuItem> item) {
         MenuItem menuItem = item.getObject();
 
-        BookmarkablePageLink menuItemLink = new BookmarkablePageLink(ID_MENU_ITEM_LINK, menuItem.getPage());
+        BookmarkablePageLink menuItemLink = new BookmarkablePageLink(ID_MENU_ITEM_LINK,
+                menuItem.getPage(), menuItem.getPageParameters());
         add(menuItemLink);
 
         Label menuItemLabel = new Label(ID_MENU_ITEM_LABEL, menuItem.getName());
