@@ -101,7 +101,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         AccessCertificationCampaignType campaign = getObject(AccessCertificationCampaignType.class, campaignOid).asObjectable();
-        certificationManager.nextStage(campaign, task, result);
+        certificationManager.openNextStage(campaign.getOid(), campaign.getCurrentStageNumber()+1, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);

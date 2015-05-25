@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.certification;
 
+import com.evolveum.midpoint.certification.api.CertificationManager;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -31,9 +32,15 @@ import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
+import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
@@ -50,6 +57,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.ArrayList;
@@ -64,15 +72,23 @@ import java.util.List;
                 label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,
                 description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION)
         })
-public class PageCertCampaigns extends PageAdminWorkItems {
+public class PageCertCampaigns extends PageAdminCertification {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageCertCampaigns.class);
 
     private static final String DOT_CLASS = PageCertCampaigns.class.getName() + ".";
-    private static final String OPERATION_START_CAMPAIGN = DOT_CLASS + "startCertificationCampaign";
+    private static final String OPERATION_OPEN_NEXT_STAGE = DOT_CLASS + "openNextStage";
+    private static final String OPERATION_CLOSE_STAGE = DOT_CLASS + "closeStage";
+    private static final String OPERATION_CLOSE_CAMPAIGN = DOT_CLASS + "closeCampaign";
+    private static final String OPERATION_START_REMEDIATION = DOT_CLASS + "startRemediation";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_CAMPAIGNS_TABLE = "campaignsTable";
+    public static final String OP_START_CAMPAIGN = "PageCertCampaigns.button.startCampaign";
+    public static final String OP_CLOSE_CAMPAIGN = "PageCertCampaigns.button.closeCampaign";
+    public static final String OP_CLOSE_STAGE = "PageCertCampaigns.button.closeStage";
+    public static final String OP_OPEN_NEXT_STAGE = "PageCertCampaigns.button.openNextStage";
+    public static final String OP_START_REMEDIATION = "PageCertCampaigns.button.startRemediation";
 
     public PageCertCampaigns() {
         initLayout();
@@ -107,12 +123,22 @@ public class PageCertCampaigns extends PageAdminWorkItems {
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
-                // TODO show campaign details (or cases?)
+                AccessCertificationCampaignType campaign = rowModel.getObject().getValue();
+                certStatPerformed(target, campaign.getOid());
+            }
+
+            private void certStatPerformed(AjaxRequestTarget target, String oid) {
+                PageParameters parameters = new PageParameters();
+                parameters.add(OnePageParameterEncoder.PARAMETER, oid);
+                setResponsePage(new PageCertCampaignStatistics(parameters));
             }
         };
         columns.add(column);
 
         column = new PropertyColumn(createStringResource("PageCertCampaigns.table.description"), "value.description");
+        columns.add(column);
+
+        column = new EnumPropertyColumn(createStringResource("PageCertCampaigns.table.state"), "value.state");
         columns.add(column);
 
         column = new AbstractColumn<SelectableBean<AccessCertificationCampaignType>, String>(createStringResource("PageCertCampaigns.table.stage")) {
@@ -124,8 +150,29 @@ public class PageCertCampaigns extends PageAdminWorkItems {
                     public Object getObject() {
                         AccessCertificationCampaignType campaign = rowModel.getObject().getValue();
                         int currentStage = campaign.getCurrentStageNumber();
+                        //int numOfStages = CertCampaignTypeUtil.getNumberOfStages(campaign);
+                        if (AccessCertificationCampaignStateType.IN_REVIEW_STAGE.equals(campaign.getState()) ||
+                                AccessCertificationCampaignStateType.REVIEW_STAGE_DONE.equals(campaign.getState())) {
+                            return currentStage;
+                        } else {
+                            return null;
+                        }
+                    }
+                }));
+            }
+        };
+        columns.add(column);
+
+        column = new AbstractColumn<SelectableBean<AccessCertificationCampaignType>, String>(createStringResource("PageCertCampaigns.table.stages")) {
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<AccessCertificationCampaignType>>> item, String componentId,
+                                     final IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+                item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
+                    @Override
+                    public Object getObject() {
+                        AccessCertificationCampaignType campaign = rowModel.getObject().getValue();
                         int numOfStages = CertCampaignTypeUtil.getNumberOfStages(campaign);
-                        return currentStage + "/" + numOfStages;
+                        return numOfStages;
                     }
                 }));
             }
@@ -151,28 +198,24 @@ public class PageCertCampaigns extends PageAdminWorkItems {
             @Override
             public boolean isFirstButtonEnabled(IModel<SelectableBean<AccessCertificationCampaignType>> model) {
                 final AccessCertificationCampaignType campaign = model.getObject().getValue();
-                int currentStage = campaign.getCurrentStageNumber();
-                int numOfStages = CertCampaignTypeUtil.getNumberOfStages(campaign);
-                return currentStage <= numOfStages;
+                String button = determineAction(campaign);
+                return button != null;
             }
 
             @Override
             public String getFirstCap() {
                 AccessCertificationCampaignType campaign = getRowModel().getObject().getValue();
-                int currentStage = campaign.getCurrentStageNumber();
-                int numOfStages = CertCampaignTypeUtil.getNumberOfStages(campaign);
-                if (currentStage == 0) {
-                    return PageCertCampaigns.this.createStringResource("PageCertCampaigns.button.startFirst").getString();
-                } else if (currentStage < numOfStages) {
-                    return PageCertCampaigns.this.createStringResource("PageCertCampaigns.button.startNext").getString();
+                String button = determineAction(campaign);
+                if (button != null) {
+                    return PageCertCampaigns.this.createStringResource(button).getString();
                 } else {
-                    return PageCertCampaigns.this.createStringResource("PageCertCampaigns.button.close").getString();
+                    return "-";     // TODO make this button invisible
                 }
             }
 
             @Override
             public String getSecondCap() {
-                return PageCertCampaigns.this.createStringResource("PageCertCampaigns.button.statistics").getString();
+                return PageCertCampaigns.this.createStringResource("PageCertCampaigns.button.closeCampaign").getString();
             }
 
             @Override
@@ -181,19 +224,47 @@ public class PageCertCampaigns extends PageAdminWorkItems {
             }
 
             @Override
+            public String getSecondColorCssClass() {
+                return BUTTON_COLOR_CLASS.DANGER.toString();
+            }
+
+            @Override
             public void firstClicked(AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationCampaignType>> model) {
-                advanceOrCloseCampaignPerformed(target, model.getObject().getValue());
+                executeCampaignStateOperation(target, model.getObject().getValue());
             }
 
             @Override
             public void secondClicked(AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationCampaignType>> model) {
-                // TODO
-                //configurePerformed(target, model.getObject().getValue());
+                closeCampaign(target, model.getObject().getValue());
             }
         };
         columns.add(column);
 
         return columns;
+    }
+
+    protected String determineAction(AccessCertificationCampaignType campaign) {
+        int currentStage = campaign.getCurrentStageNumber();
+        int numOfStages = CertCampaignTypeUtil.getNumberOfStages(campaign);
+        AccessCertificationCampaignStateType state = campaign.getState();
+        String button;
+        switch (state) {
+            case CREATED:
+                button = numOfStages > 0 ? OP_START_CAMPAIGN : null;
+                break;
+            case IN_REVIEW_STAGE:
+                button = OP_CLOSE_STAGE;
+                break;
+            case REVIEW_STAGE_DONE:
+                button = currentStage < numOfStages ? OP_OPEN_NEXT_STAGE : OP_START_REMEDIATION;
+                break;
+            case IN_REMEDIATION:
+            case CLOSED:
+            default:
+                button = null;
+                break;
+        }
+        return button;
     }
 
     private String deadline(IModel<SelectableBean<AccessCertificationCampaignType>> campaignModel) {
@@ -239,23 +310,55 @@ public class PageCertCampaigns extends PageAdminWorkItems {
         }
     }
 
-    private void advanceOrCloseCampaignPerformed(AjaxRequestTarget target, AccessCertificationCampaignType campaign) {
+    private void executeCampaignStateOperation(AjaxRequestTarget target, AccessCertificationCampaignType campaign) {
         LOGGER.debug("Advance/close certification campaign performed for {}", campaign.asPrismObject());
 
-        OperationResult result = new OperationResult(OPERATION_START_CAMPAIGN);
+        OperationResult result = new OperationResult(OPERATION_OPEN_NEXT_STAGE);
         try {
             int currentStage = campaign.getCurrentStageNumber();
-            int numOfStages = CertCampaignTypeUtil.getNumberOfStages(campaign);
-            if (currentStage < numOfStages) {
-                Task task = createSimpleTask(OPERATION_START_CAMPAIGN);
-                getCertificationManager().nextStage(campaign, task, result);
-            } else if (currentStage == numOfStages) {
-                Task task = createSimpleTask(OPERATION_START_CAMPAIGN);
-                getCertificationManager().closeCampaign(campaign.getOid(), task, result);
-            } else {
-                // should not occur
-                result.recordFatalError("Current stage number "+currentStage+" is illegal (number of stages: "+numOfStages+")");
+            CertificationManager cm = getCertificationManager();
+            String action = determineAction(campaign);
+            Task task;
+            switch (action) {
+                case OP_START_CAMPAIGN:
+                case OP_OPEN_NEXT_STAGE:
+                    task = createSimpleTask(OPERATION_OPEN_NEXT_STAGE);
+                    cm.openNextStage(campaign.getOid(), currentStage + 1, task, result);
+                    break;
+                case OP_CLOSE_STAGE:
+                    task = createSimpleTask(OPERATION_CLOSE_STAGE);
+                    cm.closeCurrentStage(campaign.getOid(), currentStage, task, result);
+                    break;
+                case OP_START_REMEDIATION:
+                    task = createSimpleTask(OPERATION_START_REMEDIATION);
+                    cm.startRemediation(campaign.getOid(), task, result);
+                    break;
+                case OP_CLOSE_CAMPAIGN:     // not used
+                    task = createSimpleTask(OPERATION_CLOSE_CAMPAIGN);
+                    cm.closeCampaign(campaign.getOid(), task, result);
+                    break;
+                default:
+                    throw new IllegalStateException("Unknown action: " + action);
             }
+        } catch (Exception ex) {
+            result.recordFatalError(ex);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+
+        showResult(result);
+        target.add(getCampaignsTable());
+        target.add(getFeedbackPanel());
+    }
+
+    private void closeCampaign(AjaxRequestTarget target, AccessCertificationCampaignType campaign) {
+        LOGGER.debug("Close certification campaign performed for {}", campaign.asPrismObject());
+
+        OperationResult result = new OperationResult(OPERATION_CLOSE_CAMPAIGN);
+        try {
+            CertificationManager cm = getCertificationManager();
+            Task task = createSimpleTask(OPERATION_CLOSE_CAMPAIGN);
+            cm.closeCampaign(campaign.getOid(), task, result);
         } catch (Exception ex) {
             result.recordFatalError(ex);
         } finally {

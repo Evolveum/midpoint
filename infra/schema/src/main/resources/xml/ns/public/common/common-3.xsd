@@ -11420,6 +11420,13 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="state" type="tns:AccessCertificationCampaignStateType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                In which state is the current campaign.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="currentStageNumber" type="xsd:int" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -11600,7 +11607,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="deadline" type="xsd:dateTime" minOccurs="0">
+            <xsd:element name="reviewDeadline" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         When should this certification case be reviewed?
@@ -11613,6 +11620,39 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Decision(s) done.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="currentResponse" type="tns:AccessCertificationResponseType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Currently valid response, relevant to the current stage. It is recomputed on each reviewer's
+                        response based on defined algorithms.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!--<xsd:element name="currentApprovalStrategy" type="tns:AccessCertificationApprovalStrategyType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How the response is computed from individual reviewers' decisions.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>-->
+            <xsd:element name="enabled" type="xsd:boolean" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Is the case enabled for the current stage? E.g. cases that have been marked as "remove" in a given stage
+                        may be disabled for later stages.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="remediedTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When was this certification case was remedied?
+                        If null, this means that either remediation was not required
+                        (either because the decision was "accept" or "abstain" or
+                        because remediation mode was set to "none").
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -11890,5 +11930,150 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+
+    <xsd:simpleType name="AccessCertificationCampaignStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                An enumeration that defines possible states of a certification campaign.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="created">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Campaign was created, but its first stage has not been started yet.
+                        Current stage number is 0.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CREATED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="inReviewStage">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Review is being carried out, in a given stage.
+                        Current stage number is between 1 and N (number of stages).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IN_REVIEW_STAGE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="reviewStageDone">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A given review stage was done. Next stage nor remediation (if any) has not started yet.
+                        Current stage number indicates the number of stage that has been recently done.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REVIEW_STAGE_DONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="inRemediation">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The last stage was closed, remediation (either automated or manual) is in progress.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IN_REMEDIATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="closed">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Review and possibly remediation is over. The campaign is closed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CLOSED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <!--
+    <xsd:simpleType name="AccessCertificationCaseStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                An enumeration that defines possible states of a certification case.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="inReview">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Review is being carried out.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IN_REVIEW"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="reviewDone">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Review was done. Remediation (if any) has not started yet.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REVIEW_DONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="inRemediation">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The last stage was closed, remediation (either automated or manual) is in progress.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IN_REMEDIATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="closed">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Review and remediation is over. The case is closed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CLOSED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType> -->
+
+    <xsd:complexType name="AccessCertificationCasesStatisticsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Statistics give a set of access certification cases.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="entry" type="tns:AccessCertificationCasesStatisticsEntryType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="accessCertificationCasesStatisticsType" type="tns:AccessCertificationCasesStatisticsType" />
+
+    <xsd:complexType name="AccessCertificationCasesStatisticsEntryType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="response" type="tns:AccessCertificationResponseType"/>
+            <xsd:element name="markedAsThis" type="xsd:int" />
+            <xsd:element name="markedAsThisAndResolved" type="xsd:int" />
+        </xsd:sequence>
+    </xsd:complexType>
 
 </xsd:schema>

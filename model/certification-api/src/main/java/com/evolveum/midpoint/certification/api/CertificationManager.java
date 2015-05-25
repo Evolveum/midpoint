@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 
@@ -67,7 +68,7 @@ public interface CertificationManager {
      * Owner reference: if not specified neither in campaign nor in the certification definition,
      * current user will be used as the owner of the created campaign.
      *
-     * The campaign will NOT be started upon creation. It should be started explicitly by calling nextStage method.
+     * The campaign will NOT be started upon creation. It should be started explicitly by calling openNextStage method.
      *
      * @param certificationDefinition Certification definition for this campaign.
      * @param campaign Specific values for this campaign (optional).
@@ -80,18 +81,44 @@ public interface CertificationManager {
             throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
 
     /**
-     * Starts a given stage in the certification campaign.
+     * Opens the next stage in the certification campaign.
      *
-     * In the first stage, certification cases will be generated for the campaign, depending on the certification
-     * definition (scope and handler). In all stages, reviewers will be assigned to cases, based again on the
-     * definition (reviewer specification in stage definition and handler).
+     * If the stage being opened is the first stage, certification cases will be generated for the campaign,
+     * depending on the certification definition (scope and handler). In all stages, reviewers will be assigned
+     * to cases, based again on the definition (reviewer specification in stage definition and handler).
      *
      * @param campaign Certification campaign. If its definition reference is already resolved, it will be used.
      *                 Otherwise, the implementation will resolve the definition by itself.
+     * @param stageNumber Stage that has to be open. This has to be the stage after the current one (or the first one).
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
      */
-    void nextStage(AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
+    void openNextStage(String campaignOid, int stageNumber, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
+
+    /**
+     * Opens the next stage in the certification campaign.
+     *
+     * If the stage being opened is the first stage, certification cases will be generated for the campaign,
+     * depending on the certification definition (scope and handler). In all stages, reviewers will be assigned
+     * to cases, based again on the definition (reviewer specification in stage definition and handler).
+     *
+     * @param campaign Certification campaign. If its definition reference is already resolved, it will be used.
+     *                 Otherwise, the implementation will resolve the definition by itself.
+     * @param stageNumber Stage that has to be closed. This has to be the current stage.
+     * @param task Task in context of which all operations will take place.
+     * @param parentResult Result for the operations.
+     */
+    void closeCurrentStage(String campaignOid, int stageNumber, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
+
+    /**
+     * Starts the remediation phase for the campaign.
+     * The campaign has to be in the last stage and that stage has to be already closed.
+     *
+     * @param campaign
+     * @param task
+     * @param result
+     */
+    void startRemediation(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException;
 
     /**
      * Closes a campaign.
@@ -166,4 +193,7 @@ public interface CertificationManager {
      */
     void recordDecision(String campaignOid, long caseId, AccessCertificationDecisionType decision,
                         Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ObjectAlreadyExistsException;
+
+    AccessCertificationCasesStatisticsType getCampaignStatistics(String campaignOid, boolean currentStageOnly, Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ObjectAlreadyExistsException;
 }

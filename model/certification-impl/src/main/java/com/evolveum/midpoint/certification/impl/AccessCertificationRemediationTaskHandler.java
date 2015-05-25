@@ -135,6 +135,7 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
                     caseResult.addContext("caseId", caseId);
                     try {
                         handler.doRevoke(_case, campaign, task, caseResult);
+                        helper.markCaseAsRemedied(campaignOid, caseId, task, caseResult);
                         caseResult.computeStatus();
                         revokedOk++;
                     } catch (Exception e) {     // TODO
@@ -149,6 +150,8 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
             opResult.createSubresult(CLASS_DOT+"run.statistics")
                     .recordStatus(OperationResultStatus.NOT_APPLICABLE, "Successfully revoked items: "+revokedOk+", tried to revoke but failed: "+revokedError);
             opResult.computeStatus();
+
+            certificationManager.closeCampaign(campaignOid, task, opResult);
 
             runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
             runResult.setProgress(progress);
@@ -202,6 +205,9 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
         task.setObjectRef(ObjectTypeUtil.createObjectRef(campaign));
 
         taskManager.switchToBackground(task, result);
+        if (result.isInProgress()) {
+            result.recordStatus(OperationResultStatus.IN_PROGRESS, "Remediation task "+task+" was successfully started, please use Server Tasks to see its status.");
+        }
 
         LOGGER.trace("Remediation for {} switched to background, control thread returning with task {}", ObjectTypeUtil.toShortString(campaign), task);
     }

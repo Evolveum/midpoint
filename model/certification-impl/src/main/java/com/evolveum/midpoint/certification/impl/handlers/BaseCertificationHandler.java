@@ -59,6 +59,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationObjectBasedScopeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationReviewerSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationScopeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageDefinitionType;
@@ -69,12 +70,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import org.apache.commons.lang3.Validate;
-import org.apache.cxf.aegis.type.XMLTypeCreator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import javax.xml.bind.annotation.XmlType;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -145,7 +144,7 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
             updateCases(campaign, definition, stage, task, result);
         }
 
-        LOGGER.trace("nextStage finishing");
+        LOGGER.trace("openNextStage finishing");
     }
 
     private void createCases(final AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition,
@@ -211,7 +210,9 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
         for (int i = 0; i < caseList.size(); i++) {
             AccessCertificationCaseType _case = caseList.get(i);
             _case.setReviewRequestedTimestamp(stage.getStart());
-            _case.setDeadline(stage.getEnd());
+            _case.setReviewDeadline(stage.getEnd());
+            _case.setEnabled(true);
+            _case.setCurrentResponse(null);
 
             PrismContainerValue<AccessCertificationCaseType> caseCVal = _case.asPrismContainerValue();
             caseCVal.setId((long) (i + 1));
@@ -385,6 +386,25 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
                             new NameItemPathSegment(AccessCertificationCaseType.F_REVIEW_REQUESTED_TIMESTAMP)),
                     certificationManager.getCampaignDefinition(), stage.getEnd());
             campaignDeltaList.add(deadlineDelta);
+
+            boolean enabled = helper.computeEnabled(_case);
+            PropertyDelta enabledDelta = PropertyDelta.createModificationReplaceProperty(
+                    new ItemPath(
+                            new NameItemPathSegment(AccessCertificationCampaignType.F_CASE),
+                            new IdItemPathSegment(_case.asPrismContainerValue().getId()),
+                            new NameItemPathSegment(AccessCertificationCaseType.F_ENABLED)),
+                    certificationManager.getCampaignDefinition(), enabled);
+            campaignDeltaList.add(enabledDelta);
+
+            if (enabled) {
+                PropertyDelta currentResponseDelta = PropertyDelta.createModificationReplaceProperty(
+                        new ItemPath(
+                                new NameItemPathSegment(AccessCertificationCampaignType.F_CASE),
+                                new IdItemPathSegment(_case.asPrismContainerValue().getId()),
+                                new NameItemPathSegment(AccessCertificationCaseType.F_CURRENT_RESPONSE)),
+                        certificationManager.getCampaignDefinition(), null);
+                campaignDeltaList.add(currentResponseDelta);
+            }
         }
 
         ContainerDelta<AccessCertificationStageType> stageDelta = ContainerDelta.createDelta(AccessCertificationCampaignType.F_STAGE,
