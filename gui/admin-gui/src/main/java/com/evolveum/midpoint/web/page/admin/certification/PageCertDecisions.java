@@ -63,12 +63,8 @@ public class PageCertDecisions extends PageAdminWorkItems {
 
 	private static final String DOT_CLASS = PageCertDecisions.class.getName()
 			+ ".";
-	private static final String OPERATION_RECORD_ACCEPT = DOT_CLASS
-			+ "recordAccept";
-	private static final String OPERATION_RECORD_REVOKE = DOT_CLASS
-			+ "recordRevoke";
-	private static final String OPERATION_RECORD_REDUCE = DOT_CLASS
-			+ "recordReduce";
+	private static final String OPERATION_RECORD_ACTION = DOT_CLASS
+			+ "recordAction";
 	
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_DECISIONS_TABLE = "decisionsTable";
@@ -163,14 +159,14 @@ public class PageCertDecisions extends PageAdminWorkItems {
 			@Override
 			public void firstClicked(AjaxRequestTarget target,
 					IModel<CertDecisionDto> model) {
-				acceptPerformed(target, model.getObject());
+				recordActionPerformed(target, model.getObject(), AccessCertificationResponseType.ACCEPT);
 			}
 
 			@Override
 			public void secondClicked(AjaxRequestTarget target,
 					IModel<CertDecisionDto> model) {
 				// TODO revoke the roles
-				revokePerformed(target, model.getObject());
+				recordActionPerformed(target, model.getObject(), AccessCertificationResponseType.REVOKE);
 			}
 		};
 		columns.add(column);
@@ -211,14 +207,14 @@ public class PageCertDecisions extends PageAdminWorkItems {
 			@Override
 			public void firstClicked(AjaxRequestTarget target,
 					IModel<CertDecisionDto> model) {
-				 reducePerformed(target, model.getObject());
+				recordActionPerformed(target, model.getObject(), AccessCertificationResponseType.REDUCE);
 			}
 
 			@Override
 			public void secondClicked(AjaxRequestTarget target,
 					IModel<CertDecisionDto> model) {
 				// TODO
-				// configurePerformed(target, model.getObject().getValue());
+				recordActionPerformed(target, model.getObject(), AccessCertificationResponseType.NOT_DECIDED);
 			}
 		};
 		columns.add(column);
@@ -248,25 +244,25 @@ public class PageCertDecisions extends PageAdminWorkItems {
 
 			@Override
 			public boolean isSecondButtonEnabled(IModel<CertDecisionDto> model) {
-				return !decisionEquals(model, AccessCertificationResponseType.NOT_DECIDED);
+				return !decisionEquals(model, AccessCertificationResponseType.NO_RESPONSE);
 			}
 
 			@Override
 			public String getSecondColorCssClass() {
-				return getDecisionButtonColor(getRowModel(), AccessCertificationResponseType.NOT_DECIDED);
+				return getDecisionButtonColor(getRowModel(), AccessCertificationResponseType.NO_RESPONSE);
 			}
 
 			@Override
 			public void firstClicked(AjaxRequestTarget target,
 					IModel<CertDecisionDto> model) {
-				// acceptPerformed(target, model.getObject().getValue());
+				recordActionPerformed(target, model.getObject(), AccessCertificationResponseType.DELEGATE);
 			}
 
 			@Override
 			public void secondClicked(AjaxRequestTarget target,
 					IModel<CertDecisionDto> model) {
 				// TODO
-				// configurePerformed(target, model.getObject().getValue());
+				recordActionPerformed(target, model.getObject(), AccessCertificationResponseType.NO_RESPONSE);
 			}
 		};
 		columns.add(column);
@@ -293,17 +289,17 @@ public class PageCertDecisions extends PageAdminWorkItems {
 
 
 	//TODO : I create different method for every action even handled by one method, system will need different methods after all implementation will over
-	private void acceptPerformed(AjaxRequestTarget target,
-			CertDecisionDto decisionDto) {
+	private void recordActionPerformed(AjaxRequestTarget target,
+			CertDecisionDto decisionDto, AccessCertificationResponseType response) {
 		//decisionDto.setResponse(AccessCertificationResponseType.ACCEPT.value());
 		PrismContext prismContext = getPrismContext();
 		AccessCertificationDecisionType newDecision = new AccessCertificationDecisionType(prismContext);			
-		newDecision.setResponse(AccessCertificationResponseType.ACCEPT);
+		newDecision.setResponse(response);
 		newDecision.setStageNumber(0);
 		System.out.println("\n\n" + newDecision.toString());
-		OperationResult result = new OperationResult(OPERATION_RECORD_ACCEPT);
+		OperationResult result = new OperationResult(OPERATION_RECORD_ACTION);
 		try {
-			Task task = createSimpleTask(OPERATION_RECORD_ACCEPT);
+			Task task = createSimpleTask(OPERATION_RECORD_ACTION);
 			getCertificationManager().recordDecision(
 					decisionDto.getCampaignRef().getOid(),
 					decisionDto.getCaseId(), newDecision, task, result);
@@ -319,56 +315,7 @@ public class PageCertDecisions extends PageAdminWorkItems {
 		target.add(getFeedbackPanel());
 	}
 	
-	private void revokePerformed(AjaxRequestTarget target,
-			CertDecisionDto decisionDto) {
-		PrismContext prismContext = getPrismContext();
-		AccessCertificationDecisionType newDecision = new AccessCertificationDecisionType(prismContext);			
-		newDecision.setResponse(AccessCertificationResponseType.REVOKE);
-		newDecision.setStageNumber(0);
-		System.out.println("\n\n"+newDecision.toString());		
-		OperationResult result = new OperationResult(OPERATION_RECORD_REVOKE);
-		try {
-			Task task = createSimpleTask(OPERATION_RECORD_REVOKE);
-			getCertificationManager().recordDecision(
-					decisionDto.getCampaignRef().getOid(),
-					decisionDto.getCaseId(), newDecision, task, result);
-		} catch (Exception ex) {
-			result.recordFatalError(ex);
-		} finally {
-			result.computeStatusIfUnknown();
-		}
 
-		showResult(result);
-
-		target.add(getDecisionsTable());
-		target.add(getFeedbackPanel());
-	}
-	
-	private void reducePerformed(AjaxRequestTarget target,
-			CertDecisionDto decisionDto) {
-	
-		PrismContext prismContext = getPrismContext();
-		AccessCertificationDecisionType newDecision = new AccessCertificationDecisionType(prismContext);			
-		newDecision.setResponse(AccessCertificationResponseType.REDUCE);
-		newDecision.setStageNumber(0);
-		System.out.println("\n\n"+newDecision.toString());		
-		OperationResult result = new OperationResult(OPERATION_RECORD_REDUCE);
-		try {
-			Task task = createSimpleTask(OPERATION_RECORD_REDUCE);
-			getCertificationManager().recordDecision(
-					decisionDto.getCampaignRef().getOid(),
-					decisionDto.getCaseId(), newDecision, task, result);
-		} catch (Exception ex) {
-			result.recordFatalError(ex);
-		} finally {
-			result.computeStatusIfUnknown();
-		}
-
-		showResult(result);
-
-		target.add(getDecisionsTable());
-		target.add(getFeedbackPanel());
-	}
 
 
 	private ObjectQuery createCaseQuery() {
