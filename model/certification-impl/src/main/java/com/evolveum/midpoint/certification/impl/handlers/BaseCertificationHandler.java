@@ -69,6 +69,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -330,7 +331,7 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
 
     // default implementation, depending only on the expressions provided
     protected Collection<? extends AccessCertificationCaseType> createCasesForObject(PrismObject<ObjectType> object, List<ExpressionType> caseExpressionList, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) {
-        if (caseExpressionList == null) {
+        if (CollectionUtils.isEmpty(caseExpressionList)) {
             throw new IllegalStateException("Unspecified case expression (and no default one provided) for campaign " + ObjectTypeUtil.toShortString(campaign));
         }
         return evaluateCaseExpressionList(caseExpressionList, object, task, parentResult);

@@ -82,6 +82,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -270,7 +271,18 @@ public class CertificationManagerImpl implements CertificationManager {
             } else {
                 CertificationHandler handler = findCertificationHandler(certDefinition);
                 handler.moveToNextStage(certDefinition, campaign, task, result);
-                setStageNumberAndState(campaign, requestedStageNumber, IN_REVIEW_STAGE, task, result);
+
+                // some bureaucracy... stage#, state, start time
+                List<ItemDelta> itemDeltaList = new ArrayList<>();
+                PropertyDelta<Integer> stageNumberDelta = createStageNumberDelta(requestedStageNumber);
+                itemDeltaList.add(stageNumberDelta);
+                PropertyDelta<AccessCertificationCampaignStateType> stateDelta = createStateDelta(IN_REVIEW_STAGE);
+                itemDeltaList.add(stateDelta);
+                if (requestedStageNumber == 1) {
+                    PropertyDelta<XMLGregorianCalendar> startDelta = createStartTimeDelta(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
+                    itemDeltaList.add(startDelta);
+                }
+                repositoryService.modifyObject(AccessCertificationCampaignType.class, campaign.getOid(), itemDeltaList, result);
             }
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't move to certification campaign stage " + requestedStageNumber + ": unexpected exception: " + e.getMessage(), e);
@@ -734,6 +746,10 @@ public class CertificationManagerImpl implements CertificationManager {
 
     private PropertyDelta<AccessCertificationCampaignStateType> createStateDelta(AccessCertificationCampaignStateType state) {
         return PropertyDelta.createReplaceDelta(getCampaignDefinition(), AccessCertificationCampaignType.F_STATE, state);
+    }
+
+    private PropertyDelta<XMLGregorianCalendar> createStartTimeDelta(XMLGregorianCalendar date) {
+        return PropertyDelta.createReplaceDelta(getCampaignDefinition(), AccessCertificationCampaignType.F_START, date);
     }
 
     @Override

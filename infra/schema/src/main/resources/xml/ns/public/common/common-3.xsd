@@ -11543,6 +11543,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+    <xsd:element name="accessCertificationObjectBasedScopeType" type="tns:AccessCertificationObjectBasedScopeType"/>
 
     <xsd:complexType name="AccessCertificationCaseType">
         <xsd:annotation>

@@ -42,6 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -74,7 +75,7 @@ public class UserAssignmentBasicCertificationHandler extends BaseCertificationHa
     // default behavior for this handler: take all the direct assignments (org, role, resource) and make certification cases from them
     @Override
     protected Collection<? extends AccessCertificationCaseType> createCasesForObject(PrismObject<ObjectType> objectPrism, List<ExpressionType> caseExpressionList, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) {
-        if (caseExpressionList != null) {
+        if (CollectionUtils.isNotEmpty(caseExpressionList)) {
             return evaluateCaseExpressionList(caseExpressionList, objectPrism, task, parentResult);
         }
         ObjectType object = objectPrism.asObjectable();
