@@ -16,6 +16,7 @@ package com.evolveum.midpoint.testing.conntest;
  */
 
 
+import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -59,8 +60,12 @@ import org.apache.directory.api.ldap.model.exception.LdapInvalidAttributeValueEx
 import org.apache.directory.api.ldap.model.message.BindRequest;
 import org.apache.directory.api.ldap.model.message.BindRequestImpl;
 import org.apache.directory.api.ldap.model.message.BindResponse;
+import org.apache.directory.api.ldap.model.message.ModifyDnRequest;
+import org.apache.directory.api.ldap.model.message.ModifyDnRequestImpl;
+import org.apache.directory.api.ldap.model.message.ModifyDnResponse;
 import org.apache.directory.api.ldap.model.message.SearchScope;
 import org.apache.directory.api.ldap.model.name.Dn;
+import org.apache.directory.api.ldap.model.name.Rdn;
 import org.apache.directory.ldap.client.api.LdapConnectionConfig;
 import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 
@@ -896,6 +901,72 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 
 	}
 	
+	@Test
+    public void test815RenameAccount() throws Exception {
+		final String TEST_NAME = "test815RenameAccount";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        LdapNetworkConnection connection = ldapConnect();
+        
+        ModifyDnRequest modDnRequest = new ModifyDnRequestImpl();
+        modDnRequest.setName(new Dn(toDn(ACCOUNT_HT_UID)));
+        modDnRequest.setNewRdn(new Rdn("uid=htm"));
+        modDnRequest.setDeleteOldRdn(true);
+		ModifyDnResponse modDnResponse = connection.modifyDn(modDnRequest);
+        
+		display("Modified "+toDn(ACCOUNT_HT_UID)+" -> uid=htm: "+modDnResponse);
+		
+		ldapDisconnect(connection);
+
+		waitForTaskNextRun(getSyncTaskOid(), true);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> user = findUserByUsername("htm");
+        assertNotNull("No user "+"htm"+" created", user);
+        assertUser(user, user.getOid(), "htm", "Horatio Torquemeda Marley", ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN);
+        assertNull("User "+ACCOUNT_HT_UID+" still exist", findUserByUsername(ACCOUNT_HT_UID));
+
+        assertSyncToken(getSyncTaskOid(), (Integer)6);
+
+	}
+	
+	@Test
+    public void test819DeleteAccountHtm() throws Exception {
+		final String TEST_NAME = "test819DeleteAccountHtm";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        deleteLdapEntry(toDn("htm"));
+
+		waitForTaskNextRun(getSyncTaskOid(), true);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertNull("User "+"htm"+" still exist", findUserByUsername("htm"));
+        assertNull("User "+ACCOUNT_HT_UID+" still exist", findUserByUsername(ACCOUNT_HT_UID));
+
+        assertSyncToken(getSyncTaskOid(), (Integer)7);
+
+	}
+
 	// TODO: create object of a different object class. See that it is ignored by sync.
 
 //	private Entry createEntry(String uid, String name) throws IOException {
@@ -970,7 +1041,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 		return entry;
 	}
 
-	private Entry createAccountEntry(String uid, String cn, String givenName, String sn) throws LdapException {
+	protected Entry createAccountEntry(String uid, String cn, String givenName, String sn) throws LdapException {
 		Entry entry = new DefaultEntry(toDn(uid),
 				"objectclass", LDAP_ACCOUNT_OBJECTCLASS,
 				"uid", uid,
@@ -980,6 +1051,13 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 		return entry;
 	}
 
+	protected void deleteLdapEntry(String dn) throws LdapException, IOException {
+		LdapNetworkConnection connection = ldapConnect();
+		connection.delete(dn);
+		display("Deleted LDAP entry: "+dn);
+		ldapDisconnect(connection);
+	}
+	
 	protected String toDn(String username) {
 		return "uid="+username+","+getPeopleLdapSuffix();
 	}
