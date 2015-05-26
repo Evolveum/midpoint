@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.page.admin.certification;
 
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -32,14 +31,9 @@ import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.DirectlyEditablePropertyColumn;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
-import com.evolveum.midpoint.web.component.data.column.EditablePropertyColumn;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn.BUTTON_COLOR_CLASS;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -269,7 +263,13 @@ public class PageCertDecisions extends PageAdminWorkItems {
 
 		column = new DirectlyEditablePropertyColumn(
 				createStringResource("PageCertDecisions.table.comment"),
-				CertDecisionDto.F_COMMENT);
+				CertDecisionDto.F_COMMENT) {
+			@Override
+			public void onBlur(AjaxRequestTarget target, IModel model) {
+				// TODO determine somehow if the model.comment was really changed
+				recordActionPerformed(target, (CertDecisionDto) model.getObject(), null);
+			}
+		};
 		columns.add(column);
 
 		return columns;
@@ -289,13 +289,18 @@ public class PageCertDecisions extends PageAdminWorkItems {
 
 
 	//TODO : I create different method for every action even handled by one method, system will need different methods after all implementation will over
+	// if response is null this means keep the current one in decisionDto
 	private void recordActionPerformed(AjaxRequestTarget target,
 			CertDecisionDto decisionDto, AccessCertificationResponseType response) {
-		//decisionDto.setResponse(AccessCertificationResponseType.ACCEPT.value());
 		PrismContext prismContext = getPrismContext();
-		AccessCertificationDecisionType newDecision = new AccessCertificationDecisionType(prismContext);			
-		newDecision.setResponse(response);
+		AccessCertificationDecisionType newDecision = new AccessCertificationDecisionType(prismContext);
+		if (response != null) {
+			newDecision.setResponse(response);
+		} else {
+			newDecision.setResponse(decisionDto.getResponse());
+		}
 		newDecision.setStageNumber(0);
+		newDecision.setComment(decisionDto.getComment());
 		System.out.println("\n\n" + newDecision.toString());
 		OperationResult result = new OperationResult(OPERATION_RECORD_ACTION);
 		try {
