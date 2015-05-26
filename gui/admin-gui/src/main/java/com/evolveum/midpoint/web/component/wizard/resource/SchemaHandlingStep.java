@@ -20,7 +20,9 @@ package com.evolveum.midpoint.web.component.wizard.resource;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -374,18 +376,19 @@ public class SchemaHandlingStep extends WizardStep {
                             return null;
                         }
 
-                        StringBuilder sb = new StringBuilder();
                         ResourceAttributeDefinitionType attribute = model.getObject();
-
-                        if(attribute.getRef() != null){
-                            if(attribute.getRef().equals(new ItemPathType())){
-                                return null;
-                            } else {
-                                sb.append(ItemPathUtil.getOnlySegmentQName(attribute.getRef()).getLocalPart());
-                            }
-                        } else {
+                        ItemPathType ref = attribute.getRef();
+                        if (ref == null || ref.getItemPath().isEmpty()) {
                             return null;
                         }
+
+                        QName name = ItemPathUtil.getOnlySegmentQName(ref);
+
+                        StringBuilder sb = new StringBuilder();
+                        String prefix = SchemaConstants.NS_ICF_SCHEMA.equals(name.getNamespaceURI()) ? "icfs" : "ri";
+                        sb.append(prefix);
+                        sb.append(": ");
+                        sb.append(name.getLocalPart());
 
                         if(attribute.getDisplayName() != null){
                             sb.append(" (").append(attribute.getDisplayName()).append(")");
@@ -430,21 +433,23 @@ public class SchemaHandlingStep extends WizardStep {
 
                     @Override
                     public String getObject() {
-                        StringBuilder sb = new StringBuilder();
-
-                        if(model.getObject().getRef() != null){
-                            ItemPathType itemPathType = model.getObject().getRef();
-                            if(itemPathType.getItemPath() != null){
-                                sb.append(itemPathType.getItemPath().toString());
-                            } else {
-                                sb.append(model.getObject().getRef());
-                            }
-                        } else {
+                        ResourceObjectAssociationType association = model.getObject();
+                        if (association == null || association.getRef() == null) {
                             return null;
                         }
 
-                        if(model.getObject().getDisplayName() != null){
-                            sb.append(" (").append(model.getObject().getDisplayName()).append(")");
+                        StringBuilder sb = new StringBuilder();
+
+                        ItemPathType ref = association.getRef();
+                        ItemPath path = ref.getItemPath();
+                        if(path != null){
+                            sb.append(path.toString());
+                        } else {
+                            sb.append(association.getRef());
+                        }
+
+                        if(association.getDisplayName() != null){
+                            sb.append(" (").append(association.getDisplayName()).append(")");
                         }
 
                         return sb.toString();
@@ -453,7 +458,7 @@ public class SchemaHandlingStep extends WizardStep {
             }
 
             @Override
-            protected ResourceObjectAssociationType createNewEmptyItem(){
+            protected ResourceObjectAssociationType createNewEmptyItem() {
                 return createEmptyAssociationObject();
             }
 

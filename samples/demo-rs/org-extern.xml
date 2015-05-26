@@ -1,0 +1,32 @@
+<!--
+  ~ Copyright (c) 2010-2015 Evolveum
+  -->
+
+<objects xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+
+	<org oid="00000000-9999-9999-0000-120000000000">
+		<name>EXTERN</name>
+    		<displayName>Externals</displayName>
+	</org>
+
+	<org oid="00000000-9999-9999-0000-120000100000">
+		<name>EXT-TEMP</name>
+		<parentOrgRef oid="00000000-9999-9999-0000-120000000000" type="c:OrgType"/>
+		<displayName>Temporary</displayName>
+		<identifier>EXT-TEMP</identifier>
+		<orgType>extern</orgType>
+	</org>
+
+	<org oid="00000000-9999-9999-0000-120000100001">
+		<name>EXT-SUPP</name>
+		<description>External support staff</description>
+		<parentOrgRef oid="00000000-9999-9999-0000-120000000000" type="c:OrgType"/>
+		<displayName>Support</displayName>
+		<identifier>EXT-SUPP</identifier>
+		<orgType>extern</orgType>
+	</org>
+
+</objects>
