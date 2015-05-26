@@ -20,6 +20,8 @@ import java.io.File;
 import org.testng.annotations.AfterClass;
 
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * @author semancik
@@ -100,12 +102,11 @@ public class TestOpenDj extends AbstractLdapConnTest {
 	protected String getSyncTaskOid() {
 		return "cd1e0ff2-0099-11e5-9e22-001e8c717e5b";
 	}
-
-	@Override
-	public void test290ModifyUserBarbossaRename() throws Exception {
-		// Do nothing. This fails because the OpenDJ permissions seems to be wrong
-		// TODO: fix this
-	}
 	
+	@Override
+	protected void assertStepSyncToken(String syncTaskOid, int step, long tsStart, long tsEnd)
+			throws ObjectNotFoundException, SchemaException {
+		assertSyncToken(syncTaskOid, (Integer)(step+4));
+	}
 	
 }

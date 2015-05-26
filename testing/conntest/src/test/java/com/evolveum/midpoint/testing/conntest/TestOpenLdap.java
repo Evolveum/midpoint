@@ -15,11 +15,26 @@
  */
 package com.evolveum.midpoint.testing.conntest;
 
-import java.io.File;
+import static org.testng.AssertJUnit.assertNotNull;
 
+import java.io.File;
+import java.text.ParseException;
+
+import org.apache.directory.api.util.GeneralizedTime;
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * @author semancik
@@ -81,4 +96,33 @@ public class TestOpenLdap extends AbstractLdapConnTest {
 	protected String getSyncTaskOid() {
 		return "cd1e0ff2-0099-11e5-9e22-001e8c717e5b";
 	}
+
+	@Override
+	protected void assertStepSyncToken(String syncTaskOid, int step, long tsStart, long tsEnd)
+			throws ObjectNotFoundException, SchemaException {
+		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".assertSyncToken");
+		Task task = taskManager.getTask(syncTaskOid, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		
+		PrismProperty<String> syncTokenProperty = task.getExtensionProperty(SchemaConstants.SYNC_TOKEN);
+		assertNotNull("No sync token in "+task, syncTokenProperty);
+		String syncToken = syncTokenProperty.getRealValue();
+		assertNotNull("No sync token in "+task, syncToken);
+		IntegrationTestTools.display("Sync token", syncToken);
+		
+		GeneralizedTime syncTokenGt;
+		try {
+			syncTokenGt = new GeneralizedTime(syncToken);
+		} catch (ParseException e) {
+			throw new RuntimeException(e.getMessage(),e);
+		}
+		TestUtil.assertBetween("Wrong time in sync token: "+syncToken, roundTs(tsStart), roundTs(tsEnd), syncTokenGt.getCalendar().getTimeInMillis());
+		
+	}
+
+	private Long roundTs(long ts) {
+		return (((long)(ts/1000))*1000);
+	}
+	
 }

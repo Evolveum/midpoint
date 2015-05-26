@@ -53,9 +53,12 @@
 			<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
 			<icfcldap:vlvSortOrderingRule>2.5.13.3</icfcldap:vlvSortOrderingRule>
 			<icfcldap:operationalAttributes>memberOf</icfcldap:operationalAttributes>
+			<icfcldap:operationalAttributes>createTimestamp</icfcldap:operationalAttributes>
 		</icfc:configurationProperties>
 		<icfc:resultsHandlerConfiguration>
+			<icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
 			<icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+			<icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
 		</icfc:resultsHandlerConfiguration>
 	</connectorConfiguration>
 	
@@ -271,19 +274,19 @@
 			
 			<reaction>
 	            <situation>linked</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser"/>
+	            <synchronize>true</synchronize>
 	        </reaction>
 	        <reaction>
 	            <situation>deleted</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus"/>
 	        </reaction>
 	        <reaction>
 	            <situation>unlinked</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#link"/>
 	        </reaction>
 	        <reaction>
 	            <situation>unmatched</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus"/>
 	        </reaction>
 
 		</objectSynchronization>

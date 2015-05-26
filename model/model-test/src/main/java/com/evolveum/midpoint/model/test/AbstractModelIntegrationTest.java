@@ -1351,6 +1351,21 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		List<ObjectReferenceType> linkRefs = org.asObjectable().getLinkRef();
 		sb.append(": ").append(linkRefs.size()).append(" links");
 	}
+	
+	protected void displayUsers() throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class+".displayUsers");
+		OperationResult result = task.getResult();
+		ResultHandler<UserType> handler = new ResultHandler<UserType>() {
+			@Override
+			public boolean handle(PrismObject<UserType> user, OperationResult parentResult) {
+				display("User", user);
+				return true;
+			}
+		};
+		modelService.searchObjectsIterative(UserType.class, null, handler, null, task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+	}
 
 	protected <F extends FocusType> void assertAssignments(PrismObject<F> user, int expectedNumber) {
 		MidPointAsserts.assertAssignments(user, expectedNumber);

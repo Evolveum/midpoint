@@ -81,6 +81,7 @@ import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -206,10 +207,11 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
     
     public abstract String getStopSystemCommand();
     
+	protected abstract void assertStepSyncToken(String syncTaskOid, int step, long tsStart, long tsEnd) throws ObjectNotFoundException, SchemaException;
+    
 	protected boolean isIdmAdminInteOrgPerson() {
 		return false;
 	}
-
 
 	@AfterClass
     public static void stopResources() throws Exception {
@@ -345,6 +347,19 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
         accountObjectClassDefinition = refinedSchema.findObjectClassDefinition(getAccountObjectClass());
         assertNotNull("No definition for object class "+getAccountObjectClass(), accountObjectClassDefinition);
+        
+        ResourceAttributeDefinition<String> cnDef = accountObjectClassDefinition.findAttributeDefinition("cn");
+        PrismAsserts.assertDefinition(cnDef, new QName(MidPointConstants.NS_RI, "cn"), DOMUtil.XSD_STRING, 1, -1);
+        assertTrue("createTimestampDef read", cnDef.canRead());
+        assertTrue("createTimestampDef read", cnDef.canModify());
+        assertTrue("createTimestampDef read", cnDef.canAdd());
+        
+        ResourceAttributeDefinition<Long> createTimestampDef = accountObjectClassDefinition.findAttributeDefinition("createTimestamp");
+        PrismAsserts.assertDefinition(createTimestampDef, new QName(MidPointConstants.NS_RI, "createTimestamp"),
+        		DOMUtil.XSD_LONG, 0, 1);
+        assertTrue("createTimestampDef read", createTimestampDef.canRead());
+        assertFalse("createTimestampDef read", createTimestampDef.canModify());
+        assertFalse("createTimestampDef read", createTimestampDef.canAdd());
         
 	}
 	
@@ -712,6 +727,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
+        long tsStart = System.currentTimeMillis();
         
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -721,6 +737,8 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
+        
+        long tsEnd = System.currentTimeMillis();
 
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
         assertAttribute(entry, "title", null);
@@ -728,12 +746,18 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         String shadowOid = getSingleLinkOid(user);
         PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
+        display("Shadow (model)", shadow);
         accountBarbossaOid = shadow.getOid();
         Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(shadow);
         String accountBarbossaIcfUid = (String) identifiers.iterator().next().getRealValue();
         assertNotNull("No identifier in "+shadow, accountBarbossaIcfUid);
         
         assertEquals("Wrong ICFS UID", entry.get(ATTRIBUTE_ENTRY_UUID).getString(), accountBarbossaIcfUid);
+        
+        ResourceAttribute<Long> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimestamp"));
+        assertNotNull("No createTimestamp in "+shadow, createTimestampAttribute);
+        Long createTimestamp = createTimestampAttribute.getRealValue();
+        TestUtil.assertBetween("Wrong createTimestamp in "+shadow, tsStart, tsEnd, createTimestamp);
 	}
 	
 	@Test
@@ -831,6 +855,8 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
+        long tsStart = System.currentTimeMillis();
+        
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         addObject(getSyncTaskFile(), task, result);
@@ -841,7 +867,10 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         TestUtil.assertSuccess(result);
 
         waitForTaskStart(getSyncTaskOid(), true);
-        assertSyncToken(getSyncTaskOid(), (Integer)3);
+        
+        long tsEnd = System.currentTimeMillis();
+        
+        assertStepSyncToken(getSyncTaskOid(), 0, tsStart, tsEnd);
 	}
 	
 	@Test
@@ -853,6 +882,8 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
+        long tsStart = System.currentTimeMillis();
+        
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         addLdapAccount(ACCOUNT_HT_UID, ACCOUNT_HT_CN, ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN);
@@ -863,11 +894,15 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
+        long tsEnd = System.currentTimeMillis();
+        
+        displayUsers();
+        
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_HT_UID);
         assertNotNull("No user "+ACCOUNT_HT_UID+" created", user);
         assertUser(user, user.getOid(), ACCOUNT_HT_UID, ACCOUNT_HT_CN, ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN);
 
-        assertSyncToken(getSyncTaskOid(), (Integer)4);
+        assertStepSyncToken(getSyncTaskOid(), 1, tsStart, tsEnd);
 	}
 	
 	@Test
@@ -878,6 +913,8 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
+        
+        long tsStart = System.currentTimeMillis();
         
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -893,11 +930,13 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
+        long tsEnd = System.currentTimeMillis();
+        
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_HT_UID);
         assertNotNull("No user "+ACCOUNT_HT_UID+" created", user);
         assertUser(user, user.getOid(), ACCOUNT_HT_UID, "Horatio Torquemeda Marley", ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN);
 
-        assertSyncToken(getSyncTaskOid(), (Integer)5);
+        assertStepSyncToken(getSyncTaskOid(), 2, tsStart, tsEnd);
 
 	}
 	
@@ -909,6 +948,8 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
+        
+        long tsStart = System.currentTimeMillis();
         
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -931,12 +972,14 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
+        long tsEnd = System.currentTimeMillis();
+        
         PrismObject<UserType> user = findUserByUsername("htm");
         assertNotNull("No user "+"htm"+" created", user);
         assertUser(user, user.getOid(), "htm", "Horatio Torquemeda Marley", ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN);
         assertNull("User "+ACCOUNT_HT_UID+" still exist", findUserByUsername(ACCOUNT_HT_UID));
 
-        assertSyncToken(getSyncTaskOid(), (Integer)6);
+        assertStepSyncToken(getSyncTaskOid(), 3, tsStart, tsEnd);
 
 	}
 	
@@ -949,6 +992,8 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
+        long tsStart = System.currentTimeMillis();
+        
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         deleteLdapEntry(toDn("htm"));
@@ -960,24 +1005,18 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
+        long tsEnd = System.currentTimeMillis();
+        
         assertNull("User "+"htm"+" still exist", findUserByUsername("htm"));
         assertNull("User "+ACCOUNT_HT_UID+" still exist", findUserByUsername(ACCOUNT_HT_UID));
 
-        assertSyncToken(getSyncTaskOid(), (Integer)7);
+        assertStepSyncToken(getSyncTaskOid(), 4, tsStart, tsEnd);
 
 	}
 
 	// TODO: create object of a different object class. See that it is ignored by sync.
 
-//	private Entry createEntry(String uid, String name) throws IOException {
-//		StringBuilder sb = new StringBuilder();
-//		String dn = "uid="+uid+","+getPeopleLdapSuffix();
-//		sb.append("dn: ").append(dn).append("\n");
-//		sb.append("objectClass: inetOrgPerson\n");
-//		sb.append("uid: ").append(uid).append("\n");
-//		sb.append("cn: ").append(name).append("\n");
-//		sb.append("sn: ").append(name).append("\n");
-//	}
+	// TODO: sync with "ALL" object class
 	
 	protected Entry getLdapAccountByUid(String uid) throws LdapException, IOException, CursorException {
 		LdapNetworkConnection connection = ldapConnect();
