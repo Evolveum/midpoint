@@ -286,9 +286,7 @@ public class PageCertDecisions extends PageAdminWorkItems {
 	private boolean decisionEquals(IModel<CertDecisionDto> model, AccessCertificationResponseType response) {
 		return model.getObject().getResponse() == response;
 	}
-
-
-	//TODO : I create different method for every action even handled by one method, system will need different methods after all implementation will over
+	
 	// if response is null this means keep the current one in decisionDto
 	private void recordActionPerformed(AjaxRequestTarget target,
 			CertDecisionDto decisionDto, AccessCertificationResponseType response) {
@@ -320,8 +318,6 @@ public class PageCertDecisions extends PageAdminWorkItems {
 		target.add(getFeedbackPanel());
 	}
 	
-
-
 
 	private ObjectQuery createCaseQuery() {
 		ObjectQuery query = new ObjectQuery();
