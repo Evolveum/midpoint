@@ -315,6 +315,50 @@ public class BasicCertificationTest extends AbstractCertificationTest {
     }
 
     @Test
+    public void test105RecordAcceptJackCeo() throws Exception {
+        final String TEST_NAME = "test105RecordAcceptJackCeo";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        List<AccessCertificationCaseType> caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
+        AccessCertificationCaseType ceoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        AccessCertificationDecisionType decision = new AccessCertificationDecisionType(prismContext);
+        decision.setResponse(AccessCertificationResponseType.ACCEPT);
+        decision.setComment("ok");
+        decision.setStageNumber(1);
+        // reviewerRef will be taken from the current user
+        long id = ceoCase.asPrismContainerValue().getId();
+        certificationManager.recordDecision(campaignOid, id, decision, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
+        display("caseList", caseList);
+        checkAllCases(caseList);
+
+        ceoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
+        assertEquals("changed case ID", Long.valueOf(id), ceoCase.asPrismContainerValue().getId());
+        assertEquals("wrong # of decisions", 1, ceoCase.getDecision().size());
+        AccessCertificationDecisionType storedDecision = ceoCase.getDecision().get(0);
+        assertEquals("wrong response", AccessCertificationResponseType.ACCEPT, storedDecision.getResponse());
+        assertEquals("wrong comment", "ok", storedDecision.getComment());
+        assertEquals("wrong reviewerRef", ObjectTypeUtil.createObjectRef(USER_ADMINISTRATOR_OID, ObjectTypes.USER), storedDecision.getReviewerRef());
+        assertEquals("wrong stage number", 1, storedDecision.getStageNumber());
+        assertApproximateTime("timestamp", new Date(), storedDecision.getTimestamp());
+        assertEquals("wrong current response", AccessCertificationResponseType.ACCEPT, ceoCase.getCurrentResponse());
+        assertEquals("wrong enabled", Boolean.TRUE, ceoCase.isEnabled());
+    }
+
+    @Test
     public void test110RecordRevokeJackCeo() throws Exception {
         final String TEST_NAME = "test110RecordRevokeJackCeo";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -346,6 +390,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         checkAllCases(caseList);
 
         ceoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
+        display("CEO case", ceoCase.asPrismContainerValue());
         assertEquals("changed case ID", Long.valueOf(id), ceoCase.asPrismContainerValue().getId());
         assertEquals("wrong # of decisions", 1, ceoCase.getDecision().size());
         AccessCertificationDecisionType storedDecision = ceoCase.getDecision().get(0);

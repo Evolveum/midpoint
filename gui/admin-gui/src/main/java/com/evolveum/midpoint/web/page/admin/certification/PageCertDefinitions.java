@@ -116,12 +116,12 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 
             @Override
             public String getFirstCap(){
-                return PageCertDefinitions.this.createStringResource("PageCertDefinitions.button.showCampaigns").getString();
+                return PageCertDefinitions.this.createStringResource("PageCertDefinitions.button.createCampaign").getString();
             }
 
             @Override
             public String getSecondCap(){
-                return PageCertDefinitions.this.createStringResource("PageCertDefinitions.button.createCampaign").getString();
+                return PageCertDefinitions.this.createStringResource("PageCertDefinitions.button.showCampaigns").getString();
             }
 
             @Override
@@ -131,12 +131,12 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 
             @Override
             public void firstClicked(AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationDefinitionType>> model){
-                showCampaignsPerformed(target, model.getObject().getValue());
+                createCampaignPerformed(target, model.getObject().getValue());
             }
 
             @Override
             public void secondClicked(AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationDefinitionType>> model){
-                createCampaignPerformed(target, model.getObject().getValue());
+                showCampaignsPerformed(target, model.getObject().getValue());
             }
         };
         columns.add(column);

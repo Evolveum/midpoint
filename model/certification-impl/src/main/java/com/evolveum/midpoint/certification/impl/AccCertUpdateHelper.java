@@ -175,7 +175,7 @@ public class AccCertUpdateHelper {
             // let's remove existing decision and add the new one
             if (existingDecision != null) {
                 ContainerDelta<AccessCertificationDecisionType> decisionDeleteDelta =
-                        ContainerDelta.createModificationDelete(decisionPath, AccessCertificationCampaignType.class, prismContext, decision);
+                        ContainerDelta.createModificationDelete(decisionPath, AccessCertificationCampaignType.class, prismContext, existingDecision.clone());
                 deltaList.add(decisionDeleteDelta);
             }
 
