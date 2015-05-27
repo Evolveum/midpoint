@@ -15,6 +15,23 @@
   -->
 
 <role oid="00000000-d34d-b33f-f00d-000000000002"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>COO</name>
+    <assignment id="1">
+        <targetRef oid="00000000-d34d-b33f-f00d-444444444444" type="RoleType" />    <!-- CxO dummy metarole -->
+    </assignment>
+    <inducement id="2">
+        <construction>
+            <resourceRef oid="10000000-0000-0000-0000-000000000004"/>   <!-- dummy resource -->
+        </construction>
+    </inducement>
+    <inducement id="3">
+        <construction>
+            <resourceRef oid="10000000-0000-0000-0000-000000000305"/>   <!-- dummy black resource -->
+        </construction>
+    </inducement>
+    <inducement id="4">
+        <targetRef oid="00000000-0000-0000-0000-000000000004" type="RoleType" />        <!-- superuser -->
+    </inducement>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />     <!-- administrator -->
 </role>

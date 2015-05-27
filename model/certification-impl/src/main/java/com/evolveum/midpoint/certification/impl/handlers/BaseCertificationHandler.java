@@ -17,75 +17,36 @@
 package com.evolveum.midpoint.certification.impl.handlers;
 
 import com.evolveum.midpoint.certification.impl.AccCertGeneralHelper;
+import com.evolveum.midpoint.certification.impl.AccCertResponseComputationHelper;
+import com.evolveum.midpoint.certification.impl.AccCertReviewersHelper;
 import com.evolveum.midpoint.certification.impl.CertificationManagerImpl;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.parser.QueryConvertor;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationObjectBasedScopeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationReviewerSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationScopeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
-import java.util.List;
 
 /**
  * @author mederly
  */
 @Component
 public abstract class BaseCertificationHandler implements CertificationHandler {
+
+    public static final String NS_HANDLERS_PREFIX = SchemaConstants.NS_CERTIFICATION + "/handlers-3";
 
     private static final transient Trace LOGGER = TraceManager.getTrace(BaseCertificationHandler.class);
 
@@ -109,310 +70,36 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
     @Autowired
     protected AccCertGeneralHelper helper;
 
-    @Override
-    public void moveToNextStage(final AccessCertificationCampaignType campaign, final Task task, OperationResult result)
-            throws SchemaException, SecurityViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException {
-        Validate.notNull(campaign, "certificationCampaign");
-        Validate.notNull(campaign.getOid(), "certificationCampaign.oid");
+    @Autowired
+    protected AccCertResponseComputationHelper computationHelper;
 
-        int stageNumber = campaign.getCurrentStageNumber();
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("moveToNextStage starting; campaign = {}, stage number = {}",
-                    ObjectTypeUtil.toShortString(campaign), stageNumber);
-        }
-
-        AccessCertificationStageType stage = new AccessCertificationStageType(prismContext);
-        stage.setNumber(stageNumber+1);
-        stage.setStart(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
-
-        AccessCertificationStageDefinitionType stageDef = CertCampaignTypeUtil.findStageDefinition(campaign, stage.getNumber());
-        XMLGregorianCalendar end = (XMLGregorianCalendar) stage.getStart().clone();
-        end.add(XmlTypeConverter.createDuration(true, 0, 0, stageDef.getDays(), 0, 0, 0));
-        end.setHour(23);
-        end.setMinute(59);
-        end.setSecond(59);
-        end.setMillisecond(999);
-        stage.setEnd(end);
-
-        if (stageNumber == 0) {
-            createCases(campaign, stage, task, result);
-        } else {
-            updateCases(campaign, stage, task, result);
-        }
-
-        LOGGER.trace("openNextStage finishing");
-    }
-
-    private void createCases(final AccessCertificationCampaignType campaign, AccessCertificationStageType stage,
-                             final Task task, final OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException {
-        String campaignShortName = ObjectTypeUtil.toShortString(campaign);
-
-        AccessCertificationScopeType scope = campaign.getScopeDefinition();
-        LOGGER.trace("Creating cases for scope {} in campaign {}", scope, campaignShortName);
-
-        if (scope != null && !(scope instanceof AccessCertificationObjectBasedScopeType)) {
-            throw new IllegalStateException("Unsupported access certification scope type: " + scope.getClass() + " for campaign " + campaignShortName);
-        }
-        AccessCertificationObjectBasedScopeType objectBasedScope = (AccessCertificationObjectBasedScopeType) scope;
-
-        if (!campaign.getCase().isEmpty()) {
-            throw new IllegalStateException("Unexpected " + campaign.getCase().size() + " certification case(s) in campaign object " + campaignShortName + ". At this time there should be none.");
-        }
-
-        // create a query to find target objects from which certification cases will be created
-        ObjectQuery query = new ObjectQuery();
-        QName objectType = objectBasedScope != null ? objectBasedScope.getObjectType() : null;
-        if (objectType == null) {
-            objectType = getDefaultObjectType();
-        }
-        if (objectType == null) {
-            throw new IllegalStateException("Unspecified object type (and no default one provided) for campaign " + campaignShortName);
-        }
-        PrismObjectDefinition<? extends ObjectType> objectDef = prismContext.getSchemaRegistry().findObjectDefinitionByType(objectType);
-        if (objectDef == null) {
-            throw new IllegalStateException("Object definition not found for object type " + objectType + " in campaign " + campaignShortName);
-        }
-        Class<? extends ObjectType> objectClass = objectDef.getCompileTimeClass();
-        if (objectClass == null) {
-            throw new IllegalStateException("Object class not found for object type " + objectType + " in campaign " + campaignShortName);
-        }
-
-        SearchFilterType searchFilter = objectBasedScope != null ? objectBasedScope.getSearchFilter() : null;
-        if (searchFilter != null) {
-            ObjectFilter filter = QueryConvertor.parseFilter(searchFilter, objectClass, prismContext);
-            query.setFilter(filter);
-        }
-
-        final List<ExpressionType> caseExpressionList = objectBasedScope != null ? objectBasedScope.getCaseGenerationExpression() : null;
-        final List<AccessCertificationCaseType> caseList = new ArrayList<>();
-
-        // create certification cases by executing the query and caseExpression on its results
-        // here the subclasses of this class come into play
-        ResultHandler<ObjectType> handler = new ResultHandler<ObjectType>() {
-            @Override
-            public boolean handle(PrismObject<ObjectType> object, OperationResult parentResult) {
-                caseList.addAll(createCasesForObject(object, caseExpressionList, campaign, task, parentResult));
-                return true;
-            }
-        };
-        modelService.searchObjectsIterative(objectClass, query, (ResultHandler) handler, null, task, result);
-
-        AccessCertificationReviewerSpecificationType reviewerSpec =
-                findReviewersSpecification(campaign, 1, task, result);
-
-        // put the cases into repository
-        ContainerDelta<AccessCertificationCaseType> caseDelta = ContainerDelta.createDelta(AccessCertificationCampaignType.F_CASE,
-                AccessCertificationCampaignType.class, prismContext);
-        for (int i = 0; i < caseList.size(); i++) {
-            AccessCertificationCaseType _case = caseList.get(i);
-            _case.setReviewRequestedTimestamp(stage.getStart());
-            _case.setReviewDeadline(stage.getEnd());
-            _case.setEnabled(true);
-            _case.setCurrentResponse(null);
-
-            PrismContainerValue<AccessCertificationCaseType> caseCVal = _case.asPrismContainerValue();
-            caseCVal.setId((long) (i + 1));
-            caseDelta.addValueToAdd(caseCVal);
-
-            setupReviewersForCase(_case, campaign, reviewerSpec, task, result);
-
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Adding certification case:\n{}", caseCVal.debugDump());
-            }
-        }
-
-        // there are some problems with container IDs when using model - as a temporary hack we go directly into repo
-        // todo fix it and switch to model service
-//        ObjectDelta<AccessCertificationCampaignType> campaignDelta = ObjectDelta.createModifyDelta(campaign.getOid(),
-//                caseDelta, AccessCertificationCampaignType.class, prismContext);
-//        modelService.executeChanges((Collection) Arrays.asList(campaignDelta), null, task, result);
-
-        ContainerDelta<AccessCertificationStageType> stageDelta = ContainerDelta.createDelta(AccessCertificationCampaignType.F_STAGE,
-                AccessCertificationCampaignType.class, prismContext);
-        stageDelta.addValueToAdd(stage.asPrismContainerValue());
-
-        repositoryService.modifyObject(AccessCertificationCampaignType.class, campaign.getOid(),
-                Arrays.asList(caseDelta, stageDelta), result);
-        LOGGER.trace("Created stage and {} cases for campaign {}", caseList.size(), campaignShortName);
-    }
-
-    private AccessCertificationReviewerSpecificationType findReviewersSpecification(AccessCertificationCampaignType campaign,
-                                                                                    int stage, Task task, OperationResult result) {
-        AccessCertificationStageDefinitionType stageDef = CertCampaignTypeUtil.findStageDefinition(campaign, stage);
-        return stageDef.getReviewerSpecification();
-    }
-
-    private void setupReviewersForCase(AccessCertificationCaseType _case, AccessCertificationCampaignType campaign,
-                                       AccessCertificationReviewerSpecificationType reviewerSpec, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-
-        _case.getReviewerRef().clear();
-        if (reviewerSpec == null) {
-            return;     // TODO issue a warning here?
-        }
-
-        if (Boolean.TRUE.equals(reviewerSpec.isUseTargetObjectOwner())) {
-            cloneAndMerge(_case.getReviewerRef(), getTargetObjectOwners(_case, task, result));
-        }
-        if (Boolean.TRUE.equals(reviewerSpec.isUseTargetObjectApprover())) {
-            cloneAndMerge(_case.getReviewerRef(), getTargetObjectApprovers(_case, task, result));
-        }
-        if (Boolean.TRUE.equals(reviewerSpec.isUseSubjectManager())) {
-            cloneAndMerge(_case.getReviewerRef(), getSubjectManagers(_case, task, result));
-        }
-        // TODO evaluate reviewer expressions
-        if (_case.getReviewerRef().isEmpty()) {
-            cloneAndMerge(_case.getReviewerRef(), reviewerSpec.getDefaultReviewerRef());
-        }
-    }
-
-    private void cloneAndMerge(List<ObjectReferenceType> reviewers, Collection<ObjectReferenceType> newReviewers) {
-        if (newReviewers == null) {
-            return;
-        }
-        for (ObjectReferenceType newReviewer : newReviewers) {
-            if (!containsOid(reviewers, newReviewer.getOid())) {
-                reviewers.add(newReviewer.clone());
-            }
-        }
-    }
-
-    private boolean containsOid(List<ObjectReferenceType> reviewers, String oid) {
-        for (ObjectReferenceType reviewer : reviewers) {
-            if (reviewer.getOid().equals(oid)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    // TODO implement this
-    private Collection<ObjectReferenceType> getSubjectManagers(AccessCertificationCaseType _case, Task task, OperationResult result) {
-        return null;
-    }
-
-    protected List<ObjectReferenceType> getTargetObjectOwners(AccessCertificationCaseType _case, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        if (_case.getTargetRef() == null) {
-            return null;
-        }
-        ObjectType target = objectResolver.resolve(_case.getTargetRef(), ObjectType.class, null, "resolving cert case target", result);
-        if (target instanceof AbstractRoleType) {
-            ObjectReferenceType ownerRef = ((AbstractRoleType) target).getOwnerRef();
-            if (ownerRef != null) {
-                return Arrays.asList(ownerRef);
-            } else {
-                return null;
-            }
-        } else if (target instanceof ResourceType) {
-            return ResourceTypeUtil.getOwnerRef((ResourceType) target);
-        } else {
-            return null;
-        }
-    }
-
-    private Collection<ObjectReferenceType> getTargetObjectApprovers(AccessCertificationCaseType _case, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        if (_case.getTargetRef() == null) {
-            return null;
-        }
-        ObjectType target = objectResolver.resolve(_case.getTargetRef(), ObjectType.class, null, "resolving cert case target", result);
-        if (target instanceof AbstractRoleType) {
-            return ((AbstractRoleType) target).getApproverRef();
-        } else if (target instanceof ResourceType) {
-            return ResourceTypeUtil.getApproverRef((ResourceType) target);
-        } else {
-            return null;
-        }
-    }
+    @Autowired
+    protected AccCertReviewersHelper reviewersHelper;
 
     // default implementation, depending only on the expressions provided
-    protected Collection<? extends AccessCertificationCaseType> createCasesForObject(PrismObject<ObjectType> object, List<ExpressionType> caseExpressionList, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) {
-        if (CollectionUtils.isEmpty(caseExpressionList)) {
-            throw new IllegalStateException("Unspecified case expression (and no default one provided) for campaign " + ObjectTypeUtil.toShortString(campaign));
-        }
-        return evaluateCaseExpressionList(caseExpressionList, object, task, parentResult);
-    }
-
-    protected Collection<? extends AccessCertificationCaseType> evaluateCaseExpressionList(List<ExpressionType> caseExpressionList, PrismObject<ObjectType> object, Task task, OperationResult parentResult) {
-        List<AccessCertificationCaseType> caseList = new ArrayList<>();
-        for (ExpressionType caseExpression : caseExpressionList) {
-            caseList.addAll(evaluateCaseExpression(caseExpression, object, task, parentResult));
-        }
-        return caseList;
-    }
-
-    protected Collection<? extends AccessCertificationCaseType> evaluateCaseExpression(ExpressionType caseExpression, PrismObject<ObjectType> object, Task task, OperationResult parentResult) {
-        // todo
+    public Collection<? extends AccessCertificationCaseType> createCasesForObject(PrismObject<ObjectType> object, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) {
         throw new UnsupportedOperationException("Not implemented yet.");
+//        if (CollectionUtils.isEmpty(caseExpressionList)) {
+//            throw new IllegalStateException("Unspecified case expression (and no default one provided) for campaign " + ObjectTypeUtil.toShortString(campaign));
+//        }
+//        return evaluateCaseExpressionList(caseExpressionList, object, task, parentResult);
     }
 
-    private void updateCases(AccessCertificationCampaignType campaign, AccessCertificationStageType stage, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-        LOGGER.trace("Updating reviewers and timestamps for cases in {}", ObjectTypeUtil.toShortString(campaign));
-        List<AccessCertificationCaseType> caseList = campaign.getCase();
+//    protected Collection<? extends AccessCertificationCaseType> evaluateCaseExpressionList(List<ExpressionType> caseExpressionList, PrismObject<ObjectType> object, Task task, OperationResult parentResult) {
+//        List<AccessCertificationCaseType> caseList = new ArrayList<>();
+//        for (ExpressionType caseExpression : caseExpressionList) {
+//            caseList.addAll(evaluateCaseExpression(caseExpression, object, task, parentResult));
+//        }
+//        return caseList;
+//    }
 
-        int stageToBe = campaign.getCurrentStageNumber() + 1;
+//    protected Collection<? extends AccessCertificationCaseType> evaluateCaseExpression(ExpressionType caseExpression, PrismObject<ObjectType> object, Task task, OperationResult parentResult) {
+//        // todo
+//        throw new UnsupportedOperationException("Not implemented yet.");
+//    }
 
-        AccessCertificationReviewerSpecificationType reviewerSpec =
-                findReviewersSpecification(campaign, stageToBe, task, result);
 
-        List<ItemDelta> campaignDeltaList = new ArrayList<>(caseList.size());
-        for (int i = 0; i < caseList.size(); i++) {
-            AccessCertificationCaseType _case = caseList.get(i);
-            setupReviewersForCase(_case, campaign, reviewerSpec, task, result);
-            PrismReference reviewersRef = _case.asPrismContainerValue().findOrCreateReference(AccessCertificationCaseType.F_REVIEWER_REF);
-            ReferenceDelta reviewerDelta = ReferenceDelta.createModificationReplace(
-                    new ItemPath(
-                            new NameItemPathSegment(AccessCertificationCampaignType.F_CASE),
-                            new IdItemPathSegment(_case.asPrismContainerValue().getId()),
-                            new NameItemPathSegment(AccessCertificationCaseType.F_REVIEWER_REF)),
-                    certificationManager.getCampaignObjectDefinition(), CloneUtil.cloneCollectionMembers(reviewersRef.getValues()));
-            campaignDeltaList.add(reviewerDelta);
-
-            PropertyDelta reviewRequestedTimestampDelta = PropertyDelta.createModificationReplaceProperty(
-                    new ItemPath(
-                            new NameItemPathSegment(AccessCertificationCampaignType.F_CASE),
-                            new IdItemPathSegment(_case.asPrismContainerValue().getId()),
-                            new NameItemPathSegment(AccessCertificationCaseType.F_REVIEW_REQUESTED_TIMESTAMP)),
-                    certificationManager.getCampaignObjectDefinition(), stage.getStart());
-            campaignDeltaList.add(reviewRequestedTimestampDelta);
-
-            PropertyDelta deadlineDelta = PropertyDelta.createModificationReplaceProperty(
-                    new ItemPath(
-                            new NameItemPathSegment(AccessCertificationCampaignType.F_CASE),
-                            new IdItemPathSegment(_case.asPrismContainerValue().getId()),
-                            new NameItemPathSegment(AccessCertificationCaseType.F_REVIEW_REQUESTED_TIMESTAMP)),
-                    certificationManager.getCampaignObjectDefinition(), stage.getEnd());
-            campaignDeltaList.add(deadlineDelta);
-
-            boolean enabled = helper.computeEnabled(_case);
-            PropertyDelta enabledDelta = PropertyDelta.createModificationReplaceProperty(
-                    new ItemPath(
-                            new NameItemPathSegment(AccessCertificationCampaignType.F_CASE),
-                            new IdItemPathSegment(_case.asPrismContainerValue().getId()),
-                            new NameItemPathSegment(AccessCertificationCaseType.F_ENABLED)),
-                    certificationManager.getCampaignObjectDefinition(), enabled);
-            campaignDeltaList.add(enabledDelta);
-
-            if (enabled) {
-                PropertyDelta currentResponseDelta = PropertyDelta.createModificationReplaceProperty(
-                        new ItemPath(
-                                new NameItemPathSegment(AccessCertificationCampaignType.F_CASE),
-                                new IdItemPathSegment(_case.asPrismContainerValue().getId()),
-                                new NameItemPathSegment(AccessCertificationCaseType.F_CURRENT_RESPONSE)),
-                        certificationManager.getCampaignObjectDefinition(), null);
-                campaignDeltaList.add(currentResponseDelta);
-            }
-        }
-
-        ContainerDelta<AccessCertificationStageType> stageDelta = ContainerDelta.createDelta(AccessCertificationCampaignType.F_STAGE,
-                AccessCertificationCampaignType.class, prismContext);
-        stageDelta.addValueToAdd(stage.asPrismContainerValue());
-        campaignDeltaList.add(stageDelta);
-
-        repositoryService.modifyObject(AccessCertificationCampaignType.class, campaign.getOid(), campaignDeltaList, result);
-        LOGGER.debug("Created a stage, updated reviewers and timestamps in {} cases for campaign {}", caseList.size(), ObjectTypeUtil.toShortString(campaign));
-    }
-
-    protected QName getDefaultObjectType() {
+    public QName getDefaultObjectType() {
         return null;
     }
 }

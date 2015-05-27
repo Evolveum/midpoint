@@ -75,7 +75,7 @@ import static org.testng.AssertJUnit.fail;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class BasicCertificationTest extends AbstractCertificationTest {
 
-    protected static final File CERT_DEF_USER_ASSIGNMENT_BASIC_FILE = new File(COMMON_DIR, "basic-certification-of-eroot-user-assignments.xml");
+    protected static final File CERT_DEF_USER_ASSIGNMENT_BASIC_FILE = new File(COMMON_DIR, "certification-of-eroot-user-assignments.xml");
     protected static final String CERT_DEF_USER_ASSIGNMENT_BASIC_OID = "33333333-0000-0000-0000-000000000001";
 
     protected AccessCertificationDefinitionType basicCertificationDefinition;
@@ -247,7 +247,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
 
     @Test
     public void test050SearchDecisions() throws Exception {
-        final String TEST_NAME = "test050SearchDecisions";
+        final String TEST_NAME = "test050SearchDecisionsAdministrator";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -358,13 +358,6 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         assertEquals("wrong enabled", Boolean.TRUE, ceoCase.isEnabled());
     }
 
-    private void assertApproximateTime(String itemName, Date expected, XMLGregorianCalendar actual) {
-        assertNotNull("missing " + itemName, actual);
-        Date actualAsDate = XmlTypeConverter.toDate(actual);
-        assertTrue(itemName + " out of range; expected " + expected + ", found " + actualAsDate,
-                Math.abs(actualAsDate.getTime()-expected.getTime()) < 600000);     // 10 minutes
-    }
-
     protected void checkAllCases(Collection<AccessCertificationCaseType> caseList) {
         assertEquals("Wrong number of certification cases", 6, caseList.size());
         checkCase(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID, userAdministrator);
@@ -373,39 +366,6 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         checkCase(caseList, USER_ADMINISTRATOR_OID, ORG_EROOT_OID, userAdministrator);
         checkCase(caseList, USER_JACK_OID, ROLE_CEO_OID, userJack);
         checkCase(caseList, USER_JACK_OID, ORG_EROOT_OID, userJack);
-    }
-
-    private AccessCertificationCaseType checkCase(Collection<AccessCertificationCaseType> caseList, String subjectOid, String targetOid, FocusType focus) {
-        AccessCertificationCaseType ccase = findCase(caseList, subjectOid, targetOid);
-        assertNotNull("Certification case for " + subjectOid + ":" + targetOid + " was not found", ccase);
-        assertNotNull("reviewRequestedTimestamp", ccase.getReviewRequestedTimestamp());
-        assertNotNull("deadline", ccase.getReviewDeadline());
-        assertNull("remediedTimestamp", ccase.getRemediedTimestamp());
-        return checkSpecificCase(ccase, focus);
-    }
-
-    private AccessCertificationCaseType checkSpecificCase(AccessCertificationCaseType ccase, FocusType focus) {
-        assertEquals("Wrong class for case", AccessCertificationAssignmentCaseType.class, ccase.getClass());
-        AccessCertificationAssignmentCaseType acase = (AccessCertificationAssignmentCaseType) ccase;
-        long id = acase.getAssignment().getId();
-        for (AssignmentType assignment : focus.getAssignment()) {
-            if (id == assignment.getId()) {
-                assertEquals("Wrong assignment in certification case", assignment, acase.getAssignment());
-                return ccase;
-            }
-        }
-        fail("Assignment with ID " + id + " not found among assignments of " + focus);
-        return null;        // won't come here
-    }
-
-    private AccessCertificationCaseType findCase(Collection<AccessCertificationCaseType> caseList, String subjectOid, String targetOid) {
-        for (AccessCertificationCaseType acase : caseList) {
-            if (acase.getTargetRef() != null && acase.getTargetRef().getOid().equals(targetOid) &&
-                    acase.getSubjectRef() != null && acase.getSubjectRef().getOid().equals(subjectOid)) {
-                return acase;
-            }
-        }
-        return null;
     }
 
     @Test
@@ -475,6 +435,10 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         // TODO assertApproximateTime("end time", new Date(), campaign.getEnd());
         assertEquals("wrong # of stages", 1, campaign.getStage().size());
         //assertApproximateTime("stage 1 end", new Date(), stage.getStart());       // TODO when implemented
+
+        List<AccessCertificationCaseType> caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
+        AccessCertificationCaseType jackCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
+        assertApproximateTime("ceoDummyCase.remediedTimestamp", new Date(), jackCase.getRemediedTimestamp());
 
         userJack = getUser(USER_JACK_OID).asObjectable();
         display("jack", userJack);

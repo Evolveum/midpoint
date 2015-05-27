@@ -19,6 +19,8 @@ package com.evolveum.midpoint.schema.util;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationRemediationStyleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageDefinitionType;
@@ -47,6 +49,33 @@ public class CertCampaignTypeUtil {
             }
         }
         throw new IllegalStateException("No stage " + stageNumber + " in " + ObjectTypeUtil.toShortString(campaign));
+    }
+
+    public static AccessCertificationStageType findStage(AccessCertificationCampaignType campaign, int stageNumber) {
+        for (AccessCertificationStageType stage : campaign.getStage()) {
+            if (stage.getNumber() == stageNumber) {
+                return stage;
+            }
+        }
+        throw new IllegalStateException("No stage " + stageNumber + " in " + ObjectTypeUtil.toShortString(campaign));
+    }
+
+    public static AccessCertificationCaseType findCase(AccessCertificationCampaignType campaign, long caseId) {
+        for (AccessCertificationCaseType _case : campaign.getCase()) {
+            if (_case.asPrismContainerValue().getId() != null && _case.asPrismContainerValue().getId() == caseId) {
+                return _case;
+            }
+        }
+        return null;
+    }
+
+    public static AccessCertificationDecisionType findDecision(AccessCertificationCaseType _case, int stageNumber, String reviewerOid) {
+        for (AccessCertificationDecisionType d : _case.getDecision()) {
+            if (d.getStageNumber() == stageNumber && d.getReviewerRef().getOid().equals(reviewerOid)) {
+                return d;
+            }
+        }
+        return null;
     }
 
     public static int getNumberOfStages(AccessCertificationCampaignType campaign) {

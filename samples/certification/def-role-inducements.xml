@@ -19,17 +19,29 @@
         xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <name>All user assignments</name>
-    <description>Certifies all users' assignments. Everything is certified by the administrator.</description>
+    <name>Role Inducements</name>
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/handlers-3#direct-assignment</handlerUri>
+    <scopeDefinition xsi:type="AccessCertificationAssignmentReviewScopeType">
+        <objectType>RoleType</objectType>
+        <!-- no search filter = all roles -->
+        <includeAssignments>false</includeAssignments>      <!-- inducements only -->
+    </scopeDefinition>
     <remediationDefinition>
         <style>automated</style>
     </remediationDefinition>
     <stageDefinition>
         <number>1</number>
-        <days>14</days>
+        <days>7</days>
         <reviewerSpecification>
-            <defaultReviewerRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />   <!-- administrator -->
+            <useSubjectOwner>true</useSubjectOwner>
+        </reviewerSpecification>
+    </stageDefinition>
+    <stageDefinition>
+        <number>2</number>
+        <days>7</days>
+        <reviewerSpecification>
+            <useTargetObjectOwner>true</useTargetObjectOwner>
+            <additionalReviewerRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />    <!-- administrator -->
         </reviewerSpecification>
     </stageDefinition>
 </accessCertificationDefinition>

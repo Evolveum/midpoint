@@ -65,6 +65,9 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
 
     @Autowired
     private AccCertGeneralHelper helper;
+
+    @Autowired
+    private AccCertUpdateHelper updateHelper;
 	
 	private static final transient Trace LOGGER = TraceManager.getTrace(AccessCertificationRemediationTaskHandler.class);
 
@@ -107,7 +110,7 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
             int revokedOk = 0;
             int revokedError = 0;
 
-            List<AccessCertificationCaseType> caseList = certificationManager.searchCases(campaignOid, null, null, task, opResult);
+            List<AccessCertificationCaseType> caseList = certificationManager.searchCases((String) campaignOid, (com.evolveum.midpoint.prism.query.ObjectQuery) null, (java.util.Collection<com.evolveum.midpoint.schema.SelectorOptions<com.evolveum.midpoint.schema.GetOperationOptions>>) null, (Task) task, (OperationResult) opResult);
             for (AccessCertificationCaseType _case : caseList) {
                 if (helper.isRevoke(_case, campaign)) {
                     OperationResult caseResult = opResult.createMinorSubresult(opResult.getOperation()+".revoke");
@@ -115,7 +118,7 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
                     caseResult.addContext("caseId", caseId);
                     try {
                         handler.doRevoke(_case, campaign, task, caseResult);
-                        helper.markCaseAsRemedied(campaignOid, caseId, task, caseResult);
+                        updateHelper.markCaseAsRemedied(campaignOid, caseId, task, caseResult);
                         caseResult.computeStatus();
                         revokedOk++;
                     } catch (Exception e) {     // TODO

@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.certification.impl.handlers;
 
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -28,6 +29,12 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import javax.xml.namespace.QName;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author mederly
@@ -35,27 +42,32 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 public interface CertificationHandler {
 
     /**
-     * Creates a new Certification Campaign from a Certification Type and (prototype) Certification Run.
-     * By default, merges all the data from type and run (specific data from the run take precedence).
-     * Individual handlers can modify this behavior if needed.
+     * Creates certification cases for a given midPoint object (e.g. user, role, org, ...).
+     * It's expected to use campaign.scopeDefinition to do that.
      *
-     * @param certificationTypeType
-     * @param runType
+     * @param object
+     * @param campaign
      * @param task
-     * @param result
+     * @param parentResult
      * @return
-     * @throws SecurityViolationException
      */
-//    AccessCertificationCampaignType createCampaign(AccessCertificationDefinitionType certificationDefinition, AccessCertificationCampaignType campaign, Task task, OperationResult result) throws SecurityViolationException;
+    Collection<? extends AccessCertificationCaseType> createCasesForObject(PrismObject<ObjectType> object, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult);
 
     /**
-     * Starts the campaign. E.g. creates all the certification cases.
+     * Implements the automated REVOKE for a given certification case.
      *
-     * @param runType
+     * @param aCase
+     * @param campaign
      * @param task
-     * @param result
+     * @param caseResult
      */
-    void moveToNextStage(AccessCertificationCampaignType campaign, Task task, OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException;
-
     void doRevoke(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign, Task task, OperationResult caseResult) throws CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException;
+
+    /**
+     * Returns the default objectType to search for when preparing a list of certification cases.
+     *
+     * @return
+     */
+    QName getDefaultObjectType();
+
 }

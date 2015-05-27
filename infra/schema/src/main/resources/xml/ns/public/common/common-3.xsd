@@ -11321,6 +11321,20 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="useSubjectOwner" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Indicates that subject (Org, Role) owner(s) should be used as reviewer(s).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="useSubjectApprover" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Indicates that subject (Org, Role) approver(s) should be used as reviewer(s).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="useSubjectManager" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

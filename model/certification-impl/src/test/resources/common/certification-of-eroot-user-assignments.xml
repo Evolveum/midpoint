@@ -22,7 +22,7 @@
         oid="33333333-0000-0000-0000-000000000001">
     <name>Basic User Assignment Certification (ERoot only)</name>
     <description>Basic certification of all user assignments.</description>
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/certification-3#user-assignment-basic</handlerUri>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/handlers-3#direct-assignment</handlerUri>
     <scopeDefinition xsi:type="AccessCertificationObjectBasedScopeType">
         <objectType>UserType</objectType>
         <searchFilter>

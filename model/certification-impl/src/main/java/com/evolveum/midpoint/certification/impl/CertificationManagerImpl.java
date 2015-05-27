@@ -21,37 +21,16 @@ import com.evolveum.midpoint.certification.impl.handlers.CertificationHandler;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.parser.XNodeSerializer;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrderDirection;
-import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -68,28 +47,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import net.sf.jasperreports.engine.util.ObjectUtils;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -127,10 +92,16 @@ public class CertificationManagerImpl implements CertificationManager {
     protected SecurityEnforcer securityEnforcer;
 
     @Autowired
-    private MatchingRuleRegistry matchingRuleRegistry;
+    protected AccCertGeneralHelper helper;
 
     @Autowired
-    protected AccCertGeneralHelper helper;
+    protected AccCertResponseComputationHelper computationHelper;
+
+    @Autowired
+    protected AccCertQueryHelper queryHelper;
+
+    @Autowired
+    protected AccCertUpdateHelper updateHelper;
 
     @Autowired
     private AccessCertificationRemediationTaskHandler remediationTaskHandler;
@@ -139,8 +110,6 @@ public class CertificationManagerImpl implements CertificationManager {
     @Autowired
     @Qualifier("cacheRepositoryService")
     protected RepositoryService repositoryService;
-
-    private PrismObjectDefinition<AccessCertificationCampaignType> campaignObjectDefinition = null;     // lazily evaluated
 
     private Map<String,CertificationHandler> registeredHandlers = new HashMap<>();
 
@@ -173,8 +142,8 @@ public class CertificationManagerImpl implements CertificationManager {
 
         OperationResult result = parentResult.createSubresult(OPERATION_CREATE_CAMPAIGN);
         try {
-            AccessCertificationCampaignType newCampaign = createCampaignObject(certDefinition, campaign, task, result);
-            addObject(newCampaign, task, result);
+            AccessCertificationCampaignType newCampaign = helper.createCampaignObject(certDefinition, campaign, task, result);
+            updateHelper.addObject(newCampaign, task, result);
             return newCampaign;
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't create certification campaign: unexpected exception: " + e.getMessage(), e);
@@ -182,78 +151,6 @@ public class CertificationManagerImpl implements CertificationManager {
         } finally {
             result.computeStatusIfUnknown();
         }
-    }
-
-    private AccessCertificationCampaignType createCampaignObject(AccessCertificationDefinitionType definition, AccessCertificationCampaignType campaign,
-                                                                 Task task, OperationResult result) throws SecurityViolationException, SchemaException {
-        AccessCertificationCampaignType newCampaign = new AccessCertificationCampaignType(prismContext);
-        Date now = new Date();
-
-        if (campaign != null && campaign.getName() != null) {
-            campaign.setName(campaign.getName());
-        } else if (definition != null && definition.getName() != null) {
-            newCampaign.setName(new PolyStringType("Campaign for " + definition.getName().getOrig() + " started " + now));
-        } else {
-            throw new SchemaException("Couldn't create a campaign without name");
-        }
-
-        if (campaign != null && campaign.getDescription() != null) {
-            newCampaign.setDescription(newCampaign.getDescription());
-        } else if (definition != null) {
-            newCampaign.setDescription(definition.getDescription());
-        }
-
-        if (campaign != null && campaign.getOwnerRef() != null) {
-            newCampaign.setOwnerRef(campaign.getOwnerRef());
-        } else if (definition.getOwnerRef() != null) {
-            newCampaign.setOwnerRef(definition.getOwnerRef());
-        } else {
-            newCampaign.setOwnerRef(securityEnforcer.getPrincipal().toObjectReference());
-        }
-
-        if (campaign != null && campaign.getTenantRef() != null) {
-            newCampaign.setTenantRef(campaign.getTenantRef());
-        } else {
-            newCampaign.setTenantRef(definition.getTenantRef());
-        }
-
-        if (definition != null && definition.getOid() != null) {
-            newCampaign.setDefinitionRef(ObjectTypeUtil.createObjectRef(definition));
-        }
-
-        if (campaign != null && campaign.getHandlerUri() != null) {
-            newCampaign.setHandlerUri(campaign.getHandlerUri());
-        } else if (definition != null && definition.getHandlerUri() != null) {
-            newCampaign.setHandlerUri(definition.getHandlerUri());
-        } else {
-            throw new SchemaException("Couldn't create a campaign without handlerUri");
-        }
-
-        if (campaign != null && campaign.getScopeDefinition() != null) {
-            newCampaign.setScopeDefinition(campaign.getScopeDefinition());
-        } else if (definition != null && definition.getScopeDefinition() != null) {
-            newCampaign.setScopeDefinition(definition.getScopeDefinition());
-        }
-
-        if (campaign != null && campaign.getRemediationDefinition() != null) {
-            newCampaign.setRemediationDefinition(campaign.getRemediationDefinition());
-        } else if (definition != null && definition.getRemediationDefinition() != null) {
-            newCampaign.setRemediationDefinition(definition.getRemediationDefinition());
-        }
-
-        if (campaign != null && CollectionUtils.isNotEmpty(campaign.getStageDefinition())) {
-            newCampaign.getStageDefinition().addAll(CloneUtil.cloneCollectionMembers(campaign.getStageDefinition()));
-        } else if (definition != null && CollectionUtils.isNotEmpty(definition.getStageDefinition())) {
-            newCampaign.getStageDefinition().addAll(CloneUtil.cloneCollectionMembers(definition.getStageDefinition()));
-        }
-        CertCampaignTypeUtil.checkStageDefinitionConsistency(newCampaign.getStageDefinition());
-
-        newCampaign.setStart(null);
-        newCampaign.setEnd(null);
-        newCampaign.setState(CREATED);
-        newCampaign.setCurrentStageNumber(0);
-
-        return newCampaign;
     }
 
     @Override
@@ -294,19 +191,8 @@ public class CertificationManagerImpl implements CertificationManager {
                 result.recordFatalError("Couldn't advance to review stage " + requestedStageNumber + " as the campaign has only " + stages + " stages");
             } else {
                 CertificationHandler handler = findCertificationHandler(campaign);
-                handler.moveToNextStage(campaign, task, result);
-
-                // some bureaucracy... stage#, state, start time
-                List<ItemDelta> itemDeltaList = new ArrayList<>();
-                PropertyDelta<Integer> stageNumberDelta = createStageNumberDelta(requestedStageNumber);
-                itemDeltaList.add(stageNumberDelta);
-                PropertyDelta<AccessCertificationCampaignStateType> stateDelta = createStateDelta(IN_REVIEW_STAGE);
-                itemDeltaList.add(stateDelta);
-                if (requestedStageNumber == 1) {
-                    PropertyDelta<XMLGregorianCalendar> startDelta = createStartTimeDelta(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
-                    itemDeltaList.add(startDelta);
-                }
-                repositoryService.modifyObject(AccessCertificationCampaignType.class, campaign.getOid(), itemDeltaList, result);
+                updateHelper.moveToNextStage(campaign, handler, task, result);
+                updateHelper.recordMoveToNextStage(campaign, requestedStageNumber, result);
             }
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't move to certification campaign stage " + requestedStageNumber + ": unexpected exception: " + e.getMessage(), e);
@@ -344,10 +230,7 @@ public class CertificationManagerImpl implements CertificationManager {
             } else if (!IN_REVIEW_STAGE.equals(state)) {
                 result.recordFatalError("Couldn't close review stage " + stageNumberToClose + " as it is currently not open");
             } else {
-                List<ItemDelta> campaignDeltaList = createCurrentResponsesDeltas(campaign);
-                PropertyDelta<AccessCertificationCampaignStateType> stateDelta = createStateDelta(REVIEW_STAGE_DONE);
-                campaignDeltaList.add(stateDelta);
-                repositoryService.modifyObject(AccessCertificationCampaignType.class, campaign.getOid(), campaignDeltaList, result);
+                updateHelper.recordCloseCurrentState(campaign, result);
             }
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't close certification campaign stage " + stageNumberToClose+ ": unexpected exception: " + e.getMessage(), e);
@@ -355,28 +238,6 @@ public class CertificationManagerImpl implements CertificationManager {
         } finally {
             result.computeStatusIfUnknown();
         }
-    }
-
-    private List<ItemDelta> createCurrentResponsesDeltas(AccessCertificationCampaignType campaign) {
-        List<ItemDelta> campaignDeltaList = new ArrayList<>();
-
-        LOGGER.trace("Updating current response for cases in {}", ObjectTypeUtil.toShortString(campaign));
-        List<AccessCertificationCaseType> caseList = campaign.getCase();
-
-        for (int i = 0; i < caseList.size(); i++) {
-            AccessCertificationCaseType _case = caseList.get(i);
-            AccessCertificationResponseType newResponse = helper.computeResponseForStage(_case, campaign);
-            if (newResponse != _case.getCurrentResponse()) {
-                PropertyDelta currentResponseDelta = PropertyDelta.createModificationReplaceProperty(
-                        new ItemPath(
-                                new NameItemPathSegment(AccessCertificationCampaignType.F_CASE),
-                                new IdItemPathSegment(_case.asPrismContainerValue().getId()),
-                                new NameItemPathSegment(AccessCertificationCaseType.F_CURRENT_RESPONSE)),
-                        getCampaignObjectDefinition(), newResponse);
-                campaignDeltaList.add(currentResponseDelta);
-            }
-        }
-        return campaignDeltaList;
     }
 
     @Override
@@ -411,7 +272,7 @@ public class CertificationManagerImpl implements CertificationManager {
                 } else {
                     result.recordWarning("The automated remediation is not configured. The campaign state was set to IN REMEDIATION, but all remediation actions have to be done by hand.");
                 }
-                setStageNumberAndState(campaign, lastStageNumber + 1, IN_REMEDIATION, task, result);
+                updateHelper.setStageNumberAndState(campaign, lastStageNumber + 1, IN_REMEDIATION, task, result);
             }
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't start the remediation: unexpected exception: " + e.getMessage(), e);
@@ -419,13 +280,6 @@ public class CertificationManagerImpl implements CertificationManager {
         } finally {
             result.computeStatusIfUnknown();
         }
-    }
-
-    private void addObject(ObjectType objectType, Task task, OperationResult result) throws CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
-        ObjectDelta objectDelta = ObjectDelta.createAddDelta(objectType.asPrismObject());
-        Collection<ObjectDeltaOperation<?>> ops = modelService.executeChanges((Collection) Arrays.asList(objectDelta), null, task, result);
-        ObjectDeltaOperation odo = ops.iterator().next();
-        objectType.setOid(odo.getObjectDelta().getOid());
     }
 
     @Override
@@ -441,12 +295,7 @@ public class CertificationManagerImpl implements CertificationManager {
 
         // temporary implementation: simply fetches the whole campaign and selects requested items by itself
         try {
-            ObjectFilter filter = query != null ? query.getFilter() : null;
-            ObjectPaging paging = query != null ? query.getPaging() : null;
-            AccessCertificationCampaignType campaign = helper.getCampaign(campaignOid, options, task, result);
-            List<AccessCertificationCaseType> caseList = getCases(campaign, filter, task, result);
-            caseList = doSortingAndPaging(caseList, paging);
-            return caseList;
+            return queryHelper.searchCases(campaignOid, query, options, task, result);
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't search for certification cases: unexpected exception: " + e.getMessage(), e);
             throw e;
@@ -468,172 +317,12 @@ public class CertificationManagerImpl implements CertificationManager {
         OperationResult result = parentResult.createSubresult(OPERATION_SEARCH_DECISIONS);
 
         try {
-            // enhance filter with reviewerRef
-            ObjectFilter enhancedFilter;
-            ObjectReferenceType reviewerRef = ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER);
-            ObjectFilter reviewerFilter = RefFilter.createReferenceEqual(
-                    new ItemPath(AccessCertificationCaseType.F_REVIEWER_REF),
-                    AccessCertificationCaseType.class, prismContext, reviewerRef.asReferenceValue());
-            ObjectFilter enabledFilter = EqualFilter.createEqual(
-                    AccessCertificationCaseType.F_ENABLED, AccessCertificationCaseType.class, prismContext, Boolean.TRUE);
-            ObjectFilter andFilter = AndFilter.createAnd(reviewerFilter, enabledFilter);
-
-            if (caseQuery == null || caseQuery.getFilter() == null) {
-                enhancedFilter = andFilter;
-            } else {
-                enhancedFilter = AndFilter.createAnd(caseQuery.getFilter(), andFilter);
-            }
-
-            // retrieve cases, filtered
-            List<PrismObject<AccessCertificationCampaignType>> campaignObjects = modelService.searchObjects(AccessCertificationCampaignType.class, campaignQuery, options, task, result);
-            List<AccessCertificationCaseType> caseList = new ArrayList<>();
-            for (PrismObject<AccessCertificationCampaignType> campaignObject : campaignObjects) {
-                AccessCertificationCampaignType campaign = campaignObject.asObjectable();
-                if (!AccessCertificationCampaignStateType.IN_REVIEW_STAGE.equals(campaign.getState())) {
-                    continue;
-                }
-                List<AccessCertificationCaseType> campaignCases = getCases(campaign, enhancedFilter, task, result);
-
-                // remove irrelevant decisions from each case
-                // and add campaignRef
-                int stage = campaign.getCurrentStageNumber();
-                for (AccessCertificationCaseType _case : campaignCases) {
-                    Iterator<AccessCertificationDecisionType> decisionIterator = _case.getDecision().iterator();
-                    while (decisionIterator.hasNext()) {
-                        AccessCertificationDecisionType decision = decisionIterator.next();
-                        if (decision.getStageNumber() != stage || !decision.getReviewerRef().getOid().equals(reviewerOid)) {
-                            decisionIterator.remove();
-                        }
-                    }
-                    _case.setCampaignRef(ObjectTypeUtil.createObjectRef(campaignObject));
-                    caseList.add(_case);
-                }
-            }
-
-            // sort and page cases
-            ObjectPaging paging = caseQuery != null ? caseQuery.getPaging() : null;
-            caseList = doSortingAndPaging(caseList, paging);
-
-            return caseList;
+            return queryHelper.searchDecisions(campaignQuery, caseQuery, reviewerOid, options, task, result);
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't search for certification decisions: unexpected exception: " + e.getMessage(), e);
             throw e;
         } finally {
             result.computeStatusIfUnknown();
-        }
-    }
-
-    protected List<AccessCertificationCaseType> doSortingAndPaging(List<AccessCertificationCaseType> caseList, ObjectPaging paging) {
-        if (paging == null) {
-            return caseList;
-        }
-
-        // sorting
-        if (paging.getOrderBy() != null) {
-            Comparator<AccessCertificationCaseType> comparator = createComparator(paging.getOrderBy(), paging.getDirection());
-            if (comparator != null) {
-                caseList = new ArrayList<>(caseList);
-                Collections.sort(caseList, comparator);
-            }
-        }
-        // paging
-        if (paging.getOffset() != null || paging.getMaxSize() != null) {
-            int offset = paging.getOffset() != null ? paging.getOffset() : 0;
-            int maxSize = paging.getMaxSize() != null ? paging.getMaxSize() : Integer.MAX_VALUE;
-            if (offset >= caseList.size()) {
-                caseList = new ArrayList<>();
-            } else {
-                if (maxSize > caseList.size() - offset) {
-                    maxSize = caseList.size() - offset;
-                }
-                caseList = caseList.subList(offset, offset+maxSize);
-            }
-        }
-        return caseList;
-    }
-
-    protected List<AccessCertificationCaseType> getCases(AccessCertificationCampaignType campaign, ObjectFilter filter, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
-        // temporary implementation: simply fetches the whole campaign and selects requested items by itself
-        List<AccessCertificationCaseType> caseList = campaign.getCase();
-
-        // filter items
-        if (filter != null) {
-            Iterator<AccessCertificationCaseType> caseIterator = caseList.iterator();
-            while (caseIterator.hasNext()) {
-                AccessCertificationCaseType _case = caseIterator.next();
-                if (!ObjectQuery.match(_case, filter, matchingRuleRegistry)) {
-                    caseIterator.remove();
-                }
-            }
-        }
-
-        return caseList;
-    }
-
-    /**
-     * Experimental implementation: we support ordering by subject object name, target object name.
-     * However, there are no QNames that exactly match these options. So we map the following QNames to ordering attributes:
-     *
-     * F_SUBJECT_REF -> ordering by subject name
-     * F_TARGET_REF -> ordering by target name
-     *
-     * The requirement is that object names were fetched as well (resolveNames option)
-     *
-     */
-    private Comparator<AccessCertificationCaseType> createComparator(QName orderBy, OrderDirection direction) {
-        if (QNameUtil.match(orderBy, AccessCertificationCaseType.F_SUBJECT_REF)) {
-            return createSubjectNameComparator(direction);
-        } else if (QNameUtil.match(orderBy, AccessCertificationCaseType.F_TARGET_REF)) {
-            return createTargetNameComparator(direction);
-        } else {
-            LOGGER.warn("Unsupported sorting attribute {}. Results will not be sorted.", orderBy);
-            return null;
-        }
-    }
-
-    private Comparator<AccessCertificationCaseType> createSubjectNameComparator(final OrderDirection direction) {
-        return new Comparator<AccessCertificationCaseType>() {
-            @Override
-            public int compare(AccessCertificationCaseType o1, AccessCertificationCaseType o2) {
-                return compareRefNames(o1.getSubjectRef(), o2.getSubjectRef(), direction);
-            }
-        };
-    }
-
-    private Comparator<AccessCertificationCaseType> createTargetNameComparator(final OrderDirection direction) {
-        return new Comparator<AccessCertificationCaseType>() {
-            @Override
-            public int compare(AccessCertificationCaseType o1, AccessCertificationCaseType o2) {
-                return compareRefNames(o1.getTargetRef(), o2.getTargetRef(), direction);
-            }
-        };
-    }
-
-    private int compareRefNames(ObjectReferenceType leftRef, ObjectReferenceType rightRef, OrderDirection direction) {
-        if (leftRef == null) {
-            return respectDirection(1, direction);      // null > anything
-        } else if (rightRef == null) {
-            return respectDirection(-1, direction);     // anything < null
-        }
-
-        // brutal hack - we (mis)use the fact that names are serialized as XNode comments
-        String leftName = (String) leftRef.asReferenceValue().getUserData(XNodeSerializer.USER_DATA_KEY_COMMENT);
-        String rightName = (String) rightRef.asReferenceValue().getUserData(XNodeSerializer.USER_DATA_KEY_COMMENT);
-        if (leftName == null) {
-            return respectDirection(1, direction);      // null > anything
-        } else if (rightName == null) {
-            return respectDirection(-1, direction);     // anything < null
-        }
-
-        int ordering = leftName.compareTo(rightName);
-        return respectDirection(ordering, direction);
-    }
-
-    private int respectDirection(int ordering, OrderDirection direction) {
-        if (direction == OrderDirection.ASCENDING) {
-            return ordering;
-        } else {
-            return -ordering;
         }
     }
 
@@ -647,126 +336,13 @@ public class CertificationManagerImpl implements CertificationManager {
         OperationResult result = parentResult.createSubresult(OPERATION_RECORD_DECISION);
         try {
             AccessCertificationCampaignType campaign = helper.getCampaign(campaignOid, null, task, result);
-
-            if (!AccessCertificationCampaignStateType.IN_REVIEW_STAGE.equals(campaign.getState())) {
-                throw new IllegalStateException("Campaign is not in review stage; its state is " + campaign.getState());
-            }
-
-            int currentStage = campaign.getCurrentStageNumber();
-            if (decision.getStageNumber() != 0 && decision.getStageNumber() != currentStage) {
-                throw new IllegalStateException("Cannot add decision with stage number (" + decision.getStageNumber() + ") other than current (" + currentStage + ")");
-            }
-            if (decision.getTimestamp() == null) {
-                decision.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
-            }
-            AccessCertificationCaseType _case = findCaseById(campaign, caseId);
-            if (_case == null) {
-                throw new ObjectNotFoundException("Case " + caseId + " was not found in campaign " + ObjectTypeUtil.toShortString(campaign));
-            }
-            if (!_case.isEnabled()) {
-                throw new IllegalStateException("Cannot update case because it is not update-enabled in this stage");
-            }
-            ObjectReferenceType currentReviewerRef = decision.getReviewerRef();
-            if (currentReviewerRef == null) {
-                UserType currentUser = securityEnforcer.getPrincipal().getUser();
-                currentReviewerRef = ObjectTypeUtil.createObjectRef(currentUser);
-            }
-
-            Long existingDecisionId = null;
-            for (AccessCertificationDecisionType d : _case.getDecision()) {
-                if (d.getStageNumber() == currentStage &&
-                        d.getReviewerRef().getOid().equals(currentReviewerRef.getOid())) {
-                    existingDecisionId = d.asPrismContainerValue().getId();
-                    break;
-                }
-            }
-            AccessCertificationDecisionType decisionWithCorrectId = decision.clone();
-
-            if (decisionWithCorrectId.getTimestamp() == null) {
-                decisionWithCorrectId.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
-            }
-            if (decisionWithCorrectId.getReviewerRef() == null) {
-                decisionWithCorrectId.setReviewerRef(currentReviewerRef);
-            }
-            if (decisionWithCorrectId.getStageNumber() == 0) {
-                decisionWithCorrectId.setStageNumber(currentStage);
-            }
-            decisionWithCorrectId.asPrismContainerValue().setId(existingDecisionId);        // may be null if this is a new decision
-            ItemPath decisionPath = new ItemPath(
-                    new NameItemPathSegment(AccessCertificationCampaignType.F_CASE),
-                    new IdItemPathSegment(caseId),
-                    new NameItemPathSegment(AccessCertificationCaseType.F_DECISION));
-            ContainerDelta<AccessCertificationDecisionType> decisionDelta =
-                    ContainerDelta.createModificationReplace(decisionPath, AccessCertificationCampaignType.class, prismContext, decisionWithCorrectId);
-            Collection<ItemDelta> deltaList = new ArrayList<>();
-            deltaList.add(decisionDelta);
-
-            AccessCertificationResponseType newResponse = helper.computeResponseForStage(_case, decisionWithCorrectId, campaign);
-            if (!ObjectUtils.equals(newResponse, _case.getCurrentResponse())) {
-                PropertyDelta currentResponseDelta = PropertyDelta.createModificationReplaceProperty(
-                        new ItemPath(
-                                new NameItemPathSegment(AccessCertificationCampaignType.F_CASE),
-                                new IdItemPathSegment(_case.asPrismContainerValue().getId()),
-                                new NameItemPathSegment(AccessCertificationCaseType.F_CURRENT_RESPONSE)),
-                        getCampaignObjectDefinition(), newResponse);
-                deltaList.add(currentResponseDelta);
-            }
-
-            // TODO: call model service instead of repository
-            repositoryService.modifyObject(AccessCertificationCampaignType.class, campaignOid, deltaList, result);
-
+            updateHelper.recordDecision(campaign, caseId, decision, result);
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't record reviewer decision: unexpected exception: " + e.getMessage(), e);
             throw e;
         } finally {
             result.computeStatusIfUnknown();
         }
-    }
-
-    public PrismObjectDefinition<?> getCampaignObjectDefinition() {
-        if (campaignObjectDefinition != null) {
-            return campaignObjectDefinition;
-        }
-        campaignObjectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AccessCertificationCampaignType.class);
-        if (campaignObjectDefinition == null) {
-            throw new IllegalStateException("Couldn't find definition for AccessCertificationCampaignType prism object");
-        }
-        return campaignObjectDefinition;
-    }
-
-    private AccessCertificationCaseType findCaseById(AccessCertificationCampaignType campaign, long caseId) {
-        for (AccessCertificationCaseType _case : campaign.getCase()) {
-            if (_case.asPrismContainerValue().getId() != null && _case.asPrismContainerValue().getId() == caseId) {
-                return _case;
-            }
-        }
-        return null;
-    }
-
-    private void setStageNumberAndState(AccessCertificationCampaignType campaign, int number, AccessCertificationCampaignStateType state,
-                                        Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
-        PropertyDelta<Integer> stageNumberDelta = createStageNumberDelta(number);
-        PropertyDelta<AccessCertificationCampaignStateType> stateDelta = createStateDelta(state);
-        // todo switch to model service
-        repositoryService.modifyObject(AccessCertificationCampaignType.class, campaign.getOid(), Arrays.asList(stateDelta, stageNumberDelta), result);
-    }
-
-    private void setState(AccessCertificationCampaignType campaign, AccessCertificationCampaignStateType state, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
-        PropertyDelta<AccessCertificationCampaignStateType> stateDelta = createStateDelta(state);
-        // todo switch to model service
-        repositoryService.modifyObject(AccessCertificationCampaignType.class, campaign.getOid(), Arrays.asList(stateDelta), result);
-    }
-
-    private PropertyDelta<Integer> createStageNumberDelta(int number) {
-        return PropertyDelta.createReplaceDelta(getCampaignObjectDefinition(), AccessCertificationCampaignType.F_CURRENT_STAGE_NUMBER, number);
-    }
-
-    private PropertyDelta<AccessCertificationCampaignStateType> createStateDelta(AccessCertificationCampaignStateType state) {
-        return PropertyDelta.createReplaceDelta(getCampaignObjectDefinition(), AccessCertificationCampaignType.F_STATE, state);
-    }
-
-    private PropertyDelta<XMLGregorianCalendar> createStartTimeDelta(XMLGregorianCalendar date) {
-        return PropertyDelta.createReplaceDelta(getCampaignObjectDefinition(), AccessCertificationCampaignType.F_START, date);
     }
 
     @Override
@@ -779,11 +355,7 @@ public class CertificationManagerImpl implements CertificationManager {
 
         try {
             AccessCertificationCampaignType campaign = helper.getCampaign(campaignOid, null, task, result);
-            int currentStageNumber = campaign.getCurrentStageNumber();
-            int lastStageNumber = CertCampaignTypeUtil.getNumberOfStages(campaign);
-            AccessCertificationCampaignStateType state = campaign.getState();
-            // TODO issue a warning if we are not in a correct state
-            setStageNumberAndState(campaign, lastStageNumber + 1, CLOSED, task, result);
+            updateHelper.closeCampaign(campaign, task, result);
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't close certification campaign: unexpected exception: " + e.getMessage(), e);
             throw e;
@@ -849,6 +421,4 @@ public class CertificationManagerImpl implements CertificationManager {
             result.computeStatusIfUnknown();
         }
     }
-
-
 }

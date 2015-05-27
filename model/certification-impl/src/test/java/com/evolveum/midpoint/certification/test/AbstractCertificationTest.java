@@ -15,20 +15,42 @@
  */
 package com.evolveum.midpoint.certification.test;
 
+import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.certification.api.CertificationManager;
+import com.evolveum.midpoint.certification.impl.AccCertGeneralHelper;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationAssignmentCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.File;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.fail;
 
 /**
  * @author mederly
@@ -71,16 +93,46 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 	public static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
 	protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
 
+	public static final File METAROLE_CXO_FILE = new File(COMMON_DIR, "metarole-cxo.xml");
+	protected static final String METAROLE_CXO_OID = "00000000-d34d-b33f-f00d-444444444444";
+
 	public static final File ROLE_CEO_FILE = new File(COMMON_DIR, "role-ceo.xml");
 	protected static final String ROLE_CEO_OID = "00000000-d34d-b33f-f00d-000000000001";
 
 	public static final File ROLE_COO_FILE = new File(COMMON_DIR, "role-coo.xml");
 	protected static final String ROLE_COO_OID = "00000000-d34d-b33f-f00d-000000000002";
 
+	protected DummyResource dummyResource;
+	protected DummyResourceContoller dummyResourceCtl;
+	protected ResourceType resourceDummyType;
+	protected PrismObject<ResourceType> resourceDummy;
+
+	protected DummyResource dummyResourceBlack;
+	protected DummyResourceContoller dummyResourceCtlBlack;
+	protected ResourceType resourceDummyBlackType;
+	protected PrismObject<ResourceType> resourceDummyBlack;
+
+	protected static final File RESOURCE_DUMMY_FILE = new File(COMMON_DIR, "resource-dummy.xml");
+	protected static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
+	protected static final String RESOURCE_DUMMY_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004";
+	protected static final String DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME = "sea";
+
+	protected static final String RESOURCE_DUMMY_BLACK_FILENAME = COMMON_DIR + "/resource-dummy-black.xml";
+	protected static final String RESOURCE_DUMMY_BLACK_OID = "10000000-0000-0000-0000-000000000305";
+	protected static final String RESOURCE_DUMMY_BLACK_NAME = "black";
+	protected static final String RESOURCE_DUMMY_BLACK_NAMESPACE = MidPointConstants.NS_RI;
+
 	protected static final Trace LOGGER = TraceManager.getTrace(AbstractModelIntegrationTest.class);
 
     @Autowired
     protected CertificationManager certificationManager;
+
+	@Autowired
+	protected AccCertGeneralHelper helper;
+
+	protected RoleType roleCeo;
+	protected RoleType roleCoo;
+	protected RoleType roleSuperuser;
 
 	protected UserType userAdministrator;
 	
@@ -104,9 +156,10 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		repoAddObjectsFromFile(ORGS_AND_USERS_FILE, RoleType.class, initResult);
 
 		// roles
-		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_CEO_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_COO_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(METAROLE_CXO_FILE, RoleType.class, initResult);
+		roleSuperuser = repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RoleType.class, initResult).asObjectable();
+		roleCeo = repoAddObjectFromFile(ROLE_CEO_FILE, RoleType.class, initResult).asObjectable();
+		roleCoo = repoAddObjectFromFile(ROLE_COO_FILE, RoleType.class, initResult).asObjectable();
 
 		// Administrator
 		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult).asObjectable();
@@ -115,7 +168,69 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		// Users
 		userJack = repoAddObjectFromFile(USER_JACK_FILE, UserType.class, initResult).asObjectable();
 
-	}
-	
+		// Resources
 
+		dummyResourceCtl = DummyResourceContoller.create(null);
+		dummyResourceCtl.extendSchemaPirate();
+		dummyResource = dummyResourceCtl.getDummyResource();
+		dummyResourceCtl.addAttrDef(dummyResource.getAccountObjectClass(),
+				DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME, String.class, false, false);
+		resourceDummy = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_FILE, RESOURCE_DUMMY_OID, initTask, initResult);
+		resourceDummyType = resourceDummy.asObjectable();
+		dummyResourceCtl.setResource(resourceDummy);
+
+		dummyResourceCtlBlack = DummyResourceContoller.create(RESOURCE_DUMMY_BLACK_NAME, resourceDummyBlack);
+		dummyResourceCtlBlack.extendSchemaPirate();
+		dummyResourceBlack = dummyResourceCtlBlack.getDummyResource();
+		resourceDummyBlack = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_BLACK_FILENAME, RESOURCE_DUMMY_BLACK_OID, initTask, initResult);
+		resourceDummyBlackType = resourceDummyBlack.asObjectable();
+		dummyResourceCtlBlack.setResource(resourceDummyBlack);
+
+	}
+
+	protected AccessCertificationCaseType checkCase(Collection<AccessCertificationCaseType> caseList, String subjectOid, String targetOid, FocusType focus) {
+		AccessCertificationCaseType ccase = findCase(caseList, subjectOid, targetOid);
+		assertNotNull("Certification case for " + subjectOid + ":" + targetOid + " was not found", ccase);
+		assertNotNull("reviewRequestedTimestamp", ccase.getReviewRequestedTimestamp());
+		assertNotNull("deadline", ccase.getReviewDeadline());
+		assertNull("remediedTimestamp", ccase.getRemediedTimestamp());
+		return checkSpecificCase(ccase, focus);
+	}
+
+	protected AccessCertificationCaseType checkSpecificCase(AccessCertificationCaseType ccase, FocusType focus) {
+		assertEquals("Wrong class for case", AccessCertificationAssignmentCaseType.class, ccase.getClass());
+		AccessCertificationAssignmentCaseType acase = (AccessCertificationAssignmentCaseType) ccase;
+		long id = acase.getAssignment().getId();
+		List<AssignmentType> assignmentList;
+		if (Boolean.TRUE.equals(acase.isIsInducement())) {
+			assignmentList = ((AbstractRoleType) focus).getInducement();
+		} else {
+			assignmentList = focus.getAssignment();
+		}
+		for (AssignmentType assignment : assignmentList) {
+			if (id == assignment.getId()) {
+				assertEquals("Wrong assignment in certification case", assignment, acase.getAssignment());
+				return ccase;
+			}
+		}
+		fail("Assignment with ID " + id + " not found among assignments of " + focus);
+		return null;        // won't come here
+	}
+
+	protected AccessCertificationCaseType findCase(Collection<AccessCertificationCaseType> caseList, String subjectOid, String targetOid) {
+		for (AccessCertificationCaseType acase : caseList) {
+			if (acase.getTargetRef() != null && acase.getTargetRef().getOid().equals(targetOid) &&
+					acase.getSubjectRef() != null && acase.getSubjectRef().getOid().equals(subjectOid)) {
+				return acase;
+			}
+		}
+		return null;
+	}
+
+	protected void assertApproximateTime(String itemName, Date expected, XMLGregorianCalendar actual) {
+        assertNotNull("missing " + itemName, actual);
+        Date actualAsDate = XmlTypeConverter.toDate(actual);
+        assertTrue(itemName + " out of range; expected " + expected + ", found " + actualAsDate,
+                Math.abs(actualAsDate.getTime() - expected.getTime()) < 600000);     // 10 minutes
+    }
 }
