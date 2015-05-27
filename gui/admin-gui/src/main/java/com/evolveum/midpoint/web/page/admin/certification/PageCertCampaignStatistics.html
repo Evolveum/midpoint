@@ -19,26 +19,44 @@
 <body>
 	<wicket:extend>
 
-    <div class="row">
-        <div class="col-md-6">
-            <div class="row">
-                <div class="col-md-6">
-                    <table class="table">
-                        <tr>
-                            <th><wicket:message key="PageCertCampaignStatistics.response" /></th>
-                            <th><wicket:message key="PageCertCampaignStatistics.items" /></th>
-                            <th><wicket:message key="PageCertCampaignStatistics.itemsRemedied" /></th>
-                        </tr>
-                        <tr wicket:id="states">
-                            <td><span wicket:id="response" /></td>
-                            <td><span wicket:id="items" /></td>
-                            <td><span wicket:id="itemsRemedied" /></td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
+        <table class="table" style="width:400px">
+            <tr>
+                <th><wicket:message key="PageCertCampaignStatistics.response" /></th>
+                <th><wicket:message key="PageCertCampaignStatistics.items" /></th>
+            </tr>
+            <tr>
+                <td><wicket:message key="PageCertCampaignStatistics.accept" /></td>
+                <td><span wicket:id="accept" /></td>
+            </tr>
+            <tr>
+                <td><wicket:message key="PageCertCampaignStatistics.revoke" /></td>
+                <td><span wicket:id="revoke" /></td>
+            </tr>
+            <tr>
+                <td><wicket:message key="PageCertCampaignStatistics.revokeRemedied" /></td>
+                <td><span wicket:id="revokeRemedied" /></td>
+            </tr>
+            <tr>
+                <td><wicket:message key="PageCertCampaignStatistics.reduce" /></td>
+                <td><span wicket:id="reduce" /></td>
+            </tr>
+            <tr>
+                <td><wicket:message key="PageCertCampaignStatistics.reduceRemedied" /></td>
+                <td><span wicket:id="reduceRemedied" /></td>
+            </tr>
+            <tr>
+                <td><wicket:message key="PageCertCampaignStatistics.delegate" /></td>
+                <td><span wicket:id="delegate" /></td>
+            </tr>
+            <tr>
+                <td><wicket:message key="PageCertCampaignStatistics.noDecision" /></td>
+                <td><span wicket:id="noDecision" /></td>
+            </tr>
+            <tr>
+                <td><wicket:message key="PageCertCampaignStatistics.noResponse" /></td>
+                <td><span wicket:id="noResponse" /></td>
+            </tr>
+        </table>
 
 	</wicket:extend>
 </body>

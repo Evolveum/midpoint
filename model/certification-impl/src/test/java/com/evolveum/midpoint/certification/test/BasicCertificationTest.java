@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -55,8 +54,11 @@ import java.util.Date;
 import java.util.List;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CREATED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REMEDIATION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REVIEW_STAGE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.REVIEW_STAGE_DONE;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
@@ -115,7 +117,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         assertNull("Unexpected end time", campaign.getEnd());
     }
 
-    protected void assertStateAndStage(AccessCertificationCampaignType campaign, AccessCertificationCampaignStateType state, Integer stage) {
+    protected void assertStateAndStage(AccessCertificationCampaignType campaign, AccessCertificationCampaignStateType state, int stage) {
         assertEquals("Unexpected campaign state", state, campaign.getState());
         assertEquals("Unexpected stage number", stage, campaign.getCurrentStageNumber());
     }
@@ -468,7 +470,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
 
         campaign = getObject(AccessCertificationCampaignType.class, campaignOid).asObjectable();
         assertEquals("wrong campaign state", CLOSED, campaign.getState());
-        assertEquals("wrong campaign stage", (Integer) 2, campaign.getCurrentStageNumber());
+        assertEquals("wrong campaign stage", 2, campaign.getCurrentStageNumber());
         assertDefinitionAndOwner(campaign);
         // TODO assertApproximateTime("end time", new Date(), campaign.getEnd());
         assertEquals("wrong # of stages", 1, campaign.getStage().size());

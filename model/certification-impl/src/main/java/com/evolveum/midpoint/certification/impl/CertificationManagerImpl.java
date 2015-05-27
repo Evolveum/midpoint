@@ -39,6 +39,7 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -63,21 +64,18 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsEntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import net.sf.jasperreports.engine.util.ObjectUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.apache.commons.lang3.tuple.MutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -153,13 +151,13 @@ public class CertificationManagerImpl implements CertificationManager {
         registeredHandlers.put(handlerUri, handler);
     }
 
-    public CertificationHandler findCertificationHandler(AccessCertificationDefinitionType accessCertificationDefinitionType) {
-        if (StringUtils.isBlank(accessCertificationDefinitionType.getHandlerUri())) {
-            throw new IllegalArgumentException("No handler URI for access certification definition " + ObjectTypeUtil.toShortString(accessCertificationDefinitionType));
+    public CertificationHandler findCertificationHandler(AccessCertificationCampaignType campaign) {
+        if (StringUtils.isBlank(campaign.getHandlerUri())) {
+            throw new IllegalArgumentException("No handler URI for access certification campaign " + ObjectTypeUtil.toShortString(campaign));
         }
-        CertificationHandler handler = registeredHandlers.get(accessCertificationDefinitionType.getHandlerUri());
+        CertificationHandler handler = registeredHandlers.get(campaign.getHandlerUri());
         if (handler == null) {
-            throw new IllegalStateException("No handler for URI " + accessCertificationDefinitionType.getHandlerUri());
+            throw new IllegalStateException("No handler for URI " + campaign.getHandlerUri());
         }
         return handler;
     }
@@ -167,13 +165,11 @@ public class CertificationManagerImpl implements CertificationManager {
     @Override
     public AccessCertificationCampaignType createCampaign(AccessCertificationDefinitionType certDefinition, AccessCertificationCampaignType campaign,
                                                           Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
-        Validate.notNull(certDefinition, "certificationDefinition");
-        Validate.notNull(certDefinition.getOid(), "certificationDefinition.oid");
-        if (campaign != null) {
-            Validate.isTrue(campaign.getOid() == null, "Certification campaign with non-null OID is not permitted.");
-        }
         Validate.notNull(task, "task");
         Validate.notNull(parentResult, "parentResult");
+        if (certDefinition == null && campaign == null) {
+            throw new IllegalArgumentException("Both certDefinition and campaign are null");
+        }
 
         OperationResult result = parentResult.createSubresult(OPERATION_CREATE_CAMPAIGN);
         try {
@@ -189,19 +185,21 @@ public class CertificationManagerImpl implements CertificationManager {
     }
 
     private AccessCertificationCampaignType createCampaignObject(AccessCertificationDefinitionType definition, AccessCertificationCampaignType campaign,
-                                                                 Task task, OperationResult result) throws SecurityViolationException {
+                                                                 Task task, OperationResult result) throws SecurityViolationException, SchemaException {
         AccessCertificationCampaignType newCampaign = new AccessCertificationCampaignType(prismContext);
         Date now = new Date();
 
         if (campaign != null && campaign.getName() != null) {
             campaign.setName(campaign.getName());
-        } else {
+        } else if (definition != null && definition.getName() != null) {
             newCampaign.setName(new PolyStringType("Campaign for " + definition.getName().getOrig() + " started " + now));
+        } else {
+            throw new SchemaException("Couldn't create a campaign without name");
         }
 
         if (campaign != null && campaign.getDescription() != null) {
             newCampaign.setDescription(newCampaign.getDescription());
-        } else {
+        } else if (definition != null) {
             newCampaign.setDescription(definition.getDescription());
         }
 
@@ -219,13 +217,41 @@ public class CertificationManagerImpl implements CertificationManager {
             newCampaign.setTenantRef(definition.getTenantRef());
         }
 
-        newCampaign.setCurrentStageNumber(0);
+        if (definition != null && definition.getOid() != null) {
+            newCampaign.setDefinitionRef(ObjectTypeUtil.createObjectRef(definition));
+        }
 
-        ObjectReferenceType typeRef = new ObjectReferenceType();
-        typeRef.setType(AccessCertificationDefinitionType.COMPLEX_TYPE);
-        typeRef.setOid(definition.getOid());
-        newCampaign.setDefinitionRef(typeRef);
+        if (campaign != null && campaign.getHandlerUri() != null) {
+            newCampaign.setHandlerUri(campaign.getHandlerUri());
+        } else if (definition != null && definition.getHandlerUri() != null) {
+            newCampaign.setHandlerUri(definition.getHandlerUri());
+        } else {
+            throw new SchemaException("Couldn't create a campaign without handlerUri");
+        }
+
+        if (campaign != null && campaign.getScopeDefinition() != null) {
+            newCampaign.setScopeDefinition(campaign.getScopeDefinition());
+        } else if (definition != null && definition.getScopeDefinition() != null) {
+            newCampaign.setScopeDefinition(definition.getScopeDefinition());
+        }
+
+        if (campaign != null && campaign.getRemediationDefinition() != null) {
+            newCampaign.setRemediationDefinition(campaign.getRemediationDefinition());
+        } else if (definition != null && definition.getRemediationDefinition() != null) {
+            newCampaign.setRemediationDefinition(definition.getRemediationDefinition());
+        }
+
+        if (campaign != null && CollectionUtils.isNotEmpty(campaign.getStageDefinition())) {
+            newCampaign.getStageDefinition().addAll(CloneUtil.cloneCollectionMembers(campaign.getStageDefinition()));
+        } else if (definition != null && CollectionUtils.isNotEmpty(definition.getStageDefinition())) {
+            newCampaign.getStageDefinition().addAll(CloneUtil.cloneCollectionMembers(definition.getStageDefinition()));
+        }
+        CertCampaignTypeUtil.checkStageDefinitionConsistency(newCampaign.getStageDefinition());
+
+        newCampaign.setStart(null);
+        newCampaign.setEnd(null);
         newCampaign.setState(CREATED);
+        newCampaign.setCurrentStageNumber(0);
 
         return newCampaign;
     }
@@ -241,17 +267,15 @@ public class CertificationManagerImpl implements CertificationManager {
         result.addParam("requestedStageNumber", requestedStageNumber);
 
         try {
-            AccessCertificationCampaignType campaign = helper.getCampaignWithDefinition(campaignOid, task, result);
+            AccessCertificationCampaignType campaign = helper.getCampaign(campaignOid, null, task, result);
             result.addParam("campaign", ObjectTypeUtil.toShortString(campaign));
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("openNextStage starting for {}", ObjectTypeUtil.toShortString(campaign));
             }
 
-            AccessCertificationDefinitionType certDefinition = CertCampaignTypeUtil.getDefinition(campaign);
-
-            final int currentStageNumber = CertCampaignTypeUtil.getCurrentStageNumber(campaign);
-            final int stages = certDefinition.getStage().size();
+            final int currentStageNumber = campaign.getCurrentStageNumber();
+            final int stages = CertCampaignTypeUtil.getNumberOfStages(campaign);
             final AccessCertificationCampaignStateType state = campaign.getState();
             LOGGER.trace("openNextStage: currentStageNumber={}, stages={}, requestedStageNumber={}, state={}", currentStageNumber, stages, requestedStageNumber, state);
             if (IN_REVIEW_STAGE.equals(state)) {
@@ -269,8 +293,8 @@ public class CertificationManagerImpl implements CertificationManager {
             } else if (requestedStageNumber > stages) {
                 result.recordFatalError("Couldn't advance to review stage " + requestedStageNumber + " as the campaign has only " + stages + " stages");
             } else {
-                CertificationHandler handler = findCertificationHandler(certDefinition);
-                handler.moveToNextStage(certDefinition, campaign, task, result);
+                CertificationHandler handler = findCertificationHandler(campaign);
+                handler.moveToNextStage(campaign, task, result);
 
                 // some bureaucracy... stage#, state, start time
                 List<ItemDelta> itemDeltaList = new ArrayList<>();
@@ -303,17 +327,15 @@ public class CertificationManagerImpl implements CertificationManager {
         result.addParam("stageNumber", stageNumberToClose);
 
         try {
-            AccessCertificationCampaignType campaign = helper.getCampaignWithDefinition(campaignOid, task, result);
+            AccessCertificationCampaignType campaign = helper.getCampaign(campaignOid, null, task, result);
             result.addParam("campaign", ObjectTypeUtil.toShortString(campaign));
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("closeCurrentStage starting for {}", ObjectTypeUtil.toShortString(campaign));
             }
 
-            AccessCertificationDefinitionType certDefinition = CertCampaignTypeUtil.getDefinition(campaign);
-
-            final int currentStageNumber = CertCampaignTypeUtil.getCurrentStageNumber(campaign);
-            final int stages = certDefinition.getStage().size();
+            final int currentStageNumber = campaign.getCurrentStageNumber();
+            final int stages = CertCampaignTypeUtil.getNumberOfStages(campaign);
             final AccessCertificationCampaignStateType state = campaign.getState();
             LOGGER.trace("closeCurrentStage: currentStageNumber={}, stages={}, stageNumberToClose={}, state={}", currentStageNumber, stages, stageNumberToClose, state);
 
@@ -339,19 +361,18 @@ public class CertificationManagerImpl implements CertificationManager {
         List<ItemDelta> campaignDeltaList = new ArrayList<>();
 
         LOGGER.trace("Updating current response for cases in {}", ObjectTypeUtil.toShortString(campaign));
-        AccessCertificationDefinitionType definition = CertCampaignTypeUtil.getDefinition(campaign);
         List<AccessCertificationCaseType> caseList = campaign.getCase();
 
         for (int i = 0; i < caseList.size(); i++) {
             AccessCertificationCaseType _case = caseList.get(i);
-            AccessCertificationResponseType newResponse = helper.computeResponseForStage(_case, campaign, definition);
+            AccessCertificationResponseType newResponse = helper.computeResponseForStage(_case, campaign);
             if (newResponse != _case.getCurrentResponse()) {
                 PropertyDelta currentResponseDelta = PropertyDelta.createModificationReplaceProperty(
                         new ItemPath(
                                 new NameItemPathSegment(AccessCertificationCampaignType.F_CASE),
                                 new IdItemPathSegment(_case.asPrismContainerValue().getId()),
                                 new NameItemPathSegment(AccessCertificationCaseType.F_CURRENT_RESPONSE)),
-                        getCampaignDefinition(), newResponse);
+                        getCampaignObjectDefinition(), newResponse);
                 campaignDeltaList.add(currentResponseDelta);
             }
         }
@@ -368,17 +389,15 @@ public class CertificationManagerImpl implements CertificationManager {
         result.addParam("campaignOid", campaignOid);
 
         try {
-            AccessCertificationCampaignType campaign = helper.getCampaignWithDefinition(campaignOid, task, result);
+            AccessCertificationCampaignType campaign = helper.getCampaign(campaignOid, null, task, result);
             result.addParam("campaign", ObjectTypeUtil.toShortString(campaign));
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("startRemediation starting for {}", ObjectTypeUtil.toShortString(campaign));
             }
 
-            AccessCertificationDefinitionType certDefinition = CertCampaignTypeUtil.getDefinition(campaign);
-
-            final int currentStageNumber = CertCampaignTypeUtil.getCurrentStageNumber(campaign);
-            final int lastStageNumber = certDefinition.getStage().size();
+            final int currentStageNumber = campaign.getCurrentStageNumber();
+            final int lastStageNumber = CertCampaignTypeUtil.getNumberOfStages(campaign);
             final AccessCertificationCampaignStateType state = campaign.getState();
             LOGGER.trace("startRemediation: currentStageNumber={}, stages={}, state={}", currentStageNumber, lastStageNumber, state);
 
@@ -387,7 +406,7 @@ public class CertificationManagerImpl implements CertificationManager {
             } else if (!REVIEW_STAGE_DONE.equals(state)) {
                 result.recordFatalError("Couldn't start the remediation as the last stage was not properly closed.");
             } else {
-                if (CertCampaignTypeUtil.isRemediationAutomatic(certDefinition)) {
+                if (CertCampaignTypeUtil.isRemediationAutomatic(campaign)) {
                     remediationTaskHandler.launch(campaign, task, result);
                 } else {
                     result.recordWarning("The automated remediation is not configured. The campaign state was set to IN REMEDIATION, but all remediation actions have to be done by hand.");
@@ -470,7 +489,6 @@ public class CertificationManagerImpl implements CertificationManager {
             List<AccessCertificationCaseType> caseList = new ArrayList<>();
             for (PrismObject<AccessCertificationCampaignType> campaignObject : campaignObjects) {
                 AccessCertificationCampaignType campaign = campaignObject.asObjectable();
-                AccessCertificationDefinitionType definition = helper.resolveCertificationDef(campaign, task, result);
                 if (!AccessCertificationCampaignStateType.IN_REVIEW_STAGE.equals(campaign.getState())) {
                     continue;
                 }
@@ -478,7 +496,7 @@ public class CertificationManagerImpl implements CertificationManager {
 
                 // remove irrelevant decisions from each case
                 // and add campaignRef
-                int stage = CertCampaignTypeUtil.getCurrentStageNumber(campaign);
+                int stage = campaign.getCurrentStageNumber();
                 for (AccessCertificationCaseType _case : campaignCases) {
                     Iterator<AccessCertificationDecisionType> decisionIterator = _case.getDecision().iterator();
                     while (decisionIterator.hasNext()) {
@@ -628,14 +646,13 @@ public class CertificationManagerImpl implements CertificationManager {
 
         OperationResult result = parentResult.createSubresult(OPERATION_RECORD_DECISION);
         try {
-            AccessCertificationCampaignType campaign = helper.getCampaignWithDefinition(campaignOid, task, result);
-            AccessCertificationDefinitionType definition = CertCampaignTypeUtil.getDefinition(campaign);
+            AccessCertificationCampaignType campaign = helper.getCampaign(campaignOid, null, task, result);
 
             if (!AccessCertificationCampaignStateType.IN_REVIEW_STAGE.equals(campaign.getState())) {
                 throw new IllegalStateException("Campaign is not in review stage; its state is " + campaign.getState());
             }
 
-            int currentStage = CertCampaignTypeUtil.getCurrentStageNumber(campaign);
+            int currentStage = campaign.getCurrentStageNumber();
             if (decision.getStageNumber() != 0 && decision.getStageNumber() != currentStage) {
                 throw new IllegalStateException("Cannot add decision with stage number (" + decision.getStageNumber() + ") other than current (" + currentStage + ")");
             }
@@ -684,14 +701,14 @@ public class CertificationManagerImpl implements CertificationManager {
             Collection<ItemDelta> deltaList = new ArrayList<>();
             deltaList.add(decisionDelta);
 
-            AccessCertificationResponseType newResponse = helper.computeResponseForStage(_case, decisionWithCorrectId, campaign, definition);
+            AccessCertificationResponseType newResponse = helper.computeResponseForStage(_case, decisionWithCorrectId, campaign);
             if (!ObjectUtils.equals(newResponse, _case.getCurrentResponse())) {
                 PropertyDelta currentResponseDelta = PropertyDelta.createModificationReplaceProperty(
                         new ItemPath(
                                 new NameItemPathSegment(AccessCertificationCampaignType.F_CASE),
                                 new IdItemPathSegment(_case.asPrismContainerValue().getId()),
                                 new NameItemPathSegment(AccessCertificationCaseType.F_CURRENT_RESPONSE)),
-                        getCampaignDefinition(), newResponse);
+                        getCampaignObjectDefinition(), newResponse);
                 deltaList.add(currentResponseDelta);
             }
 
@@ -706,7 +723,7 @@ public class CertificationManagerImpl implements CertificationManager {
         }
     }
 
-    public PrismObjectDefinition<?> getCampaignDefinition() {
+    public PrismObjectDefinition<?> getCampaignObjectDefinition() {
         if (campaignObjectDefinition != null) {
             return campaignObjectDefinition;
         }
@@ -741,15 +758,15 @@ public class CertificationManagerImpl implements CertificationManager {
     }
 
     private PropertyDelta<Integer> createStageNumberDelta(int number) {
-        return PropertyDelta.createReplaceDelta(getCampaignDefinition(), AccessCertificationCampaignType.F_CURRENT_STAGE_NUMBER, number);
+        return PropertyDelta.createReplaceDelta(getCampaignObjectDefinition(), AccessCertificationCampaignType.F_CURRENT_STAGE_NUMBER, number);
     }
 
     private PropertyDelta<AccessCertificationCampaignStateType> createStateDelta(AccessCertificationCampaignStateType state) {
-        return PropertyDelta.createReplaceDelta(getCampaignDefinition(), AccessCertificationCampaignType.F_STATE, state);
+        return PropertyDelta.createReplaceDelta(getCampaignObjectDefinition(), AccessCertificationCampaignType.F_STATE, state);
     }
 
     private PropertyDelta<XMLGregorianCalendar> createStartTimeDelta(XMLGregorianCalendar date) {
-        return PropertyDelta.createReplaceDelta(getCampaignDefinition(), AccessCertificationCampaignType.F_START, date);
+        return PropertyDelta.createReplaceDelta(getCampaignObjectDefinition(), AccessCertificationCampaignType.F_START, date);
     }
 
     @Override
@@ -761,7 +778,7 @@ public class CertificationManagerImpl implements CertificationManager {
         OperationResult result = parentResult.createSubresult(OPERATION_CLOSE_CAMPAIGN);
 
         try {
-            AccessCertificationCampaignType campaign = helper.getCampaignWithDefinition(campaignOid, task, result);
+            AccessCertificationCampaignType campaign = helper.getCampaign(campaignOid, null, task, result);
             int currentStageNumber = campaign.getCurrentStageNumber();
             int lastStageNumber = CertCampaignTypeUtil.getNumberOfStages(campaign);
             AccessCertificationCampaignStateType state = campaign.getState();
@@ -783,11 +800,13 @@ public class CertificationManagerImpl implements CertificationManager {
 
         OperationResult result = parentResult.createSubresult(OPERATION_GET_CAMPAIGN_STATISTICS);
         try {
-            AccessCertificationCampaignType campaign = helper.getCampaignWithDefinition(campaignOid, task, result);
+            AccessCertificationCasesStatisticsType stat = new AccessCertificationCasesStatisticsType(prismContext);
+
+            AccessCertificationCampaignType campaign = helper.getCampaign(campaignOid, null, task, result);
             int currentStageNumber = campaign.getCurrentStageNumber();
             AccessCertificationCampaignStateType state = campaign.getState();
 
-            Map<AccessCertificationResponseType,MutablePair<Integer,Integer>> statMap = new HashMap<>();
+            int accept=0, revoke=0, revokeRemedied=0, reduce=0, reduceRemedied=0, delegate=0, noDecision=0, noResponse=0;
             for (AccessCertificationCaseType _case : campaign.getCase()) {
                 if (currentStageOnly && !_case.isEnabled()) {
                     continue;
@@ -796,25 +815,33 @@ public class CertificationManagerImpl implements CertificationManager {
                 if (response == null) {
                     response = AccessCertificationResponseType.NO_RESPONSE;
                 }
-                MutablePair<Integer,Integer> pair = statMap.get(response);
-                if (pair == null) {
-                    pair = new MutablePair<>(0, 0);
-                    statMap.put(response, pair);
-                }
-                pair.setLeft(pair.getLeft()+1);
-                if (_case.getRemediedTimestamp() != null) {
-                    pair.setRight(pair.getRight() + 1);
+                switch (response) {
+                    case ACCEPT: accept++; break;
+                    case REVOKE: revoke++;
+                                 if (_case.getRemediedTimestamp() != null) {
+                                     revokeRemedied++;
+                                 }
+                                 break;
+                    case REDUCE: reduce++;
+                                 if (_case.getRemediedTimestamp() != null) {
+                                    reduceRemedied++;       // currently not possible
+                                 }
+                                 break;
+                    case DELEGATE: delegate++; break;
+                    case NOT_DECIDED: noDecision++; break;
+                    case NO_RESPONSE: noResponse++; break;
+                    default: throw new IllegalStateException("Unexpected response: "+response);
                 }
             }
-            AccessCertificationCasesStatisticsType retval = new AccessCertificationCasesStatisticsType(prismContext);
-            for (Map.Entry<AccessCertificationResponseType,MutablePair<Integer,Integer>> statMapEntry : statMap.entrySet()) {
-                AccessCertificationCasesStatisticsEntryType entry = new AccessCertificationCasesStatisticsEntryType(prismContext);
-                entry.setResponse(statMapEntry.getKey());
-                entry.setMarkedAsThis(statMapEntry.getValue().getLeft());
-                entry.setMarkedAsThisAndResolved(statMapEntry.getValue().getRight());
-                retval.getEntry().add(entry);
-            }
-            return retval;
+            stat.setMarkedAsAccept(accept);
+            stat.setMarkedAsRevoke(revoke);
+            stat.setMarkedAsRevokeAndRemedied(revokeRemedied);
+            stat.setMarkedAsReduce(reduce);
+            stat.setMarkedAsReduceAndRemedied(reduceRemedied);
+            stat.setMarkedAsDelegate(delegate);
+            stat.setMarkedAsNotDecide(noDecision);
+            stat.setWithoutResponse(noResponse);
+            return stat;
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't get campaign statistics: unexpected exception: " + e.getMessage(), e);
             throw e;

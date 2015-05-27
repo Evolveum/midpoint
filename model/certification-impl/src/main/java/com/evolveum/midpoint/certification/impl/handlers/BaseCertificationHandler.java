@@ -57,9 +57,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationObjectBasedScopeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationReviewerSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationScopeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageDefinitionType;
@@ -112,25 +110,23 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
     protected AccCertGeneralHelper helper;
 
     @Override
-    public void moveToNextStage(final AccessCertificationDefinitionType definition, final AccessCertificationCampaignType campaign,
-                                final Task task, OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException {
-        Validate.notNull(definition, "certificationDefinition");
-        Validate.notNull(definition.getOid(), "certificationDefinition.oid");
+    public void moveToNextStage(final AccessCertificationCampaignType campaign, final Task task, OperationResult result)
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException {
         Validate.notNull(campaign, "certificationCampaign");
         Validate.notNull(campaign.getOid(), "certificationCampaign.oid");
 
-        int stageNumber = CertCampaignTypeUtil.getCurrentStageNumber(campaign);
+        int stageNumber = campaign.getCurrentStageNumber();
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("moveToNextStage starting; campaign = {}, definition = {}, stage number = {}",
-                    ObjectTypeUtil.toShortString(campaign), ObjectTypeUtil.toShortString(definition), stageNumber);
+            LOGGER.trace("moveToNextStage starting; campaign = {}, stage number = {}",
+                    ObjectTypeUtil.toShortString(campaign), stageNumber);
         }
 
         AccessCertificationStageType stage = new AccessCertificationStageType(prismContext);
         stage.setNumber(stageNumber+1);
         stage.setStart(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
 
-        AccessCertificationStageDefinitionType stageDef = CertCampaignTypeUtil.findStageDefinition(definition, stage.getNumber());
+        AccessCertificationStageDefinitionType stageDef = CertCampaignTypeUtil.findStageDefinition(campaign, stage.getNumber());
         XMLGregorianCalendar end = (XMLGregorianCalendar) stage.getStart().clone();
         end.add(XmlTypeConverter.createDuration(true, 0, 0, stageDef.getDays(), 0, 0, 0));
         end.setHour(23);
@@ -140,19 +136,19 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
         stage.setEnd(end);
 
         if (stageNumber == 0) {
-            createCases(campaign, definition, stage, task, result);
+            createCases(campaign, stage, task, result);
         } else {
-            updateCases(campaign, definition, stage, task, result);
+            updateCases(campaign, stage, task, result);
         }
 
         LOGGER.trace("openNextStage finishing");
     }
 
-    private void createCases(final AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition,
-                             AccessCertificationStageType stage, final Task task, final OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException {
+    private void createCases(final AccessCertificationCampaignType campaign, AccessCertificationStageType stage,
+                             final Task task, final OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException {
         String campaignShortName = ObjectTypeUtil.toShortString(campaign);
 
-        AccessCertificationScopeType scope = definition.getScope();
+        AccessCertificationScopeType scope = campaign.getScopeDefinition();
         LOGGER.trace("Creating cases for scope {} in campaign {}", scope, campaignShortName);
 
         if (scope != null && !(scope instanceof AccessCertificationObjectBasedScopeType)) {
@@ -188,7 +184,7 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
             query.setFilter(filter);
         }
 
-        final List<ExpressionType> caseExpressionList = objectBasedScope != null ? objectBasedScope.getCaseExpression() : null;
+        final List<ExpressionType> caseExpressionList = objectBasedScope != null ? objectBasedScope.getCaseGenerationExpression() : null;
         final List<AccessCertificationCaseType> caseList = new ArrayList<>();
 
         // create certification cases by executing the query and caseExpression on its results
@@ -203,7 +199,7 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
         modelService.searchObjectsIterative(objectClass, query, (ResultHandler) handler, null, task, result);
 
         AccessCertificationReviewerSpecificationType reviewerSpec =
-                findReviewersSpecification(campaign, definition, 1, task, result);
+                findReviewersSpecification(campaign, 1, task, result);
 
         // put the cases into repository
         ContainerDelta<AccessCertificationCaseType> caseDelta = ContainerDelta.createDelta(AccessCertificationCampaignType.F_CASE,
@@ -242,9 +238,8 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
     }
 
     private AccessCertificationReviewerSpecificationType findReviewersSpecification(AccessCertificationCampaignType campaign,
-                                                                                    AccessCertificationDefinitionType definition,
                                                                                     int stage, Task task, OperationResult result) {
-        AccessCertificationStageDefinitionType stageDef = CertCampaignTypeUtil.findStageDefinition(definition, stage);
+        AccessCertificationStageDefinitionType stageDef = CertCampaignTypeUtil.findStageDefinition(campaign, stage);
         return stageDef.getReviewerSpecification();
     }
 
@@ -350,14 +345,14 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
         throw new UnsupportedOperationException("Not implemented yet.");
     }
 
-    private void updateCases(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition, AccessCertificationStageType stage, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+    private void updateCases(AccessCertificationCampaignType campaign, AccessCertificationStageType stage, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
         LOGGER.trace("Updating reviewers and timestamps for cases in {}", ObjectTypeUtil.toShortString(campaign));
         List<AccessCertificationCaseType> caseList = campaign.getCase();
 
-        int stageToBe = CertCampaignTypeUtil.getCurrentStageNumber(campaign) + 1;
+        int stageToBe = campaign.getCurrentStageNumber() + 1;
 
         AccessCertificationReviewerSpecificationType reviewerSpec =
-                findReviewersSpecification(campaign, definition, stageToBe, task, result);
+                findReviewersSpecification(campaign, stageToBe, task, result);
 
         List<ItemDelta> campaignDeltaList = new ArrayList<>(caseList.size());
         for (int i = 0; i < caseList.size(); i++) {
@@ -369,7 +364,7 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
                             new NameItemPathSegment(AccessCertificationCampaignType.F_CASE),
                             new IdItemPathSegment(_case.asPrismContainerValue().getId()),
                             new NameItemPathSegment(AccessCertificationCaseType.F_REVIEWER_REF)),
-                    certificationManager.getCampaignDefinition(), CloneUtil.cloneCollectionMembers(reviewersRef.getValues()));
+                    certificationManager.getCampaignObjectDefinition(), CloneUtil.cloneCollectionMembers(reviewersRef.getValues()));
             campaignDeltaList.add(reviewerDelta);
 
             PropertyDelta reviewRequestedTimestampDelta = PropertyDelta.createModificationReplaceProperty(
@@ -377,7 +372,7 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
                             new NameItemPathSegment(AccessCertificationCampaignType.F_CASE),
                             new IdItemPathSegment(_case.asPrismContainerValue().getId()),
                             new NameItemPathSegment(AccessCertificationCaseType.F_REVIEW_REQUESTED_TIMESTAMP)),
-                    certificationManager.getCampaignDefinition(), stage.getStart());
+                    certificationManager.getCampaignObjectDefinition(), stage.getStart());
             campaignDeltaList.add(reviewRequestedTimestampDelta);
 
             PropertyDelta deadlineDelta = PropertyDelta.createModificationReplaceProperty(
@@ -385,7 +380,7 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
                             new NameItemPathSegment(AccessCertificationCampaignType.F_CASE),
                             new IdItemPathSegment(_case.asPrismContainerValue().getId()),
                             new NameItemPathSegment(AccessCertificationCaseType.F_REVIEW_REQUESTED_TIMESTAMP)),
-                    certificationManager.getCampaignDefinition(), stage.getEnd());
+                    certificationManager.getCampaignObjectDefinition(), stage.getEnd());
             campaignDeltaList.add(deadlineDelta);
 
             boolean enabled = helper.computeEnabled(_case);
@@ -394,7 +389,7 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
                             new NameItemPathSegment(AccessCertificationCampaignType.F_CASE),
                             new IdItemPathSegment(_case.asPrismContainerValue().getId()),
                             new NameItemPathSegment(AccessCertificationCaseType.F_ENABLED)),
-                    certificationManager.getCampaignDefinition(), enabled);
+                    certificationManager.getCampaignObjectDefinition(), enabled);
             campaignDeltaList.add(enabledDelta);
 
             if (enabled) {
@@ -403,7 +398,7 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
                                 new NameItemPathSegment(AccessCertificationCampaignType.F_CASE),
                                 new IdItemPathSegment(_case.asPrismContainerValue().getId()),
                                 new NameItemPathSegment(AccessCertificationCaseType.F_CURRENT_RESPONSE)),
-                        certificationManager.getCampaignDefinition(), null);
+                        certificationManager.getCampaignObjectDefinition(), null);
                 campaignDeltaList.add(currentResponseDelta);
             }
         }

@@ -15,18 +15,9 @@
  */
 package com.evolveum.midpoint.certification.impl;
 
-import com.evolveum.midpoint.certification.api.CertificationManager;
 import com.evolveum.midpoint.certification.impl.handlers.CertificationHandler;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.model.impl.ModelConstants;
-import com.evolveum.midpoint.model.impl.importer.ImportAccountsFromResourceTaskHandler;
-import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
@@ -37,26 +28,16 @@ import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.xml.namespace.QName;
 import java.util.List;
 
 /**
@@ -113,23 +94,22 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
         opResult.addContext("campaignOid", campaignOid);
 
         try {
-            AccessCertificationCampaignType campaign = helper.getCampaignWithDefinition(campaignOid, task, opResult);
-            AccessCertificationDefinitionType definition = CertCampaignTypeUtil.getDefinition(campaign);
-            if (!CertCampaignTypeUtil.isRemediationAutomatic(definition)) {
+            AccessCertificationCampaignType campaign = helper.getCampaign(campaignOid, null, task, opResult);
+            if (!CertCampaignTypeUtil.isRemediationAutomatic(campaign)) {
                 LOGGER.error("Automatic remediation is not configured.");
                 opResult.recordFatalError("Automatic remediation is not configured.");
                 runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
                 return runResult;
             }
 
-            CertificationHandler handler = certificationManager.findCertificationHandler(definition);
+            CertificationHandler handler = certificationManager.findCertificationHandler(campaign);
 
             int revokedOk = 0;
             int revokedError = 0;
 
             List<AccessCertificationCaseType> caseList = certificationManager.searchCases(campaignOid, null, null, task, opResult);
             for (AccessCertificationCaseType _case : caseList) {
-                if (helper.isRevoke(_case, campaign, definition)) {
+                if (helper.isRevoke(_case, campaign)) {
                     OperationResult caseResult = opResult.createMinorSubresult(opResult.getOperation()+".revoke");
                     final Long caseId = _case.asPrismContainerValue().getId();
                     caseResult.addContext("caseId", caseId);

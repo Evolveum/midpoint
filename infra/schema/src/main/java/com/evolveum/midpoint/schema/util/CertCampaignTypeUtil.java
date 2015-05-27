@@ -17,11 +17,14 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationRemediationStyleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
+
+import java.util.List;
 
 /**
  * @author mederly
@@ -37,18 +40,17 @@ public class CertCampaignTypeUtil {
         return null;
     }
 
-    public static AccessCertificationStageDefinitionType findStageDefinition(AccessCertificationDefinitionType definition, int stageNumber) {
-        for (AccessCertificationStageDefinitionType stage : definition.getStage()) {
+    public static AccessCertificationStageDefinitionType findStageDefinition(AccessCertificationCampaignType campaign, int stageNumber) {
+        for (AccessCertificationStageDefinitionType stage : campaign.getStageDefinition()) {
             if (stage.getNumber() == stageNumber) {
                 return stage;
             }
         }
-        throw new IllegalStateException("No stage " + stageNumber + " in " + ObjectTypeUtil.toShortString(definition));
+        throw new IllegalStateException("No stage " + stageNumber + " in " + ObjectTypeUtil.toShortString(campaign));
     }
 
-    // campaign should have a definition included
     public static int getNumberOfStages(AccessCertificationCampaignType campaign) {
-        return getDefinition(campaign).getStage().size();
+        return campaign.getStageDefinition().size();
     }
 
     public static AccessCertificationDefinitionType getDefinition(AccessCertificationCampaignType campaign) {
@@ -62,22 +64,30 @@ public class CertCampaignTypeUtil {
         return (AccessCertificationDefinitionType) (referenceValue.getObject().asObjectable());
     }
 
-    public static int getCurrentStageNumber(AccessCertificationCampaignType campaign) {
-        if (campaign.getCurrentStageNumber() == null) {
-            return 0;
-        } else {
-            return campaign.getCurrentStageNumber();
-        }
+    public static boolean isRemediationAutomatic(AccessCertificationCampaignType campaign) {
+        return campaign.getRemediationDefinition() != null &&
+                AccessCertificationRemediationStyleType.AUTOMATED.equals(campaign.getRemediationDefinition().getStyle());
     }
 
-    public static boolean isRemediationAutomatic(AccessCertificationDefinitionType definition) {
-        return definition.getRemediation() != null &&
-                AccessCertificationRemediationStyleType.AUTOMATED.equals(definition.getRemediation().getStyle());
-    }
-
-    public static boolean isCampaignClosed(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition) {
+    public static boolean isCampaignClosed(AccessCertificationCampaignType campaign) {
         int currentStage = campaign.getCurrentStageNumber();
-        int stages = definition.getStage().size();
-        return currentStage > stages;
+        int stages = getNumberOfStages(campaign);
+        return AccessCertificationCampaignStateType.CLOSED.equals(campaign.getState()) || currentStage > stages;
+    }
+
+    // TODO rework signalling problems
+    public static void checkStageDefinitionConsistency(List<AccessCertificationStageDefinitionType> stages) {
+        int count = stages.size();
+        boolean[] numberPresent = new boolean[count];
+        for (AccessCertificationStageDefinitionType stage : stages) {
+            int num = stage.getNumber();
+            if (num < 1 || num > count) {
+                throw new IllegalStateException("Invalid stage number: " + num + " (stage count: " + count +")");
+            }
+            if (numberPresent[num-1]) {
+                throw new IllegalStateException("Stage with number " + num + " is defined multiple times");
+            }
+            numberPresent[num-1] = true;
+        }
     }
 }

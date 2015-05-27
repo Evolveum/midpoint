@@ -11219,7 +11219,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="scope" type="tns:AccessCertificationScopeType" minOccurs="0">
+                    <xsd:element name="scopeDefinition" type="tns:AccessCertificationScopeType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Specifies the standard scope of certifications of this type. (In the future it can be overriden
@@ -11240,14 +11240,14 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="remediation" type="tns:AccessCertificationRemediationSpecificationType" minOccurs="0">
+                    <xsd:element name="remediationDefinition" type="tns:AccessCertificationRemediationDefinitionType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 How the identified cases have to be resolved?
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="stage" type="tns:AccessCertificationStageDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="stageDefinition" type="tns:AccessCertificationStageDefinitionType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Definition of individual stages.
@@ -11406,6 +11406,34 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="handlerUri" type="xsd:anyURI" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The certification handler that should take care of this campaign.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="scopeDefinition" type="tns:AccessCertificationScopeType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Specifies the scope of this campaign.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="remediationDefinition" type="tns:AccessCertificationRemediationDefinitionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                How the identified cases have to be resolved?
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="stageDefinition" type="tns:AccessCertificationStageDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Definition of individual stages.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="start" type="xsd:dateTime" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -11427,7 +11455,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="currentStageNumber" type="xsd:int" minOccurs="0">
+                    <xsd:element name="currentStageNumber" type="xsd:int" minOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
                                 The stage this campaign is in.
@@ -11528,7 +11556,17 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="caseExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="itemSelectionExpression" type="c:ExpressionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Expression that selects items that are to be included in the certification.
+                                Exact use of this expression depends on the certification handler.
+                                E.g. user assignment handler could call this expression individually with each assignment
+                                to determine which assignments should be included and which should not.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="caseGenerationExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Expression that produces certification cases. This can be any expression, whose input is an object
@@ -11536,6 +11574,7 @@
                                 An example: a groovy expression, creating certification cases by selecting user's
                                 "risky" assignments (e.g. assignments to a roles of a given type/types). Another example
                                 can be the computation of all assignments (direct and indirect ones), and selecting among these.
+                                NOT IMPLEMENTED YET
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -11544,6 +11583,59 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="accessCertificationObjectBasedScopeType" type="tns:AccessCertificationObjectBasedScopeType"/>
+
+    <xsd:complexType name="AccessCertificationAssignmentReviewScopeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Scope for assignment-related reviews.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AccessCertificationObjectBasedScopeType">
+                <xsd:sequence>
+                    <xsd:element name="includeAssignments" type="xsd:boolean" minOccurs="0" default="true">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Should assignments be included in the certification?
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="includeInducements" type="xsd:boolean" minOccurs="0" default="true">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Should inducements be included in the certification?
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="includeRoles" type="xsd:boolean" minOccurs="0" default="true">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Should assignments/inducements of roles be included in the certification?
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="includeOrgs" type="xsd:boolean" minOccurs="0" default="true">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Should assignments/inducements of orgs be included in the certification?
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="includeResources" type="xsd:boolean" minOccurs="0" default="true">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Should assignments/inducements of resources be included in the certification?
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="accessCertificationAssignmentReviewScopeType" type="tns:AccessCertificationAssignmentReviewScopeType"/>
 
     <xsd:complexType name="AccessCertificationCaseType">
         <xsd:annotation>
@@ -11628,7 +11720,17 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Currently valid response, relevant to the current stage. It is recomputed on each reviewer's
-                        response based on defined algorithms.
+                        response based on defined algorithms. If the case is not transferred into the next stage,
+                        the value of this item stays as it is.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="currentResponseStage" type="xsd:int" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The number of current stage to which the "currentResponse" relates to.
+                        If the case is not transferred into the next stage, the value of this item stays to be set as it is -
+                        indicating the last stage this case took part in.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -11691,6 +11793,13 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 TODO
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="isInducement" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Indicates if the above assignment is an assignment or (in case of roles) an inducement.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -11882,7 +11991,7 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:complexType name="AccessCertificationRemediationSpecificationType">
+    <xsd:complexType name="AccessCertificationRemediationDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO
@@ -12056,25 +12165,16 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="entry" type="tns:AccessCertificationCasesStatisticsEntryType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="markedAsAccept" type="xsd:int" minOccurs="1" default="0"/>
+            <xsd:element name="markedAsRevoke" type="xsd:int" minOccurs="1" default="0"/>
+            <xsd:element name="markedAsRevokeAndRemedied" type="xsd:int" minOccurs="1" default="0"/>
+            <xsd:element name="markedAsReduce" type="xsd:int" minOccurs="1" default="0"/>
+            <xsd:element name="markedAsReduceAndRemedied" type="xsd:int" minOccurs="1" default="0"/>
+            <xsd:element name="markedAsNotDecide" type="xsd:int" minOccurs="1" default="0"/>
+            <xsd:element name="markedAsDelegate" type="xsd:int" minOccurs="1" default="0"/>       <!-- TODO -->
+            <xsd:element name="withoutResponse" type="xsd:int" minOccurs="1" default="0"/>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="accessCertificationCasesStatisticsType" type="tns:AccessCertificationCasesStatisticsType" />
-
-    <xsd:complexType name="AccessCertificationCasesStatisticsEntryType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="response" type="tns:AccessCertificationResponseType"/>
-            <xsd:element name="markedAsThis" type="xsd:int" />
-            <xsd:element name="markedAsThisAndResolved" type="xsd:int" />
-        </xsd:sequence>
-    </xsd:complexType>
 
 </xsd:schema>

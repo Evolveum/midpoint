@@ -39,9 +39,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationA
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageDefinitionType;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -52,6 +52,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.ACCEPT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.DELEGATE;
@@ -77,26 +78,11 @@ public class AccCertGeneralHelper {
     @Autowired
     private CertificationManagerImpl certificationManager;
 
-    public AccessCertificationDefinitionType resolveCertificationDef(AccessCertificationCampaignType campaign, Task task, OperationResult result) throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException, SecurityViolationException {
-        PrismReferenceValue defRefValue = campaign.getDefinitionRef().asReferenceValue();
-        if (defRefValue.getObject() != null) {
-            return (AccessCertificationDefinitionType) defRefValue.getObject().asObjectable();
-        }
-        return modelService.getObject(AccessCertificationDefinitionType.class, defRefValue.getOid(), null, task, result).asObjectable();
-    }
-
     AccessCertificationCampaignType getCampaign(String campaignOid, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
         return modelService.getObject(AccessCertificationCampaignType.class, campaignOid, options, task, parentResult).asObjectable();
     }
 
-    AccessCertificationCampaignType getCampaignWithDefinition(String campaignOid, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
-        Collection<SelectorOptions<GetOperationOptions>> options =
-                SelectorOptions.createCollection(AccessCertificationCampaignType.F_DEFINITION_REF,
-                        GetOperationOptions.createResolve());
-        return modelService.getObject(AccessCertificationCampaignType.class, campaignOid, options, task, parentResult).asObjectable();
-    }
-
-    public boolean isRevoke(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition) {
+    public boolean isRevoke(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign) {
         return aCase.getCurrentResponse() == REVOKE;
     }
 
@@ -111,7 +97,7 @@ public class AccCertGeneralHelper {
                         new NameItemPathSegment(AccessCertificationCampaignType.F_CASE),
                         new IdItemPathSegment(caseId),
                         new NameItemPathSegment(AccessCertificationCaseType.F_REMEDIED_TIMESTAMP)),
-                certificationManager.getCampaignDefinition(), XmlTypeConverter.createXMLGregorianCalendar(new Date()));
+                certificationManager.getCampaignObjectDefinition(), XmlTypeConverter.createXMLGregorianCalendar(new Date()));
 
         repositoryService.modifyObject(AccessCertificationCampaignType.class, campaignOid, Arrays.asList(reviewRemediedDelta), parentResult);
     }
@@ -136,19 +122,19 @@ public class AccCertGeneralHelper {
     }
 
     public AccessCertificationResponseType computeResponseForStage(AccessCertificationCaseType _case, AccessCertificationDecisionType newDecision,
-                                                                   AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition) {
-        int stageNumber = CertCampaignTypeUtil.getCurrentStageNumber(campaign);
+                                                                   AccessCertificationCampaignType campaign) {
+        int stageNumber = campaign.getCurrentStageNumber();
         List<AccessCertificationDecisionType> allDecisions = getDecisions(_case, newDecision, stageNumber);
-        return computeResponseForStageInternal(allDecisions, _case, stageNumber, definition);
+        return computeResponseForStageInternal(allDecisions, _case, campaign);
     }
 
-    public AccessCertificationResponseType computeResponseForStage(AccessCertificationCaseType _case, AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition) {
-        int stageNumber = CertCampaignTypeUtil.getCurrentStageNumber(campaign);
-        return computeResponseForStageInternal(_case.getDecision(), _case, stageNumber, definition);
+    public AccessCertificationResponseType computeResponseForStage(AccessCertificationCaseType _case, AccessCertificationCampaignType campaign) {
+        return computeResponseForStageInternal(_case.getDecision(), _case, campaign);
     }
 
-    private AccessCertificationResponseType computeResponseForStageInternal(List<AccessCertificationDecisionType> allDecisions, AccessCertificationCaseType _case, int stageNumber, AccessCertificationDefinitionType definition) {
-        AccessCertificationStageDefinitionType stageDef = CertCampaignTypeUtil.findStageDefinition(definition, stageNumber);
+    private AccessCertificationResponseType computeResponseForStageInternal(List<AccessCertificationDecisionType> allDecisions, AccessCertificationCaseType _case, AccessCertificationCampaignType campaign) {
+        int stageNumber = campaign.getCurrentStageNumber();
+        AccessCertificationStageDefinitionType stageDef = CertCampaignTypeUtil.findStageDefinition(campaign, stageNumber);
         AccessCertificationApprovalStrategyType approvalStrategy = null;
         if (stageDef != null && stageDef.getReviewerSpecification() != null) {
             approvalStrategy = stageDef.getReviewerSpecification().getApprovalStrategy();
@@ -229,7 +215,7 @@ public class AccCertGeneralHelper {
     private List<AccessCertificationDecisionType> getDecisions(AccessCertificationCaseType _case, AccessCertificationDecisionType newDecision, int stageNumber) {
         List<AccessCertificationDecisionType> rv = new ArrayList<>();
         for (AccessCertificationDecisionType decision : _case.getDecision()) {
-            if (decision.getStageNumber() == stageNumber) {
+            if (decision.getStageNumber() == stageNumber && !Objects.equals(decision.getReviewerRef().getOid(), newDecision.getReviewerRef().getOid())) {
                 rv.add(decision);
             }
         }

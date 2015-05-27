@@ -35,10 +35,6 @@ import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
-import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
@@ -138,7 +134,12 @@ public class PageCertCampaigns extends PageAdminCertification {
         column = new PropertyColumn(createStringResource("PageCertCampaigns.table.description"), "value.description");
         columns.add(column);
 
-        column = new EnumPropertyColumn(createStringResource("PageCertCampaigns.table.state"), "value.state");
+        column = new EnumPropertyColumn(createStringResource("PageCertCampaigns.table.state"), "value.state") {
+            @Override
+            protected String translate(Enum en) {
+                return createStringResourceStatic(getPage(), en).getString();
+            }
+        };
         columns.add(column);
 
         column = new AbstractColumn<SelectableBean<AccessCertificationCampaignType>, String>(createStringResource("PageCertCampaigns.table.stage")) {
@@ -272,7 +273,7 @@ public class PageCertCampaigns extends PageAdminCertification {
         AccessCertificationStageType currentStage = CertCampaignTypeUtil.getCurrentStage(campaign);
         XMLGregorianCalendar end;
         Boolean stageLevelInfo;
-        if (campaign.getCurrentStageNumber() == null || campaign.getCurrentStageNumber() == 0) {
+        if (campaign.getCurrentStageNumber() == 0) {
             end = campaign.getEnd();
             stageLevelInfo = false;
         } else if (currentStage != null) {

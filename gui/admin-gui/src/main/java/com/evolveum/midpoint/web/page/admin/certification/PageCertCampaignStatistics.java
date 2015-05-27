@@ -26,16 +26,23 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsEntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
-import java.util.List;
+import javax.xml.namespace.QName;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType.F_MARKED_AS_ACCEPT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType.F_MARKED_AS_DELEGATE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType.F_MARKED_AS_NOT_DECIDE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType.F_MARKED_AS_REDUCE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType.F_MARKED_AS_REDUCE_AND_REMEDIED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType.F_MARKED_AS_REVOKE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType.F_MARKED_AS_REVOKE_AND_REMEDIED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType.F_WITHOUT_RESPONSE;
 
 /**
  * @author lazyman
@@ -51,12 +58,16 @@ public class PageCertCampaignStatistics extends PageAdminCertification {
 
     private static final String DOT_CLASS = PageCertCampaignStatistics.class.getName() + ".";
 
-    private static final String ID_STATES = "states";
-    private static final String ID_RESPONSE = "response";
-    private static final String ID_ITEMS = "items";
-    private static final String ID_ITEMS_REMEDIED = "itemsRemedied";
+    private static final String ID_ACCEPT = "accept";
+    private static final String ID_REVOKE = "revoke";
+    private static final String ID_REVOKE_REMEDIED = "revokeRemedied";
+    private static final String ID_REDUCE = "reduce";
+    private static final String ID_REDUCE_REMEDIED = "reduceRemedied";
+    private static final String ID_DELEGATE = "delegate";
+    private static final String ID_NO_DECISION = "noDecision";
+    private static final String ID_NO_RESPONSE = "noResponse";
 
-    private IModel<List<AccessCertificationCasesStatisticsEntryType>> statModel;
+    private IModel<AccessCertificationCasesStatisticsType> statModel;
 
     PageParameters pageParameters;
 
@@ -66,10 +77,10 @@ public class PageCertCampaignStatistics extends PageAdminCertification {
 
     public PageCertCampaignStatistics(final PageParameters pageParameters) {
         this.pageParameters = pageParameters;
-        statModel = new LoadableModel<List<AccessCertificationCasesStatisticsEntryType>>(false) {
+        statModel = new LoadableModel<AccessCertificationCasesStatisticsType>(false) {
 
             @Override
-            protected List<AccessCertificationCasesStatisticsEntryType> load() {
+            protected AccessCertificationCasesStatisticsType load() {
                 StringValue campaignOid = pageParameters.get(OnePageParameterEncoder.PARAMETER);
                 return loadStatistics(campaignOid);
             }
@@ -79,33 +90,25 @@ public class PageCertCampaignStatistics extends PageAdminCertification {
 
     private void initLayout() {
 
-        ListView<AccessCertificationCasesStatisticsEntryType> statistics = new ListView<AccessCertificationCasesStatisticsEntryType>(ID_STATES, statModel) {
-
-            @Override
-            protected void populateItem(ListItem<AccessCertificationCasesStatisticsEntryType> item) {
-                AccessCertificationCasesStatisticsEntryType entry = item.getModelObject();
-
-                Label response = new Label(ID_RESPONSE, entry.getResponse());
-                response.setRenderBodyOnly(true);
-                item.add(response);
-
-                Label items = new Label(ID_ITEMS, entry.getMarkedAsThis());
-                items.setRenderBodyOnly(true);
-                item.add(items);
-
-                Label itemsRemedied = new Label(ID_ITEMS_REMEDIED, entry.getMarkedAsThisAndResolved());
-                itemsRemedied.setRenderBodyOnly(true);
-                item.add(itemsRemedied);
-            }
-        };
-        add(statistics);
+        add(createLabel(ID_ACCEPT, F_MARKED_AS_ACCEPT));
+        add(createLabel(ID_REVOKE, F_MARKED_AS_REVOKE));
+        add(createLabel(ID_REVOKE_REMEDIED, F_MARKED_AS_REVOKE_AND_REMEDIED));
+        add(createLabel(ID_REDUCE, F_MARKED_AS_REDUCE));
+        add(createLabel(ID_REDUCE_REMEDIED, F_MARKED_AS_REDUCE_AND_REMEDIED));
+        add(createLabel(ID_DELEGATE, F_MARKED_AS_DELEGATE));
+        add(createLabel(ID_NO_DECISION, F_MARKED_AS_NOT_DECIDE));
+        add(createLabel(ID_NO_RESPONSE, F_WITHOUT_RESPONSE));
     }
 
-    private List<AccessCertificationCasesStatisticsEntryType> loadStatistics(StringValue campaignOid) {
-        OperationResult result = new OperationResult("dummy");
+    private Label createLabel(String id, QName property) {
+        return new Label(id, new PropertyModel<Integer>(statModel, property.getLocalPart()));
+    }
+
+    private AccessCertificationCasesStatisticsType loadStatistics(StringValue campaignOid) {
+        OperationResult result = new OperationResult("dummy");  // todo
         AccessCertificationCasesStatisticsType stat = null;
         try {
-            Task task = createSimpleTask("dummy");
+            Task task = createSimpleTask("dummy");  // todo
             stat = getCertificationManager().getCampaignStatistics(campaignOid.toString(), false, task, result);
             result.recordSuccessIfUnknown();
         } catch (Exception ex) {
@@ -117,7 +120,7 @@ public class PageCertCampaignStatistics extends PageAdminCertification {
         if (!WebMiscUtil.isSuccessOrHandledError(result)) {
             showResult(result);
         }
-        return stat.getEntry();
+        return stat;
     }
 
 }

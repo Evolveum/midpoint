@@ -18,22 +18,10 @@
 <accessCertificationDefinition
         xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        oid="33333333-0000-0000-0000-000000000001">
-    <name>Basic User Assignment Certification (ERoot only)</name>
-    <description>Basic certification of all user assignments.</description>
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <name>All user assignments</name>
+    <description>Certifies all users' assignments. Everything is certified by the administrator.</description>
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/certification-3#user-assignment-basic</handlerUri>
-    <scopeDefinition xsi:type="AccessCertificationObjectBasedScopeType">
-        <objectType>UserType</objectType>
-        <searchFilter>
-            <q:org>
-                <q:path>parentOrgRef</q:path>
-                <q:orgRef oid="00000000-8888-6666-0000-300000000000">
-                    <q:scope>SUBTREE</q:scope>
-                </q:orgRef>
-            </q:org>
-        </searchFilter>
-    </scopeDefinition>
     <remediationDefinition>
         <style>automated</style>
     </remediationDefinition>
