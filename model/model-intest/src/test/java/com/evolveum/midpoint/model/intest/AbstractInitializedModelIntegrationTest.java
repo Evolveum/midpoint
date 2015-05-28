@@ -373,6 +373,10 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	}
 
 	protected void assertMonkeyIslandOrgSanity() throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+		assertMonkeyIslandOrgSanity(0);
+	}
+	
+	protected void assertMonkeyIslandOrgSanity(int expectedFictional) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
 		Task task = taskManager.createTaskInstance(AbstractInitializedModelIntegrationTest.class.getName() + ".assertMonkeyIslandOrgSanity");
         OperationResult result = task.getResult();
         
@@ -388,7 +392,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
         
         List<PrismObject<OrgType>> functionalOrgs = searchOrg(ORG_GOVERNOR_OFFICE_OID, OrgFilter.Scope.SUBTREE, task, result);
         if (verbose) display("functional orgs (null)", functionalOrgs);
-        assertEquals("Unexpected number of functional orgs (null)", NUM_FUNCTIONAL_ORGS - 1, functionalOrgs.size());
+        assertEquals("Unexpected number of functional orgs (null)", NUM_FUNCTIONAL_ORGS - 1 + expectedFictional, functionalOrgs.size());
 
         List<PrismObject<OrgType>> prootSubOrgs = searchOrg(ORG_PROJECT_ROOT_OID, OrgFilter.Scope.ONE_LEVEL, task, result);
         if (verbose) display("project root suborgs", prootSubOrgs);
