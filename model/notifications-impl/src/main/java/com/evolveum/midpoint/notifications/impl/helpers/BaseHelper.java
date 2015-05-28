@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.common.expression.Expression;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.impl.NotificationManagerImpl;
@@ -124,7 +125,16 @@ public abstract class BaseHelper {
         PrismPropertyDefinition<Boolean> resultDef = new PrismPropertyDefinition(resultName, DOMUtil.XSD_BOOLEAN, prismContext);
         Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, resultDef, shortDesc, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task, result);
-        PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple = expression.evaluate(params);
+
+        ModelExpressionThreadLocalHolder.pushCurrentResult(result);
+        ModelExpressionThreadLocalHolder.pushCurrentTask(task);
+        PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple;
+        try {
+            exprResultTriple = expression.evaluate(params);
+        } finally {
+            ModelExpressionThreadLocalHolder.popCurrentResult();
+            ModelExpressionThreadLocalHolder.popCurrentTask();
+        }
 
         Collection<PrismPropertyValue<Boolean>> exprResult = exprResultTriple.getZeroSet();
         if (exprResult.size() == 0) {
@@ -163,7 +173,16 @@ public abstract class BaseHelper {
 
         Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType, resultDef, shortDesc, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task, result);
-        PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult = expression.evaluate(params);
+
+        PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult;
+        ModelExpressionThreadLocalHolder.pushCurrentResult(result);
+        ModelExpressionThreadLocalHolder.pushCurrentTask(task);
+        try {
+            exprResult = expression.evaluate(params);
+        } finally {
+            ModelExpressionThreadLocalHolder.popCurrentResult();
+            ModelExpressionThreadLocalHolder.popCurrentTask();
+        }
 
         List<String> retval = new ArrayList<String>();
         for (PrismPropertyValue<String> item : exprResult.getZeroSet()) {
