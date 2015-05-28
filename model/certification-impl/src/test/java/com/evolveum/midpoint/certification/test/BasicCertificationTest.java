@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -31,7 +30,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationAssignmentCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
@@ -39,15 +37,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationD
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.File;
 import java.util.Collection;
 import java.util.Date;
@@ -78,7 +74,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
     protected static final File CERT_DEF_USER_ASSIGNMENT_BASIC_FILE = new File(COMMON_DIR, "certification-of-eroot-user-assignments.xml");
     protected static final String CERT_DEF_USER_ASSIGNMENT_BASIC_OID = "33333333-0000-0000-0000-000000000001";
 
-    protected AccessCertificationDefinitionType basicCertificationDefinition;
+    protected AccessCertificationDefinitionType certificationDefinition;
 
     private String campaignOid;
 
@@ -91,13 +87,13 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        basicCertificationDefinition = repoAddObjectFromFile(CERT_DEF_USER_ASSIGNMENT_BASIC_FILE,
+        certificationDefinition = repoAddObjectFromFile(CERT_DEF_USER_ASSIGNMENT_BASIC_FILE,
                 AccessCertificationDefinitionType.class, result).asObjectable();
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         AccessCertificationCampaignType campaign =
-                certificationManager.createCampaign(basicCertificationDefinition, null, task, result);
+                certificationManager.createCampaign(certificationDefinition, null, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -112,7 +108,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         display("campaign", campaign);
         assertEquals("Unexpected certification cases", 0, campaign.getCase().size());
         assertStateAndStage(campaign, CREATED, 0);
-        assertDefinitionAndOwner(campaign);
+        assertDefinitionAndOwner(campaign, certificationDefinition);
         assertNull("Unexpected start time", campaign.getStart());
         assertNull("Unexpected end time", campaign.getEnd());
     }
@@ -167,7 +163,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         display("campaign in stage 1", campaign);
 
         assertStateAndStage(campaign, IN_REVIEW_STAGE, 1);
-        assertDefinitionAndOwner(campaign);
+        assertDefinitionAndOwner(campaign, certificationDefinition);
         assertApproximateTime("start time", new Date(), campaign.getStart());
         assertNull("Unexpected end time", campaign.getEnd());
         assertEquals("wrong # of stages", 1, campaign.getStage().size());
@@ -178,7 +174,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         checkAllCases(campaign.getCase());
     }
 
-    protected void assertDefinitionAndOwner(AccessCertificationCampaignType campaign) {
+    protected void assertDefinitionAndOwner(AccessCertificationCampaignType campaign, PrismObject<? extends ObjectType> certificationDefinition) {
         assertEquals("Unexpected ownerRef", ObjectTypeUtil.createObjectRef(USER_ADMINISTRATOR_OID, ObjectTypes.USER), campaign.getOwnerRef());
         assertEquals("Unexpected definitionRef",
                 ObjectTypeUtil.createObjectRef(CERT_DEF_USER_ASSIGNMENT_BASIC_OID, ObjectTypes.ACCESS_CERTIFICATION_DEFINITION),
@@ -435,7 +431,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         display("campaign in stage 1", campaign);
 
         assertStateAndStage(campaign, REVIEW_STAGE_DONE, 1);
-        assertDefinitionAndOwner(campaign);
+        assertDefinitionAndOwner(campaign, certificationDefinition);
         assertNull("Unexpected end time", campaign.getEnd());
         assertEquals("wrong # of stages", 1, campaign.getStage().size());
         AccessCertificationStageType stage = campaign.getStage().get(0);
@@ -476,7 +472,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         campaign = getObject(AccessCertificationCampaignType.class, campaignOid).asObjectable();
         assertEquals("wrong campaign state", CLOSED, campaign.getState());
         assertEquals("wrong campaign stage", 2, campaign.getCurrentStageNumber());
-        assertDefinitionAndOwner(campaign);
+        assertDefinitionAndOwner(campaign, certificationDefinition);
         // TODO assertApproximateTime("end time", new Date(), campaign.getEnd());
         assertEquals("wrong # of stages", 1, campaign.getStage().size());
         //assertApproximateTime("stage 1 end", new Date(), stage.getStart());       // TODO when implemented

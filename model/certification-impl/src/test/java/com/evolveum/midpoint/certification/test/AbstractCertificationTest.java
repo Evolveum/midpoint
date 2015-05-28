@@ -22,17 +22,32 @@ import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationAssignmentCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
@@ -44,7 +59,9 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.File;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -135,8 +152,9 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 	protected RoleType roleSuperuser;
 
 	protected UserType userAdministrator;
-	
 	protected UserType userJack;
+	protected UserType userElaine;
+	protected UserType userGuybrush;
 
     @Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -167,6 +185,8 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		
 		// Users
 		userJack = repoAddObjectFromFile(USER_JACK_FILE, UserType.class, initResult).asObjectable();
+		userElaine = getUser(USER_ELAINE_OID).asObjectable();
+		userGuybrush = getUser(USER_GUYBRUSH_OID).asObjectable();
 
 		// Resources
 
@@ -231,6 +251,85 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
         assertNotNull("missing " + itemName, actual);
         Date actualAsDate = XmlTypeConverter.toDate(actual);
         assertTrue(itemName + " out of range; expected " + expected + ", found " + actualAsDate,
-                Math.abs(actualAsDate.getTime() - expected.getTime()) < 600000);     // 10 minutes
+				Math.abs(actualAsDate.getTime() - expected.getTime()) < 600000);     // 10 minutes
     }
+
+	protected void assertStateAndStage(AccessCertificationCampaignType campaign, AccessCertificationCampaignStateType state, int stage) {
+		assertEquals("Unexpected campaign state", state, campaign.getState());
+		assertEquals("Unexpected stage number", stage, campaign.getCurrentStageNumber());
+	}
+
+	protected void assertDefinitionAndOwner(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType certificationDefinition) {
+		assertEquals("Unexpected ownerRef", ObjectTypeUtil.createObjectRef(USER_ADMINISTRATOR_OID, ObjectTypes.USER), campaign.getOwnerRef());
+		assertEquals("Unexpected definitionRef",
+				ObjectTypeUtil.createObjectRef(certificationDefinition),
+				campaign.getDefinitionRef());
+	}
+
+	protected void assertCaseReviewers(AccessCertificationCaseType _case, AccessCertificationResponseType currentResponse,
+									 boolean enabled, int currentResponseStage, List<String> reviewerOidList) {
+		assertEquals("wrong current response", currentResponse, _case.getCurrentResponse());
+		assertEquals("wrong enabled", (Boolean) enabled, _case.isEnabled());
+		assertEquals("wrong current response stage number", (Integer) currentResponseStage, _case.getCurrentResponseStage());
+		Set<String> realReviewerOids = new HashSet<>();
+		for (ObjectReferenceType ref : _case.getReviewerRef()) {
+			realReviewerOids.add(ref.getOid());
+		}
+		assertEquals("wrong reviewer oids", new HashSet<>(reviewerOidList), realReviewerOids);
+	}
+
+	protected void recordDecision(String campaignOid, AccessCertificationCaseType _case, AccessCertificationResponseType response, String comment,
+								  int stageNumber, String reviewerOid, Task task, OperationResult result)
+			throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException, SecurityViolationException, ConfigurationException {
+		AccessCertificationDecisionType decision = new AccessCertificationDecisionType(prismContext);
+		decision.setResponse(response);
+		decision.setComment(comment);
+		decision.setStageNumber(stageNumber);
+		if (reviewerOid != null) {
+			ObjectReferenceType reviewerRef = ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER);
+			decision.setReviewerRef(reviewerRef);
+		}
+		long id = _case.asPrismContainerValue().getId();
+		certificationManager.recordDecision(campaignOid, id, decision, task, result);
+	}
+
+	protected void assertDecision(AccessCertificationCaseType _case, AccessCertificationResponseType response, String comment, int stageNumber, String reviewerOid, AccessCertificationResponseType aggregatedResponse, boolean enabled) {
+		assertEquals("wrong # of decisions", 1, _case.getDecision().size());
+		AccessCertificationDecisionType storedDecision = _case.getDecision().get(0);
+		assertEquals("wrong response", response, storedDecision.getResponse());
+		assertEquals("wrong comment", comment, storedDecision.getComment());
+		assertEquals("wrong reviewerRef", ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER), storedDecision.getReviewerRef());
+		assertEquals("wrong stage number", stageNumber, storedDecision.getStageNumber());
+		assertApproximateTime("timestamp", new Date(), storedDecision.getTimestamp());
+		assertEquals("wrong current response", aggregatedResponse, _case.getCurrentResponse());
+		assertEquals("wrong enabled", (Boolean) enabled, _case.isEnabled());
+	}
+
+	protected void assertNoDecision(AccessCertificationCaseType _case, AccessCertificationResponseType aggregatedResponse, boolean enabled) {
+		assertEquals("wrong # of decisions", 0, _case.getDecision().size());
+		assertEquals("wrong current response", aggregatedResponse, _case.getCurrentResponse());
+		assertEquals("wrong enabled", (Boolean) enabled, _case.isEnabled());
+	}
+
+	protected void assertCurrentState(AccessCertificationCaseType _case, AccessCertificationResponseType aggregatedResponse, int currentResponseStage, boolean enabled) {
+		assertEquals("wrong current response", aggregatedResponse, _case.getCurrentResponse());
+		assertEquals("wrong current response stage number", (Integer) currentResponseStage, _case.getCurrentResponseStage());
+		assertEquals("wrong enabled", (Boolean) enabled, _case.isEnabled());
+	}
+
+	protected void assertDecisions(AccessCertificationCaseType _case, int count) {
+		assertEquals("Wrong # of decisions", count, _case.getDecision().size());
+	}
+
+	protected void assertDecision2(AccessCertificationCaseType _case, AccessCertificationResponseType response, String comment,
+								 int stageNumber, String reviewerOid, AccessCertificationResponseType aggregatedResponse, boolean enabled) {
+		AccessCertificationDecisionType decision = CertCampaignTypeUtil.findDecision(_case, stageNumber, reviewerOid);
+		assertNotNull("decision does not exist", decision);
+		assertEquals("wrong response", response, decision.getResponse());
+		assertEquals("wrong comment", comment, decision.getComment());
+		assertApproximateTime("timestamp", new Date(), decision.getTimestamp());
+		assertEquals("wrong current response", aggregatedResponse, _case.getCurrentResponse());
+		assertEquals("wrong enabled", (Boolean) enabled, _case.isEnabled());
+	}
+
 }

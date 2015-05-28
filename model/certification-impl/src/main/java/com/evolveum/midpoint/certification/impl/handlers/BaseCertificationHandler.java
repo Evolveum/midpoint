@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.certification.impl.handlers;
 
+import com.evolveum.midpoint.certification.impl.AccCertExpressionHelper;
 import com.evolveum.midpoint.certification.impl.AccCertGeneralHelper;
 import com.evolveum.midpoint.certification.impl.AccCertResponseComputationHelper;
 import com.evolveum.midpoint.certification.impl.AccCertReviewersHelper;
@@ -28,6 +29,9 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
@@ -76,8 +80,11 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
     @Autowired
     protected AccCertReviewersHelper reviewersHelper;
 
+    @Autowired
+    protected AccCertExpressionHelper expressionHelper;
+
     // default implementation, depending only on the expressions provided
-    public Collection<? extends AccessCertificationCaseType> createCasesForObject(PrismObject<ObjectType> object, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) {
+    public Collection<? extends AccessCertificationCaseType> createCasesForObject(PrismObject<ObjectType> object, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         throw new UnsupportedOperationException("Not implemented yet.");
 //        if (CollectionUtils.isEmpty(caseExpressionList)) {
 //            throw new IllegalStateException("Unspecified case expression (and no default one provided) for campaign " + ObjectTypeUtil.toShortString(campaign));

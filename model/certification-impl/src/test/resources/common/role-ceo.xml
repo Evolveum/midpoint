@@ -24,6 +24,7 @@
             <resourceRef oid="10000000-0000-0000-0000-000000000004"/>   <!-- dummy resource -->
         </construction>
     </inducement>
+    <riskLevel>critical</riskLevel>
     <ownerRef oid="c0c010c0-d34d-b33f-f00d-11111111111e" type="UserType" />     <!-- elaine -->
     <approverRef oid="c0c010c0-d34d-b33f-f00d-11111111111e" type="UserType" />  <!-- elaine -->
     <approverRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="UserType" />  <!-- jack -->

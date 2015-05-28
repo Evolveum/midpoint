@@ -17,28 +17,40 @@
 package com.evolveum.midpoint.certification.impl;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
+import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationReviewerSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ManagerSearchType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -49,6 +61,9 @@ public class AccCertReviewersHelper {
 
     @Autowired
     private ModelService modelService;
+
+    @Autowired
+    private MidpointFunctions midpointFunctions;
 
     // TODO temporary hack because of some problems in model service...
     @Autowired
@@ -68,7 +83,7 @@ public class AccCertReviewersHelper {
     }
 
     public void setupReviewersForCase(AccessCertificationCaseType _case, AccessCertificationCampaignType campaign,
-                                      AccessCertificationReviewerSpecificationType reviewerSpec, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+                                      AccessCertificationReviewerSpecificationType reviewerSpec, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
 
         _case.getReviewerRef().clear();
         if (reviewerSpec == null) {
@@ -87,8 +102,8 @@ public class AccCertReviewersHelper {
         if (Boolean.TRUE.equals(reviewerSpec.isUseSubjectApprover())) {
             cloneAndMerge(_case.getReviewerRef(), getSubjectApprovers(_case, task, result));
         }
-        if (Boolean.TRUE.equals(reviewerSpec.isUseSubjectManager())) {
-            cloneAndMerge(_case.getReviewerRef(), getSubjectManagers(_case, task, result));
+        if (reviewerSpec.getUseSubjectManager() != null) {
+            cloneAndMerge(_case.getReviewerRef(), getSubjectManagers(_case, reviewerSpec.getUseSubjectManager(), task, result));
         }
         // TODO evaluate reviewer expressions
         if (_case.getReviewerRef().isEmpty()) {
@@ -117,9 +132,39 @@ public class AccCertReviewersHelper {
         return false;
     }
 
-    // TODO implement this
-    private Collection<ObjectReferenceType> getSubjectManagers(AccessCertificationCaseType _case, Task task, OperationResult result) {
-        return null;
+    private Collection<ObjectReferenceType> getSubjectManagers(AccessCertificationCaseType _case, ManagerSearchType managerSearch, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+        ModelExpressionThreadLocalHolder.pushCurrentResult(result);
+        ModelExpressionThreadLocalHolder.pushCurrentTask(task);
+        try {
+            ObjectReferenceType subjectRef = _case.getSubjectRef();
+            ObjectType subject = midpointFunctions.resolveReference(subjectRef);
+            if (subject == null) {
+                return null;
+            }
+            String orgType = managerSearch.getOrgType();
+            boolean allowSelf = Boolean.TRUE.equals(managerSearch.isAllowSelf());
+            Collection<UserType> managers;
+            if (subject instanceof UserType) {
+                managers = midpointFunctions.getManagers((UserType) subject, orgType, allowSelf);
+            } else if (subject instanceof OrgType) {
+                // TODO more elaborate behavior; eliminate unneeded resolveReference above
+                managers = midpointFunctions.getManagersOfOrg(subject.getOid());
+            } else if (subject instanceof RoleType) {
+                // TODO implement
+                managers = new HashSet<>();
+            } else {
+                // TODO warning?
+                managers = new HashSet<>();
+            }
+            List<ObjectReferenceType> retval = new ArrayList<>(managers.size());
+            for (UserType manager : managers) {
+                retval.add(ObjectTypeUtil.createObjectRef(manager));
+            }
+            return retval;
+        } finally {
+            ModelExpressionThreadLocalHolder.popCurrentResult();
+            ModelExpressionThreadLocalHolder.popCurrentTask();
+        }
     }
 
     protected List<ObjectReferenceType> getTargetObjectOwners(AccessCertificationCaseType _case, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {

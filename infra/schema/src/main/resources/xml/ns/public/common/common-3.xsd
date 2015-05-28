@@ -11230,10 +11230,7 @@
                     <xsd:element name="ownerRef" type="tns:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                The user that owns this certification type.
-                                TODO
-                                There can be situations where owner will be computed dynamically
-                                based on specific certification run parameter values.
+                                The user that owns certification campaigns based on this definition.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
@@ -11250,7 +11247,7 @@
                     <xsd:element name="stageDefinition" type="tns:AccessCertificationStageDefinitionType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Definition of individual stages.
+                                Definition of individual stages (reviewers, duration, ...).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -11298,9 +11295,9 @@
     <xsd:complexType name="AccessCertificationReviewerSpecificationType">
         <xsd:annotation>
             <xsd:documentation>
-                Specifies how to select reviewers for a campaign stage.
-                The most general way is to provide an expression that computes the reviewer(s).
-                TODO provide also more specific ways (like user's manager, role's owner etc).
+                Specifies how to select reviewers for a campaign stage
+                and how to derive final decision from their decisions.
+                (TODO consider extracting this strategy to element outside reviewer specification)
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -11335,7 +11332,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="useSubjectManager" type="xsd:boolean" minOccurs="0">
+            <xsd:element name="useSubjectManager" type="tns:ManagerSearchType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Indicates that the subject's managers should be used. The interpretation depends on what kind
@@ -11343,10 +11340,8 @@
 
                         For a user, the managers of all organizations to which he/she belongs, are taken.
                         For an org, its managers are taken.
-                        For a role, if it has a parentOrgRef, managers of these are taken. If it has
-                        none, no reviewers are contributed by this option.
-
-                        NOT IMPLEMENTED YET
+                        (For the future: For a role, if it has a parentOrgRef, managers of these are taken. If it has
+                        none, no reviewers are contributed by this option.)
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -11356,6 +11351,8 @@
                         The most general way of specifying the reviewer. TODO describe inputs for such an expression
                         If present, takes precedence over useXXX settings as well as over defaultReviewerRef;
                         additionalReviewerRef still applies.
+
+                        NOT IMPLEMENTED YET
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -11402,8 +11399,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Specifies the definition for this certification campaign.
-                                (In the future this will probably be optional, as there will be also
-                                ad-hoc certifications with no pre-existing definition.)
+                                (It is optional, as there are also ad-hoc certifications with no pre-existing definition.)
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:objectReferenceTargetType>tns:AccessCertificationDefinitionType</a:objectReferenceTargetType>
@@ -11502,7 +11498,7 @@
     <xsd:complexType name="AccessCertificationStageType">
         <xsd:annotation>
             <xsd:documentation>
-                Specifies the scope of an access certification.
+                Information about a stage of a campaign.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -11536,7 +11532,7 @@
     <xsd:complexType name="AccessCertificationScopeType">
         <xsd:annotation>
             <xsd:documentation>
-                Specifies the scope of an access certification.
+                Specifies the scope of an access certification campaign.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -11551,6 +11547,10 @@
             <xsd:appinfo>
                 <a:container/>
             </xsd:appinfo>
+            <xsd:documentation>
+                The most common way of specifying scope - providing type+search filter to select "base" objects
+                and then some means of deriving certification cases from them.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:AccessCertificationScopeType">
@@ -11642,6 +11642,14 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Should assignments/inducements of resources be included in the certification?
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="enabledItemsOnly" type="xsd:boolean" minOccurs="0" default="true">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Should we approve only assignments/inducements that are currently enabled?
+                                (I.e. with administrativeStatus either null or ENABLED)
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -11806,7 +11814,7 @@
                     <xsd:element name="assignment" type="tns:AssignmentType" minOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                TODO
+                                Assignment that is being considered.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -12191,4 +12199,16 @@
     </xsd:complexType>
     <xsd:element name="accessCertificationCasesStatisticsType" type="tns:AccessCertificationCasesStatisticsType" />
 
+    <xsd:complexType name="ManagerSearchType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="orgType" type="xsd:string" minOccurs="0" />
+            <xsd:element name="allowSelf" type="xsd:boolean" minOccurs="0" default="false" />
+            <!-- todo whether to search in upper layers (by default: yes) -->
+        </xsd:sequence>
+    </xsd:complexType>
 </xsd:schema>

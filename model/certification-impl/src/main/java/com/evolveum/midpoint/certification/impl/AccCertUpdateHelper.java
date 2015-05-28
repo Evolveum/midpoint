@@ -52,6 +52,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
@@ -313,7 +314,12 @@ public class AccCertUpdateHelper {
         ResultHandler<ObjectType> resultHandler = new ResultHandler<ObjectType>() {
             @Override
             public boolean handle(PrismObject<ObjectType> object, OperationResult parentResult) {
-                caseList.addAll(handler.createCasesForObject(object, campaign, task, parentResult));
+                try {
+                    caseList.addAll(handler.createCasesForObject(object, campaign, task, parentResult));
+                } catch (ExpressionEvaluationException|ObjectNotFoundException|SchemaException e) {
+                    // TODO process the exception more intelligently
+                    throw new SystemException("Cannot create certification case for object " + ObjectTypeUtil.toShortString(object.asObjectable()) + ": " + e.getMessage(), e);
+                }
                 return true;
             }
         };
@@ -359,7 +365,7 @@ public class AccCertUpdateHelper {
         LOGGER.trace("Created stage and {} cases for campaign {}", caseList.size(), campaignShortName);
     }
 
-    private void updateCases(AccessCertificationCampaignType campaign, AccessCertificationStageType stage, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+    private void updateCases(AccessCertificationCampaignType campaign, AccessCertificationStageType stage, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
         LOGGER.trace("Updating reviewers and timestamps for cases in {}", ObjectTypeUtil.toShortString(campaign));
         List<AccessCertificationCaseType> caseList = campaign.getCase();
 

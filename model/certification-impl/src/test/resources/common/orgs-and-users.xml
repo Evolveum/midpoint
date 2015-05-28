@@ -127,6 +127,9 @@
 		<assignment>
 			<targetRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType" relation="org:manager"/>
 		</assignment>
+		<assignment>
+			<targetRef oid="00000000-d34d-b33f-f00d-000000000001" type="c:RoleType"/>		<!-- CEO -->
+		</assignment>
 		<fullName>Elaine Marley</fullName>
 		<givenName>Elaine</givenName>
 		<familyName>Marley</familyName>
@@ -143,6 +146,9 @@
 		</assignment>
 		<assignment>
 			<targetRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType" relation="org:manager"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"/>       <!-- Superuser -->
 		</assignment>
 		<fullName>Ignatius Cheese</fullName>
 		<givenName>Ignatius</givenName>
@@ -181,6 +187,9 @@
 		</assignment>
 		<assignment>
 			<targetRef oid="00000000-8888-6666-0000-100000000004" type="c:OrgType" relation="org:manager"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-d34d-b33f-f00d-000000000002" type="c:RoleType"/>		<!-- COO -->
 		</assignment>
 		<fullName>Guybrush Threepwood</fullName>
 		<givenName>Guybrush</givenName>

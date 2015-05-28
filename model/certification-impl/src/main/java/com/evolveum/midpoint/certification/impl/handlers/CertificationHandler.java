@@ -51,7 +51,7 @@ public interface CertificationHandler {
      * @param parentResult
      * @return
      */
-    Collection<? extends AccessCertificationCaseType> createCasesForObject(PrismObject<ObjectType> object, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult);
+    Collection<? extends AccessCertificationCaseType> createCasesForObject(PrismObject<ObjectType> object, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException;
 
     /**
      * Implements the automated REVOKE for a given certification case.

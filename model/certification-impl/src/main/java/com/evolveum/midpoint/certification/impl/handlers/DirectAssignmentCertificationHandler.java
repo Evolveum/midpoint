@@ -17,12 +17,15 @@
 package com.evolveum.midpoint.certification.impl.handlers;
 
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ActivationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -39,13 +42,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationA
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationAssignmentReviewScopeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationObjectBasedScopeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -77,11 +81,11 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
 
     // converts assignments to cases
     @Override
-    public Collection<? extends AccessCertificationCaseType> createCasesForObject(PrismObject<ObjectType> objectPrism, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) {
+    public Collection<? extends AccessCertificationCaseType> createCasesForObject(PrismObject<ObjectType> objectPrism, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
-        AccessCertificationAssignmentReviewScopeType scope = null;
+        AccessCertificationAssignmentReviewScopeType assignmentScope = null;
         if (campaign.getScopeDefinition() instanceof AccessCertificationAssignmentReviewScopeType) {
-            scope = (AccessCertificationAssignmentReviewScopeType) campaign.getScopeDefinition();
+            assignmentScope = (AccessCertificationAssignmentReviewScopeType) campaign.getScopeDefinition();
         }
 
         ObjectType object = objectPrism.asObjectable();
@@ -91,21 +95,21 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
         FocusType focus = (FocusType) object;
 
         List<AccessCertificationCaseType> caseList = new ArrayList<>();
-        if (isIncludeAssignments(scope)) {
+        if (isIncludeAssignments(assignmentScope)) {
             for (AssignmentType assignment : focus.getAssignment()) {
-                processAssignment(assignment, false, scope, object, caseList);
+                processAssignment(assignment, false, assignmentScope, campaign, object, caseList, task, parentResult);
             }
         }
-        if (object instanceof AbstractRoleType && isIncludeInducements(scope)) {
+        if (object instanceof AbstractRoleType && isIncludeInducements(assignmentScope)) {
             for (AssignmentType assignment : ((AbstractRoleType) object).getInducement()) {
-                processAssignment(assignment, true, scope, object, caseList);
+                processAssignment(assignment, true, assignmentScope, campaign, object, caseList, task, parentResult);
             }
         }
         return caseList;
     }
 
     private void processAssignment(AssignmentType assignment, boolean isInducement, AccessCertificationAssignmentReviewScopeType scope,
-                                   ObjectType object, List<AccessCertificationCaseType> caseList) {
+                                   AccessCertificationCampaignType campaign, ObjectType object, List<AccessCertificationCaseType> caseList, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         AccessCertificationAssignmentCaseType assignmentCase = new AccessCertificationAssignmentCaseType(prismContext);
         assignmentCase.asPrismContainerValue().setConcreteType(AccessCertificationAssignmentCaseType.COMPLEX_TYPE);
         assignmentCase.setAssignment(assignment.clone());
@@ -127,9 +131,36 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
         } else {
             valid = false;      // neither role/org nor resource assignment; ignored for now
         }
+        if (valid && isEnabledItemsOnly(scope) && !ActivationUtil.isAdministrativeEnabledOrNull(assignment.getActivation())) {
+            valid = false;
+        }
+        if (valid && !itemSelectionExpressionAccepts(assignment, isInducement, object, campaign, task, result)) {
+            valid = false;
+        }
         if (valid) {
             caseList.add(assignmentCase);
         }
+    }
+
+    private boolean itemSelectionExpressionAccepts(AssignmentType assignment, boolean isInducement, ObjectType object, AccessCertificationCampaignType campaign, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+        AccessCertificationObjectBasedScopeType scope = null;
+        if (campaign.getScopeDefinition() instanceof AccessCertificationObjectBasedScopeType) {
+            scope = (AccessCertificationObjectBasedScopeType) (campaign.getScopeDefinition());
+        }
+        if (scope == null || scope.getItemSelectionExpression() == null) {
+            return true;        // no expression, no rejections
+        }
+        ExpressionType selectionExpression = scope.getItemSelectionExpression();
+        ExpressionVariables variables = new ExpressionVariables();
+        variables.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, assignment);
+        if (object instanceof FocusType) {
+            variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS, object);
+        }
+        if (object instanceof UserType) {
+            variables.addVariableDefinition(ExpressionConstants.VAR_USER, object);
+        }
+        return expressionHelper.evaluateBooleanExpression(selectionExpression, variables,
+                "item selection for assignment " + ObjectTypeUtil.toShortString(assignment), task, result);
     }
 
     private boolean isIncludeAssignments(AccessCertificationAssignmentReviewScopeType scope) {
@@ -150,6 +181,10 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
 
     private boolean isIncludeOrgs(AccessCertificationAssignmentReviewScopeType scope) {
         return scope == null || !Boolean.FALSE.equals(scope.isIncludeOrgs());
+    }
+
+    private boolean isEnabledItemsOnly(AccessCertificationAssignmentReviewScopeType scope) {
+        return scope == null || !Boolean.FALSE.equals(scope.isEnabledItemsOnly());
     }
 
     @Override
