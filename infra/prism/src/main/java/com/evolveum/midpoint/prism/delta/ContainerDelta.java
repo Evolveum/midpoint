@@ -366,7 +366,12 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 		return modifications;
 	}
 
-
+	// cValues should be parent-less
+	public static <T extends Containerable> ContainerDelta<T> createModificationReplace(QName containerName, PrismObjectDefinition<?> objectDefinition, PrismContainerValue... cValues) {
+		ContainerDelta delta = createDelta(containerName, objectDefinition.findContainerDefinition(containerName));
+		delta.setValuesToReplace(cValues);
+		return delta;
+	}
 
 	@Override
     protected void dumpValues(StringBuilder sb, String label, Collection<PrismContainerValue<V>> values, int indent) {

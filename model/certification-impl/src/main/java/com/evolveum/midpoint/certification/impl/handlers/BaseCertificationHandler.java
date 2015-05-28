@@ -50,8 +50,6 @@ import java.util.Collection;
 @Component
 public abstract class BaseCertificationHandler implements CertificationHandler {
 
-    public static final String NS_HANDLERS_PREFIX = SchemaConstants.NS_CERTIFICATION + "/handlers-3";
-
     private static final transient Trace LOGGER = TraceManager.getTrace(BaseCertificationHandler.class);
 
     @Autowired

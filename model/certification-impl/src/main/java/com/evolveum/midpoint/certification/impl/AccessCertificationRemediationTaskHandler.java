@@ -48,9 +48,7 @@ import java.util.List;
 @Component
 public class AccessCertificationRemediationTaskHandler implements TaskHandler {
 
-	public static final String NS_CERTIFICATION_PREFIX = SchemaConstants.NS_MODEL + "/certification";
-	public static final String NS_CERTIFICATION_TASK_PREFIX = NS_CERTIFICATION_PREFIX + "/task";
-	public static final String HANDLER_URI = NS_CERTIFICATION_TASK_PREFIX + "/remediation/handler-3";
+	public static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TASK_PREFIX + "/remediation/handler-3";
 
     public static final String CLASS_DOT = AccessCertificationRemediationTaskHandler.class.getName() + ".";
 

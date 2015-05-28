@@ -47,6 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -191,8 +192,9 @@ public class CertificationManagerImpl implements CertificationManager {
                 result.recordFatalError("Couldn't advance to review stage " + requestedStageNumber + " as the campaign has only " + stages + " stages");
             } else {
                 CertificationHandler handler = findCertificationHandler(campaign);
-                updateHelper.moveToNextStage(campaign, handler, task, result);
-                updateHelper.recordMoveToNextStage(campaign, requestedStageNumber, result);
+                AccessCertificationStageType stage = updateHelper.createStage(campaign, currentStageNumber+1);
+                updateHelper.moveToNextStage(campaign, stage, handler, task, result);
+                updateHelper.recordMoveToNextStage(campaign, stage, result);
             }
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't move to certification campaign stage " + requestedStageNumber + ": unexpected exception: " + e.getMessage(), e);

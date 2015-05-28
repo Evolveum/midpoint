@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.certification.impl.handlers;
 
+import com.evolveum.midpoint.certification.impl.AccessCertificationConstants;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -65,7 +66,7 @@ import java.util.List;
 @Component
 public class DirectAssignmentCertificationHandler extends BaseCertificationHandler {
 
-    public static final String URI = NS_HANDLERS_PREFIX + "#direct-assignment";
+    public static final String URI = AccessCertificationConstants.NS_HANDLERS_PREFIX + "#direct-assignment";
 
     private static final transient Trace LOGGER = TraceManager.getTrace(DirectAssignmentCertificationHandler.class);
 
