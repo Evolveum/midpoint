@@ -115,6 +115,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -168,12 +169,12 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	protected static final String ACCOUNT_239_UID = "u00000239";
 	protected static final String ACCOUNT_240_UID = "u00000240";
 
-	private static final int NUMBER_OF_GENERATED_ACCOUNTS = 4000;
+	protected static final int NUMBER_OF_GENERATED_ACCOUNTS = 4000;
 
-	private static final String ACCOUNT_HT_UID = "ht";
-	private static final String ACCOUNT_HT_CN = "Herman Toothrot";
-	private static final String ACCOUNT_HT_GIVENNAME = "Herman";
-	private static final String ACCOUNT_HT_SN = "Toothrot";
+	protected static final String ACCOUNT_HT_UID = "ht";
+	protected static final String ACCOUNT_HT_CN = "Herman Toothrot";
+	protected static final String ACCOUNT_HT_GIVENNAME = "Herman";
+	protected static final String ACCOUNT_HT_SN = "Toothrot";
 	
 	@Autowired(required = true)
 	protected MatchingRuleRegistry matchingRuleRegistry;
@@ -190,7 +191,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	protected String accountBarbossaOid;
 
     @Autowired
-    private ReconciliationTaskHandler reconciliationTaskHandler;
+    protected ReconciliationTaskHandler reconciliationTaskHandler;
 	
     @Override
     protected void startResources() throws Exception {
@@ -234,6 +235,10 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	
 	protected File getSyncTaskFile() {
 		return new File(getBaseDir(), "task-sync.xml");
+	}
+	
+	protected File getSyncTaskInetOrgPersonFile() {
+		return new File(getBaseDir(), "task-sync-inetorgperson.xml");
 	}
 	
 	protected abstract String getSyncTaskOid();
@@ -757,7 +762,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         ResourceAttribute<Long> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimestamp"));
         assertNotNull("No createTimestamp in "+shadow, createTimestampAttribute);
         Long createTimestamp = createTimestampAttribute.getRealValue();
-        TestUtil.assertBetween("Wrong createTimestamp in "+shadow, tsStart, tsEnd, createTimestamp);
+        TestUtil.assertBetween("Wrong createTimestamp in "+shadow, roundTsDown(tsStart), roundTsUp(tsEnd), createTimestamp);
 	}
 	
 	@Test
@@ -866,7 +871,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        waitForTaskStart(getSyncTaskOid(), true);
+        waitForTaskNextRun(getSyncTaskOid(), true);
         
         long tsEnd = System.currentTimeMillis();
         
@@ -984,8 +989,8 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	}
 	
 	@Test
-    public void test819DeleteAccountHtm() throws Exception {
-		final String TEST_NAME = "test819DeleteAccountHtm";
+    public void test818DeleteAccountHtm() throws Exception {
+		final String TEST_NAME = "test818DeleteAccountHtm";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -1011,12 +1016,84 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         assertNull("User "+ACCOUNT_HT_UID+" still exist", findUserByUsername(ACCOUNT_HT_UID));
 
         assertStepSyncToken(getSyncTaskOid(), 4, tsStart, tsEnd);
+	}
+	
+	
+	// TODO: sync with "ALL" object class
+	
+	@Test
+    public void test819DeleteSyncTask() throws Exception {
+		final String TEST_NAME = "test819DeleteSyncTask";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        deleteObject(TaskType.class, getSyncTaskOid(), task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertNoObject(TaskType.class, getSyncTaskOid(), task, result);
+	}
+	
+	@Test
+    public void test820ImportSyncTaskInetOrgPerson() throws Exception {
+		final String TEST_NAME = "test820ImportSyncTaskInetOrgPerson";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        long tsStart = System.currentTimeMillis();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        addObject(getSyncTaskInetOrgPersonFile(), task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        waitForTaskNextRun(getSyncTaskOid(), true);
+        
+        long tsEnd = System.currentTimeMillis();
+        
+        PrismObject<TaskType> syncTask = getTask(getSyncTaskOid());
+        display("Sync task after start", syncTask);
+        
+        assertStepSyncToken(getSyncTaskOid(), 0, tsStart, tsEnd);
 	}
 
 	// TODO: create object of a different object class. See that it is ignored by sync.
 
-	// TODO: sync with "ALL" object class
+	@Test
+    public void test829DeleteSyncTask() throws Exception {
+		final String TEST_NAME = "test829DeleteSyncTask";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        deleteObject(TaskType.class, getSyncTaskOid(), task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertNoObject(TaskType.class, getSyncTaskOid(), task, result);
+	}
 	
 	protected Entry getLdapAccountByUid(String uid) throws LdapException, IOException, CursorException {
 		LdapNetworkConnection connection = ldapConnect();
@@ -1125,4 +1202,11 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 		assertShadowCommon(shadow, null, dn, resourceType, getAccountObjectClass(), ciMatchingRule);
 	}
 
+	protected long roundTsDown(long ts) {
+		return (((long)(ts/1000))*1000);
+	}
+	
+	protected long roundTsUp(long ts) {
+		return (((long)(ts/1000))*1000)+1;
+	}
 }

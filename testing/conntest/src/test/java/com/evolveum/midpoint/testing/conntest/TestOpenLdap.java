@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.testing.conntest;
 
 import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
 import java.text.ParseException;
@@ -24,6 +25,7 @@ import org.apache.directory.api.util.GeneralizedTime;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -35,6 +37,7 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
@@ -117,12 +120,36 @@ public class TestOpenLdap extends AbstractLdapConnTest {
 		} catch (ParseException e) {
 			throw new RuntimeException(e.getMessage(),e);
 		}
-		TestUtil.assertBetween("Wrong time in sync token: "+syncToken, roundTs(tsStart), roundTs(tsEnd), syncTokenGt.getCalendar().getTimeInMillis());
+		TestUtil.assertBetween("Wrong time in sync token: "+syncToken, roundTsDown(tsStart), roundTsUp(tsEnd), syncTokenGt.getCalendar().getTimeInMillis());
 		
 	}
 
-	private Long roundTs(long ts) {
-		return (((long)(ts/1000))*1000);
+	@Override
+	public void test818DeleteAccountHtm() throws Exception {
+		final String TEST_NAME = "test818DeleteAccountHtm";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+		// The original test is not applicable for modifyTimestamp sync.
+		// Therefore just delete the user so we have consistent state
+        
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> user = findUserByUsername("htm");
+        
+        // WHEN
+		deleteObject(UserType.class, user.getOid(), task, result);
+		
+		// THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertNull("User "+"htm"+" still exist", findUserByUsername("htm"));
+        assertNull("User "+ACCOUNT_HT_UID+" still exist", findUserByUsername(ACCOUNT_HT_UID));
 	}
+	
+	
 	
 }

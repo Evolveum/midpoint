@@ -134,45 +134,12 @@ public class LiveSyncTaskHandler implements TaskHandler {
 	            return runResult;
 			}
 
-		
-//		ResourceType resource = null;
-//        try {
-//
-//            resource = task.getObject(ResourceType.class, opResult).asObjectable();
-//
-//        } catch (ObjectNotFoundException ex) {
-//            String resourceOid = null;
-//            if (task.getObjectRef() != null) {
-//                resourceOid = task.getObjectRef().getOid();
-//            }
-//            LOGGER.error("Import: Resource not found: {}", resourceOid, ex);
-//            // This is bad. The resource does not exist. Permanent problem.
-//            opResult.recordFatalError("Resource not found " + resourceOid, ex);
-//            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-//            return runResult;
-//        } catch (SchemaException ex) {
-//            LOGGER.error("Import: Error dealing with schema: {}", ex.getMessage(), ex);
-//            // Not sure about this. But most likely it is a misconfigured resource or connector
-//            // It may be worth to retry. Error is fatal, but may not be permanent.
-//            opResult.recordFatalError("Error dealing with schema: " + ex.getMessage(), ex);
-//            runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
-//            return runResult;
-//        } catch (RuntimeException ex) {
-//            LOGGER.error("Import: Internal Error: {}", ex.getMessage(), ex);
-//            // Can be anything ... but we can't recover from that.
-//            // It is most likely a programming error. Does not make much sense to retry.
-//            opResult.recordFatalError("Internal Error: " + ex.getMessage(), ex);
-//            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-//            return runResult;
-//        }
-
         if (resource == null) {
             LOGGER.error("Live Sync: No resource specified");
             opResult.recordFatalError("No resource specified");
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
         }
-//        String resourceOid = resource.getOid();
         
 		RefinedResourceSchema refinedSchema;
         try {
@@ -188,7 +155,6 @@ public class LiveSyncTaskHandler implements TaskHandler {
         	opResult.recordFatalError("No refined schema defined. Probably some configuration problem.");
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             LOGGER.error("Live Sync: No refined schema defined. Probably some configuration problem.");
-//        	throw new SchemaException();re
             return runResult;
         }
         
