@@ -132,6 +132,9 @@ public class IcfNameMapper {
 	 * TODO: mind the special characters in the ICF objectclass names.
 	 */
 	public QName objectClassToQname(String icfObjectClassString, String schemaNamespace, boolean legacySchema) {
+		if (ObjectClass.ALL_NAME.equals(icfObjectClassString)) {
+			return null;
+		}
 		if (legacySchema) {
 			if (ObjectClass.ACCOUNT_NAME.equals(icfObjectClassString)) {
 				return new QName(schemaNamespace, ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME,

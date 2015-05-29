@@ -968,7 +968,16 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 	        		}
 	        	}
 	        	
-	        	SyncDeltaBuilder builder =  new SyncDeltaBuilder();
+	        	SyncDeltaBuilder deltaBuilder =  new SyncDeltaBuilder();
+	        	if (deltaObjectClass == DummyAccount.class) {
+	        		deltaBuilder.setObjectClass(ObjectClass.ACCOUNT);
+	        	} else if (deltaObjectClass == DummyGroup.class) {
+	        		deltaBuilder.setObjectClass(ObjectClass.GROUP);
+	        	} else if (deltaObjectClass == DummyPrivilege.class) {
+	        		deltaBuilder.setObjectClass(new ObjectClass(OBJECTCLASS_PRIVILEGE_NAME));
+	        	} else {
+	        		throw new IllegalArgumentException("Unknown delta objectClass "+deltaObjectClass);
+	        	}
 	        	
 	        	SyncDeltaType deltaType;
 	        	if (delta.getType() == DummyDeltaType.ADD || delta.getType() == DummyDeltaType.MODIFY) {
@@ -987,14 +996,14 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 		        			throw new IllegalStateException("We have delta for account '"+delta.getObjectId()+"' but such account does not exist");
 		        		}
 		        		ConnectorObject cobject = convertToConnectorObject(account, attributesToGet);
-						builder.setObject(cobject);
+						deltaBuilder.setObject(cobject);
 	        		} else if (deltaObjectClass == DummyGroup.class) {
 	        			DummyGroup group = resource.getGroupById(delta.getObjectId());
 		        		if (group == null) {
 		        			throw new IllegalStateException("We have delta for group '"+delta.getObjectId()+"' but such group does not exist");
 		        		}
 		        		ConnectorObject cobject = convertToConnectorObject(group, attributesToGet);
-						builder.setObject(cobject);
+						deltaBuilder.setObject(cobject);
 	        		} else {
 	        			throw new IllegalArgumentException("Unknown delta objectClass "+deltaObjectClass);
 	        		}
@@ -1003,9 +1012,9 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 	        	} else {
 	        		throw new IllegalStateException("Unknown delta type "+delta.getType());
 	        	}
-	        	builder.setDeltaType(deltaType);
+	        	deltaBuilder.setDeltaType(deltaType);
 	        	
-	        	builder.setToken(new SyncToken(delta.getSyncToken()));
+	        	deltaBuilder.setToken(new SyncToken(delta.getSyncToken()));
 	        	
 	        	Uid uid;
 	        	if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
@@ -1015,9 +1024,9 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 		        } else {
 		        	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
 		        }
-	        	builder.setUid(uid);
+	        	deltaBuilder.setUid(uid);
 	        	
-	        	SyncDelta syncDelta = builder.build();
+	        	SyncDelta syncDelta = deltaBuilder.build();
 	        	log.info("sync::handle {0}",syncDelta);
 				handler.handle(syncDelta);
 	        }
@@ -1172,6 +1181,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 		}
 		
 		ConnectorObjectBuilder builder = createConnectorObjectBuilderCommon(account, objectClass, attributesToGet, true);
+		builder.setObjectClass(ObjectClass.ACCOUNT);
 		
 		// Password is not returned by default (hardcoded ICF specification)
 		if (account.getPassword() != null && configuration.getReadablePassword() && 
@@ -1190,12 +1200,14 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 	private ConnectorObject convertToConnectorObject(DummyGroup group, Collection<String> attributesToGet) {
 		ConnectorObjectBuilder builder = createConnectorObjectBuilderCommon(group, resource.getGroupObjectClass(),
 				attributesToGet, true);
+		builder.setObjectClass(ObjectClass.GROUP);
         return builder.build();
 	}
 	
 	private ConnectorObject convertToConnectorObject(DummyPrivilege priv, Collection<String> attributesToGet) {
 		ConnectorObjectBuilder builder = createConnectorObjectBuilderCommon(priv, resource.getPrivilegeObjectClass(),
 				attributesToGet, false);
+		builder.setObjectClass(new ObjectClass(OBJECTCLASS_PRIVILEGE_NAME));
         return builder.build();
 	}
 

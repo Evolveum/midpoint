@@ -1046,7 +1046,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			throw ex;
 		} catch (ObjectNotFoundException ex) {
 			result.recordFatalError("Object not found");
-			throw new ObjectNotFoundException("Object identified by " + identifiers + " was not found by "
+			throw new ObjectNotFoundException("Object identified by " + identifiers + ", objectClass " + objectClassDefinition.getTypeName() + "  was not found by "
 					+ connectorType);
 		} catch (SchemaException ex) {
 			result.recordFatalError(ex);
@@ -1058,7 +1058,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		if (co == null) {
 			result.recordFatalError("Object not found");
-			throw new ObjectNotFoundException("Object identified by " + identifiers + " was not found by "
+			throw new ObjectNotFoundException("Object identified by " + identifiers + ", objectClass " + objectClassDefinition.getTypeName() + " was not found by "
 					+ connectorType);
 		}
 
@@ -1846,10 +1846,18 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		final List<SyncDelta> syncDeltas = new ArrayList<SyncDelta>();
 		// get icf object class
-		ObjectClass icfObjectClass = icfNameMapper.objectClassToIcf(objectClass, getSchemaNamespace(), connectorType, legacySchema);
+		ObjectClass icfObjectClass;
+		if (objectClass == null) {
+			icfObjectClass = ObjectClass.ALL;
+		} else {
+			icfObjectClass = icfNameMapper.objectClassToIcf(objectClass, getSchemaNamespace(), connectorType, legacySchema);
+		}
 
 		OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
-		String[] attributesToGet = convertToIcfAttrsToGet(objectClass, attrsToReturn);
+		String[] attributesToGet = null; 
+		if (objectClass != null) {
+			attributesToGet = convertToIcfAttrsToGet(objectClass, attrsToReturn);
+		}
 		if (attributesToGet != null) {
 			optionsBuilder.setAttributesToGet(attributesToGet);
 		}
@@ -1861,7 +1869,6 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			public boolean handle(SyncDelta delta) {
 				LOGGER.trace("Detected sync delta: {}", delta);
 				return syncDeltas.add(delta);
-
 			}
 		};
 
@@ -2281,15 +2288,6 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return null;
 	}
 
-	
-	
-
-	
-
-	
-
-	
-
 	private void convertFromActivation(Set<Attribute> updateAttributes,
 			Collection<PropertyDelta<?>> activationDeltas) throws SchemaException {
 
@@ -2352,21 +2350,32 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	}
 
-	private <T extends ShadowType> List<Change<T>> getChangesFromSyncDeltas(ObjectClass objClass, Collection<SyncDelta> icfDeltas, PrismSchema schema,
+	private <T extends ShadowType> List<Change<T>> getChangesFromSyncDeltas(ObjectClass icfObjClass, Collection<SyncDelta> icfDeltas, PrismSchema schema,
 																			OperationResult parentResult)
 			throws SchemaException, GenericFrameworkException {
 		List<Change<T>> changeList = new ArrayList<Change<T>>();
 
+		QName objectClass = icfNameMapper.objectClassToQname(icfObjClass.getObjectClassValue(), getSchemaNamespace(), legacySchema);
+		ObjectClassComplexTypeDefinition objClassDefinition = null;
+		if (objectClass != null) {
+			objClassDefinition = (ObjectClassComplexTypeDefinition) schema.findComplexTypeDefinition(objectClass);
+		}
+		
 		Validate.notNull(icfDeltas, "Sync result must not be null.");
 		for (SyncDelta icfDelta : icfDeltas) {
 
-			if (icfDelta.getObject() != null){
-				objClass = icfDelta.getObject().getObjectClass();
+			ObjectClass deltaIcfObjClass = icfObjClass;
+			QName deltaObjectClass = objectClass;
+			ObjectClassComplexTypeDefinition deltaObjClassDefinition = objClassDefinition;
+			if (objectClass == null) {
+				deltaIcfObjClass = icfDelta.getObjectClass();
+				deltaObjectClass = icfNameMapper.objectClassToQname(deltaIcfObjClass.getObjectClassValue(), getSchemaNamespace(), legacySchema);
+				deltaObjClassDefinition = (ObjectClassComplexTypeDefinition) schema.findComplexTypeDefinition(deltaObjectClass);
 			}
-				QName objectClass = icfNameMapper.objectClassToQname(objClass.getObjectClassValue(), getSchemaNamespace(), legacySchema);
-				ObjectClassComplexTypeDefinition objClassDefinition = (ObjectClassComplexTypeDefinition) schema
-				.findComplexTypeDefinition(objectClass);
-
+			if (deltaObjClassDefinition == null) {
+				throw new SchemaException("Got delta with object class "+deltaObjectClass+" ("+deltaIcfObjClass+") that has no definition in resource schema");
+			}
+			
 			SyncDeltaType icfDeltaType = icfDelta.getDeltaType();
 			if (SyncDeltaType.DELETE.equals(icfDeltaType)) {
 				LOGGER.trace("START creating delta of type DELETE");
@@ -2374,17 +2383,17 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 						ShadowType.class, ChangeType.DELETE, prismContext);
 				ResourceAttribute<String> uidAttribute = IcfUtil.createUidAttribute(
 						icfDelta.getUid(),
-						IcfUtil.getUidDefinition(objClassDefinition
+						IcfUtil.getUidDefinition(deltaObjClassDefinition
 								.toResourceAttributeContainerDefinition(ShadowType.F_ATTRIBUTES)));
 				Collection<ResourceAttribute<?>> identifiers = new ArrayList<ResourceAttribute<?>>(1);
 				identifiers.add(uidAttribute);
 				Change change = new Change(identifiers, objectDelta, getToken(icfDelta.getToken()));
-				change.setObjectClassDefinition(objClassDefinition);
+				change.setObjectClassDefinition(deltaObjClassDefinition);
 				changeList.add(change);
 				LOGGER.trace("END creating delta of type DELETE");
 
 			} else if (SyncDeltaType.CREATE.equals(icfDeltaType)) {
-				PrismObjectDefinition<ShadowType> objectDefinition = toShadowDefinition(objClassDefinition);
+				PrismObjectDefinition<ShadowType> objectDefinition = toShadowDefinition(deltaObjClassDefinition);
 				LOGGER.trace("Object definition: {}", objectDefinition);
 				
 				LOGGER.trace("START creating delta of type CREATE");
@@ -2402,13 +2411,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				objectDelta.setObjectToAdd(currentShadow);
 
 				Change change = new Change(identifiers, objectDelta, getToken(icfDelta.getToken()));
-				change.setObjectClassDefinition(objClassDefinition);
+				change.setObjectClassDefinition(deltaObjClassDefinition);
 				changeList.add(change);
 				LOGGER.trace("END creating delta of type CREATE");
 
 			} else if (SyncDeltaType.CREATE_OR_UPDATE.equals(icfDeltaType) || 
 					SyncDeltaType.UPDATE.equals(icfDeltaType)) {
-				PrismObjectDefinition<ShadowType> objectDefinition = toShadowDefinition(objClassDefinition);
+				PrismObjectDefinition<ShadowType> objectDefinition = toShadowDefinition(deltaObjClassDefinition);
 				LOGGER.trace("Object definition: {}", objectDefinition);
 				
 				LOGGER.trace("START creating delta of type {}", icfDeltaType);
@@ -2422,7 +2431,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(currentShadow);
 
 				Change change = new Change(identifiers, currentShadow, getToken(icfDelta.getToken()));
-				change.setObjectClassDefinition(objClassDefinition);
+				change.setObjectClassDefinition(deltaObjClassDefinition);
 				changeList.add(change);
 				LOGGER.trace("END creating delta of type {}", icfDeltaType);
 				

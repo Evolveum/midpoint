@@ -96,6 +96,7 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -4041,6 +4042,56 @@ public class TestDummy extends AbstractDummyTest {
 		testLiveSyncDeleteDrake("test829LiveSyncDeleteDrakeDumbObjectClass", DummySyncStyle.SMART, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
 	}
 	
+	@Test
+	public void test830LiveSyncAddDrakeDumbAny() throws Exception {
+		testLiveSyncAddDrake("test830LiveSyncAddDrakeDumbAny", DummySyncStyle.DUMB, null);
+	}
+	
+	@Test
+	public void test832LiveSyncModifyDrakeDumbAny() throws Exception {
+		testLiveSyncModifyDrake("test832LiveSyncModifyDrakeDumbAny", DummySyncStyle.DUMB, null);
+	}
+
+	@Test
+	public void test835LiveSyncAddCorsairsDumbAny() throws Exception {
+		testLiveSyncAddCorsairs("test835LiveSyncAddCorsairsDumbAny", DummySyncStyle.DUMB, null, true);
+	}
+	
+	@Test
+	public void test837LiveSyncDeleteCorsairsDumbAny() throws Exception {
+		testLiveSyncDeleteCorsairs("test837LiveSyncDeleteCorsairsDumbAny", DummySyncStyle.DUMB, null, true);
+	}
+	
+	@Test
+	public void test839LiveSyncDeleteDrakeDumbAny() throws Exception {
+		testLiveSyncDeleteDrake("test839LiveSyncDeleteDrakeDumbAny", DummySyncStyle.DUMB, null);
+	}
+	
+	@Test
+	public void test840LiveSyncAddDrakeSmartAny() throws Exception {
+		testLiveSyncAddDrake("test840LiveSyncAddDrakeSmartAny", DummySyncStyle.SMART, null);
+	}
+	
+	@Test
+	public void test842LiveSyncModifyDrakeSmartAny() throws Exception {
+		testLiveSyncModifyDrake("test842LiveSyncModifyDrakeSmartAny", DummySyncStyle.SMART, null);
+	}
+	
+	@Test
+	public void test845LiveSyncAddCorsairsSmartAny() throws Exception {
+		testLiveSyncAddCorsairs("test845LiveSyncAddCorsairsSmartAny", DummySyncStyle.SMART, null, true);
+	}
+	
+	@Test
+	public void test847LiveSyncDeleteCorsairsSmartAny() throws Exception {
+		testLiveSyncDeleteCorsairs("test847LiveSyncDeleteCorsairsSmartAny", DummySyncStyle.SMART, null, true);
+	}
+	
+	@Test
+	public void test849LiveSyncDeleteDrakeSmartAny() throws Exception {
+		testLiveSyncDeleteDrake("test849LiveSyncDeleteDrakeSmartAny", DummySyncStyle.SMART, null);
+	}
+	
 	public void testLiveSyncAddDrake(final String TEST_NAME, DummySyncStyle syncStyle, QName objectClass) throws Exception {
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
@@ -4059,9 +4110,11 @@ public class TestDummy extends AbstractDummyTest {
 		display("Resource before sync", dummyResource.debugDump());
 
 		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		provisioningService.synchronize(RESOURCE_DUMMY_OID, objectClass, syncTokenTask, result);
 
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
 		display("Synchronization result", result);
 		TestUtil.assertSuccess("Synchronization result is not OK", result);
@@ -4126,9 +4179,11 @@ public class TestDummy extends AbstractDummyTest {
 		dummyAccount.replaceAttributeValue("fullname", "Captain Drake");
 
 		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		provisioningService.synchronize(RESOURCE_DUMMY_OID, objectClass, syncTokenTask, result);
 
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
 		display("Synchronization result", result);
 		TestUtil.assertSuccess("Synchronization result is not OK", result);
@@ -4195,9 +4250,11 @@ public class TestDummy extends AbstractDummyTest {
 		display("Resource before sync", dummyResource.debugDump());
 
 		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		provisioningService.synchronize(RESOURCE_DUMMY_OID, objectClass, syncTokenTask, result);
 
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
 		display("Synchronization result", result);
 		TestUtil.assertSuccess("Synchronization result is not OK", result);
@@ -4236,10 +4293,10 @@ public class TestDummy extends AbstractDummyTest {
 			PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, corsairsShadowOid, null, result);
 			display("Corsairs repo shadow", repoShadow);
 			
-			PrismObject<ShadowType> accountRepo = findAccountShadowByUsername(GROUP_CORSAIRS_NAME, resource, result);	
+			PrismObject<ShadowType> accountRepo = findShadowByName(new QName(RESOURCE_DUMMY_NS, ConnectorFactoryIcfImpl.GROUP_OBJECT_CLASS_LOCAL_NAME), GROUP_CORSAIRS_NAME, resource, result);
 			assertNotNull("Shadow was not created in the repository", accountRepo);
 			display("Repository shadow", accountRepo);
-			ProvisioningTestUtil.checkRepoAccountShadow(accountRepo);
+			ProvisioningTestUtil.checkRepoShadow(repoShadow, ShadowKindType.ENTITLEMENT);
 			
 		} else {
 			syncServiceMock.assertNoNotifyChange();
@@ -4267,9 +4324,11 @@ public class TestDummy extends AbstractDummyTest {
 		display("Resource before sync", dummyResource.debugDump());
 
 		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		provisioningService.synchronize(RESOURCE_DUMMY_OID, objectClass, syncTokenTask, result);
 
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
 		display("Synchronization result", result);
 		TestUtil.assertSuccess("Synchronization result is not OK", result);
@@ -4341,9 +4400,11 @@ public class TestDummy extends AbstractDummyTest {
 		display("Resource before sync", dummyResource.debugDump());
 
 		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		provisioningService.synchronize(RESOURCE_DUMMY_OID, objectClass, syncTokenTask, result);
 
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
 		display("Synchronization result", result);
 		TestUtil.assertSuccess("Synchronization result is not OK", result);
@@ -4405,10 +4466,12 @@ public class TestDummy extends AbstractDummyTest {
 		dummyAccount.replaceAttributeValue("fullname", "Maxwell deamon");
 
 		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		provisioningService.synchronize(RESOURCE_DUMMY_OID, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), 
 				syncTask, result);
 
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
 		display("Synchronization result", result);
 		TestUtil.assertSuccess("Synchronization result is not OK", result);

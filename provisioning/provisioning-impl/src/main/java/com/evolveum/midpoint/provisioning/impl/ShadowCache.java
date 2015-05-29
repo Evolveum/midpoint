@@ -1037,9 +1037,6 @@ public abstract class ShadowCache {
 		InternalMonitor.recordShadowOtherOperation();
 		
 		RefinedObjectClassDefinition refinedObjectClassDefinition = determineObjectClassDefinition(objectClass, resourceType);
-		if (refinedObjectClassDefinition == null) {
-			throw new SchemaException("Unknown object class "+objectClass+" in "+resourceType);
-		}
 		ConnectorInstance connector = getConnectorInstance(resourceType, parentResult);
 		
 		List<Change<ShadowType>> changes = null;
@@ -1049,12 +1046,14 @@ public abstract class ShadowCache {
 
 			LOGGER.trace("Found {} change(s). Start processing it (them).", changes.size());
 
-			for (Iterator<Change<ShadowType>> i = changes.iterator(); i.hasNext();) {
-				// search objects in repository
-				Change<ShadowType> change = i.next();
+			for (Change<ShadowType> change: changes) {	
 				
-				processChange(resourceType, refinedObjectClassDefinition, objectClass, parentResult, change, connector);
-
+				QName shadowObjectClass = objectClass;
+				if (shadowObjectClass == null) {
+					shadowObjectClass = change.getObjectClassDefinition().getTypeName();
+				}
+				
+				processChange(resourceType, refinedObjectClassDefinition, shadowObjectClass, parentResult, change, connector);
 			}
 
 		} catch (SchemaException ex) {

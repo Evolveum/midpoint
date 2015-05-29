@@ -1462,30 +1462,54 @@ public class ResourceObjectConverter {
 	}
 
 	public List<Change<ShadowType>> fetchChanges(ConnectorInstance connector, ResourceType resource,
-			RefinedObjectClassDefinition objectClass, PrismProperty<?> lastToken,
+			RefinedObjectClassDefinition objectClassDef, PrismProperty<?> lastToken,
 			OperationResult parentResult) throws SchemaException,
 			CommunicationException, ConfigurationException, SecurityViolationException, GenericFrameworkException, ObjectNotFoundException {
 		Validate.notNull(resource, "Resource must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
-		LOGGER.trace("START fetch changes");
+		LOGGER.trace("START fetch changes, objectClass: {}", objectClassDef);
+		
+		RefinedResourceSchema refinedSchema = null;
+		if (objectClassDef == null) {
+			refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
+		}
 
-		AttributesToReturn attrsToReturn = ProvisioningUtil.createAttributesToReturn(objectClass, resource);
+		AttributesToReturn attrsToReturn = null;
+		if (objectClassDef != null) {
+			attrsToReturn = ProvisioningUtil.createAttributesToReturn(objectClassDef, resource);
+		}
 		
 		// get changes from the connector
-		List<Change<ShadowType>> changes = connector.fetchChanges(objectClass, lastToken, attrsToReturn, parentResult);
+		List<Change<ShadowType>> changes = connector.fetchChanges(objectClassDef, lastToken, attrsToReturn, parentResult);
 
 		Iterator<Change<ShadowType>> iterator = changes.iterator();
 		while (iterator.hasNext()) {
 			Change<ShadowType> change = iterator.next();
-			if (change.getCurrentShadow() == null) {
+			
+			RefinedObjectClassDefinition shadowObjectClassDef = objectClassDef;
+			AttributesToReturn shadowAttrsToReturn = attrsToReturn;
+			PrismObject<ShadowType> currentShadow = change.getCurrentShadow();
+			if (objectClassDef == null) {
+				shadowObjectClassDef = refinedSchema.getRefinedDefinition(change.getObjectClassDefinition().getTypeName());
+				if (shadowObjectClassDef == null) {
+					String message = "Unkown object class "+change.getObjectClassDefinition().getTypeName()+" found in synchronization delta";
+					parentResult.recordFatalError(message);
+					throw new SchemaException(message);
+				}
+				change.setObjectClassDefinition(shadowObjectClassDef);
+				
+				shadowAttrsToReturn = ProvisioningUtil.createAttributesToReturn(shadowObjectClassDef, resource);
+			}
+			
+			if (currentShadow == null) {
 				// There is no current shadow in a change. Add it by fetching it explicitly.
 				if (change.getObjectDelta() == null || !change.getObjectDelta().isDelete()) {						
 					// but not if it is a delete event
 					try {
 						
-						PrismObject<ShadowType> currentShadow = fetchResourceObject(connector, resource, objectClass, 
-								change.getIdentifiers(), attrsToReturn, true, parentResult);	// todo consider whether it is always necessary to fetch the entitlements
+						currentShadow = fetchResourceObject(connector, resource, shadowObjectClassDef, 
+								change.getIdentifiers(), shadowAttrsToReturn, true, parentResult);	// todo consider whether it is always necessary to fetch the entitlements
 						change.setCurrentShadow(currentShadow);
 						
 					} catch (ObjectNotFoundException ex) {
@@ -1499,9 +1523,18 @@ public class ResourceObjectConverter {
 					}
 				}
 			} else {
-				PrismObject<ShadowType> currentShadow = postProcessResourceObjectRead(connector, resource, change.getCurrentShadow(), 
-						objectClass, true, parentResult);
-				change.setCurrentShadow(currentShadow);
+				if (objectClassDef == null) {
+					if (!MiscUtil.equals(shadowAttrsToReturn, attrsToReturn)) {
+						// re-fetch the shadow if necessary (if attributesToGet does not match)
+						ResourceObjectIdentification identification = new ResourceObjectIdentification(shadowObjectClassDef, change.getIdentifiers());
+						currentShadow = connector.fetchObject(ShadowType.class, identification, shadowAttrsToReturn, parentResult);
+					}
+					
+				}
+						
+				PrismObject<ShadowType> processedCurrentShadow = postProcessResourceObjectRead(connector, resource, currentShadow, 
+						shadowObjectClassDef, true, parentResult);
+				change.setCurrentShadow(processedCurrentShadow);
 			}
 		}
 
