@@ -18,13 +18,17 @@ package com.evolveum.midpoint.certification.impl;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
@@ -100,7 +104,7 @@ public class AccCertGeneralHelper {
         if (campaign != null && campaign.getName() != null) {
             campaign.setName(campaign.getName());
         } else if (definition != null && definition.getName() != null) {
-            newCampaign.setName(new PolyStringType("Campaign for " + definition.getName().getOrig() + " started " + now));
+            newCampaign.setName(generateCampaignName(definition.getName().getOrig(), task, result));
         } else {
             throw new SchemaException("Couldn't create a campaign without name");
         }
@@ -162,6 +166,26 @@ public class AccCertGeneralHelper {
         newCampaign.setCurrentStageNumber(0);
 
         return newCampaign;
+    }
+
+    private PolyStringType generateCampaignName(String prefix, Task task, OperationResult result) throws SchemaException {
+        for (int i = 1;; i++) {
+            String name = generateName(prefix, i);
+            if (!campaignExists(name, task, result)) {
+                return new PolyStringType(name);
+            }
+        }
+    }
+
+    private boolean campaignExists(String name, Task task, OperationResult result) throws SchemaException {
+        ObjectQuery query = ObjectQueryUtil.createNameQuery(AccessCertificationCampaignType.class, prismContext, name);
+        SearchResultList<PrismObject<AccessCertificationCampaignType>> existingCampaigns =
+                repositoryService.searchObjects(AccessCertificationCampaignType.class, query, null, result);
+        return !existingCampaigns.isEmpty();
+    }
+
+    private String generateName(String prefix, int i) {
+        return prefix + " " + i;
     }
 
 }

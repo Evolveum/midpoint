@@ -166,7 +166,14 @@ public interface CertificationManager {
      * (e.g. to present a reviewer all of his/her cases).
      * So, instead of campaignOid there is a campaignQuery allowing to select one, more, and even all campaigns.
      *
-     * Contrary to all the other methods, cases returned from this method have campaignRef set.
+     * Contrary to all the other methods, cases returned from this method have campaignRef set - both reference and the campaign object itself.
+     * (THIS MAY CHANGE IN THE FUTURE.)
+     *
+     * Sorting is supported as this:
+     *  - name of subject, by setting paging.orderBy = subjectRef
+     *  - name of target, by setting paging.orderBy = targetRef
+     *  - name of campaign, by setting paging.orderBy = campaignRef
+     *  - deadline or reviewRequestedTimestamp, by setting paging.orderBy = reviewDeadline/reviewRequestedTimestamp
      *
      * @param campaignQuery Specification of campaigns to query.
      * @param caseQuery Specification of the cases to retrieve.

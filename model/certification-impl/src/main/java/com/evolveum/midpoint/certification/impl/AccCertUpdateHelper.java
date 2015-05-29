@@ -272,6 +272,10 @@ public class AccCertUpdateHelper {
         end.setSecond(59);
         end.setMillisecond(999);
         stage.setEnd(end);
+
+        stage.setName(stageDef.getName());
+        stage.setDescription(stageDef.getDescription());
+
         return stage;
     }
 

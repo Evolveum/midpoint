@@ -35,7 +35,6 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -54,6 +53,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -134,7 +134,9 @@ public class AccCertQueryHelper {
                         decisionIterator.remove();
                     }
                 }
-                _case.setCampaignRef(ObjectTypeUtil.createObjectRef(campaignObject));
+                ObjectReferenceType campaignRef = ObjectTypeUtil.createObjectRef(campaignObject);
+                campaignRef.asReferenceValue().setObject(campaignObject);
+                _case.setCampaignRef(campaignRef);
                 caseList.add(_case);
             }
         }
@@ -209,6 +211,12 @@ public class AccCertQueryHelper {
             return createSubjectNameComparator(direction);
         } else if (QNameUtil.match(orderBy, AccessCertificationCaseType.F_TARGET_REF)) {
             return createTargetNameComparator(direction);
+        } else if (QNameUtil.match(orderBy, AccessCertificationCaseType.F_CAMPAIGN_REF)) {
+            return createCampaignNameComparator(direction);
+        } else if (QNameUtil.match(orderBy, AccessCertificationCaseType.F_REVIEW_REQUESTED_TIMESTAMP)) {
+            return createReviewRequestedComparator(direction);
+        } else if (QNameUtil.match(orderBy, AccessCertificationCaseType.F_REVIEW_DEADLINE)) {
+            return createReviewDeadlineComparator(direction);
         } else {
             LOGGER.warn("Unsupported sorting attribute {}. Results will not be sorted.", orderBy);
             return null;
@@ -233,6 +241,61 @@ public class AccCertQueryHelper {
         };
     }
 
+    private Comparator<AccessCertificationCaseType> createCampaignNameComparator(final OrderDirection direction) {
+        return new Comparator<AccessCertificationCaseType>() {
+            @Override
+            public int compare(AccessCertificationCaseType o1, AccessCertificationCaseType o2) {
+                AccessCertificationCampaignType c1 = getCampaign(o1);
+                AccessCertificationCampaignType c2 = getCampaign(o2);
+                if (c1 == null) {
+                    return respectDirection(-1, direction);
+                } else if (c2 == null) {
+                    return respectDirection(1, direction);
+                }
+                int ordering = c1.getName().getNorm().compareTo(c2.getName().getNorm());
+                //int ordering = c1.getName().getOrig().compareTo(c2.getName().getOrig());
+                return respectDirection(ordering, direction);
+            }
+        };
+    }
+
+    private Comparator<AccessCertificationCaseType> createReviewRequestedComparator(final OrderDirection direction) {
+        return new Comparator<AccessCertificationCaseType>() {
+            @Override
+            public int compare(AccessCertificationCaseType o1, AccessCertificationCaseType o2) {
+                return compareDates(o1.getReviewRequestedTimestamp(), o2.getReviewRequestedTimestamp(), direction);
+            }
+        };
+    }
+
+    private Comparator<AccessCertificationCaseType> createReviewDeadlineComparator(final OrderDirection direction) {
+        return new Comparator<AccessCertificationCaseType>() {
+            @Override
+            public int compare(AccessCertificationCaseType o1, AccessCertificationCaseType o2) {
+                return compareDates(o1.getReviewDeadline(), o2.getReviewDeadline(), direction);
+            }
+        };
+    }
+
+    private int compareDates(XMLGregorianCalendar d1, XMLGregorianCalendar d2, OrderDirection direction) {
+        if (d1 == null) {
+            return respectDirection(1, direction);          // null is later
+        } else if (d2 == null) {
+            return respectDirection(-1, direction);
+        } else {
+            return respectDirection(d1.compare(d2), direction);
+        }
+    }
+
+
+    private AccessCertificationCampaignType getCampaign(AccessCertificationCaseType c) {
+        if (c == null || c.getCampaignRef() == null || c.getCampaignRef().asReferenceValue().getObject() == null) {
+            return null;
+        }
+        return (AccessCertificationCampaignType) c.getCampaignRef().asReferenceValue().getObject().asObjectable();
+    }
+
+
     private int compareRefNames(ObjectReferenceType leftRef, ObjectReferenceType rightRef, OrderDirection direction) {
         if (leftRef == null) {
             return respectDirection(1, direction);      // null > anything
@@ -249,7 +312,7 @@ public class AccCertQueryHelper {
             return respectDirection(-1, direction);     // anything < null
         }
 
-        int ordering = leftName.compareTo(rightName);
+        int ordering = leftName.toUpperCase().compareTo(rightName.toUpperCase());           // brutal hack (we need to compare on normalized values)
         return respectDirection(ordering, direction);
     }
 

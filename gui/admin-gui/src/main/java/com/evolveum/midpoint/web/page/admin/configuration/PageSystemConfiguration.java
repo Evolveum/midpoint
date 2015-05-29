@@ -341,6 +341,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 
             s.setGlobalAccountSynchronizationSettings(projectionPolicy);
             s.setCleanupPolicy(cleanupPolicies);
+            s.setEnableExperimentalCode(dto.getEnableExperimentalCode());
 
             PrismObject<SystemConfigurationType> oldObject = getModelService().getObject(SystemConfigurationType.class,
                     oid, null, task, result);

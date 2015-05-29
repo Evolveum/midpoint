@@ -17,15 +17,20 @@
 package com.evolveum.midpoint.web.page.admin.certification;
 
 import com.evolveum.midpoint.prism.parser.XNodeSerializer;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.apache.commons.lang3.Validate;
-import org.apache.poi.ss.formula.functions.T;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * @author mederly
@@ -37,14 +42,19 @@ public class CertDecisionDto extends Selectable implements Serializable{
     public static final String F_TARGET_TYPE = "targetType";
     public static final String F_COMMENT = "comment";
     public static final String F_RESPONSE = "response";
+    public static final String F_CAMPAIGN_NAME = "campaignName";
+    public static final String F_CAMPAIGN_STAGE = "campaignStage";
+    public static final String F_REVIEW_REQUESTED = "reviewRequested";
 
     private AccessCertificationCaseType certCase;
     private String subjectName;
     private String targetName;
     private AccessCertificationDecisionType decision;
-public CertDecisionDto() {
-	// TODO Auto-generated constructor stub
-}
+
+    public CertDecisionDto() {
+        // TODO Auto-generated constructor stub
+    }
+
     public CertDecisionDto(AccessCertificationCaseType _case) {
         Validate.notNull(_case);
 
@@ -106,8 +116,60 @@ public CertDecisionDto() {
         return certCase.asPrismContainerValue().getId();
     }
 
-	
-    
-    
+    public AccessCertificationCaseType getCertCase() {
+        return certCase;
+    }
 
+    public AccessCertificationCampaignType getCampaign() {
+        try {
+            return (AccessCertificationCampaignType) certCase.getCampaignRef().asReferenceValue().getObject().asObjectable();
+        } catch (NullPointerException e) {
+            return null;      // TODO fix this really crude hack
+        }
+    }
+
+    public String getCampaignName() {
+        AccessCertificationCampaignType campaign = getCampaign();
+        return campaign != null ? campaign.getName().getOrig() : "";
+    }
+
+    public Integer getCampaignStageNumber() {
+        AccessCertificationCampaignType campaign = getCampaign();
+        return campaign != null ? campaign.getCurrentStageNumber() : null;      // numbers after # of stages should not occur, as there are no cases in these stages
+    }
+
+    public Integer getCampaignStageCount() {
+        AccessCertificationCampaignType campaign = getCampaign();
+        return CertCampaignTypeUtil.getNumberOfStages(campaign);
+    }
+
+    public Date getReviewRequested() {
+        XMLGregorianCalendar date = certCase.getReviewRequestedTimestamp();
+        return XmlTypeConverter.toDate(date);
+    }
+
+    public Date getStageStarted() {
+        AccessCertificationCampaignType campaign = getCampaign();
+        if (campaign == null) {
+            return null;
+        }
+        int stageNumber = campaign.getCurrentStageNumber();
+        if (stageNumber <= 0 || stageNumber > CertCampaignTypeUtil.getNumberOfStages(campaign)) {
+            return null;
+        }
+        AccessCertificationStageType stage = CertCampaignTypeUtil.findStage(campaign, stageNumber);
+        return XmlTypeConverter.toDate(stage.getStart());
+    }
+
+    public String getCurrentStageName() {
+        AccessCertificationCampaignType campaign = getCampaign();
+        if (campaign == null) {
+            return null;
+        }
+        AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaign);
+        if (stage == null) {
+            return null;
+        }
+        return stage.getName();
+    }
 }
