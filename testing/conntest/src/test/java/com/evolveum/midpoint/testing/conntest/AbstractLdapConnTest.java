@@ -175,6 +175,9 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	protected static final String ACCOUNT_HT_CN = "Herman Toothrot";
 	protected static final String ACCOUNT_HT_GIVENNAME = "Herman";
 	protected static final String ACCOUNT_HT_SN = "Toothrot";
+
+	private static final String GROUP_MONKEYS_CN = "monkeys";
+	private static final String GROUP_MONKEYS_DESCRIPTION = "Monkeys of Monkey Island";
 	
 	@Autowired(required = true)
 	protected MatchingRuleRegistry matchingRuleRegistry;
@@ -269,6 +272,10 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	protected String getGroupsLdapSuffix() {
 		return "ou=people,"+getLdapSuffix();
 	}
+	
+	protected abstract String getLdapGroupObjectClass();
+	
+	protected abstract String getLdapGroupMemberAttribute();
 	
 	protected String getScriptDirectoryName() {
 		return "/opt/Bamboo/local/conntest";
@@ -879,8 +886,8 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	}
 	
 	@Test
-    public void test810SyncAddAccountHt() throws Exception {
-		final String TEST_NAME = "test810SyncAddAccountHt";
+    public void test801SyncAddAccountHt() throws Exception {
+		final String TEST_NAME = "test801SyncAddAccountHt";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -911,8 +918,8 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	}
 	
 	@Test
-    public void test812ModifyAccountHt() throws Exception {
-		final String TEST_NAME = "test812ModifyAccountHt";
+    public void test802ModifyAccountHt() throws Exception {
+		final String TEST_NAME = "test802ModifyAccountHt";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -946,8 +953,40 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	}
 	
 	@Test
-    public void test815RenameAccount() throws Exception {
-		final String TEST_NAME = "test815RenameAccount";
+    public void test810SyncAddGroupMonkeys() throws Exception {
+		final String TEST_NAME = "test810SyncAddGroupMonkeys";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        long tsStart = System.currentTimeMillis();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        addLdapGroup(GROUP_MONKEYS_CN, GROUP_MONKEYS_DESCRIPTION, "uid=fake,"+getPeopleLdapSuffix());
+        waitForTaskNextRun(getSyncTaskOid(), true);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        long tsEnd = System.currentTimeMillis();
+        
+        displayUsers();
+        
+        PrismObject<RoleType> role = findObjectByName(RoleType.class, GROUP_MONKEYS_CN);
+        PrismAsserts.assertPropertyValue(role, RoleType.F_DESCRIPTION, GROUP_MONKEYS_DESCRIPTION);
+        assertNotNull("No role "+GROUP_MONKEYS_CN+" created", role);
+
+        assertStepSyncToken(getSyncTaskOid(), 3, tsStart, tsEnd);
+	}
+	
+	@Test
+    public void test817RenameAccount() throws Exception {
+		final String TEST_NAME = "test817RenameAccount";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -984,7 +1023,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         assertUser(user, user.getOid(), "htm", "Horatio Torquemeda Marley", ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN);
         assertNull("User "+ACCOUNT_HT_UID+" still exist", findUserByUsername(ACCOUNT_HT_UID));
 
-        assertStepSyncToken(getSyncTaskOid(), 3, tsStart, tsEnd);
+        assertStepSyncToken(getSyncTaskOid(), 4, tsStart, tsEnd);
 
 	}
 	
@@ -1015,7 +1054,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         assertNull("User "+"htm"+" still exist", findUserByUsername("htm"));
         assertNull("User "+ACCOUNT_HT_UID+" still exist", findUserByUsername(ACCOUNT_HT_UID));
 
-        assertStepSyncToken(getSyncTaskOid(), 4, tsStart, tsEnd);
+        assertStepSyncToken(getSyncTaskOid(), 5, tsStart, tsEnd);
 	}
 	
 	
@@ -1069,14 +1108,154 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         PrismObject<TaskType> syncTask = getTask(getSyncTaskOid());
         display("Sync task after start", syncTask);
         
-        assertStepSyncToken(getSyncTaskOid(), 0, tsStart, tsEnd);
+        assertStepSyncToken(getSyncTaskOid(), 4, tsStart, tsEnd);
 	}
 
+	@Test
+    public void test821SyncAddAccountHt() throws Exception {
+		final String TEST_NAME = "test821SyncAddAccountHt";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        long tsStart = System.currentTimeMillis();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        addLdapAccount(ACCOUNT_HT_UID, ACCOUNT_HT_CN, ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN);
+        waitForTaskNextRun(getSyncTaskOid(), true);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        long tsEnd = System.currentTimeMillis();
+        
+        displayUsers();
+        
+        PrismObject<UserType> user = findUserByUsername(ACCOUNT_HT_UID);
+        assertNotNull("No user "+ACCOUNT_HT_UID+" created", user);
+        assertUser(user, user.getOid(), ACCOUNT_HT_UID, ACCOUNT_HT_CN, ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN);
+
+        assertStepSyncToken(getSyncTaskOid(), 1, tsStart, tsEnd);
+	}
+	
+	@Test
+    public void test822ModifyAccountHt() throws Exception {
+		final String TEST_NAME = "test822ModifyAccountHt";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        long tsStart = System.currentTimeMillis();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        LdapNetworkConnection connection = ldapConnect();
+        Modification modCn = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "cn", "Horatio Torquemeda Marley");
+        connection.modify(toDn(ACCOUNT_HT_UID), modCn);
+		ldapDisconnect(connection);
+
+		waitForTaskNextRun(getSyncTaskOid(), true);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        long tsEnd = System.currentTimeMillis();
+        
+        PrismObject<UserType> user = findUserByUsername(ACCOUNT_HT_UID);
+        assertNotNull("No user "+ACCOUNT_HT_UID+" created", user);
+        assertUser(user, user.getOid(), ACCOUNT_HT_UID, "Horatio Torquemeda Marley", ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN);
+
+        assertStepSyncToken(getSyncTaskOid(), 2, tsStart, tsEnd);
+
+	}
+	
+	@Test
+    public void test837RenameAccount() throws Exception {
+		final String TEST_NAME = "test837RenameAccount";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        long tsStart = System.currentTimeMillis();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        LdapNetworkConnection connection = ldapConnect();
+        
+        ModifyDnRequest modDnRequest = new ModifyDnRequestImpl();
+        modDnRequest.setName(new Dn(toDn(ACCOUNT_HT_UID)));
+        modDnRequest.setNewRdn(new Rdn("uid=htm"));
+        modDnRequest.setDeleteOldRdn(true);
+		ModifyDnResponse modDnResponse = connection.modifyDn(modDnRequest);
+        
+		display("Modified "+toDn(ACCOUNT_HT_UID)+" -> uid=htm: "+modDnResponse);
+		
+		ldapDisconnect(connection);
+
+		waitForTaskNextRun(getSyncTaskOid(), true);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        long tsEnd = System.currentTimeMillis();
+        
+        PrismObject<UserType> user = findUserByUsername("htm");
+        assertNotNull("No user "+"htm"+" created", user);
+        assertUser(user, user.getOid(), "htm", "Horatio Torquemeda Marley", ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN);
+        assertNull("User "+ACCOUNT_HT_UID+" still exist", findUserByUsername(ACCOUNT_HT_UID));
+
+        assertStepSyncToken(getSyncTaskOid(), 3, tsStart, tsEnd);
+
+	}
+	
 	// TODO: create object of a different object class. See that it is ignored by sync.
+	
+	@Test
+    public void test838DeleteAccountHtm() throws Exception {
+		final String TEST_NAME = "test838DeleteAccountHtm";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        long tsStart = System.currentTimeMillis();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        deleteLdapEntry(toDn("htm"));
+
+		waitForTaskNextRun(getSyncTaskOid(), true);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        long tsEnd = System.currentTimeMillis();
+        
+        assertNull("User "+"htm"+" still exist", findUserByUsername("htm"));
+        assertNull("User "+ACCOUNT_HT_UID+" still exist", findUserByUsername(ACCOUNT_HT_UID));
+
+        assertStepSyncToken(getSyncTaskOid(), 4, tsStart, tsEnd);
+	}
 
 	@Test
-    public void test829DeleteSyncTask() throws Exception {
-		final String TEST_NAME = "test829DeleteSyncTask";
+    public void test839DeleteSyncTask() throws Exception {
+		final String TEST_NAME = "test839DeleteSyncTask";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -1166,6 +1345,24 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 				"sn", sn);
 		return entry;
 	}
+	
+	protected Entry addLdapGroup(String cn, String description, String memberDn) throws LdapException, IOException, CursorException {
+		LdapNetworkConnection connection = ldapConnect();
+		Entry entry = createGroupEntry(cn, description, memberDn);
+		connection.add(entry);
+		display("Added LDAP group:"+entry);
+		ldapDisconnect(connection);
+		return entry;
+	}
+
+	protected Entry createGroupEntry(String cn, String description, String memberDn) throws LdapException {
+		Entry entry = new DefaultEntry(toGroupDn(cn),
+				"objectclass", getLdapGroupObjectClass(),
+				"cn", cn,
+				"description", description,
+				getLdapGroupMemberAttribute(), memberDn);
+		return entry;
+	}
 
 	protected void deleteLdapEntry(String dn) throws LdapException, IOException {
 		LdapNetworkConnection connection = ldapConnect();
@@ -1176,6 +1373,10 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	
 	protected String toDn(String username) {
 		return "uid="+username+","+getPeopleLdapSuffix();
+	}
+	
+	protected String toGroupDn(String cn) {
+		return "cn="+cn+","+getGroupsLdapSuffix();
 	}
 	
 	protected LdapNetworkConnection ldapConnect() throws LdapException {

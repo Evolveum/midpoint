@@ -83,6 +83,16 @@ public class Test389DsLocalhost extends AbstractLdapConnTest {
 	protected int getSearchSizeLimit() {
 		return 500;
 	}
+	
+	@Override
+	protected String getLdapGroupObjectClass() {
+		return "groupOfUniqueNames";
+	}
+
+	@Override
+	protected String getLdapGroupMemberAttribute() {
+		return "uniqueMember";
+	}
 
 	@Override
 	protected String getSyncTaskOid() {

@@ -168,6 +168,8 @@ public class TestDummy extends AbstractDummyTest {
 	protected static final long VALID_FROM_MILLIS = 12322342345435L;
 	protected static final long VALID_TO_MILLIS = 3454564324423L;
 	
+	private static final String GROUP_CORSAIRS_NAME = "corsairs";
+	
 //	private Task syncTask = null;
 	private CachingMetadataType capabilitiesCachingMetadataType;
 	private String drakeAccountOid;
@@ -180,6 +182,8 @@ public class TestDummy extends AbstractDummyTest {
 	private String leChuckIcfUid;
 	private String blackbeardIcfUid;
 	private String drakeIcfUid;
+	private String corsairsIcfUid;
+	private String corsairsShadowOid;
 
 	protected MatchingRule<String> getUidMatchingRule() {
 		return null;
@@ -3988,16 +3992,63 @@ public class TestDummy extends AbstractDummyTest {
 	}
 
 	@Test
-	public void test803LiveSyncAddDrake() throws Exception {
-		final String TEST_NAME = "test803LiveSyncAddDrake";
+	public void test810LiveSyncAddDrakeDumbObjectClass() throws Exception {
+		testLiveSyncAddDrake("test810LiveSyncAddDrakeDumbObjectClass", DummySyncStyle.DUMB, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
+	}
+	
+	@Test
+	public void test812LiveSyncModifyDrakeDumbObjectClass() throws Exception {
+		testLiveSyncModifyDrake("test812LiveSyncModifyDrakeDumbObjectClass", DummySyncStyle.DUMB, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
+	}
+
+	@Test
+	public void test815LiveSyncAddCorsairsDumbObjectClass() throws Exception {
+		testLiveSyncAddCorsairs("test815LiveSyncAddCorsairsDumbObjectClass", DummySyncStyle.DUMB, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), false);
+	}
+	
+	@Test
+	public void test817LiveSyncDeleteCorsairsDumbObjectClass() throws Exception {
+		testLiveSyncDeleteCorsairs("test817LiveSyncDeleteCorsairsDumbObjectClass", DummySyncStyle.DUMB, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), false);
+	}
+	
+	@Test
+	public void test819LiveSyncDeleteDrakeDumbObjectClass() throws Exception {
+		testLiveSyncDeleteDrake("test819LiveSyncDeleteDrakeDumbObjectClass", DummySyncStyle.DUMB, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
+	}
+	
+	@Test
+	public void test820LiveSyncAddDrakeSmartObjectClass() throws Exception {
+		testLiveSyncAddDrake("test820LiveSyncAddDrakeDumbObjectClass", DummySyncStyle.SMART, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
+	}
+	
+	@Test
+	public void test822LiveSyncModifyDrakeSmartObjectClass() throws Exception {
+		testLiveSyncModifyDrake("test822LiveSyncModifyDrakeDumbObjectClass", DummySyncStyle.SMART, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
+	}
+	
+	@Test
+	public void test825LiveSyncAddCorsairsSmartObjectClass() throws Exception {
+		testLiveSyncAddCorsairs("test825LiveSyncAddCorsairsDumbObjectClass", DummySyncStyle.SMART, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), false);
+	}
+	
+	@Test
+	public void test827LiveSyncDeleteCorsairsSmartObjectClass() throws Exception {
+		testLiveSyncDeleteCorsairs("test827LiveSyncDeleteCorsairsDumbObjectClass", DummySyncStyle.SMART, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), false);
+	}
+	
+	@Test
+	public void test829LiveSyncDeleteDrakeSmartObjectClass() throws Exception {
+		testLiveSyncDeleteDrake("test829LiveSyncDeleteDrakeDumbObjectClass", DummySyncStyle.SMART, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
+	}
+	
+	public void testLiveSyncAddDrake(final String TEST_NAME, DummySyncStyle syncStyle, QName objectClass) throws Exception {
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ "." + TEST_NAME);
 
-
 		syncServiceMock.reset();
-		dummyResource.setSyncStyle(DummySyncStyle.DUMB);
+		dummyResource.setSyncStyle(syncStyle);
 		DummyAccount newAccount = new DummyAccount(DRAKE_USERNAME);
 		newAccount.addAttributeValues("fullname", "Sir Francis Drake");
 		newAccount.setEnabled(true);
@@ -4008,8 +4059,7 @@ public class TestDummy extends AbstractDummyTest {
 		display("Resource before sync", dummyResource.debugDump());
 
 		// WHEN
-		provisioningService.synchronize(RESOURCE_DUMMY_OID, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), 
-				syncTokenTask, result);
+		provisioningService.synchronize(RESOURCE_DUMMY_OID, objectClass, syncTokenTask, result);
 
 		// THEN
 		result.computeStatus();
@@ -4025,7 +4075,13 @@ public class TestDummy extends AbstractDummyTest {
 		assertNotNull("Old shadow missing", oldShadow);
 		assertNotNull("Old shadow does not have an OID", oldShadow.getOid());
 		
-		assertNull("Delta present when not expecting it", lastChange.getObjectDelta());
+		if (syncStyle == DummySyncStyle.DUMB) {
+			assertNull("Delta present when not expecting it", lastChange.getObjectDelta());
+		} else {
+			ObjectDelta<? extends ShadowType> objectDelta = lastChange.getObjectDelta();
+			assertNotNull("Delta present when not expecting it", objectDelta);
+			assertTrue("Delta is not add: "+objectDelta, objectDelta.isAdd());
+		}
 		
 		ShadowType currentShadowType = lastChange.getCurrentShadow().asObjectable();
 		assertNotNull("Current shadow missing", lastChange.getCurrentShadow());
@@ -4057,16 +4113,225 @@ public class TestDummy extends AbstractDummyTest {
 		assertSteadyResource();
 	}
 	
-	@Test
-	public void test809LiveSyncDeleteDrake() throws Exception {
-		final String TEST_NAME = "test809LiveSyncDeleteDrake";
+	public void testLiveSyncModifyDrake(final String TEST_NAME, DummySyncStyle syncStyle, QName objectClass) throws Exception {
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ "." + TEST_NAME);
 
 		syncServiceMock.reset();
-		dummyResource.setSyncStyle(DummySyncStyle.DUMB);
+		dummyResource.setSyncStyle(syncStyle);
+		
+		DummyAccount dummyAccount = getDummyAccountAssert(DRAKE_USERNAME, drakeIcfUid);
+		dummyAccount.replaceAttributeValue("fullname", "Captain Drake");
+
+		// WHEN
+		provisioningService.synchronize(RESOURCE_DUMMY_OID, objectClass, syncTokenTask, result);
+
+		// THEN
+		result.computeStatus();
+		display("Synchronization result", result);
+		TestUtil.assertSuccess("Synchronization result is not OK", result);
+
+		syncServiceMock.assertNotifyChange();
+
+		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
+		display("The change", lastChange);
+		
+		PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
+		assertNotNull("Old shadow missing", oldShadow);
+		assertNotNull("Old shadow does not have an OID", oldShadow.getOid());
+		PrismAsserts.assertClass("old shadow", ShadowType.class, oldShadow);
+		ShadowType oldShadowType = oldShadow.asObjectable();
+		ResourceAttributeContainer attributesContainer = ShadowUtil
+				.getAttributesContainer(oldShadowType);
+		assertNotNull("No attributes container in old shadow", attributesContainer);
+		Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
+		assertFalse("Attributes container is empty", attributes.isEmpty());
+		assertEquals("Unexpected number of attributes", 2, attributes.size());
+		ResourceAttribute<?> icfsNameAttribute = attributesContainer.findAttribute(ConnectorFactoryIcfImpl.ICFS_NAME);
+		assertNotNull("No ICF name attribute in old  shadow", icfsNameAttribute);
+		assertEquals("Wrong value of ICF name attribute in old  shadow", getDrakeRepoIcfName(),
+				icfsNameAttribute.getRealValue());
+		
+		assertNull("Delta present when not expecting it", lastChange.getObjectDelta());
+		ShadowType currentShadowType = lastChange.getCurrentShadow().asObjectable();
+		assertNotNull("Current shadow missing", lastChange.getCurrentShadow());
+		assertTrue("Wrong type of current shadow: " + currentShadowType.getClass().getName(),
+				currentShadowType instanceof ShadowType);
+
+		attributesContainer = ShadowUtil
+				.getAttributesContainer(currentShadowType);
+		assertNotNull("No attributes container in current shadow", attributesContainer);
+		attributes = attributesContainer.getAttributes();
+		assertFalse("Attributes container is empty", attributes.isEmpty());
+		assertAttribute(currentShadowType, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Captain Drake");
+		assertEquals("Unexpected number of attributes", 3, attributes.size());
+
+		PrismObject<ShadowType> accountRepo = findAccountShadowByUsername(getDrakeRepoIcfName(), resource, result);		
+		assertNotNull("Shadow was not created in the repository", accountRepo);
+		display("Repository shadow", accountRepo);
+		ProvisioningTestUtil.checkRepoAccountShadow(accountRepo);
+		
+		checkAllShadows();
+		
+		assertSteadyResource();
+	}
+	
+	public void testLiveSyncAddCorsairs(final String TEST_NAME, DummySyncStyle syncStyle, QName objectClass, boolean expectReaction) throws Exception {
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+		OperationResult result = new OperationResult(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+
+		syncServiceMock.reset();
+		dummyResource.setSyncStyle(syncStyle);
+		DummyGroup newGroup = new DummyGroup(GROUP_CORSAIRS_NAME);
+		newGroup.setEnabled(true);
+		dummyResource.addGroup(newGroup);
+		corsairsIcfUid = newGroup.getId();
+
+		display("Resource before sync", dummyResource.debugDump());
+
+		// WHEN
+		provisioningService.synchronize(RESOURCE_DUMMY_OID, objectClass, syncTokenTask, result);
+
+		// THEN
+		result.computeStatus();
+		display("Synchronization result", result);
+		TestUtil.assertSuccess("Synchronization result is not OK", result);
+		
+		if (expectReaction) {
+
+			syncServiceMock.assertNotifyChange();
+	
+			ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
+			display("The change", lastChange);
+	
+			PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
+			assertNotNull("Old shadow missing", oldShadow);
+			assertNotNull("Old shadow does not have an OID", oldShadow.getOid());
+			
+			if (syncStyle == DummySyncStyle.DUMB) {
+				assertNull("Delta present when not expecting it", lastChange.getObjectDelta());
+			} else {
+				ObjectDelta<? extends ShadowType> objectDelta = lastChange.getObjectDelta();
+				assertNotNull("Delta present when not expecting it", objectDelta);
+				assertTrue("Delta is not add: "+objectDelta, objectDelta.isAdd());
+			}
+			
+			ShadowType currentShadowType = lastChange.getCurrentShadow().asObjectable();
+			assertNotNull("Current shadow missing", lastChange.getCurrentShadow());
+			PrismAsserts.assertClass("current shadow", ShadowType.class, currentShadowType);
+	
+			ResourceAttributeContainer attributesContainer = ShadowUtil
+					.getAttributesContainer(currentShadowType);
+			assertNotNull("No attributes container in current shadow", attributesContainer);
+			Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
+			assertFalse("Attributes container is empty", attributes.isEmpty());
+			assertEquals("Unexpected number of attributes", 2, attributes.size());
+			
+			corsairsShadowOid = currentShadowType.getOid();
+			PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, corsairsShadowOid, null, result);
+			display("Corsairs repo shadow", repoShadow);
+			
+			PrismObject<ShadowType> accountRepo = findAccountShadowByUsername(GROUP_CORSAIRS_NAME, resource, result);	
+			assertNotNull("Shadow was not created in the repository", accountRepo);
+			display("Repository shadow", accountRepo);
+			ProvisioningTestUtil.checkRepoAccountShadow(accountRepo);
+			
+		} else {
+			syncServiceMock.assertNoNotifyChange();
+		}
+
+		checkAllShadows();
+		
+		assertSteadyResource();
+	}
+	
+	public void testLiveSyncDeleteCorsairs(final String TEST_NAME, DummySyncStyle syncStyle, QName objectClass, boolean expectReaction) throws Exception {
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+		OperationResult result = new OperationResult(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+
+		syncServiceMock.reset();
+		dummyResource.setSyncStyle(syncStyle);
+		if (isNameUnique()) {
+			dummyResource.deleteGroupByName(GROUP_CORSAIRS_NAME);
+		} else {
+			dummyResource.deleteGroupById(corsairsIcfUid);
+		}
+
+		display("Resource before sync", dummyResource.debugDump());
+
+		// WHEN
+		provisioningService.synchronize(RESOURCE_DUMMY_OID, objectClass, syncTokenTask, result);
+
+		// THEN
+		result.computeStatus();
+		display("Synchronization result", result);
+		TestUtil.assertSuccess("Synchronization result is not OK", result);
+
+		
+		if (expectReaction) {
+
+			syncServiceMock.assertNotifyChange();
+
+			ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
+			display("The change", lastChange);
+
+			PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
+			assertNotNull("Old shadow missing", oldShadow);
+			assertNotNull("Old shadow does not have an OID", oldShadow.getOid());
+			PrismAsserts.assertClass("old shadow", ShadowType.class, oldShadow);
+			ShadowType oldShadowType = oldShadow.asObjectable();
+			ResourceAttributeContainer attributesContainer = ShadowUtil
+					.getAttributesContainer(oldShadowType);
+			assertNotNull("No attributes container in old shadow", attributesContainer);
+			Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
+			assertFalse("Attributes container is empty", attributes.isEmpty());
+			assertEquals("Unexpected number of attributes", 2, attributes.size());
+			ResourceAttribute<?> icfsNameAttribute = attributesContainer.findAttribute(ConnectorFactoryIcfImpl.ICFS_NAME);
+			assertNotNull("No ICF name attribute in old  shadow", icfsNameAttribute);
+			assertEquals("Wrong value of ICF name attribute in old  shadow", GROUP_CORSAIRS_NAME,
+					icfsNameAttribute.getRealValue());
+			
+			ObjectDelta<? extends ShadowType> objectDelta = lastChange.getObjectDelta();
+			assertNotNull("Delta missing", objectDelta);
+			assertEquals("Wrong delta changetype", ChangeType.DELETE, objectDelta.getChangeType());
+			PrismAsserts.assertClass("delta", ShadowType.class, objectDelta);
+			assertNotNull("No OID in delta", objectDelta.getOid());
+			
+			assertNull("Unexpected current shadow",lastChange.getCurrentShadow());
+			
+			try {
+				// The shadow should be gone
+				PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, corsairsShadowOid, null, result);
+				
+				AssertJUnit.fail("The shadow "+repoShadow+" is not gone from repo");
+			} catch (ObjectNotFoundException e) {
+				// This is expected
+			}
+			
+		} else {
+			syncServiceMock.assertNoNotifyChange();
+		}
+
+		checkAllShadows();
+		
+		assertSteadyResource();
+	}
+	
+	public void testLiveSyncDeleteDrake(final String TEST_NAME, DummySyncStyle syncStyle, QName objectClass) throws Exception {
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+		OperationResult result = new OperationResult(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+
+		syncServiceMock.reset();
+		dummyResource.setSyncStyle(syncStyle);
 		if (isNameUnique()) {
 			dummyResource.deleteAccountByName(DRAKE_USERNAME);
 		} else {
@@ -4076,8 +4341,7 @@ public class TestDummy extends AbstractDummyTest {
 		display("Resource before sync", dummyResource.debugDump());
 
 		// WHEN
-		provisioningService.synchronize(RESOURCE_DUMMY_OID, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), 
-				syncTokenTask, result);
+		provisioningService.synchronize(RESOURCE_DUMMY_OID, objectClass, syncTokenTask, result);
 
 		// THEN
 		result.computeStatus();
@@ -4128,13 +4392,12 @@ public class TestDummy extends AbstractDummyTest {
 	}
 
 	@Test
-	public void test810LiveSyncModifyProtectedAccount() throws Exception {
-		TestUtil.displayTestTile("test810LiveSyncModifyProtectedAccount");
+	public void test890LiveSyncModifyProtectedAccount() throws Exception {
+		final String TEST_NAME = "test890LiveSyncModifyProtectedAccount";
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
-				+ ".test810LiveSyncModifyProtectedAccount");
-		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ ".test810LiveSyncModifyProtectedAccount");
+		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+		OperationResult result = syncTask.getResult();
 
 		syncServiceMock.reset();
 

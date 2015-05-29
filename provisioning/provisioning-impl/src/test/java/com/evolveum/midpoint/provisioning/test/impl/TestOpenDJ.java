@@ -392,11 +392,19 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertNotNull("No definition for ds-pwp-account-disabled", dsDef);
 		assertEquals(1, dsDef.getMaxOccurs());
 		assertEquals(0, dsDef.getMinOccurs());
-		assertTrue("No ds-pwp-account-disabled create", dsDef.canAdd());
+		assertTrue("No ds-pwp-account-disabled read", dsDef.canRead());
 		assertTrue("No ds-pwp-account-disabled create", dsDef.canAdd());
 		assertTrue("No ds-pwp-account-disabled update", dsDef.canModify());
 		// TODO: MID-2358
 //		assertTrue("ds-pwp-account-disabled is NOT operational", dsDef.isOperational());
+		
+		ResourceAttributeDefinition<String> createTimestampDef = accountDef.findAttributeDefinition("createTimestamp");
+		assertNotNull("No definition for createTimestamp", createTimestampDef);
+		assertEquals(1, createTimestampDef.getMaxOccurs());
+		assertEquals(0, createTimestampDef.getMinOccurs());
+		assertTrue("No createTimestamp read", createTimestampDef.canRead());
+		assertFalse("Bad createTimestamp create", createTimestampDef.canAdd());
+		assertFalse("Bad createTimestamp update", createTimestampDef.canModify());
 
 		assertNull("The _PASSSWORD_ attribute sneaked into schema",
 				accountDef.findAttributeDefinition(new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));

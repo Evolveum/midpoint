@@ -76,6 +76,7 @@ import com.evolveum.icf.dummy.resource.DummyObject;
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyPrivilege;
 import com.evolveum.icf.dummy.resource.DummyResource;
+import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
 import com.evolveum.icf.dummy.resource.ObjectDoesNotExistException;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
@@ -952,17 +953,51 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 	        List<DummyDelta> deltas = resource.getDeltasSince(syncToken);
 	        for (DummyDelta delta: deltas) {
 	        	
+	        	Class<? extends DummyObject> deltaObjectClass = delta.getObjectClass();
+	        	if (objectClass.is(ObjectClass.ALL_NAME)) {
+	        		// take all changes
+	        	} else if (objectClass.is(ObjectClass.ACCOUNT_NAME)) {
+	        		if (deltaObjectClass != DummyAccount.class) {
+	        			log.ok("Skipping delta {0} because of objectclass mismatch", delta);
+	        			continue;
+	        		}
+	        	} else if (objectClass.is(ObjectClass.GROUP_NAME)) {
+	        		if (deltaObjectClass != DummyGroup.class) {
+	        			log.ok("Skipping delta {0} because of objectclass mismatch", delta);
+	        			continue;
+	        		}
+	        	}
+	        	
 	        	SyncDeltaBuilder builder =  new SyncDeltaBuilder();
 	        	
 	        	SyncDeltaType deltaType;
 	        	if (delta.getType() == DummyDeltaType.ADD || delta.getType() == DummyDeltaType.MODIFY) {
-	        		deltaType = SyncDeltaType.CREATE_OR_UPDATE;
-	        		DummyAccount account = resource.getAccountById(delta.getObjectId());
-	        		if (account == null) {
-	        			throw new IllegalStateException("We have delta for account '"+delta.getObjectId()+"' but such account does not exist");
+	        		if (resource.getSyncStyle() == DummySyncStyle.DUMB) {
+	        			deltaType = SyncDeltaType.CREATE_OR_UPDATE;
+	        		} else {
+	        			if (delta.getType() == DummyDeltaType.ADD) {
+	        				deltaType = SyncDeltaType.CREATE;
+	        			} else {
+	        				deltaType = SyncDeltaType.UPDATE;
+	        			}
 	        		}
-	        		ConnectorObject cobject = convertToConnectorObject(account, attributesToGet);
-					builder.setObject(cobject);
+	        		if (deltaObjectClass == DummyAccount.class) {
+		        		DummyAccount account = resource.getAccountById(delta.getObjectId());
+		        		if (account == null) {
+		        			throw new IllegalStateException("We have delta for account '"+delta.getObjectId()+"' but such account does not exist");
+		        		}
+		        		ConnectorObject cobject = convertToConnectorObject(account, attributesToGet);
+						builder.setObject(cobject);
+	        		} else if (deltaObjectClass == DummyGroup.class) {
+	        			DummyGroup group = resource.getGroupById(delta.getObjectId());
+		        		if (group == null) {
+		        			throw new IllegalStateException("We have delta for group '"+delta.getObjectId()+"' but such group does not exist");
+		        		}
+		        		ConnectorObject cobject = convertToConnectorObject(group, attributesToGet);
+						builder.setObject(cobject);
+	        		} else {
+	        			throw new IllegalArgumentException("Unknown delta objectClass "+deltaObjectClass);
+	        		}
 	        	} else if (delta.getType() == DummyDeltaType.DELETE) {
 	        		deltaType = SyncDeltaType.DELETE;
 	        	} else {

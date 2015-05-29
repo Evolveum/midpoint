@@ -99,6 +99,16 @@ public class TestOpenDj extends AbstractLdapConnTest {
 	}
 
 	@Override
+	protected String getLdapGroupObjectClass() {
+		return "groupOfUniqueNames";
+	}
+
+	@Override
+	protected String getLdapGroupMemberAttribute() {
+		return "uniqueMember";
+	}
+
+	@Override
 	protected String getSyncTaskOid() {
 		return "cd1e0ff2-0099-11e5-9e22-001e8c717e5b";
 	}

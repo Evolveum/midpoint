@@ -94,6 +94,16 @@ public class TestOpenLdap extends AbstractLdapConnTest {
 	protected int getSearchSizeLimit() {
 		return 500;
 	}
+	
+	@Override
+	protected String getLdapGroupObjectClass() {
+		return "groupOfNames";
+	}
+
+	@Override
+	protected String getLdapGroupMemberAttribute() {
+		return "member";
+	}
 
 	@Override
 	protected String getSyncTaskOid() {
