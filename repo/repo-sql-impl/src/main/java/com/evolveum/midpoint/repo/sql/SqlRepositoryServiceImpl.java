@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.parser.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
@@ -1093,6 +1094,13 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
             String param = queryDef.getColumn().getLocalPart();
             String value = queryDef.getSearchValue();
+            if (LookupTableRowType.F_LABEL.equals(queryDef.getColumn())) {
+                param = "label.norm";
+
+                PolyString poly = new PolyString(value);
+                poly.recompute(new PrismDefaultPolyStringNormalizer());
+                value = poly.getNorm();
+            }
             switch (queryDef.getSearchType()) {
                 case EXACT:
                     criteria.add(Restrictions.eq(param, value));

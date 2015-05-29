@@ -74,6 +74,7 @@ import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsResetTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MailConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MailServerConfigurationType;
@@ -108,7 +109,7 @@ public class PageSecurityQuestions extends PageBase {
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_BACK = "back";
 	private static final String ID_SAVE = "send";
-
+	protected static final String OPERATION_LOAD_RESET_PASSWORD_POLICY = "LOAD PASSWORD RESET POLICY";
 	private static final String SESSION_ATTRIBUTE_POID="pOid";
 
 
@@ -607,7 +608,27 @@ public class PageSecurityQuestions extends PageBase {
 			
 				getModelService().executeChanges(deltas, null, task, result);
 			
-			sendMailToUser(mailServerType.getUsername(), getMidpointApplication().getProtector().decryptString(mailServerType.getPassword()), newPassword, mailServerType.getHost(), mailServerType.getPort().toString(), mailConfig.getDefaultFrom(),user.getEmailAddress() );
+				
+				
+				OperationResult parentResult = new OperationResult(OPERATION_LOAD_RESET_PASSWORD_POLICY);
+				try {
+					
+					System.out.println("try");
+					if(	getModelInteractionService().getCredentialsPolicy(null, parentResult).getSecurityQuestions().getResetMethod().getResetType().equals(CredentialsResetTypeType.SECURITY_QUESTIONS)){
+						System.out.println("ifff");
+						getSession().setAttribute("pwdReset", newPassword);	
+						setResponsePage(PageShowPassword.class);
+					}
+					else{
+						sendMailToUser(mailServerType.getUsername(), getMidpointApplication().getProtector().decryptString(mailServerType.getPassword()), newPassword, mailServerType.getHost(), mailServerType.getPort().toString(), mailConfig.getDefaultFrom(),user.getEmailAddress() );	
+					}
+				} catch (ObjectNotFoundException | SchemaException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}	
+				
+				
+			
 			//TODO ASAP a message should be shown as the result of the process
 			//	MailMessage mailMessage=new MailMessage(, port);
 			//		mailTransport.send(mailMessage, transportName, task, parentResult);

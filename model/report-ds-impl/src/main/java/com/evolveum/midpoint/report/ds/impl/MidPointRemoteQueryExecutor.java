@@ -1,6 +1,9 @@
 package com.evolveum.midpoint.report.ds.impl;
 
+import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
 
 import javax.xml.bind.JAXBElement;
@@ -16,11 +19,17 @@ import net.sf.jasperreports.engine.query.JRAbstractQueryExecuter;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
+import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.GetOperationOptionsType;
@@ -28,6 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.SelectorQualifiedGetOptionType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.SelectorQualifiedGetOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EntryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ParamsType;
 import com.evolveum.midpoint.xml.ns._public.report.report_3.ReportPortType;
 
@@ -115,10 +125,24 @@ public class MidPointRemoteQueryExecutor extends JRAbstractQueryExecuter{
 			} else {
 				throw new IllegalArgumentException("Neither query nor filter defined in query");
 			}
+		MidPointPrismContextFactory factory = new MidPointPrismContextFactory();
+		try {
+			PrismContext prismContext = factory.createInitializedPrismContext();
+			
+			Collection<PrismObject<? extends ObjectType>> resultPrismList = new ArrayList<>();
+			for (ObjectType objType : results.getObject()){
+				PrismObject prism = ((Objectable)objType).asPrismObject();
+				prism.revive(prismContext);
+			
+				resultPrismList.add(prism);
+			}
+			MidPointDataSource mds = new MidPointDataSource(resultPrismList);
+			
+			return mds;
+		} catch (SchemaException | SAXException | IOException e) {
+			throw new JRException("Could not execute query " + e.getMessage(), e);
+		}
 		
-		MidPointDataSource mds = new MidPointDataSource(results);
-		
-		return mds;
 	}
 	
 	

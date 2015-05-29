@@ -35,6 +35,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 
@@ -67,21 +68,21 @@ public class RecomputeExecutor extends BaseActionExecutor {
     @Override
     public Data execute(ActionExpressionType expression, Data input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
         for (Item item : input.getData()) {
-            if (item instanceof PrismObject && UserType.class.isAssignableFrom(((PrismObject) item).getCompileTimeClass())) {
-                PrismObject<UserType> userPrismObject = (PrismObject) item;
+            if (item instanceof PrismObject && FocusType.class.isAssignableFrom(((PrismObject) item).getCompileTimeClass())) {
+                PrismObject<FocusType> focalPrismObject = (PrismObject) item;
                 try {
-                    LensContext<UserType> syncContext = contextFactory.createRecomputeContext(userPrismObject, context.getTask(), result);
+                    LensContext<FocusType> syncContext = contextFactory.createRecomputeContext(focalPrismObject, context.getTask(), result);
                     if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("Recomputing user {}: context:\n{}", userPrismObject, syncContext.debugDump());
+                        LOGGER.trace("Recomputing object {}: context:\n{}", focalPrismObject, syncContext.debugDump());
                     }
                     clockwork.run(syncContext, context.getTask(), result);
-                    LOGGER.trace("Recomputing of user {}: {}", userPrismObject, result.getStatus());
+                    LOGGER.trace("Recomputing of object {}: {}", focalPrismObject, result.getStatus());
                 } catch (ObjectNotFoundException|ConfigurationException|SecurityViolationException|PolicyViolationException|ExpressionEvaluationException|ObjectAlreadyExistsException|CommunicationException|SchemaException e) {
-                    throw new ScriptExecutionException("Couldn't recompute user " + userPrismObject + ": " + e.getMessage(), e);
+                    throw new ScriptExecutionException("Couldn't recompute object " + focalPrismObject + ": " + e.getMessage(), e);
                 }
                 context.println("Recomputed " + item.toString());
             } else {
-                throw new ScriptExecutionException("Item could not be recomputed, because it is not a PrismObject: " + item.toString());
+                throw new ScriptExecutionException("Item could not be recomputed, because it is not a focal PrismObject: " + item.toString());
             }
         }
         return Data.createEmpty();

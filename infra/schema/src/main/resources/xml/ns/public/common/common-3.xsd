@@ -8929,6 +8929,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+             <xsd:enumeration value="securityQuestionsWithEmail">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Use security questions to reset the credential.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SECURITY_QUESTIONS_EMAIL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
              </xsd:restriction>
     </xsd:simpleType>
 
