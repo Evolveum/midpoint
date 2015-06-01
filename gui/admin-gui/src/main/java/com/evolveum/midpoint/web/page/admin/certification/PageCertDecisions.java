@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -33,8 +34,12 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.DirectlyEditablePropertyColumn;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn.BUTTON_COLOR_CLASS;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
@@ -72,6 +77,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.ACCEPT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.DELEGATE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NOT_DECIDED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.REDUCE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.REVOKE;
+
 /**
  * @author mederly
  */
@@ -85,6 +97,7 @@ public class PageCertDecisions extends PageAdminWorkItems {
 			+ ".";
 	private static final String OPERATION_RECORD_ACTION = DOT_CLASS
 			+ "recordAction";
+	private static final String OPERATION_RECORD_ACTION_SELECTED = DOT_CLASS + "recordActionSelected";
 	
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_DECISIONS_TABLE = "decisionsTable";
@@ -249,12 +262,12 @@ public class PageCertDecisions extends PageAdminWorkItems {
 
 			@Override
 			public boolean isFirstButtonEnabled(IModel<CertDecisionDto> model) {
-				return !decisionEquals(model, AccessCertificationResponseType.ACCEPT);
+				return !decisionEquals(model, ACCEPT);
 		    }
 
 			@Override
 			public String getFirstColorCssClass() {
-				return getDecisionButtonColor(getRowModel(), AccessCertificationResponseType.ACCEPT);
+				return getDecisionButtonColor(getRowModel(), ACCEPT);
 			}
 
 			@Override
@@ -270,7 +283,7 @@ public class PageCertDecisions extends PageAdminWorkItems {
 			@Override
 			public void firstClicked(AjaxRequestTarget target,
 					IModel<CertDecisionDto> model) {
-				recordActionPerformed(target, model.getObject(), AccessCertificationResponseType.ACCEPT);
+				recordActionPerformed(target, model.getObject(), ACCEPT);
 			}
 
 			@Override
@@ -389,7 +402,30 @@ public class PageCertDecisions extends PageAdminWorkItems {
 		};
 		columns.add(column);
 
+		columns.add(new InlineMenuHeaderColumn(createInlineMenu()));
+
 		return columns;
+	}
+
+	private List<InlineMenuItem> createInlineMenu() {
+		List<InlineMenuItem> items = new ArrayList<>();
+		items.add(createMenu("PageCertDecisions.menu.acceptSelected", ACCEPT));
+		items.add(createMenu("PageCertDecisions.menu.revokeSelected", REVOKE));
+		items.add(createMenu("PageCertDecisions.menu.reduceSelected", REDUCE));
+		items.add(createMenu("PageCertDecisions.menu.notDecidedSelected", NOT_DECIDED));
+		items.add(createMenu("PageCertDecisions.menu.delegateSelected", DELEGATE));
+		items.add(createMenu("PageCertDecisions.menu.noResponseSelected", NO_RESPONSE));
+		return items;
+	}
+
+	private InlineMenuItem createMenu(String titleKey, final AccessCertificationResponseType response) {
+		return new InlineMenuItem(createStringResource(titleKey), false,
+				new HeaderMenuAction(this) {
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						recordActionOnSelected(response, target);
+					}
+				});
 	}
 
 	protected void dispatchToObjectDetailsPage(ObjectReferenceType objectRef) {
@@ -451,7 +487,43 @@ public class PageCertDecisions extends PageAdminWorkItems {
 	private boolean decisionEquals(IModel<CertDecisionDto> model, AccessCertificationResponseType response) {
 		return model.getObject().getResponse() == response;
 	}
-	
+
+	private void recordActionOnSelected(AccessCertificationResponseType response, AjaxRequestTarget target) {
+		List<CertDecisionDto> certDecisionDtoList = WebMiscUtil.getSelectedData(getDecisionsTable());
+		if (certDecisionDtoList.isEmpty()) {
+			warn(getString("PageCertDecisions.message.noItemSelected"));
+			target.add(getFeedbackPanel());
+			return;
+		}
+
+		PrismContext prismContext = getPrismContext();
+
+		OperationResult result = new OperationResult(OPERATION_RECORD_ACTION_SELECTED);
+		Task task = createSimpleTask(OPERATION_RECORD_ACTION_SELECTED);
+		for (CertDecisionDto certDecisionDto : certDecisionDtoList) {
+			OperationResult resultOne = result.createSubresult(OPERATION_RECORD_ACTION);
+			AccessCertificationDecisionType newDecision = new AccessCertificationDecisionType(prismContext);
+			newDecision.setResponse(response);
+			newDecision.setStageNumber(0);
+			newDecision.setComment(certDecisionDto.getComment());
+			try {
+				getCertificationManager().recordDecision(
+						certDecisionDto.getCampaignRef().getOid(),
+						certDecisionDto.getCaseId(), newDecision, task, resultOne);
+			} catch (Exception ex) {
+				resultOne.recordFatalError(ex);
+			} finally {
+				resultOne.computeStatusIfUnknown();
+			}
+		}
+		result.computeStatus();
+		showResult(result);
+
+		target.add(getFeedbackPanel());
+		target.add(getDecisionsTable());
+	}
+
+
 	// if response is null this means keep the current one in decisionDto
 	private void recordActionPerformed(AjaxRequestTarget target,
 			CertDecisionDto decisionDto, AccessCertificationResponseType response) {
