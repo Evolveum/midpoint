@@ -29,6 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.apache.commons.lang3.Validate;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -91,9 +92,8 @@ public class CertDecisionDto extends Selectable implements Serializable{
         return targetName;
     }
 
-    public String getTargetType() {
-        // TODO improve
-        return certCase.getTargetRef().getType().getLocalPart();
+    public QName getTargetType() {
+        return certCase.getTargetRef().getType();
     }
 
     public String getComment() {

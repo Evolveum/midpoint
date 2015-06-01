@@ -34,6 +34,8 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.page.PageTemplate;
+import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceController;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceObjectTypeDto;
@@ -106,9 +108,21 @@ public class PageResource extends PageAdminResources {
     private static final String ID_BUTTON_IMPORT_ACCOUNTS = "importAccounts";
     private static final String ID_BUTTON_DELETE_SYNC_TOKEN = "deleteSyncToken";
 
+    private PageParameters parameters;
     private IModel<ResourceDto> model;
 
     public PageResource() {
+        parameters = super.getPageParameters();
+        initialize();
+    }
+
+    public PageResource(PageParameters parameters, PageTemplate previousPage) {
+        this.parameters = parameters;
+        setPreviousPage(previousPage);
+        initialize();
+    }
+
+    private void initialize() {
         model = new LoadableModel<ResourceDto>() {
 
             @Override
@@ -117,6 +131,13 @@ public class PageResource extends PageAdminResources {
             }
         };
         initLayout();
+    }
+
+    // this is quite a hack - we construct this page (also) by explicitly passing 'parameters' value
+    // So, in order for methods using getPageParameters() to work, we override it here.
+    @Override
+    public PageParameters getPageParameters() {
+        return parameters;
     }
 
     private ResourceDto loadResourceDto() {
@@ -326,7 +347,11 @@ public class PageResource extends PageAdminResources {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                setResponsePage(new PageResources(false));
+                if (getPreviousPage() != null) {
+                    goBack(PageDashboard.class);            // the parameter is never used really
+                } else {
+                    setResponsePage(new PageResources(false));
+                }
             }
         };
         mainForm.add(back);

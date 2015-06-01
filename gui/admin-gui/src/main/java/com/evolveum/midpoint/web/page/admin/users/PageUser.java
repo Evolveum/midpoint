@@ -69,6 +69,8 @@ import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.PageTemplate;
+import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
@@ -102,6 +104,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.ByteArrayResource;
 import org.apache.wicket.request.resource.ContextRelativeResource;
@@ -192,14 +195,34 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         }
     };
 
+    private PageParameters parameters;
     private ProgressReporter progressReporter;
     private ObjectDelta delta;                      // used to determine whether to leave this page or stay on it (after operation finishing)
 
     public PageUser() {
-        this(null);
+        parameters = super.getPageParameters();
+        initialize(null);
+    }
+
+    public PageUser(PageParameters parameters, PageTemplate previousPage) {
+        this.parameters = parameters;
+        setPreviousPage(previousPage);
+        initialize(null);
     }
 
     public PageUser(final PrismObject<UserType> userToEdit) {
+        parameters = super.getPageParameters();
+        initialize(userToEdit);
+    }
+
+    // this is quite a hack - we construct this page (also) by explicitly passing 'parameters' value
+    // So, in order for methods using getPageParameters() to work, we override it here.
+    @Override
+    public PageParameters getPageParameters() {
+        return parameters;
+    }
+
+    protected void initialize(final PrismObject<UserType> userToEdit) {
         userModel = new LoadableModel<ObjectWrapper>(false) {
 
             @Override
@@ -1054,18 +1077,24 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         // !userModel.getObject().getObjectDelta().isEmpty()){
         // showModalWindow(MODAL_ID_CONFIRM_CANCEL, target);
         // } else{
-        StringValue orgReturn = getPageParameters().get(PARAM_RETURN_PAGE);
-        if (PageOrgTree.PARAM_ORG_RETURN.equals(orgReturn.toString())) {
-            setResponsePage(PageOrgTree.class);
-        } else {
-            setResponsePage(new PageUsers(false));
-        }
+        setSpecificResponsePage();
 
         // }
         // }catch(Exception ex){
         // LoggingUtils.logException(LOGGER, "Could not return to user list",
         // ex);
         // }
+    }
+
+    private void setSpecificResponsePage() {
+        StringValue orgReturn = getPageParameters().get(PARAM_RETURN_PAGE);
+        if (PageOrgTree.PARAM_ORG_RETURN.equals(orgReturn.toString())) {
+            setResponsePage(PageOrgTree.class);
+        } else if (getPreviousPage() != null) {
+            goBack(PageDashboard.class);        // the class parameter is not necessary, is previousPage is set
+        } else {
+            setResponsePage(new PageUsers(false));
+        }
     }
 
     private List<ObjectDelta<? extends ObjectType>> modifyAccounts(OperationResult result) {
@@ -1746,13 +1775,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
                     }
                 }
             }
-            StringValue returnPage = getPageParameters().get(PARAM_RETURN_PAGE);
-            if (!StringUtils.isBlank(returnPage.toString())
-                    && PageOrgTree.PARAM_ORG_RETURN.equals(returnPage.toString())) {
-                setResponsePage(PageOrgTree.class);
-            } else {
-                setResponsePage(new PageUsers(false));
-            }
+            setSpecificResponsePage();
         } else {
             showResult(result);
             target.add(getFeedbackPanel());

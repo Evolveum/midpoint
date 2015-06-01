@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
@@ -34,15 +35,19 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.DirectlyEditablePropertyColumn;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn.BUTTON_COLOR_CLASS;
+import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
+import com.evolveum.midpoint.web.page.admin.resources.PageResource;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
+import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
+import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -53,6 +58,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationR
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang.time.DurationFormatUtils;
@@ -151,6 +157,31 @@ public class PageCertDecisions extends PageAdminWorkItems {
 		};
 		columns.add(column);
 
+		column = new IconColumn<CertDecisionDto>(createStringResource("")) {
+			@Override
+			protected IModel<String> createIconModel(IModel<CertDecisionDto> rowModel) {
+				ObjectTypeGuiDescriptor guiDescriptor = getObjectTypeDescriptor(rowModel);
+				String icon = guiDescriptor != null ? guiDescriptor.getIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
+				return new Model<>(icon);
+			}
+
+			private ObjectTypeGuiDescriptor getObjectTypeDescriptor(IModel<CertDecisionDto> rowModel) {
+				QName targetType = rowModel.getObject().getTargetType();
+				return ObjectTypeGuiDescriptor.getDescriptor(ObjectTypes.getObjectTypeFromTypeQName(targetType));
+			}
+
+			@Override
+			public void populateItem(Item<ICellPopulator<CertDecisionDto>> item, String componentId, IModel<CertDecisionDto> rowModel) {
+				super.populateItem(item, componentId, rowModel);
+				ObjectTypeGuiDescriptor guiDescriptor = getObjectTypeDescriptor(rowModel);
+				if (guiDescriptor != null) {
+					item.add(AttributeModifier.replace("title", createStringResource(guiDescriptor.getLocalizationKey())));
+					item.add(new TooltipBehavior());
+				}
+			}
+		};
+		columns.add(column);
+
 		column = new LinkColumn<CertDecisionDto>(createStringResource("PageCertDecisions.table.targetName"),
 				AccessCertificationCaseType.F_TARGET_REF.getLocalPart(), CertDecisionDto.F_TARGET_NAME) {
 
@@ -161,12 +192,6 @@ public class PageCertDecisions extends PageAdminWorkItems {
 			}
 		};
 		columns.add(column);
-
-		column = new PropertyColumn(
-				createStringResource("PageCertDecisions.table.targetType"),
-				CertDecisionDto.F_TARGET_TYPE);
-		columns.add(column);
-
 
 		column = new LinkColumn<CertDecisionDto>(
 				createStringResource("PageCertDecisions.table.campaignName"),
@@ -436,12 +461,14 @@ public class PageCertDecisions extends PageAdminWorkItems {
 		PageParameters parameters = new PageParameters();
 		parameters.add(OnePageParameterEncoder.PARAMETER, objectRef.getOid());
 		if (RoleType.COMPLEX_TYPE.equals(type)) {
-            setResponsePage(PageRole.class, parameters);
+            setResponsePage(new PageRole(parameters, this));
         } else if (OrgType.COMPLEX_TYPE.equals(type)) {
-            setResponsePage(PageOrgUnit.class, parameters);
+            setResponsePage(new PageOrgUnit(parameters, this));
         } else if (UserType.COMPLEX_TYPE.equals(type)) {
-            setResponsePage(PageUser.class, parameters);
-        } else {
+            setResponsePage(new PageUser(parameters, this));
+        } else if (ResourceType.COMPLEX_TYPE.equals(type)) {
+			setResponsePage(new PageResource(parameters, this));
+		} else {
             // nothing to do
         }
 	}
