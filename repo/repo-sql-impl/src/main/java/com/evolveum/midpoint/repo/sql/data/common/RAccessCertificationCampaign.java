@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
@@ -38,6 +39,7 @@ import java.util.Collection;
 public class RAccessCertificationCampaign extends RObject<AccessCertificationCampaignType> {
 
     private RPolyString name;
+    private REmbeddedReference definitionRef;
 
     @Embedded
     public RPolyString getName() {
@@ -46,6 +48,15 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
 
     public void setName(RPolyString name) {
         this.name = name;
+    }
+
+    @Embedded
+    public REmbeddedReference getDefinitionRef() {
+        return definitionRef;
+    }
+
+    public void setDefinitionRef(REmbeddedReference definitionRef) {
+        this.definitionRef = definitionRef;
     }
 
     @Override
@@ -58,6 +69,8 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
 
         if (name != null ? !name.equals(rACR.name) : rACR.name != null)
             return false;
+        if (definitionRef != null ? !definitionRef.equals(rACR.definitionRef) : rACR.definitionRef != null)
+            return false;
         return true;
     }
 
@@ -65,6 +78,7 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + (name != null ? name.hashCode() : 0);
+        // TODO definitionRef ?
         return result;
     }
 
@@ -73,8 +87,8 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
             throws DtoTranslationException {
 
         RObject.copyFromJAXB(jaxb, repo, prismContext, generatorResult);
-
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
+        repo.setDefinitionRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getDefinitionRef(), prismContext));
     }
 
     @Override

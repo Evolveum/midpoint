@@ -17,13 +17,22 @@
 package com.evolveum.midpoint.web.page.admin.certification;
 
 import com.evolveum.midpoint.certification.api.CertificationManager;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.EqualFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
@@ -36,9 +45,12 @@ import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -54,6 +66,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.ArrayList;
@@ -63,7 +76,7 @@ import java.util.List;
 /**
  * @author mederly
  */
-@PageDescriptor(url = "/admin/certificationCampaigns", action = {
+@PageDescriptor(url = "/admin/certificationCampaigns", encoder = OnePageParameterEncoder.class, action = {
         @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
                 label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,
                 description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION)
@@ -86,9 +99,30 @@ public class PageCertCampaigns extends PageAdminCertification {
     public static final String OP_OPEN_NEXT_STAGE = "PageCertCampaigns.button.openNextStage";
     public static final String OP_START_REMEDIATION = "PageCertCampaigns.button.startRemediation";
 
-    public PageCertCampaigns() {
+    public PageCertCampaigns(PageParameters parameters) {
+        getPageParameters().overwriteWith(parameters);
         initLayout();
     }
+
+    @Override
+    protected IModel<String> createPageSubTitleModel(){
+        return new AbstractReadOnlyModel<String>() {
+            @Override
+            public String getObject() {
+                String definitionOid = getDefinitionOid();
+                if (definitionOid == null) {
+                    return null;
+                }
+                PrismObject<AccessCertificationDefinitionType> definitionPrismObject =
+                        WebModelUtils.loadObject(AccessCertificationDefinitionType.class, definitionOid, new OperationResult("dummy"), PageCertCampaigns.this);
+                if (definitionPrismObject == null) {
+                    return null;
+                }
+                return definitionPrismObject.asObjectable().getName().getOrig();
+            }
+        };
+    }
+
 
     private void initLayout() {
         Form mainForm = new Form(ID_MAIN_FORM);
@@ -379,6 +413,23 @@ public class PageCertCampaigns extends PageAdminCertification {
     private ObjectQuery createQuery() {
         // TODO filtering based on e.g. campaign state/stage (not started, active, finished)
         ObjectQuery query = new ObjectQuery();
+        String definitionOid = getDefinitionOid();
+        if (definitionOid != null) {
+            ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(definitionOid, ObjectTypes.ACCESS_CERTIFICATION_DEFINITION);
+            ObjectFilter filter = null;
+            try {
+                filter = RefFilter.createReferenceEqual(new ItemPath(AccessCertificationCampaignType.F_DEFINITION_REF),
+                        AccessCertificationCampaignType.class, getPrismContext(), ref.asReferenceValue());
+            } catch (SchemaException e) {
+                throw new SystemException("Unexpected schema exception: " + e.getMessage(), e);
+            }
+            query = ObjectQuery.createObjectQuery(filter);
+        }
         return query;
+    }
+
+    private String getDefinitionOid() {
+        StringValue definitionOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
+        return definitionOid != null ? definitionOid.toString() : null;
     }
 }

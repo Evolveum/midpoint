@@ -195,31 +195,21 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         }
     };
 
-    private PageParameters parameters;
     private ProgressReporter progressReporter;
     private ObjectDelta delta;                      // used to determine whether to leave this page or stay on it (after operation finishing)
 
     public PageUser() {
-        parameters = super.getPageParameters();
         initialize(null);
     }
 
     public PageUser(PageParameters parameters, PageTemplate previousPage) {
-        this.parameters = parameters;
+        getPageParameters().overwriteWith(parameters);
         setPreviousPage(previousPage);
         initialize(null);
     }
 
     public PageUser(final PrismObject<UserType> userToEdit) {
-        parameters = super.getPageParameters();
         initialize(userToEdit);
-    }
-
-    // this is quite a hack - we construct this page (also) by explicitly passing 'parameters' value
-    // So, in order for methods using getPageParameters() to work, we override it here.
-    @Override
-    public PageParameters getPageParameters() {
-        return parameters;
     }
 
     protected void initialize(final PrismObject<UserType> userToEdit) {

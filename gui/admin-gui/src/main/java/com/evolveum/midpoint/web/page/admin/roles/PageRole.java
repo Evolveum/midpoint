@@ -140,7 +140,6 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
     private IModel<List<MultiplicityPolicyConstraintType>> maxAssignmentsModel;
     private ObjectWrapper roleWrapper;
 
-    private PageParameters parameters;
     private ProgressReporter progressReporter;
 
     private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel
@@ -152,20 +151,12 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
         }
     };
 
-    // this is quite a hack - we construct this page (also) by explicitly passing 'parameters' value
-    // So, in order for methods using getPageParameters() to work, we override it here.
-    @Override
-    public PageParameters getPageParameters() {
-        return parameters;
-    }
-
     public PageRole() {
-        parameters = super.getPageParameters();
         initialize();
     }
 
     public PageRole(PageParameters parameters, PageTemplate previousPage) {
-        this.parameters = parameters;
+        getPageParameters().overwriteWith(parameters);
         setPreviousPage(previousPage);
         initialize();
     }

@@ -130,7 +130,6 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
     private IModel<ContainerWrapper> extensionModel;
     private ObjectWrapper orgWrapper;
 
-    private PageParameters parameters;
     private ProgressReporter progressReporter;
     private ObjectDelta delta;
 
@@ -143,26 +142,17 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
         }
     };
 
-    // this is quite a hack - we construct this page (also) by explicitly passing 'parameters' value
-    // So, in order for methods using getPageParameters() to work, we override it here.
-    @Override
-    public PageParameters getPageParameters() {
-        return parameters;
-    }
-
     public PageOrgUnit() {
-        parameters = super.getPageParameters();
         initialize(null);
     }
 
     //todo improve [erik]
     public PageOrgUnit(final PrismObject<OrgType> unitToEdit) {
-        parameters = super.getPageParameters();
         initialize(unitToEdit);
     }
 
     public PageOrgUnit(PageParameters parameters, PageTemplate previousPage) {
-        this.parameters = parameters;
+        getPageParameters().overwriteWith(parameters);
         setPreviousPage(previousPage);
         initialize(null);
     }

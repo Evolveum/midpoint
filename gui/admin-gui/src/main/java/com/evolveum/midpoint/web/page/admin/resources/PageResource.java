@@ -108,16 +108,14 @@ public class PageResource extends PageAdminResources {
     private static final String ID_BUTTON_IMPORT_ACCOUNTS = "importAccounts";
     private static final String ID_BUTTON_DELETE_SYNC_TOKEN = "deleteSyncToken";
 
-    private PageParameters parameters;
     private IModel<ResourceDto> model;
 
     public PageResource() {
-        parameters = super.getPageParameters();
         initialize();
     }
 
     public PageResource(PageParameters parameters, PageTemplate previousPage) {
-        this.parameters = parameters;
+        getPageParameters().overwriteWith(parameters);
         setPreviousPage(previousPage);
         initialize();
     }
@@ -131,13 +129,6 @@ public class PageResource extends PageAdminResources {
             }
         };
         initLayout();
-    }
-
-    // this is quite a hack - we construct this page (also) by explicitly passing 'parameters' value
-    // So, in order for methods using getPageParameters() to work, we override it here.
-    @Override
-    public PageParameters getPageParameters() {
-        return parameters;
     }
 
     private ResourceDto loadResourceDto() {
