@@ -33,7 +33,6 @@ import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
 import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
 import com.evolveum.midpoint.web.page.admin.configuration.PageInternals;
 import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
-import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfigurationLogging;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
 import com.evolveum.midpoint.web.page.admin.reports.PageNewReport;
