@@ -441,9 +441,10 @@ public class PageSecurityQuestions extends PageBase {
 
 		}
 		else{
+			System.out.println("Elseeeee");
 			getSession().error(getString("pageSecurityQuestions.message.WrongAnswer"));
 			getSession().invalidate();
-			SecurityContext securityContext = SecurityContextHolder.getContext();
+			System.out.println("ElseThrow");
 			setAuthenticationNull();
 			throw new RestartResponseException(PageSecurityQuestions.class);
 		}
@@ -599,9 +600,7 @@ public class PageSecurityQuestions extends PageBase {
 
 		PropertyDelta delta = PropertyDelta.createModificationReplaceProperty(valuePath, objDef, password);
 		Class<? extends ObjectType> type =  UserType.class;
-		MailConfigurationType mailConfig= systemConfig.asObjectable().getNotificationConfiguration().getMail();
-		MailServerConfigurationType mailServerType=mailConfig.getServer().get(0);
-
+		
 		deltas.add(ObjectDelta.createModifyDelta(user.getOid(), delta, type, getPrismContext()));
 		try {
 		
@@ -620,6 +619,8 @@ public class PageSecurityQuestions extends PageBase {
 						setResponsePage(PageShowPassword.class);
 					}
 					else{
+						MailConfigurationType mailConfig= systemConfig.asObjectable().getNotificationConfiguration().getMail();
+						MailServerConfigurationType mailServerType=mailConfig.getServer().get(0);
 						sendMailToUser(mailServerType.getUsername(), getMidpointApplication().getProtector().decryptString(mailServerType.getPassword()), newPassword, mailServerType.getHost(), mailServerType.getPort().toString(), mailConfig.getDefaultFrom(),user.getEmailAddress() );	
 					}
 				} catch (ObjectNotFoundException | SchemaException e) {
@@ -664,7 +665,6 @@ public class PageSecurityQuestions extends PageBase {
 
 	public void sendMailToUser(final String userLogin,final String password, String newPassword,String host,String port,String sender,String receiver) {
 		try {
-
 
 			//prop.load(new FileInputStream("/u01/app/oracle/product/fmw/Roketsan_IAM/server/ScheduleTask/PropertyFiles/MailServer.properties"));
 
