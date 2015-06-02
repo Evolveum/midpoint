@@ -86,6 +86,7 @@ public class PageCertCampaigns extends PageAdminCertification {
     private static final Trace LOGGER = TraceManager.getTrace(PageCertCampaigns.class);
 
     private static final String DOT_CLASS = PageCertCampaigns.class.getName() + ".";
+    private static final String OPERATION_ADVANCE_LIFECYCLE = DOT_CLASS + "advanceLifecycle";
     private static final String OPERATION_OPEN_NEXT_STAGE = DOT_CLASS + "openNextStage";
     private static final String OPERATION_CLOSE_STAGE = DOT_CLASS + "closeStage";
     private static final String OPERATION_CLOSE_CAMPAIGN = DOT_CLASS + "closeCampaign";
@@ -160,7 +161,7 @@ public class PageCertCampaigns extends PageAdminCertification {
             private void certStatPerformed(AjaxRequestTarget target, String oid) {
                 PageParameters parameters = new PageParameters();
                 parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-                setResponsePage(new PageCertCampaignStatistics(parameters));
+                setResponsePage(new PageCertCampaign(parameters));
             }
         };
         columns.add(column);
@@ -348,7 +349,7 @@ public class PageCertCampaigns extends PageAdminCertification {
     private void executeCampaignStateOperation(AjaxRequestTarget target, AccessCertificationCampaignType campaign) {
         LOGGER.debug("Advance/close certification campaign performed for {}", campaign.asPrismObject());
 
-        OperationResult result = new OperationResult(OPERATION_OPEN_NEXT_STAGE);
+        OperationResult result = new OperationResult(OPERATION_ADVANCE_LIFECYCLE);
         try {
             int currentStage = campaign.getCurrentStageNumber();
             CertificationManager cm = getCertificationManager();

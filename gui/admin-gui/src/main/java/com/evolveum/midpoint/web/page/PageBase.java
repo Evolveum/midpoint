@@ -166,8 +166,12 @@ public abstract class PageBase extends PageTemplate {
     }
 
     public static StringResourceModel createStringResourceStatic(Component component, Enum e) {
-        String resourceKey = e.getDeclaringClass().getSimpleName() + "." + e.name();
+        String resourceKey = createEnumResourceKey(e);
         return createStringResourceStatic(component, resourceKey);
+    }
+
+    public static String createEnumResourceKey(Enum e) {
+        return e.getDeclaringClass().getSimpleName() + "." + e.name();
     }
 
     public Task createSimpleTask(String operation, PrismObject<UserType> owner) {
