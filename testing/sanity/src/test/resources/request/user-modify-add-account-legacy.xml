@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!-- Object modification description that is changing user "jack" by adding a new account -->
+
+<objectDelta
+	xmlns="http://prism.evolveum.com/xml/ns/public/types-3"
+	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" 
+ 				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
+	<changeType>modify</changeType>
+	<objectType>c:UserType</objectType>
+	<oid>c0c010c0-d34d-b33f-f00d-111111111111</oid>
+	<itemDelta>
+		<t:modificationType>add</t:modificationType>
+		<t:path>c:linkRef</t:path>
+		<t:value xsiType="c:ShadowType">
+<!-- 			<c:link xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" -->
+<!-- 				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">  -->
+				<!-- No OID for account. The OID will be generated once the account shadow is added to the repository. -->
+				<!-- No name here. We expect that it will be generated -->
+				<c:resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>
+				<c:objectClass>ri:AccountObjectClass</c:objectClass>
+				<c:attributes>
+					<icfs:name>uid=jack,ou=People,dc=example,dc=com</icfs:name>
+					<ri:uid>jack</ri:uid>
+					<ri:cn>Jack Sparrow</ri:cn>
+					<ri:givenName>Jack</ri:givenName>
+					<ri:sn>Sparrow</ri:sn>
+				</c:attributes>
+<!-- 			</c:link> -->
+		</t:value>
+	</itemDelta>
+</objectDelta>
