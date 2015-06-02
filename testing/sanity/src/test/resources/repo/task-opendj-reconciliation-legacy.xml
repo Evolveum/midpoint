@@ -15,7 +15,9 @@
   ~ limitations under the License.
   -->
 
-<!--Reconciliation task definition for OpenDJ resource -->
+<!--Reconciliation task definition for OpenDJ resource 
+
+THIS IS LEGACY VERSION. It tests with legacy LDAP connector.-->
 
 <task oid="91919191-76e0-59e2-86d6-3d4f02d30000"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"

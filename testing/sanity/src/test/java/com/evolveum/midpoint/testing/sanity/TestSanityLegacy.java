@@ -200,6 +200,8 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
  * instance is provided in the test data and is inserted in the repository as
  * part of test initialization.
  *
+ * THIS IS LEGACY VERSION. It tests with legacy LDAP connector.
+ *
  * @author Radovan Semancik
  */
 @ContextConfiguration(locations = {"classpath:ctx-sanity-test-main.xml"})
@@ -216,7 +218,7 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
     private static final String ROLE_SUPERUSER_FILENAME = REPO_DIR_NAME + "role-superuser.xml";
     private static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
 
-    private static final String RESOURCE_OPENDJ_FILENAME = REPO_DIR_NAME + "resource-opendj.xml";
+    private static final String RESOURCE_OPENDJ_FILENAME = REPO_DIR_NAME + "resource-opendj-legacy.xml";
     private static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 
     private static final String RESOURCE_DERBY_FILENAME = REPO_DIR_NAME + "resource-derby.xml";
@@ -228,19 +230,19 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
     private static final String RESOURCE_DUMMY_FILENAME = REPO_DIR_NAME + "resource-dummy.xml";
     private static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
 
-    private static final String CONNECTOR_LDAP_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/org.identityconnectors.ldap.LdapConnector";
+    private static final String CONNECTOR_LDAP_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap-legacy/org.identityconnectors.ldap.LdapConnector";
     private static final String CONNECTOR_DBTABLE_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-databasetable/org.identityconnectors.databasetable.DatabaseTableConnector";
     
     private static final String CONNECTOR_BROKEN_FILENAME = REPO_DIR_NAME + "connector-broken.xml";
     private static final String CONNECTOR_BROKEN_OID = "cccccccc-76e0-59e2-ffff-ffffffffffff";
 
-    private static final String TASK_OPENDJ_SYNC_FILENAME = REPO_DIR_NAME + "task-opendj-sync.xml";
+    private static final String TASK_OPENDJ_SYNC_FILENAME = REPO_DIR_NAME + "task-opendj-sync-legacy.xml";
     private static final String TASK_OPENDJ_SYNC_OID = "91919191-76e0-59e2-86d6-3d4f02d3ffff";
 
     private static final String TASK_USER_RECOMPUTE_FILENAME = REPO_DIR_NAME + "task-user-recompute.xml";
     private static final String TASK_USER_RECOMPUTE_OID = "91919191-76e0-59e2-86d6-3d4f02d3aaaa";
 
-    private static final String TASK_OPENDJ_RECON_FILENAME = REPO_DIR_NAME + "task-opendj-reconciliation.xml";
+    private static final String TASK_OPENDJ_RECON_FILENAME = REPO_DIR_NAME + "task-opendj-reconciliation-legacy.xml";
     private static final String TASK_OPENDJ_RECON_OID = "91919191-76e0-59e2-86d6-3d4f02d30000";
 
     private static final String SAMPLE_CONFIGURATION_OBJECT_FILENAME = REPO_DIR_NAME + "sample-configuration-object.xml";
@@ -317,7 +319,7 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
     private static final String LDIF_ANGELIKA_FILENAME = REQUEST_DIR_NAME + "angelika.ldif";
     private static final String ANGELIKA_NAME = "angelika";
     
-    private static final String ACCOUNT_ANGELIKA_FILENAME = REQUEST_DIR_NAME + "account-angelika.xml";
+    private static final String ACCOUNT_ANGELIKA_FILENAME = REQUEST_DIR_NAME + "account-angelika-legacy.xml";
   
 
     private static final String LDIF_ELAINE_FILENAME = REQUEST_DIR_NAME + "elaine.ldif";

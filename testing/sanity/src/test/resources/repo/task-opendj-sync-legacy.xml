@@ -15,7 +15,9 @@
   ~ limitations under the License.
   -->
 
-<!-- Synchronization task definition for OpenDJ resource -->
+<!-- Synchronization task definition for OpenDJ resource
+
+THIS IS LEGACY VERSION. It tests with legacy LDAP connector. -->
 
 <task oid="91919191-76e0-59e2-86d6-3d4f02d3ffff"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
