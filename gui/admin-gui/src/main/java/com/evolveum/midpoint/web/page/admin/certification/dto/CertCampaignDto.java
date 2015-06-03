@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.page.admin.certification;
+package com.evolveum.midpoint.web.page.admin.certification.dto;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
@@ -30,6 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import java.io.Serializable;
+import java.util.List;
 
 import static com.evolveum.midpoint.web.page.PageBase.createEnumResourceKey;
 import static com.evolveum.midpoint.web.page.PageBase.createStringResourceStatic;
@@ -37,7 +41,7 @@ import static com.evolveum.midpoint.web.page.PageBase.createStringResourceStatic
 /**
  * @author mederly
  */
-public class CertCampaignDto implements Serializable {
+public class CertCampaignDto extends Selectable {
 
     public static final String F_NAME = "name";
     public static final String F_DESCRIPTION = "description";
@@ -63,7 +67,7 @@ public class CertCampaignDto implements Serializable {
         return ownerName;
     }
 
-    private String resolveOwnerName(ObjectReferenceType ownerRef, OperationResult result, PageBase page) {
+    public static String resolveOwnerName(ObjectReferenceType ownerRef, OperationResult result, PageBase page) {
         if (ownerRef == null) {
             return null;
         }
@@ -140,4 +144,5 @@ public class CertCampaignDto implements Serializable {
     public int getCurrentStageNumber() {
         return campaign.getCurrentStageNumber();
     }
+
 }

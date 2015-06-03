@@ -38,6 +38,8 @@ import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.page.admin.certification.dto.CertDecisionDto;
+import com.evolveum.midpoint.web.page.admin.certification.dto.CertDecisionDtoProvider;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.resources.PageResource;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
@@ -90,16 +92,19 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 /**
  * @author mederly
  */
-@PageDescriptor(url = "/admin/certificationDecisions", action = { @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL, label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL, description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION) })
+@PageDescriptor(url = "/admin/certificationDecisions",
+		action = {
+				@AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
+						label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,
+						description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION) })
+
 public class PageCertDecisions extends PageAdminWorkItems {
 
 	private static final Trace LOGGER = TraceManager
 			.getTrace(PageCertDecisions.class);
 
-	private static final String DOT_CLASS = PageCertDecisions.class.getName()
-			+ ".";
-	private static final String OPERATION_RECORD_ACTION = DOT_CLASS
-			+ "recordAction";
+	private static final String DOT_CLASS = PageCertDecisions.class.getName() + ".";
+	private static final String OPERATION_RECORD_ACTION = DOT_CLASS  + "recordAction";
 	private static final String OPERATION_RECORD_ACTION_SELECTED = DOT_CLASS + "recordActionSelected";
 	
 	private static final String ID_MAIN_FORM = "mainForm";

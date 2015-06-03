@@ -34,6 +34,9 @@ import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn.BUTTON
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageTemplate;
+import com.evolveum.midpoint.web.page.admin.certification.dto.CertCampaignDto;
+import com.evolveum.midpoint.web.page.admin.certification.dto.CertCaseDto;
+import com.evolveum.midpoint.web.page.admin.certification.dto.CertCaseDtoProvider;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;

@@ -118,5 +118,11 @@ public class CertCampaignTypeUtil {
             }
             numberPresent[num-1] = true;
         }
+        // maybe redundant test
+        for (int i = 0; i < numberPresent.length; i++) {
+            if (!numberPresent[i]) {
+                throw new IllegalStateException("Stage with number " + (i+1) + " was not defined");
+            }
+        }
     }
 }

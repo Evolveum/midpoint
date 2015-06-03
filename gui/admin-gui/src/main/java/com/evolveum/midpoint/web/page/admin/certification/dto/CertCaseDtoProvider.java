@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.page.admin.certification;
+package com.evolveum.midpoint.web.page.admin.certification.dto;
 
 import com.evolveum.midpoint.certification.api.CertificationManager;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
