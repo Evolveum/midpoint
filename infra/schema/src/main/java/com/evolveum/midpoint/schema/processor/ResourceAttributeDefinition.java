@@ -45,6 +45,7 @@ public class ResourceAttributeDefinition<T> extends PrismPropertyDefinition<T> {
 
 	private static final long serialVersionUID = 7092192397127114804L;
 	private String nativeAttributeName;
+	private String frameworkAttributeName;
 	private Boolean returnedByDefault;
 
 	public ResourceAttributeDefinition(QName elementName, QName typeName, PrismContext prismContext) {
@@ -132,8 +133,20 @@ public class ResourceAttributeDefinition<T> extends PrismPropertyDefinition<T> {
 		this.nativeAttributeName = nativeAttributeName;
 	}
 	
-	
-	
+	/**
+	 * Returns name of the attribute as given in the connector framework.
+	 * This is not used for any significant logic. It is mostly for diagnostics.
+	 * 
+	 * @return name of the attribute as given in the connector framework.
+	 */
+	public String getFrameworkAttributeName() {
+		return frameworkAttributeName;
+	}
+
+	public void setFrameworkAttributeName(String frameworkAttributeName) {
+		this.frameworkAttributeName = frameworkAttributeName;
+	}
+
 	@Override
 	public ResourceAttributeDefinition<T> clone() {
 		ResourceAttributeDefinition<T> clone = new ResourceAttributeDefinition<T>(getName(), getTypeName(), getPrismContext());
@@ -144,6 +157,7 @@ public class ResourceAttributeDefinition<T> extends PrismPropertyDefinition<T> {
 	protected void copyDefinitionData(ResourceAttributeDefinition<T> clone) {
 		super.copyDefinitionData(clone);
 		clone.nativeAttributeName = this.nativeAttributeName;
+		clone.frameworkAttributeName = this.frameworkAttributeName;
 		clone.returnedByDefault = this.returnedByDefault;
 	}
 
@@ -154,6 +168,10 @@ public class ResourceAttributeDefinition<T> extends PrismPropertyDefinition<T> {
 		if (getNativeAttributeName()!=null) {
 			sb.append(" native=");
 			sb.append(getNativeAttributeName());
+		}
+		if (getFrameworkAttributeName()!=null) {
+			sb.append(" framework=");
+			sb.append(getFrameworkAttributeName());
 		}
 		if (returnedByDefault != null) {
 			sb.append(" returnedByDefault=");

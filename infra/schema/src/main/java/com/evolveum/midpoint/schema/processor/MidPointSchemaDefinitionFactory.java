@@ -264,6 +264,13 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 			attrDef.setNativeAttributeName(nativeAttributeName);
 		}
 		
+		// frameworkAttributeName
+		Element frameworkAttrElement = SchemaProcessorUtil.getAnnotationElement(annotation, MidPointConstants.RA_FRAMEWORK_ATTRIBUTE_NAME);
+		String frameworkAttributeName = frameworkAttrElement == null ? null : frameworkAttrElement.getTextContent();
+		if (!StringUtils.isEmpty(frameworkAttributeName)) {
+			attrDef.setFrameworkAttributeName(frameworkAttributeName);
+		}
+		
 		// returnedByDefault
 		attrDef.setReturnedByDefault(SchemaProcessorUtil.getAnnotationBoolean(annotation, MidPointConstants.RA_RETURNED_BY_DEFAULT_NAME));
 		
@@ -279,6 +286,9 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 			ResourceAttributeDefinition rad = (ResourceAttributeDefinition)definition;
 			if (rad.getNativeAttributeName() != null) {
 				schemaToDomProcessor.addAnnotation(MidPointConstants.RA_NATIVE_ATTRIBUTE_NAME, rad.getNativeAttributeName(), appinfo);
+			}
+			if (rad.getFrameworkAttributeName() != null) {
+				schemaToDomProcessor.addAnnotation(MidPointConstants.RA_FRAMEWORK_ATTRIBUTE_NAME, rad.getFrameworkAttributeName(), appinfo);
 			}
 			if (rad.getReturnedByDefault() != null) {
 				schemaToDomProcessor.addAnnotation(MidPointConstants.RA_RETURNED_BY_DEFAULT_NAME, rad.getReturnedByDefault().toString(), appinfo);

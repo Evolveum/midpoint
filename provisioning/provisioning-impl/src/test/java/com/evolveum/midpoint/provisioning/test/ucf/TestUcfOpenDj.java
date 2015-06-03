@@ -59,6 +59,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
+import org.identityconnectors.framework.common.objects.Name;
+import org.identityconnectors.framework.common.objects.Uid;
 import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -224,12 +226,20 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		assertFalse("Empty identifiers for " + objectClassQname, identifiers.isEmpty());
 		// TODO
 
-		ResourceAttributeDefinition attributeDefinition = accountDefinition
-				.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
-		assertNotNull("No definition for attribute "+ConnectorFactoryIcfImpl.ICFS_UID, attributeDefinition);
-		assertTrue("Attribute "+ConnectorFactoryIcfImpl.ICFS_UID+" in not an identifier",attributeDefinition.isIdentifier(accountDefinition));
-		assertTrue("Attribute "+ConnectorFactoryIcfImpl.ICFS_UID+" in not in identifiers list",identifiers.contains(attributeDefinition));
-		
+		ResourceAttributeDefinition<String> uidAttrDef = accountDefinition.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
+		assertNotNull("No definition for attribute "+ConnectorFactoryIcfImpl.ICFS_UID, uidAttrDef);
+		assertTrue("Attribute "+ConnectorFactoryIcfImpl.ICFS_UID+" in not an identifier",uidAttrDef.isIdentifier(accountDefinition));
+		assertTrue("Attribute "+ConnectorFactoryIcfImpl.ICFS_UID+" in not in identifiers list",identifiers.contains(uidAttrDef));
+		assertEquals("Attribute "+ConnectorFactoryIcfImpl.ICFS_UID+" has wrong native name", "entryUUID", uidAttrDef.getNativeAttributeName());
+		assertEquals("Attribute "+ConnectorFactoryIcfImpl.ICFS_UID+" has wrong framework name", Uid.NAME, uidAttrDef.getFrameworkAttributeName());
+
+		ResourceAttributeDefinition<String> nameAttrDef = accountDefinition.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
+		assertNotNull("No definition for attribute "+ConnectorFactoryIcfImpl.ICFS_NAME, nameAttrDef);
+		assertTrue("Attribute "+ConnectorFactoryIcfImpl.ICFS_NAME+" in not secondary identifier",nameAttrDef.isSecondaryIdentifier(accountDefinition));
+		assertFalse("Attribute "+ConnectorFactoryIcfImpl.ICFS_NAME+" in in identifiers list and it should NOT be",identifiers.contains(nameAttrDef));
+		assertEquals("Attribute "+ConnectorFactoryIcfImpl.ICFS_NAME+" has wrong native name", "dn", nameAttrDef.getNativeAttributeName());
+		assertEquals("Attribute "+ConnectorFactoryIcfImpl.ICFS_NAME+" has wrong framework name", Name.NAME, nameAttrDef.getFrameworkAttributeName());
+
 	}
 
 	private Collection<ResourceAttribute<?>> addSampleResourceObject(String name, String givenName, String familyName)

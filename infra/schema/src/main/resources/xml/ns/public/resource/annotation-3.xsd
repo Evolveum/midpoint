@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2014 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@
             capabilities of prism annotation to further specify that details regarding resource
             objects, details that are out of the scope of prism objects.
             
-            Version: 3.1
+            Version: 3.2-SNAPSHOT
             Usual prefix: ra
         </xsd:documentation>
     </xsd:annotation>
@@ -117,6 +117,15 @@
                 the native attribute names may be hardcoded (e.g. "username", "homeDirectory") or may not be present at all.
 
 				If not present, the it defaults to the corresponding element name (without namespace).
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="frameworkAttributeName" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                Name of the attribute as given in the connector framework.
+                This is not used for any significant logic. It is mostly for diagnostics.
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>

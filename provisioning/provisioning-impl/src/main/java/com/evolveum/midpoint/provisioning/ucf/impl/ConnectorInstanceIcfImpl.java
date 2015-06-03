@@ -70,6 +70,7 @@ import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfo;
 import org.identityconnectors.framework.common.objects.AttributeInfo.Flags;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
+import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.ObjectClassInfo;
 import org.identityconnectors.framework.common.objects.OperationOptionInfo;
@@ -655,19 +656,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				roDefinition.setDefaultInAKind(true);
 			}
 
-			// Every object has UID in ICF, therefore add it right now
-			ResourceAttributeDefinition uidDefinition = roDefinition.createAttributeDefinition(
-					ConnectorFactoryIcfImpl.ICFS_UID, DOMUtil.XSD_STRING);
-			// DO NOT make it mandatory. It must not be present on create hence it cannot be mandatory.
-			uidDefinition.setMinOccurs(0);
-			uidDefinition.setMaxOccurs(1);
-			// Make it read-only
-			uidDefinition.setReadOnly();
-			// Set a default display name
-			uidDefinition.setDisplayName(ConnectorFactoryIcfImpl.ICFS_UID_DISPLAY_NAME);
-			uidDefinition.setDisplayOrder(ConnectorFactoryIcfImpl.ICFS_UID_DISPLAY_ORDER);
-			// Uid is a primary identifier of every object (this is the ICF way)
-			((Collection<ResourceAttributeDefinition>)roDefinition.getIdentifiers()).add(uidDefinition);
+			ResourceAttributeDefinition uidDefinition = null;
 
 			int displayOrder = ConnectorFactoryIcfImpl.ATTR_DISPLAY_ORDER_START;
 			// Let's iterate over all attributes in this object class ...
@@ -717,21 +706,30 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 				// Create ResourceObjectAttributeDefinition, which is midPoint
 				// way how to express attribute schema.
-				ResourceAttributeDefinition attrDef = roDefinition.createAttributeDefinition(
-						attrXsdName, attrXsdType);
+				ResourceAttributeDefinition attrDef = new ResourceAttributeDefinition(
+						attrXsdName, attrXsdType, prismContext);
 
 				
-				if (attrXsdName.equals(ConnectorFactoryIcfImpl.ICFS_NAME)) {
+				if (Name.NAME.equals(attributeInfo.getName())) {
 					// Set a better display name for __NAME__. The "name" is s very
 					// overloaded term, so let's try to make things
 					// a bit clearer
 					attrDef.setDisplayName(ConnectorFactoryIcfImpl.ICFS_NAME_DISPLAY_NAME);
 					attrDef.setDisplayOrder(ConnectorFactoryIcfImpl.ICFS_NAME_DISPLAY_ORDER);
 					((Collection<ResourceAttributeDefinition>)roDefinition.getSecondaryIdentifiers()).add(attrDef);
+					
+				} else if (Uid.NAME.equals(attributeInfo.getName())) {
+						attrDef.setDisplayName(ConnectorFactoryIcfImpl.ICFS_UID_DISPLAY_NAME);
+						attrDef.setDisplayOrder(ConnectorFactoryIcfImpl.ICFS_UID_DISPLAY_ORDER);
+						((Collection<ResourceAttributeDefinition>)roDefinition.getSecondaryIdentifiers()).add(attrDef);
+						
 				} else {
 					attrDef.setDisplayOrder(displayOrder);
 					displayOrder += ConnectorFactoryIcfImpl.ATTR_DISPLAY_ORDER_INCREMENT;
 				}
+				
+				attrDef.setNativeAttributeName(attributeInfo.getNativeName());
+				attrDef.setFrameworkAttributeName(attributeInfo.getName());
 
 				// Now we are going to process flags such as optional and
 				// multi-valued
@@ -768,8 +766,31 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				attrDef.setCanAdd(canCreate);
 				attrDef.setCanModify(canUpdate);
 				attrDef.setCanRead(canRead);
-
+				
+				if (Uid.NAME.equals(attributeInfo.getName())) {
+					uidDefinition = attrDef;
+				} else {
+					roDefinition.add(attrDef);
+				}
 			}
+
+			if (uidDefinition == null) {
+				// Every object has UID in ICF, therefore add a default definition if no other was specified
+				uidDefinition = new ResourceAttributeDefinition<String>(
+						ConnectorFactoryIcfImpl.ICFS_UID, DOMUtil.XSD_STRING, prismContext);
+				// DO NOT make it mandatory. It must not be present on create hence it cannot be mandatory.
+				uidDefinition.setMinOccurs(0);
+				uidDefinition.setMaxOccurs(1);
+				// Make it read-only
+				uidDefinition.setReadOnly();
+				// Set a default display name
+				uidDefinition.setDisplayName(ConnectorFactoryIcfImpl.ICFS_UID_DISPLAY_NAME);
+				uidDefinition.setDisplayOrder(ConnectorFactoryIcfImpl.ICFS_UID_DISPLAY_ORDER);
+				// Uid is a primary identifier of every object (this is the ICF way)
+			}
+			roDefinition.add(uidDefinition);
+			((Collection<ResourceAttributeDefinition>)roDefinition.getIdentifiers()).add(uidDefinition);
+
 
 			// Add schema annotations
 			roDefinition.setNativeObjectClass(objectClassInfo.getType());
