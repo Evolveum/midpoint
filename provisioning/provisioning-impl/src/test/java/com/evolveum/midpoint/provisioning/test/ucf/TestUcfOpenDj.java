@@ -232,14 +232,17 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		assertTrue("Attribute "+ConnectorFactoryIcfImpl.ICFS_UID+" in not in identifiers list",identifiers.contains(uidAttrDef));
 		assertEquals("Attribute "+ConnectorFactoryIcfImpl.ICFS_UID+" has wrong native name", "entryUUID", uidAttrDef.getNativeAttributeName());
 		assertEquals("Attribute "+ConnectorFactoryIcfImpl.ICFS_UID+" has wrong framework name", Uid.NAME, uidAttrDef.getFrameworkAttributeName());
-
+		
 		ResourceAttributeDefinition<String> nameAttrDef = accountDefinition.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
 		assertNotNull("No definition for attribute "+ConnectorFactoryIcfImpl.ICFS_NAME, nameAttrDef);
 		assertTrue("Attribute "+ConnectorFactoryIcfImpl.ICFS_NAME+" in not secondary identifier",nameAttrDef.isSecondaryIdentifier(accountDefinition));
 		assertFalse("Attribute "+ConnectorFactoryIcfImpl.ICFS_NAME+" in in identifiers list and it should NOT be",identifiers.contains(nameAttrDef));
+		assertTrue("Attribute "+ConnectorFactoryIcfImpl.ICFS_NAME+" in not in secomdary identifiers list",accountDefinition.getSecondaryIdentifiers().contains(nameAttrDef));
 		assertEquals("Attribute "+ConnectorFactoryIcfImpl.ICFS_NAME+" has wrong native name", "dn", nameAttrDef.getNativeAttributeName());
 		assertEquals("Attribute "+ConnectorFactoryIcfImpl.ICFS_NAME+" has wrong framework name", Name.NAME, nameAttrDef.getFrameworkAttributeName());
 
+		assertEquals("Unexpected identifiers: "+identifiers, 1, identifiers.size());
+		assertEquals("Unexpected secondary identifiers: "+accountDefinition.getSecondaryIdentifiers(), 1, accountDefinition.getSecondaryIdentifiers().size());
 	}
 
 	private Collection<ResourceAttribute<?>> addSampleResourceObject(String name, String givenName, String familyName)

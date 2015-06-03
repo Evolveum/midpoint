@@ -160,8 +160,44 @@ public class ResourceAttributeDefinition<T> extends PrismPropertyDefinition<T> {
 		clone.frameworkAttributeName = this.frameworkAttributeName;
 		clone.returnedByDefault = this.returnedByDefault;
 	}
-
 	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((frameworkAttributeName == null) ? 0 : frameworkAttributeName.hashCode());
+		result = prime * result + ((nativeAttributeName == null) ? 0 : nativeAttributeName.hashCode());
+		result = prime * result + ((returnedByDefault == null) ? 0 : returnedByDefault.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ResourceAttributeDefinition other = (ResourceAttributeDefinition) obj;
+		if (frameworkAttributeName == null) {
+			if (other.frameworkAttributeName != null)
+				return false;
+		} else if (!frameworkAttributeName.equals(other.frameworkAttributeName))
+			return false;
+		if (nativeAttributeName == null) {
+			if (other.nativeAttributeName != null)
+				return false;
+		} else if (!nativeAttributeName.equals(other.nativeAttributeName))
+			return false;
+		if (returnedByDefault == null) {
+			if (other.returnedByDefault != null)
+				return false;
+		} else if (!returnedByDefault.equals(other.returnedByDefault))
+			return false;
+		return true;
+	}
+
 	@Override
 	protected void extendToString(StringBuilder sb) {
 		super.extendToString(sb);

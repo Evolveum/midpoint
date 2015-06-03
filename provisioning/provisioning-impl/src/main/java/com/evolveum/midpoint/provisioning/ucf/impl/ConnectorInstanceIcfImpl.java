@@ -721,7 +721,6 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				} else if (Uid.NAME.equals(attributeInfo.getName())) {
 						attrDef.setDisplayName(ConnectorFactoryIcfImpl.ICFS_UID_DISPLAY_NAME);
 						attrDef.setDisplayOrder(ConnectorFactoryIcfImpl.ICFS_UID_DISPLAY_ORDER);
-						((Collection<ResourceAttributeDefinition>)roDefinition.getSecondaryIdentifiers()).add(attrDef);
 						
 				} else {
 					attrDef.setDisplayOrder(displayOrder);

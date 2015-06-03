@@ -222,7 +222,6 @@ public class ResourceManager {
 			boolean fetchedSchema, OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
 			CommunicationException, ConfigurationException {
 
-		ResourceType repoResourceType = repoResource.asObjectable();
 		// do not add as a subresult..it will be added later, if the completing
 		// of resource will be successfull.if not, it will be only set as a
 		// fetch result in the resource..

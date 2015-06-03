@@ -378,7 +378,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertTrue("No NAME create", nameDef.canAdd());
 		assertTrue("No NAME update", nameDef.canModify());
 		assertTrue("No NAME read", nameDef.canRead());
-		assertTrue("NAME definition not in identifiers", accountDef.getSecondaryIdentifiers().contains(nameDef));
+		assertTrue("NAME definition not in secondary identifiers", accountDef.getSecondaryIdentifiers().contains(nameDef));
 
 		ResourceAttributeDefinition<String> cnDef = accountDef.findAttributeDefinition("cn");
 		assertNotNull("No definition for cn", cnDef);
