@@ -257,22 +257,25 @@ public class PageCertCampaign extends PageAdminCertification {
 		
 		IColumn column;
 
-		column = helper.createSubjectNameColumn(this);
+		column = helper.createSubjectNameColumn(this, "PageCertCampaign.table.subjectName");
 		columns.add(column);
 
 		column = helper.createTargetTypeColumn(this);
 		columns.add(column);
 
-		column = helper.createTargetNameColumn(this);
+		column = helper.createTargetNameColumn(this, "PageCertCampaign.table.targetName");
 		columns.add(column);
 
-		column = new PropertyColumn(createStringResource("PageCertDecisions.table.reviewedAt"), CertCaseDto.F_REVIEWED_AT);
+		column = helper.createDetailedInfoColumn(this);
 		columns.add(column);
 
-		column = new PropertyColumn(createStringResource("PageCertDecisions.table.reviewedBy"), CertCaseDto.F_REVIEWED_BY);
+		column = new PropertyColumn(createStringResource("PageCertCampaign.table.reviewedAt"), CertCaseDto.F_REVIEWED_AT);
 		columns.add(column);
 
-		column = new PropertyColumn(createStringResource("PageCertDecisions.table.reviewedInStage"), CertCaseDto.F_CURRENT_RESPONSE_STAGE_NUMBER);
+		column = new PropertyColumn(createStringResource("PageCertCampaign.table.reviewedBy"), CertCaseDto.F_REVIEWED_BY);
+		columns.add(column);
+
+		column = new PropertyColumn(createStringResource("PageCertCampaign.table.reviewedInStage"), CertCaseDto.F_CURRENT_RESPONSE_STAGE_NUMBER);
 		columns.add(column);
 
 		column = new DoubleButtonColumn<CertCaseDto>(new Model(), null) {
@@ -280,13 +283,13 @@ public class PageCertCampaign extends PageAdminCertification {
 			@Override
 			public String getFirstCap() {
 				return PageCertCampaign.this.createStringResource(
-						"PageCertDecisions.menu.accept").getString();
+						"PageCertCampaign.menu.accept").getString();
 			}
 
 			@Override
 			public String getSecondCap() {
 				return PageCertCampaign.this.createStringResource(
-						"PageCertDecisions.menu.revoke").getString();
+						"PageCertCampaign.menu.revoke").getString();
 			}
 
 			@Override
@@ -305,13 +308,13 @@ public class PageCertCampaign extends PageAdminCertification {
 			@Override
 			public String getFirstCap() {
 				return PageCertCampaign.this.createStringResource(
-						"PageCertDecisions.menu.reduce").getString();
+						"PageCertCampaign.menu.reduce").getString();
 			}
 
 			@Override
 			public String getSecondCap() {
 				return PageCertCampaign.this.createStringResource(
-						"PageCertDecisions.menu.notDecided").getString();
+						"PageCertCampaign.menu.notDecided").getString();
 			}
 
 			@Override
@@ -340,13 +343,13 @@ public class PageCertCampaign extends PageAdminCertification {
 			@Override
 			public String getFirstCap() {
 				return PageCertCampaign.this.createStringResource(
-						"PageCertDecisions.menu.delegate").getString();
+						"PageCertCampaign.menu.delegate").getString();
 			}
 
 			@Override
 			public String getSecondCap() {
 				return PageCertCampaign.this.createStringResource(
-						"PageCertDecisions.menu.noResponse").getString();
+						"PageCertCampaign.menu.noResponse").getString();
 			}
 
 			@Override
@@ -372,10 +375,10 @@ public class PageCertCampaign extends PageAdminCertification {
 		};
 		columns.add(column);
 
-		column = new PropertyColumn(createStringResource("PageCertDecisions.table.comments"), CertCaseDto.F_COMMENTS);
+		column = new PropertyColumn(createStringResource("PageCertCampaign.table.comments"), CertCaseDto.F_COMMENTS);
 		columns.add(column);
 
-		column = new PropertyColumn(createStringResource("PageCertDecisions.table.remediedAt"), CertCaseDto.F_REMEDIED_AT);
+		column = new PropertyColumn(createStringResource("PageCertCampaign.table.remediedAt"), CertCaseDto.F_REMEDIED_AT);
 		columns.add(column);
 
 		return columns;

@@ -19,7 +19,11 @@ package com.evolveum.midpoint.web.page.admin.certification;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCaseOrDecisionDto;
+import com.evolveum.midpoint.web.page.admin.certification.dto.CertDecisionDto;
+import com.evolveum.midpoint.web.page.admin.certification.handlers.CertGuiHandler;
+import com.evolveum.midpoint.web.page.admin.certification.handlers.CertGuiHandlerRegistry;
 import com.evolveum.midpoint.web.page.admin.resources.PageResource;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
@@ -38,6 +42,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -53,9 +58,9 @@ import java.io.Serializable;
  */
 public class CertDecisionHelper implements Serializable {
 
-    IColumn createSubjectNameColumn(final PageCertCampaign page) {
+    IColumn createSubjectNameColumn(final PageBase page, final String headerKey) {
         IColumn column;
-        column = new LinkColumn<CertCaseOrDecisionDto>(page.createStringResource("PageCertDecisions.table.subjectName"),
+        column = new LinkColumn<CertCaseOrDecisionDto>(page.createStringResource(headerKey),
                 AccessCertificationCaseType.F_SUBJECT_REF.getLocalPart(), CertCaseOrDecisionDto.F_SUBJECT_NAME) {
 
             @Override
@@ -67,7 +72,7 @@ public class CertDecisionHelper implements Serializable {
         return column;
     }
 
-    public IColumn createTargetTypeColumn(final PageCertCampaign page) {
+    public IColumn createTargetTypeColumn(final PageBase page) {
         IColumn column;
         column = new IconColumn<CertCaseOrDecisionDto>(page.createStringResource("")) {
             @Override
@@ -95,9 +100,9 @@ public class CertDecisionHelper implements Serializable {
         return column;
     }
 
-    IColumn createTargetNameColumn(final PageCertCampaign page) {
+    IColumn createTargetNameColumn(final PageBase page, final String headerKey) {
         IColumn column;
-        column = new LinkColumn<CertCaseOrDecisionDto>(page.createStringResource("PageCertDecisions.table.targetName"),
+        column = new LinkColumn<CertCaseOrDecisionDto>(page.createStringResource(headerKey),
                 AccessCertificationCaseType.F_TARGET_REF.getLocalPart(), CertCaseOrDecisionDto.F_TARGET_NAME) {
 
             @Override
@@ -109,7 +114,7 @@ public class CertDecisionHelper implements Serializable {
         return column;
     }
 
-    public void dispatchToObjectDetailsPage(ObjectReferenceType objectRef, PageCertCampaign page) {
+    public void dispatchToObjectDetailsPage(ObjectReferenceType objectRef, PageBase page) {
         if (objectRef == null) {
             return;		// should not occur
         }
@@ -128,4 +133,33 @@ public class CertDecisionHelper implements Serializable {
             // nothing to do
         }
     }
+
+    public IColumn createDetailedInfoColumn(final PageBase page) {
+        IColumn column;
+        column = new IconColumn<CertCaseOrDecisionDto>(page.createStringResource("")) {
+
+            @Override
+            protected IModel<String> createIconModel(final IModel<CertCaseOrDecisionDto> rowModel) {
+                return new AbstractReadOnlyModel<String>() {
+                    @Override
+                    public String getObject() {
+                        return "fa fa-fw fa-info-circle text-info";
+                    }
+                };
+            }
+
+            @Override
+            public void populateItem(Item<ICellPopulator<CertCaseOrDecisionDto>> item, String componentId, IModel<CertCaseOrDecisionDto> rowModel) {
+                super.populateItem(item, componentId, rowModel);
+                CertGuiHandler handler = CertGuiHandlerRegistry.instance().getHandler(rowModel.getObject().getHandlerUri());
+                if (handler != null) {
+                    String title = handler.getCaseInfoButtonTitle(rowModel, page);
+                    item.add(AttributeModifier.replace("title", title));
+                    item.add(new TooltipBehavior());
+                }
+            }
+        };
+        return column;
+    }
+
 }

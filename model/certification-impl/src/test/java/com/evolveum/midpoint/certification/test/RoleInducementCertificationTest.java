@@ -281,7 +281,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         List<AccessCertificationCaseType> caseList =
-                certificationManager.searchDecisions(null, null, USER_ADMINISTRATOR_OID, null, task, result);
+                certificationManager.searchDecisions(null, null, USER_ADMINISTRATOR_OID, false, null, task, result);
 
         /* Expected cases - phase 1:
 
@@ -314,7 +314,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         List<AccessCertificationCaseType> caseList =
-                certificationManager.searchDecisions(null, null, USER_ELAINE_OID, null, task, result);
+                certificationManager.searchDecisions(null, null, USER_ELAINE_OID, false, null, task, result);
 
         /* Expected cases - phase 1:
 
@@ -343,7 +343,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         List<AccessCertificationCaseType> caseList =
-                certificationManager.searchDecisions(null, null, USER_JACK_OID, null, task, result);
+                certificationManager.searchDecisions(null, null, USER_JACK_OID, false, null, task, result);
 
         /* Expected cases - phase 1: NONE */
 

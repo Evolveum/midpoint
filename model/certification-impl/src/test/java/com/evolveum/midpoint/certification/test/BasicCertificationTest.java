@@ -253,7 +253,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         List<AccessCertificationCaseType> caseList =
-                certificationManager.searchDecisions(null, null, USER_ADMINISTRATOR_OID, null, task, result);
+                certificationManager.searchDecisions(null, null, USER_ADMINISTRATOR_OID, false, null, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);

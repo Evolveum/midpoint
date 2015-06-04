@@ -19,6 +19,18 @@
 <body>
 <wicket:extend>
 
+    <div class="clearfix">
+        <form wicket:id="searchForm" class="form-inline pull-right search-form">
+
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" wicket:id="showNotDecidedOnly"/>
+                    <wicket:message key="PageCertDecisions.checkbox.showNotDecidedOnly"/>
+                </label>
+            </div>
+        </form>
+    </div>
+
     <form wicket:id="mainForm" class="clearfix form-horizontal">
         <div wicket:id="decisionsTable"/>
     </form>

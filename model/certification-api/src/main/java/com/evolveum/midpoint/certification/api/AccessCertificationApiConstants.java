@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.certification.impl;
+package com.evolveum.midpoint.certification.api;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 /**
  * @author mederly
  */
-public class AccessCertificationConstants {
+public class AccessCertificationApiConstants {
 
-    public static final String NS_CERTIFICATION_TASK_PREFIX = SchemaConstants.NS_CERTIFICATION + "/task";
-    public static final String NS_CERTIFICATION_TRIGGER_PREFIX = SchemaConstants.NS_CERTIFICATION + "/trigger";
+    public static final String NS_HANDLERS_PREFIX = SchemaConstants.NS_CERTIFICATION + "/handlers-3";
+    public static final String DIRECT_ASSIGNMENT_HANDLER_URI = AccessCertificationApiConstants.NS_HANDLERS_PREFIX + "#direct-assignment";
 
 }

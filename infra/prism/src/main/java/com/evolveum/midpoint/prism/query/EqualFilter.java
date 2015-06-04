@@ -213,7 +213,7 @@ public class EqualFilter<T extends Object> extends PropertyValueFilter<PrismProp
 		if (!super.match(object, matchingRuleRegistry)){
 			return false;
 		}
-		
+
 		List<Object> values = getObjectItem(object).getValues();
 		if (values == null){
 			return true;

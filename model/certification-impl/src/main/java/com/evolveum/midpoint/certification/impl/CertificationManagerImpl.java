@@ -308,7 +308,7 @@ public class CertificationManagerImpl implements CertificationManager {
 
     @Override
     public List<AccessCertificationCaseType> searchDecisions(ObjectQuery campaignQuery, ObjectQuery caseQuery,
-                                                             String reviewerOid,
+                                                             String reviewerOid, boolean notDecidedOnly,
                                                              Collection<SelectorOptions<GetOperationOptions>> options,
                                                              Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
 
@@ -319,7 +319,7 @@ public class CertificationManagerImpl implements CertificationManager {
         OperationResult result = parentResult.createSubresult(OPERATION_SEARCH_DECISIONS);
 
         try {
-            return queryHelper.searchDecisions(campaignQuery, caseQuery, reviewerOid, options, task, result);
+            return queryHelper.searchDecisions(campaignQuery, caseQuery, reviewerOid, notDecidedOnly, options, task, result);
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't search for certification decisions: unexpected exception: " + e.getMessage(), e);
             throw e;

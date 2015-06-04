@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
@@ -34,8 +35,8 @@ public class CertDecisionDto extends CertCaseOrDecisionDto {
 
     private AccessCertificationDecisionType decision;
 
-    public CertDecisionDto(AccessCertificationCaseType _case) {
-        super(_case);
+    public CertDecisionDto(AccessCertificationCaseType _case, PageBase page) {
+        super(_case, page);
         if (_case.getDecision().isEmpty()) {
             decision = new AccessCertificationDecisionType();
         } else if (_case.getDecision().size() == 1) {

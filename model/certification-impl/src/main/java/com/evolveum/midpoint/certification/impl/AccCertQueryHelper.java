@@ -48,6 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -96,7 +97,7 @@ public class AccCertQueryHelper {
         return caseList;
     }
 
-    protected List<AccessCertificationCaseType> searchDecisions(ObjectQuery campaignQuery, ObjectQuery caseQuery, String reviewerOid, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+    protected List<AccessCertificationCaseType> searchDecisions(ObjectQuery campaignQuery, ObjectQuery caseQuery, String reviewerOid, boolean notDecidedOnly, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
         // enhance filter with reviewerRef
         ObjectFilter enhancedFilter;
         ObjectReferenceType reviewerRef = ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER);
@@ -134,10 +135,13 @@ public class AccCertQueryHelper {
                         decisionIterator.remove();
                     }
                 }
-                ObjectReferenceType campaignRef = ObjectTypeUtil.createObjectRef(campaignObject);
-                campaignRef.asReferenceValue().setObject(campaignObject);
-                _case.setCampaignRef(campaignRef);
-                caseList.add(_case);
+
+                if (!notDecidedOnly || !isDecided(_case)) {
+                    ObjectReferenceType campaignRef = ObjectTypeUtil.createObjectRef(campaignObject);
+                    campaignRef.asReferenceValue().setObject(campaignObject);
+                    _case.setCampaignRef(campaignRef);
+                    caseList.add(_case);
+                }
             }
         }
 
@@ -146,6 +150,18 @@ public class AccCertQueryHelper {
         caseList = doSortingAndPaging(caseList, paging);
 
         return caseList;
+    }
+
+    // we expect that only one decision item (the relevant one) is present
+    private boolean isDecided(AccessCertificationCaseType _case) {
+        if (_case.getDecision() == null || _case.getDecision().isEmpty()) {
+            return false;
+        }
+        if (_case.getDecision().size() > 1) {
+            throw new IllegalStateException("More than 1 decision in case");
+        }
+        AccessCertificationResponseType response = _case.getDecision().get(0).getResponse();
+        return response != null && response != AccessCertificationResponseType.NO_RESPONSE;
     }
 
 

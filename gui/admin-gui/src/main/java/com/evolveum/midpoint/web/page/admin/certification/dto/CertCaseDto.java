@@ -52,7 +52,7 @@ public class CertCaseDto extends CertCaseOrDecisionDto {
     private List<String> comments = new ArrayList<>();
 
     public CertCaseDto(AccessCertificationCaseType _case, OperationResult result, PageBase page) {
-        super(_case);
+        super(_case, page);
         for (AccessCertificationDecisionType decision : _case.getDecision()) {
             if (decision.getComment() != null) {
                 comments.add(decision.getComment());

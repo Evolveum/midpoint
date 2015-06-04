@@ -51,6 +51,7 @@ public class CertDecisionDtoProvider extends BaseSortableDataProvider<CertDecisi
     private ObjectQuery campaignQuery;
     // case query is stored in super.query
 
+    private boolean notDecidedOnly;
     private String reviewerOid;
 
     public CertDecisionDtoProvider(Component component) {
@@ -77,10 +78,10 @@ public class CertDecisionDtoProvider extends BaseSortableDataProvider<CertDecisi
                     SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
 
             CertificationManager certificationManager = getPage().getCertificationManager();
-            List<AccessCertificationCaseType> caseList = certificationManager.searchDecisions(campaignQuery, caseQuery, reviewerOid, resolveNames, task, result);
+            List<AccessCertificationCaseType> caseList = certificationManager.searchDecisions(campaignQuery, caseQuery, reviewerOid, notDecidedOnly, resolveNames, task, result);
 
             for (AccessCertificationCaseType _case : caseList) {
-                getAvailableData().add(new CertDecisionDto(_case));
+                getAvailableData().add(new CertDecisionDto(_case, getPage()));
             }
         } catch (Exception ex) {
             result.recordFatalError("Couldn't list decisions.", ex);
@@ -113,7 +114,7 @@ public class CertDecisionDtoProvider extends BaseSortableDataProvider<CertDecisi
             CertificationManager certificationManager = getPage().getCertificationManager();
             ObjectQuery query = getQuery().clone();
             query.setPaging(null);          // when counting decisions we need to exclude offset+size (and sorting info is irrelevant)
-            List<AccessCertificationCaseType> caseList = certificationManager.searchDecisions(campaignQuery, query, reviewerOid, null, task, result);
+            List<AccessCertificationCaseType> caseList = certificationManager.searchDecisions(campaignQuery, query, reviewerOid, notDecidedOnly, null, task, result);
             count = caseList.size();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't count objects.", ex);
@@ -145,5 +146,13 @@ public class CertDecisionDtoProvider extends BaseSortableDataProvider<CertDecisi
 
     public void setReviewerOid(String reviewerOid) {
         this.reviewerOid = reviewerOid;
+    }
+
+    public boolean isNotDecidedOnly() {
+        return notDecidedOnly;
+    }
+
+    public void setNotDecidedOnly(boolean notDecidedOnly) {
+        this.notDecidedOnly = notDecidedOnly;
     }
 }

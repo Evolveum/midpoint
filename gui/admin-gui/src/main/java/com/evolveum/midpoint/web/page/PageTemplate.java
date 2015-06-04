@@ -248,6 +248,14 @@ public abstract class PageTemplate extends WebPage {
         return (WebMarkupContainer) get(ID_FEEDBACK_CONTAINER);
     }
 
+    public MainFeedback getMainFeedbackPanel() {
+        return (MainFeedback) getFeedbackPanel().get(ID_FEEDBACK);
+    }
+
+    public TempFeedback getTempFeedbackPanel() {
+        return (TempFeedback) getFeedbackPanel().get(ID_TEMP_FEEDBACK);
+    }
+
     public SessionStorage getSessionStorage() {
         MidPointAuthWebSession session = (MidPointAuthWebSession) getSession();
         return session.getSessionStorage();

@@ -179,6 +179,8 @@ public class PageAdmin extends PageBase {
     private MenuBarItem createCertificationItems() {
         MenuBarItem certification = new MenuBarItem(createStringResource("PageAdmin.menu.top.certification"), null);
         certification.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.certification.definitions"), PageCertDefinitions.class));
+        certification.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.certification.newDefinition"), PageImportObject.class));
+        certification.addMenuItem(new MenuItem(null));
         certification.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.certification.campaigns"), PageCertCampaigns.class));
         certification.addMenuItem(new MenuItem(null));
         certification.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.certification.decisions"), PageCertDecisions.class));

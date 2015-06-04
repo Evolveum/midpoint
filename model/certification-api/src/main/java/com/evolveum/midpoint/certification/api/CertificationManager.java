@@ -178,6 +178,9 @@ public interface CertificationManager {
      * @param campaignQuery Specification of campaigns to query.
      * @param caseQuery Specification of the cases to retrieve.
      * @param reviewerOid OID of the reviewer whose decisions we want to retrieve.
+     * @param notDecidedOnly If true, only response==(NO_DECISION or null) should be returned.
+     *                       It is currently not possible to formulate this using Query API
+     *                       (we don't know the ID of the decision element to refer to).
      * @param options Options to use (currently supported is RESOLVE_NAMES).
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
@@ -185,7 +188,7 @@ public interface CertificationManager {
      */
 
     List<AccessCertificationCaseType> searchDecisions(ObjectQuery campaignQuery, ObjectQuery caseQuery,
-                                                      String reviewerOid,
+                                                      String reviewerOid, boolean notDecidedOnly,
                                                       Collection<SelectorOptions<GetOperationOptions>> options,
                                                       Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException;
 

@@ -20,11 +20,15 @@ import com.evolveum.midpoint.prism.parser.XNodeSerializer;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.StringResourceModel;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -44,17 +48,20 @@ public class CertCaseOrDecisionDto extends Selectable {
     public static final String F_TARGET_TYPE = "targetType";
     public static final String F_CAMPAIGN_NAME = "campaignName";
     public static final String F_REVIEW_REQUESTED = "reviewRequested";
+    public static final String F_DEADLINE_AS_STRING = "deadlineAsString";
 
     private AccessCertificationCaseType certCase;
     private String subjectName;
     private String targetName;
+    private String deadlineAsString;
 
-    public CertCaseOrDecisionDto(AccessCertificationCaseType _case) {
+    public CertCaseOrDecisionDto(AccessCertificationCaseType _case, PageBase page) {
         Validate.notNull(_case);
 
         this.certCase = _case;
         this.subjectName = getName(_case.getSubjectRef());
         this.targetName = getName(_case.getTargetRef());
+        this.deadlineAsString = computeDeadlineAsString(page);
     }
 
     // ugly hack (for now) - we extract the name from serialization metadata
@@ -147,4 +154,39 @@ public class CertCaseOrDecisionDto extends Selectable {
         return stage.getName();
     }
 
+    public String getHandlerUri() {
+        AccessCertificationCampaignType campaign = getCampaign();
+        return campaign != null ? campaign.getHandlerUri() : null;
+    }
+
+    private String computeDeadlineAsString(PageBase page) {
+        XMLGregorianCalendar deadline = certCase.getReviewDeadline();
+
+        if (deadline == null) {
+            return "";
+        } else {
+            long delta = XmlTypeConverter.toMillis(deadline) - System.currentTimeMillis();
+
+            // round to hours; we always round down
+            long precision = 3600000L;      // 1 hour
+            if (Math.abs(delta) > precision) {
+                delta = (delta / precision) * precision;
+            }
+
+            //todo i18n
+            if (delta > 0) {
+                return new StringResourceModel("PageCert.in", page, null, null,
+                        DurationFormatUtils.formatDurationWords(delta, true, true)).getString();
+            } else if (delta < 0) {
+                return new StringResourceModel("PageCert.ago", page, null, null,
+                        DurationFormatUtils.formatDurationWords(-delta, true, true)).getString();
+            } else {
+                return page.getString("PageCert.now");
+            }
+        }
+    }
+
+    public String getDeadlineAsString() {
+        return deadlineAsString;
+    }
 }

@@ -21,6 +21,8 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -145,9 +147,9 @@ public class PageCertDefinition extends PageAdminCertification {
 		AccessCertificationDefinitionType definition = null;
 		CertDefinitionDto definitionDto = null;
 		try {
-			Task task = createSimpleTask("dummy");  // todo
+			Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
 			PrismObject<AccessCertificationDefinitionType> definitionObject =
-					WebModelUtils.loadObject(AccessCertificationDefinitionType.class, getDefinitionOid(), result, PageCertDefinition.this);
+					WebModelUtils.loadObject(AccessCertificationDefinitionType.class, getDefinitionOid(), options, result, PageCertDefinition.this);
 			if (definitionObject != null) {
 				definition = definitionObject.asObjectable();
 			}

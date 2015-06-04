@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.certification.impl;
+package com.evolveum.midpoint.web.page.admin.certification.handlers;
 
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
+import com.evolveum.midpoint.web.page.admin.certification.dto.CertCaseOrDecisionDto;
+import com.evolveum.midpoint.web.page.admin.certification.dto.CertDecisionDto;
+import org.apache.wicket.model.IModel;
 
 /**
  * @author mederly
  */
-public class AccessCertificationConstants {
-
-    public static final String NS_CERTIFICATION_TASK_PREFIX = SchemaConstants.NS_CERTIFICATION + "/task";
-    public static final String NS_CERTIFICATION_TRIGGER_PREFIX = SchemaConstants.NS_CERTIFICATION + "/trigger";
-
+public interface CertGuiHandler {
+    String getCaseInfoButtonTitle(IModel<? extends CertCaseOrDecisionDto> rowModel, PageBase page);
 }

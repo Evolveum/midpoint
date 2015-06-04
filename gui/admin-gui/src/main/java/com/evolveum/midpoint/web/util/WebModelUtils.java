@@ -57,6 +57,15 @@ public class WebModelUtils {
     private static final String OPERATION_SEARCH_OBJECTS = DOT_CLASS + "searchObjects";
     private static final String OPERATION_SAVE_OBJECT = DOT_CLASS + "saveObject";
 
+    public static String resolveReferenceName(ObjectReferenceType ref, OperationResult result, PageBase page) {
+        PrismObject<ObjectType> object = resolveReference(ref, result, page);
+        if (object == null) {
+            return ref.getOid();
+        } else {
+            return WebMiscUtil.getName(object);
+        }
+    }
+
     public static <T extends ObjectType> PrismObject<T> resolveReference(ObjectReferenceType reference, OperationResult result, PageBase page) {
         if (reference == null) {
             return null;
@@ -261,4 +270,5 @@ public class WebModelUtils {
 
         return objectDelta;
     }
+
 }
