@@ -382,7 +382,7 @@ public class PageSecurityQuestions extends PageBase {
 		if (!WebMiscUtil.isSuccessOrHandledError(result)) {
 			showResult(result);
 		}
-		getSession().removeAttribute(SESSION_ATTRIBUTE_POID);
+		
 		return user;
 	}
 
@@ -408,6 +408,7 @@ public class PageSecurityQuestions extends PageBase {
 	}
 
 	private void savePerformed(AjaxRequestTarget target) {
+		System.out.println("SavePerformed");
 		int correctAnswers=0;
 		for (Iterator iterator = pqPanels.iterator(); iterator.hasNext();) {
 			MyPasswordQuestionsPanel type = (MyPasswordQuestionsPanel) iterator.next();
@@ -437,16 +438,19 @@ public class PageSecurityQuestions extends PageBase {
 		}
 
 		if(questionNumber==correctAnswers){
+			getSession().removeAttribute(SESSION_ATTRIBUTE_POID);
 			resetPassword(principalModel.getObject().asObjectable(),target);
 
 		}
 		else{
 			System.out.println("Elseeeee");
-			getSession().error(getString("pageSecurityQuestions.message.WrongAnswer"));
-			getSession().invalidate();
+		
+			
 			System.out.println("ElseThrow");
 			setAuthenticationNull();
-			throw new RestartResponseException(PageSecurityQuestions.class);
+			warn(getString("PageSecurityQuestions.message.WrongAnswer"));
+            target.add(getFeedbackPanel());
+            return;
 		}
 
 
