@@ -108,13 +108,10 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 	public PageMyPasswordQuestions() {
 
 
-
 		model = new LoadableModel<PasswordQuestionsDto>(false) {
 
 			private static final long serialVersionUID = 1L;
-
-
-
+			
 			@Override
 			protected PasswordQuestionsDto load() {
 				return loadPageModel();
@@ -138,8 +135,6 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 
 
 
-
-
 	private PasswordQuestionsDto loadPageModel() {
 		LOGGER.debug("Loading user for Security Question Page.");
 
@@ -158,11 +153,6 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 
 			subResult.recordSuccessIfUnknown();
 
-
-
-
-
-
 		}
 		catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't load accounts", ex);
@@ -171,7 +161,6 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 			result.recomputeStatus();
 		}
 		return dto;
-
 	}
 
 	public List<SecurityQuestionAnswerDTO> createUsersSecurityQuestionsList(PrismObject<UserType> user){
@@ -196,20 +185,14 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 						e.printStackTrace();
 					}
 				}
-
-
 				secQuestAnswListDTO.add(new SecurityQuestionAnswerDTO(securityQuestionAnswerType.getQuestionIdentifier(), decoded)); 
 			}
 
-
-
 			return secQuestAnswListDTO;
-
 		}
 		else{
 			return null;
 		}
-
 
 	}
 
@@ -236,14 +219,12 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 			//Global Policy set question numbers
 			questionNumber=securityPolicy.asObjectable().getCredentials().getSecurityQuestions().getQuestionNumber();
 			
-			//LOGGER.info("****************Policy QuestionNumber************** :"+questionNumber);			
-
 			// Actual Policy Question List										
 			policyQuestionList = securityPolicy.asObjectable().getCredentials().getSecurityQuestions().getQuestion();
 			
 			}catch(Exception ex){
 			
-				LOGGER.info("\n\nAccess");			
+				//LOGGER.info("\n\nAccess");			
 				List<SecurityQuestionAnswerDTO> userQuestionList= model.getObject().getSecurityAnswers();
 				int panelNumber=0;
 				PrismObject<UserType> user = null;
@@ -261,19 +242,11 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 				policyQuestionList=getModelInteractionService().getCredentialsPolicy(user, parentResult).getSecurityQuestions().getQuestion();
 				if(userQuestionList==null){
 							
-						for(int i=0;i<questionNumber;i++){
-						//	System.out.println("Adding panel element");
-							SecurityQuestionAnswerDTO a=new SecurityQuestionAnswerDTO(policyQuestionList.get(panelNumber).getIdentifier(),"",policyQuestionList.get(panelNumber).getQuestionText());
-							MyPasswordQuestionsPanel panel=new MyPasswordQuestionsPanel(ID_PASSWORD_QUESTIONS_PANEL+ panelNumber,a);
-							pqPanels.add(panel);
-							panelNumber++;
-						}
-						
+					executeAddingQuestions(questionNumber, 0, policyQuestionList);
+												
 					LOGGER.info(getModelInteractionService().getCredentialsPolicy(user, parentResult).getSecurityQuestions().getQuestionNumber().toString());
-					//TODO Warn user 
 
 				}else{
-						//LOGGER.info("\n\nFIRST Else AT CATCH");
 					for(int userQuestint=0;userQuestint<userQuestionList.size();userQuestint++){
 						SecurityQuestionAnswerDTO answerDTO=  checkIfQuestionisValid(userQuestionList.get(userQuestint), policyQuestionList);
 						if (userQuestionList.get(userQuestint)!=null){
@@ -284,7 +257,6 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 						}
 
 					}
-					//rest of the questions
 					//TODO same questions check should be implemented
 				
 				}
@@ -326,22 +298,25 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 				
 				//QUESTION NUMBER SMALLER THAN QUESTION LIST
 				executePasswordQuestionsAndAnswers(userQuestionList, policyQuestionList, 0);
-				int diff = userQuestionList.size()-questionNumber;
 				
+				
+				//this part will be using at remove operation in the future
+			/*	int diff = userQuestionList.size()-questionNumber;				
 				for(Iterator iterator = userQuestionList.iterator(); iterator.hasNext();){
 					
-					SecurityQuestionAnswerDTO remove = (SecurityQuestionAnswerDTO)iterator.next();
+					SecurityQuestionAnswerDTO element = (SecurityQuestionAnswerDTO)iterator.next();
 					for(int i=0; i<diff;i++){
-						if(remove == userQuestionList.get(questionNumber+i)){
-							LOGGER.info("\n\n ***REMOVE");
+						if(element == userQuestionList.get(questionNumber+i)){
+							
 							try{
+								//LOGGER.info("REMOVE");
 								iterator.remove();
 							} catch (UnsupportedOperationException uoe) {
 					            LOGGER.info(uoe.getStackTrace().toString());
 					        }
 					     }						
 					}					
-				}																							
+				}*/																							
 			}			
 
 		} catch (Exception ex) {
@@ -530,8 +505,6 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 		return wrapper;
 	}
 
-	//TODO remove securityQuestionList
-
 	private SecurityQuestionAnswerDTO checkIfQuestionisValid(SecurityQuestionAnswerDTO questionIdentifier,List<SecurityQuestionDefinitionType> securityQuestionList){
 
 
@@ -542,20 +515,16 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 
 			if(securityQuestionDefinitionType.getIdentifier().trim().compareTo(questionIdentifier.getPwdQuestion().trim())==0){
 				questionIdentifier.setQuestionItself(securityQuestionDefinitionType.getQuestionText());
-				//	System.out.println("Check&SetQuestion: "+questionIdentifier.getQuestionItself());
-			//	x=true;
-				LOGGER.info("\n\n: TRUE QUESTION");
+
+				//LOGGER.info("\n\n: TRUE QUESTION");
 				return questionIdentifier;
 			}else{
-				LOGGER.info("\n\n: DIFFERENT QUESTION");				
-				//questionIdentifier.setQuestionItself("aa");
 				return null;
 			}
 
 
 		}
-		LOGGER.info("\n\n: wrong quest ident");	
-	//	questionIdentifier.setQuestionItself("aa");
+		
 		return null;
 	}
 	
@@ -563,13 +532,10 @@ private SecurityQuestionAnswerDTO checkIfQuestionisValidSingle(SecurityQuestionA
 		
 		if(securityQuestion.getIdentifier().trim().compareTo(questionIdentifier.getPwdQuestion().trim())==0){
 			questionIdentifier.setQuestionItself(securityQuestion.getQuestionText());
-			//	System.out.println("Check&SetQuestion: "+questionIdentifier.getQuestionItself());
-		//	x=true;
-			LOGGER.info("\n\n: TRUE QUESTION");
+	
+			//LOGGER.info("\n\n: TRUE QUESTION");
 			return questionIdentifier;
 		}else{
-			LOGGER.info("\n\n: DIFFERENT QUESTION");				
-			//questionIdentifier.setQuestionItself("aa");
 			return null;
 		}
 }
@@ -582,13 +548,6 @@ private SecurityQuestionAnswerDTO checkIfQuestionisValidSingle(SecurityQuestionA
 		Task task = createSimpleTask(OPERATION_SAVE_QUESTIONS);
 		OperationResult result = new OperationResult(OPERATION_SAVE_QUESTIONS);
 		SchemaRegistry registry = getPrismContext().getSchemaRegistry();
-
-
-		/*oguzhan:comment out unnecessary codes: 
-		String newPassword="";
-		PageBase page = (PageBase) getPage();
-		*/
-
 		SecurityQuestionAnswerType[] answerTypeList=new SecurityQuestionAnswerType[questionNumber];
 
 		try {
@@ -598,16 +557,14 @@ private SecurityQuestionAnswerDTO checkIfQuestionisValidSingle(SecurityQuestionA
 
 				SecurityQuestionAnswerType answerType = new SecurityQuestionAnswerType();
 				ProtectedStringType answer = new ProtectedStringType();
-				//	System.out.println("Answerrrrr:"+((TextField<String>)type.get(MyPasswordQuestionsPanel.F_ANSWER)).getModelObject());
+
 				answer.setClearValue(((TextField<String>)type.get(MyPasswordQuestionsPanel.F_ANSWER)).getModelObject());			
 				answerType.setQuestionAnswer(answer);
 				
 				answerType.setQuestionIdentifier(getQuestionIdentifierFromQuestion(((Label)type.get(MyPasswordQuestionsPanel.F_QUESTION)).getDefaultModelObjectAsString()));			
 				answerTypeList[listnum]=answerType;
 				listnum++;
-				//oguzhan:
 				
-
 			}
 			
 			//if(answerTypeList.length !=)
@@ -651,18 +608,10 @@ private SecurityQuestionAnswerDTO checkIfQuestionisValidSingle(SecurityQuestionA
 		    target.add(getFeedbackPanel());
 		} catch(Exception ex){
 			
-			
-
+			error(getString("message.error"));
+			target.add(getFeedbackPanel());
 			ex.printStackTrace();
 		}
-
-
-
-
-
-
-
-
 	}
 
 	private String getQuestionIdentifierFromQuestion(String questionItself){

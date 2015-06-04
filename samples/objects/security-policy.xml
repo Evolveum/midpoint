@@ -23,7 +23,7 @@
 		 <resetMethod>
             <resetType>securityQuestions</resetType>
          </resetMethod>
-         <questionNumber>3</questionNumber>
+         <questionNumber>2</questionNumber>
 			<question>
 				<identifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001</identifier>
 				<enabled>true</enabled>
