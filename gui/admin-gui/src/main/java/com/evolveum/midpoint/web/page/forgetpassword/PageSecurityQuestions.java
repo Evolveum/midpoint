@@ -84,6 +84,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionAnswerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
@@ -244,6 +246,15 @@ public class PageSecurityQuestions extends PageBase {
 				policyQuestionList = securityPolicy.asObjectable().getCredentials().getSecurityQuestions().getQuestion();
 
 				List<SecurityQuestionAnswerDTO> userQuestionList= model.getObject().getSecurityAnswers();
+				
+				if(userQuestionList==null){
+					System.out.println("Userquestions not set.");
+					getSession().error(getString("pageForgetPassword.message.ContactAdminQuestionsNotSet"));
+					getSession().invalidate();
+					SecurityContext securityContext = SecurityContextHolder.getContext();
+					securityContext.setAuthentication(null);
+					throw new RestartResponseException(PageForgetPassword.class);
+				}
 				if(questionNumber<=userQuestionList.size()){
 
 
@@ -326,7 +337,12 @@ public class PageSecurityQuestions extends PageBase {
 
 	public List<SecurityQuestionAnswerDTO> createUsersSecurityQuestionsList(PrismObject<UserType> user){
 		System.out.println(user.getOid());
-		List<SecurityQuestionAnswerType> secQuestAnsList= user.asObjectable().getCredentials().getSecurityQuestions().getQuestionAnswer();
+		
+		SecurityQuestionsCredentialsType credentialsPolicyType=user.asObjectable().getCredentials().getSecurityQuestions();
+		if(credentialsPolicyType==null){
+			return null;
+		}
+		List<SecurityQuestionAnswerType> secQuestAnsList= credentialsPolicyType.getQuestionAnswer();
 
 		if (secQuestAnsList!=null){
 			List<SecurityQuestionAnswerDTO> secQuestAnswListDTO =new ArrayList<SecurityQuestionAnswerDTO>();
