@@ -37,6 +37,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismContext;
 
 import org.apache.commons.lang.StringUtils;
+import org.identityconnectors.framework.common.objects.Name;
+import org.identityconnectors.framework.common.objects.Uid;
 import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -127,6 +129,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabi
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType.Host;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+import com.sun.mail.imap.protocol.UID;
 
 /**
  * Test for provisioning service implementation.
@@ -362,23 +365,23 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertNotNull("No naming attribute in account", accountDef.getNamingAttribute());
 		assertFalse("No nativeObjectClass in account", StringUtils.isEmpty(accountDef.getNativeObjectClass()));
 
-		ResourceAttributeDefinition<String> uidDef = accountDef.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
-		assertEquals(1, uidDef.getMaxOccurs());
-		assertEquals(0, uidDef.getMinOccurs());
-		assertFalse("No UID display name", StringUtils.isBlank(uidDef.getDisplayName()));
-		assertFalse("UID has create", uidDef.canAdd());
-		assertFalse("UID has update", uidDef.canModify());
-		assertTrue("No UID read", uidDef.canRead());
-		assertTrue("UID definition not in identifiers", accountDef.getIdentifiers().contains(uidDef));
+		ResourceAttributeDefinition<String> idPrimaryDef = accountDef.findAttributeDefinition(getPrimaryIdentifierQName());
+		assertEquals(1, idPrimaryDef.getMaxOccurs());
+		assertEquals(0, idPrimaryDef.getMinOccurs());
+		assertFalse("UID has create", idPrimaryDef.canAdd());
+		assertFalse("UID has update", idPrimaryDef.canModify());
+		assertTrue("No UID read", idPrimaryDef.canRead());
+		assertTrue("UID definition not in identifiers", accountDef.getIdentifiers().contains(idPrimaryDef));
+		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Uid.NAME, idPrimaryDef.getFrameworkAttributeName());
 
-		ResourceAttributeDefinition<String> nameDef = accountDef.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
-		assertEquals(1, nameDef.getMaxOccurs());
-		assertEquals(1, nameDef.getMinOccurs());
-		assertFalse("No NAME displayName", StringUtils.isBlank(nameDef.getDisplayName()));
-		assertTrue("No NAME create", nameDef.canAdd());
-		assertTrue("No NAME update", nameDef.canModify());
-		assertTrue("No NAME read", nameDef.canRead());
-		assertTrue("NAME definition not in secondary identifiers", accountDef.getSecondaryIdentifiers().contains(nameDef));
+		ResourceAttributeDefinition<String> idSecondaryDef = accountDef.findAttributeDefinition(getSecondaryIdentifierQName());
+		assertEquals(1, idSecondaryDef.getMaxOccurs());
+		assertEquals(1, idSecondaryDef.getMinOccurs());
+		assertTrue("No NAME create", idSecondaryDef.canAdd());
+		assertTrue("No NAME update", idSecondaryDef.canModify());
+		assertTrue("No NAME read", idSecondaryDef.canRead());
+		assertTrue("NAME definition not in secondary identifiers", accountDef.getSecondaryIdentifiers().contains(idSecondaryDef));
+		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Name.NAME, idSecondaryDef.getFrameworkAttributeName());
 
 		ResourceAttributeDefinition<String> cnDef = accountDef.findAttributeDefinition("cn");
 		assertNotNull("No definition for cn", cnDef);
@@ -438,24 +441,24 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertNotNull("No naming attribute in account", accountDef.getNamingAttribute());
 		assertFalse("No nativeObjectClass in account", StringUtils.isEmpty(accountDef.getNativeObjectClass()));
 
-		RefinedAttributeDefinition<String> uidDef = accountDef.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
-		assertEquals(1, uidDef.getMaxOccurs());
-		assertEquals(0, uidDef.getMinOccurs());
-		assertFalse("No UID display name", StringUtils.isBlank(uidDef.getDisplayName()));
-		assertFalse("UID has create", uidDef.canAdd());
-		assertFalse("UID has update", uidDef.canModify());
-		assertTrue("No UID read", uidDef.canRead());
-		assertTrue("UID definition not in identifiers", accountDef.getIdentifiers().contains(uidDef));
+		RefinedAttributeDefinition<String> idPrimaryDef = accountDef.findAttributeDefinition(getPrimaryIdentifierQName());
+		assertEquals(1, idPrimaryDef.getMaxOccurs());
+		assertEquals(0, idPrimaryDef.getMinOccurs());
+		assertFalse("UID has create", idPrimaryDef.canAdd());
+		assertFalse("UID has update", idPrimaryDef.canModify());
+		assertTrue("No UID read", idPrimaryDef.canRead());
+		assertTrue("UID definition not in identifiers", accountDef.getIdentifiers().contains(idPrimaryDef));
+		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Uid.NAME, idPrimaryDef.getFrameworkAttributeName());
 
-		RefinedAttributeDefinition<String> nameDef = accountDef.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
-		assertEquals(1, nameDef.getMaxOccurs());
-		assertEquals(1, nameDef.getMinOccurs());
-		assertFalse("No NAME displayName", StringUtils.isBlank(nameDef.getDisplayName()));
-		assertTrue("No NAME create", nameDef.canAdd());
-		assertTrue("No NAME update", nameDef.canModify());
-		assertTrue("No NAME read", nameDef.canRead());
-		assertTrue("NAME definition not in identifiers", accountDef.getSecondaryIdentifiers().contains(nameDef));
-		assertEquals("Wrong NAME matching rule", StringIgnoreCaseMatchingRule.NAME, nameDef.getMatchingRuleQName());
+		RefinedAttributeDefinition<String> idSecondaryDef = accountDef.findAttributeDefinition(getSecondaryIdentifierQName());
+		assertEquals(1, idSecondaryDef.getMaxOccurs());
+		assertEquals(1, idSecondaryDef.getMinOccurs());
+		assertTrue("No NAME create", idSecondaryDef.canAdd());
+		assertTrue("No NAME update", idSecondaryDef.canModify());
+		assertTrue("No NAME read", idSecondaryDef.canRead());
+		assertTrue("NAME definition not in identifiers", accountDef.getSecondaryIdentifiers().contains(idSecondaryDef));
+		assertEquals("Wrong NAME matching rule", StringIgnoreCaseMatchingRule.NAME, idSecondaryDef.getMatchingRuleQName());
+		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Name.NAME, idSecondaryDef.getFrameworkAttributeName());
 
 		RefinedAttributeDefinition<String> cnDef = accountDef.findAttributeDefinition("cn");
 		assertNotNull("No definition for cn", cnDef);
@@ -485,9 +488,10 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 	
 	@Test
 	public void test020ListResourceObjects() throws Exception {
-		TestUtil.displayTestTile("test020ListResourceObjects");
+		final String TEST_NAME = "test020ListResourceObjects";
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()+".test006ListResourceObjects");
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()+"." + TEST_NAME);
 		// WHEN
 		List<PrismObject<? extends ShadowType>> objectList = provisioningService.listResourceObjects(
 				RESOURCE_OPENDJ_OID, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS, null, result);
@@ -629,7 +633,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		ShadowType repoShadowType =  repositoryService.getObject(ShadowType.class, ACCOUNT_NEW_OID,
 				null, result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Name not equal (repo)", "uid=will,ou=People,dc=example,dc=com", repoShadowType.getName());
-		assertAttribute(repoShadowType, ConnectorFactoryIcfImpl.ICFS_NAME, StringUtils.lowerCase(ACCOUNT_NEW_DN));
+		assertAttribute(repoShadowType, getSecondaryIdentifierQName(), StringUtils.lowerCase(ACCOUNT_NEW_DN));
 
 		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_NEW_OID,
 				null, task, result).asObjectable();
@@ -653,17 +657,17 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		ShadowType repoShadowType =  repositoryService.getObject(ShadowType.class, ACCOUNT_NEW_OID,
 				null, result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Name not equal (repo)", "uid=will,ou=People,dc=example,dc=com", repoShadowType.getName());
-		assertAttribute(repoShadowType, ConnectorFactoryIcfImpl.ICFS_NAME, StringUtils.lowerCase(ACCOUNT_NEW_DN));
+		assertAttribute(repoShadowType, getSecondaryIdentifierQName(), StringUtils.lowerCase(ACCOUNT_NEW_DN));
 
 		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_NEW_OID,
 				null, task, result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Name not equal.", "uid=will123,ou=People,dc=example,dc=com", provisioningAccountType.getName());
-		assertAttribute(provisioningAccountType, ConnectorFactoryIcfImpl.ICFS_NAME, "uid=will123,ou=people,dc=example,dc=com");
+		assertAttribute(provisioningAccountType, getSecondaryIdentifierQName(), "uid=will123,ou=people,dc=example,dc=com");
 		
 		repoShadowType =  repositoryService.getObject(ShadowType.class, ACCOUNT_NEW_OID,
 				null, result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Name not equal (repo after provisioning)", "uid=will123,ou=People,dc=example,dc=com", repoShadowType.getName());
-		assertAttribute(repoShadowType, ConnectorFactoryIcfImpl.ICFS_NAME, "uid=will123,ou=people,dc=example,dc=com");
+		assertAttribute(repoShadowType, getSecondaryIdentifierQName(), "uid=will123,ou=people,dc=example,dc=com");
 		
 		assertShadows(1);
 	}
@@ -758,7 +762,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, object.asPrismObject().getDefinition());
 		
 		ItemPath icfNamePath = new ItemPath(
-				ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME);
+				ShadowType.F_ATTRIBUTES, getSecondaryIdentifierQName());
 		PrismPropertyDefinition icfNameDef = object
 				.asPrismObject().getDefinition().findPropertyDefinition(icfNamePath);
 		ItemDelta renameDelta = PropertyDelta.createModificationReplaceProperty(icfNamePath, icfNameDef, "uid=rename,ou=People,dc=example,dc=com");
@@ -786,7 +790,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		display("Object after change",accountType);
 		
 
-		String uid = ShadowUtil.getSingleStringAttributeValue(accountType, ConnectorFactoryIcfImpl.ICFS_UID);
+		String uid = ShadowUtil.getSingleStringAttributeValue(accountType, getPrimaryIdentifierQName());
 		List<Object> snValues = ShadowUtil.getAttributeValues(accountType, new QName(RESOURCE_NS, "sn"));
 		assertNotNull("No 'sn' attribute", snValues);
 		assertFalse("Surname attributes must not be empty", snValues.isEmpty());
@@ -795,7 +799,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		//check icf_name in the shadow object fetched only from the repository
 		ShadowType repoShadow = repositoryService.getObject(ShadowType.class, objectChange.getOid(), null, result).asObjectable();
-		String name = ShadowUtil.getSingleStringAttributeValue(repoShadow, ConnectorFactoryIcfImpl.ICFS_NAME);
+		String name = ShadowUtil.getSingleStringAttributeValue(repoShadow, getSecondaryIdentifierQName());
 		assertEquals("After rename, dn is not equal.", "uid=rename,ou=people,dc=example,dc=com", name);
 		assertEquals("shadow name not changed after rename", "uid=rename,ou=People,dc=example,dc=com", repoShadow.getName().getOrig());
 		
@@ -835,7 +839,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		display("Object before password change",accountType);
 		
 		String uid = null;
-		uid = ShadowUtil.getSingleStringAttributeValue(accountType, ConnectorFactoryIcfImpl.ICFS_UID);
+		uid = ShadowUtil.getSingleStringAttributeValue(accountType, getPrimaryIdentifierQName());
 		assertNotNull(uid);
 		
 		SearchResultEntry entryBefore = openDJController.searchAndAssertByEntryUuid(uid);			
@@ -895,7 +899,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		String uid = null;
 		for (Object e : accountType.getAttributes().getAny()) {
-			if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(e))) {
+			if (getPrimaryIdentifierQName().equals(JAXBUtil.getElementQName(e))) {
 				uid = ((Element)e).getTextContent();
 			}
 		}
@@ -945,9 +949,9 @@ public class TestOpenDJ extends AbstractOpenDJTest {
                 assertNotNull(shadow.getName());
                 assertEquals(new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME), shadow.getObjectClass());
                 assertEquals(RESOURCE_OPENDJ_OID, shadow.getResourceRef().getOid());
-                String icfUid = getAttributeValue(shadow, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "uid"));
+                String icfUid = getAttributeValue(shadow, getPrimaryIdentifierQName());
                 assertNotNull("No ICF UID", icfUid);
-                String icfName = getAttributeValue(shadow, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "name"));
+                String icfName = getAttributeValue(shadow, getSecondaryIdentifierQName());
                 assertNotNull("No ICF NAME", icfName);
                 PrismAsserts.assertEqualsPolyString("Wrong shadow name", icfName, shadow.getName());
                 assertNotNull("Missing LDAP uid", getAttributeValue(shadow, new QName(resourceNamespace, "uid")));
@@ -1023,7 +1027,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		assertEquals("The account was not disabled in the shadow", ActivationStatusType.DISABLED, accountType.getActivation().getAdministrativeStatus());
 		
-		String uid = ShadowUtil.getSingleStringAttributeValue(accountType, ConnectorFactoryIcfImpl.ICFS_UID);		
+		String uid = ShadowUtil.getSingleStringAttributeValue(accountType, getPrimaryIdentifierQName());		
 		assertNotNull(uid);
 		
 		// Check if object was modified in LDAP
@@ -1072,7 +1076,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 				null, taskManager.createTaskInstance(), result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Wrong ICF name (provisioning)", "uid=rapp,ou=People,dc=example,dc=com", provisioningAccountType.getName());
 		
-		String uid = ShadowUtil.getSingleStringAttributeValue(accountType, ConnectorFactoryIcfImpl.ICFS_UID);		
+		String uid = ShadowUtil.getSingleStringAttributeValue(accountType, getPrimaryIdentifierQName());		
 		assertNotNull(uid);
 		
 		// Check if object was modified in LDAP
@@ -1123,7 +1127,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 				null, taskManager.createTaskInstance(), result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Wrong ICF name (provisioning)", "uid=cook,ou=People,dc=example,dc=com", provisioningAccountType.getName());
 		
-		String uid = ShadowUtil.getSingleStringAttributeValue(accountType, ConnectorFactoryIcfImpl.ICFS_UID);		
+		String uid = ShadowUtil.getSingleStringAttributeValue(accountType, getPrimaryIdentifierQName());		
 		assertNotNull(uid);
 		
 		// Check if object was modified in LDAP
@@ -1205,7 +1209,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		display("Object after change",shadow);
 		
-		String uid = ShadowUtil.getSingleStringAttributeValue(shadow.asObjectable(), ConnectorFactoryIcfImpl.ICFS_UID);		
+		String uid = ShadowUtil.getSingleStringAttributeValue(shadow.asObjectable(), getPrimaryIdentifierQName());		
 		assertNotNull(uid);
 		
 		// Check if object was modified in LDAP
@@ -1245,7 +1249,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 				null, taskManager.createTaskInstance(), result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Wrong ICF name (provisioning)", GROUP_SWASHBUCKLERS_DN, provisioningShadowType.getName());
 		
-		String uid = ShadowUtil.getSingleStringAttributeValue(shadowType, ConnectorFactoryIcfImpl.ICFS_UID);		
+		String uid = ShadowUtil.getSingleStringAttributeValue(shadowType, getPrimaryIdentifierQName());		
 		assertNotNull(uid);
 		
 		SearchResultEntry ldapEntry = openDJController.searchAndAssertByEntryUuid(uid);
@@ -1280,7 +1284,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 				null, taskManager.createTaskInstance(), result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Wrong ICF name (provisioning)", ACCOUNT_MORGAN_DN, provisioningShadowType.getName());
 		
-		String uid = ShadowUtil.getSingleStringAttributeValue(shadowType, ConnectorFactoryIcfImpl.ICFS_UID);		
+		String uid = ShadowUtil.getSingleStringAttributeValue(shadowType, getPrimaryIdentifierQName());		
 		assertNotNull(uid);
 		
 		List<ShadowAssociationType> associations = provisioningShadowType.getAssociation();
@@ -1424,7 +1428,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test202SearchObjectsCompexFilter");
 
-		QueryType queryType = PrismTestUtil.parseAtomicValue(new File("src/test/resources/impl/query-complex-filter.xml"),
+		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_COMPLEX_FILTER_FILE,
                 QueryType.COMPLEX_TYPE);
 		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 

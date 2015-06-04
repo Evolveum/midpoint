@@ -28,6 +28,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.ConnectorManager;
 import com.evolveum.midpoint.provisioning.test.mock.SynchornizationServiceMock;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -63,7 +64,7 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 	protected static final String ACCOUNT_NEW_OID = "c0c010c0-d34d-b44f-f11d-333222123456";
 	protected static final String ACCOUNT_NEW_DN = "uid=will,ou=People,dc=example,dc=com";
 	
-	protected static final String ACCOUNT_BAD_FILENAME = TEST_DIR_NAME + "/account-bad.xml";
+	protected static final File ACCOUNT_BAD_FILE = new File(TEST_DIR, "account-bad.xml");
 	protected static final String ACCOUNT_BAD_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1ffff";
 	
 	protected static final String ACCOUNT_MODIFY_FILENAME = TEST_DIR_NAME + "/account-modify.xml";
@@ -114,6 +115,8 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 	protected static final QName RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS = new QName(RESOURCE_NS,"inetOrgPerson");
 	protected static final String LDAP_CONNECTOR_TYPE = "com.evolveum.polygon.connector.ldap.LdapConnector";
 	
+	protected static final File QUERY_COMPLEX_FILTER_FILE = new File(TEST_DIR, "query-complex-filter.xml");
+	
 	protected static final String OBJECT_CLASS_INETORGPERSON_NAME = "inetOrgPerson";
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractOpenDJTest.class);
@@ -139,9 +142,8 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 		// not have a definition here
 		InternalsConfig.encryptionChecks = false;
 		provisioningService.postInit(initResult);
-		PrismObject<ResourceType> resource = addResourceFromFile(RESOURCE_OPENDJ_FILENAME, LDAP_CONNECTOR_TYPE, initResult);
-//		addObjectFromFile(FILENAME_ACCOUNT1);
-		repoAddObjectFromFile(ACCOUNT_BAD_FILENAME, ShadowType.class, initResult);
+		resource = addResourceFromFile(RESOURCE_OPENDJ_FILENAME, LDAP_CONNECTOR_TYPE, initResult);
+		repoAddShadowFromFile(ACCOUNT_BAD_FILE, ShadowType.class, initResult);
 	}
 	
 	protected <T> void assertAttribute(ShadowType shadow, String attrName, T... expectedValues) {
@@ -150,5 +152,13 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 
 	protected <T> void assertAttribute(ShadowType shadow, QName attrName, T... expectedValues) {
 		ProvisioningTestUtil.assertAttribute(resource, shadow, attrName, expectedValues);
+	}
+	
+	protected QName getPrimaryIdentifierQName() {
+		return new QName(ResourceTypeUtil.getResourceNamespace(resourceType), ProvisioningTestUtil.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME);
+	}
+
+	protected QName getSecondaryIdentifierQName() {
+		return new QName(ResourceTypeUtil.getResourceNamespace(resourceType), ProvisioningTestUtil.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME);
 	}
 }

@@ -107,7 +107,6 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/object/resource-opendj.xml";
 	private static final String FILENAME_RESOURCE_OPENDJ_BAD = "src/test/resources/object/resource-opendj-bad.xml";
 	private static final String FILENAME_CONNECTOR_LDAP = "src/test/resources/ucf/connector-ldap.xml";
-	private static final String OBJECT_CLASS_INETORGPERSON_NAME = "inetOrgPerson";
 
 	private ResourceType resourceType;
 	private ResourceType badResourceType;
@@ -202,18 +201,20 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	
 	
 	@Test
-	public void testConnectorSchemaSanity() throws Exception {
-		TestUtil.displayTestTile("testConnectorSchemaSanity");
+	public void test010ConnectorSchemaSanity() throws Exception {
+		final String TEST_NAME = "test010ConnectorSchemaSanity";
+		TestUtil.displayTestTile(TEST_NAME);
 	
 		ProvisioningTestUtil.assertConnectorSchemaSanity(connectorSchema, "LDAP connector");		
 	}
 
 	
 	@Test
-	public void testResourceSchemaSanity() throws Exception {
-		TestUtil.displayTestTile("testResourceSchemaSanity");
+	public void test020ResourceSchemaSanity() throws Exception {
+		final String TEST_NAME = "test020ResourceSchemaSanity";
+		TestUtil.displayTestTile(TEST_NAME);
 		
-		QName objectClassQname = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OBJECT_CLASS_INETORGPERSON_NAME);
+		QName objectClassQname = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), ProvisioningTestUtil.OBJECT_CLASS_INETORGPERSON_NAME);
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(objectClassQname);
 		assertNotNull("No object class definition " + objectClassQname, accountDefinition);
 //		assertEquals("Object class " + objectClassQname + " is not account", ShadowKindType.ACCOUNT, accountDefinition.getKind());
@@ -224,22 +225,23 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		Collection<? extends ResourceAttributeDefinition> identifiers = accountDefinition.getIdentifiers();
 		assertNotNull("Null identifiers for " + objectClassQname, identifiers);
 		assertFalse("Empty identifiers for " + objectClassQname, identifiers.isEmpty());
-		// TODO
 
-		ResourceAttributeDefinition<String> uidAttrDef = accountDefinition.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
-		assertNotNull("No definition for attribute "+ConnectorFactoryIcfImpl.ICFS_UID, uidAttrDef);
-		assertTrue("Attribute "+ConnectorFactoryIcfImpl.ICFS_UID+" in not an identifier",uidAttrDef.isIdentifier(accountDefinition));
-		assertTrue("Attribute "+ConnectorFactoryIcfImpl.ICFS_UID+" in not in identifiers list",identifiers.contains(uidAttrDef));
-		assertEquals("Attribute "+ConnectorFactoryIcfImpl.ICFS_UID+" has wrong native name", "entryUUID", uidAttrDef.getNativeAttributeName());
-		assertEquals("Attribute "+ConnectorFactoryIcfImpl.ICFS_UID+" has wrong framework name", Uid.NAME, uidAttrDef.getFrameworkAttributeName());
+		ResourceAttributeDefinition<String> idPrimaryDef = accountDefinition.findAttributeDefinition(
+				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), ProvisioningTestUtil.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME)); 
+		assertNotNull("No definition for attribute "+ProvisioningTestUtil.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME, idPrimaryDef);
+		assertTrue("Attribute "+ProvisioningTestUtil.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" in not an identifier",idPrimaryDef.isIdentifier(accountDefinition));
+		assertTrue("Attribute "+ProvisioningTestUtil.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" in not in identifiers list",identifiers.contains(idPrimaryDef));
+		assertEquals("Attribute "+ProvisioningTestUtil.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" has wrong native name", ProvisioningTestUtil.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME, idPrimaryDef.getNativeAttributeName());
+		assertEquals("Attribute "+ProvisioningTestUtil.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" has wrong framework name", Uid.NAME, idPrimaryDef.getFrameworkAttributeName());
 		
-		ResourceAttributeDefinition<String> nameAttrDef = accountDefinition.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
-		assertNotNull("No definition for attribute "+ConnectorFactoryIcfImpl.ICFS_NAME, nameAttrDef);
-		assertTrue("Attribute "+ConnectorFactoryIcfImpl.ICFS_NAME+" in not secondary identifier",nameAttrDef.isSecondaryIdentifier(accountDefinition));
-		assertFalse("Attribute "+ConnectorFactoryIcfImpl.ICFS_NAME+" in in identifiers list and it should NOT be",identifiers.contains(nameAttrDef));
-		assertTrue("Attribute "+ConnectorFactoryIcfImpl.ICFS_NAME+" in not in secomdary identifiers list",accountDefinition.getSecondaryIdentifiers().contains(nameAttrDef));
-		assertEquals("Attribute "+ConnectorFactoryIcfImpl.ICFS_NAME+" has wrong native name", "dn", nameAttrDef.getNativeAttributeName());
-		assertEquals("Attribute "+ConnectorFactoryIcfImpl.ICFS_NAME+" has wrong framework name", Name.NAME, nameAttrDef.getFrameworkAttributeName());
+		ResourceAttributeDefinition<String> idSecondaryDef = accountDefinition.findAttributeDefinition(
+				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), ProvisioningTestUtil.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME));
+		assertNotNull("No definition for attribute "+ConnectorFactoryIcfImpl.ICFS_NAME, idSecondaryDef);
+		assertTrue("Attribute "+ProvisioningTestUtil.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME+" in not secondary identifier",idSecondaryDef.isSecondaryIdentifier(accountDefinition));
+		assertFalse("Attribute "+ProvisioningTestUtil.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME+" in in identifiers list and it should NOT be",identifiers.contains(idSecondaryDef));
+		assertTrue("Attribute "+ProvisioningTestUtil.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME+" in not in secomdary identifiers list",accountDefinition.getSecondaryIdentifiers().contains(idSecondaryDef));
+		assertEquals("Attribute "+ProvisioningTestUtil.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME+" has wrong native name", ProvisioningTestUtil.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME, idSecondaryDef.getNativeAttributeName());
+		assertEquals("Attribute "+ProvisioningTestUtil.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME+" has wrong framework name", Name.NAME, idSecondaryDef.getFrameworkAttributeName());
 
 		assertEquals("Unexpected identifiers: "+identifiers, 1, identifiers.size());
 		assertEquals("Unexpected secondary identifiers: "+accountDefinition.getSecondaryIdentifiers(), 1, accountDefinition.getSecondaryIdentifiers().size());
@@ -250,13 +252,13 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 			ObjectAlreadyExistsException, ConfigurationException {
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testAdd");
 
-		QName objectClassQname = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OBJECT_CLASS_INETORGPERSON_NAME);
+		QName objectClassQname = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), ProvisioningTestUtil.OBJECT_CLASS_INETORGPERSON_NAME);
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(objectClassQname);
 		assertNotNull("No object class definition "+objectClassQname, accountDefinition);
 		ResourceAttributeContainer resourceObject = accountDefinition.instantiate(ShadowType.F_ATTRIBUTES);
 
-		ResourceAttributeDefinition attributeDefinition = accountDefinition
-				.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
+		ResourceAttributeDefinition<String> attributeDefinition = accountDefinition
+				.findAttributeDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), ProvisioningTestUtil.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME));
 		ResourceAttribute<String> attribute = attributeDefinition.instantiate();
 		attribute.setValue(new PrismPropertyValue<String>("uid=" + name + ",ou=people,dc=example,dc=com"));
 		resourceObject.add(attribute);
@@ -288,7 +290,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 	private String getEntryUuid(Collection<ResourceAttribute<?>> identifiers) {
 		for (ResourceAttribute<?> identifier : identifiers) {
-			if (identifier.getElementName().equals(ConnectorFactoryIcfImpl.ICFS_UID)) {
+			if (identifier.getElementName().equals(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), ProvisioningTestUtil.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME))) {
 				return identifier.getValue(String.class).getValue();
 			}
 		}
@@ -296,10 +298,11 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	}
 
 	@Test
-	public void testAddDeleteObject() throws Exception {
-		TestUtil.displayTestTile(this, "testDeleteObject");
+	public void test100AddDeleteObject() throws Exception {
+		final String TEST_NAME = "test100AddDeleteObject";
+		TestUtil.displayTestTile(this, TEST_NAME);
 
-		OperationResult result = new OperationResult(this.getClass().getName() + ".testDelete");
+		OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
 
 		Collection<ResourceAttribute<?>> identifiers = addSampleResourceObject("john", "John", "Smith");
 
@@ -312,7 +315,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 			}
 		}
 	
-		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(OBJECT_CLASS_INETORGPERSON_NAME);
+		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(ProvisioningTestUtil.OBJECT_CLASS_INETORGPERSON_NAME);
 
 		cc.deleteObject(accountDefinition, null, identifiers, result);
 		
@@ -329,10 +332,11 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	}
 
 	@Test
-	public void testChangeModifyObject() throws Exception {
-		TestUtil.displayTestTile(this, "testChangeModifyObject");
+	public void test110ChangeModifyObject() throws Exception {
+		final String TEST_NAME = "test110ChangeModifyObject";
+		TestUtil.displayTestTile(this, TEST_NAME);
 
-		OperationResult result = new OperationResult(this.getClass().getName() + ".testModify");
+		OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
 
 		Collection<ResourceAttribute<?>> identifiers = addSampleResourceObject("john", "John", "Smith");
 
@@ -343,7 +347,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		changes.add(createAddAttributeChange("street", "Wall Street"));
 		changes.add(createDeleteAttributeChange("givenName", "John"));
 
-		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(OBJECT_CLASS_INETORGPERSON_NAME);
+		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(ProvisioningTestUtil.OBJECT_CLASS_INETORGPERSON_NAME);
 
 		cc.modifyObject(accountDefinition, identifiers, changes, result);
 
@@ -372,11 +376,12 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	}
 
 	@Test
-	public void testFetchChanges() throws Exception {
-		TestUtil.displayTestTile(this, "testFetchChanges");
+	public void test200FetchChanges() throws Exception {
+		final String TEST_NAME = "test200FetchChanges";
+		TestUtil.displayTestTile(this, TEST_NAME);
 
-		OperationResult result = new OperationResult(this.getClass().getName() + ".testFetchChanges");
-		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(OBJECT_CLASS_INETORGPERSON_NAME);
+		OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
+		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(ProvisioningTestUtil.OBJECT_CLASS_INETORGPERSON_NAME);
 		PrismProperty<Integer> lastToken = cc.fetchCurrentToken(accountDefinition, result);
 
 		System.out.println("Property:");
@@ -390,40 +395,9 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		AssertJUnit.assertEquals(0, changes.size());
 	}
 
-	// This obviously does not work with LDAP connector
-	@Test(enabled = false)
-	public void testDisableAccount() throws Exception {
-		TestUtil.displayTestTile(this, "testDisableAccount");
-
-		// GIVEN
-		OperationResult result = new OperationResult(this.getClass().getName() + ".testDisableAccount");
-
-		Collection<ResourceAttribute<?>> identifiers = addSampleResourceObject("blackbeard", "Edward", "Teach");
-
-		// Check precondition
-		String entryUuid = getEntryUuid(identifiers);
-		SearchResultEntry ldapEntryBefore = openDJController.searchAndAssertByEntryUuid(entryUuid);
-		assertTrue("The account is not enabled", openDJController.isAccountEnabled(ldapEntryBefore));
-
-		// WHEN
-
-		Set<Operation> changes = new HashSet<Operation>();
-		changes.add(createActivationChange(ActivationStatusType.DISABLED));
-
-		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(OBJECT_CLASS_INETORGPERSON_NAME);
-
-		cc.modifyObject(accountDefinition, identifiers, changes, result);
-
-		// THEN
-
-		SearchResultEntry ldapEntryAfter = openDJController.searchAndAssertByEntryUuid(entryUuid);
-		assertFalse("The account was not disabled", openDJController.isAccountEnabled(ldapEntryAfter));
-
-	}
-
 	private PrismProperty createProperty(String propertyName, String propertyValue) {
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(
-				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OBJECT_CLASS_INETORGPERSON_NAME));
+				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), ProvisioningTestUtil.OBJECT_CLASS_INETORGPERSON_NAME));
 		ResourceAttributeDefinition propertyDef = accountDefinition.findAttributeDefinition(new QName(
 				ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
 		ResourceAttribute property = propertyDef.instantiate();
@@ -476,11 +450,12 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	 * @throws Exception
 	 */
 	@Test
-	public void testTestConnection() throws Exception {
-		TestUtil.displayTestTile("testTestConnection");
+	public void test300TestConnection() throws Exception {
+		final String TEST_NAME = "test300TestConnection";
+		TestUtil.displayTestTile(this, TEST_NAME);
 		// GIVEN
 
-		OperationResult result = new OperationResult("testTestConnection");
+		OperationResult result = new OperationResult(TEST_NAME);
 
 		// WHEN
 
@@ -502,11 +477,12 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	 * @throws Exception
 	 */
 	@Test
-	public void testTestConnectionNegative() throws Exception {
-		TestUtil.displayTestTile("testTestConnectionNegative");
+	public void test310TestConnectionNegative() throws Exception {
+		final String TEST_NAME = "test310TestConnectionNegative";
+		TestUtil.displayTestTile(this, TEST_NAME);
 		// GIVEN
 
-		OperationResult result = new OperationResult("testTestConnectionNegative");
+		OperationResult result = new OperationResult(TEST_NAME);
 
 		ConnectorInstance badConnector = factory.createConnectorInstance(connectorType,
 				ResourceTypeUtil.getResourceNamespace(badResourceType), "test connector");
@@ -535,8 +511,9 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	 * @throws Exception
 	 */
 	@Test
-	public void testFetchResourceSchema() throws CommunicationException, SchemaException {
-		TestUtil.displayTestTile("testFetchResourceSchema");
+	public void test400FetchResourceSchema() throws Exception {
+		final String TEST_NAME = "test400FetchResourceSchema";
+		TestUtil.displayTestTile(this, TEST_NAME);
 		// GIVEN
 
 		// WHEN
@@ -558,14 +535,14 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 				.println("-------------------------------------------------------------------------------------");
 
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema
-				.findObjectClassDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OBJECT_CLASS_INETORGPERSON_NAME));
+				.findObjectClassDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), ProvisioningTestUtil.OBJECT_CLASS_INETORGPERSON_NAME));
 		AssertJUnit.assertNotNull(accountDefinition);
 
 		AssertJUnit.assertFalse("No identifiers for account object class ", accountDefinition
 				.getIdentifiers().isEmpty());
 
-		PrismPropertyDefinition uidDefinition = accountDefinition
-				.findPropertyDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
+		PrismPropertyDefinition uidDefinition = accountDefinition.findAttributeDefinition(
+				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), ProvisioningTestUtil.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME));
 		AssertJUnit.assertNotNull(uidDefinition);
 
 		for (Definition def : resourceSchema.getDefinitions()) {
@@ -584,11 +561,12 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	}
 
 	@Test
-	public void testCapabilities() throws Exception {
-		TestUtil.displayTestTile("testCapabilities");
+	public void test410Capabilities() throws Exception {
+		final String TEST_NAME = "test410Capabilities";
+		TestUtil.displayTestTile(this, TEST_NAME);
 		// GIVEN
 
-		OperationResult result = new OperationResult("testCapabilities");
+		OperationResult result = new OperationResult(TEST_NAME);
 
 		// WHEN
 
@@ -607,14 +585,15 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	}
 
 	@Test
-	public void testFetchObject() throws Exception {
-		TestUtil.displayTestTile("testFetchObject");
+	public void test500FetchObject() throws Exception {
+		final String TEST_NAME = "test500FetchObject";
+		TestUtil.displayTestTile(this, TEST_NAME);
 
 		// GIVEN
 		ResourceAttributeContainer resourceObject = createResourceObject(
 				"uid=Teell,ou=People,dc=example,dc=com", "Teell William", "Teell");
 
-		OperationResult addResult = new OperationResult(this.getClass().getName() + ".testFetchObject");
+		OperationResult addResult = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
 
 		PrismObject<ShadowType> shadow = wrapInShadow(ShadowType.class, resourceObject);
 		// Add a testing object
@@ -626,7 +605,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		// Determine object class from the schema
 
 		ResourceObjectIdentification identification = new ResourceObjectIdentification(accountDefinition, identifiers);
-		OperationResult result = new OperationResult(this.getClass().getName() + ".testFetchObject");
+		OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
 
 		// WHEN
 		PrismObject<ShadowType> ro = cc.fetchObject(ShadowType.class, identification, null, result);
@@ -641,11 +620,12 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	}
 
 	@Test
-	public void testSearch() throws Exception {
-		TestUtil.displayTestTile("testSearch");
+	public void test510Search() throws Exception {
+		final String TEST_NAME = "test510Search";
+		TestUtil.displayTestTile(this, TEST_NAME);
 		// GIVEN
 
-		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(OBJECT_CLASS_INETORGPERSON_NAME);
+		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(ProvisioningTestUtil.OBJECT_CLASS_INETORGPERSON_NAME);
 		// Determine object class from the schema
 
 		ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
@@ -656,7 +636,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 			}
 		};
 
-		OperationResult result = new OperationResult(this.getClass().getName() + ".testSearch");
+		OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
 
 		// WHEN
 		cc.search(accountDefinition, new ObjectQuery(), handler, null, null, null, result);
@@ -666,8 +646,9 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	}
 
 	@Test
-	public void testCreateAccountWithPassword() throws Exception {
-		TestUtil.displayTestTile("testCreateAccountWithPassword");
+	public void test600CreateAccountWithPassword() throws Exception {
+		final String TEST_NAME = "test600CreateAccountWithPassword";
+		TestUtil.displayTestTile(this, TEST_NAME);
 		// GIVEN
 		ResourceAttributeContainer resourceObject = createResourceObject(
 				"uid=lechuck,ou=people,dc=example,dc=com", "Ghost Pirate LeChuck", "LeChuck");
@@ -679,7 +660,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 //		additionalOperations.add(passOp);
 
 		OperationResult addResult = new OperationResult(this.getClass().getName()
-				+ ".testCreateAccountWithPassword");
+				+ "." + TEST_NAME);
 
 		PrismObject<ShadowType> shadow = wrapInShadow(ShadowType.class, resourceObject);
 		CredentialsType credentials = new CredentialsType();
@@ -706,14 +687,15 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	}
 
 	@Test
-	public void testChangePassword() throws Exception {
-		TestUtil.displayTestTile("testChangePassword");
+	public void test610ChangePassword() throws Exception {
+		final String TEST_NAME = "test610ChangePassword";
+		TestUtil.displayTestTile(this, TEST_NAME);
 		// GIVEN
 		ResourceAttributeContainer resourceObject = createResourceObject(
 				"uid=drake,ou=People,dc=example,dc=com", "Sir Francis Drake", "Drake");
 		PrismObject<ShadowType> shadow = wrapInShadow(ShadowType.class, resourceObject);
 
-		OperationResult addResult = new OperationResult(this.getClass().getName() + ".testChangePassword");
+		OperationResult addResult = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
 		
 		// Add a testing object
 		cc.addObject(shadow, null, addResult);
@@ -775,7 +757,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	private ResourceAttributeContainer createResourceObject(String dn, String sn, String cn) throws SchemaException {
 		// Account type is hardcoded now
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema
-				.findObjectClassDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OBJECT_CLASS_INETORGPERSON_NAME));
+				.findObjectClassDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), ProvisioningTestUtil.OBJECT_CLASS_INETORGPERSON_NAME));
 		// Determine identifier from the schema
 		ResourceAttributeContainer resourceObject = accountDefinition.instantiate(ShadowType.F_ATTRIBUTES);
 
@@ -790,7 +772,8 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		roa.setValue(new PrismPropertyValue(cn));
 		resourceObject.add(roa);
 
-		road = accountDefinition.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
+		road = accountDefinition.findAttributeDefinition(
+				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), ProvisioningTestUtil.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME));
 		roa = road.instantiate();
 		roa.setValue(new PrismPropertyValue(dn));
 		resourceObject.add(roa);

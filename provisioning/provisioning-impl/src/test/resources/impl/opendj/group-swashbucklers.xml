@@ -27,7 +27,7 @@
 	<kind>entitlement</kind>
 	<intent>group</intent>
 	<attributes>
-		<icfs:name>cn=swashbucklers,ou=Groups,dc=example,dc=com</icfs:name>
+		<ri:dn>cn=swashbucklers,ou=Groups,dc=example,dc=com</ri:dn>
 		<ri:cn>swashbucklers</ri:cn>
 	</attributes>
 </shadow>

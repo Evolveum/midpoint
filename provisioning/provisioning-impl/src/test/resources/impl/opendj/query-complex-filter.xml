@@ -40,8 +40,7 @@
 		</q:equal>
 		<q:equal>
 			<q:path>
-                declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
-                c:attributes/icfs:name</q:path>
+                attributes/dn</q:path>
 			<q:value>uid=will123,ou=People,dc=example,dc=com</q:value>
 		</q:equal>
 		<q:equal>

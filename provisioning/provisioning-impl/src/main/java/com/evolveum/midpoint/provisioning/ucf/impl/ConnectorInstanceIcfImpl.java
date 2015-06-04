@@ -225,7 +225,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		this.connectorSchema = connectorSchema;
 		this.protector = protector;
 		this.prismContext = prismContext;
+		icfNameMapper = new IcfNameMapper();
 		icfConvertor = new IcfConvertor(protector, resourceSchemaNamespace);
+		icfConvertor.setIcfNameMapper(icfNameMapper);
 	}
 
 	public String getDescription() {
@@ -239,14 +241,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	public String getSchemaNamespace() {
 		return resourceSchemaNamespace;
 	}
-
-	public IcfNameMapper getIcfNameMapper() {
-		return icfNameMapper;
+	
+	public void setResourceSchema(ResourceSchema resourceSchema) {
+		this.resourceSchema = resourceSchema;
+		icfNameMapper.setResourceSchema(resourceSchema);
 	}
-
-	public void setIcfNameMapper(IcfNameMapper icfNameMapper) {
-		this.icfNameMapper = icfNameMapper;
-		icfConvertor.setIcfNameMapper(icfNameMapper);
+	
+	public void resetResourceSchema() {
+		setResourceSchema(null);
 	}
 
 	/*
@@ -472,7 +474,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					+ ObjectTypeUtil.toShortString(connectorType));
 		}
 
-		this.resourceSchema = resourceSchema;
+		setResourceSchema(resourceSchema);
 		this.capabilities = capabilities;
 		this.caseIgnoreAttributeNames = caseIgnoreAttributeNames;
 		
@@ -576,7 +578,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		} catch (UnsupportedOperationException ex) {
 			// The connector does no support schema() operation.
 			icfResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, ex.getMessage());
-			resourceSchema = null;
+			resetResourceSchema();
 			return;
 		} catch (Throwable ex) {
 			// conditions.
@@ -610,7 +612,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		
 		if (icfSchema == null) {
 			icfResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Null schema returned");
-			resourceSchema = null;
+			resetResourceSchema();
 			return;
 		}
 
@@ -627,7 +629,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		AttributeInfo lockoutAttributeInfo = null;
 
 		// New instance of midPoint schema object
-		resourceSchema = new ResourceSchema(getSchemaNamespace(), prismContext);
+		setResourceSchema(new ResourceSchema(getSchemaNamespace(), prismContext));
 
 		legacySchema = isLegacySchema(icfSchema);
 		
@@ -646,24 +648,26 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// object class.
 			// The important thing here is the last "type" parameter
 			// (objectClassXsdName). The rest is more-or-less cosmetics.
-			ObjectClassComplexTypeDefinition roDefinition = resourceSchema
+			ObjectClassComplexTypeDefinition ocDef = resourceSchema
 					.createObjectClassDefinition(objectClassXsdName);
 
 			// The __ACCOUNT__ objectclass in ICF is a default account
 			// objectclass. So mark it appropriately.
 			if (ObjectClass.ACCOUNT_NAME.equals(objectClassInfo.getType())) {
-				roDefinition.setKind(ShadowKindType.ACCOUNT);
-				roDefinition.setDefaultInAKind(true);
+				ocDef.setKind(ShadowKindType.ACCOUNT);
+				ocDef.setDefaultInAKind(true);
 			}
 
-			ResourceAttributeDefinition uidDefinition = null;
+			ResourceAttributeDefinition<String> uidDefinition = null;
+			ResourceAttributeDefinition<String> nameDefinition = null;
 
 			int displayOrder = ConnectorFactoryIcfImpl.ATTR_DISPLAY_ORDER_START;
 			// Let's iterate over all attributes in this object class ...
 			Set<AttributeInfo> attributeInfoSet = objectClassInfo.getAttributeInfo();
 			for (AttributeInfo attributeInfo : attributeInfoSet) {
+				String icfName = attributeInfo.getName();
 
-				if (OperationalAttributes.PASSWORD_NAME.equals(attributeInfo.getName())) {
+				if (OperationalAttributes.PASSWORD_NAME.equals(icfName)) {
 					// This attribute will not go into the schema
 					// instead a "password" capability is used
 					passwordAttributeInfo = attributeInfo;
@@ -671,36 +675,41 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					continue;
 				}
 
-				if (OperationalAttributes.ENABLE_NAME.equals(attributeInfo.getName())) {
+				if (OperationalAttributes.ENABLE_NAME.equals(icfName)) {
 					enableAttributeInfo = attributeInfo;
 					// Skip this attribute, capability is sufficient
 					continue;
 				}
 				
-				if (OperationalAttributes.ENABLE_DATE_NAME.equals(attributeInfo.getName())) {
+				if (OperationalAttributes.ENABLE_DATE_NAME.equals(icfName)) {
 					enableDateAttributeInfo = attributeInfo;
 					// Skip this attribute, capability is sufficient
 					continue;
 				}
 				
-				if (OperationalAttributes.DISABLE_DATE_NAME.equals(attributeInfo.getName())) {
+				if (OperationalAttributes.DISABLE_DATE_NAME.equals(icfName)) {
 					disableDateAttributeInfo = attributeInfo;
 					// Skip this attribute, capability is sufficient
 					continue;
 				}
 				
-				if (OperationalAttributes.LOCK_OUT_NAME.equals(attributeInfo.getName())) {
+				if (OperationalAttributes.LOCK_OUT_NAME.equals(icfName)) {
 					lockoutAttributeInfo = attributeInfo;
 					// Skip this attribute, capability is sufficient
 					continue;
 				}
 
-				QName attrXsdName = icfNameMapper.convertAttributeNameToQName(attributeInfo.getName(), getSchemaNamespace());
+				String processedAttributeName = icfName;
+				if ((Name.NAME.equals(icfName) || Uid.NAME.equals(icfName)) && attributeInfo.getNativeName() != null ) {
+					processedAttributeName = attributeInfo.getNativeName();					
+				}
+				
+				QName attrXsdName = icfNameMapper.convertAttributeNameToQName(processedAttributeName, ocDef);
 				QName attrXsdType = icfTypeToXsdType(attributeInfo.getType(), false);
 				
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Attr conversion ICF: {}({}) -> XSD: {}({})", 
-							new Object[]{attributeInfo.getName(), attributeInfo.getType().getSimpleName(),
+							new Object[]{icfName, attributeInfo.getType().getSimpleName(),
 								PrettyPrinter.prettyPrint(attrXsdName), PrettyPrinter.prettyPrint(attrXsdType)});
 				}
 
@@ -710,17 +719,23 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 						attrXsdName, attrXsdType, prismContext);
 
 				
-				if (Name.NAME.equals(attributeInfo.getName())) {
-					// Set a better display name for __NAME__. The "name" is s very
-					// overloaded term, so let's try to make things
-					// a bit clearer
-					attrDef.setDisplayName(ConnectorFactoryIcfImpl.ICFS_NAME_DISPLAY_NAME);
+				if (Name.NAME.equals(icfName)) {
+					nameDefinition = attrDef;
+					if (attributeInfo.getNativeName() == null) {
+						// Set a better display name for __NAME__. The "name" is s very
+						// overloaded term, so let's try to make things
+						// a bit clearer
+						attrDef.setDisplayName(ConnectorFactoryIcfImpl.ICFS_NAME_DISPLAY_NAME);
+					}
 					attrDef.setDisplayOrder(ConnectorFactoryIcfImpl.ICFS_NAME_DISPLAY_ORDER);
-					((Collection<ResourceAttributeDefinition>)roDefinition.getSecondaryIdentifiers()).add(attrDef);
+					((Collection<ResourceAttributeDefinition>)ocDef.getSecondaryIdentifiers()).add(attrDef);
 					
-				} else if (Uid.NAME.equals(attributeInfo.getName())) {
+				} else if (Uid.NAME.equals(icfName)) {
+					uidDefinition = attrDef;
+					if (attributeInfo.getNativeName() == null) {
 						attrDef.setDisplayName(ConnectorFactoryIcfImpl.ICFS_UID_DISPLAY_NAME);
-						attrDef.setDisplayOrder(ConnectorFactoryIcfImpl.ICFS_UID_DISPLAY_ORDER);
+					}
+					attrDef.setDisplayOrder(ConnectorFactoryIcfImpl.ICFS_UID_DISPLAY_ORDER);
 						
 				} else {
 					attrDef.setDisplayOrder(displayOrder);
@@ -728,7 +743,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				}
 				
 				attrDef.setNativeAttributeName(attributeInfo.getNativeName());
-				attrDef.setFrameworkAttributeName(attributeInfo.getName());
+				attrDef.setFrameworkAttributeName(icfName);
 
 				// Now we are going to process flags such as optional and
 				// multi-valued
@@ -766,10 +781,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				attrDef.setCanModify(canUpdate);
 				attrDef.setCanRead(canRead);
 				
-				if (Uid.NAME.equals(attributeInfo.getName())) {
-					uidDefinition = attrDef;
-				} else {
-					roDefinition.add(attrDef);
+				if (!Uid.NAME.equals(icfName)) {
+					ocDef.add(attrDef);
 				}
 			}
 
@@ -787,14 +800,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				uidDefinition.setDisplayOrder(ConnectorFactoryIcfImpl.ICFS_UID_DISPLAY_ORDER);
 				// Uid is a primary identifier of every object (this is the ICF way)
 			}
-			roDefinition.add(uidDefinition);
-			((Collection<ResourceAttributeDefinition>)roDefinition.getIdentifiers()).add(uidDefinition);
+			ocDef.add(uidDefinition);
+			((Collection<ResourceAttributeDefinition>)ocDef.getIdentifiers()).add(uidDefinition);
 
 
 			// Add schema annotations
-			roDefinition.setNativeObjectClass(objectClassInfo.getType());
-			roDefinition.setDisplayNameAttribute(ConnectorFactoryIcfImpl.ICFS_NAME);
-			roDefinition.setNamingAttribute(ConnectorFactoryIcfImpl.ICFS_NAME);
+			ocDef.setNativeObjectClass(objectClassInfo.getType());
+			ocDef.setDisplayNameAttribute(nameDefinition.getName());
+			ocDef.setNamingAttribute(nameDefinition.getName());
 
 		}
 
@@ -1012,7 +1025,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 
 		// Get UID from the set of identifiers
-		Uid uid = getUid(identifiers);
+		Uid uid = getUid(objectClassDefinition, identifiers);
 		if (uid == null) {
 			result.recordFatalError("Required attribute UID not found in identification set while attempting to fetch object identified by "
 					+ identifiers + " from " + ObjectTypeUtil.toShortString(connectorType));
@@ -1170,7 +1183,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// Add all the attributes that are defined as "returned by default" by the schema
 			for (ResourceAttributeDefinition attributeDef: objectClassDefinition.getAttributeDefinitions()) {
 				if (attributeDef.isReturnedByDefault()) {
-					String attrName = icfNameMapper.convertAttributeNameToIcf(attributeDef.getName(), getSchemaNamespace());
+					String attrName = icfNameMapper.convertAttributeNameToIcf(attributeDef);
 					icfAttrsToGet.add(attrName);
 				}
 			}
@@ -1189,7 +1202,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 		if (attrs != null) {
 			for (ResourceAttributeDefinition attrDef: attrs) {
-				String attrName = icfNameMapper.convertAttributeNameToIcf(attrDef.getName(), getSchemaNamespace());
+				String attrName = icfNameMapper.convertAttributeNameToIcf(attrDef);
 				if (!icfAttrsToGet.contains(attrName)) {
 					icfAttrsToGet.add(attrName);
 				}
@@ -1227,10 +1240,21 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		result.addParam("resourceObject", object);
 		result.addParam("additionalOperations", DebugUtil.debugDump(additionalOperations));         // because of serialization issues
 
+		ObjectClassComplexTypeDefinition ocDef;
+		ResourceAttributeContainerDefinition attrContDef = attributesContainer.getDefinition();
+		if (attrContDef != null) {
+			ocDef = attrContDef.getComplexTypeDefinition();
+		} else {
+			ocDef = resourceSchema.findObjectClassDefinition(object.asObjectable().getObjectClass());
+			if (ocDef == null) {
+				throw new SchemaException("Unknown object class "+object.asObjectable().getObjectClass());
+			}
+		}
+		
 		// getting icf object class from resource object class
-		ObjectClass objectClass = icfNameMapper.objectClassToIcf(object, getSchemaNamespace(), connectorType, legacySchema);
+		ObjectClass icfObjectClass = icfNameMapper.objectClassToIcf(object, getSchemaNamespace(), connectorType, legacySchema);
 
-		if (objectClass == null) {
+		if (icfObjectClass == null) {
 			result.recordFatalError("Couldn't get icf object class from " + object);
 			throw new IllegalArgumentException("Couldn't get icf object class from " + object);
 		}
@@ -1241,7 +1265,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("midPoint object before conversion:\n{}", attributesContainer.debugDump());
 			}
-			attributes = icfConvertor.convertFromResourceObject(attributesContainer, result);
+			attributes = icfConvertor.convertFromResourceObject(attributesContainer, ocDef);
 
 			if (objectType.getCredentials() != null && objectType.getCredentials().getPassword() != null) {
 				PasswordType password = objectType.getCredentials().getPassword();
@@ -1280,7 +1304,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		checkAndExecuteAdditionalOperation(additionalOperations, BeforeAfterType.BEFORE, result);
 
 		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".create");
-		icfResult.addArbitraryObjectAsParam("objectClass", objectClass);
+		icfResult.addArbitraryObjectAsParam("objectClass", icfObjectClass);
 		icfResult.addArbitraryCollectionAsParam("attributes", attributes);
 		icfResult.addParam("options", null);
 		icfResult.addContext("connector", icfConnectorFacade.getClass());
@@ -1290,7 +1314,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 			// CALL THE ICF FRAMEWORK
 			InternalMonitor.recordConnectorOperation("create");
-			uid = icfConnectorFacade.create(objectClass, attributes, new OperationOptionsBuilder().build());
+			uid = icfConnectorFacade.create(icfObjectClass, attributes, new OperationOptionsBuilder().build());
 
 		} catch (Throwable ex) {
 			Throwable midpointEx = processIcfException(ex, this, icfResult);
@@ -1390,7 +1414,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		ObjectClass objClass = icfNameMapper.objectClassToIcf(objectClass, getSchemaNamespace(), connectorType, legacySchema);
 		
-		Uid uid = getUid(identifiers);
+		Uid uid = getUid(objectClass, identifiers);
 		if (uid == null) {
 			throw new IllegalArgumentException("No UID in identifiers: " + identifiers);
 		}
@@ -1501,7 +1525,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			if (addValues != null && !addValues.isEmpty()) {
 				Set<Attribute> attributes = null;
 				try {
-					attributes = icfConvertor.convertFromResourceObject(addValues, result);
+					attributes = icfConvertor.convertFromResourceObject(addValues, objectClass);
 				} catch (SchemaException ex) {
 					result.recordFatalError("Error while converting resource object attributes. Reason: "
 							+ ex.getMessage(), ex);
@@ -1563,7 +1587,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			Set<Attribute> updateAttributes = null;
 
 			try {
-				updateAttributes = icfConvertor.convertFromResourceObject(updateValues, result);
+				updateAttributes = icfConvertor.convertFromResourceObject(updateValues, objectClass);
 				
 				if (activationDeltas != null) {
 					// Activation change means modification of attributes
@@ -1639,7 +1663,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			if (valuesToRemove != null && !valuesToRemove.isEmpty()) {
 				Set<Attribute> attributes = null;
 				try {
-					attributes = icfConvertor.convertFromResourceObject(valuesToRemove, result);
+					attributes = icfConvertor.convertFromResourceObject(valuesToRemove, objectClass);
 				} catch (SchemaException ex) {
 					result.recordFatalError("Error while converting resource object attributes. Reason: "
 							+ ex.getMessage(), ex);
@@ -1711,7 +1735,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	private PropertyDelta<String> createUidDelta(Uid uid, ResourceAttributeDefinition uidDefinition) {
-		QName attributeName = icfNameMapper.convertAttributeNameToQName(uid.getName(), getSchemaNamespace());
+		QName attributeName = icfNameMapper.convertAttributeNameToQName(uid.getName(), uidDefinition);
 		PropertyDelta<String> uidDelta = new PropertyDelta<String>(new ItemPath(ShadowType.F_ATTRIBUTES, attributeName),
 				uidDefinition, prismContext);
 		uidDelta.setValueToReplace(new PrismPropertyValue<String>(uid.getUidValue()));
@@ -1746,7 +1770,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		result.addCollectionOfSerializablesAsParam("identifiers", identifiers);
 
 		ObjectClass objClass = icfNameMapper.objectClassToIcf(objectClass, getSchemaNamespace(), connectorType, legacySchema);
-		Uid uid = getUid(identifiers);
+		Uid uid = getUid(objectClass, identifiers);
 
 		checkAndExecuteAdditionalOperation(additionalOperations, BeforeAfterType.BEFORE, result);
 		
@@ -2069,7 +2093,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
                 isAscending = pagedSearchCapabilityType.getDefaultSortDirection() != OrderDirectionType.DESCENDING;
             }
             if (orderBy != null) {
-                String orderByIcfName = icfNameMapper.convertAttributeNameToIcf(orderBy, getSchemaNamespace());
+                String orderByIcfName = icfNameMapper.convertAttributeNameToIcf(orderBy, objectClassDefinition);
                 optionsBuilder.setSortKeys(new SortKey(orderByIcfName, isAscending));
             }
         }
@@ -2094,7 +2118,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		SearchResult icfSearchResult;
 		try {
 
-			Filter filter = convertFilterToIcf(query);
+			Filter filter = convertFilterToIcf(query, objectClassDefinition);
 
 			InternalMonitor.recordConnectorOperation("search");
 			icfSearchResult = icfConnectorFacade.search(icfObjectClass, filter, icfHandler, options);
@@ -2177,11 +2201,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
         }
 
         OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
-        optionsBuilder.setAttributesToGet(icfNameMapper.convertAttributeNameToIcf(SchemaConstantsGenerated.ICF_S_NAME, getSchemaNamespace()));
+        optionsBuilder.setAttributesToGet(Name.NAME);
         optionsBuilder.setPagedResultsOffset(1);
         optionsBuilder.setPageSize(1);
         if (pagedSearchCapabilityType.getDefaultSortField() != null) {
-            String orderByIcfName = icfNameMapper.convertAttributeNameToIcf(pagedSearchCapabilityType.getDefaultSortField(), getSchemaNamespace());
+            String orderByIcfName = icfNameMapper.convertAttributeNameToIcf(pagedSearchCapabilityType.getDefaultSortField(), objectClassDefinition);
             boolean isAscending = pagedSearchCapabilityType.getDefaultSortDirection() != OrderDirectionType.DESCENDING;
             optionsBuilder.setSortKeys(new SortKey(orderByIcfName, isAscending));
         }
@@ -2197,7 +2221,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
         try {
 
-            Filter filter = convertFilterToIcf(query);
+            Filter filter = convertFilterToIcf(query, objectClassDefinition);
             final Holder<Integer> fetched = new Holder<>(0);
 
             ResultsHandler icfHandler = new ResultsHandler() {
@@ -2253,10 +2277,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
         return retval;
     }
 
-    private Filter convertFilterToIcf(ObjectQuery query) throws SchemaException {
+    private Filter convertFilterToIcf(ObjectQuery query, ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
         Filter filter = null;
         if (query != null && query.getFilter() != null) {
-            FilterInterpreter interpreter = new FilterInterpreter(getSchemaNamespace());
+            FilterInterpreter interpreter = new FilterInterpreter(objectClassDefinition);
             LOGGER.trace("Start to convert filter: {}", query.getFilter().debugDump());
             filter = interpreter.interpret(query.getFilter(), icfNameMapper);
 
@@ -2280,7 +2304,19 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	 *            midPoint resource object identifiers
 	 * @return ICF UID or null
 	 */
-	private Uid getUid(Collection<? extends ResourceAttribute<?>> identifiers) {
+	private Uid getUid(ObjectClassComplexTypeDefinition objectClass, Collection<? extends ResourceAttribute<?>> identifiers) {
+		if (identifiers.size() == 0) {
+			return null;
+		}
+		if (identifiers.size() == 1) {
+			return new Uid((String) identifiers.iterator().next().getRealValue());
+		}
+		for (ResourceAttribute<?> attr : identifiers) {
+			if (objectClass.isIdentifier(attr.getElementName())) {
+				return new Uid(((ResourceAttribute<String>) attr).getValue().getValue());
+			}
+		}
+		// fallback, compatibility
 		for (ResourceAttribute<?> attr : identifiers) {
 			if (attr.getElementName().equals(ConnectorFactoryIcfImpl.ICFS_UID)) {
 				return new Uid(((ResourceAttribute<String>) attr).getValue().getValue());

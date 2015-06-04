@@ -26,6 +26,6 @@
 	<resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
 	<objectClass>ri:inetOrgPerson</objectClass>
 	<attributes>
-		<icfs:name>uid=nosn,ou=People,dc=example,dc=com</icfs:name>
+		<ri:dn>uid=nosn,ou=People,dc=example,dc=com</ri:dn>
 	</attributes>
 </account>

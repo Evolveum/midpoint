@@ -25,7 +25,7 @@
 	<c:resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
 	<c:objectClass>ri:inetOrgPerson</c:objectClass>
 	<c:attributes>
-		<icfs:uid>this-is-fake</icfs:uid>
-		<icfs:name>uid=sparrow,ou=People,dc=example,dc=com</icfs:name>
+		<ri:entryUUID>this-is-fake</ri:entryUUID>
+		<ri:dn>uid=sparrow,ou=People,dc=example,dc=com</ri:dn>
 	</c:attributes>
 </c:account>

@@ -27,7 +27,7 @@
 	<kind>account</kind>
 	<attributes>
 		<!-- Note the capital "P", this is important for the tests -->
-		<icfs:name>uid=will,ou=People,dc=example,dc=com</icfs:name>
+		<ri:dn>uid=will,ou=People,dc=example,dc=com</ri:dn>
 		<ri:uid>will</ri:uid>
 		<ri:cn>Will Turner</ri:cn>
 		<ri:givenName>Will</ri:givenName>

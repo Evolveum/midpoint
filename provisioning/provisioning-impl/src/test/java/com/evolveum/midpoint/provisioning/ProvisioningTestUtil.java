@@ -76,8 +76,11 @@ public class ProvisioningTestUtil {
 	
 	public static final String COMMON_TEST_DIR_FILENAME = "src/test/resources/object/";
 	
-	
 	public static final String RESOURCE_DUMMY_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd";
+	
+	public static final String OBJECT_CLASS_INETORGPERSON_NAME = "inetOrgPerson";
+	public static final String RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME = "entryUUID";
+	public static final String RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME = "dn";
 
 	public static void assertConnectorSchemaSanity(ConnectorType conn, PrismContext prismContext) throws SchemaException {
 		XmlSchemaType xmlSchemaType = conn.getSchema();

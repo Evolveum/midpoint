@@ -455,8 +455,17 @@ class IcfUtil {
 		}
 	}
 	
-	public static ResourceAttributeDefinition getUidDefinition(ResourceAttributeContainerDefinition def) {
-		return def.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
+	public static ResourceAttributeDefinition<String> getUidDefinition(ResourceAttributeContainerDefinition def) {
+		Collection<? extends ResourceAttributeDefinition> identifiers = def.getIdentifiers();
+		if (identifiers.size() > 1) {
+			throw new UnsupportedOperationException("Multiple primary identifiers are not supported");
+		}
+		if (identifiers.size() == 1) {
+			return identifiers.iterator().next();
+		} else {
+			// fallback, compatibility
+			return def.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
+		}
 	}
 	
 	public static ResourceAttribute<String> createUidAttribute(Uid uid, ResourceAttributeDefinition uidDefinition) {

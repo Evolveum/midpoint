@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,14 +22,15 @@ import com.evolveum.midpoint.prism.query.LogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.provisioning.ucf.impl.IcfNameMapper;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class FilterInterpreter {
 	
-	private String resourceSchemaNamespace;
+	private ObjectClassComplexTypeDefinition objectClassDefinition;
 	
-	public FilterInterpreter(String resourceSchemaNamespace){
-		this.resourceSchemaNamespace = resourceSchemaNamespace;
+	public FilterInterpreter(ObjectClassComplexTypeDefinition objectClassDefinition){
+		this.objectClassDefinition = objectClassDefinition;
 	}
 	
 	public Filter interpret(ObjectFilter filter, IcfNameMapper icfNameMapper) throws SchemaException{
@@ -51,9 +52,9 @@ public class FilterInterpreter {
 		return operation.interpret(filter, icfNameMapper);
 		
 	}
-	
-	public String getResourceSchemaNamespace() {
-		return resourceSchemaNamespace;
-	}
 
+	public ObjectClassComplexTypeDefinition getObjectClassDefinition() {
+		return objectClassDefinition;
+	}
+	
 }

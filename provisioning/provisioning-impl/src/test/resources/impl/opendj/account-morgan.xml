@@ -26,7 +26,7 @@
 	<objectClass>ri:inetOrgPerson</objectClass>
 	<kind>account</kind>
 	<attributes>
-		<icfs:name>uid=morgan,ou=People,dc=example,dc=com</icfs:name>
+		<ri:dn>uid=morgan,ou=People,dc=example,dc=com</ri:dn>
 		<ri:uid>morgan</ri:uid>
 		<ri:cn>Henry Morgan</ri:cn>
 		<ri:givenName>Henry</ri:givenName>
