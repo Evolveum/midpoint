@@ -19,10 +19,11 @@
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
 	<name>Security Policy</name>
 	<credentials>
-		<password>
-			<passwordPolicyRef oid="5d075a9e-b107-11e3-9d9c-001e8c717e5b"/>
-		</password>
 		<securityQuestions>
+		 <resetMethod>
+            <resetType>securityQuestions</resetType>
+         </resetMethod>
+         <questionNumber>2</questionNumber>
 			<question>
 				<identifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001</identifier>
 				<enabled>true</enabled>

@@ -84,6 +84,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionAnswerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
@@ -244,6 +246,15 @@ public class PageSecurityQuestions extends PageBase {
 				policyQuestionList = securityPolicy.asObjectable().getCredentials().getSecurityQuestions().getQuestion();
 
 				List<SecurityQuestionAnswerDTO> userQuestionList= model.getObject().getSecurityAnswers();
+				
+				if(userQuestionList==null){
+					System.out.println("Userquestions not set.");
+					getSession().error(getString("pageForgetPassword.message.ContactAdminQuestionsNotSet"));
+					getSession().invalidate();
+					SecurityContext securityContext = SecurityContextHolder.getContext();
+					securityContext.setAuthentication(null);
+					throw new RestartResponseException(PageForgetPassword.class);
+				}
 				if(questionNumber<=userQuestionList.size()){
 
 
@@ -326,7 +337,12 @@ public class PageSecurityQuestions extends PageBase {
 
 	public List<SecurityQuestionAnswerDTO> createUsersSecurityQuestionsList(PrismObject<UserType> user){
 		System.out.println(user.getOid());
-		List<SecurityQuestionAnswerType> secQuestAnsList= user.asObjectable().getCredentials().getSecurityQuestions().getQuestionAnswer();
+		
+		SecurityQuestionsCredentialsType credentialsPolicyType=user.asObjectable().getCredentials().getSecurityQuestions();
+		if(credentialsPolicyType==null){
+			return null;
+		}
+		List<SecurityQuestionAnswerType> secQuestAnsList= credentialsPolicyType.getQuestionAnswer();
 
 		if (secQuestAnsList!=null){
 			List<SecurityQuestionAnswerDTO> secQuestAnswListDTO =new ArrayList<SecurityQuestionAnswerDTO>();
@@ -382,7 +398,7 @@ public class PageSecurityQuestions extends PageBase {
 		if (!WebMiscUtil.isSuccessOrHandledError(result)) {
 			showResult(result);
 		}
-		getSession().removeAttribute(SESSION_ATTRIBUTE_POID);
+		
 		return user;
 	}
 
@@ -408,6 +424,7 @@ public class PageSecurityQuestions extends PageBase {
 	}
 
 	private void savePerformed(AjaxRequestTarget target) {
+		System.out.println("SavePerformed");
 		int correctAnswers=0;
 		for (Iterator iterator = pqPanels.iterator(); iterator.hasNext();) {
 			MyPasswordQuestionsPanel type = (MyPasswordQuestionsPanel) iterator.next();
@@ -437,15 +454,19 @@ public class PageSecurityQuestions extends PageBase {
 		}
 
 		if(questionNumber==correctAnswers){
+			getSession().removeAttribute(SESSION_ATTRIBUTE_POID);
 			resetPassword(principalModel.getObject().asObjectable(),target);
 
 		}
 		else{
-			getSession().error(getString("pageSecurityQuestions.message.WrongAnswer"));
-			getSession().invalidate();
-			SecurityContext securityContext = SecurityContextHolder.getContext();
+			System.out.println("Elseeeee");
+		
+			
+			System.out.println("ElseThrow");
 			setAuthenticationNull();
-			throw new RestartResponseException(PageSecurityQuestions.class);
+			warn(getString("PageSecurityQuestions.message.WrongAnswer"));
+            target.add(getFeedbackPanel());
+            return;
 		}
 
 
@@ -599,9 +620,7 @@ public class PageSecurityQuestions extends PageBase {
 
 		PropertyDelta delta = PropertyDelta.createModificationReplaceProperty(valuePath, objDef, password);
 		Class<? extends ObjectType> type =  UserType.class;
-		MailConfigurationType mailConfig= systemConfig.asObjectable().getNotificationConfiguration().getMail();
-		MailServerConfigurationType mailServerType=mailConfig.getServer().get(0);
-
+		
 		deltas.add(ObjectDelta.createModifyDelta(user.getOid(), delta, type, getPrismContext()));
 		try {
 		
@@ -620,6 +639,8 @@ public class PageSecurityQuestions extends PageBase {
 						setResponsePage(PageShowPassword.class);
 					}
 					else{
+						MailConfigurationType mailConfig= systemConfig.asObjectable().getNotificationConfiguration().getMail();
+						MailServerConfigurationType mailServerType=mailConfig.getServer().get(0);
 						sendMailToUser(mailServerType.getUsername(), getMidpointApplication().getProtector().decryptString(mailServerType.getPassword()), newPassword, mailServerType.getHost(), mailServerType.getPort().toString(), mailConfig.getDefaultFrom(),user.getEmailAddress() );	
 					}
 				} catch (ObjectNotFoundException | SchemaException e) {
@@ -664,7 +685,6 @@ public class PageSecurityQuestions extends PageBase {
 
 	public void sendMailToUser(final String userLogin,final String password, String newPassword,String host,String port,String sender,String receiver) {
 		try {
-
 
 			//prop.load(new FileInputStream("/u01/app/oracle/product/fmw/Roketsan_IAM/server/ScheduleTask/PropertyFiles/MailServer.properties"));
 

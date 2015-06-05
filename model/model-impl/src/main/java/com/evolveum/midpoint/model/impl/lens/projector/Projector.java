@@ -139,7 +139,7 @@ public class Projector {
 
             context.reportProgress(new ProgressInformation(PROJECTOR, ENTERING));
 
-            contextLoader.load(context, activityDescription, result);
+            contextLoader.load(context, activityDescription, task, result);
 			// Set the "fresh" mark now so following consistency check will be stricter
 			context.setFresh(true);
 			if (consistencyChecks) context.checkConsistence();

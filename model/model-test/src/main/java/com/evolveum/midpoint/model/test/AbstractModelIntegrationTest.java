@@ -140,6 +140,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.lang.StringUtils;
+import org.eclipse.jetty.util.log.Log;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1957,6 +1958,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		ObjectDelta<TaskType> taskDelta = ObjectDelta.createModificationReplaceProperty(TaskType.class, taskOid, TaskType.F_EXECUTION_STATUS, prismContext, TaskExecutionStatusType.RUNNABLE);
 		taskDelta.addModificationReplaceProperty(TaskType.F_RESULT_STATUS);
 		taskDelta.addModificationReplaceProperty(TaskType.F_RESULT);
+		LOGGER.info("Restarting task {}", taskOid);
 		taskManager.modifyTask(taskOid, taskDelta.getModifications(), result);
 	}
 	
