@@ -170,15 +170,6 @@ public class LensUtil {
 		return context.findProjectionContext(rsd);
 	}
 	
-	public static <F extends FocusType> LensProjectionContext getOrCreateProjectionContext(LensContext<F> context,
-			String resourceOid, ShadowKindType kind, String intent, ProvisioningService provisioningService, PrismContext prismContext, OperationResult result) throws ObjectNotFoundException,
-			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
-		ResourceType resource = getResource(context, resourceOid, provisioningService, result);
-		String accountType = refineProjectionIntent(kind, intent, resource, prismContext);
-		ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(resourceOid, kind, accountType);
-		return getOrCreateProjectionContext(context, rsd);
-	}
-		
 	public static <F extends ObjectType> LensProjectionContext getOrCreateProjectionContext(LensContext<F> context,
 			ResourceShadowDiscriminator rsd) {
 		LensProjectionContext accountSyncContext = context.findProjectionContext(rsd);
