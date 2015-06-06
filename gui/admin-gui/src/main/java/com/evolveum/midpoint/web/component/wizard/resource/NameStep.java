@@ -355,8 +355,10 @@ public class NameStep extends WizardStep {
     }
 
     private void discoverConnectorsPerformed(AjaxRequestTarget target) {
-        DropDownChoice<ConnectorHostType> location = (DropDownChoice) get(ID_LOCATION);
-        ConnectorHostType host = location.getModelObject();
+        DropDownFormGroup<PrismObject<ConnectorHostType>> group = (DropDownFormGroup) get(ID_LOCATION);
+        DropDownChoice<PrismObject<ConnectorHostType>> location = group.getInput();
+        PrismObject<ConnectorHostType> prism = location.getModelObject();
+        ConnectorHostType host = prism.asObjectable();
 
         if (!NOT_USED_HOST.equals(host)) {
             discoverConnectors(host);
