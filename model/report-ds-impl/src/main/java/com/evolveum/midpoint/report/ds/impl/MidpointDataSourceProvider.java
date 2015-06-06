@@ -97,7 +97,7 @@ public class MidpointDataSourceProvider implements JRDataSourceProvider {
 		reportType.setTemplate(jrxmlBase64);
 		
 		ObjectListType olt = reportPort.processReport(reportType);
-		return	new MidPointDataSource(olt);
+		return	new MidPointRemoteDataSource(olt.getObject());
 		} catch (Exception e){
 			System.out.println("exception: " +e);
 			e.printStackTrace(System.out);

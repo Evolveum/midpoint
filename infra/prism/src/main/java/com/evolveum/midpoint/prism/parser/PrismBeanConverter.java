@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.prism.parser;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -664,7 +665,6 @@ public class PrismBeanConverter {
         } else if (prismContext != null && prismContext.getSchemaRegistry().determineDefinitionFromClass(bean.getClass()) != null){
         	return prismContext.getXnodeProcessor().serializeObject(((Objectable)bean).asPrismObject()).getSubnode();
         }
-
         // Note: SearchFilterType is treated below
 
         Class<? extends Object> beanClass = bean.getClass();

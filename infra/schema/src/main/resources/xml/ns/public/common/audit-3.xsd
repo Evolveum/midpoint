@@ -74,6 +74,13 @@
         </xsd:annotation>
     </xsd:import>
     
+     <xsd:complexType name="AuditEventRecordListType">
+        <xsd:sequence>
+            <xsd:element name="object" type="tns:AuditEventRecordType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="count" type="xsd:int"/>
+    </xsd:complexType>
+    
     <xsd:complexType name="AuditEventRecordType">
         <xsd:annotation>
             <xsd:documentation>
@@ -116,7 +123,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="hostIdentifier" type="xsd:boolean" minOccurs="0">
+            <xsd:element name="hostIdentifier" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO

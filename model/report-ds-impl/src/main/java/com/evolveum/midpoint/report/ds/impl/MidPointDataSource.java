@@ -38,25 +38,7 @@ public class MidPointDataSource implements JRDataSource{
 			iterator = results.iterator();
 		}
 	}
-	
-	public MidPointDataSource(ObjectListType results){
-		resultList = new ArrayList<>();
-		for (ObjectType objType : results.getObject()){
-			resultList.add(((Objectable)objType).asPrismObject());
-		}
-		iterator = resultList.iterator();
-	}
-	
-//	public MidPointDataSource(ObjectListType results, PrismContext context){
-//		resultList = new ArrayList<>();
-//		for (ObjectType objType : results.getObject()){
-//			PrismObject prism = ((Objectable)objType).asPrismObject();
-//			prism.revive(context);
-//		
-//			resultList.add(prism);
-//		}
-//		iterator = resultList.iterator();
-//	}
+
 	
 	@Override
 	public boolean next() throws JRException {

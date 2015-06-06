@@ -259,7 +259,7 @@
                                         <extraarg>-nexclude</extraarg>
                                         <extraarg>http://prism.evolveum.com/xml/ns/public/query-3</extraarg>
                                         <!-- 										<extraargs>-version</extraargs> -->
- <extraarg>-nexclude</extraarg>
+ 										<extraarg>-nexclude</extraarg>
                                         <extraarg>http://midpoint.evolveum.com/xml/ns/public/common/common-3</extraarg>
                                         <extraarg>-nexclude</extraarg>
                                         <extraarg>http://www.w3.org/2001/04/xmlenc</extraarg>

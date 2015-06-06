@@ -12,6 +12,7 @@ import org.apache.cxf.ws.security.wss4j.WSS4JOutInterceptor;
 import org.apache.wss4j.dom.WSConstants;
 import org.apache.wss4j.dom.handler.WSHandlerConstants;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.xml.ns._public.report.report_3.ReportPortType;
 import com.evolveum.midpoint.xml.ns._public.report.report_3.ReportService;
 
@@ -26,7 +27,7 @@ public class MidPointClientConfiguration {
 	}
 	
 	
-	public ReportPortType createReportPort() {
+	public ReportPortType createReportPort(PrismContext prismContext) {
 		System.out.println("creating endpoint with credentials " + username + ": " + password);
 		System.out.println("Endpoint URL: "+ endpoint);
 		ClientPasswordHandler.setPassword(password);
@@ -52,6 +53,7 @@ public class MidPointClientConfiguration {
 		
 		WSS4JOutInterceptor wssOut = new WSS4JOutInterceptor(outProps);
 		cxfEndpoint.getOutInterceptors().add(wssOut);
+//		cxfEndpoint.getOutInterceptors().add(new CustomWrappedOutInterceptor(prismContext));
         // enable the following to get client-side logging of outgoing requests and incoming responses
         cxfEndpoint.getOutInterceptors().add(new LoggingOutInterceptor());
         cxfEndpoint.getInInterceptors().add(new LoggingInInterceptor());

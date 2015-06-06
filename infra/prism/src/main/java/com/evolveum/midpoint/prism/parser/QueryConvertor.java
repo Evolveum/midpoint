@@ -47,6 +47,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.InOidFilter;
+import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -100,6 +101,8 @@ public class QueryConvertor {
 	
 	public static final QName KEY_FILTER_TYPE_TYPE = new QName(NS_QUERY, "type");
 	public static final QName KEY_FILTER_TYPE_FILTER = new QName(NS_QUERY, "filter");
+	
+	public static final QName KEY_FILTER_NONE_TYPE = new QName(NS_QUERY, "none");
 	
 	public static final QName KEY_FILTER_ORG_REF = new QName(NS_QUERY, "orgRef");
 	public static final QName KEY_FILTER_ORG_REF_OID = new QName(NS_QUERY, "oid");
@@ -227,6 +230,10 @@ public class QueryConvertor {
 		
 		if (QNameUtil.match(filterQName, KEY_FILTER_IN_OID)) {
 			return parseInOidFilter(xsubnode, pcd, preliminaryParsingOnly, prismContext);
+		}
+		
+		if (QNameUtil.match(filterQName, KEY_FILTER_NONE_TYPE)) {
+			return new NoneFilter();
 		}
 
 		throw new UnsupportedOperationException("Unsupported query filter " + filterQName);
@@ -361,7 +368,7 @@ public class QueryConvertor {
 		XNode subXFilter = xmap.get(KEY_FILTER_TYPE_FILTER);
 		ObjectFilter subFilter = null; 
 		PrismObjectDefinition def = prismContext.getSchemaRegistry().findObjectDefinitionByType(type);
-		if (subXFilter != null) {
+		if (subXFilter != null && subXFilter instanceof MapXNode) {
 			subFilter = parseFilter((MapXNode) subXFilter, def);
 		}
 
@@ -616,37 +623,41 @@ public class QueryConvertor {
 		return serializeFilter(filter, PrismUtil.getXnodeProcessor(prismContext).createSerializer());
 	}
 	
-	public static MapXNode serializeFilter(ObjectFilter filter, XNodeSerializer xnodeSerilizer) throws SchemaException{
+	public static MapXNode serializeFilter(ObjectFilter filter, XNodeSerializer xnodeSerializer) throws SchemaException{
 		if (filter == null) {
 			return null;
 		}
 		
 		if (filter instanceof AndFilter) {
-			return serializeAndFilter((AndFilter) filter, xnodeSerilizer);
+			return serializeAndFilter((AndFilter) filter, xnodeSerializer);
 		}
 		if (filter instanceof OrFilter) {
-			return serializeOrFilter((OrFilter) filter, xnodeSerilizer);
+			return serializeOrFilter((OrFilter) filter, xnodeSerializer);
 		}
 		if (filter instanceof NotFilter) {
-			return serializeNotFilter((NotFilter) filter, xnodeSerilizer);
+			return serializeNotFilter((NotFilter) filter, xnodeSerializer);
 		}
 		if (filter instanceof EqualFilter) {
-			return serializeEqualsFilter((EqualFilter) filter, xnodeSerilizer);
+			return serializeEqualsFilter((EqualFilter) filter, xnodeSerializer);
 		}
 		if (filter instanceof RefFilter) {
-			return serializeRefFilter((RefFilter) filter, xnodeSerilizer);
+			return serializeRefFilter((RefFilter) filter, xnodeSerializer);
 		}
 
 		if (filter instanceof SubstringFilter) {
-			return serializeSubstringFilter((SubstringFilter) filter, xnodeSerilizer);
+			return serializeSubstringFilter((SubstringFilter) filter, xnodeSerializer);
 		}
 
 		if (filter instanceof OrgFilter) {
-			return serializeOrgFilter((OrgFilter) filter, xnodeSerilizer);
+			return serializeOrgFilter((OrgFilter) filter, xnodeSerializer);
 		}
 		
 		if (filter instanceof TypeFilter) {
-			return serializeTypeFilter((TypeFilter) filter, xnodeSerilizer);
+			return serializeTypeFilter((TypeFilter) filter, xnodeSerializer);
+		}
+		
+		if (filter instanceof NoneFilter) {
+			return serializeNoneFilter((NoneFilter) filter, xnodeSerializer);
 		}
 
 		throw new UnsupportedOperationException("Unsupported filter type: " + filter);
@@ -749,6 +760,12 @@ public class QueryConvertor {
 		xtypeFilter.put(KEY_FILTER_TYPE, map);
 		return xtypeFilter;
 		
+	}
+	
+	private static MapXNode serializeNoneFilter(NoneFilter filter, XNodeSerializer xnodeSerializer) {
+		MapXNode map =  new MapXNode();
+		map.put(KEY_FILTER_NONE_TYPE, new PrimitiveXNode<>());
+		return map;
 	}
 	
 	private static MapXNode serializeOrgFilter(OrgFilter filter, XNodeSerializer xnodeSerializer) {

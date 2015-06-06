@@ -124,15 +124,7 @@ public class ReportServiceImpl implements ReportService {
 	
 	}
 	
-	private boolean containsExpression(ObjectFilter subFilter){
-		if (subFilter instanceof PropertyValueFilter){
-			return ((PropertyValueFilter) subFilter).getExpression() != null;
-		} else if (subFilter instanceof InOidFilter){
-			return ((InOidFilter) subFilter).getExpression() != null;
-		}
-		
-		return false;
-	}
+	
 
 	@Override
 	public Collection<PrismObject<? extends ObjectType>> searchObjects(ObjectQuery query,
