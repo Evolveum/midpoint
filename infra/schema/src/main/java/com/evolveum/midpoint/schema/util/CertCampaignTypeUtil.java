@@ -125,4 +125,9 @@ public class CertCampaignTypeUtil {
             }
         }
     }
+
+    // expects that the currentStageNumber is reasonable
+    public static AccessCertificationStageType findCurrentStage(AccessCertificationCampaignType campaign) {
+        return findStage(campaign, campaign.getCurrentStageNumber());
+    }
 }

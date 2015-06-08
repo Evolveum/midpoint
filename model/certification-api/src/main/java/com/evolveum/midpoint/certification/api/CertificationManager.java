@@ -206,4 +206,6 @@ public interface CertificationManager {
 
     AccessCertificationCasesStatisticsType getCampaignStatistics(String campaignOid, boolean currentStageOnly, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ObjectAlreadyExistsException;
+
+    void registerCertificationEventListener(AccessCertificationEventListener listener);
 }

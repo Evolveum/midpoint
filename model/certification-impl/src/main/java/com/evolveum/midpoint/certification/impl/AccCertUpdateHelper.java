@@ -40,6 +40,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -65,6 +66,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationR
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationScopeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -97,6 +99,9 @@ public class AccCertUpdateHelper {
 
     @Autowired
     private AccCertReviewersHelper reviewersHelper;
+
+    @Autowired
+    protected AccCertEventHelper eventHelper;
 
     @Autowired
     private PrismContext prismContext;
@@ -203,13 +208,24 @@ public class AccCertUpdateHelper {
     void closeCampaign(AccessCertificationCampaignType campaign, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         int currentStageNumber = campaign.getCurrentStageNumber();
         int lastStageNumber = CertCampaignTypeUtil.getNumberOfStages(campaign);
-        AccessCertificationCampaignStateType state = campaign.getState();
+        AccessCertificationCampaignStateType currentState = campaign.getState();
         // TODO issue a warning if we are not in a correct state
         PropertyDelta<Integer> stageNumberDelta = createStageNumberDelta(lastStageNumber + 1);
         PropertyDelta<AccessCertificationCampaignStateType> stateDelta = createStateDelta(CLOSED);
         ContainerDelta triggerDelta = createTriggerDeleteDelta();
         repositoryService.modifyObject(AccessCertificationCampaignType.class, campaign.getOid(),
                 Arrays.asList(stateDelta, stageNumberDelta, triggerDelta), result);
+
+        AccessCertificationCampaignType updatedCampaign = updateCampaign(campaign, task, result);
+//        if (currentState == IN_REMEDIATION) {
+//            eventHelper.onCampaignStageEnd(updatedCampaign, task, result);
+//        }
+        eventHelper.onCampaignEnd(updatedCampaign, task, result);
+    }
+
+    // TODO implement more efficiently
+    public AccessCertificationCampaignType updateCampaign(AccessCertificationCampaignType campaign, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+        return repositoryService.getObject(AccessCertificationCampaignType.class, campaign.getOid(), null, result).asObjectable();
     }
 
     void setStageNumberAndState(AccessCertificationCampaignType campaign, int number, AccessCertificationCampaignStateType state,
@@ -238,7 +254,7 @@ public class AccCertUpdateHelper {
         return PropertyDelta.createReplaceDelta(helper.getCampaignObjectDefinition(), AccessCertificationCampaignType.F_START, date);
     }
 
-    public void moveToNextStage(final AccessCertificationCampaignType campaign, AccessCertificationStageType stage, CertificationHandler handler, final Task task, OperationResult result)
+    public void moveToNextStage(AccessCertificationCampaignType campaign, AccessCertificationStageType stage, CertificationHandler handler, final Task task, OperationResult result)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException {
         Validate.notNull(campaign, "certificationCampaign");
         Validate.notNull(campaign.getOid(), "certificationCampaign.oid");
@@ -461,7 +477,7 @@ public class AccCertUpdateHelper {
     }
 
 
-    void recordMoveToNextStage(AccessCertificationCampaignType campaign, AccessCertificationStageType newStage, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+    void recordMoveToNextStage(AccessCertificationCampaignType campaign, AccessCertificationStageType newStage, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         // some bureaucracy... stage#, state, start time, trigger
         List<ItemDelta> itemDeltaList = new ArrayList<>();
         PropertyDelta<Integer> stageNumberDelta = createStageNumberDelta(newStage.getNumber());
@@ -473,25 +489,63 @@ public class AccCertUpdateHelper {
             itemDeltaList.add(startDelta);
         }
         if (newStage.getEnd() != null) {
-            TriggerType trigger = new TriggerType(prismContext);
-            trigger.setHandlerUri(AccessCertificationCloseStageTriggerHandler.HANDLER_URI);
-            trigger.setTimestamp(newStage.getEnd());
+            XMLGregorianCalendar end = newStage.getEnd();
+            AccessCertificationStageDefinitionType stageDef =
+                    CertCampaignTypeUtil.findStageDefinition(campaign, newStage.getNumber());
+            List<TriggerType> triggers = new ArrayList<>();
+
             // pseudo-random ID so this trigger will not be deleted by trigger task handler (if this code itself is executed as part of previous trigger firing)
             // TODO implement this more seriously!
-            trigger.setId((long) (Math.random()*1000000000));
-            ContainerDelta<TriggerType> triggerDelta = ContainerDelta.createModificationReplace(ObjectType.F_TRIGGER, AccessCertificationCampaignType.class, prismContext, trigger);
+            long lastId = (long) (Math.random() * 1000000000);
+
+            TriggerType triggerClose = new TriggerType(prismContext);
+            triggerClose.setHandlerUri(AccessCertificationCloseStageTriggerHandler.HANDLER_URI);
+            triggerClose.setTimestamp(end);
+            triggerClose.setId(lastId);
+            triggers.add(triggerClose);
+
+            for (Integer hoursBeforeDeadline : stageDef.getNotifyBeforeDeadline()) {
+                XMLGregorianCalendar beforeEnd = null;
+                beforeEnd = CloneUtil.clone(end);
+                beforeEnd.add(XmlTypeConverter.createDuration(false, 0, 0, 0, hoursBeforeDeadline, 0, 0));
+                if (XmlTypeConverter.toMillis(beforeEnd) > System.currentTimeMillis()) {
+                    TriggerType triggerBeforeEnd = new TriggerType(prismContext);
+                    triggerBeforeEnd.setHandlerUri(AccessCertificationCloseStageApproachingTriggerHandler.HANDLER_URI);
+                    triggerBeforeEnd.setTimestamp(beforeEnd);
+                    triggerBeforeEnd.setId(++lastId);
+                    triggers.add(triggerBeforeEnd);
+                }
+            }
+
+            ContainerDelta<TriggerType> triggerDelta = ContainerDelta.createModificationReplace(ObjectType.F_TRIGGER, AccessCertificationCampaignType.class, prismContext, triggers);
             itemDeltaList.add(triggerDelta);
         }
         repositoryService.modifyObject(AccessCertificationCampaignType.class, campaign.getOid(), itemDeltaList, result);
+
+        // notifications
+        campaign = updateCampaign(campaign, task, result);
+        if (campaign.getCurrentStageNumber() == 1) {
+            eventHelper.onCampaignStart(campaign, task, result);
+        }
+        eventHelper.onCampaignStageStart(campaign, task, result);
+        Collection<String> reviewers = eventHelper.getCurrentReviewers(campaign);
+        for (String reviewerOid : reviewers) {
+            List<AccessCertificationCaseType> cases = eventHelper.getCasesForReviewer(campaign, reviewerOid);
+            ObjectReferenceType reviewerRef = ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER);
+            eventHelper.onReviewRequested(reviewerRef, cases, campaign, task, result);
+        }
     }
 
-    void recordCloseCurrentState(AccessCertificationCampaignType campaign, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+    void recordCloseCurrentState(AccessCertificationCampaignType campaign, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         List<ItemDelta> campaignDeltaList = createCurrentResponsesDeltas(campaign);
         PropertyDelta<AccessCertificationCampaignStateType> stateDelta = createStateDelta(REVIEW_STAGE_DONE);
         campaignDeltaList.add(stateDelta);
         ContainerDelta triggerDelta = createTriggerDeleteDelta();
         campaignDeltaList.add(triggerDelta);
         repositoryService.modifyObject(AccessCertificationCampaignType.class, campaign.getOid(), campaignDeltaList, result);
+
+        campaign = updateCampaign(campaign, task, result);
+        eventHelper.onCampaignStageEnd(campaign, task, result);
     }
 
     private ContainerDelta createTriggerDeleteDelta() {

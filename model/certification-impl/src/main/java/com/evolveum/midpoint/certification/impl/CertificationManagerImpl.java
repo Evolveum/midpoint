@@ -16,12 +16,12 @@
 
 package com.evolveum.midpoint.certification.impl;
 
+import com.evolveum.midpoint.certification.api.AccessCertificationEventListener;
 import com.evolveum.midpoint.certification.api.CertificationManager;
 import com.evolveum.midpoint.certification.impl.handlers.CertificationHandler;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -94,6 +94,9 @@ public class CertificationManagerImpl implements CertificationManager {
 
     @Autowired
     protected AccCertGeneralHelper helper;
+
+    @Autowired
+    protected AccCertEventHelper eventHelper;
 
     @Autowired
     protected AccCertResponseComputationHelper computationHelper;
@@ -194,7 +197,7 @@ public class CertificationManagerImpl implements CertificationManager {
                 CertificationHandler handler = findCertificationHandler(campaign);
                 AccessCertificationStageType stage = updateHelper.createStage(campaign, currentStageNumber+1);
                 updateHelper.moveToNextStage(campaign, stage, handler, task, result);
-                updateHelper.recordMoveToNextStage(campaign, stage, result);
+                updateHelper.recordMoveToNextStage(campaign, stage, task, result);
             }
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't move to certification campaign stage " + requestedStageNumber + ": unexpected exception: " + e.getMessage(), e);
@@ -232,7 +235,7 @@ public class CertificationManagerImpl implements CertificationManager {
             } else if (!IN_REVIEW_STAGE.equals(state)) {
                 result.recordFatalError("Couldn't close review stage " + stageNumberToClose + " as it is currently not open");
             } else {
-                updateHelper.recordCloseCurrentState(campaign, result);
+                updateHelper.recordCloseCurrentState(campaign, task, result);
             }
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't close certification campaign stage " + stageNumberToClose+ ": unexpected exception: " + e.getMessage(), e);
@@ -275,6 +278,9 @@ public class CertificationManagerImpl implements CertificationManager {
                     result.recordWarning("The automated remediation is not configured. The campaign state was set to IN REMEDIATION, but all remediation actions have to be done by hand.");
                 }
                 updateHelper.setStageNumberAndState(campaign, lastStageNumber + 1, IN_REMEDIATION, task, result);
+
+                campaign = updateHelper.updateCampaign(campaign, task, result);
+                eventHelper.onCampaignStageStart(campaign, task, result);
             }
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't start the remediation: unexpected exception: " + e.getMessage(), e);
@@ -422,5 +428,10 @@ public class CertificationManagerImpl implements CertificationManager {
         } finally {
             result.computeStatusIfUnknown();
         }
+    }
+
+    @Override
+    public void registerCertificationEventListener(AccessCertificationEventListener listener) {
+        eventHelper.registerEventListener(listener);
     }
 }
