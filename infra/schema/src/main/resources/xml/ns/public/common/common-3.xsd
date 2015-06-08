@@ -171,7 +171,7 @@
         </xsd:annotation>
     </xsd:element>
  
-    <xsd:element name="ignore" type="xsd:boolean" default="true">
+    <xsd:element name="ignore" type="xsd:boolean" default="false">
         <xsd:annotation>
             <xsd:documentation>
                 <p>
