@@ -556,4 +556,8 @@ public class PageCertCampaign extends PageAdminCertification {
 		StringValue campaignOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
 		return campaignOid != null ? campaignOid.toString() : null;
 	}
+
+	public String getCampaignHandlerUri() {
+		return campaignModel.getObject().getHandlerUri();
+	}
 }

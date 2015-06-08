@@ -145,4 +145,7 @@ public class CertCampaignDto extends Selectable {
         return campaign.getCurrentStageNumber();
     }
 
+    public String getHandlerUri() {
+        return campaign.getHandlerUri();
+    }
 }

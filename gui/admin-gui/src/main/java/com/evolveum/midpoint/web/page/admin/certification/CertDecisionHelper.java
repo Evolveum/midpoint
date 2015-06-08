@@ -31,6 +31,7 @@ import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
@@ -151,7 +152,14 @@ public class CertDecisionHelper implements Serializable {
             @Override
             public void populateItem(Item<ICellPopulator<CertCaseOrDecisionDto>> item, String componentId, IModel<CertCaseOrDecisionDto> rowModel) {
                 super.populateItem(item, componentId, rowModel);
-                CertGuiHandler handler = CertGuiHandlerRegistry.instance().getHandler(rowModel.getObject().getHandlerUri());
+                CertCaseOrDecisionDto aCase = rowModel.getObject();
+                String handlerUri;
+                if (aCase instanceof CertDecisionDto) {
+                    handlerUri = aCase.getHandlerUri();
+                } else {
+                    handlerUri = ((PageCertCampaign) page).getCampaignHandlerUri();
+                }
+                CertGuiHandler handler = CertGuiHandlerRegistry.instance().getHandler(handlerUri);
                 if (handler != null) {
                     String title = handler.getCaseInfoButtonTitle(rowModel, page);
                     item.add(AttributeModifier.replace("title", title));
