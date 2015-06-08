@@ -95,9 +95,9 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 		
-		repoAddObjectFromFile(ACCOUNT1_REPO_FILENAME, ShadowType.class, initResult);
-		repoAddObjectFromFile(ACCOUNT_DELETE_REPO_FILENAME, ShadowType.class, initResult);
-		repoAddObjectFromFile(ACCOUNT_MODIFY_REPO_FILENAME, ShadowType.class, initResult);
+		repoAddShadowFromFile(ACCOUNT1_REPO_FILE, initResult);
+		repoAddShadowFromFile(ACCOUNT_DELETE_REPO_FILE, initResult);
+		repoAddShadowFromFile(ACCOUNT_MODIFY_REPO_FILE, initResult);
 	}
 	
 // We are NOT starting OpenDJ here. We want to see the blood .. err ... errors
@@ -447,7 +447,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 		
-		resource = addResourceFromFile(RESOURCE_OPENDJ_INITIALIZED_FILENAME, LDAP_CONNECTOR_TYPE, result);
+		resource = addResourceFromFile(RESOURCE_OPENDJ_INITIALIZED_FILE, LDAP_CONNECTOR_TYPE, result);
 
 		result.computeStatus();
 		TestUtil.assertSuccess(result);

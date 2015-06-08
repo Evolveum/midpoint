@@ -22,9 +22,10 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
+import java.io.File;
+
 import org.testng.AssertJUnit;
 import org.testng.annotations.*;
-
 import org.opends.server.core.AddOperation;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
@@ -60,7 +61,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext
 public class TestSynchronization extends AbstractIntegrationTest {
 
-	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/object/resource-opendj.xml";
+	private static final File RESOURCE_OPENDJ_FILE = new File("src/test/resources/object/resource-opendj.xml");
 	private static final String FILENAME_LDAP_CONNECTOR = "src/test/resources/ucf/connector-ldap.xml";
 	private static final String SYNC_TASK_OID = "91919191-76e0-59e2-86d6-3d4f02d3ffff";
 	private static final String FILENAME_SYNC_TASK = "src/test/resources/impl/sync-task-example.xml";
@@ -108,7 +109,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 		// let provisioning discover the connectors
 		provisioningService.postInit(initResult);
 		
-		resourceType = addResourceFromFile(FILENAME_RESOURCE_OPENDJ, AbstractOpenDJTest.LDAP_CONNECTOR_TYPE, initResult).asObjectable();
+		resourceType = addResourceFromFile(RESOURCE_OPENDJ_FILE, AbstractOpenDJTest.LDAP_CONNECTOR_TYPE, initResult).asObjectable();
 		
 		//it is needed to declare the task owner, so we add the user admin to the reposiotry
 		repoAddObjectFromFile(FILENAME_USER_ADMIN, UserType.class, initResult);

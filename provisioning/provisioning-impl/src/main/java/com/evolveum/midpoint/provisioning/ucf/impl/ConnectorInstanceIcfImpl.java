@@ -225,7 +225,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		this.connectorSchema = connectorSchema;
 		this.protector = protector;
 		this.prismContext = prismContext;
-		icfNameMapper = new IcfNameMapper();
+		icfNameMapper = new IcfNameMapper(schemaNamespace);
 		icfConvertor = new IcfConvertor(protector, resourceSchemaNamespace);
 		icfConvertor.setIcfNameMapper(icfNameMapper);
 	}

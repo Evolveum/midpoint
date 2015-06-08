@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,7 +94,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabi
 @DirtiesContext
 public class TestCsvFile extends AbstractIntegrationTest {
 
-	private static final String FILENAME_RESOURCE_CSV = "src/test/resources/object/resource-csv.xml";
+	private static final File RESOURCE_CSV_FILE = new File("src/test/resources/object/resource-csv.xml");
 	private static final String RESOURCE_CSV_OID = "ef2bc95b-76e0-59e2-86d6-9999cccccccc";
 	
 	private static final String CSV_CONNECTOR_TYPE = "com.evolveum.polygon.csvfile.CSVFileConnector";
@@ -127,7 +127,7 @@ public class TestCsvFile extends AbstractIntegrationTest {
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		provisioningService.postInit(initResult);
-		resource = addResourceFromFile(FILENAME_RESOURCE_CSV, CSV_CONNECTOR_TYPE, initResult);
+		resource = addResourceFromFile(RESOURCE_CSV_FILE, CSV_CONNECTOR_TYPE, initResult);
 		resourceType = resource.asObjectable();
 		
 		FileUtils.copyFile(new File(CSV_SOURCE_FILE_PATH), new File(CSV_TARGET_FILE_PATH));

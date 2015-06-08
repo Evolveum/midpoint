@@ -22,6 +22,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.util.Collection;
@@ -75,6 +76,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 public class ProvisioningTestUtil {
 	
 	public static final String COMMON_TEST_DIR_FILENAME = "src/test/resources/object/";
+	public static final File COMMON_TEST_DIR_FILE = new File(COMMON_TEST_DIR_FILENAME);
 	
 	public static final String RESOURCE_DUMMY_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd";
 	

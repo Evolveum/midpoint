@@ -35,6 +35,13 @@ public class IcfNameMapper {
 	private static final Map<QName,String> specialAttributeMapMp = new HashMap<QName,String>();
 	
 	private ResourceSchema resourceSchema = null;
+	// Used when there is no schema (schemaless resource)
+	private String resourceSchemaNamespace = null;
+	
+	public IcfNameMapper(String resourceSchemaNamespace) {
+		super();
+		this.resourceSchemaNamespace = resourceSchemaNamespace;
+	}
 
 	public ResourceSchema getResourceSchema() {
 		return resourceSchema;
@@ -42,6 +49,9 @@ public class IcfNameMapper {
 
 	public void setResourceSchema(ResourceSchema resourceSchema) {
 		this.resourceSchema = resourceSchema;
+		if (resourceSchema != null) {
+			resourceSchemaNamespace = resourceSchema.getNamespace();
+		}
 	}
 
 	private static void initialize() {
@@ -96,7 +106,7 @@ public class IcfNameMapper {
 			// fallback, compatibility
 			return specialAttributeMapIcf.get(icfAttrName);
 		}
-		QName attrXsdName = new QName(resourceSchema.getNamespace(), icfAttrName,
+		QName attrXsdName = new QName(resourceSchemaNamespace, icfAttrName,
 				ConnectorFactoryIcfImpl.NS_ICF_RESOURCE_INSTANCE_PREFIX);
 		return attrXsdName;
 	}
@@ -144,8 +154,8 @@ public class IcfNameMapper {
 			return specialAttributeMapMp.get(attrQName);
 		}
 		
-		if (!attrQName.getNamespaceURI().equals(resourceSchema.getNamespace())) {
-			throw new SchemaException("No mapping from QName " + attrQName + " to an ICF attribute in resource schema namespace: " + resourceSchema.getNamespace());
+		if (!attrQName.getNamespaceURI().equals(resourceSchemaNamespace)) {
+			throw new SchemaException("No mapping from QName " + attrQName + " to an ICF attribute in resource schema namespace: " + resourceSchemaNamespace);
 		}
 
 		return attrQName.getLocalPart();

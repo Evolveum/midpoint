@@ -231,14 +231,14 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		return object;
 	}
 	
-	protected <T extends ObjectType> PrismObject<T> repoAddShadowFromFile(File file, Class<T> type,
-			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
+	protected PrismObject<ShadowType> repoAddShadowFromFile(File file, OperationResult parentResult) 
+			throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
 			
 		OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
 				+ ".repoAddShadowFromFile");
 		result.addParam("file", file);
 		LOGGER.debug("addShadowFromFile: {}", file);
-		PrismObject<T> object = prismContext.parseObject(file);
+		PrismObject<ShadowType> object = prismContext.parseObject(file);
 		
 		PrismContainer<Containerable> attrCont = object.findContainer(ShadowType.F_ATTRIBUTES);
 		for (PrismProperty<?> attr: attrCont.getValue().getProperties()) {
@@ -252,7 +252,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		addBasicMetadata(object);
 		
 		LOGGER.trace("Adding object:\n{}", object.debugDump());
-		repoAddObject(type, object, "from file "+file, result);
+		repoAddObject(ShadowType.class, object, "from file "+file, result);
 		result.recordSuccess();
 		return object;
 	}
@@ -357,15 +357,15 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		return unmarshallValueFromFile(filePath, ObjectType.class);
 	}
 
-	protected PrismObject<ResourceType> addResourceFromFile(String filePath, String connectorType, OperationResult result)
+	protected PrismObject<ResourceType> addResourceFromFile(File file, String connectorType, OperationResult result)
 			throws JAXBException, SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
-		return addResourceFromFile(filePath, connectorType, false, result);
+		return addResourceFromFile(file, connectorType, false, result);
 	}
 	
-	protected PrismObject<ResourceType> addResourceFromFile(String filePath, String connectorType, boolean overwrite, OperationResult result)
+	protected PrismObject<ResourceType> addResourceFromFile(File file, String connectorType, boolean overwrite, OperationResult result)
 			throws JAXBException, SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
-		LOGGER.trace("addObjectFromFile: {}, connector type {}", filePath, connectorType);
-		PrismObject<ResourceType> resource = prismContext.parseObject(new File(filePath));
+		LOGGER.trace("addObjectFromFile: {}, connector type {}", file, connectorType);
+		PrismObject<ResourceType> resource = prismContext.parseObject(file);
 		fillInConnectorRef(resource, connectorType, result);
 		CryptoUtil.encryptValues(protector, resource);
 		display("Adding resource ", resource);

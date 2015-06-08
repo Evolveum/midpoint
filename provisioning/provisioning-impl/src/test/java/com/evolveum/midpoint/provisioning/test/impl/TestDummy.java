@@ -860,7 +860,7 @@ public class TestDummy extends AbstractDummyTest {
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ "." + TEST_NAME);
 
-		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(RESOURCE_DUMMY_FILENAME));
+		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_DUMMY_FILE);
 		// Transplant connector OID. The freshly-parsed resource does have only the fake one.
 		resource.asObjectable().getConnectorRef().setOid(this.resourceType.getConnectorRef().getOid());
 		// Make sure this object has a different OID than the one already loaded. This avoids caching
@@ -890,7 +890,7 @@ public class TestDummy extends AbstractDummyTest {
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ "." + TEST_NAME);
 
-		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(RESOURCE_DUMMY_FILENAME));
+		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_DUMMY_FILE);
 		// Transplant connector OID. The freshly-parsed resource does have only the fake one.
 		resource.asObjectable().getConnectorRef().setOid(this.resourceType.getConnectorRef().getOid());
 		ObjectDelta<ResourceType> delta = resource.createAddDelta();

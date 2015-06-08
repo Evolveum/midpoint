@@ -46,8 +46,8 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 	protected static final String TEST_DIR_NAME = "src/test/resources/impl/opendj";
 	protected static final File TEST_DIR = new File(TEST_DIR_NAME);
 	
-	protected static final String RESOURCE_OPENDJ_FILENAME = ProvisioningTestUtil.COMMON_TEST_DIR_FILENAME + "resource-opendj.xml";
-	protected static final String RESOURCE_OPENDJ_INITIALIZED_FILENAME = ProvisioningTestUtil.COMMON_TEST_DIR_FILENAME + "resource-opendj-initialized.xml";
+	protected static final File RESOURCE_OPENDJ_FILE = new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "resource-opendj.xml");
+	protected static final File RESOURCE_OPENDJ_INITIALIZED_FILE = new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILENAME, "resource-opendj-initialized.xml");
 	protected static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 	
 	protected static final File RESOURCE_OPENDJ_BAD_CREDENTIALS_FILE = new File(TEST_DIR, "resource-opendj-bad-credentials.xml");
@@ -56,8 +56,8 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 	protected static final File RESOURCE_OPENDJ_BAD_BIND_DN_FILE = new File(TEST_DIR, "resource-opendj-bad-bind-dn.xml");
 	protected static final String RESOURCE_OPENDJ_BAD_BIND_DN_OID = "d180258a-ef5f-11e4-8737-001e8c717e5b";
 	
-	protected static final String ACCOUNT1_FILENAME = TEST_DIR_NAME + "/account1.xml";
-	protected static final String ACCOUNT1_REPO_FILENAME = TEST_DIR_NAME + "/account1-repo.xml";
+	protected static final File ACCOUNT1_FILE = new File (TEST_DIR_NAME, "account1.xml");
+	protected static final File ACCOUNT1_REPO_FILE = new File(TEST_DIR_NAME, "account1-repo.xml");
 	protected static final String ACCOUNT1_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1cccc";
 	
 	protected static final String ACCOUNT_NEW_FILENAME = TEST_DIR_NAME + "/account-new.xml";
@@ -67,15 +67,15 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 	protected static final File ACCOUNT_BAD_FILE = new File(TEST_DIR, "account-bad.xml");
 	protected static final String ACCOUNT_BAD_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1ffff";
 	
-	protected static final String ACCOUNT_MODIFY_FILENAME = TEST_DIR_NAME + "/account-modify.xml";
-	protected static final String ACCOUNT_MODIFY_REPO_FILENAME = TEST_DIR_NAME + "/account-modify-repo.xml";
+	protected static final File ACCOUNT_MODIFY_FILE = new File(TEST_DIR_NAME, "account-modify.xml");
+	protected static final File ACCOUNT_MODIFY_REPO_FILE = new File(TEST_DIR_NAME, "account-modify-repo.xml");
 	protected static final String ACCOUNT_MODIFY_OID = "c0c010c0-d34d-b44f-f11d-333222444555";
 	
-	protected static final String ACCOUNT_MODIFY_PASSWORD_FILENAME = TEST_DIR_NAME + "/account-modify-password.xml";
+	protected static final File ACCOUNT_MODIFY_PASSWORD_FILE = new File(TEST_DIR_NAME, "account-modify-password.xml");
 	protected static final String ACCOUNT_MODIFY_PASSWORD_OID = "c0c010c0-d34d-b44f-f11d-333222444566";
 	
 	protected static final String ACCOUNT_DELETE_FILENAME = TEST_DIR_NAME + "/account-delete.xml";
-	protected static final String ACCOUNT_DELETE_REPO_FILENAME = TEST_DIR_NAME + "/account-delete-repo.xml";
+	protected static final File ACCOUNT_DELETE_REPO_FILE = new File(TEST_DIR_NAME, "account-delete-repo.xml");
 	protected static final String ACCOUNT_DELETE_OID = "c0c010c0-d34d-b44f-f11d-333222654321";
 	
 	protected static final String ACCOUNT_SEARCH_ITERATIVE_FILENAME = TEST_DIR_NAME + "/account-search-iterative.xml";
@@ -142,8 +142,8 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 		// not have a definition here
 		InternalsConfig.encryptionChecks = false;
 		provisioningService.postInit(initResult);
-		resource = addResourceFromFile(RESOURCE_OPENDJ_FILENAME, LDAP_CONNECTOR_TYPE, initResult);
-		repoAddShadowFromFile(ACCOUNT_BAD_FILE, ShadowType.class, initResult);
+		resource = addResourceFromFile(RESOURCE_OPENDJ_FILE, LDAP_CONNECTOR_TYPE, initResult);
+		repoAddShadowFromFile(ACCOUNT_BAD_FILE, initResult);
 	}
 	
 	protected <T> void assertAttribute(ShadowType shadow, String attrName, T... expectedValues) {

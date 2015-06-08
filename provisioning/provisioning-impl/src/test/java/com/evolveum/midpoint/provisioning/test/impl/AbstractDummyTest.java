@@ -103,7 +103,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	
 	protected static final String TEST_DIR = "src/test/resources/impl/dummy/";
 	
-	public static final String RESOURCE_DUMMY_FILENAME = ProvisioningTestUtil.COMMON_TEST_DIR_FILENAME + "resource-dummy.xml";
+	public static final File RESOURCE_DUMMY_FILE = new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "resource-dummy.xml");
 	public static final String RESOURCE_DUMMY_OID = "ef2bc95b-76e0-59e2-86d6-9999dddddddd";
 	public static final String RESOURCE_DUMMY_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd";
 	
@@ -233,8 +233,8 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		return icfUidAttr.getRealValue();
 	}
 
-	protected String getResourceDummyFilename() {
-		return RESOURCE_DUMMY_FILENAME;
+	protected File getResourceDummyFilename() {
+		return RESOURCE_DUMMY_FILE;
 	}
 	
 	protected File getAccountWillFile() {

@@ -55,6 +55,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -72,7 +73,7 @@ import static org.testng.AssertJUnit.*;
 @DirtiesContext
 public class TestDBTable extends AbstractIntegrationTest {
 	
-	private static final String FILENAME_RESOURCE_DERBY = "src/test/resources/object/resource-derby.xml";
+	private static final File RESOURCE_DERBY_FILE = new File("src/test/resources/object/resource-derby.xml");
 	private static final String RESOURCE_DERBY_OID = "ef2bc95b-76e0-59e2-86d6-999902d3abab";
 	private static final String ACCOUNT_WILL_FILENAME = "src/test/resources/impl/account-derby.xml";
 	private static final String ACCOUNT_WILL_OID = "c0c010c0-d34d-b44f-f11d-333222123456";
@@ -105,7 +106,7 @@ public class TestDBTable extends AbstractIntegrationTest {
 		// not have a definition here
 		InternalsConfig.encryptionChecks = false;
 		provisioningService.postInit(initResult);
-		addResourceFromFile(FILENAME_RESOURCE_DERBY, DB_TABLE_CONNECTOR_TYPE, initResult);
+		addResourceFromFile(RESOURCE_DERBY_FILE, DB_TABLE_CONNECTOR_TYPE, initResult);
 	}
 	
 	@BeforeClass

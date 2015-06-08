@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Evolveum
+ * Copyright (c) 2013-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,8 +75,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @DirtiesContext
 public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 	
-	public static final String TEST_DIR = "src/test/resources/impl/dummy-uuid-nonunique-name/";
-	public static final String RESOURCE_DUMMY_FILENAME = TEST_DIR + "resource-dummy.xml";
+	public static final File TEST_DIR = new File("src/test/resources/impl/dummy-uuid-nonunique-name/");
+	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
 	
 	public static final String ACCOUNT_FETTUCINI_NAME = "fettucini";
 	public static final File ACCOUNT_FETTUCINI_ALFREDO_FILE = new File(TEST_DIR, "account-alfredo-fettucini.xml");
@@ -88,8 +88,8 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 	public static final String ACCOUNT_FETTUCINI_CARLO_FULLNAME = "Carlo Fettucini";
 
 	@Override
-	protected String getResourceDummyFilename() {
-		return RESOURCE_DUMMY_FILENAME;
+	protected File getResourceDummyFilename() {
+		return RESOURCE_DUMMY_FILE;
 	}
 	
 	@Override

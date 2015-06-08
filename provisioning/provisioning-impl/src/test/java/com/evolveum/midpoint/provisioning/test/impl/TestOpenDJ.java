@@ -511,7 +511,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ "." + TEST_NAME);
 
-		ShadowType objectToAdd = parseObjectTypeFromFile(ACCOUNT1_FILENAME, ShadowType.class);
+		ShadowType objectToAdd = parseObjectType(ACCOUNT1_FILE, ShadowType.class);
 
 		System.out.println(SchemaDebugUtil.prettyPrint(objectToAdd));
 		System.out.println(objectToAdd.asPrismObject().debugDump());
@@ -749,7 +749,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ "." + TEST_NAME);
 
-		ShadowType object = unmarshallValueFromFile(ACCOUNT_MODIFY_FILENAME, ShadowType.class);
+		ShadowType object = unmarshallValueFromFile(ACCOUNT_MODIFY_FILE, ShadowType.class);
 
 		System.out.println(SchemaDebugUtil.prettyPrint(object));
 		System.out.println(object.asPrismObject().debugDump());
@@ -827,7 +827,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ "." + TEST_NAME);
 
-		ShadowType object = parseObjectTypeFromFile(ACCOUNT_MODIFY_PASSWORD_FILENAME, ShadowType.class);
+		ShadowType object = parseObjectType(ACCOUNT_MODIFY_PASSWORD_FILE, ShadowType.class);
 
 		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
 
@@ -1651,7 +1651,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		OperationResult parentResult = new OperationResult("test401noReadNativeCapability");
 		
-		addResourceFromFile(ProvisioningTestUtil.COMMON_TEST_DIR_FILENAME + "/resource-opendj-no-read.xml", LDAP_CONNECTOR_TYPE, true, parentResult);
+		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "resource-opendj-no-read.xml"), LDAP_CONNECTOR_TYPE, true, parentResult);
 		
 		Task task = taskManager.createTaskInstance();
 		
@@ -1671,7 +1671,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		OperationResult parentResult = new OperationResult("test401noReadNativeCapability");
 		
-		addResourceFromFile(ProvisioningTestUtil.COMMON_TEST_DIR_FILENAME + "/resource-opendj-no-create.xml", LDAP_CONNECTOR_TYPE, true, parentResult);
+		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "/resource-opendj-no-create.xml"), LDAP_CONNECTOR_TYPE, true, parentResult);
 		
 		Task task = taskManager.createTaskInstance();
 		
@@ -1692,7 +1692,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		OperationResult parentResult = new OperationResult("test401noReadNativeCapability");
 		
-		addResourceFromFile(ProvisioningTestUtil.COMMON_TEST_DIR_FILENAME + "/resource-opendj-no-delete.xml", LDAP_CONNECTOR_TYPE, true, parentResult);
+		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "/resource-opendj-no-delete.xml"), LDAP_CONNECTOR_TYPE, true, parentResult);
 		
 		Task task = taskManager.createTaskInstance();
 		
@@ -1711,7 +1711,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		OperationResult parentResult = new OperationResult("test401noReadNativeCapability");
 		
-		addResourceFromFile(ProvisioningTestUtil.COMMON_TEST_DIR_FILENAME + "/resource-opendj-no-update.xml", LDAP_CONNECTOR_TYPE, true, parentResult);
+		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "/resource-opendj-no-update.xml"), LDAP_CONNECTOR_TYPE, true, parentResult);
 		
 		Task task = taskManager.createTaskInstance();
 		

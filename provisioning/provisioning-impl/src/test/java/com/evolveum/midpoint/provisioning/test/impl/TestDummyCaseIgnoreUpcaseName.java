@@ -19,6 +19,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertNotNull;
 
+import java.io.File;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
@@ -57,12 +58,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @DirtiesContext
 public class TestDummyCaseIgnoreUpcaseName extends TestDummyCaseIgnore {
 	
-	public static final String TEST_DIR = "src/test/resources/impl/dummy-case-ignore-upcase-name/";
-	public static final String RESOURCE_DUMMY_FILENAME = TEST_DIR + "resource-dummy.xml";
+	public static final File TEST_DIR = new File("src/test/resources/impl/dummy-case-ignore-upcase-name/");
+	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
 
 	@Override
-	protected String getResourceDummyFilename() {
-		return RESOURCE_DUMMY_FILENAME;
+	protected File getResourceDummyFilename() {
+		return RESOURCE_DUMMY_FILE;
 	}
 
 	@Override
