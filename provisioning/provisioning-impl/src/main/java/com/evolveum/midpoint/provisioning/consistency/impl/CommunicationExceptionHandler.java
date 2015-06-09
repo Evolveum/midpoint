@@ -180,7 +180,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 				if (FailedOperationTypeType.ADD == shadow.getFailedOperationType()) {
 					if (shadow.getObjectChange() != null && shadow.getOid() != null) {
 						Collection<? extends ItemDelta> deltas = DeltaConvertor.toModifications(shadow
-								.getObjectChange().getItemDelta(), shadow.asPrismObject().getDefinition());
+								.getObjectChange().getItemDelta(), shadow.asPrismObject().getDefinition());		// TODO creates attributes in the shadow?
 
 						ConstraintsChecker.onShadowModifyOperation(deltas);
 						cacheRepositoryService.modifyObject(ShadowType.class, shadow.getOid(), deltas,
