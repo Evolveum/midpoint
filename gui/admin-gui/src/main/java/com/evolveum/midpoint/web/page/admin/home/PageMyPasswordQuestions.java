@@ -1,12 +1,14 @@
 package com.evolveum.midpoint.web.page.admin.home;
 
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.NullArgumentException;
+import org.apache.velocity.app.event.implement.EscapeJavaScriptReference;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
@@ -19,6 +21,7 @@ import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.util.encoding.UrlDecoder;
 import org.apache.wicket.util.string.StringValue;
 import org.aspectj.util.LangUtil.ProcessController.Thrown;
 import org.eclipse.core.internal.runtime.PrintStackUtil;
@@ -561,7 +564,9 @@ private SecurityQuestionAnswerDTO checkIfQuestionisValidSingle(SecurityQuestionA
 				answer.setClearValue(((TextField<String>)type.get(MyPasswordQuestionsPanel.F_ANSWER)).getModelObject());			
 				answerType.setQuestionAnswer(answer);
 				
-				answerType.setQuestionIdentifier(getQuestionIdentifierFromQuestion(((Label)type.get(MyPasswordQuestionsPanel.F_QUESTION)).getDefaultModelObjectAsString()));			
+				//used apache's unescapeHtml method for special chars like \'
+				String results = StringEscapeUtils.unescapeHtml((type.get(MyPasswordQuestionsPanel.F_QUESTION)).getDefaultModelObjectAsString());
+				answerType.setQuestionIdentifier(getQuestionIdentifierFromQuestion(results));			
 				answerTypeList[listnum]=answerType;
 				listnum++;
 				
@@ -615,6 +620,7 @@ private SecurityQuestionAnswerDTO checkIfQuestionisValidSingle(SecurityQuestionA
 	}
 
 	private String getQuestionIdentifierFromQuestion(String questionItself){
+		//LOGGER.info("\n\n QUESTION: "+questionItself);
 		for (Iterator iterator = policyQuestionList.iterator(); iterator
 				.hasNext();) {
 			SecurityQuestionDefinitionType securityQuestionDefinitionType = (SecurityQuestionDefinitionType) iterator
