@@ -975,9 +975,9 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         
         long tsEnd = System.currentTimeMillis();
         
-        displayUsers();
-        
         PrismObject<RoleType> role = findObjectByName(RoleType.class, GROUP_MONKEYS_CN);
+        display("Role", role);
+        assertNotNull("no role "+GROUP_MONKEYS_CN, role);
         PrismAsserts.assertPropertyValue(role, RoleType.F_DESCRIPTION, GROUP_MONKEYS_DESCRIPTION);
         assertNotNull("No role "+GROUP_MONKEYS_CN+" created", role);
 
@@ -1399,7 +1399,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 		connection.close();
 	}
 	
-	protected void assertAccountShadow(PrismObject<ShadowType> shadow, String dn) {
+	protected void assertAccountShadow(PrismObject<ShadowType> shadow, String dn) throws SchemaException {
 		assertShadowCommon(shadow, null, dn, resourceType, getAccountObjectClass(), ciMatchingRule);
 	}
 

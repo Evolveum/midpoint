@@ -70,7 +70,7 @@
 			<default>true</default>
 			<objectClass>ri:inetOrgPerson</objectClass>
 			<attribute>
-				<ref>icfs:name</ref>
+				<ref>ri:dn</ref>
 				<displayName>Distinguished Name</displayName>
 				<matchingRule>mr:stringIgnoreCase</matchingRule>
 				<outbound>
@@ -87,7 +87,7 @@
 				</outbound>
 			</attribute>
 			<attribute>
-				<ref>icfs:uid</ref>
+				<ref>ri:entryUUID</ref>
 				<displayName>Entry UUID</displayName>
 				<matchingRule>mr:stringIgnoreCase</matchingRule>
 			</attribute>
@@ -176,14 +176,20 @@
             	<intent>ldapGroup</intent>
             	<direction>objectToSubject</direction>
             	<associationAttribute>ri:member</associationAttribute>
-            	<valueAttribute>icfs:name</valueAttribute>
+            	<valueAttribute>ri:dn</valueAttribute>
             	<shortcutAssociationAttribute>ri:memberOf</shortcutAssociationAttribute>
-            	<shortcutValueAttribute>icfs:name</shortcutValueAttribute>
+            	<shortcutValueAttribute>ri:dn</shortcutValueAttribute>
             	<explicitReferentialIntegrity>true</explicitReferentialIntegrity>
             </association>
 			
 			<protected>
-				<icfs:name>uid=idm,ou=Administrators,dc=example,dc=com</icfs:name>
+       			<filter>
+	       			<q:equal>
+	       				<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#stringIgnoreCase</q:matching>
+		            	<q:path>attributes/ri:dn</q:path>
+		                <q:value>cn=idm,ou=Administrators,dc=example,dc=com</q:value>
+		            </q:equal>
+	            </filter>
 			</protected>
 			
 			<activation>
@@ -200,7 +206,7 @@
             <displayName>LDAP Group</displayName>
             <objectClass>ri:groupOfNames</objectClass>
             <attribute>
-				<ref>icfs:name</ref>
+				<ref>ri:dn</ref>
 				<matchingRule>mr:stringIgnoreCase</matchingRule>
 				<outbound>
 					<!-- Name cannot be weak. Changes in name trigger object rename. -->

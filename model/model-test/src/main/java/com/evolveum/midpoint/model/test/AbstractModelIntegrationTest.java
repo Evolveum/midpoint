@@ -1724,21 +1724,21 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return foundObjects.iterator().next();
 	}
 
-    protected void assertAccountShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType) {
+    protected void assertAccountShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType) throws SchemaException {
         assertShadowModel(accountShadow, oid, username, resourceType, getAccountObjectClass(resourceType), null);
     }
 
-    protected void assertAccountShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType, MatchingRule<String> matchingRule) {
+    protected void assertAccountShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType, MatchingRule<String> matchingRule) throws SchemaException {
         assertShadowModel(accountShadow, oid, username, resourceType, getAccountObjectClass(resourceType), matchingRule);
     }
     
     protected void assertShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
-                                     QName objectClass) {
+                                     QName objectClass) throws SchemaException {
     	assertShadowModel(accountShadow, oid, username, resourceType, objectClass, null);
     }
     
 	protected void assertShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
-                                     QName objectClass, MatchingRule<String> nameMatchingRule) {
+                                     QName objectClass, MatchingRule<String> nameMatchingRule) throws SchemaException {
 		assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule);
 		IntegrationTestTools.assertProvisioningShadow(accountShadow, resourceType, RefinedAttributeDefinition.class, objectClass);
 	}

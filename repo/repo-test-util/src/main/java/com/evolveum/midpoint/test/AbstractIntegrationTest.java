@@ -552,16 +552,16 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		}
 	}
 	
-	protected void assertShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType, QName objectClass) {
+	protected void assertShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType, QName objectClass) throws SchemaException {
 		assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, null);
 	}
 
-    protected void assertAccountShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType) {
+    protected void assertAccountShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType) throws SchemaException {
         assertShadowCommon(accountShadow, oid, username, resourceType, getAccountObjectClass(resourceType), null);
     }
 
     protected void assertAccountShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
-                                      MatchingRule<String> nameMatchingRule) {
+                                      MatchingRule<String> nameMatchingRule) throws SchemaException {
         assertShadowCommon(accountShadow,oid,username,resourceType,getAccountObjectClass(resourceType),nameMatchingRule);
     }
 
@@ -574,7 +574,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
     }
 
     protected void assertShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
-                                      QName objectClass, MatchingRule<String> nameMatchingRule) {
+                                      QName objectClass, MatchingRule<String> nameMatchingRule) throws SchemaException {
 		assertShadow(accountShadow);
 		if (oid != null) {
 			assertEquals("Account shadow OID mismatch (prism)", oid, accountShadow.getOid());
@@ -588,9 +588,13 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		PrismContainer<Containerable> attributesContainer = accountShadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
 		assertNotNull("Null attributes in shadow for "+username, attributesContainer);
 		assertFalse("Empty attributes in shadow for "+username, attributesContainer.isEmpty());
-		PrismProperty<String> icfNameProp = attributesContainer.findProperty(new QName(SchemaConstants.NS_ICF_SCHEMA,"name"));
-		assertNotNull("No ICF name attribute in shadow for "+username, icfNameProp);
-		PrismAsserts.assertEquals("Unexpected ICF name attribute in shadow for "+username, nameMatchingRule, username, icfNameProp.getRealValue());
+		
+		RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resourceType);
+		ObjectClassComplexTypeDefinition ocDef = rSchema.findObjectClassDefinition(objectClass);
+		ResourceAttributeDefinition idSecDef = ocDef.getSecondaryIdentifiers().iterator().next();
+		PrismProperty<String> idProp = attributesContainer.findProperty(idSecDef.getName());
+		assertNotNull("No secondary identifier ("+idSecDef.getName()+") attribute in shadow for "+username, idProp);
+		PrismAsserts.assertEquals("Unexpected ICF name attribute in shadow for "+username, nameMatchingRule, username, idProp.getRealValue());
 	}
 	
 	protected void assertShadowRepo(String oid, String username, ResourceType resourceType, QName objectClass) throws ObjectNotFoundException, SchemaException {
@@ -606,20 +610,20 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
     }
 	
 	protected void assertShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
-                                    QName objectClass) {
+                                    QName objectClass) throws SchemaException {
 		assertShadowRepo(accountShadow, oid, username, resourceType, objectClass, null);
 	}
 
-    protected void assertAccountShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType) {
+    protected void assertAccountShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType) throws SchemaException {
         assertShadowRepo(accountShadow, oid, username, resourceType, getAccountObjectClass(resourceType), null);
     }
 	
-    protected void assertAccountShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType, MatchingRule<String> matchingRule) {
+    protected void assertAccountShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType, MatchingRule<String> matchingRule) throws SchemaException {
         assertShadowRepo(accountShadow, oid, username, resourceType, getAccountObjectClass(resourceType), matchingRule);
     }
     
 	protected void assertShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
-                                    QName objectClass, MatchingRule<String> nameMatchingRule) {
+                                    QName objectClass, MatchingRule<String> nameMatchingRule) throws SchemaException {
 		assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule);
 		PrismContainer<Containerable> attributesContainer = accountShadow.findContainer(ShadowType.F_ATTRIBUTES);
 		List<Item<?,?>> attributes = attributesContainer.getValue().getItems();
