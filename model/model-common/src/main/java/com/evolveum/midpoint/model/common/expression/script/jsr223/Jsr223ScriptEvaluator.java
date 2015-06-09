@@ -41,8 +41,10 @@ import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.script.ScriptEvaluator;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -161,6 +163,13 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 			if (allowEmptyValues || !isEmpty(evalResult)) {
 				if (outputDefinition instanceof PrismReferenceDefinition){
 					pval = (V) ((ObjectReferenceType)evalResult).asReferenceValue();
+				} else if (outputDefinition instanceof PrismContainerDefinition){
+					try {
+						prismContext.adopt((Containerable)evalResult);
+					} catch (SchemaException e) {
+						throw new ExpressionEvaluationException(e.getMessage() + " " + contextDescription, e);
+					}
+					pval = (V) ((Containerable)evalResult).asPrismContainerValue();
 				} else {
 					pval = (V) new PrismPropertyValue<T>(evalResult);
 				}
