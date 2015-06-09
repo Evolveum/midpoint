@@ -29,13 +29,11 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.DirectlyEditablePropertyColumn;
-import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn.BUTTON_COLOR_CLASS;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.data.column.MultiButtonColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.message.MainFeedback;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertDecisionDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertDecisionDtoProvider;
@@ -69,7 +67,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -180,18 +177,18 @@ public class PageCertDecisions extends PageAdminCertification {
 		initSearchFormLayout(searchForm);
 
 		// adding this on outer feedback panel prevents displaying the error messages
-		addVisibleOnWarningBehavior(getMainFeedbackPanel());
-		addVisibleOnWarningBehavior(getTempFeedbackPanel());
+		//addVisibleOnWarningBehavior(getMainFeedbackPanel());
+		//addVisibleOnWarningBehavior(getTempFeedbackPanel());
 	}
 
-	private void addVisibleOnWarningBehavior(Component c) {
-		c.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return PageCertDecisions.this.getFeedbackMessages().hasMessage(FeedbackMessage.WARNING);
-			}
-		});
-	}
+//	private void addVisibleOnWarningBehavior(Component c) {
+//		c.add(new VisibleEnableBehaviour() {
+//			@Override
+//			public boolean isVisible() {
+//				return PageCertDecisions.this.getFeedbackMessages().hasMessage(FeedbackMessage.WARNING);
+//			}
+//		});
+//	}
 
 	private void initSearchFormLayout(Form searchForm) {
 		CheckBox showNotDecidedOnlyBox = new CheckBox(ID_SHOW_NOT_DECIDED_ONLY, showNotDecidedOnlyModel);
@@ -426,8 +423,10 @@ public class PageCertDecisions extends PageAdminCertification {
 			}
 		}
 		result.computeStatus();
-		showResult(result);
 
+		if (!result.isSuccess()) {
+			showResult(result);
+		}
 		target.add(getFeedbackPanel());
 		target.add(getDecisionsTable());
 	}
@@ -456,10 +455,11 @@ public class PageCertDecisions extends PageAdminCertification {
 			result.computeStatusIfUnknown();
 		}
 
-		showResult(result);
-
-		target.add(getDecisionsTable());
+		if (!result.isSuccess()) {
+			showResult(result);
+		}
 		target.add(getFeedbackPanel());
+		target.add(getDecisionsTable());
 	}
 
 	private void searchFilterPerformed(AjaxRequestTarget target) {
