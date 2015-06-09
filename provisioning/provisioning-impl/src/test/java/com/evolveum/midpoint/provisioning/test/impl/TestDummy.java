@@ -1225,7 +1225,11 @@ public class TestDummy extends AbstractDummyTest {
 				ObjectType objectType = object.asObjectable();
 				assertTrue(objectType instanceof ShadowType);
 				ShadowType shadow = (ShadowType) objectType;
-				checkAccountShadow(shadow, parentResult);
+				try {
+					checkAccountShadow(shadow, parentResult);
+				} catch (SchemaException e) {
+					throw new SystemException(e.getMessage(), e);
+				}
 				
 				if (object.asObjectable().getName().getOrig().equals("meathook")) {
 					seenMeathookHolder.setValue(true);
@@ -2509,7 +2513,11 @@ public class TestDummy extends AbstractDummyTest {
 				assertTrue(objectType instanceof ShadowType);
                 if (!useRepo) {
                     ShadowType shadow = (ShadowType) objectType;
-                    checkAccountShadow(shadow, parentResult, fullShadow);
+                    try {
+						checkAccountShadow(shadow, parentResult, fullShadow);
+					} catch (SchemaException e) {
+						throw new SystemException(e.getMessage(), e);
+					}
                 }
 				return true;
 			}
@@ -2638,7 +2646,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertSteadyResource();
 	}
 
-	private void checkGroupPirates(ShadowType shadow, OperationResult result) {
+	private void checkGroupPirates(ShadowType shadow, OperationResult result) throws SchemaException {
 		checkGroupShadow(shadow, result);
 		PrismAsserts.assertEqualsPolyString("Name not equal.", transformNameFromResource(GROUP_PIRATES_NAME), shadow.getName());
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ENTITLEMENT, shadow.getKind());
@@ -2801,7 +2809,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertSteadyResource();
 	}
 	
-	private void checkPrivPillage(ShadowType shadow, OperationResult result) {
+	private void checkPrivPillage(ShadowType shadow, OperationResult result) throws SchemaException {
 		checkEntitlementShadow(shadow, result, OBJECTCLAS_PRIVILEGE_LOCAL_NAME, true);
 		assertShadowName(shadow, PRIVILEGE_PILLAGE_NAME);
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ENTITLEMENT, shadow.getKind());
@@ -2868,7 +2876,7 @@ public class TestDummy extends AbstractDummyTest {
         assertSteadyResource();
     }
 
-    private void checkPrivBargain(ShadowType shadow, OperationResult result) {
+    private void checkPrivBargain(ShadowType shadow, OperationResult result) throws SchemaException {
         checkEntitlementShadow(shadow, result, OBJECTCLAS_PRIVILEGE_LOCAL_NAME, true);
         assertShadowName(shadow, PRIVILEGE_BARGAIN_NAME);
         assertEquals("Wrong kind (provisioning)", ShadowKindType.ENTITLEMENT, shadow.getKind());
@@ -4512,25 +4520,25 @@ public class TestDummy extends AbstractDummyTest {
 		assertSteadyResource();
 	}
 	
-	private void checkAccountShadow(ShadowType shadow, OperationResult parentResult) {
+	private void checkAccountShadow(ShadowType shadow, OperationResult parentResult) throws SchemaException {
 		checkAccountShadow(shadow, parentResult, true);
 	}
 
-	private void checkAccountShadow(ShadowType shadowType, OperationResult parentResult, boolean fullShadow) {
+	private void checkAccountShadow(ShadowType shadowType, OperationResult parentResult, boolean fullShadow) throws SchemaException {
 		ObjectChecker<ShadowType> checker = createShadowChecker(fullShadow);
 		ShadowUtil.checkConsistence(shadowType.asPrismObject(), parentResult.getOperation());
 		IntegrationTestTools.checkAccountShadow(shadowType, resourceType, repositoryService, checker, getUidMatchingRule(), prismContext, parentResult);
 	}
 
-	private void checkGroupShadow(ShadowType shadow, OperationResult parentResult) {
+	private void checkGroupShadow(ShadowType shadow, OperationResult parentResult) throws SchemaException {
 		checkEntitlementShadow(shadow, parentResult, SchemaTestConstants.ICF_GROUP_OBJECT_CLASS_LOCAL_NAME, true);
 	}
 	
-	private void checkGroupShadow(ShadowType shadow, OperationResult parentResult, boolean fullShadow) {
+	private void checkGroupShadow(ShadowType shadow, OperationResult parentResult, boolean fullShadow) throws SchemaException {
 		checkEntitlementShadow(shadow, parentResult, SchemaTestConstants.ICF_GROUP_OBJECT_CLASS_LOCAL_NAME, fullShadow);
 	}
 
-	private void checkEntitlementShadow(ShadowType shadowType, OperationResult parentResult, String objectClassLocalName, boolean fullShadow) {
+	private void checkEntitlementShadow(ShadowType shadowType, OperationResult parentResult, String objectClassLocalName, boolean fullShadow) throws SchemaException {
 		ObjectChecker<ShadowType> checker = createShadowChecker(fullShadow);
 		ShadowUtil.checkConsistence(shadowType.asPrismObject(), parentResult.getOperation());
 		IntegrationTestTools.checkEntitlementShadow(shadowType, resourceType, repositoryService, checker, objectClassLocalName, getUidMatchingRule(), prismContext, parentResult);

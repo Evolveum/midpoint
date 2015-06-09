@@ -561,13 +561,10 @@ public class QueryConvertor {
 
 	private static QName determineMatchingRule(MapXNode xmap) throws SchemaException{
 		String matchingRuleString = xmap.getParsedPrimitiveValue(KEY_FILTER_EQUAL_MATCHING, DOMUtil.XSD_STRING);
-		LOGGER.error("UUUUUUUUUUUUUUUUU: {}", matchingRuleString);
 		if (StringUtils.isNotBlank(matchingRuleString)){
 			if (QNameUtil.isUri(matchingRuleString)) {
-				LOGGER.error("UUUUUUUUUUUUUUUUU: isURI");
 				return QNameUtil.uriToQName(matchingRuleString);
 			} else {
-				LOGGER.error("UUUUUUUUUUUUUUUUU: NOT isURI");
 				return new QName(PrismConstants.NS_MATCHING_RULE, matchingRuleString);
 			}
 		} else {
