@@ -20,6 +20,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 
@@ -208,13 +209,13 @@ public class EqualFilter<T extends Object> extends PropertyValueFilter<PrismProp
 	}
 
 	@Override
-	public boolean match(Containerable object, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+	public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
 		Item filterItem = getFilterItem();
-		if (!super.match(object, matchingRuleRegistry)){
+		if (!super.match(value, matchingRuleRegistry)){
 			return false;
 		}
 
-		List<Object> values = getObjectItem(object).getValues();
+		List<Object> values = getObjectItem(value).getValues();
 		if (values == null){
 			return true;
 		}

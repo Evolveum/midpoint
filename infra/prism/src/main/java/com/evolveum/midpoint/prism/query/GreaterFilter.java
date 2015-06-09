@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
@@ -114,7 +115,7 @@ public class GreaterFilter<T> extends ComparativeFilter<T> {
 	}
 
 	@Override
-	public boolean match(Containerable object, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+	public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
 		throw new UnsupportedOperationException("Matching object and greater filter not supported yet");
 	}
 	

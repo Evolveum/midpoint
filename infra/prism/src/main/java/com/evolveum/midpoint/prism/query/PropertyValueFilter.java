@@ -23,6 +23,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
@@ -165,9 +166,9 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 		return clonedValues;
 	}
 	
-	public Item getObjectItem(Containerable object){
+	public Item getObjectItem(PrismContainerValue value){
 		ItemPath path = getFullPath();
-		return object.asPrismContainerValue().findItem(path);
+		return value.findItem(path);
 	}
 	
 	public Item getFilterItem() throws SchemaException{
@@ -210,9 +211,9 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 	}
 
 	@Override
-	public boolean match(Containerable object, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+	public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
 
-		Item item = getObjectItem(object);
+		Item item = getObjectItem(value);
 
 		boolean filterItemIsEmpty = getValues() == null || getValues().isEmpty();
 		boolean objectItemIsEmpty = item == null || item.isEmpty();

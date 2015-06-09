@@ -74,11 +74,11 @@ public class ObjectQuery implements DebugDumpable, Serializable {
 	}
 	
 	public static <T extends Objectable> boolean match(PrismObject<T> object, ObjectFilter filter, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException{
-		return filter.match(object.asObjectable(), matchingRuleRegistry);
+		return filter.match(object.getValue(), matchingRuleRegistry);
 	}
 
 	public static boolean match(Containerable object, ObjectFilter filter, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException{
-		return filter.match(object, matchingRuleRegistry);
+		return filter.match(object.asPrismContainerValue(), matchingRuleRegistry);
 	}
 	
 	public ObjectQuery clone() {

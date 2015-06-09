@@ -18,6 +18,7 @@ package com.evolveum.midpoint.prism.query;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -62,7 +63,7 @@ public class TypeFilter extends ObjectFilter {
     }
 
     @Override
-    public boolean match(Containerable object, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+    public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
         return false;
     }
 

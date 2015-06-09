@@ -23,6 +23,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import org.apache.commons.lang.Validate;
@@ -172,12 +173,12 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue> {
 	}
 
 	@Override
-	public boolean match(Containerable object, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+	public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
 
 		Item filterItem = getFilterItem();
-		Item objectItem = getObjectItem(object);
+		Item objectItem = getObjectItem(value);
 
-		if (!super.match(object, matchingRuleRegistry)) {
+		if (!super.match(value, matchingRuleRegistry)) {
 			return false;
 		}
 

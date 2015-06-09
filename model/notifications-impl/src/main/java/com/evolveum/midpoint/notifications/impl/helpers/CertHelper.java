@@ -50,7 +50,8 @@ public class CertHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(CertHelper.class);
 
-    @Autowired
+    // if not present, CertificationListener will not be enabled, so these events will not be generated
+    @Autowired(required = false)
     private CertificationManager certificationManager;
 
     public String formatStatus(AccessCertificationEvent event) {

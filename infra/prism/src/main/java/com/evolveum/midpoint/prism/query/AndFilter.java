@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -96,9 +97,9 @@ public class AndFilter extends NaryLogicalFilter {
 
 
 	@Override
-	public boolean match(Containerable object, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+	public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
 		for (ObjectFilter filter : getConditions()){
-			if (!filter.match(object, matchingRuleRegistry)){
+			if (!filter.match(value, matchingRuleRegistry)){
 				return false;
 			}
 		}

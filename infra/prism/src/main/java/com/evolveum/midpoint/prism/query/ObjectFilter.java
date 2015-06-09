@@ -20,6 +20,7 @@ import java.io.Serializable;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.Revivable;
@@ -36,7 +37,7 @@ public abstract class ObjectFilter implements DebugDumpable, Serializable, Reviv
 		
 	public abstract ObjectFilter clone();
 	
-	public abstract boolean match(Containerable object, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException;
+	public abstract boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException;
 	
 	protected void cloneValues(ObjectFilter clone) {
 	}

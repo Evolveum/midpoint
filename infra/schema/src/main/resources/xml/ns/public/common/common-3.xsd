@@ -757,6 +757,8 @@
     				</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
+            <!-- The following certification-related items might be enabled in the future.
+
             <xsd:element name="certificationStartedTimestamp" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -805,7 +807,7 @@
                         <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
                     </xsd:appinfo>
                 </xsd:annotation>
-            </xsd:element>
+            </xsd:element> -->
     	</xsd:sequence>
     </xsd:complexType>
 
