@@ -60,13 +60,13 @@ public class DirectAssignmentCertGuiHandler implements CertGuiHandler {
         }
         String targetType = getLocalizedTypeName(_case.getTargetRef().getType(), page);
         String targetName = dto.getTargetName();
-        String subjectType = getLocalizedTypeName(_case.getSubjectRef().getType(), page);
-        String subjectName = dto.getSubjectName();
+        String objectType = getLocalizedTypeName(_case.getObjectRef().getType(), page);
+        String objectName = dto.getObjectName();
 
         infoList.add(page.createStringResource("PageCert.message.assignment",
                 assignmentOrInducement,
                 emptyToDash(targetType), emptyToDash(targetName),
-                emptyToDash(subjectType), emptyToDash(subjectName)).getString());
+                emptyToDash(objectType), emptyToDash(objectName)).getString());
 
         if (StringUtils.isNotEmpty(assignment.getDescription())) {
             infoList.add(page.createStringResource("PageCert.message.textDescription", assignment.getDescription()).getString());

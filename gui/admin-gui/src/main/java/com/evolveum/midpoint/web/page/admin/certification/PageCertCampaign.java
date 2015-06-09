@@ -29,7 +29,6 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn.BUTTON_COLOR_CLASS;
 import com.evolveum.midpoint.web.component.data.column.MultiButtonColumn;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
@@ -263,7 +262,7 @@ public class PageCertCampaign extends PageAdminCertification {
 		
 		IColumn column;
 
-		column = helper.createSubjectNameColumn(this, "PageCertCampaign.table.subjectName");
+		column = helper.createObjectNameColumn(this, "PageCertCampaign.table.objectName");
 		columns.add(column);
 
 		column = helper.createTargetTypeColumn(this);

@@ -116,7 +116,7 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
         assignmentCase.asPrismContainerValue().setConcreteType(AccessCertificationAssignmentCaseType.COMPLEX_TYPE);
         assignmentCase.setAssignment(assignment.clone());
         assignmentCase.setIsInducement(isInducement);
-        assignmentCase.setSubjectRef(ObjectTypeUtil.createObjectRef(object));
+        assignmentCase.setObjectRef(ObjectTypeUtil.createObjectRef(object));
         boolean valid;
         if (assignment.getTargetRef() != null) {
             assignmentCase.setTargetRef(assignment.getTargetRef());
@@ -195,12 +195,12 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
             throw new IllegalStateException("Expected " + AccessCertificationAssignmentCaseType.class + ", got " + aCase.getClass() + " instead");
         }
         AccessCertificationAssignmentCaseType assignmentCase = (AccessCertificationAssignmentCaseType) aCase;
-        String subjectOid = assignmentCase.getSubjectRef().getOid();
+        String objectOid = assignmentCase.getObjectRef().getOid();
         Long assignmentId = assignmentCase.getAssignment().getId();
         if (assignmentId == null) {
             throw new IllegalStateException("No ID for an assignment to remove: " + assignmentCase.getAssignment());
         }
-        Class clazz = ObjectTypes.getObjectTypeFromTypeQName(assignmentCase.getSubjectRef().getType()).getClassDefinition();
+        Class clazz = ObjectTypes.getObjectTypeFromTypeQName(assignmentCase.getObjectRef().getType()).getClassDefinition();
         PrismContainerValue<AssignmentType> cval = new PrismContainerValue<>(prismContext);
         cval.setId(assignmentId);
 
@@ -211,12 +211,12 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
         } else {
             assignmentDelta = ContainerDelta.createModificationDelete(FocusType.F_ASSIGNMENT, clazz, prismContext, cval);
         }
-        ObjectDelta objectDelta = ObjectDelta.createModifyDelta(subjectOid, Arrays.asList(assignmentDelta), clazz, prismContext);
+        ObjectDelta objectDelta = ObjectDelta.createModifyDelta(objectOid, Arrays.asList(assignmentDelta), clazz, prismContext);
         LOGGER.info("Going to execute delta: {}", objectDelta.debugDump());
         modelService.executeChanges((Collection) Arrays.asList(objectDelta), null, task, caseResult);
         LOGGER.info("Case {} in {} ({} {} of {}) was successfully revoked",
                 aCase.asPrismContainerValue().getId(), ObjectTypeUtil.toShortString(campaign),
                 Boolean.TRUE.equals(assignmentCase.isIsInducement()) ? "inducement":"assignment",
-                assignmentId, subjectOid);
+                assignmentId, objectOid);
     }
 }

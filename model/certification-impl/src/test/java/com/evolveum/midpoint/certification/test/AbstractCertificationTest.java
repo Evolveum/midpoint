@@ -240,7 +240,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 	protected AccessCertificationCaseType findCase(Collection<AccessCertificationCaseType> caseList, String subjectOid, String targetOid) {
 		for (AccessCertificationCaseType acase : caseList) {
 			if (acase.getTargetRef() != null && acase.getTargetRef().getOid().equals(targetOid) &&
-					acase.getSubjectRef() != null && acase.getSubjectRef().getOid().equals(subjectOid)) {
+					acase.getObjectRef() != null && acase.getObjectRef().getOid().equals(subjectOid)) {
 				return acase;
 			}
 		}

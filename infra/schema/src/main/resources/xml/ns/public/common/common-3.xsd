@@ -11452,39 +11452,39 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="useTargetObjectOwner" type="xsd:boolean" minOccurs="0">
+            <xsd:element name="useTargetOwner" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Indicates that target object (Org, Role, Resource) owner(s) should be used as reviewer(s).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="useTargetObjectApprover" type="xsd:boolean" minOccurs="0">
+            <xsd:element name="useTargetApprover" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Indicates that target object (Org, Role, Resource) approver(s) should be used as reviewer(s).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="useSubjectOwner" type="xsd:boolean" minOccurs="0">
+            <xsd:element name="useObjectOwner" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Indicates that subject (Org, Role) owner(s) should be used as reviewer(s).
+                        Indicates that object (Org, Role) owner(s) should be used as reviewer(s).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="useSubjectApprover" type="xsd:boolean" minOccurs="0">
+            <xsd:element name="useObjectApprover" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Indicates that subject (Org, Role) approver(s) should be used as reviewer(s).
+                        Indicates that obbject (Org, Role) approver(s) should be used as reviewer(s).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="useSubjectManager" type="tns:ManagerSearchType" minOccurs="0">
+            <xsd:element name="useObjectManager" type="tns:ManagerSearchType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Indicates that the subject's managers should be used. The interpretation depends on what kind
-                        of subject there is.
+                        Indicates that the object's managers should be used. The interpretation depends on what kind
+                        of object there is.
 
                         For a user, the managers of all organizations to which he/she belongs, are taken.
                         For an org, its managers are taken.
@@ -11855,10 +11855,10 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="subjectRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="objectRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Subject (e.g. a user) that is being touched by this case.
+                        Object (e.g. a user) that is being touched by this case.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:ObjectType</a:objectReferenceTargetType>

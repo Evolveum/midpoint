@@ -90,20 +90,20 @@ public class AccCertReviewersHelper {
             return;     // TODO issue a warning here?
         }
 
-        if (Boolean.TRUE.equals(reviewerSpec.isUseTargetObjectOwner())) {
+        if (Boolean.TRUE.equals(reviewerSpec.isUseTargetOwner())) {
             cloneAndMerge(_case.getReviewerRef(), getTargetObjectOwners(_case, task, result));
         }
-        if (Boolean.TRUE.equals(reviewerSpec.isUseTargetObjectApprover())) {
+        if (Boolean.TRUE.equals(reviewerSpec.isUseTargetApprover())) {
             cloneAndMerge(_case.getReviewerRef(), getTargetObjectApprovers(_case, task, result));
         }
-        if (Boolean.TRUE.equals(reviewerSpec.isUseSubjectOwner())) {
-            cloneAndMerge(_case.getReviewerRef(), getSubjectOwners(_case, task, result));
+        if (Boolean.TRUE.equals(reviewerSpec.isUseObjectOwner())) {
+            cloneAndMerge(_case.getReviewerRef(), getObjectOwners(_case, task, result));
         }
-        if (Boolean.TRUE.equals(reviewerSpec.isUseSubjectApprover())) {
-            cloneAndMerge(_case.getReviewerRef(), getSubjectApprovers(_case, task, result));
+        if (Boolean.TRUE.equals(reviewerSpec.isUseObjectApprover())) {
+            cloneAndMerge(_case.getReviewerRef(), getObjectApprovers(_case, task, result));
         }
-        if (reviewerSpec.getUseSubjectManager() != null) {
-            cloneAndMerge(_case.getReviewerRef(), getSubjectManagers(_case, reviewerSpec.getUseSubjectManager(), task, result));
+        if (reviewerSpec.getUseObjectManager() != null) {
+            cloneAndMerge(_case.getReviewerRef(), getObjectManagers(_case, reviewerSpec.getUseObjectManager(), task, result));
         }
         // TODO evaluate reviewer expressions
         if (_case.getReviewerRef().isEmpty()) {
@@ -132,24 +132,24 @@ public class AccCertReviewersHelper {
         return false;
     }
 
-    private Collection<ObjectReferenceType> getSubjectManagers(AccessCertificationCaseType _case, ManagerSearchType managerSearch, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private Collection<ObjectReferenceType> getObjectManagers(AccessCertificationCaseType _case, ManagerSearchType managerSearch, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         ModelExpressionThreadLocalHolder.pushCurrentResult(result);
         ModelExpressionThreadLocalHolder.pushCurrentTask(task);
         try {
-            ObjectReferenceType subjectRef = _case.getSubjectRef();
-            ObjectType subject = midpointFunctions.resolveReference(subjectRef);
-            if (subject == null) {
+            ObjectReferenceType objectRef = _case.getObjectRef();
+            ObjectType object = midpointFunctions.resolveReference(objectRef);
+            if (object == null) {
                 return null;
             }
             String orgType = managerSearch.getOrgType();
             boolean allowSelf = Boolean.TRUE.equals(managerSearch.isAllowSelf());
             Collection<UserType> managers;
-            if (subject instanceof UserType) {
-                managers = midpointFunctions.getManagers((UserType) subject, orgType, allowSelf);
-            } else if (subject instanceof OrgType) {
+            if (object instanceof UserType) {
+                managers = midpointFunctions.getManagers((UserType) object, orgType, allowSelf);
+            } else if (object instanceof OrgType) {
                 // TODO more elaborate behavior; eliminate unneeded resolveReference above
-                managers = midpointFunctions.getManagersOfOrg(subject.getOid());
-            } else if (subject instanceof RoleType) {
+                managers = midpointFunctions.getManagersOfOrg(object.getOid());
+            } else if (object instanceof RoleType) {
                 // TODO implement
                 managers = new HashSet<>();
             } else {
@@ -186,13 +186,13 @@ public class AccCertReviewersHelper {
         }
     }
 
-    protected List<ObjectReferenceType> getSubjectOwners(AccessCertificationCaseType _case, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        if (_case.getSubjectRef() == null) {
+    protected List<ObjectReferenceType> getObjectOwners(AccessCertificationCaseType _case, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        if (_case.getObjectRef() == null) {
             return null;
         }
-        ObjectType subject = objectResolver.resolve(_case.getSubjectRef(), ObjectType.class, null, "resolving cert case subject", result);
-        if (subject instanceof AbstractRoleType) {
-            ObjectReferenceType ownerRef = ((AbstractRoleType) subject).getOwnerRef();
+        ObjectType object = objectResolver.resolve(_case.getObjectRef(), ObjectType.class, null, "resolving cert case object", result);
+        if (object instanceof AbstractRoleType) {
+            ObjectReferenceType ownerRef = ((AbstractRoleType) object).getOwnerRef();
             if (ownerRef != null) {
                 return Arrays.asList(ownerRef);
             } else {
@@ -217,13 +217,13 @@ public class AccCertReviewersHelper {
         }
     }
 
-    private Collection<ObjectReferenceType> getSubjectApprovers(AccessCertificationCaseType _case, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        if (_case.getSubjectRef() == null) {
+    private Collection<ObjectReferenceType> getObjectApprovers(AccessCertificationCaseType _case, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        if (_case.getObjectRef() == null) {
             return null;
         }
-        ObjectType subject = objectResolver.resolve(_case.getSubjectRef(), ObjectType.class, null, "resolving cert case subject", result);
-        if (subject instanceof AbstractRoleType) {
-            return ((AbstractRoleType) subject).getApproverRef();
+        ObjectType object = objectResolver.resolve(_case.getObjectRef(), ObjectType.class, null, "resolving cert case object", result);
+        if (object instanceof AbstractRoleType) {
+            return ((AbstractRoleType) object).getApproverRef();
         } else {
             return null;
         }

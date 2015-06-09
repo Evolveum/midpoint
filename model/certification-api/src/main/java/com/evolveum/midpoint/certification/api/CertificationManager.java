@@ -134,10 +134,10 @@ public interface CertificationManager {
      * The query can contain a filter and/or a paging instruction.
      * Filter can point to the following attributes:
      *  - reviewerRef (AccessCertificationCaseType.F_REVIEWER_REF), i.e. returning the cases who are assigned to given reviewer(s)
-     *  - subjectRef (AccessCertificationCaseType.F_SUBJECT_REF), i.e. returning the cases belonging to given subject (e.g. user)
+     *  - objectRef (AccessCertificationCaseType.F_OBJECT_REF), i.e. returning the cases belonging to given object (e.g. user)
      *  - targetRef (AccessCertificationCaseType.F_TARGET_REF), i.e. returning the cases pointing to e.g. given role/org/resource (in case of assignment-related cases)
      * Paging instruction can be used to sort and page search results. Sorting can be based on
-     *  - name of subject, by setting paging.orderBy = subjectRef
+     *  - name of object, by setting paging.orderBy = objectRef
      *  - name of target, by setting paging.orderBy = targetRef
      * Note that in order to use names as a sorting criteria, it is necessary to include RESOLVE_NAMES option in the operation call.
      * Paging is specified by offset (counting from 0) and maxSize. Paging cooke is ignored.
@@ -170,7 +170,7 @@ public interface CertificationManager {
      * (THIS MAY CHANGE IN THE FUTURE.)
      *
      * Sorting is supported as this:
-     *  - name of subject, by setting paging.orderBy = subjectRef
+     *  - name of object, by setting paging.orderBy = objectRef
      *  - name of target, by setting paging.orderBy = targetRef
      *  - name of campaign, by setting paging.orderBy = campaignRef
      *  - deadline or reviewRequestedTimestamp, by setting paging.orderBy = reviewDeadline/reviewRequestedTimestamp

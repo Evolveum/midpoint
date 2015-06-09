@@ -213,18 +213,18 @@ public class AccCertQueryHelper {
     }
 
     /**
-     * Experimental implementation: we support ordering by subject object name, target object name.
+     * Experimental implementation: we support ordering by object object name, target object name.
      * However, there are no QNames that exactly match these options. So we map the following QNames to ordering attributes:
      *
-     * F_SUBJECT_REF -> ordering by subject name
+     * F_OBJECT_REF -> ordering by object name
      * F_TARGET_REF -> ordering by target name
      *
      * The requirement is that object names were fetched as well (resolveNames option)
      *
      */
     private Comparator<AccessCertificationCaseType> createComparator(QName orderBy, OrderDirection direction) {
-        if (QNameUtil.match(orderBy, AccessCertificationCaseType.F_SUBJECT_REF)) {
-            return createSubjectNameComparator(direction);
+        if (QNameUtil.match(orderBy, AccessCertificationCaseType.F_OBJECT_REF)) {
+            return createObjectNameComparator(direction);
         } else if (QNameUtil.match(orderBy, AccessCertificationCaseType.F_TARGET_REF)) {
             return createTargetNameComparator(direction);
         } else if (QNameUtil.match(orderBy, AccessCertificationCaseType.F_CAMPAIGN_REF)) {
@@ -239,11 +239,11 @@ public class AccCertQueryHelper {
         }
     }
 
-    private Comparator<AccessCertificationCaseType> createSubjectNameComparator(final OrderDirection direction) {
+    private Comparator<AccessCertificationCaseType> createObjectNameComparator(final OrderDirection direction) {
         return new Comparator<AccessCertificationCaseType>() {
             @Override
             public int compare(AccessCertificationCaseType o1, AccessCertificationCaseType o2) {
-                return compareRefNames(o1.getSubjectRef(), o2.getSubjectRef(), direction);
+                return compareRefNames(o1.getObjectRef(), o2.getObjectRef(), direction);
             }
         };
     }

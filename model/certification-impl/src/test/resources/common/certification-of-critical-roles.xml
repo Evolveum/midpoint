@@ -63,10 +63,10 @@ guybrush->COO               cheese                      elaine
         <number>1</number>
         <days>7</days>
         <reviewerSpecification>
-            <useSubjectManager>
+            <useObjectManager>
                 <orgType>functional</orgType>
                 <allowSelf>true</allowSelf>
-            </useSubjectManager>
+            </useObjectManager>
         </reviewerSpecification>
     </stageDefinition>
     <stageDefinition>

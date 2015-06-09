@@ -31,7 +31,6 @@ import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
@@ -59,15 +58,15 @@ import java.io.Serializable;
  */
 public class CertDecisionHelper implements Serializable {
 
-    IColumn createSubjectNameColumn(final PageBase page, final String headerKey) {
+    IColumn createObjectNameColumn(final PageBase page, final String headerKey) {
         IColumn column;
         column = new LinkColumn<CertCaseOrDecisionDto>(page.createStringResource(headerKey),
-                AccessCertificationCaseType.F_SUBJECT_REF.getLocalPart(), CertCaseOrDecisionDto.F_SUBJECT_NAME) {
+                AccessCertificationCaseType.F_OBJECT_REF.getLocalPart(), CertCaseOrDecisionDto.F_OBJECT_NAME) {
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<CertCaseOrDecisionDto> rowModel) {
                 CertCaseOrDecisionDto dto = rowModel.getObject();
-                dispatchToObjectDetailsPage(dto.getCertCase().getSubjectRef(), page);
+                dispatchToObjectDetailsPage(dto.getCertCase().getObjectRef(), page);
             }
         };
         return column;

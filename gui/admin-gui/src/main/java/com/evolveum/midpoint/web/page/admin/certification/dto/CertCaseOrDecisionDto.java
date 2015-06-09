@@ -27,7 +27,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationS
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.commons.lang3.Validate;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -43,7 +42,7 @@ import java.util.Date;
  */
 public class CertCaseOrDecisionDto extends Selectable {
 
-    public static final String F_SUBJECT_NAME = "subjectName";
+    public static final String F_OBJECT_NAME = "objectName";
     public static final String F_TARGET_NAME = "targetName";
     public static final String F_TARGET_TYPE = "targetType";
     public static final String F_CAMPAIGN_NAME = "campaignName";
@@ -51,7 +50,7 @@ public class CertCaseOrDecisionDto extends Selectable {
     public static final String F_DEADLINE_AS_STRING = "deadlineAsString";
 
     private AccessCertificationCaseType certCase;
-    private String subjectName;
+    private String objectName;
     private String targetName;
     private String deadlineAsString;
 
@@ -59,7 +58,7 @@ public class CertCaseOrDecisionDto extends Selectable {
         Validate.notNull(_case);
 
         this.certCase = _case;
-        this.subjectName = getName(_case.getSubjectRef());
+        this.objectName = getName(_case.getObjectRef());
         this.targetName = getName(_case.getTargetRef());
         this.deadlineAsString = computeDeadlineAsString(page);
     }
@@ -77,8 +76,8 @@ public class CertCaseOrDecisionDto extends Selectable {
         }
     }
 
-    public String getSubjectName() {
-        return subjectName;
+    public String getObjectName() {
+        return objectName;
     }
 
     public String getTargetName() {

@@ -216,7 +216,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         TestUtil.displayWhen(TEST_NAME);
         Collection<SelectorOptions<GetOperationOptions>> resolveNames =
                 SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
-        ObjectFilter filter = RefFilter.createReferenceEqual(new ItemPath(AccessCertificationCaseType.F_SUBJECT_REF),
+        ObjectFilter filter = RefFilter.createReferenceEqual(new ItemPath(AccessCertificationCaseType.F_OBJECT_REF),
                 AccessCertificationCaseType.class, prismContext, ObjectTypeUtil.createObjectRef(userAdministrator).asReferenceValue());
         ObjectPaging paging = ObjectPaging.createPaging(2, 2, AccessCertificationCaseType.F_TARGET_REF, OrderDirection.DESCENDING);
         ObjectQuery query = ObjectQuery.createObjectQuery(filter, paging);
