@@ -71,6 +71,10 @@
 	        <level>TRACE</level>
 	        <package>com.evolveum.midpoint.provisioning.impl</package>
       	</classLogger>
+      	<classLogger>
+	        <level>INFO</level>
+	        <package>com.evolveum.midpoint.provisioning.impl.ResourceManager</package>
+      	</classLogger>
         <classLogger>
             <c:level>TRACE</c:level>
             <c:package>com.evolveum.midpoint.test</c:package>

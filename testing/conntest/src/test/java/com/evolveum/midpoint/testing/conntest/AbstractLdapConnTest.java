@@ -1140,7 +1140,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         assertNotNull("No user "+ACCOUNT_HT_UID+" created", user);
         assertUser(user, user.getOid(), ACCOUNT_HT_UID, ACCOUNT_HT_CN, ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN);
 
-        assertStepSyncToken(getSyncTaskOid(), 1, tsStart, tsEnd);
+        assertStepSyncToken(getSyncTaskOid(), 5, tsStart, tsEnd);
 	}
 	
 	@Test
@@ -1174,7 +1174,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         assertNotNull("No user "+ACCOUNT_HT_UID+" created", user);
         assertUser(user, user.getOid(), ACCOUNT_HT_UID, "Horatio Torquemeda Marley", ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN);
 
-        assertStepSyncToken(getSyncTaskOid(), 2, tsStart, tsEnd);
+        assertStepSyncToken(getSyncTaskOid(), 6, tsStart, tsEnd);
 
 	}
 	
@@ -1217,7 +1217,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         assertUser(user, user.getOid(), "htm", "Horatio Torquemeda Marley", ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN);
         assertNull("User "+ACCOUNT_HT_UID+" still exist", findUserByUsername(ACCOUNT_HT_UID));
 
-        assertStepSyncToken(getSyncTaskOid(), 3, tsStart, tsEnd);
+        assertStepSyncToken(getSyncTaskOid(), 7, tsStart, tsEnd);
 
 	}
 	
@@ -1250,7 +1250,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         assertNull("User "+"htm"+" still exist", findUserByUsername("htm"));
         assertNull("User "+ACCOUNT_HT_UID+" still exist", findUserByUsername(ACCOUNT_HT_UID));
 
-        assertStepSyncToken(getSyncTaskOid(), 4, tsStart, tsEnd);
+        assertStepSyncToken(getSyncTaskOid(), 8, tsStart, tsEnd);
 	}
 
 	@Test

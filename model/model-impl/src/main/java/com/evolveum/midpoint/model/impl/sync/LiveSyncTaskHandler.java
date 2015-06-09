@@ -166,12 +166,9 @@ public class LiveSyncTaskHandler implements TaskHandler {
             opResult.recordFatalError(e);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
-		}        
+		}
         if (objectClass == null) {
-            LOGGER.error("Live Sync: No objectclass specified and no default can be determined.");
-            opResult.recordFatalError("No objectclass specified and no default can be determined");
-            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-            return runResult;
+            LOGGER.debug("Syncing all object classes");
         }
 
         int changesProcessed;
@@ -184,7 +181,7 @@ public class LiveSyncTaskHandler implements TaskHandler {
 			// It will use extension of task to store synchronization state
 
             Utils.clearRequestee(task);
-			changesProcessed = provisioningService.synchronize(resourceOid, objectClass.getTypeName(), task, opResult);
+			changesProcessed = provisioningService.synchronize(resourceOid, objectClass==null?null:objectClass.getTypeName(), task, opResult);
             progress += changesProcessed;
 			
 		} catch (ObjectNotFoundException ex) {

@@ -394,11 +394,9 @@ public final class Utils {
 	        			new Object[]{refinedObjectClassDefinition, objectclass});
 	        } else {
 	        	if (LOGGER.isTraceEnabled()) {
-                    LOGGER.debug("No kind or objectclass specified in {}, using default values", source);
+                    LOGGER.debug("No kind or objectclass specified in {}, assuming null object class", source);
                 }
-	        	refinedObjectClassDefinition = refinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, (String)null);
-	        	LOGGER.trace("Determined refined object class {} by using default ACCOUNT kind",
-	        			new Object[]{refinedObjectClassDefinition});
+	        	refinedObjectClassDefinition = null;
 	        }
 	        
 	        return refinedObjectClassDefinition;
