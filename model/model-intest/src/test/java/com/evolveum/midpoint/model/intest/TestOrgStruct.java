@@ -795,8 +795,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         assertManager(USER_ELAINE_OID, null, null, false);
         assertManager(USER_ELAINE_OID, null, ORG_TYPE_FUNCTIONAL, false);
         assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, false);
-        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, null, true);
-        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, true);
+        assertManager(USER_ELAINE_OID, null, null, true);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_FUNCTIONAL, true);
         assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, true);
 
         // Postcondition
