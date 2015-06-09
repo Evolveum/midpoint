@@ -13,6 +13,7 @@ import org.apache.cxf.ws.security.wss4j.WSS4JOutInterceptor;
 import org.apache.cxf.wsdl.interceptors.BareOutInterceptor;
 import org.apache.wss4j.dom.WSConstants;
 import org.apache.wss4j.dom.handler.WSHandlerConstants;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -70,8 +71,11 @@ public class MidPointRemoteQueryExecuterTest {
 			PrismTestUtil.resetPrismContext(new MidPointPrismContextFactory());
 		 
 		MidPointRemoteQueryExecuterTest t = new MidPointRemoteQueryExecuterTest();
+		ClassPathXmlApplicationContext  applicationContext = new ClassPathXmlApplicationContext("ctx-report-ds-context.xml");
 		
-		ReportPortType reportPort = createReportPort(PrismTestUtil.getPrismContext());
+		ReportPortType reportPort = applicationContext.getBean("reportPort", ReportPortType.class);
+		
+//		ReportPortType reportPort = createReportPort(PrismTestUtil.getPrismContext());
 		
 		String f = (String) t.getParsedQuery(PrismTestUtil.getPrismContext(), reportPort);
 		System.out.println("returned filter: " + f);

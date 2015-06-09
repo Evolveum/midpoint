@@ -42,7 +42,7 @@ public class MidPointClientConfiguration {
 		requestContext.put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, endpoint);
 		
 		org.apache.cxf.endpoint.Client client = ClientProxy.getClient(reportPort);
-		org.apache.cxf.endpoint.Endpoint cxfEndpoint = client.getEndpoint();
+		org.apache.cxf.endpoint.Endpoint cxfEndpoint = client.getEndpoint();	
 		
 		Map<String,Object> outProps = new HashMap<String,Object>();
 		
@@ -57,7 +57,6 @@ public class MidPointClientConfiguration {
         // enable the following to get client-side logging of outgoing requests and incoming responses
         cxfEndpoint.getOutInterceptors().add(new LoggingOutInterceptor());
         cxfEndpoint.getInInterceptors().add(new LoggingInInterceptor());
-
 		return reportPort;
 	}
 	

@@ -115,8 +115,7 @@ public class MidPointRemoteDataSource implements JRDataSource {
 
 			Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
 
-			if (param.getAny().size() == 1) {
-
+			if (param.getAny().size() == 1 && !List.class.isAssignableFrom(jrField.getValueClass())) {
 				Object val = param.getAny().iterator().next();
 				return unmarshallValue(jrField, val, jaxbUnmarshaller);
 			}

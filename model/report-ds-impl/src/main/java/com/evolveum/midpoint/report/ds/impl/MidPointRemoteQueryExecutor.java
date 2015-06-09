@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -21,6 +22,8 @@ import net.sf.jasperreports.engine.JRValueParameter;
 import net.sf.jasperreports.engine.JasperReportsContext;
 import net.sf.jasperreports.engine.base.JRBaseParameter;
 
+import org.apache.cxf.helpers.DOMUtils;
+import org.apache.xml.serializer.dom3.DOM3SerializerImpl;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.xml.sax.SAXException;
@@ -32,6 +35,8 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.parser.DomParser;
+import com.evolveum.midpoint.prism.parser.JaxbDomHack;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
@@ -40,6 +45,7 @@ import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -97,7 +103,13 @@ public class MidPointRemoteQueryExecutor extends MidPointQueryExecutor{
 		for (Entry<QName, Object> param : paramSet){
 			RemoteReportParameterType remoteParam = new RemoteReportParameterType();
 			remoteParam.setParameterName(param.getKey().getLocalPart());
-			remoteParam.getAny().add(((PrismPropertyValue)param.getValue()).getValue());
+			DOM3SerializerImpl domser = new DOM3SerializerImpl(null);
+			Object value = ((PrismPropertyValue)param.getValue()).getValue();
+			if (value!= null && List.class.isAssignableFrom(value.getClass())){
+				remoteParam.getAny().addAll((List) value);
+			} else {
+				remoteParam.getAny().add(value);
+			}
 			reportParams.getRemoteParameter().add(remoteParam);
 		}
 		return reportParams;
@@ -164,8 +176,11 @@ public class MidPointRemoteQueryExecutor extends MidPointQueryExecutor{
 		MidPointClientConfiguration clientConfig = applicationContext.getBean("clientConfig",
 				MidPointClientConfiguration.class);
 		if (reportPort == null) {
-			reportPort = clientConfig.createReportPort(prismContext);
+			reportPort = applicationContext.getBean("reportPort", ReportPortType.class);
 		}
+//		if (reportPort == null) {
+//			reportPort = clientConfig.createReportPort(prismContext);
+//		}
 		parseQuery();
 	}
 		
