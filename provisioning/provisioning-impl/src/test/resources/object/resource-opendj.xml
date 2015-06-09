@@ -114,7 +114,8 @@
        		<protected>
        			<filter>
 	       			<q:equal>
-		            	<q:path>attributes/dn</q:path>
+	       				<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#stringIgnoreCase</q:matching>
+		            	<q:path>attributes/ri:dn</q:path>
 		            	<!-- WilDCapiTaLIzaTioN makes sure that this is matched case-insensitive -->
 		                <q:value>uid=cAlyPSo,ou=PeoPle,DC=example,dc=COM</q:value>
 		            </q:equal>

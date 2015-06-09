@@ -23,6 +23,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Node;
 
@@ -212,4 +213,11 @@ public class QNameUtil {
     public static boolean isPrefixUndeclared(String namespacePrefix) {
         return namespacePrefix != null && namespacePrefix.startsWith(UNDECLARED_PREFIX_MARK);
     }
+
+	public static boolean isUri(String string) {
+		if (string == null) {
+			return false;
+		}
+		return string.matches("^\\w+:.*");
+	}
 }
