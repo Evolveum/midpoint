@@ -33,6 +33,7 @@ import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn.BUTTON_COLOR_CLASS;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.data.column.MultiButtonColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.message.MainFeedback;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -301,148 +302,42 @@ public class PageCertDecisions extends PageAdminCertification {
 		};
 		columns.add(column);
 
-		column = new DoubleButtonColumn<CertDecisionDto>(new Model(), null) {
+		column = new MultiButtonColumn<CertDecisionDto>(new Model(), 6) {
+
+			private final String[] captionKeys = {
+					"PageCertDecisions.menu.accept",
+					"PageCertDecisions.menu.revoke",
+					"PageCertDecisions.menu.reduce",
+					"PageCertDecisions.menu.notDecided",
+					"PageCertDecisions.menu.delegate",
+					"PageCertDecisions.menu.noResponse"
+			};
+
+			private final AccessCertificationResponseType[] responses = {
+					ACCEPT, REVOKE, REDUCE, NOT_DECIDED, DELEGATE, NO_RESPONSE
+			};
 
 			@Override
-			public String getFirstCap() {
-				return PageCertDecisions.this.createStringResource(
-						"PageCertDecisions.menu.accept").getString();
+			public String getCaption(int id) {
+				return PageCertDecisions.this.createStringResource(captionKeys[id]).getString();
 			}
 
 			@Override
-			public String getSecondCap() {
-				return PageCertDecisions.this.createStringResource(
-						"PageCertDecisions.menu.revoke").getString();
+			public boolean isButtonEnabled(int id, IModel<CertDecisionDto> model) {
+				return !decisionEquals(model, responses[id]);
 			}
 
 			@Override
-			public boolean isFirstButtonEnabled(IModel<CertDecisionDto> model) {
-				return !decisionEquals(model, ACCEPT);
+			public String getButtonColorCssClass(int id) {
+				return getDecisionButtonColor(getRowModel(), responses[id]);
 			}
 
 			@Override
-			public String getFirstColorCssClass() {
-				return getDecisionButtonColor(getRowModel(), ACCEPT);
-			}
-
-			@Override
-			public boolean isSecondButtonEnabled(IModel<CertDecisionDto> model) {
-				return !decisionEquals(model, AccessCertificationResponseType.REVOKE);
-			}
-
-			@Override
-			public String getSecondColorCssClass() {
-				return getDecisionButtonColor(getRowModel(), AccessCertificationResponseType.REVOKE);
-			}
-
-			@Override
-			public void firstClicked(AjaxRequestTarget target,
+			public void clickPerformed(int id, AjaxRequestTarget target,
 									 IModel<CertDecisionDto> model) {
-				recordActionPerformed(target, model.getObject(), ACCEPT);
+				recordActionPerformed(target, model.getObject(), responses[id]);
 			}
 
-			@Override
-			public void secondClicked(AjaxRequestTarget target,
-									  IModel<CertDecisionDto> model) {
-				// TODO revoke the roles
-				recordActionPerformed(target, model.getObject(), AccessCertificationResponseType.REVOKE);
-			}
-		};
-		columns.add(column);
-		column = new DoubleButtonColumn<CertDecisionDto>(new Model(), null) {
-
-			@Override
-			public String getFirstCap() {
-				return PageCertDecisions.this.createStringResource(
-						"PageCertDecisions.menu.reduce").getString();
-			}
-
-			@Override
-			public String getSecondCap() {
-				return PageCertDecisions.this.createStringResource(
-						"PageCertDecisions.menu.notDecided").getString();
-			}
-
-			@Override
-			public boolean isFirstButtonEnabled(IModel<CertDecisionDto> model) {
-				return !decisionEquals(model, AccessCertificationResponseType.REDUCE);
-			}
-
-			@Override
-			public String getFirstColorCssClass() {
-				return getDecisionButtonColor(getRowModel(), AccessCertificationResponseType.REDUCE);
-			}
-
-			@Override
-			public boolean isSecondButtonEnabled(IModel<CertDecisionDto> model) {
-				return !decisionEquals(model, AccessCertificationResponseType.NOT_DECIDED);
-			}
-
-			@Override
-			public String getSecondColorCssClass() {
-				return getDecisionButtonColor(getRowModel(), AccessCertificationResponseType.NOT_DECIDED);
-			}
-
-			@Override
-			public void firstClicked(AjaxRequestTarget target,
-									 IModel<CertDecisionDto> model) {
-				recordActionPerformed(target, model.getObject(), AccessCertificationResponseType.REDUCE);
-			}
-
-			@Override
-			public void secondClicked(AjaxRequestTarget target,
-									  IModel<CertDecisionDto> model) {
-				// TODO
-				recordActionPerformed(target, model.getObject(), AccessCertificationResponseType.NOT_DECIDED);
-			}
-		};
-		columns.add(column);
-		column = new DoubleButtonColumn<CertDecisionDto>(new Model(), null) {
-
-			@Override
-			public String getFirstCap() {
-				return PageCertDecisions.this.createStringResource(
-						"PageCertDecisions.menu.delegate").getString();
-			}
-
-			@Override
-			public String getSecondCap() {
-				return PageCertDecisions.this.createStringResource(
-						"PageCertDecisions.menu.noResponse").getString();
-			}
-
-			@Override
-			public boolean isFirstButtonEnabled(IModel<CertDecisionDto> model) {
-				return !decisionEquals(model, AccessCertificationResponseType.DELEGATE);
-			}
-
-			@Override
-			public String getFirstColorCssClass() {
-				return getDecisionButtonColor(getRowModel(), AccessCertificationResponseType.DELEGATE);
-			}
-
-			@Override
-			public boolean isSecondButtonEnabled(IModel<CertDecisionDto> model) {
-				return !decisionEquals(model, AccessCertificationResponseType.NO_RESPONSE);
-			}
-
-			@Override
-			public String getSecondColorCssClass() {
-				return getDecisionButtonColor(getRowModel(), AccessCertificationResponseType.NO_RESPONSE);
-			}
-
-			@Override
-			public void firstClicked(AjaxRequestTarget target,
-									 IModel<CertDecisionDto> model) {
-				recordActionPerformed(target, model.getObject(), AccessCertificationResponseType.DELEGATE);
-			}
-
-			@Override
-			public void secondClicked(AjaxRequestTarget target,
-									  IModel<CertDecisionDto> model) {
-				// TODO
-				recordActionPerformed(target, model.getObject(), AccessCertificationResponseType.NO_RESPONSE);
-			}
 		};
 		columns.add(column);
 

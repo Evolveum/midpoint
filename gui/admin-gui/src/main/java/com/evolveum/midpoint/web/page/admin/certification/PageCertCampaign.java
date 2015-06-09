@@ -31,6 +31,7 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn.BUTTON_COLOR_CLASS;
+import com.evolveum.midpoint.web.component.data.column.MultiButtonColumn;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageTemplate;
@@ -74,6 +75,11 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType.F_MARKED_AS_REVOKE_AND_REMEDIED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType.F_WITHOUT_RESPONSE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.ACCEPT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.DELEGATE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NOT_DECIDED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.REDUCE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.REVOKE;
 
 /**
  * @author mederly
@@ -278,100 +284,35 @@ public class PageCertCampaign extends PageAdminCertification {
 		column = new PropertyColumn(createStringResource("PageCertCampaign.table.reviewedInStage"), CertCaseDto.F_CURRENT_RESPONSE_STAGE_NUMBER);
 		columns.add(column);
 
-		column = new DoubleButtonColumn<CertCaseDto>(new Model(), null) {
-			
+		column = new MultiButtonColumn<CertCaseDto>(new Model(), 6) {
+
+			private final String[] captionKeys = {
+					"PageCertCampaign.menu.accept",
+					"PageCertCampaign.menu.revoke",
+					"PageCertCampaign.menu.reduce",
+					"PageCertCampaign.menu.notDecided",
+					"PageCertCampaign.menu.delegate",
+					"PageCertCampaign.menu.noResponse"
+			};
+
+			private final AccessCertificationResponseType[] responses = {
+					ACCEPT, REVOKE, REDUCE, NOT_DECIDED, DELEGATE, NO_RESPONSE
+			};
+
 			@Override
-			public String getFirstCap() {
-				return PageCertCampaign.this.createStringResource(
-						"PageCertCampaign.menu.accept").getString();
+			public String getCaption(int id) {
+				return PageCertCampaign.this.createStringResource(captionKeys[id]).getString();
 			}
 
 			@Override
-			public String getSecondCap() {
-				return PageCertCampaign.this.createStringResource(
-						"PageCertCampaign.menu.revoke").getString();
-			}
-
-			@Override
-			public String getFirstColorCssClass() {
-				return getDecisionButtonColor(getRowModel(), ACCEPT);
-			}
-
-			@Override
-			public String getSecondColorCssClass() {
-				return getDecisionButtonColor(getRowModel(), AccessCertificationResponseType.REVOKE);
-			}
-		};
-		columns.add(column);
-		column = new DoubleButtonColumn<CertCaseDto>(new Model(), null) {
-
-			@Override
-			public String getFirstCap() {
-				return PageCertCampaign.this.createStringResource(
-						"PageCertCampaign.menu.reduce").getString();
-			}
-
-			@Override
-			public String getSecondCap() {
-				return PageCertCampaign.this.createStringResource(
-						"PageCertCampaign.menu.notDecided").getString();
-			}
-
-			@Override
-			public String getFirstColorCssClass() {
-				return getDecisionButtonColor(getRowModel(), AccessCertificationResponseType.REDUCE);
-			}
-
-			@Override
-			public String getSecondColorCssClass() {
-				return getDecisionButtonColor(getRowModel(), AccessCertificationResponseType.NOT_DECIDED);
-			}
-
-			@Override
-			public boolean isFirstButtonEnabled(IModel<CertCaseDto> model) {
+			public boolean isButtonEnabled(int id, IModel<CertCaseDto> model) {
 				return false;
 			}
 
 			@Override
-			public boolean isSecondButtonEnabled(IModel<CertCaseDto> model) {
-				return false;
+			public String getButtonColorCssClass(int id) {
+				return getDecisionButtonColor(getRowModel(), responses[id]);
 			}
-		};
-		columns.add(column);
-		column = new DoubleButtonColumn<CertCaseDto>(new Model(), null) {
-
-			@Override
-			public String getFirstCap() {
-				return PageCertCampaign.this.createStringResource(
-						"PageCertCampaign.menu.delegate").getString();
-			}
-
-			@Override
-			public String getSecondCap() {
-				return PageCertCampaign.this.createStringResource(
-						"PageCertCampaign.menu.noResponse").getString();
-			}
-
-			@Override
-			public String getFirstColorCssClass() {
-				return getDecisionButtonColor(getRowModel(), AccessCertificationResponseType.DELEGATE);
-			}
-
-			@Override
-			public String getSecondColorCssClass() {
-				return getDecisionButtonColor(getRowModel(), AccessCertificationResponseType.NO_RESPONSE);
-			}
-
-			@Override
-			public boolean isFirstButtonEnabled(IModel<CertCaseDto> model) {
-				return false;
-			}
-
-			@Override
-			public boolean isSecondButtonEnabled(IModel<CertCaseDto> model) {
-				return false;
-			}
-
 		};
 		columns.add(column);
 

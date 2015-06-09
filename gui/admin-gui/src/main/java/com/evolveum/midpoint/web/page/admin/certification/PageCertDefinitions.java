@@ -31,6 +31,7 @@ import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.data.column.MultiButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.SingleButtonColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCampaignListItemDto;
@@ -145,60 +146,37 @@ public class PageCertDefinitions extends PageAdminWorkItems {
         column = new PropertyColumn(createStringResource("PageCertDefinitions.table.description"), "value.description");
         columns.add(column);
 
-        column = new DoubleButtonColumn<SelectableBean<AccessCertificationDefinitionType>>(new Model(), null){
+        column = new MultiButtonColumn<SelectableBean<AccessCertificationDefinitionType>>(new Model(), 3) {
+
+            private final String[] captionKeys = {
+                    "PageCertDefinitions.button.createCampaign",
+                    "PageCertDefinitions.button.showCampaigns",
+                    "PageCertDefinitions.button.deleteDefinition"
+            };
+
+            private final DoubleButtonColumn.BUTTON_COLOR_CLASS[] colors = {
+                    DoubleButtonColumn.BUTTON_COLOR_CLASS.PRIMARY,
+                    DoubleButtonColumn.BUTTON_COLOR_CLASS.DEFAULT,
+                    DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER
+            };
 
             @Override
-            public String getFirstCap(){
-                return PageCertDefinitions.this.createStringResource("PageCertDefinitions.button.createCampaign").getString();
+            public String getCaption(int id) {
+                return PageCertDefinitions.this.createStringResource(captionKeys[id]).getString();
             }
 
             @Override
-            public String getSecondCap(){
-                return PageCertDefinitions.this.createStringResource("PageCertDefinitions.button.showCampaigns").getString();
+            public String getButtonColorCssClass(int id) {
+                return colors[id].toString();
             }
 
             @Override
-            public String getFirstColorCssClass(){
-                return BUTTON_COLOR_CLASS.PRIMARY.toString();
-            }
-
-            @Override
-            public void firstClicked(AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationDefinitionType>> model){
-                createCampaignPerformed(target, model.getObject().getValue());
-            }
-
-            @Override
-            public void secondClicked(AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationDefinitionType>> model){
-                showCampaignsPerformed(target, model.getObject().getValue());
-            }
-        };
-        columns.add(column);
-
-        column = new DoubleButtonColumn<SelectableBean<AccessCertificationDefinitionType>>(new Model(), null){
-
-            @Override
-            public String getFirstCap() {
-                return PageCertDefinitions.this.createStringResource("PageCertDefinitions.button.editAsXml").getString();
-            }
-
-            @Override
-            public String getSecondCap() {
-                return PageCertDefinitions.this.createStringResource("PageCertDefinitions.button.deleteDefinition").getString();
-            }
-
-            @Override
-            public String getSecondColorCssClass(){
-                return DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString();
-            }
-
-            @Override
-            public void firstClicked(AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationDefinitionType>> model){
-                editAsXmlPerformed(model.getObject().getValue());
-            }
-
-            @Override
-            public void secondClicked(AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationDefinitionType>> model){
-                deleteDefinitionPerformed(target, model.getObject().getValue());
+            public void clickPerformed(int id, AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationDefinitionType>> model) {
+                switch (id) {
+                    case 0: createCampaignPerformed(target, model.getObject().getValue()); break;
+                    case 1: showCampaignsPerformed(target, model.getObject().getValue()); break;
+                    case 2: deleteDefinitionPerformed(target, model.getObject().getValue()); break;
+                }
             }
 
         };
