@@ -157,7 +157,7 @@ public class GenericErrorHandler extends ErrorHandler{
 				// TODO: probably there is a need to union current changes with previous
 				ConstraintsChecker.onShadowModifyOperation(modifications);
 				cacheRepositoryService.modifyObject(ShadowType.class, shadow.getOid(), modifications,
-					result);	// TODO is this ok? modifications will be stored as shadow attributes, won't they?
+					result);
 				result.recordHandledError("Modifications not applied to the object, because resource is unreachable. They are stored to the shadow and will be applied when the resource goes online.");
 			}
 			return shadow;

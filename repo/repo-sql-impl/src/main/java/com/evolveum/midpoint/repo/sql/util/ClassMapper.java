@@ -61,8 +61,8 @@ public final class ClassMapper {
         types.put(ObjectTypes.FOCUS_TYPE, RObjectType.FOCUS);
         types.put(ObjectTypes.SECURITY_POLICY, RObjectType.SECURITY_POLICY);
         types.put(ObjectTypes.LOOKUP_TABLE, RObjectType.LOOKUP_TABLE);
-        types.put(ObjectTypes.ACCESS_CERTIFICATION_DEFINITION, RObjectType.ACCESS_CERTIFICATION_TYPE);
-        types.put(ObjectTypes.ACCESS_CERTIFICATION_CAMPAIGN, RObjectType.ACCESS_CERTIFICATION_RUN);
+        types.put(ObjectTypes.ACCESS_CERTIFICATION_DEFINITION, RObjectType.ACCESS_CERTIFICATION_DEFINITION);
+        types.put(ObjectTypes.ACCESS_CERTIFICATION_CAMPAIGN, RObjectType.ACCESS_CERTIFICATION_CAMPAIGN);
 
         for (ObjectTypes type : ObjectTypes.values()) {
             if (!types.containsKey(type)) {
