@@ -36,6 +36,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.controller.ModelUtils;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -50,7 +51,9 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -58,10 +61,13 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -93,9 +99,9 @@ public class ContextLoader {
 	private static final Trace LOGGER = TraceManager.getTrace(ContextLoader.class);
 	
 	public <F extends ObjectType> void load(LensContext<F> context, String activityDescription, 
-			OperationResult result) 
+			Task task, OperationResult result) 
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, 
-			SecurityViolationException {
+			SecurityViolationException, PolicyViolationException {
 
         context.checkAbortRequested();
 
@@ -118,7 +124,7 @@ public class ContextLoader {
 	    	
 	    	if (FocusType.class.isAssignableFrom(context.getFocusClass())) {
 		        // this also removes the accountRef deltas
-		        loadLinkRefs((LensContext<? extends FocusType>)context, result);
+		        loadLinkRefs((LensContext<? extends FocusType>)context, task, result);
 	    	}
 	    	
 	    	// Some cleanup
@@ -418,8 +424,8 @@ public class ContextLoader {
 	}
 
 
-	private <F extends FocusType> void loadLinkRefs(LensContext<F> context, OperationResult result) throws ObjectNotFoundException,
-			SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+	private <F extends FocusType> void loadLinkRefs(LensContext<F> context, Task task, OperationResult result) throws ObjectNotFoundException,
+			SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		if (focusContext == null) {
 			// Nothing to load
@@ -428,12 +434,12 @@ public class ContextLoader {
 
 		PrismObject<F> userCurrent = focusContext.getObjectCurrent();
 		if (userCurrent != null) {
-			loadLinkRefsFromFocus(context, userCurrent, result);
+			loadLinkRefsFromFocus(context, userCurrent, task, result);
 		}
 
 		if (consistencyChecks) context.checkConsistence();
 		
-		loadLinkRefsFromDelta(context, userCurrent, focusContext.getPrimaryDelta(), result);
+		loadLinkRefsFromDelta(context, userCurrent, focusContext.getPrimaryDelta(), task, result);
 		
 		if (consistencyChecks) context.checkConsistence();
 
@@ -446,8 +452,8 @@ public class ContextLoader {
 	 * Does not overwrite existing account contexts, just adds new ones.
 	 */
 	private <F extends FocusType> void loadLinkRefsFromFocus(LensContext<F> context, PrismObject<F> focus,
-			OperationResult result) throws ObjectNotFoundException,
-			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+			Task task, OperationResult result) throws ObjectNotFoundException,
+			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException {
 		PrismReference linkRef = focus.findReference(FocusType.F_LINK_REF);
 		if (linkRef == null) {
 			return;
@@ -491,7 +497,7 @@ public class ContextLoader {
 				// Make sure it has a proper definition. This may come from outside of the model.
 				provisioningService.applyDefinition(shadow, result);
 			}
-			LensProjectionContext accountContext = getOrCreateAccountContext(context, shadow, result);
+			LensProjectionContext accountContext = getOrCreateAccountContext(context, shadow, task, result);
 			accountContext.setFresh(true);
 			accountContext.setExists(true);
 			if (context.isDoReconciliationForAllProjections()) {
@@ -507,9 +513,9 @@ public class ContextLoader {
 	}
 
 	private <F extends FocusType> void loadLinkRefsFromDelta(LensContext<F> context, PrismObject<F> focus,
-			ObjectDelta<F> focusPrimaryDelta, OperationResult result) throws SchemaException,
+			ObjectDelta<F> focusPrimaryDelta, Task task, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException,
-			SecurityViolationException {
+			SecurityViolationException, PolicyViolationException {
 		if (focusPrimaryDelta == null) {
 			return;
 		}
@@ -596,7 +602,7 @@ public class ContextLoader {
 						Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
 						account = provisioningService.getObject(ShadowType.class, oid, options, null, result);
 						// Create account context from retrieved object
-						accountContext = getOrCreateAccountContext(context, account, result);
+						accountContext = getOrCreateAccountContext(context, account, task, result);
 						accountContext.setLoadedObject(account);
 						accountContext.setExists(true);
 					} catch (ObjectNotFoundException e) {
@@ -642,7 +648,7 @@ public class ContextLoader {
 						Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
 						account = provisioningService.getObject(ShadowType.class, oid, options, null, result);
 						// Create account context from retrieved object
-						accountContext = getOrCreateAccountContext(context, account, result);
+						accountContext = getOrCreateAccountContext(context, account, task, result);
 						accountContext.setLoadedObject(account);
 						accountContext.setExists(true);
 					} catch (ObjectNotFoundException e) {
@@ -762,27 +768,81 @@ public class ContextLoader {
 		}
 		return true;
 	}
+	
 	private <F extends FocusType> LensProjectionContext getOrCreateAccountContext(LensContext<F> context,
-			PrismObject<ShadowType> account, OperationResult result) throws ObjectNotFoundException,
-			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
-		ShadowType accountType = account.asObjectable();
+			PrismObject<ShadowType> projection, Task task, OperationResult result) throws ObjectNotFoundException,
+			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException {
+		ShadowType accountType = projection.asObjectable();
 		String resourceOid = ShadowUtil.getResourceOid(accountType);
 		if (resourceOid == null) {
-			throw new SchemaException("The " + account + " has null resource reference OID");
+			throw new SchemaException("The " + projection + " has null resource reference OID");
 		}
 		
-		LensProjectionContext accountSyncContext = context.findProjectionContextByOid(accountType.getOid());
+		LensProjectionContext projectionContext = context.findProjectionContextByOid(accountType.getOid());
 		
-		if (accountSyncContext == null) {
+		if (projectionContext == null) {
 			String intent = ShadowUtil.getIntent(accountType);
 			ShadowKindType kind = ShadowUtil.getKind(accountType);
-			accountSyncContext = LensUtil.getOrCreateProjectionContext(context, resourceOid, kind, intent, provisioningService,
-					prismContext, result);
-			accountSyncContext.setOid(account.getOid());
+			ResourceType resource = LensUtil.getResource(context, resourceOid, provisioningService, result);
+			intent = LensUtil.refineProjectionIntent(kind, intent, resource, prismContext);
+			ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(resourceOid, kind, intent);
+			projectionContext = LensUtil.getOrCreateProjectionContext(context, rsd);
+			
+			if (projectionContext.getOid() == null) {
+				projectionContext.setOid(projection.getOid());
+			} else if (projection.getOid() != null && !projectionContext.getOid().equals(projection.getOid())) {
+				// Conflict. We have existing projection and another project that is added (with the same discriminator).
+				// Chances are that the old object is already deleted (e.g. during rename). So let's be
+				// slightly inefficient here and check for existing shadow existence
+				try {
+					Collection<SelectorOptions<GetOperationOptions>> opts = SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery());
+					PrismObject<ShadowType> existingShadow = provisioningService.getObject(ShadowType.class, projectionContext.getOid(), opts, task, result);
+					// Maybe it is the other way around
+					try {
+						PrismObject<ShadowType> newShadow = provisioningService.getObject(ShadowType.class, projection.getOid(), opts, task, result);
+						// Obviously, two projections with the same discriminator exists
+						if (LOGGER.isTraceEnabled()) {
+							LOGGER.trace("Projection {} already exists in context\nExisting:\n{}\nNew:\n{}", new Object[]{rsd, 								
+									existingShadow.debugDump(1), newShadow.debugDump(1)});
+						}
+						throw new PolicyViolationException("Projection "+rsd+" already exists in context (existing "+existingShadow+", new "+projection);
+					} catch (ObjectNotFoundException e) {
+						// This is somehow expected, fix it and we can go on
+						result.muteLastSubresultError();
+						// We have to create new context in this case, but it has to have thumbstone set
+						rsd.setThombstone(true);
+						projectionContext = LensUtil.getOrCreateProjectionContext(context, rsd);
+						// We have to mark it as dead right now, otherwise the uniqueness check may fail
+						markShadowDead(projection.getOid(), result);
+					}
+				} catch (ObjectNotFoundException e) {
+					// This is somehow expected, fix it and we can go on
+					result.muteLastSubresultError();
+					projectionContext.getResourceShadowDiscriminator().setThombstone(true);
+					projectionContext = LensUtil.getOrCreateProjectionContext(context, rsd);
+					// We have to mark it as dead right now, otherwise the uniqueness check may fail
+					markShadowDead(projectionContext.getOid(), result);
+				}
+			}
 		}
-		return accountSyncContext;
+		return projectionContext;
 	}
 	
+	private void markShadowDead(String oid, OperationResult result) {
+		Collection<? extends ItemDelta<?, ?>> modifications = MiscSchemaUtil.createCollection(PropertyDelta.createReplaceDelta(prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class), 
+				ShadowType.F_DEAD, true));
+		try {
+			cacheRepositoryService.modifyObject(ShadowType.class, oid, modifications, result);
+		} catch (ObjectNotFoundException e) {
+			// Done already
+			result.muteLastSubresultError();
+		} catch (ObjectAlreadyExistsException | SchemaException e) {
+			// Should not happen
+			throw new SystemException(e.getMessage(), e);
+		}
+	}
+
+
 	private <F extends FocusType> LensProjectionContext createProjectionContext(LensContext<F> context,
 			PrismObject<ShadowType> account, OperationResult result) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {

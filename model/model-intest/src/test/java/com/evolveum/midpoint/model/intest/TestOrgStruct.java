@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 
@@ -80,6 +81,9 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 
     public static final File ORG_TEMP_FILE = new File(TEST_DIR, "org-temp.xml");
     public static final String ORG_TEMP_OID = "43214321-4311-0952-4762-854392584320";
+    
+    public static final File ORG_FICTIONAL_FILE = new File(TEST_DIR, "org-fictional.xml");
+    public static final String ORG_FICTIONAL_OID = "b5b179cc-03c7-11e5-9839-001e8c717e5b";
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -1278,7 +1282,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // Postcondition
         assertMonkeyIslandOrgSanity();
     }
-
+    
     /**
      *  Now let's test working with assignments when there is an object template that prescribes an org assignment
      *  based on organizationalUnit property.
@@ -1294,7 +1298,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     }
 
 
-    // BEWARE, tests 800+ are executed in TestOrgStructMeta, so this class has to end with test399 and no jack present
+    // BEWARE, tests 800+ are executed in TestOrgStructMeta, so this class has to end with test799 and no jack present
     // ---------------------------------------------------------------------------------------------------------------
 
 

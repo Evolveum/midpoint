@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.web.page.admin.roles;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -892,12 +893,34 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
         return false;
     }
 
+    /**
+     * Removes empty policy constraints from role.
+     * It was created when loading model (not very good model implementation).
+     * MID-2366
+     *
+     * TODO improve
+     *
+     * @param prism
+     */
+    private void removeEmptyPolicyConstraints(PrismObject<RoleType> prism) {
+        RoleType role = prism.asObjectable();
+        PolicyConstraintsType pc =role.getPolicyConstraints();
+        if (pc == null) {
+            return;
+        }
+
+        if (pc.getExclusion().isEmpty() && pc.getMinAssignees().isEmpty() && pc.getMaxAssignees().isEmpty()) {
+            role.setPolicyConstraints(null);
+        }
+    }
+
     private void savePerformed(AjaxRequestTarget target){
         OperationResult result = new OperationResult(OPERATION_SAVE_ROLE);
         try {
             WebMiscUtil.revive(model, getPrismContext());
             WebMiscUtil.revive(approversModel, getPrismContext());
             PrismObject<RoleType> newRole = model.getObject();
+            removeEmptyPolicyConstraints(newRole);
             handleApproverReferences(newRole);
 
             ObjectDelta delta = null;

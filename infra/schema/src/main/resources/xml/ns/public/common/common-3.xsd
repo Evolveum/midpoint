@@ -171,7 +171,7 @@
         </xsd:annotation>
     </xsd:element>
  
-    <xsd:element name="ignore" type="xsd:boolean" default="true">
+    <xsd:element name="ignore" type="xsd:boolean" default="false">
         <xsd:annotation>
             <xsd:documentation>
                 <p>
@@ -5357,6 +5357,7 @@
         </xsd:complexContent>
     </xsd:complexType>
 	<xsd:element name="assignmentTargetSearch" type="tns:SearchObjectRefExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+	<xsd:element name="referenceSearch" type="tns:SearchObjectRefExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 
 	<xsd:complexType name="ShadowDiscriminatorExpressionEvaluatorType">
         <xsd:annotation>
