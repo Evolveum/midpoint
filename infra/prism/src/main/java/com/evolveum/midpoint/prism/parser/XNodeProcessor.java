@@ -314,6 +314,18 @@ public class XNodeProcessor {
 	private <C extends Containerable> PrismContainerValue<C> parsePrismContainerValueFromMap(MapXNode xmap, PrismContainerDefinition<C> containerDef,
 			Collection<QName> ignoredItems) throws SchemaException {
 		Long id = getContainerId(xmap);
+
+        // override container definition, if explicit type is specified
+        PrismContainerDefinition valueDefinition = containerDef;
+        if (xmap.getTypeQName() != null) {
+            PrismContainerDefinition specificDef = prismContext.getSchemaRegistry().findContainerDefinitionByType(xmap.getTypeQName());
+            if (specificDef != null) {
+                valueDefinition = specificDef;
+            } else {
+                // TODO raise exception here?
+                // by silently proceeding we risk losing some subclass-specific items
+            }
+        }
 		PrismContainerValue<C> cval = new PrismContainerValue<C>(null, null, null, id, xmap.getTypeQName(), prismContext);
 		for (Entry<QName,XNode> xentry: xmap.entrySet()) {
 			QName itemQName = xentry.getKey();
@@ -323,9 +335,9 @@ public class XNodeProcessor {
 			if (QNameUtil.matchAny(itemQName, ignoredItems)) {
 				continue;
 			}
-			ItemDefinition itemDef = locateItemDefinition(containerDef, itemQName, xentry.getValue());
+			ItemDefinition itemDef = locateItemDefinition(valueDefinition, itemQName, xentry.getValue());
 			if (itemDef == null) {				
-				if (containerDef.isRuntimeSchema()) {
+				if (valueDefinition.isRuntimeSchema()) {
 					PrismSchema itemSchema = getSchemaRegistry().findSchemaByNamespace(itemQName.getNamespaceURI());
 					if (itemSchema != null) {
 						// If we already have schema for this namespace then a missing element is
@@ -342,7 +354,7 @@ public class XNodeProcessor {
 					}
 				} else {
 					if (isStrict()) {
-						throw new SchemaException("Item " + itemQName + " has no definition (in container "+containerDef+")"  + "while parsing " + xmap.debugDump(), itemQName);
+						throw new SchemaException("Item " + itemQName + " has no definition (in container value "+valueDefinition+")"  + "while parsing " + xmap.debugDump(), itemQName);
 					} else {
 						// Just skip item
 						continue;

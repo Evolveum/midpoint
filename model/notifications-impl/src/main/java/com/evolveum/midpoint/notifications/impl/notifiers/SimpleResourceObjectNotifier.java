@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -100,7 +101,7 @@ public class SimpleResourceObjectNotifier extends GeneralNotifier {
     }
 
     @Override
-    protected String getSubject(Event event, GeneralNotifierType generalNotifierType, String transport, OperationResult result) {
+    protected String getSubject(Event event, GeneralNotifierType generalNotifierType, String transport, Task task, OperationResult result) {
 
         ResourceObjectEvent resourceObjectEvent = (ResourceObjectEvent) event;
 
@@ -121,7 +122,7 @@ public class SimpleResourceObjectNotifier extends GeneralNotifier {
     }
 
     @Override
-    protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, OperationResult result) {
+    protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, Task task, OperationResult result) {
 
         boolean techInfo = Boolean.TRUE.equals(generalNotifierType.isShowTechnicalInformation());
 

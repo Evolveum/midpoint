@@ -16,27 +16,21 @@
 
 package com.evolveum.midpoint.prism.query;
 
-import javax.xml.namespace.QName;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.w3c.dom.Element;
-
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
+
+import javax.xml.namespace.QName;
 
 public abstract class ValueFilter<T extends PrismValue> extends ObjectFilter {
 	private static final long serialVersionUID = 1L;
@@ -134,13 +128,25 @@ public abstract class ValueFilter<T extends PrismValue> extends ObjectFilter {
 
 		return itemDef;
 	}
-	
-	static ItemDefinition findItemDefinition(ItemPath parentPath, Class type, PrismContext prismContext){
-		PrismObjectDefinition<?> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
-		return findItemDefinition(parentPath, objDef);
+
+	static ItemDefinition findItemDefinition(ItemPath parentPath, ComplexTypeDefinition complexTypeDefinition) {
+		ItemDefinition itemDef = complexTypeDefinition.findItemDefinition(parentPath);
+		if (itemDef == null) {
+			throw new IllegalStateException("No definition for item " + parentPath + " in complex type definition "
+					+ complexTypeDefinition);
+		}
+		return itemDef;
 	}
 
-	
+	static ItemDefinition findItemDefinition(ItemPath parentPath, Class type, PrismContext prismContext) {
+		ComplexTypeDefinition complexTypeDefinition = prismContext.getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(type);
+		if (complexTypeDefinition == null) {
+			// TODO SchemaException instead?
+			throw new IllegalStateException("Definition of complex type " + type + " couldn't be not found");
+		}
+		return findItemDefinition(parentPath, complexTypeDefinition);
+	}
+
 	protected void cloneValues(ValueFilter clone) {
 		super.cloneValues(clone);
 		clone.fullPath = this.fullPath;

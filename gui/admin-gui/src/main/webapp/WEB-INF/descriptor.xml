@@ -97,6 +97,19 @@
             </item>
         </root>
         <root>
+            <name>PageAdmin.menu.top.certification</name>
+            <order>55</order>
+            <item>
+                <name>PageAdmin.menu.top.certification.types</name>
+                <page>com.evolveum.midpoint.web.page.admin.certification.PageCertDefinitions</page>
+            </item>
+            <item>
+                <name>PageAdmin.menu.top.certification.current</name>
+                <page>com.evolveum.midpoint.web.page.admin.certification.PageCertCampaigns</page>
+            </item>
+        </root>
+
+        <root>
             <name>PageAdmin.menu.top.serverTasks</name>
             <order>60</order>
             <item>

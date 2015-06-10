@@ -248,7 +248,7 @@ public class PrismSchema implements DebugDumpable {
 		// TODO: check for multiple definition with the same type
 		for (Definition definition : definitions) {
 			if (type.isAssignableFrom(definition.getClass())
-					&& QNameUtil.match(typeName,definition.getTypeName())) {
+					&& QNameUtil.match(typeName, definition.getTypeName())) {
 				return (T) definition;
 			}
 		}
@@ -279,6 +279,18 @@ public class PrismSchema implements DebugDumpable {
 				PrismContainerDefinition<C> contDef = (PrismContainerDefinition<C>)def;
 				if (type.equals(contDef.getCompileTimeClass())) {
 					return contDef;
+				}
+			}
+		}
+		return null;
+	}
+
+	public <C extends Containerable> ComplexTypeDefinition findComplexTypeDefinitionByCompileTimeClass(Class<C> type) {
+		for (Definition def: getDefinitions()) {
+			if (def instanceof ComplexTypeDefinition) {
+				ComplexTypeDefinition ctd = (ComplexTypeDefinition)def;
+				if (type.equals(ctd.getCompileTimeClass())) {
+					return ctd;
 				}
 			}
 		}

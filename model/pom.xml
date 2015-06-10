@@ -60,5 +60,7 @@
         <module>report-api</module>
         <module>report-impl</module>
         <module>report-ds-impl</module>
+        <module>certification-api</module>
+        <module>certification-impl</module>
     </modules>
 </project>

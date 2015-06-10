@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.prism.query;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
@@ -82,8 +83,11 @@ public class ObjectQuery implements DebugDumpable, Serializable {
 	}
 	
 	public static <T extends Objectable> boolean match(PrismObject<T> object, ObjectFilter filter, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException{
-		return filter.match(object, matchingRuleRegistry);
-//		return false;
+		return filter.match(object.getValue(), matchingRuleRegistry);
+	}
+
+	public static boolean match(Containerable object, ObjectFilter filter, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException{
+		return filter.match(object.asPrismContainerValue(), matchingRuleRegistry);
 	}
 	
 	public ObjectQuery clone() {

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.security.api;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.apache.commons.lang.Validate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -199,4 +200,13 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable {
 		return "MidPointPrincipal(" + user + ", autz=" + authorizations + ")";
 	}
 
+    public ObjectReferenceType toObjectReference() {
+        if (user == null || user.getOid() == null) {
+            return null;
+        }
+        ObjectReferenceType rv = new ObjectReferenceType();
+        rv.setType(UserType.COMPLEX_TYPE);
+        rv.setOid(user.getOid());
+        return rv;
+    }
 }

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.prism.xjc;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -50,15 +51,37 @@ public abstract class PrismContainerArrayList<T extends Containerable> extends A
         this.container = container;
     }
 
-    protected abstract T createItem(PrismContainerValue value);
-
     protected abstract PrismContainerValue getValueFrom(T t);
+
+    protected T createItemInternal(PrismContainerValue value) {
+        PrismContainerDefinition concreteDef = value.getConcreteTypeDefinition();
+        if (concreteDef != null &&
+                !(container.getCompileTimeClass() != null &&
+                        container.getCompileTimeClass().equals(concreteDef.getCompileTimeClass()))) {
+            // the dynamic definition exists and the compile time class is different from the one at the container level
+            // ("different" here means it is a subclass)
+            // so we have to instantiate dynamically
+            T bean = null;
+            try {
+                bean = (T) concreteDef.getCompileTimeClass().newInstance();
+            } catch (InstantiationException|IllegalAccessException|RuntimeException e) {
+                throw new SystemException("Couldn't instantiate " + concreteDef.getCompileTimeClass());
+            }
+            bean.setupContainerValue(value);
+            return bean;
+        }
+        else {
+            // otherwise let's use the static (faster) way
+            return createItem(value);
+        }
+    }
+    protected abstract T createItem(PrismContainerValue value);
 
     @Override
     public T get(int i) {
         testIndex(i);
 
-        return createItem(getValues().get(i));
+        return createItemInternal(getValues().get(i));
     }
 
     private List<PrismContainerValue<T>> getValues() {
@@ -84,7 +107,7 @@ public abstract class PrismContainerArrayList<T extends Containerable> extends A
         PrismContainerValue value = getValues().get(i);
         getValues().remove(i);
 
-        return createItem(value);
+        return createItemInternal(value);
     }
 
     @Override

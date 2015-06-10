@@ -214,10 +214,16 @@ public class QNameUtil {
         return namespacePrefix != null && namespacePrefix.startsWith(UNDECLARED_PREFIX_MARK);
     }
 
+<<<<<<< HEAD
 	public static boolean isUri(String string) {
 		if (string == null) {
 			return false;
 		}
 		return string.matches("^\\w+:.*");
 	}
+=======
+    public static String getLocalPart(QName name) {
+        return name != null ? name.getLocalPart() : null;
+    }
+>>>>>>> master
 }

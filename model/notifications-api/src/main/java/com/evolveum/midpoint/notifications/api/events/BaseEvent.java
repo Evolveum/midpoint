@@ -56,6 +56,7 @@ public abstract class BaseEvent implements Event {
     // - for model notifications, this is the focus, (usually a user but may be e.g. role or other kind of object)
     // - for account notifications, this is the account owner,
     // - for workflow notifications, this is the workflow process instance object
+    // - for certification notifications, this is the campaign owner or reviewer (depending on the kind of event)
 
     private SimpleObjectRef requestee;
 
@@ -98,6 +99,10 @@ public abstract class BaseEvent implements Event {
 
     public boolean isWorkflowRelated() {
         return isCategoryType(EventCategoryType.WORKFLOW_EVENT);
+    }
+
+    public boolean isCertCampaignStageRelated() {
+        return isCategoryType(EventCategoryType.CERT_CAMPAIGN_STAGE_EVENT);
     }
 
     public boolean isAdd() {

@@ -34,6 +34,8 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.page.PageTemplate;
+import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceController;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceObjectTypeDto;
@@ -109,6 +111,16 @@ public class PageResource extends PageAdminResources {
     private IModel<ResourceDto> model;
 
     public PageResource() {
+        initialize();
+    }
+
+    public PageResource(PageParameters parameters, PageTemplate previousPage) {
+        getPageParameters().overwriteWith(parameters);
+        setPreviousPage(previousPage);
+        initialize();
+    }
+
+    private void initialize() {
         model = new LoadableModel<ResourceDto>() {
 
             @Override
@@ -326,7 +338,11 @@ public class PageResource extends PageAdminResources {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                setResponsePage(new PageResources(false));
+                if (getPreviousPage() != null) {
+                    goBack(PageDashboard.class);            // the parameter is never used really
+                } else {
+                    setResponsePage(new PageResources(false));
+                }
             }
         };
         mainForm.add(back);

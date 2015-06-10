@@ -17,8 +17,11 @@
 package com.evolveum.midpoint.notifications.impl;
 
 import com.evolveum.midpoint.notifications.api.events.SimpleObjectRef;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.apache.commons.lang.Validate;
 
 /**
  * @author mederly
@@ -31,6 +34,21 @@ public class SimpleObjectRefImpl implements SimpleObjectRef {
     public SimpleObjectRefImpl(NotificationsUtil notificationsUtil, ObjectType objectType) {
         this.oid = objectType.getOid();
         this.objectType = objectType;
+        this.notificationsUtil = notificationsUtil;
+    }
+
+    public SimpleObjectRefImpl(NotificationsUtil notificationsUtil, PrismObject object) {
+        this.oid = object.getOid();
+        this.objectType = (ObjectType) object.asObjectable();
+        this.notificationsUtil = notificationsUtil;
+    }
+
+    public SimpleObjectRefImpl(NotificationsUtil notificationsUtil, ObjectReferenceType ref) {
+        Validate.notNull(ref);
+        this.oid = ref.getOid();
+        if (ref.asReferenceValue().getObject() != null) {
+            this.objectType = (ObjectType) ref.asReferenceValue().getObject().asObjectable();
+        }
         this.notificationsUtil = notificationsUtil;
     }
 

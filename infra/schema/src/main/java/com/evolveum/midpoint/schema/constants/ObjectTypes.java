@@ -80,6 +80,12 @@ public enum ObjectTypes {
     LOOKUP_TABLE(LookupTableType.COMPLEX_TYPE, SchemaConstantsGenerated.C_LOOKUP_TABLE, LookupTableType.class,
             ObjectManager.MODEL, "lookupTables"),
 
+    ACCESS_CERTIFICATION_DEFINITION(AccessCertificationDefinitionType.COMPLEX_TYPE, SchemaConstantsGenerated.C_ACCESS_CERTIFICATION_DEFINITION, AccessCertificationDefinitionType.class,
+            ObjectManager.MODEL, "accessCertificationDefinitions"),
+
+    ACCESS_CERTIFICATION_CAMPAIGN(AccessCertificationCampaignType.COMPLEX_TYPE, SchemaConstantsGenerated.C_ACCESS_CERTIFICATION_CAMPAIGN, AccessCertificationCampaignType.class,
+            ObjectManager.MODEL, "accessCertificationCampaigns"),
+
     // as for now, this has to remain disabled (they could be used e.g. in audit logs, when the repo will support them)
     //WORK_ITEM(WorkItemType.COMPLEX_TYPE, SchemaConstants.C_WORK_ITEM, WorkItemType.class, ObjectManager.WORKFLOW, "workItems"),
     //WF_PROCESS_INSTANCE(WfProcessInstanceType.COMPLEX_TYPE, SchemaConstants.C_WF_PROCESS_INSTANCE, WfProcessInstanceType.class, ObjectManager.WORKFLOW, "wfProcessInstances"),
