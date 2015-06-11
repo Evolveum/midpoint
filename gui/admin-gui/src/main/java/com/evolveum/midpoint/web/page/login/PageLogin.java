@@ -47,6 +47,7 @@ import org.apache.wicket.model.Model;
 @PageDescriptor(url = "/login")
 public class PageLogin extends PageBase {
 
+	PageBase page = getPageBase();
     private static final String ID_LOGIN_FORM = "loginForm";
 
     private static final String ID_USERNAME = "username";
@@ -101,10 +102,10 @@ public class PageLogin extends PageBase {
         
         add(form);
     }
-    @Override
+   /* @Override
     protected IModel<String> createPageTitleModel() {
         return new Model<>("");
-    }
+    }*/
     
 	public PageBase getPageBase() {
 		return (PageBase) getPage();

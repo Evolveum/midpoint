@@ -38,6 +38,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -123,7 +124,17 @@ public interface MidpointFunctions {
 	 * @return empty object in memory
 	 */
 	<T extends ObjectType> T createEmptyObjectWithName(Class<T> type, PolyStringType name);
-	
+
+	<T extends ObjectType> T resolveReference(ObjectReferenceType reference)
+            throws ObjectNotFoundException, SchemaException,
+            CommunicationException, ConfigurationException,
+            SecurityViolationException;
+
+	<T extends ObjectType> T resolveReferenceIfExists(ObjectReferenceType reference)
+            throws SchemaException,
+            CommunicationException, ConfigurationException,
+            SecurityViolationException;
+
 	/**
 	 * <p>
 	 * Returns object for provided OID. It retrieves the object from an appropriate source
@@ -875,7 +886,9 @@ public interface MidpointFunctions {
     // however, the syntax of orgType attribute is not standardized
     Collection<String> getOrgUnits(UserType user);
 
-    OrgType getOrgByOid(String oid) throws SchemaException;
+	Collection<String> getOrgUnits(UserType user, QName relation);
+
+	OrgType getOrgByOid(String oid) throws SchemaException;
 
     OrgType getOrgByName(String name) throws SchemaException;
 

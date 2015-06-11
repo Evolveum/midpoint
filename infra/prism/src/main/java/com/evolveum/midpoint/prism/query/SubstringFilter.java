@@ -23,6 +23,9 @@ import java.util.regex.Pattern;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.prism.Item;
@@ -229,8 +232,8 @@ public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T
 	}
 
 	@Override
-	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) {
-		Item item = getObjectItem(object);
+	public boolean match(PrismContainerValue containerValue, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+		Item item = getObjectItem(containerValue);
 		
 		MatchingRule matching = getMatchingRuleFromRegistry(matchingRuleRegistry, item);
 		

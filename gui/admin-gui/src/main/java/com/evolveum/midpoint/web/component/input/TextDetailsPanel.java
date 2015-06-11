@@ -16,13 +16,9 @@
 
 package com.evolveum.midpoint.web.component.input;
 
-import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.web.util.TooltipBehavior;
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;

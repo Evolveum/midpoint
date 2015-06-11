@@ -290,7 +290,29 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		result.recordSuccess();
 		return objects;
 	}
-	
+
+	// these objects can be of various types
+	protected List<PrismObject> repoAddObjectsFromFile(File file, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, IOException {
+		OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
+				+ ".addObjectsFromFile");
+		result.addParam("file", file);
+		LOGGER.trace("addObjectsFromFile: {}", file);
+		List<PrismObject> objects = (List) PrismTestUtil.parseObjects(file);
+		for (PrismObject object: objects) {
+			try {
+				repoAddObject((Class) object.asObjectable().getClass(), object, result);
+			} catch (ObjectAlreadyExistsException e) {
+				throw new ObjectAlreadyExistsException(e.getMessage()+" while adding "+object+" from file "+file, e);
+			} catch (SchemaException e) {
+				new SchemaException(e.getMessage()+" while adding "+object+" from file "+file, e);
+			} catch (EncryptionException e) {
+				new EncryptionException(e.getMessage()+" while adding "+object+" from file "+file, e);
+			}
+		}
+		result.recordSuccess();
+		return objects;
+	}
+
 	protected <T extends ObjectType> T parseObjectTypeFromFile(String fileName, Class<T> clazz) throws SchemaException, IOException {
 		return parseObjectType(new File(fileName), clazz);
 	}

@@ -22,6 +22,10 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.match.MatchingRule;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.prism.Item;
@@ -86,7 +90,7 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue> {
 	}
 
     // beware, creating reference with (oid, ObjectType) may result in not matching a concrete reference of e.g. (oid, RoleType)
-	public static <O extends Objectable> RefFilter createReferenceEqual(QName propertyName, Class<O> type, PrismContext prismContext,
+	public static <O extends Containerable> RefFilter createReferenceEqual(QName propertyName, Class<O> type, PrismContext prismContext,
 			String... oids) throws SchemaException {
 		ItemPath path = new ItemPath(propertyName);
 		PrismReferenceDefinition refDefinition = (PrismReferenceDefinition) findItemDefinition(path, type, prismContext);
@@ -94,13 +98,13 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue> {
 	}
 
     // beware, creating reference with (oid, ObjectType) may result in not matching a concrete reference of e.g. (oid, RoleType)
-    public static <O extends Objectable> RefFilter createReferenceEqual(ItemPath path, Class<O> type, PrismContext prismContext,
+    public static <O extends Containerable> RefFilter createReferenceEqual(ItemPath path, Class<O> type, PrismContext prismContext,
                                                                         String... oids) throws SchemaException {
         PrismReferenceDefinition refDefinition = (PrismReferenceDefinition) findItemDefinition(path, type, prismContext);
         return createReferenceEqual(path, refDefinition, oids);
     }
 
-    public static <O extends Objectable> RefFilter createReferenceEqual(ItemPath path, Class<O> type, PrismContext prismContext,
+    public static <O extends Containerable> RefFilter createReferenceEqual(ItemPath path, Class<O> type, PrismContext prismContext,
                                                                         PrismReferenceValue... values) throws SchemaException {
         PrismReferenceDefinition refDefinition = (PrismReferenceDefinition) findItemDefinition(path, type, prismContext);
         return createReferenceEqual(path, refDefinition, values);
@@ -169,10 +173,49 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue> {
 	}
 
 	@Override
-	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException{
-		Item item = getObjectItem(object);
-		Item filterItem = getFilterItem();		
-		return item.match(filterItem);
+	public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+
+		Item filterItem = getFilterItem();
+		Item objectItem = getObjectItem(value);
+
+		if (!super.match(value, matchingRuleRegistry)) {
+			return false;
+		}
+
+		boolean filterItemIsEmpty = getValues() == null || getValues().isEmpty();
+		boolean objectItemIsEmpty = objectItem == null || objectItem.isEmpty();
+
+		if (filterItemIsEmpty && objectItemIsEmpty) {
+			return true;
+		}
+
+		assert !filterItemIsEmpty;	// if both are empty, the previous statement causes 'return true'
+		assert !objectItemIsEmpty;	// if only one of them is empty, the super.match() returnsed false
+
+		List<Object> objectValues = objectItem.getValues();
+		for (Object v : objectValues) {
+			if (!(v instanceof PrismReferenceValue)) {
+				throw new IllegalArgumentException("Not supported prism value for ref equals filter. It must be an instance of PrismReferenceValue but it is " + v.getClass());
+			}
+			if (!isInFilterItem((PrismReferenceValue) v, filterItem)){
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	private boolean isInFilterItem(PrismReferenceValue v, Item filterItem) {
+		for (Object filterValue : filterItem.getValues()) {
+			if (!(filterValue instanceof PrismReferenceValue)) {
+				throw new IllegalArgumentException("Not supported prism value for ref equals filter. It must be an instance of PrismReferenceValue but it is " + v.getClass());
+			}
+			PrismReferenceValue filterRV = (PrismReferenceValue) filterValue;
+			if (filterRV.getOid().equals(v.getOid())) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override

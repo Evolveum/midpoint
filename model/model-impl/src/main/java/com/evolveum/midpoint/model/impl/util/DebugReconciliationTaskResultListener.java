@@ -54,7 +54,7 @@ public class DebugReconciliationTaskResultListener implements
 				expectedUnOpsCount, result.getUnOpsCount());
 		PrismAsserts.assertEquals("Wrong resourceReconCount in recon result for resource "+resourceOid, 
 				expectedResourceReconCount, result.getResourceReconCount());
-		PrismAsserts.assertEquals("Wrong resourceReconCount in recon result for resource "+resourceOid, 
+		PrismAsserts.assertEquals("Wrong resourceReconErrors in recon result for resource "+resourceOid, 
 				expectedResourceReconErrors, result.getResourceReconErrors());
 		PrismAsserts.assertEquals("Wrong shadowReconCount in recon result for resource "+resourceOid, 
 				expectedShadowReconCount, result.getShadowReconCount());

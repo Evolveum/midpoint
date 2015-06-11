@@ -182,11 +182,16 @@ public class XNodeSerializer {
                 definition = itemValue.getParent().getDefinition();
             }
         }
-        if (definition == null){
-            return serializePropertyRawValue((PrismPropertyValue<?>) itemValue);
-        }
         if (beanConverter.getPrismContext() == null) {
             throw new IllegalStateException("No prismContext in beanConverter!");
+        }
+        if (definition == null){
+//        	if (itemValue instanceof PrismPropertyValue && beanConverter.canProcess(((PrismPropertyValue) itemValue).getValue().getClass())){
+//        		xnode = beanConverter.marshall(((PrismPropertyValue)itemValue).getValue());
+//                xnode.setExplicitTypeDeclaration(true);
+//                return xnode;
+//        	}
+            return serializePropertyRawValue((PrismPropertyValue<?>) itemValue);
         }
         if (itemValue instanceof PrismReferenceValue) {
             xnode = serializeReferenceValue((PrismReferenceValue)itemValue, (PrismReferenceDefinition) definition);
@@ -234,6 +239,7 @@ public class XNodeSerializer {
 		}
         if (containerVal.getConcreteType() != null) {
             xmap.setTypeQName(containerVal.getConcreteType());
+            xmap.setExplicitTypeDeclaration(true);
         }
 
 		Collection<QName> serializedItems = new ArrayList<>();

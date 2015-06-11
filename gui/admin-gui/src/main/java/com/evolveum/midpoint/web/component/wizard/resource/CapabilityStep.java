@@ -51,6 +51,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -60,10 +61,7 @@ import org.apache.wicket.model.PropertyModel;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -299,9 +297,9 @@ public class CapabilityStep extends WizardStep {
             newConfig = new CapabilityActivationPanel(ID_CAPABILITY_CONFIG, new Model<>(capability)){
 
                 @Override
-                public IModel<List<QName>> createAttributeChoiceModel(){
-
+                public IModel<List<QName>> createAttributeChoiceModel(final IChoiceRenderer<QName> renderer) {
                     return new LoadableModel<List<QName>>(false) {
+
                         @Override
                         protected List<QName> load() {
                             List<QName> choices = new ArrayList<>();
@@ -315,11 +313,22 @@ public class CapabilityStep extends WizardStep {
                                 for(ResourceAttributeDefinition attribute: def.getAttributeDefinitions()){
                                     choices.add(attribute.getName());
                                 }
-
                             } catch (Exception e){
                                 LoggingUtils.logException(LOGGER, "Couldn't load resource schema attributes.", e);
                                 getPageBase().error("Couldn't load resource schema attributes" + e);
                             }
+
+                            Collections.sort(choices, new Comparator<QName>() {
+
+                                @Override
+                                public int compare(QName o1, QName o2) {
+                                    String s1 = (String) renderer.getDisplayValue(o1);
+                                    String s2 = (String) renderer.getDisplayValue(o2);
+
+                                    return String.CASE_INSENSITIVE_ORDER.compare(s1, s2);
+                                }
+                            });
+
                             return choices;
                         }
                     };

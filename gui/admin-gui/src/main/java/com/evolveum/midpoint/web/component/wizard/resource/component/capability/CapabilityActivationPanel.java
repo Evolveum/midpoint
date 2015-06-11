@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.component.wizard.resource.component.capability;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.CapabilityDto;
@@ -114,7 +115,12 @@ public class CapabilityActivationPanel extends SimplePanel{
 
             @Override
             public Object getDisplayValue(QName object) {
-                 return object.getLocalPart();
+                StringBuilder sb = new StringBuilder();
+                String prefix = SchemaConstants.NS_ICF_SCHEMA.equals(object.getNamespaceURI()) ? "icfs" : "ri";
+                sb.append(prefix);
+                sb.append(": ");
+                sb.append(object.getLocalPart());
+                return sb.toString();
             }
 
             @Override
@@ -125,7 +131,7 @@ public class CapabilityActivationPanel extends SimplePanel{
 
         DropDownChoice statusChoice = new DropDownChoice<>(ID_SELECT_STATUS,
                 new PropertyModel<QName>(getModel(), "capability.status.attribute"),
-                createAttributeChoiceModel(), renderer);
+                createAttributeChoiceModel(renderer), renderer);
         add(statusChoice);
 
         Label enabledTooltip = new Label(ID_T_ENABLED);
@@ -169,7 +175,7 @@ public class CapabilityActivationPanel extends SimplePanel{
         add(vToReturnTooltip);
     }
 
-    public IModel<List<QName>> createAttributeChoiceModel(){
+    public IModel<List<QName>> createAttributeChoiceModel(IChoiceRenderer<QName> renderer){
         return null;
     }
 }

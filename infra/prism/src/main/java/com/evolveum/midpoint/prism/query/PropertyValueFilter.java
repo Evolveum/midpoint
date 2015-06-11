@@ -23,6 +23,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
@@ -165,11 +166,9 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 		return clonedValues;
 	}
 	
-	public Item getObjectItem(PrismObject object){
-		
+	public Item getObjectItem(PrismContainerValue value){
 		ItemPath path = getFullPath();
-		return object.findItem(path);
-		
+		return value.findItem(path);
 	}
 	
 	public Item getFilterItem() throws SchemaException{
@@ -212,33 +211,18 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 	}
 
 	@Override
-	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException{
-//		if (getObjectItem(object) == null && getValues() == null) {
-//			return true;
-//		}
-//		
-		Item filterItem = getFilterItem();
-		MatchingRule matching = getMatchingRuleFromRegistry(matchingRuleRegistry, filterItem);
-		
-		Item item = getObjectItem(object);
-		
-		if (item == null){
+	public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+
+		Item item = getObjectItem(value);
+
+		boolean filterItemIsEmpty = getValues() == null || getValues().isEmpty();
+		boolean objectItemIsEmpty = item == null || item.isEmpty();
+
+		if (filterItemIsEmpty && !objectItemIsEmpty) {
 			return false;
 		}
-		
-//		if (item == null && getValues() == null) {
-//			return true;
-//		}
-//		
-//		if (item == null && getValues() != null) {
-//			return false;
-//		}
-		
-		if (!item.isEmpty() && (getValues() == null || getValues().isEmpty())){
-			return false;
-		}
-		
-		if (item.isEmpty() && (getValues() != null && !getValues().isEmpty())){
+
+		if (!filterItemIsEmpty && objectItemIsEmpty) {
 			return false;
 		}
 		

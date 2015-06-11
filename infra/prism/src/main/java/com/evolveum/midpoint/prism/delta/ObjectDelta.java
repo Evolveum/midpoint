@@ -706,10 +706,15 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     	// it is not reliable and therefore it is better not to add it now.
     	return propertyDelta;
     }
-    
+
     public ReferenceDelta createReferenceModification(QName name, PrismReferenceDefinition referenceDefinition) {
     	ReferenceDelta referenceDelta = new ReferenceDelta(name, referenceDefinition, prismContext);
     	return addModification(referenceDelta);
+    }
+
+    public ReferenceDelta createReferenceModification(ItemPath path, PrismReferenceDefinition referenceDefinition) {
+        ReferenceDelta referenceDelta = new ReferenceDelta(path, referenceDefinition, prismContext);
+        return addModification(referenceDelta);
     }
     
     public <C extends Containerable> ContainerDelta<C> createContainerModification(ItemPath path) {
@@ -778,7 +783,11 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     public <X> void addModificationReplaceProperty(ItemPath propertyPath, X... propertyValues) {
     	fillInModificationReplaceProperty(this, propertyPath, propertyValues);
     }
-    
+
+    public <X> void addModificationReplaceReference(ItemPath refPath, PrismReferenceValue... refValues) {
+        fillInModificationReplaceReference(this, refPath, refValues);
+    }
+
     public <X> void addModificationAddProperty(QName propertyQName, X... propertyValues) {
     	addModificationAddProperty(new ItemPath(propertyQName), propertyValues);
     }
@@ -872,7 +881,23 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
 	    	objectDelta.addModification(propertyDelta);
     	}
     }
-    
+
+    protected static <O extends Objectable> void fillInModificationReplaceReference(ObjectDelta<O> objectDelta,
+                                                                                       ItemPath refPath, PrismReferenceValue... refValues) {
+        ReferenceDelta refDelta = objectDelta.createReferenceModification(refPath);
+        if (refValues != null) {
+            refDelta.setValuesToReplace(refValues);
+            objectDelta.addModification(refDelta);
+        }
+    }
+
+    private ReferenceDelta createReferenceModification(ItemPath refPath) {
+        PrismObjectDefinition<T> objDef = getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(getObjectTypeClass());
+        PrismReferenceDefinition refDef = objDef.findReferenceDefinition(refPath);
+        return createReferenceModification(refPath, refDef);
+    }
+
+
     public static <O extends Objectable, C extends Containerable> ObjectDelta<O> createModificationAddContainer(Class<O> type, String oid, 
     		QName propertyName, PrismContext prismContext, PrismContainerValue<C>... containerValues) {
     	return createModificationAddContainer(type, oid, new ItemPath(propertyName), prismContext, containerValues);

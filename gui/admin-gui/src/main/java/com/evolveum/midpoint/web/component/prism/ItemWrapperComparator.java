@@ -19,12 +19,13 @@ package com.evolveum.midpoint.web.component.prism;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import org.apache.commons.lang.StringUtils;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
 /**
  * @author lazyman
  */
-public class ItemWrapperComparator implements Comparator<ItemWrapper> {
+public class ItemWrapperComparator implements Comparator<ItemWrapper>, Serializable {
 
     @Override
     public int compare(ItemWrapper p1, ItemWrapper p2) {

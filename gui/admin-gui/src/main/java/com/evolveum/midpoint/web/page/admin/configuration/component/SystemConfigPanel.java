@@ -58,6 +58,7 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
 
     private static final String ID_DEFAULT_FROM = "defaultFrom";
     private static final String ID_DEBUG = "debugCheckbox";
+    private static final String ID_EXPERIMENTAL_CODE_CHECKBOX = "experimentalCodeCheckbox";
 
     private static final String ID_MAIL_SERVER = "mailServer";
     private static final String ID_MAIL_SERVER_CONFIG_CONTAINER = "mailServerConfigContainer";
@@ -277,6 +278,9 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
             }
         }));
         form.add(removeMailServerConfig);
+
+        CheckBox experimentalCodeCheck = new CheckBox(ID_EXPERIMENTAL_CODE_CHECKBOX, new PropertyModel<Boolean>(getModel(), SystemConfigurationDto.F_ENABLE_EXPERIMENTAL_CODE));
+        form.add(experimentalCodeCheck);
     }
 
     private void preparePasswordFieldPlaceholder(){

@@ -212,4 +212,8 @@ public class QNameUtil {
     public static boolean isPrefixUndeclared(String namespacePrefix) {
         return namespacePrefix != null && namespacePrefix.startsWith(UNDECLARED_PREFIX_MARK);
     }
+
+    public static String getLocalPart(QName name) {
+        return name != null ? name.getLocalPart() : null;
+    }
 }

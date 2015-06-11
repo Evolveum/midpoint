@@ -20,6 +20,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 
@@ -28,11 +29,9 @@ import org.apache.commons.lang.Validate;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.Itemable;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -121,39 +120,39 @@ public class EqualFilter<T extends Object> extends PropertyValueFilter<PrismProp
 	
 	
 	
-	public static <O extends Containerable, T> EqualFilter createEqual(ItemPath parentPath, PrismContainerDefinition<O> containerDef,
+	public static <C extends Containerable, T> EqualFilter createEqual(ItemPath parentPath, PrismContainerDefinition<C> containerDef,
 			PrismPropertyValue<T> values) throws SchemaException {
 		PrismPropertyDefinition propertyDef = (PrismPropertyDefinition) findItemDefinition(parentPath, containerDef);
 		return createEqual(parentPath, propertyDef, values);
 //		return (EqualsFilter) createPropertyFilter(EqualsFilter.class, parentPath, containerDef, values);
 	}
 
-	public static <O extends Containerable, T> EqualFilter createEqual(ItemPath parentPath, PrismContainerDefinition<O> containerDef,
+	public static <C extends Containerable, T> EqualFilter createEqual(ItemPath parentPath, PrismContainerDefinition<C> containerDef,
 			T realValues) throws SchemaException {
 		PrismPropertyDefinition propertyDef = (PrismPropertyDefinition) findItemDefinition(parentPath, containerDef);
 		return createEqual(parentPath, propertyDef, realValues);
 //		return (EqualsFilter) createPropertyFilter(EqualsFilter.class, parentPath, containerDef, realValue);
 	}
 
-	public static <O extends Objectable, T> EqualFilter createEqual(QName propertyName, Class<O> type, PrismContext prismContext, T realValues)
+	public static <C extends Containerable, T> EqualFilter createEqual(QName propertyName, Class<C> type, PrismContext prismContext, T realValues)
 			throws SchemaException {
 		return createEqual(propertyName, type, prismContext, null, realValues);
 		
 		
 	}
 	
-	 public static <O extends Objectable, T> EqualFilter createEqual(QName propertyName, Class<O> type, PrismContext prismContext,
+	 public static <C extends Containerable, T> EqualFilter createEqual(QName propertyName, Class<C> type, PrismContext prismContext,
              QName matchingRule, T realValues) {
 		 
 		return createEqual(new ItemPath(propertyName), type, prismContext, matchingRule, realValues);
 }
 	
-	public static <O extends Objectable, T> EqualFilter createEqual(ItemPath propertyPath, Class<O> type, PrismContext prismContext, T realValue)
+	public static <C extends Containerable, T> EqualFilter createEqual(ItemPath propertyPath, Class<C> type, PrismContext prismContext, T realValue)
 			throws SchemaException {
 		return createEqual(propertyPath, type, prismContext, null, realValue);
 	}
 	
-	public static <O extends Objectable, T> EqualFilter createEqual(ItemPath propertyPath, Class<O> type, PrismContext prismContext, QName matchingRule, T realValue)
+	public static <C extends Containerable, T> EqualFilter createEqual(ItemPath propertyPath, Class<C> type, PrismContext prismContext, QName matchingRule, T realValue)
 			{
 		PrismPropertyDefinition propertyDefinition = (PrismPropertyDefinition) findItemDefinition(propertyPath, type, prismContext);
 		return createEqual(propertyPath, propertyDefinition, matchingRule, realValue);
@@ -210,13 +209,13 @@ public class EqualFilter<T extends Object> extends PropertyValueFilter<PrismProp
 	}
 
 	@Override
-	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException{
+	public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
 		Item filterItem = getFilterItem();
-		if (!super.match(object, matchingRuleRegistry)){
+		if (!super.match(value, matchingRuleRegistry)){
 			return false;
 		}
-		
-		List<Object> values = getObjectItem(object).getValues();
+
+		List<Object> values = getObjectItem(value).getValues();
 		if (values == null){
 			return true;
 		}

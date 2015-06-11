@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2015 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<org oid="b5b179cc-03c7-11e5-9839-001e8c717e5b" xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+    <name>FICT</name>
+    <description>Fictional org unit. It triggers mapping in object template.</description>
+    <displayName>Fictional Org</displayName>
+    <identifier>FfFfFf</identifier>
+    <orgType>fictional</orgType>
+</org>
+

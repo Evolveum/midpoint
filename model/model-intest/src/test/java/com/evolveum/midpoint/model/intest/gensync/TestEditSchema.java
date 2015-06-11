@@ -341,7 +341,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
      * Disabled because it's not clear how to treat polystrings in searches.
      *
      */
-    @Test(enabled = false)
+    @Test
     public void test131LookupLanguagesGetByLabelStartingWith() throws Exception {
         final String TEST_NAME="test131LookupLanguagesGetByLabelStartingWith";
         TestUtil.displayTestTile(this, TEST_NAME);

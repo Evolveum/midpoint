@@ -324,6 +324,18 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
 		propertyDelta.setValuesToReplace(pValues);
     	return propertyDelta;
     }
+
+	public static <T> PropertyDelta<T> createModificationReplaceProperty(ItemPath propertyPath, PrismObjectDefinition<?> objectDefinition,
+																		 Collection<T> propertyValues) {
+		PrismPropertyDefinition propDef = objectDefinition.findPropertyDefinition(propertyPath);
+		PropertyDelta<T> propertyDelta = new PropertyDelta<T>(propertyPath, propDef, objectDefinition.getPrismContext());              // hoping the prismContext is there
+		Collection<PrismPropertyValue<T>> pValues = new ArrayList<PrismPropertyValue<T>>(propertyValues.size());
+		for (T val: propertyValues) {
+			pValues.add(new PrismPropertyValue<T>(val));
+		}
+		propertyDelta.setValuesToReplace(pValues);
+		return propertyDelta;
+	}
     
     public static <T> PropertyDelta<T> createModificationReplaceProperty(ItemPath propertyPath, PrismPropertyDefinition propertyDefinition, 
     		T... propertyValues) {

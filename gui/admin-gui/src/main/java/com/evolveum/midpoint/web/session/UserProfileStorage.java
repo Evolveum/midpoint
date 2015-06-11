@@ -25,7 +25,7 @@ import java.util.Map;
  * */
 public class UserProfileStorage implements Serializable{
 
-    public static Integer DEFAULT_PAGING_SIZE = 10;
+    public static final Integer DEFAULT_PAGING_SIZE = 10;
 
     /*
     *   Enum containing IDs of all tables. where paging size can be adjusted

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.events.WorkItemEvent;
 import com.evolveum.midpoint.notifications.api.events.WorkflowEvent;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -58,7 +59,7 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
     }
 
     @Override
-    protected String getSubject(Event event, GeneralNotifierType generalNotifierType, String transport, OperationResult result) {
+    protected String getSubject(Event event, GeneralNotifierType generalNotifierType, String transport, Task task, OperationResult result) {
 
         if (event.isAdd()) {
             if (event instanceof WorkItemEvent) {
@@ -76,7 +77,7 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
     }
 
     @Override
-    protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, OperationResult result) throws SchemaException {
+    protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, Task task, OperationResult result) throws SchemaException {
 
         WorkflowEvent workflowEvent = (WorkflowEvent) event;
 
@@ -84,7 +85,7 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
 
         StringBuilder body = new StringBuilder();
 
-        body.append(getSubject(event, generalNotifierType, transport, result));
+        body.append(getSubject(event, generalNotifierType, transport, task, result));
         body.append("\n\n");
 
         body.append("Process instance name: " + workflowEvent.getProcessInstanceName() + "\n");

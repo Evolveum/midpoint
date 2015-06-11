@@ -16,14 +16,10 @@
 
 package com.evolveum.midpoint.init;
 
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.lang.Validate;
 
 /**
  * @author Radovan Semancik

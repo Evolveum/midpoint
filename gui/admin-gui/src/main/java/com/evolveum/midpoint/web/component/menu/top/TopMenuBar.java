@@ -21,7 +21,7 @@ import java.util.List;
  */
 public class TopMenuBar extends Panel {
 
-    public static String ID_RIGHT_PANEL = "rightPanel";
+    public static final String ID_RIGHT_PANEL = "rightPanel";
 
     private static final String ID_TOP_MENU_BAR = "topMenuBar";
     private static final String ID_BAR_ITEM_LINK = "barItemLink";

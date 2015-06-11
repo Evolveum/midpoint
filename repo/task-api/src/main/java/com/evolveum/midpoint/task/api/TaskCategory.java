@@ -33,4 +33,5 @@ public class TaskCategory {
     public static final String SYSTEM = "System";
     public static final String REPORT = "Report";
     public static final String CUSTOM = "Custom";
+    public static final String ACCESS_CERTIFICATION = "AccessCertification";
 }

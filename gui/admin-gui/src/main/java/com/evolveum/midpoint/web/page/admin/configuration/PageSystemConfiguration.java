@@ -48,6 +48,8 @@ import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
 
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
@@ -68,6 +70,11 @@ import java.util.List;
                 description = "PageSystemConfiguration.auth.configSystemConfiguration.description")})
 public class PageSystemConfiguration extends PageAdminConfiguration {
 
+    public static final String SELECTED_TAB_INDEX = "tab";
+
+    public static final String CONFIGURATION_TAB_BASIC = "basic";
+    public static final String CONFIGURATION_TAB_LOGGING = "logging";
+
     private static final Trace LOGGER = TraceManager.getTrace(PageSystemConfiguration.class);
 
     private static final String DOT_CLASS = PageSystemConfiguration.class.getName() + ".";
@@ -86,8 +93,9 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 
     private LoadableModel<SystemConfigurationDto> model;
 
-    public PageSystemConfiguration() {
+    private boolean initialized;
 
+    public PageSystemConfiguration() {
         model = new LoadableModel<SystemConfigurationDto>(false) {
 
             @Override
@@ -152,11 +160,36 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 
         TabbedPanel tabPanel = new TabbedPanel(ID_TAB_PANEL, tabs);
         tabPanel.setOutputMarkupId(true);
-        tabPanel.setSelectedTab(getTabIndex());
-
         mainForm.add(tabPanel);
 
         initButtons(mainForm);
+    }
+
+    @Override
+    protected void onBeforeRender() {
+        super.onBeforeRender();
+
+        if (!initialized) {
+            PageParameters params = getPageParameters();
+            StringValue val = params.get(SELECTED_TAB_INDEX);
+            String value = CONFIGURATION_TAB_BASIC;
+            if (val != null && !val.isNull()) {
+                value = val.toString();
+            }
+
+            int index;
+            switch (value) {
+                case CONFIGURATION_TAB_LOGGING:
+                    index = 1;
+                    break;
+                case CONFIGURATION_TAB_BASIC:
+                default:
+                    index = 0;
+            }
+            getTabPanel().setSelectedTab(index);
+
+            initialized = true;
+        }
     }
 
     private void initButtons(Form mainForm) {
@@ -246,8 +279,8 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
         return configuration;
     }
 
-    public TabbedPanel getTabPanel(){
-        return (TabbedPanel)get(ID_MAIN_FORM + ":" + ID_TAB_PANEL);
+    private TabbedPanel getTabPanel() {
+        return (TabbedPanel) get(createComponentPath(ID_MAIN_FORM, ID_TAB_PANEL));
     }
 
     private ClassLoggerConfigurationType createCustomClassLogger(String name, LoggingLevelType level, String appender) {
@@ -341,6 +374,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 
             s.setGlobalAccountSynchronizationSettings(projectionPolicy);
             s.setCleanupPolicy(cleanupPolicies);
+            s.setEnableExperimentalCode(dto.getEnableExperimentalCode());
 
             PrismObject<SystemConfigurationType> oldObject = getModelService().getObject(SystemConfigurationType.class,
                     oid, null, task, result);
@@ -364,7 +398,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 
         showResultInSession(result);
         target.add(getFeedbackPanel());
-        resetPerformed();
+        resetPerformed(target);
     }
 
     private void saveObjectPolicies(SystemConfigurationType systemConfig){
@@ -498,23 +532,13 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
         return config;
     }
 
-    private void resetPerformed() {
+    private void resetPerformed(AjaxRequestTarget target) {
         model.reset();
 
-        setResponsePage(new PageSystemConfiguration(){
-
-            @Override
-            public int getTabIndex(){
-                return PageSystemConfiguration.this.getTabPanel().getSelectedTab();
-            }
-        });
+        target.add(this);
     }
 
     private void cancelPerformed(AjaxRequestTarget target) {
-        resetPerformed();
-    }
-
-    public int getTabIndex(){
-        return CONFIGURATION_TAB_BASIC;
+        resetPerformed(target);
     }
 }

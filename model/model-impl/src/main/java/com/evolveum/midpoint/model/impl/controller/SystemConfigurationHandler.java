@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.impl.controller;
 
 import com.evolveum.midpoint.common.ProfilingConfigurationManager;
+import com.evolveum.midpoint.common.SystemConfigurationHolder;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
@@ -72,6 +73,8 @@ public class SystemConfigurationHandler implements ChangeHook {
     }
 
     public void postInit(PrismObject<SystemConfigurationType> systemConfiguration, OperationResult parentResult) {
+        SystemConfigurationHolder.setCurrentConfiguration(systemConfiguration.asObjectable());
+
     	Configuration systemConfigFromFile = startupConfiguration.getConfiguration(MidpointConfiguration.SYSTEM_CONFIGURATION_SECTION);
     	boolean skip = false;
     	if (systemConfigFromFile != null) {
@@ -145,6 +148,8 @@ public class SystemConfigurationHandler implements ChangeHook {
                     SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);
 
             LOGGER.trace("invoke() SystemConfig from repo: {}, ApplyingLoggingConfiguration", config.getVersion());
+
+            SystemConfigurationHolder.setCurrentConfiguration(config.asObjectable());
 
             //ProfilingConfigurationManager.checkSystemProfilingConfiguration(config);
             applyLoggingConfiguration(ProfilingConfigurationManager.checkSystemProfilingConfiguration(config), config.asObjectable().getVersion(), result);

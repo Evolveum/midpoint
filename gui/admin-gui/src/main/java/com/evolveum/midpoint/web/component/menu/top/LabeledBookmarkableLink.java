@@ -22,7 +22,7 @@ public class LabeledBookmarkableLink extends BaseSimplePanel<MenuItem> {
     @Override
     protected void initLayout() {
         MenuItem item = getModel().getObject();
-        BookmarkablePageLink link = new BookmarkablePageLink(ID_LINK, item.getPage());
+        BookmarkablePageLink link = new BookmarkablePageLink(ID_LINK, item.getPage(), item.getPageParameters());
         add(link);
 
         Label label = new Label(ID_LABEL, item.getName());

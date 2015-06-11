@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2010-2015 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<accessCertificationDefinition
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        oid="33333333-0000-0000-0000-000000000001">
+    <name>Basic User Assignment Certification (ERoot only)</name>
+    <description>Basic certification of all user assignments.</description>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/handlers-3#direct-assignment</handlerUri>
+    <scopeDefinition xsi:type="AccessCertificationAssignmentReviewScopeType">
+        <objectType>UserType</objectType>
+        <searchFilter>
+            <q:org>
+                <q:path>parentOrgRef</q:path>
+                <q:orgRef oid="00000000-8888-6666-0000-300000000000">
+                    <q:scope>SUBTREE</q:scope>
+                </q:orgRef>
+            </q:org>
+        </searchFilter>
+    </scopeDefinition>
+    <remediationDefinition>
+        <style>automated</style>
+    </remediationDefinition>
+    <stageDefinition>
+        <number>1</number>
+        <days>14</days>
+        <reviewerSpecification>
+            <defaultReviewerRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />   <!-- administrator -->
+        </reviewerSpecification>
+    </stageDefinition>
+</accessCertificationDefinition>

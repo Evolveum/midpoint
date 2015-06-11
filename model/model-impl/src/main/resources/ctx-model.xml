@@ -169,6 +169,16 @@
           <constructor-arg ref="modelController"/>
           <constructor-arg ref="securityEnforcer"/>
     </bean>
+    
+    <bean id="referenceSearchExpressionEvaluatorFactory" 
+	      class="com.evolveum.midpoint.model.common.expression.evaluator.ReferenceSearchExpressionEvaluatorFactory"
+          scope="singleton">
+          <constructor-arg name="prismContext" ref="prismContext"/>
+          <constructor-arg name="protector" ref="protector"/>
+          <constructor-arg ref="modelObjectResolver"/>
+          <constructor-arg ref="modelController"/>
+          <constructor-arg ref="securityEnforcer"/>
+    </bean>
 
 	<bean id="associationTargetSearchExpressionEvaluatorFactory" 
 	      class="com.evolveum.midpoint.model.common.expression.evaluator.AssociationTargetSearchExpressionEvaluatorFactory"
@@ -205,6 +215,7 @@
         		<ref bean="literalExpressionEvaluatorFactory"/>
         		<ref bean="asisExpressionEvaluatorFactory"/>
         		<ref bean="assignmentTargetSearchExpressionEvaluatorFactory"/>
+        		<ref bean="referenceSearchExpressionEvaluatorFactory"/>
         		<ref bean="associationTargetSearchExpressionEvaluatorFactory"/>
         		<ref bean="associationFromLinkExpressionEvaluatorFactory"/>
         	</list>

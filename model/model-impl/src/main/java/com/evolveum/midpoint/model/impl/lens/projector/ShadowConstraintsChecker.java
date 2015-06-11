@@ -48,7 +48,7 @@ public class ShadowConstraintsChecker<F extends FocusType> {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowConstraintsChecker.class);
 
-	private LensProjectionContext accountContext;
+	private LensProjectionContext projectionContext;
 	private LensContext<F> context;
 	private PrismContext prismContext;
 	private ProvisioningService provisioningService;
@@ -56,15 +56,15 @@ public class ShadowConstraintsChecker<F extends FocusType> {
 	private ConstraintsCheckingResult constraintsCheckingResult;
 
 	public ShadowConstraintsChecker(LensProjectionContext accountContext) {
-		this.accountContext = accountContext;
+		this.projectionContext = accountContext;
 	}
 	
 	public LensProjectionContext getAccountContext() {
-		return accountContext;
+		return projectionContext;
 	}
 
 	public void setAccountContext(LensProjectionContext accountContext) {
-		this.accountContext = accountContext;
+		this.projectionContext = accountContext;
 	}
 
 	public PrismContext getPrismContext() {
@@ -105,16 +105,16 @@ public class ShadowConstraintsChecker<F extends FocusType> {
 
 	public void check(OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		
-		RefinedObjectClassDefinition accountDefinition = accountContext.getRefinedAccountDefinition();
-		PrismObject<ShadowType> accountNew = accountContext.getObjectNew();
-		if (accountNew == null) {
+		RefinedObjectClassDefinition projDef = projectionContext.getRefinedAccountDefinition();
+		PrismObject<ShadowType> projectionNew = projectionContext.getObjectNew();
+		if (projectionNew == null) {
 			// This must be delete
 			LOGGER.trace("No new object in projection context. Current shadow satisfy constraints");
 			satisfiesConstraints = true;
 			return;
 		}
 		
-		PrismContainer<?> attributesContainer = accountNew.findContainer(ShadowType.F_ATTRIBUTES);
+		PrismContainer<?> attributesContainer = projectionNew.findContainer(ShadowType.F_ATTRIBUTES);
 		if (attributesContainer == null) {
 			// No attributes no constraint violations
 			LOGGER.trace("Current shadow does not contain attributes, skipping checking uniqueness.");
@@ -139,8 +139,8 @@ public class ShadowConstraintsChecker<F extends FocusType> {
 			}
 		};
 
-		constraintsCheckingResult = provisioningService.checkConstraints(accountDefinition, accountNew,
-				accountContext.getResource(), accountContext.getOid(), accountContext.getResourceShadowDiscriminator(),
+		constraintsCheckingResult = provisioningService.checkConstraints(projDef, projectionNew,
+				projectionContext.getResource(), projectionContext.getOid(), projectionContext.getResourceShadowDiscriminator(),
 				confirmer, result);
 
 		if (constraintsCheckingResult.isSatisfiesConstraints()) {
@@ -149,13 +149,13 @@ public class ShadowConstraintsChecker<F extends FocusType> {
 		}
 		for (QName checkedAttributeName: constraintsCheckingResult.getCheckedAttributes()) {
 			if (constraintsCheckingResult.getConflictingAttributes().contains(checkedAttributeName)) {
-				if (isInDelta(checkedAttributeName, accountContext.getPrimaryDelta())) {
+				if (isInDelta(checkedAttributeName, projectionContext.getPrimaryDelta())) {
 					throw new ObjectAlreadyExistsException("Attribute "+checkedAttributeName+" conflicts with existing object (and it is present in primary "+
 							"account delta therefore no iteration is performed)");
 				}
 			}
 		}
-		if (accountContext.getResourceShadowDiscriminator() != null && accountContext.getResourceShadowDiscriminator().isThombstone()) {
+		if (projectionContext.getResourceShadowDiscriminator() != null && projectionContext.getResourceShadowDiscriminator().isThombstone()) {
 			satisfiesConstraints = true;
 		} else {
 			satisfiesConstraints = false;

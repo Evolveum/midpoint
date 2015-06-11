@@ -175,7 +175,7 @@ public class AccountOperationListener implements ResourceOperationListener {
         }   // otherwise, appropriate messages were already logged
 
         if (task != null && task.getOwner() != null) {
-            event.setRequester(new SimpleObjectRefImpl(notificationsUtil, task.getOwner().asObjectable()));
+            event.setRequester(new SimpleObjectRefImpl(notificationsUtil, task.getOwner()));
         } else {
             LOGGER.warn("No owner for task " + task + ", therefore no requester will be set for event " + event.getId());
         }

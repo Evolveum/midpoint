@@ -182,8 +182,12 @@ public class AuthorizationConstants {
 	//Reports
 	public static final QName AUTZ_UI_REPORTS_QNAME = new QName(NS_AUTHORIZATION, "reports");
 	public static final String AUTZ_UI_REPORTS_URL = QNameUtil.qNameToUri(AUTZ_UI_REPORTS_QNAME);
-	
-	//Home
+
+    //Reports
+    public static final QName AUTZ_UI_CERTIFICATION_QNAME = new QName(NS_AUTHORIZATION, "certification");
+    public static final String AUTZ_UI_CERTIFICATION_URL = QNameUtil.qNameToUri(AUTZ_UI_CERTIFICATION_QNAME);
+
+    //Home
 	public static final QName AUTZ_UI_DASHBOARD_QNAME = new QName(NS_AUTHORIZATION, "dashboard");
 	public static final String AUTZ_UI_DASHBOARD_URL = QNameUtil.qNameToUri(AUTZ_UI_DASHBOARD_QNAME);
 	
