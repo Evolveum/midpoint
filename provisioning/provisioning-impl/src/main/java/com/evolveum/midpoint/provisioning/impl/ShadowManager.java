@@ -555,6 +555,9 @@ public class ShadowManager {
 		}
 		QName attrName = eqFilter.getElementName();
 		RefinedAttributeDefinition rAttrDef = objectClassDef.findAttributeDefinition(attrName);
+		if (rAttrDef == null) {
+			throw new SchemaException("Unknown attribute "+attrName+" in filter "+filter);
+		}
 		QName matchingRuleQName = rAttrDef.getMatchingRuleQName();
 		if (matchingRuleQName == null) {
 			return;

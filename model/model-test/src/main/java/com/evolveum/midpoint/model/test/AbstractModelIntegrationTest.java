@@ -1525,8 +1525,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		shadowType.setObjectClass(objectClassDefinition.getTypeName());
 		shadowType.setKind(ShadowKindType.ACCOUNT);
 		ResourceAttributeContainer attrCont = ShadowUtil.getOrCreateAttributesContainer(shadow, objectClassDefinition);
-		RefinedAttributeDefinition icfsNameDef = objectClassDefinition.findAttributeDefinition(SchemaTestConstants.ICFS_NAME);
-		ResourceAttribute icfsNameAttr = icfsNameDef.instantiate();
+		RefinedAttributeDefinition idSecondaryDef = objectClassDefinition.getSecondaryIdentifiers().iterator().next();
+		ResourceAttribute icfsNameAttr = idSecondaryDef.instantiate();
 		icfsNameAttr.setRealValue(name);
 		attrCont.add(icfsNameAttr);
 		ActivationType activation = new ActivationType();
