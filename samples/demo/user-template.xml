@@ -21,6 +21,10 @@
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
    xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'>
     <name>Default User Template</name>
+	<item>
+		<c:ref>employeeType</c:ref>
+		<valueEnumerationRef oid="5783c174-d141-11e4-bb29-001e8c717e5b"/>
+	</item>
     <mapping>
 		<strength>strong</strength>
 		<source>
@@ -31,7 +35,7 @@
 		</source>
 		<expression>
 			<script>
-				<code>givenName + ' ' + familyName</code>
+				<code>(givenName == null ? '' : givenName) + ' ' + (familyName == null ? '' : familyName)</code>
 			</script>
 		</expression>
 		<target>

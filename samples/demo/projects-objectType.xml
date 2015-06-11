@@ -1,0 +1,45 @@
+<objectType>
+    <kind>entitlement</kind>
+    <intent>ldapProject</intent>
+    <displayName>LDAP project groups</displayName>
+    <objectClass>ri:GroupObjectClass</objectClass>
+    <attribute>
+        <c:ref>icfs:name</c:ref>
+        <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">mr:stringIgnoreCase</matchingRule>
+        <outbound>
+            <source>
+                <c:path>$focus/name</c:path>
+            </source>
+            <expression>
+                <script>
+                    <code>
+                        import javax.naming.ldap.Rdn
+                        import javax.naming.ldap.LdapName
+
+                        dn = new LdapName('ou=projects,dc=example,dc=com')
+                        dn.add(new Rdn('cn', name.toString()))
+                        return dn.toString()
+                    </code>
+                </script>
+            </expression>
+        </outbound>
+    </attribute>
+    <attribute>
+        <c:ref>ri:cn</c:ref>
+        <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">mr:stringIgnoreCase</matchingRule>
+        <outbound>
+            <strength>weak</strength>
+            <source>
+                <c:path>$focus/name</c:path>
+            </source>
+        </outbound>
+    </attribute>
+    <attribute>
+        <c:ref>ri:description</c:ref>
+        <outbound>
+            <source>
+                <c:path>description</c:path>
+            </source>
+        </outbound>
+    </attribute>
+</objectType>
