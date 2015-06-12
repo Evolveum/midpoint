@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -449,6 +450,23 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
         } else {
         	return super.fixupDelta(delta, otherItem, ignoreMetadata);
         }
+	}
+	
+	public static boolean compareCollectionRealValues(Collection<? extends PrismProperty> col1, Collection<? extends PrismProperty> col2) {
+		return MiscUtil.unorderedCollectionEquals(col1, col2, new Comparator<PrismProperty>() {
+			@Override
+			public int compare(PrismProperty p1, PrismProperty p2) {
+				if (!p1.getElementName().equals(p2.getElementName())) {
+					return 1;
+				}
+				Collection p1RealVals = p1.getRealValues();
+				Collection p2RealVals = p2.getRealValues();
+				if (MiscUtil.unorderedCollectionEquals(p1RealVals, p2RealVals)) {
+					return 0;
+				}
+				return 1;
+			}
+		});
 	}
 
 	@Override

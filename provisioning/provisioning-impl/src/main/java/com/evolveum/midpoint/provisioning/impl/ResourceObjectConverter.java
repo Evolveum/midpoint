@@ -516,7 +516,7 @@ public class ResourceObjectConverter {
 				for (Operation origOperation: operations) {
 					if (origOperation instanceof PropertyModificationOperation) {
 						PropertyDelta<?> propertyDelta = ((PropertyModificationOperation)origOperation).getPropertyDelta();
-						PropertyDelta<?> filteredDelta = narrowPropertyDelta(propertyDelta, currentShadow);
+						PropertyDelta<?> filteredDelta = ProvisioningUtil.narrowPropertyDelta(propertyDelta, currentShadow, matchingRuleRegistry);
 						if (filteredDelta != null && !filteredDelta.isEmpty()) {
 							if (propertyDelta == filteredDelta) {
 								filteredOperations.add(origOperation);
@@ -797,21 +797,6 @@ public class ResourceObjectConverter {
 		return retval;
 	}
 
-	private <T> PropertyDelta<T> narrowPropertyDelta(PropertyDelta<T> propertyDelta,
-			PrismObject<ShadowType> currentShadow) throws SchemaException {
-		MatchingRule<T> matchingRule = null;
-		ItemDefinition propertyDef = propertyDelta.getDefinition();
-		if (propertyDef instanceof RefinedAttributeDefinition) {
-			QName matchingRuleQName = ((RefinedAttributeDefinition)propertyDef).getMatchingRuleQName();
-			if (matchingRuleQName != null) {
-				matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleQName, propertyDef.getTypeName());
-			}
-		}
-		LOGGER.trace("Narrowing attr def={}, matchingRule={}",propertyDef,matchingRule);
-		PropertyDelta<T> filteredDelta = propertyDelta.narrow(currentShadow, matchingRule);
-		return filteredDelta;
-	}
-
 	private boolean isRename(Collection<Operation> modifications){
 		for (Operation op : modifications){
 			if (!(op instanceof PropertyModificationOperation)){
@@ -875,31 +860,32 @@ public class ResourceObjectConverter {
 			RefinedObjectClassDefinition objectClassDefinition, PrismObject<ShadowType> shadow, OperationProvisioningScriptsType scripts,
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException {
 		
-		Map<ResourceObjectDiscriminator, Collection<Operation>> roMap = new HashMap<ResourceObjectDiscriminator, Collection<Operation>>();
+		Map<ResourceObjectDiscriminator, ResourceObjectOperations> roMap = new HashMap<>();
 		RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resource);
 		
-		entitlementConverter.collectEntitlementsAsObjectOperationInShadowAdd(roMap, objectClassDefinition, shadow, rSchema, resource);
+		entitlementConverter.collectEntitlementsAsObjectOperationInShadowAdd(connector, roMap, objectClassDefinition, shadow, rSchema, resource, parentResult);
 		
 		executeEntitlements(connector, resource, roMap, parentResult);
 		
 	}
 	
 	private void executeEntitlementChangesModify(ConnectorInstance connector, ResourceType resource,
-			RefinedObjectClassDefinition objectClassDefinition, PrismObject<ShadowType> shadowBefore, PrismObject<ShadowType> shadowAfter,
+			RefinedObjectClassDefinition objectClassDefinition, PrismObject<ShadowType> subjectShadowBefore, PrismObject<ShadowType> subjectShadowAfter,
             OperationProvisioningScriptsType scripts, Collection<? extends ItemDelta> objectDeltas, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException {
 		
-		Map<ResourceObjectDiscriminator, Collection<Operation>> roMap = new HashMap<ResourceObjectDiscriminator, Collection<Operation>>();
+		Map<ResourceObjectDiscriminator, ResourceObjectOperations> roMap = new HashMap<>();
 		RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resource);
 		
 		for (ItemDelta itemDelta : objectDeltas) {
 			if (new ItemPath(ShadowType.F_ASSOCIATION).equivalent(itemDelta.getPath())) {
 				ContainerDelta<ShadowAssociationType> containerDelta = (ContainerDelta<ShadowAssociationType>)itemDelta;				
-				entitlementConverter.collectEntitlementsAsObjectOperation(roMap, containerDelta, objectClassDefinition,
-                        shadowBefore, shadowAfter, rSchema, resource);
-			} else if (isRename(itemDelta)){
+				entitlementConverter.collectEntitlementsAsObjectOperation(connector, roMap, containerDelta, objectClassDefinition,
+                        subjectShadowBefore, subjectShadowAfter, rSchema, resource, parentResult);
+				
+			} else if (isRename(itemDelta)) {
 			
-				ContainerDelta<ShadowAssociationType> associationDelta = ContainerDelta.createDelta(ShadowType.F_ASSOCIATION, shadowBefore.getDefinition());
-				PrismContainer<ShadowAssociationType> association = shadowBefore.findContainer(ShadowType.F_ASSOCIATION);
+				ContainerDelta<ShadowAssociationType> associationDelta = ContainerDelta.createDelta(ShadowType.F_ASSOCIATION, subjectShadowBefore.getDefinition());
+				PrismContainer<ShadowAssociationType> association = subjectShadowBefore.findContainer(ShadowType.F_ASSOCIATION);
 				if (association == null || association.isEmpty()){
 					LOGGER.trace("No shadow association container in old shadow. Skipping processing entitlements change.");
 					continue;
@@ -924,7 +910,7 @@ public class ResourceObjectConverter {
 					}
 				}
 				if (!associationDelta.isEmpty()) {
-					entitlementConverter.collectEntitlementsAsObjectOperation(roMap, associationDelta, objectClassDefinition, shadowBefore, shadowAfter, rSchema, resource);
+					entitlementConverter.collectEntitlementsAsObjectOperation(connector, roMap, associationDelta, objectClassDefinition, subjectShadowBefore, subjectShadowAfter, rSchema, resource, parentResult);
 				}
 				
 //				shadowAfter.findOrCreateContainer(ShadowType.F_ASSOCIATION).addAll((Collection) association.getClonedValues());
@@ -943,7 +929,8 @@ public class ResourceObjectConverter {
 			OperationResult parentResult) throws SchemaException  {
 		
 		try {
-			Map<ResourceObjectDiscriminator, Collection<Operation>> roMap = new HashMap<ResourceObjectDiscriminator, Collection<Operation>>();
+			
+			Map<ResourceObjectDiscriminator, ResourceObjectOperations> roMap = new HashMap<>();
 			RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resource);
 				
 			entitlementConverter.collectEntitlementsAsObjectOperationDelete(connector, roMap, objectClassDefinition,
@@ -970,12 +957,12 @@ public class ResourceObjectConverter {
 	}
 	
 	private void executeEntitlements(ConnectorInstance connector, ResourceType resource,
-			Map<ResourceObjectDiscriminator, Collection<Operation>> roMap, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException {
-		for (Entry<ResourceObjectDiscriminator,Collection<Operation>> entry: roMap.entrySet()) {
+			Map<ResourceObjectDiscriminator, ResourceObjectOperations> roMap, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException {
+		for (Entry<ResourceObjectDiscriminator,ResourceObjectOperations> entry: roMap.entrySet()) {
 			ResourceObjectDiscriminator disc = entry.getKey();
-			RefinedObjectClassDefinition ocDef = disc.getObjectClassDefinition();
+			RefinedObjectClassDefinition ocDef = entry.getValue().getObjectClassDefinition();
 			Collection<? extends ResourceAttribute<?>> identifiers = disc.getIdentifiers();
-			Collection<Operation> operations = entry.getValue();
+			Collection<Operation> operations = entry.getValue().getOperations();
 			
 			// TODO: better handling of result, partial failures, etc.
 			
@@ -1011,8 +998,6 @@ public class ResourceObjectConverter {
 					} catch (SchemaException e) {
 						throw new TunnelException(e);
 					} catch (CommunicationException e) {
-						throw new TunnelException(e);
-					} catch (GenericFrameworkException e) {
 						throw new TunnelException(e);
 					} catch (ObjectNotFoundException e) {
 						throw new TunnelException(e);
@@ -1106,38 +1091,8 @@ public class ResourceObjectConverter {
 			OperationResult parentResult) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, SecurityViolationException, ConfigurationException {
 
-		try {
-		
-			if (!ResourceTypeUtil.hasReadCapability(resource)){
-				throw new UnsupportedOperationException("Resource does not support 'read' operation");
-			}
-			
-			ResourceObjectIdentification identification = new ResourceObjectIdentification(objectClassDefinition, identifiers);
-			PrismObject<ShadowType> resourceObject = connector.fetchObject(ShadowType.class, identification,
-					attributesToReturn, parentResult);
-			return postProcessResourceObjectRead(connector, resource, resourceObject, objectClassDefinition, fetchAssociations, parentResult);
-		} catch (ObjectNotFoundException e) {
-			parentResult.recordFatalError(
-					"Object not found. Identifiers: " + identifiers + ". Reason: " + e.getMessage(), e);
-			throw new ObjectNotFoundException("Object not found. identifiers=" + identifiers + ", objectclass="+
-						PrettyPrinter.prettyPrint(objectClassDefinition.getTypeName())+": "
-					+ e.getMessage(), e);
-		} catch (CommunicationException e) {
-			parentResult.recordFatalError("Error communication with the connector " + connector
-					+ ": " + e.getMessage(), e);
-			throw e;
-		} catch (GenericFrameworkException e) {
-			parentResult.recordFatalError(
-					"Generic error in the connector " + connector + ". Reason: " + e.getMessage(), e);
-			throw new GenericConnectorException("Generic error in the connector " + connector + ". Reason: "
-					+ e.getMessage(), e);
-		} catch (SchemaException ex) {
-			parentResult.recordFatalError("Can't get resource object, schema error: " + ex.getMessage(), ex);
-			throw ex;
-		} catch (ConfigurationException e) {
-			parentResult.recordFatalError(e);
-			throw e;
-		}
+		PrismObject<ShadowType> resourceObject = resourceObjectReferenceResolver.fetchResourceObject(connector, resource, objectClassDefinition, identifiers, attributesToReturn, parentResult);
+		return postProcessResourceObjectRead(connector, resource, resourceObject, objectClassDefinition, fetchAssociations, parentResult);
 
 	}
 
@@ -1548,7 +1503,7 @@ public class ResourceObjectConverter {
 	 */
 	private PrismObject<ShadowType> postProcessResourceObjectRead(ConnectorInstance connector, ResourceType resourceType,
 			PrismObject<ShadowType> resourceObject, RefinedObjectClassDefinition objectClassDefinition, boolean fetchAssociations,
-            OperationResult parentResult) throws SchemaException, CommunicationException, GenericFrameworkException, ObjectNotFoundException, ConfigurationException, SecurityViolationException {
+            OperationResult parentResult) throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException {
 		
 		ShadowType resourceObjectType = resourceObject.asObjectable();
 		setProtectedFlag(resourceType, objectClassDefinition, resourceObject);

@@ -26,7 +26,7 @@
 	<c:objectClass>ri:inetOrgPerson</c:objectClass>
 	<c:attributes>
 		<ri:dn>uid=jbond,ou=People,dc=example,dc=com</ri:dn>
-		<ri:sn>James Bond</ri:sn>
-		<ri:cn>James</ri:cn>
+		<ri:sn>Bond</ri:sn>
+		<ri:cn>James Bond</ri:cn>
 	</c:attributes>
 </c:account>

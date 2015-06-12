@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,11 @@ import java.util.Collection;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author semancik
@@ -30,8 +34,6 @@ public class ResourceObjectDiscriminator {
 	
 	private QName objectClass;
 	private Collection<? extends ResourceAttribute<?>> identifiers;
-	// This is only cached here, it is not used for comparison
-	private RefinedObjectClassDefinition objectClassDefinition;
 	
 	public ResourceObjectDiscriminator(QName objectClass, Collection<? extends ResourceAttribute<?>> identifiers) {
 		super();
@@ -39,14 +41,6 @@ public class ResourceObjectDiscriminator {
 		this.identifiers = identifiers;
 	}
 	
-	public ResourceObjectDiscriminator(RefinedObjectClassDefinition objectClassDefinition, 
-			Collection<? extends ResourceAttribute<?>> identifiers) {
-		super();
-		this.objectClass = objectClassDefinition.getTypeName();
-		this.identifiers = identifiers;
-		this.objectClassDefinition = objectClassDefinition;
-	}
-
 	public QName getObjectClass() {
 		return objectClass;
 	}
@@ -54,9 +48,14 @@ public class ResourceObjectDiscriminator {
 	public Collection<? extends ResourceAttribute<?>> getIdentifiers() {
 		return identifiers;
 	}
-
-	public RefinedObjectClassDefinition getObjectClassDefinition() {
-		return objectClassDefinition;
+	
+	public boolean matches(PrismObject<ShadowType> shadow) {
+		ShadowType shadowType = shadow.asObjectable();
+		if (!objectClass.equals(shadowType.getObjectClass())) {
+			return false;
+		}
+		Collection<ResourceAttribute<?>> shadowIdentifiers = ShadowUtil.getIdentifiers(shadow);
+		return PrismProperty.compareCollectionRealValues(identifiers, shadowIdentifiers);
 	}
 
 	@Override
