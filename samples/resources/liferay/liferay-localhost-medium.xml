@@ -2,15 +2,39 @@
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>Localhost Liferay</name>
-    <!-- TODO connector search filter -->
-    <connectorRef oid="5b5ca099-3de7-4633-a644-d220a2fd3794" type="ConnectorType"><!-- ICF com.evolveum.polygon.connector.liferay.LiferayConnector v1.0.0.0-SNAPSHOT --></connectorRef>
+    <connectorRef type="ConnectorType">
+        <filter>
+            <q:equal>
+                <q:path>c:connectorType</q:path>
+                <q:value>com.evolveum.polygon.connector.liferay.LiferayConnector</q:value>
+            </q:equal>
+        </filter>
+    </connectorRef>
     <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
-        <icfc:configurationProperties xmlns:gen349="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-liferay/com.evolveum.polygon.connector.liferay.LiferayConnector">
-            <gen349:hostUrl>http://test:test@localhost:8080/api/axis/</gen349:hostUrl>
-            <gen349:companyId>20155</gen349:companyId>
-            <gen349:passwordResetDefault>false</gen349:passwordResetDefault>
+        <icfc:configurationProperties xmlns:gen877="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-liferay/com.evolveum.polygon.connector.liferay.LiferayConnector">
+            <gen877:username>test</gen877:username>
+            <gen877:defaultRoles>User</gen877:defaultRoles>
+            <gen877:defaultRoles>Power User</gen877:defaultRoles>
+            <gen877:customFields>java.util.Date:accountExpiration</gen877:customFields>
+            <gen877:companyId>20155</gen877:companyId>
+            <!-- password: test -->
+            <gen877:password>
+                <t:encryptedData>
+                    <t:encryptionMethod>
+                        <t:algorithm>http://www.w3.org/2001/04/xmlenc#aes128-cbc</t:algorithm>
+                    </t:encryptionMethod>
+                    <t:keyInfo>
+                        <t:keyName>oBsByjtNPIamiJ8TsF0DGmz3zUw=</t:keyName>
+                    </t:keyInfo>
+                    <t:cipherData>
+                        <t:cipherValue>rnVRJuetlL4YnDlZ6eOQ0Dfulmdzm0y1l+0KMVfqF9w=</t:cipherValue>
+                    </t:cipherData>
+                </t:encryptedData>
+            </gen877:password>
+            <gen877:endpoint>http://localhost:8080/api/axis/</gen877:endpoint>
         </icfc:configurationProperties>
     </connectorConfiguration>
     <!-- schema is not here, as it will be loaded from the resource -->

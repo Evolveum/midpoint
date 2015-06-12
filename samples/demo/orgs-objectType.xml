@@ -1,0 +1,55 @@
+<objectType>
+    <kind>generic</kind>
+    <intent>ou</intent>
+    <displayName>Organizational Unit</displayName>
+    <objectClass>ri:CustomorganizationalUnitObjectClass</objectClass>
+    <attribute>
+        <c:ref>icfs:name</c:ref>
+        <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">mr:stringIgnoreCase</matchingRule>
+        <outbound>
+            <source>
+                <c:path>$focus/name</c:path>
+            </source>
+            <expression>
+                <script>
+                    <code>
+
+                        import javax.naming.ldap.Rdn
+                        import javax.naming.ldap.LdapName
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+                        dn = new LdapName('ou=Orgs,dc=example,dc=com')
+                        parents = new ArrayList()
+                        currentOrg = focus
+                        while (currentOrg != null) {
+                        parents.add(currentOrg)
+                        // see com.evolveum.midpoint.model.impl.expr.MidpointFunctionsImpl
+                        currentOrg = midpoint.getParentOrgByOrgType(currentOrg, 'functional')
+                        }
+
+                        log.info("parents = {}", parents)
+
+                        for (int i = parents.size() -1 ; i &gt;= 0; i--) {
+                        dn.add(new Rdn('ou', parents.get(i).name.toString()))
+                        }
+
+                        log.info("dn = {}", dn)
+
+                        return dn.toString();
+
+                    </code>
+                </script>
+            </expression>
+        </outbound>
+    </attribute>
+    <attribute>
+        <ref>ri:ou</ref>
+        <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">mr:stringIgnoreCase</matchingRule>
+        <!--<inbound>
+            <target>
+                <path>name</path>
+            </target>
+        </inbound>-->
+    </attribute>
+</objectType>
+
