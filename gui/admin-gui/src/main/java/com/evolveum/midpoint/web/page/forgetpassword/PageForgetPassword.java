@@ -149,10 +149,11 @@ public class PageForgetPassword extends PageBase {
 				}
 				else{
 					
-					getSession().error(getString("pageForgetPassword.message.usernotfound"));
-					getSession().invalidate();
+					
+					//getSession().invalidate();
 					SecurityContext securityContext = SecurityContextHolder.getContext();
 					securityContext.setAuthentication(null);
+					getSession().error(getString("pageForgetPassword.message.usernotfound"));
 					throw new RestartResponseException(PageForgetPassword.class);
 
 
