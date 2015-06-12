@@ -19,6 +19,10 @@ import java.io.File;
 
 import org.testng.annotations.AfterClass;
 
+import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 /**
  * @author semancik
  *
@@ -27,20 +31,14 @@ public class TestOpenDj extends AbstractLdapConnTest {
 
 	private static final String OPENDJ_TEMPLATE_NAME = "opendj-4000.template";
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.testing.conntest.AbstractLdapConnTest#getResourceOid()
-	 */
 	@Override
 	protected String getResourceOid() {
 		return "371ffc38-c424-11e4-8467-001e8c717e5b";
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.testing.conntest.AbstractLdapConnTest#getResourceFile()
-	 */
 	@Override
-	protected File getResourceFile() {
-		return new File(COMMON_DIR, "resource-opendj.xml");
+	protected File getBaseDir() {
+		return new File(MidPointTestConstants.TEST_RESOURCES_DIR, "opendj");
 	}
 
 	@Override
@@ -90,4 +88,35 @@ public class TestOpenDj extends AbstractLdapConnTest {
 		return "Warlaz Kunjegjul (00000000)";
 	}
 
+	@Override
+	protected boolean isIdmAdminInteOrgPerson() {
+		return true;
+	}
+
+	@Override
+	protected int getSearchSizeLimit() {
+		return 1000;
+	}
+
+	@Override
+	protected String getLdapGroupObjectClass() {
+		return "groupOfUniqueNames";
+	}
+
+	@Override
+	protected String getLdapGroupMemberAttribute() {
+		return "uniqueMember";
+	}
+
+	@Override
+	protected String getSyncTaskOid() {
+		return "cd1e0ff2-0099-11e5-9e22-001e8c717e5b";
+	}
+	
+	@Override
+	protected void assertStepSyncToken(String syncTaskOid, int step, long tsStart, long tsEnd)
+			throws ObjectNotFoundException, SchemaException {
+		assertSyncToken(syncTaskOid, (Integer)(step+5));
+	}
+	
 }

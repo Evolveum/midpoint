@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -179,8 +179,6 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	private Set<URL> bundleURLs;
 	private Set<ConnectorType> localConnectorTypes = null;
 	
-	private IcfNameMapper icfNameMapper;
-
 	@Autowired(required = true)
 	MidpointConfiguration midpointConfiguration;
 
@@ -224,9 +222,6 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		}
 
 		connectorInfoManagerFactory = ConnectorInfoManagerFactory.getInstance();
-		
-		icfNameMapper = new IcfNameMapper();
-		icfNameMapper.initialize();
 
 	}
 
@@ -263,7 +258,6 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		// facade
 		ConnectorInstanceIcfImpl connectorImpl = new ConnectorInstanceIcfImpl(cinfo, connectorType, namespace,
 				connectorSchema, protector, prismContext);
-		connectorImpl.setIcfNameMapper(icfNameMapper);
 		connectorImpl.setDescription(desc);
 		
 		return connectorImpl;

@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.provisioning.test.impl;
 
+import java.io.File;
+
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -30,6 +32,7 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -49,8 +52,8 @@ import static org.testng.AssertJUnit.assertNotNull;
 @DirtiesContext
 public class TestDummyReadReplaceForAll extends TestDummy {
 	
-	public static final String TEST_DIR = "src/test/resources/impl/dummy-priorities-read-replace/";
-	public static final String RESOURCE_DUMMY_FILENAME = TEST_DIR + "resource-dummy-all-read-replace.xml";
+	public static final File TEST_DIR = new File("src/test/resources/impl/dummy-priorities-read-replace/");
+	public static final File RESOURCE_DUMMY_FILENAME = new File(TEST_DIR, "resource-dummy-all-read-replace.xml");
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -58,8 +61,8 @@ public class TestDummyReadReplaceForAll extends TestDummy {
 	}
 
 	@Override
-	protected String getResourceDummyFilename() {
-		return RESOURCE_DUMMY_FILENAME;
+	protected File getResourceDummyFilename() {
+		return RESOURCE_DUMMY_FILE;
 	}
 	
 }

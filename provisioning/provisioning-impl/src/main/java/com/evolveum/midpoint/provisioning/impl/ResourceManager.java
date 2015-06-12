@@ -222,7 +222,6 @@ public class ResourceManager {
 			boolean fetchedSchema, OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
 			CommunicationException, ConfigurationException {
 
-		ResourceType repoResourceType = repoResource.asObjectable();
 		// do not add as a subresult..it will be added later, if the completing
 		// of resource will be successfull.if not, it will be only set as a
 		// fetch result in the resource..
@@ -556,19 +555,19 @@ public class ResourceManager {
 			// The connector was not found. The resource definition is either
 			// wrong or the connector is not
 			// installed.
-			initResult.recordFatalError("The connector was not found", e);
+			initResult.recordFatalError("The connector was not found: "+e.getMessage(), e);
 			return;
 		} catch (SchemaException e) {
-			initResult.recordFatalError("Schema error while dealing with the connector definition", e);
+			initResult.recordFatalError("Schema error while dealing with the connector definition: "+e.getMessage(), e);
 			return;
 		} catch (RuntimeException e) {
-			initResult.recordFatalError("Unexpected runtime error", e);
+			initResult.recordFatalError("Unexpected runtime error: "+e.getMessage(), e);
 			return;
 		} catch (CommunicationException e) {
-			initResult.recordFatalError("Communication error", e);
+			initResult.recordFatalError("Communication error: "+e.getMessage(), e);
 			return;
 		} catch (ConfigurationException e) {
-			initResult.recordFatalError("Configuration error", e);
+			initResult.recordFatalError("Configuration error: "+e.getMessage(), e);
 			return;
 		}
 		LOGGER.debug("Testing connection to the resource with oid {}", resource.getOid());

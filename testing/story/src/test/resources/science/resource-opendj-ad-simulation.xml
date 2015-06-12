@@ -37,13 +37,14 @@
 		<filter>
             <q:equal>
             	<q:path>c:connectorType</q:path>
+            	<!-- This is OK to use the legacy connector. It is more similar to AD than the new one. -->
                 <q:value>org.identityconnectors.ldap.LdapConnector</q:value>
             </q:equal>
         </filter>
     </connectorRef>
 
     <connectorConfiguration
-            xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/org.identityconnectors.ldap.LdapConnector"
+            xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap-legacy/org.identityconnectors.ldap.LdapConnector"
             xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
          <icfc:resultsHandlerConfiguration>
 				<icfc:enableFilteredResultsHandler>true</icfc:enableFilteredResultsHandler>

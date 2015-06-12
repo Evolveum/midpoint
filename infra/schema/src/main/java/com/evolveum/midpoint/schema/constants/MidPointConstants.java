@@ -33,6 +33,7 @@ public class MidPointConstants {
 	public static final QName RA_INTENT = new QName(NS_RA, "intent");
 	public static final QName RA_NATIVE_OBJECT_CLASS = new QName(NS_RA, "nativeObjectClass");
 	public static final QName RA_NATIVE_ATTRIBUTE_NAME = new QName(NS_RA, "nativeAttributeName");
+	public static final QName RA_FRAMEWORK_ATTRIBUTE_NAME = new QName(NS_RA, "frameworkAttributeName");
 	public static final QName RA_RETURNED_BY_DEFAULT_NAME = new QName(NS_RA, "returnedByDefault");
 	public static final QName RA_DISPLAY_NAME_ATTRIBUTE = new QName(NS_RA, "displayNameAttribute");
 	public static final QName RA_NAMING_ATTRIBUTE = new QName(NS_RA, "namingAttribute");

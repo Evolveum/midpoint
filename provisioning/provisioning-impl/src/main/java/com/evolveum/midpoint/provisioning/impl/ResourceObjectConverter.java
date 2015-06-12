@@ -465,13 +465,9 @@ public class ResourceObjectConverter {
 				shadow = getShadowToFilterDuplicates(connector, resource, objectClassDefinition, identifiers, operations, true, parentResult);      // yes, we need associations here
 				shadowBefore = shadow.clone();
 			}
-
 			
 			// Execute primary ICF operation on this shadow
 			sideEffectChanges = executeModify(connector, resource, shadow, objectClassDefinition, identifiers, operations, parentResult);
-			
-			
-
 		}
 
         /*
@@ -575,10 +571,12 @@ public class ResourceObjectConverter {
 					currentShadow = fetchResourceObject(connector, resource, objectClassDefinition, identifiersWorkingCopy, attributesToReturn, false, parentResult);
 					operationsWave = convertToReplace(operationsWave, currentShadow, objectClassDefinition);
 				}
-				Collection<PropertyModificationOperation> sideEffects =
-						connector.modifyObject(objectClassDefinition, identifiersWorkingCopy, operationsWave, parentResult);
-				sideEffectChanges.addAll(sideEffects);
-				// we accept that one attribute can be changed multiple times in sideEffectChanges; TODO: normalize
+				if (!operationsWave.isEmpty()) {
+					Collection<PropertyModificationOperation> sideEffects =
+							connector.modifyObject(objectClassDefinition, identifiersWorkingCopy, operationsWave, parentResult);
+					sideEffectChanges.addAll(sideEffects);
+					// we accept that one attribute can be changed multiple times in sideEffectChanges; TODO: normalize
+				}
 			}
 
 			if (LOGGER.isDebugEnabled()) {
@@ -990,7 +988,7 @@ public class ResourceObjectConverter {
 			final ResourceType resourceType, final RefinedObjectClassDefinition objectClassDef,
 			final ResultHandler<ShadowType> resultHandler, ObjectQuery query, final boolean fetchAssociations,
             final OperationResult parentResult) throws SchemaException,
-			CommunicationException, ObjectNotFoundException, ConfigurationException {
+			CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException {
 		
 		AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(objectClassDef, resourceType);
 		SearchHierarchyConstraints searchHierarchyConstraints = null;
@@ -1020,6 +1018,8 @@ public class ResourceObjectConverter {
 						throw new TunnelException(e);
 					} catch (ConfigurationException e) {
 						throw new TunnelException(e);
+					} catch (SecurityViolationException e) {
+						throw new TunnelException(e);
 					}
 					return resultHandler.handle(shadow);
 				} finally {
@@ -1041,6 +1041,11 @@ public class ResourceObjectConverter {
 					"Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
 			throw new CommunicationException("Error communicating with the connector " + connector + ": "
 					+ ex.getMessage(), ex);
+		} catch (SecurityViolationException ex) {
+			parentResult.recordFatalError(
+					"Security violation communicating with the connector " + connector + ": " + ex.getMessage(), ex);
+			throw new SecurityViolationException("Security violation communicating with the connector " + connector + ": "
+					+ ex.getMessage(), ex);
 		} catch (TunnelException e) {
 			Throwable cause = e.getCause();
 			if (cause instanceof SchemaException) {
@@ -1051,6 +1056,8 @@ public class ResourceObjectConverter {
 				throw (ObjectNotFoundException)cause;
 			} else if (cause instanceof ConfigurationException) {
 				throw (ConfigurationException)cause;
+			} else if (cause instanceof SecurityViolationException) {
+				throw (SecurityViolationException)cause;
 			} if (cause instanceof GenericFrameworkException) {
 				new GenericConnectorException(cause.getMessage(), cause);
 			} else {
@@ -1178,7 +1185,9 @@ public class ResourceObjectConverter {
 					// Try to simulate activation capability
 					PropertyModificationOperation activationAttribute = convertToSimulatedActivationAdministrativeStatusAttribute(enabledPropertyDelta, shadow, resource,
 							status, objectClassDefinition, result);
-					operations.add(activationAttribute);
+					if (activationAttribute != null) {
+						operations.add(activationAttribute);
+					}
 				}	
 //			}
 		}
@@ -1453,30 +1462,54 @@ public class ResourceObjectConverter {
 	}
 
 	public List<Change<ShadowType>> fetchChanges(ConnectorInstance connector, ResourceType resource,
-			RefinedObjectClassDefinition objectClass, PrismProperty<?> lastToken,
+			RefinedObjectClassDefinition objectClassDef, PrismProperty<?> lastToken,
 			OperationResult parentResult) throws SchemaException,
 			CommunicationException, ConfigurationException, SecurityViolationException, GenericFrameworkException, ObjectNotFoundException {
 		Validate.notNull(resource, "Resource must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
-		LOGGER.trace("START fetch changes");
+		LOGGER.trace("START fetch changes, objectClass: {}", objectClassDef);
+		
+		RefinedResourceSchema refinedSchema = null;
+		if (objectClassDef == null) {
+			refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
+		}
 
-		AttributesToReturn attrsToReturn = ProvisioningUtil.createAttributesToReturn(objectClass, resource);
+		AttributesToReturn attrsToReturn = null;
+		if (objectClassDef != null) {
+			attrsToReturn = ProvisioningUtil.createAttributesToReturn(objectClassDef, resource);
+		}
 		
 		// get changes from the connector
-		List<Change<ShadowType>> changes = connector.fetchChanges(objectClass, lastToken, attrsToReturn, parentResult);
+		List<Change<ShadowType>> changes = connector.fetchChanges(objectClassDef, lastToken, attrsToReturn, parentResult);
 
 		Iterator<Change<ShadowType>> iterator = changes.iterator();
 		while (iterator.hasNext()) {
 			Change<ShadowType> change = iterator.next();
-			if (change.getCurrentShadow() == null) {
+			
+			RefinedObjectClassDefinition shadowObjectClassDef = objectClassDef;
+			AttributesToReturn shadowAttrsToReturn = attrsToReturn;
+			PrismObject<ShadowType> currentShadow = change.getCurrentShadow();
+			if (objectClassDef == null) {
+				shadowObjectClassDef = refinedSchema.getRefinedDefinition(change.getObjectClassDefinition().getTypeName());
+				if (shadowObjectClassDef == null) {
+					String message = "Unkown object class "+change.getObjectClassDefinition().getTypeName()+" found in synchronization delta";
+					parentResult.recordFatalError(message);
+					throw new SchemaException(message);
+				}
+				change.setObjectClassDefinition(shadowObjectClassDef);
+				
+				shadowAttrsToReturn = ProvisioningUtil.createAttributesToReturn(shadowObjectClassDef, resource);
+			}
+			
+			if (currentShadow == null) {
 				// There is no current shadow in a change. Add it by fetching it explicitly.
 				if (change.getObjectDelta() == null || !change.getObjectDelta().isDelete()) {						
 					// but not if it is a delete event
 					try {
 						
-						PrismObject<ShadowType> currentShadow = fetchResourceObject(connector, resource, objectClass, 
-								change.getIdentifiers(), attrsToReturn, true, parentResult);	// todo consider whether it is always necessary to fetch the entitlements
+						currentShadow = fetchResourceObject(connector, resource, shadowObjectClassDef, 
+								change.getIdentifiers(), shadowAttrsToReturn, true, parentResult);	// todo consider whether it is always necessary to fetch the entitlements
 						change.setCurrentShadow(currentShadow);
 						
 					} catch (ObjectNotFoundException ex) {
@@ -1490,9 +1523,18 @@ public class ResourceObjectConverter {
 					}
 				}
 			} else {
-				PrismObject<ShadowType> currentShadow = postProcessResourceObjectRead(connector, resource, change.getCurrentShadow(), 
-						objectClass, true, parentResult);
-				change.setCurrentShadow(currentShadow);
+				if (objectClassDef == null) {
+					if (!MiscUtil.equals(shadowAttrsToReturn, attrsToReturn)) {
+						// re-fetch the shadow if necessary (if attributesToGet does not match)
+						ResourceObjectIdentification identification = new ResourceObjectIdentification(shadowObjectClassDef, change.getIdentifiers());
+						currentShadow = connector.fetchObject(ShadowType.class, identification, shadowAttrsToReturn, parentResult);
+					}
+					
+				}
+						
+				PrismObject<ShadowType> processedCurrentShadow = postProcessResourceObjectRead(connector, resource, currentShadow, 
+						shadowObjectClassDef, true, parentResult);
+				change.setCurrentShadow(processedCurrentShadow);
 			}
 		}
 
@@ -1506,7 +1548,7 @@ public class ResourceObjectConverter {
 	 */
 	private PrismObject<ShadowType> postProcessResourceObjectRead(ConnectorInstance connector, ResourceType resourceType,
 			PrismObject<ShadowType> resourceObject, RefinedObjectClassDefinition objectClassDefinition, boolean fetchAssociations,
-            OperationResult parentResult) throws SchemaException, CommunicationException, GenericFrameworkException, ObjectNotFoundException, ConfigurationException {
+            OperationResult parentResult) throws SchemaException, CommunicationException, GenericFrameworkException, ObjectNotFoundException, ConfigurationException, SecurityViolationException {
 		
 		ShadowType resourceObjectType = resourceObject.asObjectable();
 		setProtectedFlag(resourceType, objectClassDefinition, resourceObject);

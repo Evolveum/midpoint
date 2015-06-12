@@ -315,7 +315,7 @@ public class TestLdap extends AbstractModelIntegrationTest {
         OperationResult result = task.getResult();
         
         ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(RESOURCE_OPENDJ_OID, 
-        		new QName(RESOURCE_OPENDJ_NAMESPACE, "AccountObjectClass"), prismContext);
+        		new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), prismContext);
         
         final MutableInt count = new MutableInt(0);
         ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
@@ -359,7 +359,7 @@ public class TestLdap extends AbstractModelIntegrationTest {
         TestUtil.displayWhen(TEST_NAME);
         //task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, 2);
         modelService.importFromResource(RESOURCE_OPENDJ_OID, 
-        		new QName(RESOURCE_OPENDJ_NAMESPACE, "AccountObjectClass"), task, result);
+        		new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), task, result);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -397,7 +397,7 @@ public class TestLdap extends AbstractModelIntegrationTest {
 
         ResourceType resource = modelService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result).asObjectable();
         reconciliationTaskHandler.launch(resource,
-                new QName(RESOURCE_OPENDJ_NAMESPACE, "AccountObjectClass"), task, result);
+                new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);

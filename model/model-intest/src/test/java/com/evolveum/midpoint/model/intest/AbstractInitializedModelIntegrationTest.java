@@ -330,23 +330,23 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		assertUserJack(user, "jack", fullName, givenName, familyName, locality);
 	}
 	
-	protected void assertDummyAccountShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username) {
+	protected void assertDummyAccountShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username) throws SchemaException {
 		assertAccountShadowRepo(accountShadow, oid, username, resourceDummyType);
 	}
 
-    protected void assertDummyGroupShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username) {
+    protected void assertDummyGroupShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username) throws SchemaException {
         assertShadowRepo(accountShadow, oid, username, resourceDummyType, getGroupObjectClass(resourceDummyType));
     }
 	
-	protected void assertDummyAccountShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username) {
+	protected void assertDummyAccountShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username) throws SchemaException {
 		assertShadowModel(accountShadow, oid, username, resourceDummyType, getAccountObjectClass(resourceDummyType));
 	}
 
-    protected void assertDummyGroupShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username) {
+    protected void assertDummyGroupShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username) throws SchemaException {
         assertShadowModel(accountShadow, oid, username, resourceDummyType, getGroupObjectClass(resourceDummyType));
     }
 	
-	protected void assertDummyAccountShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, String fullname) {
+	protected void assertDummyAccountShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, String fullname) throws SchemaException {
 		assertDummyAccountShadowModel(accountShadow, oid, username);
 		IntegrationTestTools.assertAttribute(accountShadow, dummyResourceCtl.getAttributeFullnameQName(), fullname);
 	}

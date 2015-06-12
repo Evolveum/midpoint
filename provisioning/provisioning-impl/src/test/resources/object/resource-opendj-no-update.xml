@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -18,7 +18,9 @@
 <resource oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+          xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
@@ -27,16 +29,17 @@
 	<name>Embedded Test OpenDJ</name>
 	<!-- NOTE: The connector OID will get dynamically replaced in the integration tests -->
 	<connectorRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3eedd"/>
-	<connectorConfiguration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/org.identityconnectors.ldap.LdapConnector">
+	<connectorConfiguration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector">
 					   
 		<icfc:configurationProperties>
 			<icfcldap:port>10389</icfcldap:port>
 			<icfcldap:host>localhost</icfcldap:host>
-			<icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
-			<icfcldap:principal>cn=directory manager</icfcldap:principal>
-			<icfcldap:credentials><clearValue>secret</clearValue></icfcldap:credentials>
-			<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
-			<icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
+			<icfcldap:baseContext>dc=example,dc=com</icfcldap:baseContext>
+			<icfcldap:bindDn>cn=directory manager</icfcldap:bindDn>
+			<icfcldap:bindPassword><t:clearValue>secret</t:clearValue></icfcldap:bindPassword>
+			<icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
+			<icfcldap:vlvSortAttribute>entryUUID</icfcldap:vlvSortAttribute>
+ 			<icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
 		</icfc:configurationProperties>
 		
 		<icfc:connectorPoolConfiguration>
@@ -63,6 +66,10 @@
 				<icfc:sync>-1</icfc:sync>
 				<icfc:schema>-1</icfc:schema>
 			</icfc:timeouts>
+			
+			<icfc:resultsHandlerConfiguration>
+				<icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+			</icfc:resultsHandlerConfiguration>
 
 	</connectorConfiguration>
 	
@@ -77,9 +84,9 @@
             <intent>default</intent>
             <displayName>Default Account</displayName>
             <default>true</default>
-            <objectClass>ri:AccountObjectClass</objectClass>
+            <objectClass>ri:inetOrgPerson</objectClass>
             <attribute>
-				<ref>icfs:name</ref>
+				<ref>ri:dn</ref>
 				<matchingRule>mr:stringIgnoreCase</matchingRule>
 			</attribute>
             <association>
@@ -89,20 +96,37 @@
             	<intent>ldapGroup</intent>
             	<direction>objectToSubject</direction>
             	<associationAttribute>ri:uniqueMember</associationAttribute>
-            	<valueAttribute>icfs:name</valueAttribute>
+            	<valueAttribute>ri:dn</valueAttribute>
+            	<explicitReferentialIntegrity>true</explicitReferentialIntegrity>
             </association>
+       		<protected>
+       			<!-- WilDCapiTaLIzaTioN makes sure that this is matched case-insensitive -->
+				<icfs:name>uid=cAlyPSo,ou=PeoPle,DC=example,dc=COM</icfs:name>
+			</protected>
+			<configuredCapabilities>
+				<cap:pagedSearch>
+					<cap:defaultSortField>ri:uid</cap:defaultSortField>
+				</cap:pagedSearch>
+				<cap:countObjects>
+					<cap:simulate>sequentialSearch</cap:simulate>
+				</cap:countObjects>
+			</configuredCapabilities>
         </objectType>
         
         <objectType>
         	<kind>entitlement</kind>
             <intent>ldapGroup</intent>
             <displayName>LDAP Group</displayName>
-            <objectClass>ri:GroupObjectClass</objectClass>
+            <objectClass>ri:groupOfUniqueNames</objectClass>
+			<attribute>
+				<ref>ri:uniqueMember</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+			</attribute>
         </objectType>
                 
 	</schemaHandling>
 	
-	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+	<capabilities>
 		<configured>
 			<cap:activation>
 				<cap:status>

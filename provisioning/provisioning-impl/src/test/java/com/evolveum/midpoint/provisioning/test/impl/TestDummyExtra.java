@@ -18,6 +18,8 @@ package com.evolveum.midpoint.provisioning.test.impl;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
+import java.io.File;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -45,12 +47,12 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 @DirtiesContext
 public class TestDummyExtra extends TestDummy {
 	
-	public static final String TEST_DIR = "src/test/resources/impl/dummy-extra/";
-	public static final String RESOURCE_DUMMY_FILENAME = TEST_DIR + "resource-dummy.xml";
+	public static final File TEST_DIR = new File("src/test/resources/impl/dummy-extra/");
+	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
 
 	@Override
-	protected String getResourceDummyFilename() {
-		return RESOURCE_DUMMY_FILENAME;
+	protected File getResourceDummyFilename() {
+		return RESOURCE_DUMMY_FILE;
 	}
 
 	@Override

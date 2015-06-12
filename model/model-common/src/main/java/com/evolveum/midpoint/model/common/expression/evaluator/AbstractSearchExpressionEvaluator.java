@@ -173,7 +173,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 				LOGGER.trace("Query after extension: {}", query.debugDump());
 			}
 			
-			resultValues = executeSearch(targetTypeClass, targetTypeQName, query, params, params.getResult());
+			resultValues = executeSearch(targetTypeClass, targetTypeQName, query, params, contextDescription, params.getResult());
 		}
 			
 		if (resultValues.isEmpty() && getExpressionEvaluatorType().isCreateOnDemand() == Boolean.TRUE &&
@@ -196,7 +196,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 	}
 
 	private <O extends ObjectType> List<V> executeSearch(Class<O> targetTypeClass,
-			final QName targetTypeQName, ObjectQuery query, final ExpressionEvaluationContext params, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException {
+			final QName targetTypeQName, ObjectQuery query, final ExpressionEvaluationContext params, String contextDescription, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		final List<V> list = new ArrayList<V>();
 		
 		Collection<SelectorOptions<GetOperationOptions>> options = null;
@@ -217,13 +217,17 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		
 		try {
 			objectResolver.searchIterative(targetTypeClass, query, options, handler, result);
-		} catch (SchemaException | CommunicationException | ConfigurationException 
+		} catch (SchemaException e) {
+			throw new SchemaException(e.getMessage()+" in "+contextDescription, e);
+		} catch (CommunicationException | ConfigurationException 
 				| SecurityViolationException e) {
 			if (BooleanUtils.isTrue(getExpressionEvaluatorType().isSearchOnResource())) {
 				options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
 				try {
 					objectResolver.searchIterative(targetTypeClass, query, options, handler, result);
-				} catch (SchemaException | CommunicationException | ConfigurationException
+				} catch (SchemaException e1) {
+					throw new SchemaException(e1.getMessage()+" in "+contextDescription, e1);
+				} catch (CommunicationException | ConfigurationException
 						| SecurityViolationException e1) {
 					// TODO improve handling of exception.. we do not want to
 					// stop whole projection computation, but what to do if the

@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.ucf.util.UcfUtil;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
@@ -188,7 +189,7 @@ public class IcfConvertor {
 				continue;
 			}
 
-			QName qname = icfNameMapper.convertAttributeNameToQName(icfAttr.getName(), resourceSchemaNamespace);
+			QName qname = icfNameMapper.convertAttributeNameToQName(icfAttr.getName(), attributesContainerDefinition);
 			ResourceAttributeDefinition attributeDefinition = attributesContainerDefinition.findAttributeDefinition(qname, caseIgnoreAttributeNames);
 
 			if (attributeDefinition == null) {
@@ -247,13 +248,13 @@ public class IcfConvertor {
 	}
 
 	Set<Attribute> convertFromResourceObject(ResourceAttributeContainer attributesPrism,
-			OperationResult parentResult) throws SchemaException {
+			ObjectClassComplexTypeDefinition ocDef) throws SchemaException {
 		Collection<ResourceAttribute<?>> resourceAttributes = attributesPrism.getAttributes();
-		return convertFromResourceObject(resourceAttributes, parentResult);
+		return convertFromResourceObject(resourceAttributes, ocDef);
 	}
 
 	Set<Attribute> convertFromResourceObject(Collection<ResourceAttribute<?>> resourceAttributes,
-			OperationResult parentResult) throws SchemaException {
+			ObjectClassComplexTypeDefinition ocDef) throws SchemaException {
 
 		Set<Attribute> attributes = new HashSet<Attribute>();
 		if (resourceAttributes == null) {
@@ -267,7 +268,7 @@ public class IcfConvertor {
 				throw new SchemaException("ICF UID explicitly specified in attributes");
 			}
 
-			String icfAttrName = icfNameMapper.convertAttributeNameToIcf(midPointAttrQName, resourceSchemaNamespace);
+			String icfAttrName = icfNameMapper.convertAttributeNameToIcf(attribute, ocDef);
 
 			Set<Object> convertedAttributeValues = new HashSet<Object>();
 			for (PrismPropertyValue<?> value : attribute.getValues()) {

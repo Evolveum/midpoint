@@ -560,9 +560,13 @@ public class QueryConvertor {
 	}
 
 	private static QName determineMatchingRule(MapXNode xmap) throws SchemaException{
-		String matchingRuleLocalPart = xmap.getParsedPrimitiveValue(KEY_FILTER_EQUAL_MATCHING, DOMUtil.XSD_STRING);
-		if (StringUtils.isNotBlank(matchingRuleLocalPart)){
-			return new QName(PrismConstants.NS_MATCHING_RULE, matchingRuleLocalPart);
+		String matchingRuleString = xmap.getParsedPrimitiveValue(KEY_FILTER_EQUAL_MATCHING, DOMUtil.XSD_STRING);
+		if (StringUtils.isNotBlank(matchingRuleString)){
+			if (QNameUtil.isUri(matchingRuleString)) {
+				return QNameUtil.uriToQName(matchingRuleString);
+			} else {
+				return new QName(PrismConstants.NS_MATCHING_RULE, matchingRuleString);
+			}
 		} else {
 			return null;
 		}

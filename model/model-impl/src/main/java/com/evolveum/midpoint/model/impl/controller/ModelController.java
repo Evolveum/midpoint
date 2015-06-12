@@ -1700,7 +1700,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	@Override
 	public List<PrismObject<? extends ShadowType>> listResourceObjects(String resourceOid,
 			QName objectClass, ObjectPaging paging, Task task, OperationResult parentResult) throws SchemaException,
-			ObjectNotFoundException, CommunicationException, ConfigurationException {
+			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(objectClass, "Object type must not be null.");
 		Validate.notNull(paging, "Paging must not be null.");
@@ -1732,6 +1732,9 @@ public class ModelController implements ModelService, ModelInteractionService, T
 				ModelUtils.recordFatalError(result, ex);
 				throw ex;
 			} catch (ConfigurationException ex) {
+				ModelUtils.recordFatalError(result, ex);
+				throw ex;
+			} catch (SecurityViolationException ex) {
 				ModelUtils.recordFatalError(result, ex);
 				throw ex;
 			} catch (ObjectNotFoundException ex) {

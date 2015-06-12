@@ -424,7 +424,7 @@ public interface ProvisioningService {
 	 * @throws CommunicationException error communicating with the resource
 	 */
 	public List<PrismObject<? extends ShadowType>> listResourceObjects(String resourceOid, QName objectClass, ObjectPaging paging,
-			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
+			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
 	
 	
 	public <T extends ShadowType> void finishOperation(PrismObject<T> object, ProvisioningOperationOptions options, Task task, OperationResult parentResult)
