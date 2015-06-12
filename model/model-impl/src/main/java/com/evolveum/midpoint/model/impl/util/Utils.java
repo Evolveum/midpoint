@@ -341,7 +341,7 @@ public final class Utils {
 	        result.recordSuccessIfUnknown();
 	    }
 
-        public static ObjectClassComplexTypeDefinition determineObjectClass(RefinedResourceSchema refinedSchema, Task task) {
+        public static ObjectClassComplexTypeDefinition determineObjectClass(RefinedResourceSchema refinedSchema, Task task) throws SchemaException {
 
             QName objectclass = null;
             PrismProperty<QName> objectclassProperty = task.getExtensionProperty(ModelConstants.OBJECTCLASS_PROPERTY_NAME);
@@ -364,18 +364,21 @@ public final class Utils {
             return determineObjectClassInternal(refinedSchema, objectclass, kind, intent, task);
         }
 
-        public static ObjectClassComplexTypeDefinition determineObjectClass(RefinedResourceSchema refinedSchema, PrismObject<ShadowType> shadowToImport) {
+        public static ObjectClassComplexTypeDefinition determineObjectClass(RefinedResourceSchema refinedSchema, PrismObject<ShadowType> shadowToImport) throws SchemaException {
             ShadowType s = shadowToImport.asObjectable();
             return determineObjectClassInternal(refinedSchema, s.getObjectClass(), s.getKind(), s.getIntent(), s);
         }
 
 	    private static ObjectClassComplexTypeDefinition determineObjectClassInternal(
-                RefinedResourceSchema refinedSchema, QName objectclass, ShadowKindType kind, String intent, Object source) {
+                RefinedResourceSchema refinedSchema, QName objectclass, ShadowKindType kind, String intent, Object source) throws SchemaException {
 	    	
 	        if (kind == null && intent == null && objectclass != null) {
 	        	// Return generic object class definition from resource schema. No kind/intent means that we want
 	        	// to process all kinds and intents in the object class.
 	        	ObjectClassComplexTypeDefinition objectClassDefinition = refinedSchema.findObjectClassDefinition(objectclass);
+	        	if (objectClassDefinition == null) {
+	        		throw new SchemaException("No object class "+objectclass+" in the schema for "+source);
+	        	}
 	        	return objectClassDefinition;
 	        }
 	        
@@ -391,11 +394,9 @@ public final class Utils {
 	        			new Object[]{refinedObjectClassDefinition, objectclass});
 	        } else {
 	        	if (LOGGER.isTraceEnabled()) {
-                    LOGGER.debug("No kind or objectclass specified in {}, using default values", source);
+                    LOGGER.debug("No kind or objectclass specified in {}, assuming null object class", source);
                 }
-	        	refinedObjectClassDefinition = refinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, (String)null);
-	        	LOGGER.trace("Determined refined object class {} by using default ACCOUNT kind",
-	        			new Object[]{refinedObjectClassDefinition});
+	        	refinedObjectClassDefinition = null;
 	        }
 	        
 	        return refinedObjectClassDefinition;

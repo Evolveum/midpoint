@@ -35,9 +35,9 @@
 				<!-- No OID for account. The OID will be generated once the account shadow is added to the repository. -->
 				<!-- No name here. We expect that it will be generated -->
 				<c:resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>
-				<c:objectClass>ri:AccountObjectClass</c:objectClass>
+				<c:objectClass>ri:inetOrgPerson</c:objectClass>
 				<c:attributes>
-					<icfs:name>uid=jack,ou=People,dc=example,dc=com</icfs:name>
+					<ri:dn>uid=jack,ou=People,dc=example,dc=com</ri:dn>
 					<ri:uid>jack</ri:uid>
 					<ri:cn>Jack Sparrow</ri:cn>
 					<ri:givenName>Jack</ri:givenName>

@@ -200,6 +200,8 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
  * instance is provided in the test data and is inserted in the repository as
  * part of test initialization.
  *
+ * THIS IS LEGACY VERSION. It tests with legacy LDAP connector.
+ *
  * @author Radovan Semancik
  */
 @ContextConfiguration(locations = {"classpath:ctx-sanity-test-main.xml"})
@@ -216,11 +218,8 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
     private static final String ROLE_SUPERUSER_FILENAME = REPO_DIR_NAME + "role-superuser.xml";
     private static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
 
-    private static final String RESOURCE_OPENDJ_FILENAME = REPO_DIR_NAME + "resource-opendj.xml";
+    private static final String RESOURCE_OPENDJ_FILENAME = REPO_DIR_NAME + "resource-opendj-legacy.xml";
     private static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
-
-    private static final String RESOURCE_DERBY_FILENAME = REPO_DIR_NAME + "resource-derby.xml";
-    private static final String RESOURCE_DERBY_OID = "ef2bc95b-76e0-59e2-86d6-999902d3abab";
 
     private static final String RESOURCE_BROKEN_FILENAME = REPO_DIR_NAME + "resource-broken.xml";
     private static final String RESOURCE_BROKEN_OID = "ef2bc95b-76e0-59e2-ffff-ffffffffffff";
@@ -228,19 +227,19 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
     private static final String RESOURCE_DUMMY_FILENAME = REPO_DIR_NAME + "resource-dummy.xml";
     private static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
 
-    private static final String CONNECTOR_LDAP_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/org.identityconnectors.ldap.LdapConnector";
+    private static final String CONNECTOR_LDAP_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap-legacy/org.identityconnectors.ldap.LdapConnector";
     private static final String CONNECTOR_DBTABLE_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-databasetable/org.identityconnectors.databasetable.DatabaseTableConnector";
     
     private static final String CONNECTOR_BROKEN_FILENAME = REPO_DIR_NAME + "connector-broken.xml";
     private static final String CONNECTOR_BROKEN_OID = "cccccccc-76e0-59e2-ffff-ffffffffffff";
 
-    private static final String TASK_OPENDJ_SYNC_FILENAME = REPO_DIR_NAME + "task-opendj-sync.xml";
+    private static final String TASK_OPENDJ_SYNC_FILENAME = REPO_DIR_NAME + "task-opendj-sync-legacy.xml";
     private static final String TASK_OPENDJ_SYNC_OID = "91919191-76e0-59e2-86d6-3d4f02d3ffff";
 
     private static final String TASK_USER_RECOMPUTE_FILENAME = REPO_DIR_NAME + "task-user-recompute.xml";
     private static final String TASK_USER_RECOMPUTE_OID = "91919191-76e0-59e2-86d6-3d4f02d3aaaa";
 
-    private static final String TASK_OPENDJ_RECON_FILENAME = REPO_DIR_NAME + "task-opendj-reconciliation.xml";
+    private static final String TASK_OPENDJ_RECON_FILENAME = REPO_DIR_NAME + "task-opendj-reconciliation-legacy.xml";
     private static final String TASK_OPENDJ_RECON_OID = "91919191-76e0-59e2-86d6-3d4f02d30000";
 
     private static final String SAMPLE_CONFIGURATION_OBJECT_FILENAME = REPO_DIR_NAME + "sample-configuration-object.xml";
@@ -284,7 +283,7 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
     private static final String ROLE_JUDGE_FILENAME = REPO_DIR_NAME + "role-judge.xml";
     private static final String ROLE_JUDGE_OID = "12345111-1111-2222-1111-121212111111";
     
-    private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_OPENDJ_FILENAME = REQUEST_DIR_NAME + "user-modify-add-account.xml";
+    private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_OPENDJ_FILENAME = REQUEST_DIR_NAME + "user-modify-add-account-legacy.xml";
 
     private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_DERBY_FILENAME = REQUEST_DIR_NAME + "user-modify-add-account-derby.xml";
     private static final String USER_JACK_DERBY_LOGIN = "jsparrow";
@@ -317,7 +316,7 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
     private static final String LDIF_ANGELIKA_FILENAME = REQUEST_DIR_NAME + "angelika.ldif";
     private static final String ANGELIKA_NAME = "angelika";
     
-    private static final String ACCOUNT_ANGELIKA_FILENAME = REQUEST_DIR_NAME + "account-angelika.xml";
+    private static final String ACCOUNT_ANGELIKA_FILENAME = REQUEST_DIR_NAME + "account-angelika-legacy.xml";
   
 
     private static final String LDIF_ELAINE_FILENAME = REQUEST_DIR_NAME + "elaine.ldif";
@@ -344,9 +343,7 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
      * Used for convenience - the tests method may find it handy.
      */
     private static ResourceType resourceTypeOpenDjrepo;
-    private static ResourceType resourceDerby;
     private static String accountShadowOidOpendj;
-    private static String accountShadowOidDerby;
     private static String accountShadowOidGuybrushOpendj;
     private static String accountGuybrushOpendjEntryUuuid = null;
     private static String originalJacksLdapPassword;
@@ -407,7 +404,6 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
     @Override
     public void startResources() throws Exception {
         openDJController.startCleanServer();
-        derbyController.startCleanServer();
     }
 
     /**
@@ -417,7 +413,6 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
     @AfterClass
     public static void stopResources() throws Exception {
         openDJController.stop();
-        derbyController.stop();
     }
 
     /**
@@ -670,52 +665,6 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
 		}
 
 	}
-	
-	@Test
-    public void test002AddDerbyResource() throws Exception {
-		final String TEST_NAME = "test002AddDerbyResource";
-        TestUtil.displayTestTile(TEST_NAME);
-        
-        // GIVEN
-        OperationResult result = new OperationResult(TestSanityLegacy.class.getName() + "." + TEST_NAME);
-        
-        checkRepoOpenDjResource();
-        assertNoRepoCache();
-
-        PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(RESOURCE_DERBY_FILENAME));
-        assertParentConsistency(resource);
-        fillInConnectorRef(resource, IntegrationTestTools.DBTABLE_CONNECTOR_TYPE, result);
-
-        OperationResultType resultType = new OperationResultType();
-        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
-        Holder<String> oidHolder = new Holder<String>();
-
-        display("Adding Derby Resource", resource);
-
-        // WHEN
-        addObjectViaModelWS(resource.asObjectable(), null, oidHolder, resultHolder);
-        
-        // THEN
-        // Check if Derby resource was imported correctly
-        PrismObject<ResourceType> derbyResource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, result);
-        AssertJUnit.assertEquals(RESOURCE_DERBY_OID, derbyResource.getOid());
-
-        assertNoRepoCache();
-
-        String dbConnectorOid = derbyResource.asObjectable().getConnectorRef().getOid();
-        PrismObject<ConnectorType> dbConnector = repositoryService.getObject(ConnectorType.class, dbConnectorOid, null, result);
-        display("DB Connector: ", dbConnector);
-
-        // Check if password was encrypted during import
-        Object configurationPropertiesElement = JAXBUtil.findElement(derbyResource.asObjectable().getConnectorConfiguration().getAny(),
-                new QName(dbConnector.asObjectable().getNamespace(), "configurationProperties"));
-        Object passwordElement = JAXBUtil.findElement(JAXBUtil.listChildElements(configurationPropertiesElement),
-                new QName(dbConnector.asObjectable().getNamespace(), "password"));
-        System.out.println("Password element: " + passwordElement);
-
-
-        
-	}
 
     private void addObjectViaModelWS(ObjectType objectType, ModelExecuteOptionsType options, Holder<String> oidHolder, Holder<OperationResultType> resultHolder) throws FaultMessage {
     	ObjectDeltaListType deltaList = new ObjectDeltaListType();
@@ -752,74 +701,10 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
                 }
             }
         }
-        throw new IllegalStateException("No suitable ObjectDeltaOperationType found");
+        throw new IllegalStateException("No suitable ObjectDeltaOperationType ("+originalDelta.getChangeType()+")found. We have: "+operationListType);
     }
-
-    private void checkRepoDerbyResource() throws ObjectNotFoundException, SchemaException {
-    	OperationResult result = new OperationResult(TestSanityLegacy.class.getName()+".checkRepoDerbyResource");
-    	PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, result);
-    	checkDerbyResource(resource, "repository");
-    }
-    
-	private void checkDerbyResource(PrismObject<ResourceType> resource, String source) {
-		checkDerbyConfiguration(resource, source);
-	}
-	
-	private void checkDerbyConfiguration(PrismObject<ResourceType> resource, String source) {
-		checkOpenResourceConfiguration(resource, CONNECTOR_DBTABLE_NAMESPACE, "password", 10, source);
-	}
 	
     
-    /**
-     * Test the testResource method. Expect a complete success for now.
-     */
-    @Test
-    public void test003TestConnectionDerby() throws Exception {
-        TestUtil.displayTestTile("test003TestConnectionDerby");
-
-        // GIVEN
-
-        checkRepoDerbyResource();
-        assertNoRepoCache();
-
-        // WHEN
-        OperationResultType result = modelWeb.testResource(RESOURCE_DERBY_OID);
-
-        // THEN
-
-        assertNoRepoCache();
-        displayJaxb("testResource result:", result, SchemaConstants.C_RESULT);
-
-        TestUtil.assertSuccess("testResource has failed", result.getPartialResults().get(0));
-
-        OperationResult opResult = new OperationResult(TestSanityLegacy.class.getName() + ".test002TestConnectionDerby");
-
-        PrismObject<ResourceType> rObject = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, opResult);
-        resourceDerby = rObject.asObjectable();
-        checkDerbyResource(rObject, "repository(after test)");
-
-        assertNoRepoCache();
-        assertEquals(RESOURCE_DERBY_OID, resourceDerby.getOid());
-        display("Initialized Derby resource (respository)", resourceDerby);
-        assertNotNull("Resource schema was not generated", resourceDerby.getSchema());
-        Element resourceDerbyXsdSchemaElement = ResourceTypeUtil.getResourceXsdSchema(resourceDerby);
-        assertNotNull("Resource schema was not generated", resourceDerbyXsdSchemaElement);
-
-        PrismObject<ResourceType> derbyResourceProvisioninig = provisioningService.getObject(ResourceType.class, RESOURCE_DERBY_OID,
-                null, null, opResult);
-        display("Initialized Derby resource (provisioning)", derbyResourceProvisioninig);
-
-        PrismObject<ResourceType> derbyResourceModel = provisioningService.getObject(ResourceType.class, RESOURCE_DERBY_OID,
-                null, null, opResult);
-        display("Initialized Derby resource (model)", derbyResourceModel);
-
-        // TODO: check
-//		checkOpenDjResource(resourceOpenDj,"repository");
-//		checkOpenDjResource(openDjResourceProvisioninig,"provisioning");
-//		checkOpenDjResource(openDjResourceModel,"model");
-        // TODO: model web
-
-    }
   
     @Test
     public void test004Capabilities() throws ObjectNotFoundException, CommunicationException, SchemaException,
@@ -1145,121 +1030,6 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
         return getOdoFromDeltaOperationList(list, objectChange).getExecutionResult();
     }
 
-    /**
-     * Add Derby account to user. This should result in account provisioning. Check if
-     * that happens in repo and in Derby.
-     */
-    @Test
-    public void test014AddDerbyAccountToUser() throws IOException, JAXBException, FaultMessage,
-            ObjectNotFoundException, SchemaException, DirectoryException, SQLException {
-        TestUtil.displayTestTile("test014AddDerbyAccountToUser");
-
-        // GIVEN
-
-        checkRepoDerbyResource();
-        assertNoRepoCache();
-
-        ObjectDeltaType objectChange = unmarshallValueFromFile(
-                REQUEST_USER_MODIFY_ADD_ACCOUNT_DERBY_FILENAME, ObjectDeltaType.class);
-
-        // WHEN ObjectTypes.USER.getTypeQName(), 
-        OperationResultType result = modifyObjectViaModelWS(objectChange);
-
-        // THEN
-        assertNoRepoCache();
-        displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
-        TestUtil.assertSuccess("modifyObject has failed", result);
-
-        // Check if user object was modified in the repo
-
-        OperationResult repoResult = new OperationResult("getObject");
-
-        PrismObject<UserType> uObject = repositoryService.getObject(UserType.class, USER_JACK_OID, null, repoResult);
-        UserType repoUser = uObject.asObjectable();
-
-        repoResult.computeStatus();
-        display("User (repository)", repoUser);
-
-        List<ObjectReferenceType> accountRefs = repoUser.getLinkRef();
-        // OpenDJ account was added in previous test, hence 2 accounts
-        assertEquals(2, accountRefs.size());
-
-        ObjectReferenceType accountRef = null;
-        for (ObjectReferenceType ref : accountRefs) {
-            if (!ref.getOid().equals(accountShadowOidOpendj)) {
-                accountRef = ref;
-            }
-        }
-
-        accountShadowOidDerby = accountRef.getOid();
-        assertFalse(accountShadowOidDerby.isEmpty());
-
-        // Check if shadow was created in the repo
-        repoResult = new OperationResult("getObject");
-
-        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidDerby,
-        		null, repoResult);
-        ShadowType repoShadowType = repoShadow.asObjectable();
-        repoResult.computeStatus();
-        TestUtil.assertSuccess("addObject has failed", repoResult);
-        display("Shadow (repository)", repoShadowType);
-        assertNotNull(repoShadowType);
-        assertEquals(RESOURCE_DERBY_OID, repoShadowType.getResourceRef().getOid());
-
-        // Check the "name" property, it should be set to DN, not entryUUID
-        assertEquals("Wrong name property", PrismTestUtil.createPolyStringType(USER_JACK_DERBY_LOGIN),
-        		repoShadowType.getName());
-
-        // check attributes in the shadow: should be only identifiers (ICF UID)
-        String uid = checkRepoShadow(repoShadow);
-
-        // check if account was created in DB Table
-
-        Statement stmt = derbyController.getExecutedStatementWhereLoginName(uid);
-        ResultSet rs = stmt.getResultSet();
-
-        System.out.println("RS: " + rs);
-
-        assertTrue("No records found for login name " + uid, rs.next());
-        assertEquals(USER_JACK_DERBY_LOGIN, rs.getString(DerbyController.COLUMN_LOGIN));
-        assertEquals("Cpt. Jack Sparrow", rs.getString(DerbyController.COLUMN_FULL_NAME));
-        // TODO: check password
-        //assertEquals("3lizab3th",rs.getString(DerbyController.COLUMN_PASSWORD));
-        System.out.println("Password: " + rs.getString(DerbyController.COLUMN_PASSWORD));
-
-        assertFalse("Too many records found for login name " + uid, rs.next());
-        rs.close();
-        stmt.close();
-
-        // Use getObject to test fetch of complete shadow
-
-        assertNoRepoCache();
-
-        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
-        Holder<ObjectType> objectHolder = new Holder<ObjectType>();
-        SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType ();
-
-        // WHEN
-        modelWeb.getObject(ObjectTypes.SHADOW.getTypeQName(), accountShadowOidDerby,
-                options, objectHolder, resultHolder);
-
-        // THEN
-        assertNoRepoCache();
-        displayJaxb("getObject result", resultHolder.value, SchemaConstants.C_RESULT);
-        TestUtil.assertSuccess("getObject has failed", resultHolder.value);
-
-        ShadowType modelShadow = (ShadowType) objectHolder.value;
-        display("Shadow (model)", modelShadow);
-
-        AssertJUnit.assertNotNull(modelShadow);
-        AssertJUnit.assertEquals(RESOURCE_DERBY_OID, modelShadow.getResourceRef().getOid());
-
-        assertAttribute(modelShadow, ConnectorFactoryIcfImpl.ICFS_UID, USER_JACK_DERBY_LOGIN);
-        assertAttribute(modelShadow, ConnectorFactoryIcfImpl.ICFS_NAME, USER_JACK_DERBY_LOGIN);
-        assertAttribute(modelShadow, resourceDerby, "FULL_NAME", "Cpt. Jack Sparrow");
-
-    }
-
     @Test
     public void test015AccountOwner() throws FaultMessage, ObjectNotFoundException, SchemaException, JAXBException {
         TestUtil.displayTestTile("test015AccountOwner");
@@ -1378,11 +1148,10 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
         // Check if appropriate accountRef is still there
 
         List<ObjectReferenceType> accountRefs = repoUserType.getLinkRef();
-        assertEquals(2, accountRefs.size());
+        assertEquals(1, accountRefs.size());
         for (ObjectReferenceType accountRef : accountRefs) {
             assertTrue("No OID in "+accountRef+" in "+repoUserType,
-                    accountRef.getOid().equals(accountShadowOidOpendj) ||
-                            accountRef.getOid().equals(accountShadowOidDerby));
+                    accountRef.getOid().equals(accountShadowOidOpendj));
 
         }
 
@@ -1514,9 +1283,8 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
         PrismAsserts.assertEqualsPolyString("wrong repo locality", "somewhere", repoUserType.getLocality());
 
         // Check if appropriate accountRef is still there
-        assertLinks(repoUser, 2);
+        assertLinks(repoUser, 1);
         assertLinked(repoUser, accountShadowOidOpendj);
-        assertLinked(repoUser, accountShadowOidDerby);
         
         assertPassword(repoUser, expectedUserPassword);
 
@@ -1683,11 +1451,10 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
 
         // Check if appropriate accountRef is still there
         List<ObjectReferenceType> accountRefs = repoUserType.getLinkRef();
-        assertEquals(2, accountRefs.size());
+        assertEquals(1, accountRefs.size());
         for (ObjectReferenceType accountRef : accountRefs) {
             assertTrue("No OID in "+accountRef+" in "+repoUserType,
-                    accountRef.getOid().equals(accountShadowOidOpendj) ||
-                            accountRef.getOid().equals(accountShadowOidDerby));
+                    accountRef.getOid().equals(accountShadowOidOpendj));
         }
 
         // Check if shadow is still in the repo and that it is untouched
@@ -1783,11 +1550,10 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
 
         // Check if appropriate accountRef is still there
         List<ObjectReferenceType> accountRefs = repoUser.getLinkRef();
-        assertEquals(2, accountRefs.size());
+        assertEquals(1, accountRefs.size());
         for (ObjectReferenceType accountRef : accountRefs) {
             assertTrue("No OID in "+accountRef+" in "+repoUser,
-                    accountRef.getOid().equals(accountShadowOidOpendj) ||
-                            accountRef.getOid().equals(accountShadowOidDerby));
+                    accountRef.getOid().equals(accountShadowOidOpendj));
         }
 
         // Check if shadow is still in the repo and that it is untouched
@@ -1849,100 +1615,6 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
         String pwpAccountDisabled = OpenDJController.getAttributeValue(entry, "ds-pwp-account-disabled");
         System.out.println("ds-pwp-account-disabled after change: " + pwpAccountDisabled);
         assertTrue("LDAP account was not enabled", openDJController.isAccountEnabled(entry));
-    }
-
-    /**
-     * Unlink account by removing the accountRef from the user.
-     * The account will not be deleted, just the association to user will be broken.
-     */
-    @Test
-    public void test040UnlinkDerbyAccountFromUser() throws FileNotFoundException, JAXBException, FaultMessage,
-            ObjectNotFoundException, SchemaException, DirectoryException, SQLException {
-        TestUtil.displayTestTile("test040UnlinkDerbyAccountFromUser");
-
-        // GIVEN
-
-        ObjectDeltaType objectChange = new ObjectDeltaType();
-        objectChange.setOid(USER_JACK_OID);
-        ItemDeltaType modificationDeleteAccountRef = new ItemDeltaType();
-        modificationDeleteAccountRef.setModificationType(ModificationTypeType.DELETE);
-        ObjectReferenceType accountRefToDelete = new ObjectReferenceType();
-        accountRefToDelete.setOid(accountShadowOidDerby);
-        RawType modificationValue = new RawType(prismContext.getBeanConverter().marshall(accountRefToDelete), prismContext);
-        modificationDeleteAccountRef.getValue().add(modificationValue);
-        modificationDeleteAccountRef.setPath(new ItemPathType(new ItemPath(UserType.F_LINK_REF)));
-        objectChange.getItemDelta().add(modificationDeleteAccountRef);
-        objectChange.setChangeType(ChangeTypeType.MODIFY);
-        objectChange.setObjectType(UserType.COMPLEX_TYPE);
-        displayJaxb("modifyObject input", objectChange, new QName(SchemaConstants.NS_C, "change"));
-        assertNoRepoCache();
-
-        // WHEN ObjectTypes.USER.getTypeQName(), 
-        OperationResultType result = modifyObjectViaModelWS(objectChange);
-
-        // THEN
-        assertNoRepoCache();
-        displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
-        TestUtil.assertSuccess("modifyObject has failed", result);
-
-        // Check if user object was modified in the repo
-
-        OperationResult repoResult = new OperationResult("getObject");
-
-        PrismObject<UserType> uObject = repositoryService.getObject(UserType.class, USER_JACK_OID, null, repoResult);
-        UserType repoUser = uObject.asObjectable();
-        repoResult.computeStatus();
-        display("User (repository)", repoUser);
-
-        List<ObjectReferenceType> accountRefs = repoUser.getLinkRef();
-        // only OpenDJ account should be left now
-        assertEquals(1, accountRefs.size());
-        ObjectReferenceType ref = accountRefs.get(0);
-        assertEquals("Wrong OID in accountRef in "+repoUser, accountShadowOidOpendj, ref.getOid());
-
-    }
-
-    /**
-     * Delete the shadow which will cause deletion of associated account.
-     * The account was unlinked in the previous test, therefore no operation with user is needed.
-     */
-    @Test
-    public void test041DeleteDerbyAccount() throws FileNotFoundException, JAXBException, FaultMessage,
-            ObjectNotFoundException, SchemaException, DirectoryException, SQLException {
-        TestUtil.displayTestTile("test041DeleteDerbyAccount");
-
-        // GIVEN
-
-        assertNoRepoCache();
-
-        // WHEN
-        OperationResultType result = deleteObjectViaModelWS(ObjectTypes.SHADOW.getTypeQName(), accountShadowOidDerby);
-
-        // THEN
-        assertNoRepoCache();
-        displayJaxb("deleteObject result", result, SchemaConstants.C_RESULT);
-        TestUtil.assertSuccess("deleteObject has failed", result);
-
-        // Check if shadow was deleted
-        OperationResult repoResult = new OperationResult("getObject");
-
-        try {
-            repositoryService.getObject(ShadowType.class, accountShadowOidDerby,
-            		null, repoResult);
-            AssertJUnit.fail("Shadow was not deleted");
-        } catch (ObjectNotFoundException ex) {
-            display("Caught expected exception from getObject(shadow): " + ex);
-        }
-
-        // check if account was deleted in DB Table
-
-        Statement stmt = derbyController.getExecutedStatementWhereLoginName(USER_JACK_DERBY_LOGIN);
-        ResultSet rs = stmt.getResultSet();
-
-        System.out.println("RS: " + rs);
-
-        assertFalse("Account was not deleted in database", rs.next());
-
     }
 
     private OperationResultType deleteObjectViaModelWS(QName typeQName, String oid) throws FaultMessage { 
@@ -3689,7 +3361,7 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
         // THEN
         
         display("Resources", objectListHolder.value);
-        assertEquals("Unexpected number of resources", 4, objectListHolder.value.getObject().size());
+        assertEquals("Unexpected number of resources", 3, objectListHolder.value.getObject().size());
         // TODO
         
         for(ObjectType object: objectListHolder.value.getObject()) {

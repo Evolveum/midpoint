@@ -527,6 +527,17 @@ public class TestUtil {
 				actual.compare(end) == DatatypeConstants.LESSER || actual.compare(end) == DatatypeConstants.EQUAL);
 		}
 	}
+	
+	public static void assertBetween(String message, Long start, Long end,
+			Long actual) {
+		assertNotNull(message + " is null", actual);
+		if (start != null) {
+			assertTrue(message+": expected time to be after "+start+" but it was "+actual, actual >= start);
+		}
+		if (end != null) {
+			assertTrue(message+": expected time to be before "+end+" but it was "+actual, actual <= end);
+		}
+	}
 
 	public static void assertEqualsTimestamp(String message, XMLGregorianCalendar expected, XMLGregorianCalendar actual) {
 		assertNotNull(message+"; expected "+expected, actual);

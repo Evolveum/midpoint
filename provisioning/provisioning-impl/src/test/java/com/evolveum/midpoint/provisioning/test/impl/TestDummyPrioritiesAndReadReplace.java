@@ -51,6 +51,7 @@ import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -83,12 +84,12 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 
 	protected String willIcfUid;
 
-	public static final String TEST_DIR = "src/test/resources/impl/dummy-priorities-read-replace/";
-	public static final String RESOURCE_DUMMY_FILENAME = TEST_DIR + "resource-dummy.xml";
+	public static final File TEST_DIR = new File("src/test/resources/impl/dummy-priorities-read-replace/");
+	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
 
 	@Override
-	protected String getResourceDummyFilename() {
-		return RESOURCE_DUMMY_FILENAME;
+	protected File getResourceDummyFilename() {
+		return RESOURCE_DUMMY_FILE;
 	}
 
 	protected MatchingRule<String> getUidMatchingRule() {

@@ -57,8 +57,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @DirtiesContext
 public class TestDummyNoActivation extends TestDummy {
 	
-	public static final String TEST_DIR = "src/test/resources/impl/dummy-no-activation/";
-	public static final String RESOURCE_DUMMY_FILENAME = TEST_DIR + "resource-dummy.xml";
+	public static final File TEST_DIR = new File("src/test/resources/impl/dummy-no-activation/");
+	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
 	
 	protected static final File ACCOUNT_WILL_FILE = new File(TEST_DIR, "account-will.xml");
 
@@ -68,8 +68,8 @@ public class TestDummyNoActivation extends TestDummy {
 	}
 	
 	@Override
-	protected String getResourceDummyFilename() {
-		return RESOURCE_DUMMY_FILENAME;
+	protected File getResourceDummyFilename() {
+		return RESOURCE_DUMMY_FILE;
 	}
 	
 	protected File getAccountWillFile() {

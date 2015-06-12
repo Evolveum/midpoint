@@ -209,6 +209,11 @@ class IcfUtil {
 			Exception newEx = new ObjectAlreadyExistsException(createMessageFromAllExceptions(null, icfException));
 			icfResult.recordFatalError("Object already exists: "+icfException.getMessage(), newEx);
 			return newEx;
+			
+		} else if (icfException instanceof PermissionDeniedException) {
+			Exception newEx = new SecurityViolationException(createMessageFromAllExceptions(null, icfException));
+			icfResult.recordFatalError("Security violation: "+icfException.getMessage(), newEx);
+			return newEx;
 
 		} else if (icfException instanceof ConnectionBrokenException) {
 			Exception newEx = new CommunicationException(createMessageFromAllExceptions("Connection broken", icfException));
@@ -243,6 +248,11 @@ class IcfUtil {
 		} else if (icfException instanceof UnknownUidException) {
 			Exception newEx = new ObjectNotFoundException(createMessageFromAllExceptions(null, icfException));
 			icfResult.recordFatalError("Unknown UID: "+icfException.getMessage(), newEx);
+			return newEx;
+			
+		} else if (icfException instanceof InvalidAttributeValueException) {
+			Exception newEx = new SchemaException(createMessageFromAllExceptions(null, icfException));
+			icfResult.recordFatalError("Schema violation: "+icfException.getMessage(), newEx);
 			return newEx;
 
 		} else if (icfException instanceof ConnectorSecurityException) {
@@ -445,8 +455,17 @@ class IcfUtil {
 		}
 	}
 	
-	public static ResourceAttributeDefinition getUidDefinition(ResourceAttributeContainerDefinition def) {
-		return def.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
+	public static ResourceAttributeDefinition<String> getUidDefinition(ResourceAttributeContainerDefinition def) {
+		Collection<? extends ResourceAttributeDefinition> identifiers = def.getIdentifiers();
+		if (identifiers.size() > 1) {
+			throw new UnsupportedOperationException("Multiple primary identifiers are not supported");
+		}
+		if (identifiers.size() == 1) {
+			return identifiers.iterator().next();
+		} else {
+			// fallback, compatibility
+			return def.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
+		}
 	}
 	
 	public static ResourceAttribute<String> createUidAttribute(Uid uid, ResourceAttributeDefinition uidDefinition) {

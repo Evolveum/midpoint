@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -35,6 +35,15 @@
     <logger name="com.evolveum.polygon" level="TRACE" />
     <logger name="com.evolveum.icf" level="TRACE" />
     <logger name="org.forgerock.openicf" level="TRACE" />
+    
+    <!-- WARNING! See also logging.properties. Apache LDAP API logs too much. Therefore it is limited on JUL level. -->
+    <logger name="org.apache.directory" level="DEBUG" />
+    <logger name="org.apache.directory.api.ldap.model.schema.registries" level="INFO" />
+    <logger name="org.apache.directory.api.ldap.model.schema.parsers" level="INFO" />
+    <logger name="org.apache.directory.api.asn1" level="INFO" />
+    <logger name="org.apache.directory.api.CODEC_LOG" level="INFO" />
+    <logger name="org.apache.directory.api.ldap.codec" level="INFO" />
+    <logger name="org.apache.directory.CURSOR_LOG" level="INFO" />
 	<logger name="PROFILING" level="TRACE" />
 	<root level="INFO">
 		<appender-ref ref="X" />

@@ -4356,9 +4356,78 @@
                             </xsd:documentation>
                         </xsd:annotation>
 		     		</xsd:element>
-		     		<xsd:element name="direction" type="tns:ResourceObjectAssociationDirectionType"  minOccurs="0"></xsd:element>
-		     		<xsd:element name="associationAttribute" type="xsd:QName"  minOccurs="0"></xsd:element>
-		     		<xsd:element name="valueAttribute" type="xsd:QName"  minOccurs="0"></xsd:element>
+		     		<xsd:element name="direction" type="tns:ResourceObjectAssociationDirectionType"  minOccurs="0">
+		     			<xsd:annotation>
+		     				<xsd:documentation>
+		     					Specifies the directorion of association, i.e. if the association point from object to
+		     					subject or the other way around. 
+		     				</xsd:documentation>
+		     			</xsd:annotation>
+		     		</xsd:element>
+		     		<xsd:element name="associationAttribute" type="xsd:QName"  minOccurs="0">
+		     			<xsd:annotation>
+		     				<xsd:documentation>
+		     					Name of the attribute which represents the association. This is the attribute
+		     					that will be modifier when the association changes. In object-to-subject associations
+		     					this is the attribute of the object (e.g. group). In subject-to-object associations this
+		     					is an attribute of the subject (e.g. account).
+		     					
+		     					Typical examples are: roles, privileges, member, uniqueMember 
+		     				</xsd:documentation>
+		     			</xsd:annotation>
+		     		</xsd:element>
+		     		<xsd:element name="valueAttribute" type="xsd:QName"  minOccurs="0">
+  		     			<xsd:annotation>
+		     				<xsd:documentation>
+		     					Name of the attribute from with a value for association attribute is taken. 
+		     					The value is taken from this attribute and it will be stored in the association attribute.
+		     					This 
+		     					attribute will NOT be modifier when the association changes, it is only for reading.
+		     					In object-to-subject associations this is the attribute of the subject (e.g. account).
+		     					In subject-to-object associations this is an attribute of the object (e.g. group).
+		     					
+		     					This attribute usually contain identifiers.
+		     					Typical examples are: name, username, uid, id 
+		     				</xsd:documentation>
+		     			</xsd:annotation>	     		
+		     		</xsd:element>
+		     		<xsd:element name="shortcutAssociationAttribute" type="xsd:QName"  minOccurs="0">
+		     			<xsd:annotation>
+		     				<xsd:documentation>
+		     					Association attribute short-cut. There are cases when a object-to-subject association
+		     					is the authoritative one, but reading object-to-subject is expensive. E.g. several searches
+		     					must be done to fully resolve object-to-subject associations. This attribute provides a
+		     					short-cut mechanism. It is used in cases when there is additional (virtual) attribute that
+		     					goes in the opposite direction as the primary object-to-subject association attribute.
+		     					The assocition short-cut is only usable for object-to-subject associations.
+		     					
+		     					This property specifies name of the attribute which represents the association short-cut.
+		     					This is the attribute of the subject (e.g. account). This attribute will only be read,
+		     					it is never written. The primary association attribute is used for writing.
+		     					
+		     					Typical examples are: memberOf, isMemberOf 
+		     				</xsd:documentation>
+		     			</xsd:annotation>
+		     		</xsd:element>
+		     		<xsd:element name="shortcutValueAttribute" type="xsd:QName"  minOccurs="0">
+		     			<xsd:annotation>
+		     				<xsd:documentation>
+		     					Association attribute short-cut. There are cases when a object-to-subject association
+		     					is the authoritative one, but reading object-to-subject is expensive. E.g. several searches
+		     					must be done to fully resolve object-to-subject associations. This attribute provides a
+		     					short-cut mechanism. It is used in cases when there is additional (virtual) attribute that
+		     					goes in the opposite direction as the primary object-to-subject association attribute.
+		     					The assocition short-cut is only usable for object-to-subject associations.
+		     					
+		     					This property specifies name of the attribute from with a value for association attribute
+		     					short-cut is taken. The values of this attribute are expected to appear in association
+		     					short-cut attribute. This is an attribute of the object (e.g. group).
+		     					
+		     					This attribute usually contain identifiers.
+		     					Typical examples are: name, username, uid, id 
+		     				</xsd:documentation>
+		     			</xsd:annotation>
+		     		</xsd:element>
 		     		<xsd:element name="explicitReferentialIntegrity" type="xsd:boolean"  minOccurs="0" default="true">
                         <xsd:annotation>
                             <xsd:documentation>

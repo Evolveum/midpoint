@@ -15,11 +15,15 @@
   ~ limitations under the License.
   -->
 
-<!-- Synchronization task definition for OpenDJ resource -->
+<!-- Synchronization task definition for OpenDJ resource
+
+THIS IS LEGACY VERSION. It tests with legacy LDAP connector. -->
 
 <task oid="91919191-76e0-59e2-86d6-3d4f02d3ffff"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:syncext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:my="http://whatever.com/my">
@@ -29,6 +33,7 @@
 	<extension>
 		<my:shipState>capsized</my:shipState>
 		<my:dead xsi:type="xsd:int">42</my:dead>
+		<syncext:objectclass>ri:AccountObjectClass</syncext:objectclass>
 	</extension>
 	
 	<taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3ffff</taskIdentifier>

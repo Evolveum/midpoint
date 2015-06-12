@@ -35,6 +35,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -69,6 +70,8 @@ import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.DerbyController;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -84,6 +87,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.authentication.encoding.LdapShaPasswordEncoder;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
 import org.testng.AssertJUnit;
@@ -124,6 +128,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	
 	// Values used to check if something is unchanged or changed properly
 	
+	protected LdapShaPasswordEncoder ldapShaPasswordEncoder = new LdapShaPasswordEncoder();
+	
 	private long lastResourceSchemaFetchCount = 0;
 	private long lastConnectorSchemaParseCount = 0;
 	private long lastConnectorCapabilitiesFetchCount = 0;
@@ -134,6 +140,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	private long lastScriptCompileCount = 0;
 	private long lastScriptExecutionCount = 0;
 	private long lastConnectorOperationCount = 0;
+	private long lastConnectorSimulatedPagingSearchCount = 0;
 
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
@@ -209,22 +216,52 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			boolean metadata, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
 			
 		OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
-				+ ".addObjectFromFile");
+				+ ".repoAddObjectFromFile");
 		result.addParam("file", file);
 		LOGGER.debug("addObjectFromFile: {}", file);
 		PrismObject<T> object = prismContext.parseObject(file);
 		
 		if (metadata) {
-			// Add at least the very basic meta-data
-			MetadataType metaData = new MetadataType();
-			metaData.setCreateTimestamp(clock.currentTimeXMLGregorianCalendar());
-			object.asObjectable().setMetadata(metaData);
+			addBasicMetadata(object);
 		}
 		
 		LOGGER.trace("Adding object:\n{}", object.debugDump());
 		repoAddObject(type, object, "from file "+file, result);
 		result.recordSuccess();
 		return object;
+	}
+	
+	protected PrismObject<ShadowType> repoAddShadowFromFile(File file, OperationResult parentResult) 
+			throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
+			
+		OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
+				+ ".repoAddShadowFromFile");
+		result.addParam("file", file);
+		LOGGER.debug("addShadowFromFile: {}", file);
+		PrismObject<ShadowType> object = prismContext.parseObject(file);
+		
+		PrismContainer<Containerable> attrCont = object.findContainer(ShadowType.F_ATTRIBUTES);
+		for (PrismProperty<?> attr: attrCont.getValue().getProperties()) {
+			if (attr.getDefinition() == null) {
+				ResourceAttributeDefinition<String> attrDef = new ResourceAttributeDefinition<>(attr.getElementName(), 
+						DOMUtil.XSD_STRING, prismContext);
+				attr.setDefinition((PrismPropertyDefinition) attrDef);
+			}
+		}
+		
+		addBasicMetadata(object);
+		
+		LOGGER.trace("Adding object:\n{}", object.debugDump());
+		repoAddObject(ShadowType.class, object, "from file "+file, result);
+		result.recordSuccess();
+		return object;
+	}
+	
+	protected <T extends ObjectType> void addBasicMetadata(PrismObject<T> object) {
+		// Add at least the very basic meta-data
+		MetadataType metaData = new MetadataType();
+		metaData.setCreateTimestamp(clock.currentTimeXMLGregorianCalendar());
+		object.asObjectable().setMetadata(metaData);
 	}
 	
 	protected <T extends ObjectType> void repoAddObject(Class<T> type, PrismObject<T> object,
@@ -342,15 +379,15 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		return unmarshallValueFromFile(filePath, ObjectType.class);
 	}
 
-	protected PrismObject<ResourceType> addResourceFromFile(String filePath, String connectorType, OperationResult result)
+	protected PrismObject<ResourceType> addResourceFromFile(File file, String connectorType, OperationResult result)
 			throws JAXBException, SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
-		return addResourceFromFile(filePath, connectorType, false, result);
+		return addResourceFromFile(file, connectorType, false, result);
 	}
 	
-	protected PrismObject<ResourceType> addResourceFromFile(String filePath, String connectorType, boolean overwrite, OperationResult result)
+	protected PrismObject<ResourceType> addResourceFromFile(File file, String connectorType, boolean overwrite, OperationResult result)
 			throws JAXBException, SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
-		LOGGER.trace("addObjectFromFile: {}, connector type {}", filePath, connectorType);
-		PrismObject<ResourceType> resource = prismContext.parseObject(new File(filePath));
+		LOGGER.trace("addObjectFromFile: {}, connector type {}", file, connectorType);
+		PrismObject<ResourceType> resource = prismContext.parseObject(file);
 		fillInConnectorRef(resource, connectorType, result);
 		CryptoUtil.encryptValues(protector, resource);
 		display("Adding resource ", resource);
@@ -537,16 +574,16 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		}
 	}
 	
-	protected void assertShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType, QName objectClass) {
+	protected void assertShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType, QName objectClass) throws SchemaException {
 		assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, null);
 	}
 
-    protected void assertAccountShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType) {
+    protected void assertAccountShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType) throws SchemaException {
         assertShadowCommon(accountShadow, oid, username, resourceType, getAccountObjectClass(resourceType), null);
     }
 
     protected void assertAccountShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
-                                      MatchingRule<String> nameMatchingRule) {
+                                      MatchingRule<String> nameMatchingRule) throws SchemaException {
         assertShadowCommon(accountShadow,oid,username,resourceType,getAccountObjectClass(resourceType),nameMatchingRule);
     }
 
@@ -559,19 +596,27 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
     }
 
     protected void assertShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
-                                      QName objectClass, MatchingRule<String> nameMatchingRule) {
+                                      QName objectClass, MatchingRule<String> nameMatchingRule) throws SchemaException {
 		assertShadow(accountShadow);
-		assertEquals("Account shadow OID mismatch (prism)", oid, accountShadow.getOid());
+		if (oid != null) {
+			assertEquals("Account shadow OID mismatch (prism)", oid, accountShadow.getOid());
+		}
 		ShadowType ResourceObjectShadowType = accountShadow.asObjectable();
-		assertEquals("Account shadow OID mismatch (jaxb)", oid, ResourceObjectShadowType.getOid());
+		if (oid != null) {
+			assertEquals("Account shadow OID mismatch (jaxb)", oid, ResourceObjectShadowType.getOid());
+		}
 		assertEquals("Account shadow objectclass", objectClass, ResourceObjectShadowType.getObjectClass());
 		assertEquals("Account shadow resourceRef OID", resourceType.getOid(), accountShadow.asObjectable().getResourceRef().getOid());
 		PrismContainer<Containerable> attributesContainer = accountShadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
 		assertNotNull("Null attributes in shadow for "+username, attributesContainer);
 		assertFalse("Empty attributes in shadow for "+username, attributesContainer.isEmpty());
-		PrismProperty<String> icfNameProp = attributesContainer.findProperty(new QName(SchemaConstants.NS_ICF_SCHEMA,"name"));
-		assertNotNull("No ICF name attribute in shadow for "+username, icfNameProp);
-		PrismAsserts.assertEquals("Unexpected ICF name attribute in shadow for "+username, nameMatchingRule, username, icfNameProp.getRealValue());
+		
+		RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resourceType);
+		ObjectClassComplexTypeDefinition ocDef = rSchema.findObjectClassDefinition(objectClass);
+		ResourceAttributeDefinition idSecDef = ocDef.getSecondaryIdentifiers().iterator().next();
+		PrismProperty<String> idProp = attributesContainer.findProperty(idSecDef.getName());
+		assertNotNull("No secondary identifier ("+idSecDef.getName()+") attribute in shadow for "+username, idProp);
+		PrismAsserts.assertEquals("Unexpected ICF name attribute in shadow for "+username, nameMatchingRule, username, idProp.getRealValue());
 	}
 	
 	protected void assertShadowRepo(String oid, String username, ResourceType resourceType, QName objectClass) throws ObjectNotFoundException, SchemaException {
@@ -587,20 +632,20 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
     }
 	
 	protected void assertShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
-                                    QName objectClass) {
+                                    QName objectClass) throws SchemaException {
 		assertShadowRepo(accountShadow, oid, username, resourceType, objectClass, null);
 	}
 
-    protected void assertAccountShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType) {
+    protected void assertAccountShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType) throws SchemaException {
         assertShadowRepo(accountShadow, oid, username, resourceType, getAccountObjectClass(resourceType), null);
     }
 	
-    protected void assertAccountShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType, MatchingRule<String> matchingRule) {
+    protected void assertAccountShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType, MatchingRule<String> matchingRule) throws SchemaException {
         assertShadowRepo(accountShadow, oid, username, resourceType, getAccountObjectClass(resourceType), matchingRule);
     }
     
 	protected void assertShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
-                                    QName objectClass, MatchingRule<String> nameMatchingRule) {
+                                    QName objectClass, MatchingRule<String> nameMatchingRule) throws SchemaException {
 		assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule);
 		PrismContainer<Containerable> attributesContainer = accountShadow.findContainer(ShadowType.F_ATTRIBUTES);
 		List<Item<?,?>> attributes = attributesContainer.getValue().getItems();
@@ -723,8 +768,16 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		lastConnectorOperationCount = currentCount;
 	}
 	
-	
-	
+	protected void rememberConnectorSimulatedPagingSearchCount() {
+		lastConnectorSimulatedPagingSearchCount = InternalMonitor.getConnectorSimulatedPagingSearchCount();
+	}
+
+	protected void assertConnectorSimulatedPagingSearchIncrement(int expectedIncrement) {
+		long currentCount = InternalMonitor.getConnectorSimulatedPagingSearchCount();
+		long actualIncrement = currentCount - lastConnectorSimulatedPagingSearchCount;
+		assertEquals("Unexpected increment in connector simulated paged search count", (long)expectedIncrement, actualIncrement);
+		lastConnectorSimulatedPagingSearchCount = currentCount;
+	}
 	
 	protected void rememberResourceCacheStats() {
 		lastResourceCacheStats  = InternalMonitor.getResourceCacheStats().clone();
@@ -922,5 +975,30 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			}
 		}
 	}
+	
+	protected void assertSyncToken(String syncTaskOid, Object expectedValue) throws ObjectNotFoundException, SchemaException {
+		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".assertSyncToken");
+		Task task = taskManager.getTask(syncTaskOid, result);
+		assertSyncToken(task, expectedValue, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+	}
+	
+	protected void assertSyncToken(String syncTaskOid, Object expectedValue, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		Task task = taskManager.getTask(syncTaskOid, result);
+		assertSyncToken(task, expectedValue, result);
+	}
+		
+	protected void assertSyncToken(Task task, Object expectedValue, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		PrismProperty<Object> syncTokenProperty = task.getExtensionProperty(SchemaConstants.SYNC_TOKEN);
+		if (expectedValue == null && syncTokenProperty == null) {
+			return;
+		}
+		if (!MiscUtil.equals(expectedValue, syncTokenProperty.getRealValue())) {
+			AssertJUnit.fail("Wrong sync token, expected: " + expectedValue + (expectedValue==null?"":(", "+expectedValue.getClass().getName())) +
+					", was: "+ syncTokenProperty.getRealValue() + (syncTokenProperty.getRealValue()==null?"":(", "+syncTokenProperty.getRealValue().getClass().getName())));
+		}
+	}
+
 
 }

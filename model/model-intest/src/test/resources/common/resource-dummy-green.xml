@@ -331,7 +331,7 @@
 					<expression>
 						<script>
 							<code>
-								input.substring(1)
+								input?.substring(1)
 							</code>
 						</script>
 					</expression>

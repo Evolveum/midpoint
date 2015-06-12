@@ -16,7 +16,10 @@
   -->
 
 <configuration>
-
+	
+	<!-- !!! WARNING !!! -->
+	<!-- This file is used only for early system init.
+	     The logging config is then taken from system-configuration.xml -->
 
 	<appender name="X" class="ch.qos.logback.core.FileAppender">
 		<file>./target/test.log</file>
@@ -43,12 +46,12 @@
 	
 	<logger name="com.evolveum.midpoint.test" level="TRACE" />
 	
-	<logger name="com.evolveum.midpoint.model.lens.Clockwork" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.model.impl.lens.Clockwork" level="DEBUG" />
 	
 	<!-- 
-	<logger name="com.evolveum.midpoint.model.lens.ChangeExecutor" level="TRACE" />
-	<logger name="com.evolveum.midpoint.model.lens.projector.ConsolidationProcessor" level="TRACE" />
-	<logger name="com.evolveum.midpoint.model.lens.LensUtil" level="TRACE" />  -->
+	<logger name="com.evolveum.midpoint.model.impl.lens.ChangeExecutor" level="TRACE" />
+	<logger name="com.evolveum.midpoint.model.impl.lens.projector.ConsolidationProcessor" level="TRACE" />
+	<logger name="com.evolveum.midpoint.model.impl.lens.LensUtil" level="TRACE" />  -->
 	
 	<logger name="PROFILING" level="INFO" />
 	

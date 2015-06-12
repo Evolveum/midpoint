@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ public class ObjectQuery implements DebugDumpable, Serializable {
 
 	private ObjectFilter filter;
 	private ObjectPaging paging;
+	private boolean allowPartialResults = false;
 
 	public ObjectFilter getFilter() {
 		return filter;
@@ -46,6 +47,14 @@ public class ObjectQuery implements DebugDumpable, Serializable {
 
 	public ObjectPaging getPaging() {
 		return paging;
+	}
+
+	public boolean isAllowPartialResults() {
+		return allowPartialResults;
+	}
+
+	public void setAllowPartialResults(boolean allowPartialResults) {
+		this.allowPartialResults = allowPartialResults;
 	}
 
 	public static ObjectQuery createObjectQuery(ObjectFilter filter) {
@@ -94,6 +103,9 @@ public class ObjectQuery implements DebugDumpable, Serializable {
 		if (this.paging != null) {
 			clone.paging = this.paging.clone();
 		}
+		if (this.allowPartialResults) {
+			clone.allowPartialResults = true;
+		}
 		return clone;
 	}	
 
@@ -123,6 +135,12 @@ public class ObjectQuery implements DebugDumpable, Serializable {
 			sb.append("paging: ").append(paging.debugDump(0));
 		}
 		
+		if (allowPartialResults) {
+			sb.append("\n");
+			DebugUtil.indentDebugDump(sb, indent);
+			sb.append("Allow partial results");
+		}
+		
 		return sb.toString();
 	}
 
@@ -141,6 +159,9 @@ public class ObjectQuery implements DebugDumpable, Serializable {
 			sb.append(",");
 		} else {
 			sb.append("null paging");
+		}
+		if (allowPartialResults) {
+			sb.append(",partial");
 		}
 		return sb.toString();
 	}

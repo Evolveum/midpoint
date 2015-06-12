@@ -45,6 +45,8 @@ public class InternalMonitor {
 	private static boolean traceConnectorOperation = false;
 	private static long connectorOperationCount = 0;
 	
+	private static long connectorSimulatedPagingSearchCount = 0;
+	
 	private static long shadowFetchOperationCount = 0;
 	private static boolean traceShadowFetchOperation = false;
 	
@@ -181,7 +183,18 @@ public class InternalMonitor {
 	public static void recordConnectorOperation(String name) {
 		connectorOperationCount++;
 		if (traceConnectorOperation) {
-			traceOperation("connector "+name, shadowFetchOperationCount);
+			traceOperation("connector "+name, connectorOperationCount);
+		}
+	}
+	
+	public static long getConnectorSimulatedPagingSearchCount() {
+		return connectorSimulatedPagingSearchCount;
+	}
+	
+	public static void recordConnectorSimulatedPagingSearchCount() {
+		connectorSimulatedPagingSearchCount++;
+		if (traceConnectorOperation) {
+			traceOperation("simulated paged search", connectorSimulatedPagingSearchCount);
 		}
 	}
 

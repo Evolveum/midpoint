@@ -45,6 +45,7 @@ public class ResourceAttributeDefinition<T> extends PrismPropertyDefinition<T> {
 
 	private static final long serialVersionUID = 7092192397127114804L;
 	private String nativeAttributeName;
+	private String frameworkAttributeName;
 	private Boolean returnedByDefault;
 
 	public ResourceAttributeDefinition(QName elementName, QName typeName, PrismContext prismContext) {
@@ -132,8 +133,20 @@ public class ResourceAttributeDefinition<T> extends PrismPropertyDefinition<T> {
 		this.nativeAttributeName = nativeAttributeName;
 	}
 	
-	
-	
+	/**
+	 * Returns name of the attribute as given in the connector framework.
+	 * This is not used for any significant logic. It is mostly for diagnostics.
+	 * 
+	 * @return name of the attribute as given in the connector framework.
+	 */
+	public String getFrameworkAttributeName() {
+		return frameworkAttributeName;
+	}
+
+	public void setFrameworkAttributeName(String frameworkAttributeName) {
+		this.frameworkAttributeName = frameworkAttributeName;
+	}
+
 	@Override
 	public ResourceAttributeDefinition<T> clone() {
 		ResourceAttributeDefinition<T> clone = new ResourceAttributeDefinition<T>(getName(), getTypeName(), getPrismContext());
@@ -144,16 +157,57 @@ public class ResourceAttributeDefinition<T> extends PrismPropertyDefinition<T> {
 	protected void copyDefinitionData(ResourceAttributeDefinition<T> clone) {
 		super.copyDefinitionData(clone);
 		clone.nativeAttributeName = this.nativeAttributeName;
+		clone.frameworkAttributeName = this.frameworkAttributeName;
 		clone.returnedByDefault = this.returnedByDefault;
 	}
-
 	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((frameworkAttributeName == null) ? 0 : frameworkAttributeName.hashCode());
+		result = prime * result + ((nativeAttributeName == null) ? 0 : nativeAttributeName.hashCode());
+		result = prime * result + ((returnedByDefault == null) ? 0 : returnedByDefault.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ResourceAttributeDefinition other = (ResourceAttributeDefinition) obj;
+		if (frameworkAttributeName == null) {
+			if (other.frameworkAttributeName != null)
+				return false;
+		} else if (!frameworkAttributeName.equals(other.frameworkAttributeName))
+			return false;
+		if (nativeAttributeName == null) {
+			if (other.nativeAttributeName != null)
+				return false;
+		} else if (!nativeAttributeName.equals(other.nativeAttributeName))
+			return false;
+		if (returnedByDefault == null) {
+			if (other.returnedByDefault != null)
+				return false;
+		} else if (!returnedByDefault.equals(other.returnedByDefault))
+			return false;
+		return true;
+	}
+
 	@Override
 	protected void extendToString(StringBuilder sb) {
 		super.extendToString(sb);
 		if (getNativeAttributeName()!=null) {
 			sb.append(" native=");
 			sb.append(getNativeAttributeName());
+		}
+		if (getFrameworkAttributeName()!=null) {
+			sb.append(" framework=");
+			sb.append(getFrameworkAttributeName());
 		}
 		if (returnedByDefault != null) {
 			sb.append(" returnedByDefault=");

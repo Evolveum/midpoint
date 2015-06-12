@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -20,11 +20,16 @@
 <task oid="10000000-0000-0000-5656-565600000004"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:syncext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 								  
 	<!-- Resource printable name -->
 	<name>Reconciliation: Dummy</name>
+	
+	<extension>
+		<syncext:objectclass>ri:AccountObjectClass</syncext:objectclass>
+	</extension>
 	
 	<taskIdentifier>10000000-0000-0000-5656-565600000004</taskIdentifier>
 	<ownerRef oid="00000000-0000-0000-0000-000000000002"/>

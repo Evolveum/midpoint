@@ -210,6 +210,11 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			processErrorPartial(runResult, "Security violation", ex, TaskRunResultStatus.PERMANENT_ERROR, null, coordinatorTask, opResult);
 			return runResult;
 		}
+		
+		if (objectclassDef == null) {
+			processErrorPartial(runResult, "Reconciliation without an object class specification is not supported", null, TaskRunResultStatus.PERMANENT_ERROR, null, coordinatorTask, opResult);
+			return runResult;
+		}
 
 		reconResult.setResource(resource);
 		reconResult.setObjectclassDefinition(objectclassDef);
@@ -424,7 +429,12 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	
 	private void processErrorPartial(TaskRunResult runResult, String errorDesc, Exception ex,
 			TaskRunResultStatus runResultStatus, PrismObject<ResourceType> resource, Task task, OperationResult opResult) {
-		String message = errorDesc+": "+ex.getMessage();
+		String message;
+		if (ex == null) {
+			message = errorDesc;
+		} else {
+			message = errorDesc+": "+ex.getMessage();
+		}
 		LOGGER.error("Reconciliation: {}", new Object[]{message, ex});
 		opResult.recordFatalError(message, ex);
 		runResult.setRunResultStatus(runResultStatus);

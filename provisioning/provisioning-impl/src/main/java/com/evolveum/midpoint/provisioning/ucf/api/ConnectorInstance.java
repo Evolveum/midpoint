@@ -188,7 +188,7 @@ public interface ConnectorInstance {
                                                               PagedSearchCapabilityType pagedSearchConfigurationType,
                                                               SearchHierarchyConstraints searchHierarchyConstraints,
                                                               OperationResult parentResult)
-            throws CommunicationException, GenericFrameworkException, SchemaException;
+            throws CommunicationException, GenericFrameworkException, SchemaException, SecurityViolationException;
 
     /**
      * Counts objects on resource.
@@ -289,7 +289,7 @@ public interface ConnectorInstance {
 	 * @return
 	 * @throws CommunicationException
 	 */
-	public PrismProperty<?> fetchCurrentToken(ObjectClassComplexTypeDefinition objectClass, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
+	public <T> PrismProperty<T> fetchCurrentToken(ObjectClassComplexTypeDefinition objectClass, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
 	
 	/**
 	 * Token may be null. That means "from the beginning of history".
