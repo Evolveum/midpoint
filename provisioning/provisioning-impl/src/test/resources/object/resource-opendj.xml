@@ -92,11 +92,11 @@
             <objectClass>ri:inetOrgPerson</objectClass>
             <attribute>
 				<ref>ri:dn</ref>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<matchingRule>mr:distinguishedName</matchingRule>
 			</attribute>
 			<attribute>
 				<ref>ri:isMemberOf</ref>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<matchingRule>mr:distinguishedName</matchingRule>
 				<fetchStrategy>explicit</fetchStrategy>
 			</attribute>
             <association>
@@ -114,10 +114,10 @@
        		<protected>
        			<filter>
 	       			<q:equal>
-	       				<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#stringIgnoreCase</q:matching>
+	       				<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#distinguishedName</q:matching>
 		            	<q:path>attributes/ri:dn</q:path>
-		            	<!-- WilDCapiTaLIzaTioN makes sure that this is matched case-insensitive -->
-		                <q:value>uid=cAlyPSo,ou=PeoPle,DC=example,dc=COM</q:value>
+		            	<!-- WilDCapiTaLIzaTioN and spacing makes sure that this is matched properly -->
+		                <q:value>uid=cAlyPSo, ou=PeoPle,    DC=example,dc=COM</q:value>
 		            </q:equal>
 	            </filter>
 			</protected>
@@ -138,7 +138,7 @@
             <objectClass>ri:groupOfUniqueNames</objectClass>
 			<attribute>
 				<ref>ri:uniqueMember</ref>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<matchingRule>mr:distinguishedName</matchingRule>
 			</attribute>
         </objectType>
                 

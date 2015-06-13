@@ -21,6 +21,9 @@ import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.match.MatchingRule;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.parser.XPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -31,9 +34,13 @@ import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
+import com.evolveum.midpoint.provisioning.impl.ResourceObjectDiscriminator;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
+import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -41,6 +48,7 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -48,17 +56,24 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionReturnMultiplicityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptArgumentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
@@ -341,4 +356,20 @@ public class ProvisioningUtil {
 			return null;
 		}
 	}
+	
+	public static <T> PropertyDelta<T> narrowPropertyDelta(PropertyDelta<T> propertyDelta,
+			PrismObject<ShadowType> currentShadow, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+		MatchingRule<T> matchingRule = null;
+		ItemDefinition propertyDef = propertyDelta.getDefinition();
+		if (propertyDef instanceof RefinedAttributeDefinition) {
+			QName matchingRuleQName = ((RefinedAttributeDefinition)propertyDef).getMatchingRuleQName();
+			if (matchingRuleQName != null) {
+				matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleQName, propertyDef.getTypeName());
+			}
+		}
+		LOGGER.trace("Narrowing attr def={}, matchingRule={}",propertyDef,matchingRule);
+		PropertyDelta<T> filteredDelta = propertyDelta.narrow(currentShadow, matchingRule);
+		return filteredDelta;
+	}
+
 }

@@ -37,7 +37,7 @@
 		<filter>
             <q:equal>
             	<q:path>c:connectorType</q:path>
-                <q:value>org.identityconnectors.ldap.LdapConnector</q:value>
+                <q:value>com.evolveum.polygon.connector.ldap.LdapConnector</q:value>
             </q:equal>
         </filter>
     </connectorRef>

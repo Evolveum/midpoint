@@ -61,6 +61,7 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.match.DistinguishedNameMatchingRule;
 import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
@@ -457,7 +458,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertTrue("No NAME update", idSecondaryDef.canModify());
 		assertTrue("No NAME read", idSecondaryDef.canRead());
 		assertTrue("NAME definition not in identifiers", accountDef.getSecondaryIdentifiers().contains(idSecondaryDef));
-		assertEquals("Wrong NAME matching rule", StringIgnoreCaseMatchingRule.NAME, idSecondaryDef.getMatchingRuleQName());
+		assertEquals("Wrong NAME matching rule", DistinguishedNameMatchingRule.NAME, idSecondaryDef.getMatchingRuleQName());
 		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Name.NAME, idSecondaryDef.getFrameworkAttributeName());
 
 		RefinedAttributeDefinition<String> cnDef = accountDef.findAttributeDefinition("cn");
@@ -513,26 +514,53 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		ShadowType objectToAdd = parseObjectType(ACCOUNT1_FILE, ShadowType.class);
 
-		System.out.println(SchemaDebugUtil.prettyPrint(objectToAdd));
-		System.out.println(objectToAdd.asPrismObject().debugDump());
+		display(SchemaDebugUtil.prettyPrint(objectToAdd));
+		display(objectToAdd.asPrismObject().debugDump());
 
 		Task task = taskManager.createTaskInstance();
 		String addedObjectOid = provisioningService.addObject(objectToAdd.asPrismObject(), null, null, task, result);
 		assertEquals(ACCOUNT1_OID, addedObjectOid);
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
 
-		ShadowType acct = provisioningService.getObject(ShadowType.class, ACCOUNT1_OID, null, task, result).asObjectable();
+		ShadowType shadow = provisioningService.getObject(ShadowType.class, ACCOUNT1_OID, null, task, result).asObjectable();
 
-		assertNotNull(acct);
+		assertNotNull(shadow);
 
-		System.out.println(SchemaDebugUtil.prettyPrint(acct));
-		System.out.println(acct.asPrismObject().debugDump());
+		display(SchemaDebugUtil.prettyPrint(shadow));
+		display(shadow.asPrismObject().debugDump());
 		
-		PrismAsserts.assertEqualsPolyString("Name not equals.", "uid=jbond,ou=People,dc=example,dc=com", acct.getName());
-			
-		// TODO: check values
+		PrismAsserts.assertEqualsPolyString("Name not equals.", "uid=jbond,ou=People,dc=example,dc=com", shadow.getName());
 		
-		assertShadows(2);
+		final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
+		
+        assertNotNull(shadow.getOid());
+        assertNotNull(shadow.getName());
+        assertEquals(new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME), shadow.getObjectClass());
+        assertEquals(RESOURCE_OPENDJ_OID, shadow.getResourceRef().getOid());
+        String idPrimaryVal = getAttributeValue(shadow, getPrimaryIdentifierQName());
+        assertNotNull("No primary identifier ("+getPrimaryIdentifierQName().getLocalPart()+")", idPrimaryVal);
+        String idSecondaryVal = getAttributeValue(shadow, getSecondaryIdentifierQName());
+        assertNotNull("No secondary ("+getSecondaryIdentifierQName().getLocalPart()+")", idSecondaryVal);
+        // Capitalization is the same as returned by OpenDJ
+        assertEquals("Wrong secondary identifier", "uid=jbond,ou=People,dc=example,dc=com", idSecondaryVal);
+        assertEquals("Wrong LDAP uid", "jbond", getAttributeValue(shadow, new QName(resourceNamespace, "uid")));
+        assertEquals("Wrong LDAP cn", "James Bond", getAttributeValue(shadow, new QName(resourceNamespace, "cn")));
+        assertEquals("Wrong LDAP sn", "Bond", getAttributeValue(shadow, new QName(resourceNamespace, "sn")));        
+        assertNotNull("Missing activation", shadow.getActivation());
+        assertNotNull("Missing activation status", shadow.getActivation().getAdministrativeStatus());
+        assertEquals("Not enabled", ActivationStatusType.ENABLED, shadow.getActivation().getAdministrativeStatus());
+		
+        ShadowType repoShadow = repositoryService.getObject(ShadowType.class, shadow.getOid(), null, result).asObjectable();
+        assertEquals(new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME), repoShadow.getObjectClass());
+        assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
+        idPrimaryVal = getAttributeValue(repoShadow, getPrimaryIdentifierQName());
+        assertNotNull("No primary identifier ("+getPrimaryIdentifierQName().getLocalPart()+") (repo)", idPrimaryVal);
+        idSecondaryVal = getAttributeValue(repoShadow, getSecondaryIdentifierQName());
+        assertNotNull("No secondary ("+getSecondaryIdentifierQName().getLocalPart()+") (repo)", idSecondaryVal);
+        // must be all lowercase
+        assertEquals("Wrong secondary identifier (repo)", "uid=jbond,ou=people,dc=example,dc=com", idSecondaryVal);
+
+        assertShadows(2);
 	}
 
 	/**
@@ -949,11 +977,11 @@ public class TestOpenDJ extends AbstractOpenDJTest {
                 assertNotNull(shadow.getName());
                 assertEquals(new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME), shadow.getObjectClass());
                 assertEquals(RESOURCE_OPENDJ_OID, shadow.getResourceRef().getOid());
-                String icfUid = getAttributeValue(shadow, getPrimaryIdentifierQName());
-                assertNotNull("No ICF UID", icfUid);
-                String icfName = getAttributeValue(shadow, getSecondaryIdentifierQName());
-                assertNotNull("No ICF NAME", icfName);
-                PrismAsserts.assertEqualsPolyString("Wrong shadow name", icfName, shadow.getName());
+                String idPrimaryVal = getAttributeValue(shadow, getPrimaryIdentifierQName());
+                assertNotNull("No primary identifier ("+getPrimaryIdentifierQName().getLocalPart()+")", idPrimaryVal);
+                String idSecondaryVal = getAttributeValue(shadow, getSecondaryIdentifierQName());
+                assertNotNull("No secondary ("+getSecondaryIdentifierQName().getLocalPart()+")", idSecondaryVal);
+                assertEquals("Wrong shadow name", idSecondaryVal.toLowerCase(), shadow.getName().getOrig().toLowerCase());
                 assertNotNull("Missing LDAP uid", getAttributeValue(shadow, new QName(resourceNamespace, "uid")));
                 assertNotNull("Missing LDAP cn", getAttributeValue(shadow, new QName(resourceNamespace, "cn")));
                 assertNotNull("Missing LDAP sn", getAttributeValue(shadow, new QName(resourceNamespace, "sn")));

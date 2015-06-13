@@ -248,9 +248,9 @@ public class PageSecurityQuestions extends PageBase {
 				List<SecurityQuestionAnswerDTO> userQuestionList= model.getObject().getSecurityAnswers();
 				
 				if(userQuestionList==null){
-					System.out.println("Userquestions not set.");
+					//System.out.println("Userquestions not set.");
 					getSession().error(getString("pageForgetPassword.message.ContactAdminQuestionsNotSet"));
-					getSession().invalidate();
+					//getSession().invalidate();
 					SecurityContext securityContext = SecurityContextHolder.getContext();
 					securityContext.setAuthentication(null);
 					throw new RestartResponseException(PageForgetPassword.class);
@@ -336,7 +336,7 @@ public class PageSecurityQuestions extends PageBase {
 	}
 
 	public List<SecurityQuestionAnswerDTO> createUsersSecurityQuestionsList(PrismObject<UserType> user){
-		System.out.println(user.getOid());
+
 		
 		SecurityQuestionsCredentialsType credentialsPolicyType=user.asObjectable().getCredentials().getSecurityQuestions();
 		if(credentialsPolicyType==null){
@@ -424,7 +424,7 @@ public class PageSecurityQuestions extends PageBase {
 	}
 
 	private void savePerformed(AjaxRequestTarget target) {
-		System.out.println("SavePerformed");
+		
 		int correctAnswers=0;
 		for (Iterator iterator = pqPanels.iterator(); iterator.hasNext();) {
 			MyPasswordQuestionsPanel type = (MyPasswordQuestionsPanel) iterator.next();
@@ -586,7 +586,6 @@ public class PageSecurityQuestions extends PageBase {
 			}else{
 			//TODO localization
 			getSession().error(getString("pageSecurityQuestions.message.notificationsNotSet"));
-			getSession().invalidate();
 			SecurityContext securityContext = SecurityContextHolder.getContext();
 			setAuthenticationNull();
 			throw new RestartResponseException(PageLogin.class);
@@ -632,16 +631,47 @@ public class PageSecurityQuestions extends PageBase {
 				OperationResult parentResult = new OperationResult(OPERATION_LOAD_RESET_PASSWORD_POLICY);
 				try {
 					
-					System.out.println("try");
+					//System.out.println("try");
 					if(	getModelInteractionService().getCredentialsPolicy(null, parentResult).getSecurityQuestions().getResetMethod().getResetType().equals(CredentialsResetTypeType.SECURITY_QUESTIONS)){
-						System.out.println("ifff");
+						//System.out.println("ifff");
 						getSession().setAttribute("pwdReset", newPassword);	
 						setResponsePage(PageShowPassword.class);
 					}
-					else{
-						MailConfigurationType mailConfig= systemConfig.asObjectable().getNotificationConfiguration().getMail();
-						MailServerConfigurationType mailServerType=mailConfig.getServer().get(0);
-						sendMailToUser(mailServerType.getUsername(), getMidpointApplication().getProtector().decryptString(mailServerType.getPassword()), newPassword, mailServerType.getHost(), mailServerType.getPort().toString(), mailConfig.getDefaultFrom(),user.getEmailAddress() );	
+					else if(getModelInteractionService().getCredentialsPolicy(null, parentResult).getSecurityQuestions().getResetMethod().getResetType().equals(CredentialsResetTypeType.SECURITY_QUESTIONS_EMAIL)){
+						//System.out.println("ifff2");
+						if(systemConfig.asObjectable().getNotificationConfiguration()!=null && systemConfig.asObjectable().getNotificationConfiguration().getMail()!=null){
+							//System.out.println("ifff3");
+							MailConfigurationType mailConfig= systemConfig.asObjectable().getNotificationConfiguration().getMail();
+							
+							if(mailConfig.getServer()!=null){
+								List serverList=mailConfig.getServer();
+								
+								if(serverList.size() >0){
+								//	System.out.println("ifff35");
+									MailServerConfigurationType mailServerType=mailConfig.getServer().get(0);
+									sendMailToUser(mailServerType.getUsername(), getMidpointApplication().getProtector().decryptString(mailServerType.getPassword()), newPassword, mailServerType.getHost(), mailServerType.getPort().toString(), mailConfig.getDefaultFrom(),user.getEmailAddress() );		
+								}else{
+									//System.out.println("ifff5");
+									getSession().error(getString("pageLogin.message.ForgetPasswordSettingsWrong"));
+									setAuthenticationNull();
+									throw new RestartResponseException(PageLogin.class);
+								}
+								
+							}else{
+								//System.out.println("ifff5");
+								getSession().error(getString("pageLogin.message.ForgetPasswordSettingsWrong"));
+								setAuthenticationNull();
+								throw new RestartResponseException(PageLogin.class);
+							}
+							
+						}
+						else{
+						//	System.out.println("ifff4");
+							getSession().error(getString("pageLogin.message.ForgetPasswordSettingsWrong"));
+							setAuthenticationNull();
+							throw new RestartResponseException(PageLogin.class);
+						}
+						
 					}
 				} catch (ObjectNotFoundException | SchemaException e) {
 					// TODO Auto-generated catch block
