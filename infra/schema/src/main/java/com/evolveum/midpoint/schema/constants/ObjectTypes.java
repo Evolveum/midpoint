@@ -166,6 +166,9 @@ public enum ObjectTypes {
     }
 
     public static ObjectTypes getObjectTypeFromTypeQName(QName typeQName) {
+        if (typeQName == null) {
+            return null;
+        }
         // HACK WARNING! FIXME
         // UGLY HORRIBLE TERRIBLE AWFUL HACK FOLLOWS
         // The JAXB fails to correctly process QNames in default namespace (no prefix)
