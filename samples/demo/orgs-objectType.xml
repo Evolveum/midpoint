@@ -130,4 +130,46 @@
             </attribute>
         </objectType>
     </schemaHandling>
+
+    <synchronization>
+        <objectSynchronization>
+            <name>sync</name>
+            <objectClass>ri:customorganizationalUnitObjectClass</objectClass>
+            <kind>generic</kind>
+            <intent>ou</intent>
+            <focusType>OrgType</focusType>
+            <enabled>true</enabled>
+            <correlation>
+                <q:equal>
+                    <q:path>c:name</q:path>
+                    <!--<matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">mr:stringIgnoreCase</matchingRule>-->
+                    <expression>
+                        <c:path>$account/attributes/ri:ou</c:path>
+                    </expression>
+                </q:equal>
+            </correlation>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+            </reaction>
+        </objectSynchronization>
+    </synchronization>
+
 </resource>
