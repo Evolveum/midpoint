@@ -74,8 +74,8 @@ public class JasperReportConfigurationPanel extends SimplePanel<ReportDto> {
         ISortableDataProvider<JasperReportParameterDto, String> provider = new ListDataProvider(this,
                 new PropertyModel<List<JasperReportParameterDto>>(getModel(), "jasperReportDto.parameters"));
         TablePanel table = new TablePanel<>(ID_PARAMETERS_TABLE, provider, initParameterColumns());
+        table.setShowPaging(false);
         table.setOutputMarkupId(true);
-        table.setShowPaging(true);
         add(table);
 
         AjaxButton addParameter = new AjaxButton(ID_BUTTON_ADD_PARAMETER,
@@ -104,8 +104,8 @@ public class JasperReportConfigurationPanel extends SimplePanel<ReportDto> {
         ISortableDataProvider<JasperReportFieldDto, String> provider = new ListDataProvider(this,
                 new PropertyModel<List<JasperReportFieldDto>>(getModel(), "jasperReportDto.fields"));
         TablePanel table = new TablePanel<>(ID_FIELDS_TABLE, provider, initFieldColumns());
+        table.setShowPaging(false);
         table.setOutputMarkupId(true);
-        table.setShowPaging(true);
         add(table);
 
         AjaxButton addParameter = new AjaxButton(ID_BUTTON_ADD_FIELD,
