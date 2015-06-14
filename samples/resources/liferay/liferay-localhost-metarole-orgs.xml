@@ -19,7 +19,6 @@
     </activation>
     <iteration>0</iteration>
     <iterationToken/>
-    <displayName>Liferay Localhost Metarole for ORGs</displayName>
     <inducement id="1">
         <description>Creates a Liferay organization for this Org</description>
         <construction>

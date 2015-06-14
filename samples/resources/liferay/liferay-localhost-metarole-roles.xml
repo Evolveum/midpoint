@@ -12,7 +12,6 @@
         <creatorRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></creatorRef>
         <createChannel>http://midpoint.evolveum.com/xml/ns/public/model/channels-3#objectImport</createChannel>
     </metadata>
-    <displayName>Liferay Localhost Metarole for Roles</displayName>
     <inducement id="1">
         <description>Assigns a user a Liferay role</description>
         <construction>
