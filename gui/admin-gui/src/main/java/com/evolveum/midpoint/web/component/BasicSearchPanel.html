@@ -17,13 +17,17 @@
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
     <div class="form-group">
         <label class="sr-only" wicket:id="label"/>
-        <input class="form-control input-sm" wicket:id="searchText" />
+        <div class="input-group">
+            <input class="form-control input-sm" wicket:id="searchText" />
+            <span class="input-group-btn">
+                <a class="btn btn-danger btn-sm" wicket:id="clearSearch"
+                   wicket:message="title:BasicSearchPanel.clear">
+                    <i class="fa fa-remove"/>
+                </a>
+            </span>
+        </div>
     </div>
     <span class="btn-group">
         <a class="btn btn-default btn-sm" wicket:id="search"/>
-        <a class="btn btn-danger btn-sm" wicket:id="clearSearch"
-           wicket:message="title:BasicSearchPanel.clear">
-            <i class="fa fa-trash-o"/>
-        </a>
     </span>
 </wicket:panel>

@@ -168,6 +168,8 @@ public class ObjectPolicyDialog extends ModalWindow{
                     }
                 }, createStringResource("ObjectPolicyDialog.type"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         form.add(type);
+        type.getInput().setNullValid(false);
+        type.getInput().setRequired(true);
 
         DropDownFormGroup template = new DropDownFormGroup<>(ID_OBJECT_TEMPLATE, new PropertyModel<ObjectTemplateConfigTypeReferenceDto>(model, ObjectPolicyDialogDto.F_TEMPLATE_REF),
                 createObjectTemplateList(), new IChoiceRenderer<ObjectTemplateConfigTypeReferenceDto>() {
@@ -182,6 +184,8 @@ public class ObjectPolicyDialog extends ModalWindow{
             }
         }, createStringResource("ObjectPolicyDialog.template"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         form.add(template);
+        template.getInput().setNullValid(false);
+        template.getInput().setRequired(true);
 
         ListView repeater = new ListView<PropertyConstraintTypeDto>(ID_REPEATER,
                 new PropertyModel<List<PropertyConstraintTypeDto>>(model, ObjectPolicyDialogDto.F_PROPERTY_LIST)){
@@ -249,6 +253,12 @@ public class ObjectPolicyDialog extends ModalWindow{
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 savePerformed(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                System.out.println("asdf");
+                target.add(form);
             }
         };
         form.add(save);
