@@ -14,6 +14,7 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
@@ -435,7 +436,8 @@ public class PageSecurityQuestions extends PageBase {
 				SecurityQuestionAnswerDTO securityQuestionAnswerDTO = (SecurityQuestionAnswerDTO) iterator2
 						.next();
 				//TODO do this in a proper way, what is this.
-				if(getQuestionIdentifierFromQuestion(((Label)type.get(MyPasswordQuestionsPanel.F_QUESTION)).getDefaultModelObjectAsString()).trim().equalsIgnoreCase(securityQuestionAnswerDTO.getPwdQuestion().trim())){
+				String results = StringEscapeUtils.unescapeHtml((type.get(MyPasswordQuestionsPanel.F_QUESTION)).getDefaultModelObjectAsString());
+				if(getQuestionIdentifierFromQuestion(results).trim().equalsIgnoreCase(securityQuestionAnswerDTO.getPwdQuestion().trim())){
 
 					if(((TextField<String>)type.get(MyPasswordQuestionsPanel.F_ANSWER)).getModelObject().equalsIgnoreCase(securityQuestionAnswerDTO.getPwdAnswer()))	
 					{
@@ -446,9 +448,6 @@ public class PageSecurityQuestions extends PageBase {
 
 
 			}
-
-
-
 
 
 		}
