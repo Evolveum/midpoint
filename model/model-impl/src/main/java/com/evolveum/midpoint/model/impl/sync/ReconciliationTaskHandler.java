@@ -523,8 +523,9 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		
 		LessFilter timestampFilter = LessFilter.createLess(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP, ShadowType.class, prismContext, 
 				XmlTypeConverter.createXMLGregorianCalendar(startTimestamp) , true);
-		ObjectFilter filter = AndFilter.createAnd(timestampFilter, RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class,
-				prismContext, resource.getOid()));
+		ObjectFilter filter = AndFilter.createAnd(timestampFilter, 
+				RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, prismContext, resource.getOid()),
+				EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, objectclassDef.getTypeName()));
 		
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 		if (LOGGER.isTraceEnabled()) {
@@ -538,6 +539,9 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			public boolean handle(PrismObject<ShadowType> shadow) {
 				if ((objectclassDef instanceof RefinedObjectClassDefinition) && !((RefinedObjectClassDefinition)objectclassDef).matches(shadow.asObjectable())) {
 					return true;
+				}
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Shadow reconciliation of {}, fullSynchronizationTimestamp={}", shadow, shadow.asObjectable().getFullSynchronizationTimestamp());
 				}
 				reconcileShadow(shadow, resource, task);
 				countHolder.setValue(countHolder.getValue() + 1);

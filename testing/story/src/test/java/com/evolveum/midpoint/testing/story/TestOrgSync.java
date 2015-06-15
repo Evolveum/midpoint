@@ -1121,7 +1121,7 @@ public class TestOrgSync extends AbstractStoryTest {
 		
 		PrismReferenceValue accountLinkRef = getLinkRef(user, RESOURCE_OPENDJ_OID);
 		PrismObject<ShadowType> accountShadow = getShadowModel(accountLinkRef.getOid());
-		String accountDn = IntegrationTestTools.getIcfsNameAttribute(accountShadow);
+		String accountDn = IntegrationTestTools.getSecondaryIdentifier(accountShadow);
 		openDJController.assertUniqueMember(groupEntry, accountDn);
 		
 		IntegrationTestTools.assertAssociation(accountShadow, OPENDJ_ASSOCIATION_GROUP_NAME, shadow.getOid());

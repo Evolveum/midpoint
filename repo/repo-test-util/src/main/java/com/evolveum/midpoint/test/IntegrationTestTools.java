@@ -236,6 +236,17 @@ public class IntegrationTestTools {
 		return getAttributeValue(shadowType, SchemaTestConstants.ICFS_NAME);
 	}
 	
+	public static String getSecondaryIdentifier(PrismObject<ShadowType> shadow) {
+		Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(shadow);
+		if (secondaryIdentifiers == null || secondaryIdentifiers.isEmpty()) {
+			return null;
+		}
+		if (secondaryIdentifiers.size() > 1) {
+			throw new IllegalArgumentException("Too many secondary indentifiers in "+shadow);
+		}
+		return (String) secondaryIdentifiers.iterator().next().getRealValue();
+	}
+	
 	public static void assertIcfsNameAttribute(ShadowType repoShadow, String value) {
 		assertAttribute(repoShadow, SchemaTestConstants.ICFS_NAME, value);
 	}
