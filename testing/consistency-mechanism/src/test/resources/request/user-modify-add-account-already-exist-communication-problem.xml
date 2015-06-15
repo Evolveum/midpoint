@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -26,19 +26,6 @@
 	<modification>
 		<t:modificationType>add</t:modificationType>
 		<t:value>
-<!-- 		<c:account xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" -->
-<!-- 				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">  -->
-<!-- 				No OID for account. The OID will be generated once the account shadow is added to the repository. -->
-<!-- 				No name here. We expect that it will be generated -->
-<!-- 				<c:resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/> -->
-<!-- 				<c:objectClass>ri:AccountObjectClass</c:objectClass> -->
-<!-- 				<c:attributes> -->
-<!-- 					<ri:uid>wturner</ri:uid> -->
-<!-- 					<ri:cn>Will Turner</ri:cn> -->
-<!-- 					<ri:givenName>Will</ri:givenName> -->
-<!-- 					<ri:sn>Turner</ri:sn> -->
-<!-- 				</c:attributes> -->
-<!-- 			</c:account> -->
 			<c:assignment>
 				<c:construction>
 					<c:resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />

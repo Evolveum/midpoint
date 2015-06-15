@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -36,17 +36,6 @@
 		<t:modificationType>replace</t:modificationType>
 		<t:path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";c:schemaHandling</t:path>
 		<t:value>
-<!-- 			<schemaHandling oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" -->
-<!--           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" -->
-<!--           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" -->
-<!--           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" -->
-<!--           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" -->
-<!--           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" -->
-<!--           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" -->
-<!--           xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" -->
-<!--           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" -->
-<!--           xmlns:my="http://whatever.com/my"> -->
-
 
         <!-- Definition of default account type.
 This is now the only account type that midPoint can work with. -->
@@ -62,12 +51,10 @@ This is now the only account type that midPoint can work with. -->
             <!-- Reference to the Resource Schema specifying
       object class for this account type -->
 
-            <objectClass>ri:AccountObjectClass</objectClass>
+            <objectClass>ri:inetOrgPerson</objectClass>
 
-            <!-- Definition of __NAME__ attribute handling.
-     ICF will put entry DN into __NAME__ attribute.-->
             <attribute>
-				<ref>icfs:name</ref>
+				<ref>ri:dn</ref>
 				<displayName>Distinguished Name</displayName>
 				<description>The DN will be constructed as
 follows: uid=flastname,ou=people,dc=example,dc=ck</description>
@@ -114,7 +101,7 @@ else {
            configuration. Please see connector documentation for
            more details.-->
             <attribute>
-                <ref>icfs:uid</ref>
+                <ref>ri:entryUUID</ref>
 
                 <!-- Readable name for the attribute. This will be used in GUI -->
                 <displayName>Entry UUID</displayName>
@@ -130,15 +117,10 @@ else {
 
                 <ref>ri:cn</ref>
                 <displayName>Common Name</displayName>
-                <!-- Outbound expression here is using "pure" XPath, without
-                    using functions. This is the simplest case, just copying
-                    the "fullName" property of user to the "cn" attribute of
-                    an account.
-
-                    Please note that this expression is not marked as "default".
-                    Therefore this value will be copied on every change,
-                    overwriting the original value of "cn" on the resource.
-                -->
+                
+                <limitations>
+					<maxOccurs>1</maxOccurs>
+				</limitations>
 
 				<outbound>
 					<source>
@@ -156,8 +138,10 @@ else {
             <!-- Definition of sn attribute handling. -->
             <attribute>
                 <ref>ri:sn</ref>
-
                 <displayName>Surname</displayName>
+                <limitations>
+					<maxOccurs>1</maxOccurs>
+				</limitations>
                 <outbound>
 					<source>
 						<path>$c:user/c:familyName</path>
@@ -174,6 +158,9 @@ else {
             <attribute>
                 <ref>ri:givenName</ref>
                 <displayName>Given Name</displayName>
+                <limitations>
+					<maxOccurs>1</maxOccurs>
+				</limitations>
                 <outbound>
 					<source>
 						<path>c:givenName</path>
@@ -200,6 +187,10 @@ else {
             <attribute>
 				<ref>ri:uid</ref>
 				<displayName>Login Name</displayName>
+				<limitations>
+					<minOccurs>1</minOccurs>
+					<maxOccurs>1</maxOccurs>
+				</limitations>
 				<matchingRule>mr:stringIgnoreCase</matchingRule>
 					<outbound>
 					<strength>weak</strength>
@@ -326,7 +317,7 @@ else {
             	<intent>ldapGroup</intent>
             	<direction>objectToSubject</direction>
             	<associationAttribute>ri:uniqueMember</associationAttribute>
-            	<valueAttribute>icfs:name</valueAttribute>
+            	<valueAttribute>ri:dn</valueAttribute>
             </association>
             
             <iteration>
@@ -367,7 +358,7 @@ else {
         	<kind>entitlement</kind>
             <intent>ldapGroup</intent>
             <displayName>LDAP Group</displayName>
-            <objectClass>ri:GroupObjectClass</objectClass>
+            <objectClass>ri:groupOfUniqueNames</objectClass>
         </objectType>
 <!--     </schemaHandling> -->
 

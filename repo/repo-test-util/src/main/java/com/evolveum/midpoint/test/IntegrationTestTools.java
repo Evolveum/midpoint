@@ -299,11 +299,15 @@ public class IntegrationTestTools {
         ObjectClassComplexTypeDefinition objectClassDef = rAttrsDef.getComplexTypeDefinition();
         assertNotNull("No object class definition in attributes definition", objectClassDef);
         assertEquals("Wrong object class in attributes definition", objectClass, objectClassDef.getTypeName());
-        ResourceAttribute<?> icfsNameUid = rAttributesContainer.findAttribute(SchemaTestConstants.ICFS_UID);
-        assertAttributeDefinition(icfsNameUid, DOMUtil.XSD_STRING, 0, 1, true, false, false, expetcedAttributeDefinitionClass);
+        ResourceAttributeDefinition primaryIdDef = objectClassDef.getIdentifiers().iterator().next();
+        ResourceAttribute<?> primaryIdAttr = rAttributesContainer.findAttribute(primaryIdDef.getName());
+        assertNotNull("No primary ID "+primaryIdDef.getName()+" in "+account, primaryIdAttr);
+        assertAttributeDefinition(primaryIdAttr, DOMUtil.XSD_STRING, 0, 1, true, false, false, expetcedAttributeDefinitionClass);
 
-        ResourceAttribute<Object> icfsNameAttr = rAttributesContainer.findAttribute(SchemaTestConstants.ICFS_NAME);
-        assertAttributeDefinition(icfsNameAttr, DOMUtil.XSD_STRING, 1, 1, true, true, true, expetcedAttributeDefinitionClass);
+        ResourceAttributeDefinition secondaryIdDef = objectClassDef.getSecondaryIdentifiers().iterator().next();
+        ResourceAttribute<Object> secondaryIdAttr = rAttributesContainer.findAttribute(secondaryIdDef.getName());
+        assertNotNull("No secondary ID "+secondaryIdDef.getName()+" in "+account, secondaryIdAttr);
+        assertAttributeDefinition(secondaryIdAttr, DOMUtil.XSD_STRING, 1, 1, true, true, true, expetcedAttributeDefinitionClass);
     }
 
 	public static <T> Collection<T> getAttributeValues(ShadowType shadowType, QName name) {
