@@ -33,5 +33,26 @@
         </construction>
         <order>1</order>
     </inducement>
+    <inducement id="2">
+        <construction>
+            <resourceRef oid="12c78a70-76b7-11e2-9cb3-001e8c717e5b" type="c:ResourceType"><!-- LDAP Server (OpenDJ) --></resourceRef>
+            <kind>account</kind>
+            <intent>default</intent>
+            <association>
+                <c:ref>ri:ldapProjects</c:ref>
+                <outbound>
+                    <expression>
+                        <associationFromLink>
+                            <projectionDiscriminator>
+                                <kind>entitlement</kind>
+                                <intent>ldapProject</intent>
+                            </projectionDiscriminator>
+                        </associationFromLink>
+                    </expression>
+                </outbound>
+            </association>
+        </construction>
+        <order>2</order>
+    </inducement>
     <requestable>false</requestable>
 </role>
