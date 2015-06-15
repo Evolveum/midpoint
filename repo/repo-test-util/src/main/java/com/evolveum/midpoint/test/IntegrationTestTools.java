@@ -247,11 +247,15 @@ public class IntegrationTestTools {
 		return (String) secondaryIdentifiers.iterator().next().getRealValue();
 	}
 	
+	public static void assertSecondaryIdentifier(PrismObject<ShadowType> repoShadow, String value) {
+		assertEquals("Wrong secondary indetifier in "+repoShadow, value, getSecondaryIdentifier(repoShadow));
+	}
+	
 	public static void assertIcfsNameAttribute(ShadowType repoShadow, String value) {
 		assertAttribute(repoShadow, SchemaTestConstants.ICFS_NAME, value);
 	}
 	
-	public static void assertIcfsNameAttribute(PrismObject<? extends ShadowType> repoShadow, String value) {
+	public static void assertIcfsNameAttribute(PrismObject<ShadowType> repoShadow, String value) {
 		assertAttribute(repoShadow, SchemaTestConstants.ICFS_NAME, value);
 	}
 

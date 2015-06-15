@@ -926,7 +926,7 @@ public class TestVillage extends AbstractStoryTest {
         PrismReferenceValue linkRef = getLinkRef(user, RESOURCE_OPENDJ_OID);
         PrismObject<ShadowType> shadow = getShadowModel(linkRef.getOid());
 		display("OpenDJ shadow linked to "+user, shadow);
-		IntegrationTestTools.assertIcfsNameAttribute(shadow, "uid="+username+",ou=people,dc=example,dc=com");
+		IntegrationTestTools.assertSecondaryIdentifier(shadow, "uid="+username+",ou=people,dc=example,dc=com");
 	}
 	
 	private void assertEmployeeNumber(PrismObject<UserType> user) {
@@ -953,7 +953,7 @@ public class TestVillage extends AbstractStoryTest {
 		
 		PrismReferenceValue accountLinkRef = getLinkRef(user, RESOURCE_OPENDJ_OID);
 		PrismObject<ShadowType> accountShadow = getShadowModel(accountLinkRef.getOid());
-		String accountDn = IntegrationTestTools.getIcfsNameAttribute(accountShadow);
+		String accountDn = IntegrationTestTools.getSecondaryIdentifier(accountShadow);
 		openDJController.assertUniqueMember(groupEntry, accountDn);
 	}
 	
