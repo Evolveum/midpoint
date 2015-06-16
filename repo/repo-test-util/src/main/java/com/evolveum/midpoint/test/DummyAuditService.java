@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,8 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
@@ -41,10 +43,12 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.commons.lang.Validate;
 
 import javax.xml.datatype.Duration;
+import javax.xml.namespace.QName;
 
 /**
  * Dummy audit service that only remembers the audit messages in runtime.
@@ -222,11 +226,11 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 		return delta;
 	}
 	
-	public ObjectDeltaOperation<?> getExecutionDelta(int index, ChangeType changeType, Class<?> typeClass) {
+	public <O extends ObjectType> ObjectDeltaOperation<O> getExecutionDelta(int index, ChangeType changeType, Class<O> typeClass) {
 		for (ObjectDeltaOperation<? extends ObjectType> deltaOp: getExecutionDeltas(index)) {
 			ObjectDelta<? extends ObjectType> delta = deltaOp.getObjectDelta();
 			if (delta.getObjectTypeClass() == typeClass && delta.getChangeType() == changeType) {
-				return deltaOp;
+				return (ObjectDeltaOperation<O>) deltaOp;
 			}
 		}
 		return null;
@@ -271,28 +275,28 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 		assert records.isEmpty() : "Expected no audit record but some sneaked in: "+records;
 	}
 	
-	public void assertHasDelta(ChangeType expectedChangeType, Class<?> expectedClass) {
+	public <O extends ObjectType> void assertHasDelta(ChangeType expectedChangeType, Class<O> expectedClass) {
 		assertHasDelta(null, 0, expectedChangeType, expectedClass);
 	}
 	
-	public void assertHasDelta(ChangeType expectedChangeType, Class<?> expectedClass, OperationResultStatus expextedResult) {
+	public <O extends ObjectType> void assertHasDelta(ChangeType expectedChangeType, Class<O> expectedClass, OperationResultStatus expextedResult) {
 		assertHasDelta(null, 0, expectedChangeType, expectedClass, expextedResult);
 	}
 	
-	public void assertHasDelta(int index, ChangeType expectedChangeType, Class<?> expectedClass) {
+	public <O extends ObjectType> void assertHasDelta(int index, ChangeType expectedChangeType, Class<O> expectedClass) {
 		assertHasDelta(null, index, expectedChangeType, expectedClass);
 	}
 	
-	public void assertHasDelta(int index, ChangeType expectedChangeType, Class<?> expectedClass, OperationResultStatus expextedResult) {
+	public <O extends ObjectType> void assertHasDelta(int index, ChangeType expectedChangeType, Class<O> expectedClass, OperationResultStatus expextedResult) {
 		assertHasDelta(null, index, expectedChangeType, expectedClass, expextedResult);
 	}
 	
-	public void assertHasDelta(String message, int index, ChangeType expectedChangeType, Class<?> expectedClass) {
+	public <O extends ObjectType> void assertHasDelta(String message, int index, ChangeType expectedChangeType, Class<O> expectedClass) {
 		assertHasDelta(message, index, expectedChangeType, expectedClass, null);
 	}
 	
-	public void assertHasDelta(String message, int index, ChangeType expectedChangeType, Class<?> expectedClass, OperationResultStatus expextedResult) {
-		ObjectDeltaOperation<? extends ObjectType> deltaOp = getExecutionDelta(index, expectedChangeType, expectedClass);
+	public <O extends ObjectType> void assertHasDelta(String message, int index, ChangeType expectedChangeType, Class<O> expectedClass, OperationResultStatus expextedResult) {
+		ObjectDeltaOperation<O> deltaOp = getExecutionDelta(index, expectedChangeType, expectedClass);
 		assert deltaOp != null : (message==null?"":message+": ")+"Delta for "+expectedClass+" of type "+expectedChangeType+" was not found in audit trail";
 		if (expextedResult != null) {
 			assertEquals((message==null?"":message+": ")+"Delta for "+expectedClass+" of type "+expectedChangeType+" has unexpected result", 
@@ -321,6 +325,33 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 		}
 		assert false : "Target "+expectedOid+" not found in audit records; found "+targets;
 	}
+	
+	public <O extends ObjectType,T> void assertOldValue(ChangeType expectedChangeType, Class<O> expectedClass, QName attrName, T expectedValue) {
+		assertOldValue(null, 0, expectedChangeType, expectedClass, new ItemPath(attrName), expectedValue);
+	}
+
+	public <O extends ObjectType,T> void assertOldValue(ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T expectedValue) {
+		assertOldValue(null, 0, expectedChangeType, expectedClass, propPath, expectedValue);
+	}
+
+	public <O extends ObjectType,T> void assertOldValue(String message, int index, ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T expectedValue) {
+		ObjectDeltaOperation<O> deltaOp = getExecutionDelta(index, expectedChangeType, expectedClass);
+		assert deltaOp != null : (message==null?"":message+": ")+"Delta for "+expectedClass+" of type "+expectedChangeType+" was not found in audit trail";
+		PrismObject<? extends ObjectType> estimatedOldObject = deltaOp.getEstimatedOldObject();
+		assert estimatedOldObject != null : (message==null?"":message+": ")+"Delta for "+expectedClass+" of type "+expectedChangeType+" has no old object";
+		PrismAsserts.assertPropertyValue(estimatedOldObject, propPath, expectedValue);
+	}
+	
+	public <O extends ObjectType> PrismObject<O> getEstimatedOldObject(ChangeType expectedChangeType, Class<O> expectedClass) {
+		return getEstimatedOldObject(0, expectedChangeType, expectedClass);
+	}
+	
+	public <O extends ObjectType> PrismObject<O> getEstimatedOldObject(int index, ChangeType expectedChangeType, Class<O> expectedClass) {
+		ObjectDeltaOperation<O> deltaOp = getExecutionDelta(index, expectedChangeType, expectedClass);
+		assert deltaOp != null : "Delta for "+expectedClass+" of type "+expectedChangeType+" was not found in audit trail";
+		return deltaOp.getEstimatedOldObject();
+	}
+
 	
 	/**
 	 * Checks that the first record is login and the last is logout.
@@ -381,6 +412,5 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
 
 }

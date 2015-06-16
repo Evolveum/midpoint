@@ -81,6 +81,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -2312,10 +2313,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
     @Test
     public void test195ModifyUserJack() throws Exception {
-        TestUtil.displayTestTile(this, "test195ModifyUserJack");
+    	final String TEST_NAME = "test195ModifyUserJack";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test195ModifyUserJack");
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
@@ -2354,6 +2356,16 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionDeltas(2);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
+        
+        dummyAuditService.assertOldValue(ChangeType.MODIFY, UserType.class,
+        		UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Jack Sparrow"));
+        display("Audit: old shadow", dummyAuditService.getEstimatedOldObject(ChangeType.MODIFY, ShadowType.class));
+        dummyAuditService.assertOldValue(ChangeType.MODIFY, ShadowType.class, 
+        		new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), "jack");
+        // This is not reconciliation. We are not reading old value.
+//        dummyAuditService.assertOldValue(ChangeType.MODIFY, ShadowType.class, 
+//        		dummyResourceCtl.getAttributeFullnamePath(), "Jack Sparrow");
+        
         dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
 

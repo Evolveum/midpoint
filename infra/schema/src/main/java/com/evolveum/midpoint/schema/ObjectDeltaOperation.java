@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -33,6 +34,7 @@ public class ObjectDeltaOperation<T extends ObjectType> implements DebugDumpable
 
 	private ObjectDelta<T> objectDelta;
 	private OperationResult executionResult;
+	private PrismObject<T> estimatedOldObject;
 	
 	public ObjectDeltaOperation() {
 		super();
@@ -65,6 +67,23 @@ public class ObjectDeltaOperation<T extends ObjectType> implements DebugDumpable
 		this.executionResult = executionResult;
 	}
 	
+	/**
+	 * Returns estimated state of the old object before the delta is applied.
+	 * This information is not entirely reliable. The object state might change
+	 * between the object is read and the delta is applied. This is property
+	 * is optional and even if provided it is only for for informational
+	 * purposes.
+	 * 
+	 * @return estimated state of the old object before the delta is applied (may return null).
+	 */
+	public PrismObject<T> getEstimatedOldObject() {
+		return estimatedOldObject;
+	}
+
+	public void setEstimatedOldObject(PrismObject<T> estimatedOldObject) {
+		this.estimatedOldObject = estimatedOldObject;
+	}
+
 	public boolean containsDelta(ObjectDelta<T> delta) {
 		return objectDelta.equals(delta);
 	}
@@ -92,6 +111,9 @@ public class ObjectDeltaOperation<T extends ObjectType> implements DebugDumpable
 			clone.objectDelta = this.objectDelta.clone();
 		}
 		clone.executionResult = this.executionResult;
+		if (this.estimatedOldObject != null) {
+			clone.estimatedOldObject = this.estimatedOldObject.clone();
+		}
 	}
 
 	public static void checkConsistence(Collection<? extends ObjectDeltaOperation<?>> deltas) {
@@ -103,6 +125,9 @@ public class ObjectDeltaOperation<T extends ObjectType> implements DebugDumpable
 	public void checkConsistence() {
 		if (objectDelta != null) {
 			objectDelta.checkConsistence();
+		}
+		if (estimatedOldObject != null) {
+			estimatedOldObject.checkConsistence();
 		}
 	}
 	
@@ -130,10 +155,9 @@ public class ObjectDeltaOperation<T extends ObjectType> implements DebugDumpable
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result
-				+ ((executionResult == null) ? 0 : executionResult.hashCode());
-		result = prime * result
-				+ ((objectDelta == null) ? 0 : objectDelta.hashCode());
+		result = prime * result + ((estimatedOldObject == null) ? 0 : estimatedOldObject.hashCode());
+		result = prime * result + ((executionResult == null) ? 0 : executionResult.hashCode());
+		result = prime * result + ((objectDelta == null) ? 0 : objectDelta.hashCode());
 		return result;
 	}
 
@@ -146,6 +170,11 @@ public class ObjectDeltaOperation<T extends ObjectType> implements DebugDumpable
 		if (getClass() != obj.getClass())
 			return false;
 		ObjectDeltaOperation other = (ObjectDeltaOperation) obj;
+		if (estimatedOldObject == null) {
+			if (other.estimatedOldObject != null)
+				return false;
+		} else if (!estimatedOldObject.equals(other.estimatedOldObject))
+			return false;
 		if (executionResult == null) {
 			if (other.executionResult != null)
 				return false;
@@ -178,6 +207,10 @@ public class ObjectDeltaOperation<T extends ObjectType> implements DebugDumpable
 		DebugUtil.debugDumpWithLabel(sb, "Delta", objectDelta, indent + 1);
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "Execution result", executionResult, indent + 1);
+		if (estimatedOldObject != null) {
+			sb.append("\n");
+			DebugUtil.debugDumpWithLabel(sb, "Estimated old object", estimatedOldObject, indent + 1);
+		}
 		return sb.toString();
 	}
 
