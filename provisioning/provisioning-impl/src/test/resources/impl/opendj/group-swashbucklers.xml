@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2014 Evolveum
+  ~ Copyright (c) 2014-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -23,11 +23,11 @@
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
 	<name>cn=swashbucklers,ou=Groups,dc=example,dc=com</name>
 	<resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
-	<objectClass>ri:GroupObjectClass</objectClass>
+	<objectClass>ri:groupOfUniqueNames</objectClass>
 	<kind>entitlement</kind>
 	<intent>group</intent>
 	<attributes>
-		<icfs:name>cn=swashbucklers,ou=Groups,dc=example,dc=com</icfs:name>
+		<ri:dn>cn=swashbucklers,ou=Groups,dc=example,dc=com</ri:dn>
 		<ri:cn>swashbucklers</ri:cn>
 	</attributes>
 </shadow>

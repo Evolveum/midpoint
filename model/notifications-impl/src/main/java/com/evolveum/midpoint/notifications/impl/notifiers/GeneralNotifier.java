@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.events.ModelEvent;
+import com.evolveum.midpoint.notifications.api.events.SimpleObjectRef;
 import com.evolveum.midpoint.notifications.impl.NotificationsUtil;
 import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
 import com.evolveum.midpoint.notifications.impl.handlers.AggregatedEventHandler;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -143,11 +145,11 @@ public class GeneralNotifier extends BaseHandler {
                                 String subject = getSubjectFromExpression(event, generalNotifierType, variables, task, result);
 
                                 if (body == null) {
-                                    body = getBody(event, generalNotifierType, transportName, result);
+                                    body = getBody(event, generalNotifierType, transportName, task, result);
                                 }
                                 if (subject == null) {
                                     subject = generalNotifierType.getSubjectPrefix() != null ? generalNotifierType.getSubjectPrefix() : "";
-                                    subject += getSubject(event, generalNotifierType, transportName, result);
+                                    subject += getSubject(event, generalNotifierType, transportName, task, result);
                                 }
 
                                 Message message = new Message();
@@ -184,11 +186,11 @@ public class GeneralNotifier extends BaseHandler {
         return true;
     }
 
-    protected String getSubject(Event event, GeneralNotifierType generalNotifierType, String transport, OperationResult result) {
+    protected String getSubject(Event event, GeneralNotifierType generalNotifierType, String transport, Task task, OperationResult result) {
         return null;
     }
 
-    protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, OperationResult result) throws SchemaException {
+    protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, Task task, OperationResult result) throws SchemaException {
         return null;
     }
 
@@ -351,4 +353,19 @@ public class GeneralNotifier extends BaseHandler {
     public static List<ItemPath> getAuxiliaryPaths() {
         return auxiliaryPaths;
     }
+
+    public String formatRequester(Event event, OperationResult result) {
+        SimpleObjectRef requesterRef = event.getRequester();
+        if (requesterRef == null) {
+            return "(unknown or none)";
+        }
+        ObjectType requester = requesterRef.resolveObjectType(result);
+        String name = PolyString.getOrig(requester.getName());
+        if (requester instanceof UserType) {
+            return name + " (" + PolyString.getOrig(((UserType) requester).getFullName()) + ")";
+        } else {
+            return name;
+        }
+    }
+
 }

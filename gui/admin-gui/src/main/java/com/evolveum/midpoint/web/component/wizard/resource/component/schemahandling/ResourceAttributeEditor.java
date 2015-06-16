@@ -100,6 +100,7 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
     private static final String ID_T_MATCHING_RULE = "matchingRuleTooltip";
     private static final String ID_T_OUTBOUND = "outboundTooltip";
     private static final String ID_T_INBOUND = "inboundTooltip";
+    private static final String ID_DELETE_OUTBOUND = "deleteOutbound";
 
     private PrismObject<ResourceType> resource;
     private ResourceObjectTypeDefinitionType objectType;
@@ -300,6 +301,16 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
         outbound.setOutputMarkupId(true);
         add(outbound);
 
+        AjaxSubmitLink deleteOutbound = new AjaxSubmitLink(ID_DELETE_OUTBOUND) {
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                deleteOutboundPerformed(target);
+            }
+        };
+        deleteOutbound.setOutputMarkupId(true);
+        add(deleteOutbound);
+
         MultiValueTextEditPanel inbound = new MultiValueTextEditPanel<MappingType>(ID_INBOUND,
                 new PropertyModel<List<MappingType>>(getModel(), "inbound"), false){
 
@@ -471,6 +482,13 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
     private void limitationsEditPerformed(AjaxRequestTarget target){
         LimitationsEditorDialog window = (LimitationsEditorDialog)get(ID_MODAL_LIMITATIONS);
         window.show(target);
+    }
+
+    private void deleteOutboundPerformed(AjaxRequestTarget target) {
+        ResourceAttributeDefinitionType def = getModelObject();
+        def.setOutbound(null);
+
+        target.add(this);
     }
 
     private void outboundEditPerformed(AjaxRequestTarget target){

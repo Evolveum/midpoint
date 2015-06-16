@@ -11,17 +11,21 @@ import com.evolveum.midpoint.web.page.PageBase;
 public class PageShowPassword extends PageBase{
 
 	
-		
-		
+	PageBase page = (PageBase) getPage();
+	
 	public PageShowPassword() {
-		 System.out.println("onload:"+getSession().getAttribute("pwdReset"));
+				
+		 //System.out.println("onload:"+getSession().getAttribute("pwdReset"));
 		add(new Label("pass", getSession().getAttribute("pwdReset")));
 		getSession().removeAttribute("pwdReset");
+		
+		success(getString("PageShowPassword.success"));
+	    add(getFeedbackPanel());
 	}
-		@Override
+	/*	@Override
 		protected IModel<String> createPageTitleModel() {
 			return new Model<String>("");
-		}
+		}*/
 		
 		
 

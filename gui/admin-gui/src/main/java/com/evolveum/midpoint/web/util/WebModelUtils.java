@@ -23,6 +23,7 @@ import java.util.List;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -39,6 +40,7 @@ import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -54,6 +56,35 @@ public class WebModelUtils {
     private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
     private static final String OPERATION_SEARCH_OBJECTS = DOT_CLASS + "searchObjects";
     private static final String OPERATION_SAVE_OBJECT = DOT_CLASS + "saveObject";
+
+    public static String resolveReferenceName(ObjectReferenceType ref, OperationResult result, PageBase page) {
+        PrismObject<ObjectType> object = resolveReference(ref, result, page);
+        if (object == null) {
+            return ref.getOid();
+        } else {
+            return WebMiscUtil.getName(object);
+        }
+    }
+
+    public static <T extends ObjectType> PrismObject<T> resolveReference(ObjectReferenceType reference, OperationResult result, PageBase page) {
+        if (reference == null) {
+            return null;
+        }
+        if (reference.asReferenceValue().getObject() != null) {
+            return reference.asReferenceValue().getObject();
+        }
+        PrismContext prismContext = page.getPrismContext();
+        if (reference.getType() == null) {
+            LOGGER.error("No type in {}", reference);
+            return null;
+        }
+        PrismObjectDefinition<T> definition = prismContext.getSchemaRegistry().findObjectDefinitionByType(reference.getType());
+        if (definition == null) {
+            LOGGER.error("No definition for {} was found", reference.getType());
+            return null;
+        }
+        return loadObject(definition.getCompileTimeClass(), reference.getOid(), result, page);
+    }
 
     public static <T extends ObjectType> PrismObject<T> loadObject(Class<T> type, String oid, OperationResult result,
                                                                    PageBase page) {
@@ -239,4 +270,5 @@ public class WebModelUtils {
 
         return objectDelta;
     }
+
 }

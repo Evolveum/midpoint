@@ -381,10 +381,10 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
     }
     
     private void showAssignableOrgPopupPerformed(AjaxRequestTarget target){
-ModalWindow modal = (ModalWindow) get(ID_MODAL_ASSIGN);
+ModalWindow modal = (ModalWindow) get(ID_MODAL_ASSIGN_ORG);
 AssignableOrgPopupContent content = (AssignableOrgPopupContent)modal.get(modal.getContentId());
 content.setType(OrgType.class);
-showModalWindow(ID_MODAL_ASSIGN, target);
+showModalWindow(ID_MODAL_ASSIGN_ORG, target);
 }
 
     private void deleteAssignmentPerformed(AjaxRequestTarget target){

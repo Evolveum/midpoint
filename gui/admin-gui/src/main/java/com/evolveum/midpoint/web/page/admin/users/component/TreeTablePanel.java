@@ -52,6 +52,7 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
@@ -616,7 +617,7 @@ public class TreeTablePanel extends SimplePanel<String> {
                 OrgTableDto dto = rowModel.getObject();
                 PageParameters parameters = new PageParameters();
                 parameters.add(OnePageParameterEncoder.PARAMETER, dto.getOid());
-                setResponsePage(PageUser.class, parameters);
+                setResponsePage(new PageUser(parameters, (PageTemplate) target.getPage()));
             }
         });
         columns.add(new PropertyColumn<OrgTableDto, String>(createStringResource("UserType.givenName"),

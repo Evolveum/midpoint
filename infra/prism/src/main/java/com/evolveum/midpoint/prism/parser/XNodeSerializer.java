@@ -239,6 +239,7 @@ public class XNodeSerializer {
 		}
         if (containerVal.getConcreteType() != null) {
             xmap.setTypeQName(containerVal.getConcreteType());
+            xmap.setExplicitTypeDeclaration(true);
         }
 
 		Collection<QName> serializedItems = new ArrayList<>();

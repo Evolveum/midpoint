@@ -114,14 +114,15 @@
         </div>
 
         <div class="form-group">
-            <label class="col-md-5 control-label"><wicket:message key="LoggingConfigPanel.profiling.dumpInterval"/></label>
+            <label class="col-md-5 control-label">
+                <wicket:message key="LoggingConfigPanel.profiling.dumpInterval"/>
+                <i wicket:id="dumpIntervalTooltip" wicket:message="title:LoggingConfigPanel.profiling.dumpInterval.tooltip"/>
+            </label>
 
             <div class="col-md-3">
                 <input type="text" class="form-control input-sm" wicket:id="dumpInterval"
                        wicket:message="placeholder:LoggingConfigPanel.profiling.dumpInterval.placeholder">
             </div>
-
-            <i wicket:id="dumpIntervalTooltip" wicket:message="title:LoggingConfigPanel.profiling.dumpInterval.tooltip"/>
         </div>
 
         <!-- Subsystem profiling section -->

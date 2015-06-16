@@ -140,12 +140,14 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.lang.StringUtils;
+import org.eclipse.jetty.util.log.Log;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.access.SecurityConfig;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.encoding.LdapShaPasswordEncoder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
@@ -1350,6 +1352,21 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		List<ObjectReferenceType> linkRefs = org.asObjectable().getLinkRef();
 		sb.append(": ").append(linkRefs.size()).append(" links");
 	}
+	
+	protected void displayUsers() throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class+".displayUsers");
+		OperationResult result = task.getResult();
+		ResultHandler<UserType> handler = new ResultHandler<UserType>() {
+			@Override
+			public boolean handle(PrismObject<UserType> user, OperationResult parentResult) {
+				display("User", user);
+				return true;
+			}
+		};
+		modelService.searchObjectsIterative(UserType.class, null, handler, null, task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+	}
 
 	protected <F extends FocusType> void assertAssignments(PrismObject<F> user, int expectedNumber) {
 		MidPointAsserts.assertAssignments(user, expectedNumber);
@@ -1508,8 +1525,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		shadowType.setObjectClass(objectClassDefinition.getTypeName());
 		shadowType.setKind(ShadowKindType.ACCOUNT);
 		ResourceAttributeContainer attrCont = ShadowUtil.getOrCreateAttributesContainer(shadow, objectClassDefinition);
-		RefinedAttributeDefinition icfsNameDef = objectClassDefinition.findAttributeDefinition(SchemaTestConstants.ICFS_NAME);
-		ResourceAttribute icfsNameAttr = icfsNameDef.instantiate();
+		RefinedAttributeDefinition idSecondaryDef = objectClassDefinition.getSecondaryIdentifiers().iterator().next();
+		ResourceAttribute icfsNameAttr = idSecondaryDef.instantiate();
 		icfsNameAttr.setRealValue(name);
 		attrCont.add(icfsNameAttr);
 		ActivationType activation = new ActivationType();
@@ -1707,21 +1724,21 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return foundObjects.iterator().next();
 	}
 
-    protected void assertAccountShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType) {
+    protected void assertAccountShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType) throws SchemaException {
         assertShadowModel(accountShadow, oid, username, resourceType, getAccountObjectClass(resourceType), null);
     }
 
-    protected void assertAccountShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType, MatchingRule<String> matchingRule) {
+    protected void assertAccountShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType, MatchingRule<String> matchingRule) throws SchemaException {
         assertShadowModel(accountShadow, oid, username, resourceType, getAccountObjectClass(resourceType), matchingRule);
     }
     
     protected void assertShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
-                                     QName objectClass) {
+                                     QName objectClass) throws SchemaException {
     	assertShadowModel(accountShadow, oid, username, resourceType, objectClass, null);
     }
     
 	protected void assertShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
-                                     QName objectClass, MatchingRule<String> nameMatchingRule) {
+                                     QName objectClass, MatchingRule<String> nameMatchingRule) throws SchemaException {
 		assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule);
 		IntegrationTestTools.assertProvisioningShadow(accountShadow, resourceType, RefinedAttributeDefinition.class, objectClass);
 	}
@@ -1941,6 +1958,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		ObjectDelta<TaskType> taskDelta = ObjectDelta.createModificationReplaceProperty(TaskType.class, taskOid, TaskType.F_EXECUTION_STATUS, prismContext, TaskExecutionStatusType.RUNNABLE);
 		taskDelta.addModificationReplaceProperty(TaskType.F_RESULT_STATUS);
 		taskDelta.addModificationReplaceProperty(TaskType.F_RESULT);
+		LOGGER.info("Restarting task {}", taskOid);
 		taskManager.modifyTask(taskOid, taskDelta.getModifications(), result);
 	}
 	
@@ -2450,7 +2468,36 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		String decryptedUserPassword = protector.decryptString(protectedStringType);
 		assertEquals("Wrong password in "+user, expectedPassword, decryptedUserPassword);
 	}
+
+	protected void assertUserLdapPassword(PrismObject<UserType> user, String expectedPassword) throws EncryptionException {
+		CredentialsType credentialsType = user.asObjectable().getCredentials();
+		assertNotNull("No credentials in "+user, credentialsType);
+		PasswordType passwordType = credentialsType.getPassword();
+		assertNotNull("No password in "+user, passwordType);
+		ProtectedStringType protectedStringType = passwordType.getValue();
+		assertLdapPassword(protectedStringType, expectedPassword, user);
+	}
+
+	protected void assertShadowLdapPassword(PrismObject<ShadowType> shadow, String expectedPassword) throws EncryptionException {
+		CredentialsType credentialsType = shadow.asObjectable().getCredentials();
+		assertNotNull("No credentials in "+shadow, credentialsType);
+		PasswordType passwordType = credentialsType.getPassword();
+		assertNotNull("No password in "+shadow, passwordType);
+		ProtectedStringType protectedStringType = passwordType.getValue();
+		assertLdapPassword(protectedStringType, expectedPassword, shadow);
+	}
 	
+	protected <O extends ObjectType> void assertLdapPassword(ProtectedStringType protectedStringType, String expectedPassword, PrismObject<O> source) throws EncryptionException {
+		assertNotNull("No password value in "+source, protectedStringType);
+		String decryptedUserPassword = protector.decryptString(protectedStringType);
+		assertNotNull("Null password in "+source, decryptedUserPassword);
+		if (decryptedUserPassword.startsWith("{") || decryptedUserPassword.contains("}")) {
+			assertTrue("Wrong password hash in "+source+": "+decryptedUserPassword+", expected "+expectedPassword, ldapShaPasswordEncoder.isPasswordValid(decryptedUserPassword, expectedPassword, null));
+		} else {
+			assertEquals("Wrong password in "+source, expectedPassword, decryptedUserPassword);
+		}
+	}
+
 	protected void assertGroupMember(DummyGroup group, String accountId) {
 		IntegrationTestTools.assertGroupMember(group, accountId);
 	}

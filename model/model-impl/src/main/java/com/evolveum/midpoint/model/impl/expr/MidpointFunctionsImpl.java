@@ -171,9 +171,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Override
     public Collection<UserType> getManagers(UserType user, String orgType, boolean allowSelf) throws SchemaException, ObjectNotFoundException {
         Set<UserType> retval = new HashSet<UserType>();
-        Collection<String> orgOids = getOrgUnits(user);
+        Collection<String> orgOids = getOrgUnits(user, null);
         while (!orgOids.isEmpty()) {
-        	LOGGER.trace("orgOids: {}",orgOids);
+        	LOGGER.trace("orgOids: {}", orgOids);
 	        Collection<OrgType> thisLevelOrgs = new ArrayList<OrgType>();
 	        for (String orgOid : orgOids) {
 	        	if (orgType != null) {
@@ -191,7 +191,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	        		}
 	        	}
 	        }
-	        LOGGER.trace("retval: {}",retval);
+	        LOGGER.trace("retval: {}", retval);
 	        if (!retval.isEmpty()) {
 	        	return retval;
 	        }
@@ -230,6 +230,20 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         }
         for (ObjectReferenceType orgRef : user.getParentOrgRef()) {
             retval.add(orgRef.getOid());
+        }
+        return retval;
+    }
+
+    @Override
+    public Collection<String> getOrgUnits(UserType user, QName relation) {
+        Set<String> retval = new HashSet<>();
+        if (user == null) {
+            return retval;
+        }
+        for (ObjectReferenceType orgRef : user.getParentOrgRef()) {
+            if (QNameUtil.match(relation, orgRef.getRelation())) {
+                retval.add(orgRef.getOid());
+            }
         }
         return retval;
     }
@@ -904,8 +918,37 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	}
     
     // Functions accessing modelService
-    
-	@Override
+
+    @Override
+    public <T extends ObjectType> T resolveReference(ObjectReferenceType reference)
+            throws ObjectNotFoundException, SchemaException,
+            CommunicationException, ConfigurationException,
+            SecurityViolationException {
+        if (reference == null) {
+            return null;
+        }
+        QName type = reference.getType();           // TODO what about implicitly specified types, like in resourceRef?
+        PrismObjectDefinition<T> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByType(reference.getType());
+        if (objectDefinition == null) {
+            throw new SchemaException("No definition for type " + type);
+        }
+        return modelService.getObject(
+                objectDefinition.getCompileTimeClass(), reference.getOid(), null, getCurrentTask(), getCurrentResult()).asObjectable();
+    }
+
+    @Override
+    public <T extends ObjectType> T resolveReferenceIfExists(ObjectReferenceType reference)
+            throws SchemaException,
+            CommunicationException, ConfigurationException,
+            SecurityViolationException {
+        try {
+            return resolveReference(reference);
+        } catch (ObjectNotFoundException e) {
+            return null;
+        }
+    }
+
+    @Override
 	public <T extends ObjectType> T getObject(Class<T> type,
 			String oid, Collection<SelectorOptions<GetOperationOptions>> options)
 			throws ObjectNotFoundException, SchemaException,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +22,10 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
+import java.io.File;
+
 import org.testng.AssertJUnit;
 import org.testng.annotations.*;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-
 import org.opends.server.core.AddOperation;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
@@ -40,8 +38,6 @@ import org.springframework.test.context.ContextConfiguration;
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -49,17 +45,13 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.test.mock.SynchornizationServiceMock;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -69,7 +61,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext
 public class TestSynchronization extends AbstractIntegrationTest {
 
-	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/object/resource-opendj.xml";
+	private static final File RESOURCE_OPENDJ_FILE = new File("src/test/resources/object/resource-opendj.xml");
 	private static final String FILENAME_LDAP_CONNECTOR = "src/test/resources/ucf/connector-ldap.xml";
 	private static final String SYNC_TASK_OID = "91919191-76e0-59e2-86d6-3d4f02d3ffff";
 	private static final String FILENAME_SYNC_TASK = "src/test/resources/impl/sync-task-example.xml";
@@ -117,7 +109,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 		// let provisioning discover the connectors
 		provisioningService.postInit(initResult);
 		
-		resourceType = addResourceFromFile(FILENAME_RESOURCE_OPENDJ, "org.identityconnectors.ldap.LdapConnector", initResult).asObjectable();
+		resourceType = addResourceFromFile(RESOURCE_OPENDJ_FILE, AbstractOpenDJTest.LDAP_CONNECTOR_TYPE, initResult).asObjectable();
 		
 		//it is needed to declare the task owner, so we add the user admin to the reposiotry
 		repoAddObjectFromFile(FILENAME_USER_ADMIN, UserType.class, initResult);
@@ -152,19 +144,6 @@ public class TestSynchronization extends AbstractIntegrationTest {
 		assertSyncToken(syncTask, 0, result);
 	}
 
-	private void assertSyncToken(String syncTaskOid, Object expectedValue, OperationResult result) throws ObjectNotFoundException, SchemaException {
-		Task task = taskManager.getTask(syncTaskOid, result);
-		assertSyncToken(task, expectedValue, result);
-	}
-		
-	private void assertSyncToken(Task task, Object expectedValue, OperationResult result) throws ObjectNotFoundException, SchemaException {
-		PrismProperty<Object> syncTokenProperty = task.getExtensionProperty(SchemaConstants.SYNC_TOKEN);
-		if (expectedValue == null && syncTokenProperty == null) {
-			return;
-		}
-		assertEquals("Wrong sync token", expectedValue, syncTokenProperty.getRealValue());
-	}
-
 	@Test
 	public void test100SyncAddWill() throws Exception {
 		final String TEST_NAME = "test100SyncAddWill";
@@ -189,7 +168,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 				addOperation.getResultCode());
 
 		// WHEN
-		provisioningService.synchronize(resourceType.getOid(), ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType),
+		provisioningService.synchronize(resourceType.getOid(), AbstractOpenDJTest.RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS,
 				syncTask, result);
 		
 		// THEN
@@ -227,6 +206,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 		LDIFImportConfig importConfig = new LDIFImportConfig(LDIF_CALYPSO_FILENAME);
 		LDIFReader ldifReader = new LDIFReader(importConfig);
 		Entry entry = ldifReader.readEntry();
+		ldifReader.close();
 		display("Entry from LDIF", entry);
 		AddOperation addOperation = openDJController.getInternalConnection().processAdd(entry);
 
@@ -234,7 +214,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 				addOperation.getResultCode());
 
 		// WHEN
-		provisioningService.synchronize(resourceType.getOid(), ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType),
+		provisioningService.synchronize(resourceType.getOid(), AbstractOpenDJTest.RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS,
 				syncTask, result);
 		
 		// THEN

@@ -222,7 +222,7 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
 
         // WHEN
         modelService.importFromResource(RESOURCE_OPENDJ_OID,
-                new QName(RESOURCE_OPENDJ_NAMESPACE, "AccountObjectClass"), task, result);
+                new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);

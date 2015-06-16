@@ -15,17 +15,32 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
+import java.util.Collection;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
+import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
+import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -52,5 +67,45 @@ public class ResourceObjectReferenceResolver {
 		return shadow;
 	}
 	
+	public PrismObject<ShadowType> fetchResourceObject(ConnectorInstance connector, ResourceType resource,
+			RefinedObjectClassDefinition objectClassDefinition,
+			Collection<? extends ResourceAttribute<?>> identifiers, 
+			AttributesToReturn attributesToReturn,
+			OperationResult parentResult) throws ObjectNotFoundException,
+			CommunicationException, SchemaException, SecurityViolationException, ConfigurationException {
+
+		try {
+		
+			if (!ResourceTypeUtil.hasReadCapability(resource)){
+				throw new UnsupportedOperationException("Resource does not support 'read' operation");
+			}
+			
+			ResourceObjectIdentification identification = new ResourceObjectIdentification(objectClassDefinition, identifiers);
+			return connector.fetchObject(ShadowType.class, identification,
+					attributesToReturn, parentResult);
+		} catch (ObjectNotFoundException e) {
+			parentResult.recordFatalError(
+					"Object not found. Identifiers: " + identifiers + ". Reason: " + e.getMessage(), e);
+			throw new ObjectNotFoundException("Object not found. identifiers=" + identifiers + ", objectclass="+
+						PrettyPrinter.prettyPrint(objectClassDefinition.getTypeName())+": "
+					+ e.getMessage(), e);
+		} catch (CommunicationException e) {
+			parentResult.recordFatalError("Error communication with the connector " + connector
+					+ ": " + e.getMessage(), e);
+			throw e;
+		} catch (GenericFrameworkException e) {
+			parentResult.recordFatalError(
+					"Generic error in the connector " + connector + ". Reason: " + e.getMessage(), e);
+			throw new GenericConnectorException("Generic error in the connector " + connector + ". Reason: "
+					+ e.getMessage(), e);
+		} catch (SchemaException ex) {
+			parentResult.recordFatalError("Can't get resource object, schema error: " + ex.getMessage(), ex);
+			throw ex;
+		} catch (ConfigurationException e) {
+			parentResult.recordFatalError(e);
+			throw e;
+		}
+
+	}
 
 }

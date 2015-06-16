@@ -285,14 +285,7 @@
         </xsd:complexContent>
     </xsd:complexType>
     
-     <xsd:complexType name="NoneFilterClauseType">
-        <xsd:complexContent>
-            <xsd:extension base="tns:FilterClauseType">
-               
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-
+   
 
     <xsd:element name="equal" substitutionGroup="tns:filterClause" type="tns:PropertyComplexValueFilterClauseType"/>
     <xsd:element name="greaterOrEqual" substitutionGroup="tns:filterClause" type="tns:PropertySimpleValueFilterClauseType"/>
@@ -321,7 +314,9 @@
 
     <xsd:element name="present" substitutionGroup="tns:filterClause" type="tns:PropertyNoValueFilterClauseType"/>
     <xsd:element name="true" substitutionGroup="tns:filterClause" type="tns:PropertyNoValueFilterClauseType"/>
-    <xsd:element name="none" substitutionGroup="tns:filterClause" type="tns:NoneFilterClauseType"/>
+    
+    <xsd:element name="all" substitutionGroup="tns:filterClause" type="tns:FilterClauseType"/>
+    <xsd:element name="none" substitutionGroup="tns:filterClause" type="tns:FilterClauseType"/>
 
     <xsd:complexType name="LogicalOperatorFilterClauseType" abstract="true">
         <xsd:complexContent>

@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.intest;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
@@ -37,6 +38,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -102,6 +104,8 @@ public class TestOrgStructMeta extends TestOrgStruct {
 				if (orgType.getOrgType().contains("functional")) {
 					assertAssigned(org, ROLE_META_FUNCTIONAL_ORG_OID, RoleType.COMPLEX_TYPE);
 				} else if (orgType.getOrgType().contains("project")) {
+					// Nothing to check (yet)
+				} else if (orgType.getOrgType().contains("fictional")) {
 					// Nothing to check (yet)
 				} else {
 					AssertJUnit.fail("Unexpected orgType in "+org);
@@ -205,6 +209,8 @@ public class TestOrgStructMeta extends TestOrgStruct {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Proud member of F0006");
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "Arr!", "I say: Hosting the worst scumm of the Caribbean.");
         
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -231,6 +237,8 @@ public class TestOrgStructMeta extends TestOrgStruct {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "Arr!");
         
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -297,5 +305,28 @@ public class TestOrgStructMeta extends TestOrgStruct {
         // Postcondition
         assertMonkeyIslandOrgSanity();
 	}
+	
+    @Test
+    public void test900AddFictionalOrg() throws Exception {
+        final String TEST_NAME = "test900AddFictionalOrg";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        addObject(ORG_FICTIONAL_FILE, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        PrismObject<OrgType> org = getObject(OrgType.class, ORG_FICTIONAL_OID);
+        assertNotNull("No fictional org", org);
+        display("Fictional org", org);
+        PrismAsserts.assertReferenceValue(org.findReference(OrgType.F_PARENT_ORG_REF), ORG_SCUMM_BAR_OID);
+
+        // Postcondition
+        assertMonkeyIslandOrgSanity(1);
+    }
 	
 }

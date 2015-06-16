@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,18 +95,19 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 		
-		repoAddObjectFromFile(ACCOUNT1_REPO_FILENAME, ShadowType.class, initResult);
-		repoAddObjectFromFile(ACCOUNT_DELETE_REPO_FILENAME, ShadowType.class, initResult);
-		repoAddObjectFromFile(ACCOUNT_MODIFY_REPO_FILENAME, ShadowType.class, initResult);
+		repoAddShadowFromFile(ACCOUNT1_REPO_FILE, initResult);
+		repoAddShadowFromFile(ACCOUNT_DELETE_REPO_FILE, initResult);
+		repoAddShadowFromFile(ACCOUNT_MODIFY_REPO_FILE, initResult);
 	}
 	
 // We are NOT starting OpenDJ here. We want to see the blood .. err ... errors
 	
 	@Test
 	public void test003Connection() throws Exception {
-		TestUtil.displayTestTile("test003Connection");
+		final String TEST_NAME = "test003Connection";
+		TestUtil.displayTestTile(TEST_NAME);
 
-		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()+".test003Connection");
+		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()+"."+TEST_NAME);
 		ResourceType resourceTypeBefore = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, result).asObjectable();
 		display("Resource before testResource (repository)", resourceTypeBefore);
 		assertNotNull("No connector ref",resourceTypeBefore.getConnectorRef());
@@ -266,7 +267,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 				+ "." + TEST_NAME);
 
       final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
-      QName objectClass = new QName(resourceNamespace, "AccountObjectClass");
+      QName objectClass = new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME);
 
       ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), objectClass, prismContext);
       
@@ -296,7 +297,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 				+ "." + TEST_NAME);
 
       final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
-      QName objectClass = new QName(resourceNamespace, "AccountObjectClass");
+      QName objectClass = new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME);
 
       ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), objectClass, prismContext);
       
@@ -446,7 +447,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 		
-		resource = addResourceFromFile(RESOURCE_OPENDJ_INITIALIZED_FILENAME, LDAP_CONNECTOR_TYPE, result);
+		resource = addResourceFromFile(RESOURCE_OPENDJ_INITIALIZED_FILE, LDAP_CONNECTOR_TYPE, result);
 
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
@@ -546,7 +547,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 				+ "." + TEST_NAME);
 
       final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
-      QName objectClass = new QName(resourceNamespace, "AccountObjectClass");
+      QName objectClass = new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME);
 
       ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), objectClass, prismContext);
       
@@ -575,7 +576,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 				+ "." + TEST_NAME);
 
       final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
-      QName objectClass = new QName(resourceNamespace, "AccountObjectClass");
+      QName objectClass = new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME);
 
       ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), objectClass, prismContext);
       
@@ -746,5 +747,5 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		TestUtil.assertFailure(result);
 	}
 
-	
+
 }

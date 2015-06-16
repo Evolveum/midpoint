@@ -330,11 +330,27 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
     		Class<O> type, PrismContext prismContext, T containerable) throws SchemaException {
     	return createModificationReplace(new ItemPath(containerName), type, prismContext, containerable);
     }
+
+	public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationReplace(QName containerName,
+																											 Class<O> type, PrismContext prismContext, Collection<T> containerables) throws SchemaException {
+		return createModificationReplace(new ItemPath(containerName), type, prismContext, containerables);
+	}
     
     public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationReplace(ItemPath containerPath, 
     		Class<O> type, PrismContext prismContext, T containerable) throws SchemaException {
     	return createModificationReplace(containerPath, type, prismContext, containerable.asPrismContainerValue());
     }
+
+	public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationReplace(ItemPath containerPath,
+																											 Class<O> type, PrismContext prismContext, Collection<T> containerables) throws SchemaException {
+		ContainerDelta<T> delta = createDelta(containerPath, type, prismContext);
+		List<PrismContainerValue<T>> pcvs = new ArrayList<>();
+		for (Containerable c: containerables) {
+			pcvs.add(c.asPrismContainerValue());
+		}
+		delta.setValuesToReplace(pcvs);
+		return delta;
+	}
     
     public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationReplace(QName containerName, 
     		Class<O> type, PrismContext prismContext, PrismContainerValue<T> cValue) throws SchemaException {
@@ -366,7 +382,12 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 		return modifications;
 	}
 
-
+	// cValues should be parent-less
+	public static <T extends Containerable> ContainerDelta<T> createModificationReplace(QName containerName, PrismObjectDefinition<?> objectDefinition, PrismContainerValue... cValues) {
+		ContainerDelta delta = createDelta(containerName, objectDefinition.findContainerDefinition(containerName));
+		delta.setValuesToReplace(cValues);
+		return delta;
+	}
 
 	@Override
     protected void dumpValues(StringBuilder sb, String label, Collection<PrismContainerValue<V>> values, int indent) {

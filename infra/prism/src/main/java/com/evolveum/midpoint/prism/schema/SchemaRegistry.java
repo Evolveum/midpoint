@@ -914,7 +914,16 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		return schema.findContainerDefinitionByCompileTimeClass(compileTimeClass);
 	}
 
-    public ItemDefinition findItemDefinitionByElementName(QName elementName) {
+	public <C extends Containerable> ComplexTypeDefinition findComplexTypeDefinitionByCompileTimeClass(Class<C> compileTimeClass) {
+		PrismSchema schema = findSchemaByCompileTimeClass(compileTimeClass);
+		if (schema == null) {
+			return null;
+		}
+		return schema.findComplexTypeDefinitionByCompileTimeClass(compileTimeClass);
+	}
+
+
+	public ItemDefinition findItemDefinitionByElementName(QName elementName) {
         if (StringUtils.isEmpty(elementName.getNamespaceURI())) {
             return resolveGlobalItemDefinitionWithoutNamespace(elementName.getLocalPart(), ItemDefinition.class);
         }

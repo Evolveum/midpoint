@@ -236,22 +236,46 @@ public class IntegrationTestTools {
 		return getAttributeValue(shadowType, SchemaTestConstants.ICFS_NAME);
 	}
 	
+	public static String getSecondaryIdentifier(PrismObject<ShadowType> shadow) {
+		Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(shadow);
+		if (secondaryIdentifiers == null || secondaryIdentifiers.isEmpty()) {
+			return null;
+		}
+		if (secondaryIdentifiers.size() > 1) {
+			throw new IllegalArgumentException("Too many secondary indentifiers in "+shadow);
+		}
+		return (String) secondaryIdentifiers.iterator().next().getRealValue();
+	}
+	
+	public static void assertSecondaryIdentifier(PrismObject<ShadowType> repoShadow, String value) {
+		assertEquals("Wrong secondary indetifier in "+repoShadow, value, getSecondaryIdentifier(repoShadow));
+	}
+	
 	public static void assertIcfsNameAttribute(ShadowType repoShadow, String value) {
 		assertAttribute(repoShadow, SchemaTestConstants.ICFS_NAME, value);
 	}
 	
-	public static void assertIcfsNameAttribute(PrismObject<? extends ShadowType> repoShadow, String value) {
+	public static void assertIcfsNameAttribute(PrismObject<ShadowType> repoShadow, String value) {
 		assertAttribute(repoShadow, SchemaTestConstants.ICFS_NAME, value);
 	}
 
+	public static void assertAttributeNotNull(PrismObject<ShadowType> repoShadow, QName name) {
+		Collection<String> values = getAttributeValues(repoShadow, name);
+		assertFalse("No values for "+name+" in "+repoShadow, values == null || values.isEmpty());
+		assertEquals(1, values.size());
+		assertNotNull(values.iterator().next());
+	}
+	
 	public static void assertAttributeNotNull(ShadowType repoShadow, QName name) {
 		Collection<String> values = getAttributeValues(repoShadow, name);
+		assertFalse("No values for "+name+" in "+repoShadow, values == null || values.isEmpty());
 		assertEquals(1, values.size());
 		assertNotNull(values.iterator().next());
 	}
 
 	public static void assertAttributeNotNull(String message, ShadowType repoShadow, QName name) {
 		Collection<String> values = getAttributeValues(repoShadow, name);
+		assertFalse("No values for "+name+" in "+repoShadow, values == null || values.isEmpty());
 		assertEquals(message, 1, values.size());
 		assertNotNull(message, values.iterator().next());
 	}
@@ -290,11 +314,15 @@ public class IntegrationTestTools {
         ObjectClassComplexTypeDefinition objectClassDef = rAttrsDef.getComplexTypeDefinition();
         assertNotNull("No object class definition in attributes definition", objectClassDef);
         assertEquals("Wrong object class in attributes definition", objectClass, objectClassDef.getTypeName());
-        ResourceAttribute<?> icfsNameUid = rAttributesContainer.findAttribute(SchemaTestConstants.ICFS_UID);
-        assertAttributeDefinition(icfsNameUid, DOMUtil.XSD_STRING, 0, 1, true, false, false, expetcedAttributeDefinitionClass);
+        ResourceAttributeDefinition primaryIdDef = objectClassDef.getIdentifiers().iterator().next();
+        ResourceAttribute<?> primaryIdAttr = rAttributesContainer.findAttribute(primaryIdDef.getName());
+        assertNotNull("No primary ID "+primaryIdDef.getName()+" in "+account, primaryIdAttr);
+        assertAttributeDefinition(primaryIdAttr, DOMUtil.XSD_STRING, 0, 1, true, false, false, expetcedAttributeDefinitionClass);
 
-        ResourceAttribute<Object> icfsNameAttr = rAttributesContainer.findAttribute(SchemaTestConstants.ICFS_NAME);
-        assertAttributeDefinition(icfsNameAttr, DOMUtil.XSD_STRING, 1, 1, true, true, true, expetcedAttributeDefinitionClass);
+        ResourceAttributeDefinition secondaryIdDef = objectClassDef.getSecondaryIdentifiers().iterator().next();
+        ResourceAttribute<Object> secondaryIdAttr = rAttributesContainer.findAttribute(secondaryIdDef.getName());
+        assertNotNull("No secondary ID "+secondaryIdDef.getName()+" in "+account, secondaryIdAttr);
+        assertAttributeDefinition(secondaryIdAttr, DOMUtil.XSD_STRING, 1, 1, true, true, true, expetcedAttributeDefinitionClass);
     }
 
 	public static <T> Collection<T> getAttributeValues(ShadowType shadowType, QName name) {
@@ -511,36 +539,36 @@ public class IntegrationTestTools {
 
 	
 	public static void checkAccountShadow(ShadowType shadowType, ResourceType resourceType, RepositoryService repositoryService, 
-			ObjectChecker<ShadowType> checker, PrismContext prismContext, OperationResult parentResult) {
+			ObjectChecker<ShadowType> checker, PrismContext prismContext, OperationResult parentResult) throws SchemaException {
 		checkAccountShadow(shadowType, resourceType, repositoryService, checker, null, prismContext, parentResult);
 	}
 	
 	public static void checkAccountShadow(ShadowType shadowType, ResourceType resourceType, RepositoryService repositoryService, 
-			ObjectChecker<ShadowType> checker, MatchingRule<String> uidMatchingRule, PrismContext prismContext, OperationResult parentResult) {
+			ObjectChecker<ShadowType> checker, MatchingRule<String> uidMatchingRule, PrismContext prismContext, OperationResult parentResult) throws SchemaException {
 		checkShadow(shadowType, resourceType, repositoryService, checker, uidMatchingRule, prismContext, parentResult);
 		assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME),
 				shadowType.getObjectClass());
 	}
 	
 	public static void checkEntitlementShadow(ShadowType shadowType, ResourceType resourceType, RepositoryService repositoryService, 
-			ObjectChecker<ShadowType> checker, String objectClassLocalName, PrismContext prismContext, OperationResult parentResult) {
+			ObjectChecker<ShadowType> checker, String objectClassLocalName, PrismContext prismContext, OperationResult parentResult) throws SchemaException {
 		checkEntitlementShadow(shadowType, resourceType, repositoryService, checker, objectClassLocalName, null, prismContext, parentResult);
 	}
 	
 	public static void checkEntitlementShadow(ShadowType shadowType, ResourceType resourceType, RepositoryService repositoryService, 
-			ObjectChecker<ShadowType> checker, String objectClassLocalName, MatchingRule<String> uidMatchingRule, PrismContext prismContext, OperationResult parentResult) {
+			ObjectChecker<ShadowType> checker, String objectClassLocalName, MatchingRule<String> uidMatchingRule, PrismContext prismContext, OperationResult parentResult) throws SchemaException {
 		checkShadow(shadowType, resourceType, repositoryService, checker, uidMatchingRule, prismContext, parentResult);
 		assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), objectClassLocalName),
 				shadowType.getObjectClass());
 	}
 	
 	public static void checkShadow(ShadowType shadowType, ResourceType resourceType, RepositoryService repositoryService, 
-			ObjectChecker<ShadowType> checker, PrismContext prismContext, OperationResult parentResult) {
+			ObjectChecker<ShadowType> checker, PrismContext prismContext, OperationResult parentResult) throws SchemaException {
 		checkShadow(shadowType, resourceType, repositoryService, checker, null, prismContext, parentResult);
 	}
 	
 	public static void checkShadow(ShadowType shadowType, ResourceType resourceType, RepositoryService repositoryService, 
-			ObjectChecker<ShadowType> checker, MatchingRule<String> uidMatchingRule, PrismContext prismContext, OperationResult parentResult) {
+			ObjectChecker<ShadowType> checker, MatchingRule<String> uidMatchingRule, PrismContext prismContext, OperationResult parentResult) throws SchemaException {
 		LOGGER.trace("Checking shadow:\n{}",shadowType.asPrismObject().debugDump());
 		shadowType.asPrismObject().checkConsistence(true, true, ConsistencyCheckScope.THOROUGH);
 		assertNotNull("no OID",shadowType.getOid());
@@ -549,8 +577,20 @@ public class IntegrationTestTools {
         PrismContainer<?> attrs = shadowType.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
 		assertNotNull("no attributes",attrs);
 		assertFalse("empty attributes",attrs.isEmpty());
+		
+		RefinedResourceSchema rschema = RefinedResourceSchema.getRefinedSchema(resourceType);
+		ObjectClassComplexTypeDefinition objectClassDef = rschema.findObjectClassDefinition(shadowType);
+		assertNotNull("cannot determine object class for "+shadowType, objectClassDef);
+		
 		String icfUid = ShadowUtil.getSingleStringAttributeValue(shadowType, SchemaTestConstants.ICFS_UID);
-        assertNotNull("No ICF UID", icfUid);
+		if (icfUid == null) {
+			Collection<? extends ResourceAttributeDefinition> identifierDefs = objectClassDef.getIdentifiers();
+			assertFalse("No identifiers for "+objectClassDef, identifierDefs == null || identifierDefs.isEmpty());
+			for (ResourceAttributeDefinition idDef: identifierDefs) {
+				String id = ShadowUtil.getSingleStringAttributeValue(shadowType, idDef.getName());
+				assertNotNull("No identifier "+idDef.getName()+" in "+shadowType, id);
+			}
+		}
 		
 		String resourceOid = ShadowUtil.getResourceOid(shadowType);
         assertNotNull("No resource OID in "+shadowType, resourceOid);
@@ -564,7 +604,7 @@ public class IntegrationTestTools {
 					": "+e.getCause()+": "+e.getMessage());
 		}
 		
-		checkShadowUniqueness(shadowType, repositoryService, uidMatchingRule, prismContext, parentResult);
+		checkShadowUniqueness(shadowType, objectClassDef, repositoryService, uidMatchingRule, prismContext, parentResult);
 		
 		String repoResourceOid = ShadowUtil.getResourceOid(repoShadow.asObjectable());
 		assertNotNull("No resource OID in the repository shadow "+repoShadow);
@@ -585,10 +625,10 @@ public class IntegrationTestTools {
 	/**
 	 * Checks i there is only a single shadow in repo for this account.
 	 */
-	private static void checkShadowUniqueness(ShadowType resourceShadow, RepositoryService repositoryService, 
+	private static void checkShadowUniqueness(ShadowType resourceShadow, ObjectClassComplexTypeDefinition objectClassDef, RepositoryService repositoryService, 
 			MatchingRule<String> uidMatchingRule, PrismContext prismContext, OperationResult parentResult) {
 		try {
-			ObjectQuery query = createShadowQuery(resourceShadow, uidMatchingRule, prismContext);
+			ObjectQuery query = createShadowQuery(resourceShadow, objectClassDef, uidMatchingRule, prismContext);
 			List<PrismObject<ShadowType>> results = repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
 			LOGGER.trace("Shadow check with filter\n{}\n found {} objects", query.debugDump(), results.size());
 			if (results.size() == 0) {
@@ -610,16 +650,17 @@ public class IntegrationTestTools {
 		}
 	}
 
-	private static ObjectQuery createShadowQuery(ShadowType resourceShadow, MatchingRule<String> uidMatchingRule, PrismContext prismContext) throws SchemaException {
+	private static ObjectQuery createShadowQuery(ShadowType resourceShadow, ObjectClassComplexTypeDefinition objectClassDef, MatchingRule<String> uidMatchingRule, PrismContext prismContext) throws SchemaException {
 		
 		PrismContainer<?> attributesContainer = resourceShadow.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
-		PrismProperty<String> identifier = attributesContainer.findProperty(SchemaTestConstants.ICFS_UID);
+		QName identifierName = objectClassDef.getIdentifiers().iterator().next().getName();
+		PrismProperty<String> identifier = attributesContainer.findProperty(identifierName);
 		if (identifier == null) {
 			throw new SchemaException("No identifier in "+resourceShadow);
 		}
-		String uidValue = identifier.getRealValue();
+		String identifierValue = identifier.getRealValue();
 		if (uidMatchingRule != null) {
-			uidValue = uidMatchingRule.normalize(uidValue);
+			identifierValue = uidMatchingRule.normalize(identifierValue);
 		}
 
 		ObjectFilter filter;
@@ -627,7 +668,7 @@ public class IntegrationTestTools {
 		PrismReferenceDefinition itemDef = resourceShadow.asPrismObject().getDefinition().findReferenceDefinition(ShadowType.F_RESOURCE_REF);
 		filter = AndFilter.createAnd(
 					RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, prismContext, ShadowUtil.getResourceOid(resourceShadow)),
-					EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifierDef, new PrismPropertyValue(uidValue)));
+					EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifierDef, new PrismPropertyValue(identifierValue)));
 			
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 

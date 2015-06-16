@@ -187,8 +187,8 @@ public class RefinedAttributeDefinition<T> extends ResourceAttributeDefinition<T
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
     }
-
-    public String getDescription() {
+    
+	public String getDescription() {
         return description;
     }
 
@@ -235,6 +235,10 @@ public class RefinedAttributeDefinition<T> extends ResourceAttributeDefinition<T
     public String getNativeAttributeName() {
         return attributeDefinition.getNativeAttributeName();
     }
+    
+    public String getFrameworkAttributeName() {
+		return attributeDefinition.getFrameworkAttributeName();
+	}
 
     public Collection<? extends DisplayableValue<T>> getAllowedValues() {
         return attributeDefinition.getAllowedValues();

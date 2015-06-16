@@ -29,6 +29,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.AccessCertificationService;
 import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
@@ -44,6 +45,10 @@ import com.evolveum.midpoint.prism.parser.XNodeSerializer;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 
@@ -201,7 +206,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * @author Radovan Semancik
  */
 @Component
-public class ModelController implements ModelService, ModelInteractionService, TaskService, WorkflowService, ScriptingService {
+public class ModelController implements ModelService, ModelInteractionService, TaskService, WorkflowService, ScriptingService, AccessCertificationService {
 
 	// Constants for OperationResult
 	public static final String CLASS_NAME_WITH_DOT = ModelController.class.getName() + ".";
@@ -385,34 +390,34 @@ public class ModelController implements ModelService, ModelInteractionService, T
         //rootOptionsNoResolve.setAllowNotFound(true);           // does not work reliably yet
 
         object.accept(new Visitor() {
-            @Override
-            public void visit(Visitable visitable) {
-                if (visitable instanceof PrismReferenceValue) {
-                    PrismReferenceValue refVal = (PrismReferenceValue) visitable;
-                    PrismObject<?> refObject = refVal.getObject();
-                    if (refObject == null) {
-                        try {
-                            // TODO what about security here?!
-                            // TODO use some minimalistic get options (e.g. retrieve name only)
-                            refObject = objectResolver.resolve(refVal, "", rootOptionsNoResolve, task, result);
-                        } catch (ObjectNotFoundException e) {
-                            // actually, this won't occur if AllowNotFound is set to true above (however, for now, it is not)
-                            result.muteError();
-                            result.muteLastSubresultError();
-                        }
-                    }
-                    String name;
-                    if (refObject != null) {
-                        name = PolyString.getOrig(refObject.asObjectable().getName());
-                    } else {
-                        name = "(object not found)";
-                    }
-                    if (StringUtils.isNotEmpty(name)) {
-                        refVal.setUserData(XNodeSerializer.USER_DATA_KEY_COMMENT, " " + name + " ");
-                    }
-                }
-            }
-        });
+			@Override
+			public void visit(Visitable visitable) {
+				if (visitable instanceof PrismReferenceValue) {
+					PrismReferenceValue refVal = (PrismReferenceValue) visitable;
+					PrismObject<?> refObject = refVal.getObject();
+					if (refObject == null) {
+						try {
+							// TODO what about security here?!
+							// TODO use some minimalistic get options (e.g. retrieve name only)
+							refObject = objectResolver.resolve(refVal, "", rootOptionsNoResolve, task, result);
+						} catch (ObjectNotFoundException e) {
+							// actually, this won't occur if AllowNotFound is set to true above (however, for now, it is not)
+							result.muteError();
+							result.muteLastSubresultError();
+						}
+					}
+					String name;
+					if (refObject != null) {
+						name = PolyString.getOrig(refObject.asObjectable().getName());
+					} else {
+						name = "(object not found)";
+					}
+					if (StringUtils.isNotEmpty(name)) {
+						refVal.setUserData(XNodeSerializer.USER_DATA_KEY_COMMENT, " " + name + " ");
+					}
+				}
+			}
+		});
     }
 
 
@@ -437,7 +442,11 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		QName refName = ItemPath.getName(first);
 		PrismReference reference = object.findReferenceByCompositeObjectElementName(refName);
 		if (reference == null) {
-			return;//throw new SchemaException("Cannot resolve: No reference "+refName+" in "+object);
+			// alternatively look up by reference name (e.g. linkRef)
+			reference = object.findReference(refName);
+			if (reference == null) {
+				return;//throw new SchemaException("Cannot resolve: No reference "+refName+" in "+object);
+			}
 		}
 		for (PrismReferenceValue refVal: reference.getValues()) {
 			PrismObject<O> refObject = refVal.getObject();
@@ -1436,7 +1445,8 @@ public class ModelController implements ModelService, ModelInteractionService, T
                         hook.invoke(object, options, task, result);
                     }
                 }
-                resolveNames(object, options, task, result);
+				resolve(object, options, task, result);
+				resolveNames(object, options, task, result);
             }
 
 		} finally {
@@ -1690,7 +1700,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	@Override
 	public List<PrismObject<? extends ShadowType>> listResourceObjects(String resourceOid,
 			QName objectClass, ObjectPaging paging, Task task, OperationResult parentResult) throws SchemaException,
-			ObjectNotFoundException, CommunicationException, ConfigurationException {
+			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(objectClass, "Object type must not be null.");
 		Validate.notNull(paging, "Paging must not be null.");
@@ -1722,6 +1732,9 @@ public class ModelController implements ModelService, ModelInteractionService, T
 				ModelUtils.recordFatalError(result, ex);
 				throw ex;
 			} catch (ConfigurationException ex) {
+				ModelUtils.recordFatalError(result, ex);
+				throw ex;
+			} catch (SecurityViolationException ex) {
 				ModelUtils.recordFatalError(result, ex);
 				throw ex;
 			} catch (ObjectNotFoundException ex) {
@@ -2394,7 +2407,35 @@ public class ModelController implements ModelService, ModelInteractionService, T
     private void checkScriptingAuthorization(OperationResult parentResult) throws SchemaException, SecurityViolationException {
         securityEnforcer.authorize(ModelAuthorizationAction.EXECUTE_SCRIPT.getUrl(), null, null, null, null, null, parentResult);
     }
+	//endregion
 
-    //endregion
+	//region Certification
 
+	// TODO implement these
+	// for now, please use CertificationManager directly
+
+	@Override
+	public AccessCertificationCampaignType createCampaign(AccessCertificationDefinitionType certificationDefinition, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
+		return null;
+	}
+
+	@Override
+	public void startStage(AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
+	}
+
+	@Override
+	public List<AccessCertificationCaseType> searchCases(String campaignOid, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
+		return null;
+	}
+
+	@Override
+	public List<AccessCertificationCaseType> searchDecisions(String campaignOid, String reviewerOid, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
+		return null;
+	}
+
+	@Override
+	public void recordReviewerDecision(String campaignOid, long caseId, AccessCertificationDecisionType decision, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ObjectAlreadyExistsException {
+	}
+
+	//endregion
 }

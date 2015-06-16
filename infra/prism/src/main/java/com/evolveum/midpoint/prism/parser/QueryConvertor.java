@@ -44,6 +44,7 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.InOidFilter;
@@ -91,6 +92,8 @@ public class QueryConvertor {
 	public static final QName KEY_FILTER_ORG = new QName(NS_QUERY, "org");
 	public static final QName KEY_FILTER_TYPE = new QName(NS_QUERY, "type");
 	public static final QName KEY_FILTER_IN_OID = new QName(NS_QUERY, "inOid");
+	public static final QName KEY_FILTER_NONE = new QName(NS_QUERY, "none");
+	public static final QName KEY_FILTER_ALL = new QName(NS_QUERY, "all");
 	
 	private static final QName KEY_FILTER_EQUAL_PATH = new QName(NS_QUERY, "path");
 	private static final QName KEY_FILTER_EQUAL_MATCHING = new QName(NS_QUERY, "matching");
@@ -567,9 +570,13 @@ public class QueryConvertor {
 	}
 
 	private static QName determineMatchingRule(MapXNode xmap) throws SchemaException{
-		String matchingRuleLocalPart = xmap.getParsedPrimitiveValue(KEY_FILTER_EQUAL_MATCHING, DOMUtil.XSD_STRING);
-		if (StringUtils.isNotBlank(matchingRuleLocalPart)){
-			return new QName(PrismConstants.NS_MATCHING_RULE, matchingRuleLocalPart);
+		String matchingRuleString = xmap.getParsedPrimitiveValue(KEY_FILTER_EQUAL_MATCHING, DOMUtil.XSD_STRING);
+		if (StringUtils.isNotBlank(matchingRuleString)){
+			if (QNameUtil.isUri(matchingRuleString)) {
+				return QNameUtil.uriToQName(matchingRuleString);
+			} else {
+				return new QName(PrismConstants.NS_MATCHING_RULE, matchingRuleString);
+			}
 		} else {
 			return null;
 		}
@@ -658,6 +665,14 @@ public class QueryConvertor {
 		
 		if (filter instanceof NoneFilter) {
 			return serializeNoneFilter((NoneFilter) filter, xnodeSerializer);
+		}
+		
+		if (filter instanceof NoneFilter) {
+			return serializeNoneFilter((NoneFilter) filter, xnodeSerilizer);
+		}
+		
+		if (filter instanceof AllFilter) {
+			return serializeAllFilter((AllFilter) filter, xnodeSerilizer);
 		}
 
 		throw new UnsupportedOperationException("Unsupported filter type: " + filter);
@@ -770,8 +785,27 @@ public class QueryConvertor {
 	}
 	
 	private static MapXNode serializeOrgFilter(OrgFilter filter, XNodeSerializer xnodeSerializer) {
-		// TODO
-		return null;
+		MapXNode map = new MapXNode();
+		map.put(KEY_FILTER_ORG_REF_OID, createPrimitiveXNode(filter.getOrgRef().getOid(), DOMUtil.XSD_STRING));
+		map.put(KEY_FILTER_ORG_SCOPE, createPrimitiveXNode(filter.getScope().name(), DOMUtil.XSD_STRING));
+		
+		MapXNode xtypeFilter= new MapXNode();
+		xtypeFilter.put(KEY_FILTER_ORG, map);
+		return xtypeFilter;
+	}
+	
+	private static MapXNode serializeNoneFilter(NoneFilter filter, XNodeSerializer xnodeSerializer) throws SchemaException{
+		MapXNode xtypeFilter= new MapXNode();
+		xtypeFilter.put(KEY_FILTER_NONE, null);
+		return xtypeFilter;
+		
+	}
+	
+	private static MapXNode serializeAllFilter(AllFilter filter, XNodeSerializer xnodeSerializer) throws SchemaException{
+		MapXNode xtypeFilter= new MapXNode();
+		xtypeFilter.put(KEY_FILTER_ALL, null);
+		return xtypeFilter;
+		
 	}
 
 	private static void serializeMatchingRule(ValueFilter filter, MapXNode map){

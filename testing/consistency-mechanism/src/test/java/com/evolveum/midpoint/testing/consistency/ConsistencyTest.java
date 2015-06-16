@@ -17,7 +17,6 @@ package com.evolveum.midpoint.testing.consistency;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttribute;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttributeNotNull;
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertIcfsNameAttribute;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertNoRepoCache;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayJaxb;
@@ -175,8 +174,12 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	
 	private static final String RESOURCE_OPENDJ_FILENAME = REPO_DIR_NAME + "resource-opendj.xml";
 	private static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+	private static final String RESOURCE_OPENDJ_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+	private static final QName RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS = new QName(RESOURCE_OPENDJ_NS,"inetOrgPerson");
+	private static final String RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME = "entryUUID";
+	private static final String RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME = "dn";
 
-	private static final String CONNECTOR_LDAP_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/org.identityconnectors.ldap.LdapConnector";
+	private static final String CONNECTOR_LDAP_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector";
 
 	private static final String USER_TEMPLATE_FILENAME = REPO_DIR_NAME + "user-template.xml";
 
@@ -246,13 +249,13 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	private static final String USER_ABOM_FILENAME = REPO_DIR_NAME + "user-abom.xml";
 	private static final String USER_ABOM_OID = "c0c010c0-d34d-b33f-f00d-111111016016";
 	
-	private static final String ACCOUNT_GUYBRUSH_FILENAME = REPO_DIR_NAME + "account-guybrush.xml";
+	private static final File ACCOUNT_GUYBRUSH_FILE = new File(REPO_DIR_NAME, "account-guybrush.xml");
 	private static final String ACCOUNT_GUYBRUSH_OID = "a0c010c0-d34d-b33f-f00d-111111111222";
 	
-	private static final String ACCOUNT_HECTOR_FILENAME = REPO_DIR_NAME + "account-hector-not-found.xml";
+	private static final File ACCOUNT_HECTOR_FILE = new File(REPO_DIR_NAME, "account-hector-not-found.xml");
 	private static final String ACCOUNT_HECTOR_OID = "a0c010c0-d34d-b33f-f00d-111111222333";
 
-	private static final String ACCOUNT_GUYBRUSH_MODIFY_DELETE_FILENAME = REPO_DIR_NAME + "account-guybrush-not-found.xml";
+	private static final File ACCOUNT_GUYBRUSH_MODIFY_DELETE_FILE = new File(REPO_DIR_NAME, "account-guybrush-not-found.xml");
 	private static final String ACCOUNT_GUYBRUSH_MODIFY_DELETE_OID = "a0c010c0-d34d-b33f-f00d-111111111333";
 
 	private static final String ACCOUNT_DENIELS_FILENAME = REPO_DIR_NAME + "account-deniels.xml";
@@ -511,7 +514,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 	private void checkOpenDjSchema(ResourceType resource, String source) throws SchemaException {
 		ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
-		ObjectClassComplexTypeDefinition accountDefinition = schema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
+		ObjectClassComplexTypeDefinition accountDefinition = schema.findObjectClassDefinition(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
 		assertNotNull("Schema does not define any account (resource from " + source + ")", accountDefinition);
 		Collection<? extends ResourceAttributeDefinition> identifiers = accountDefinition.getIdentifiers();
 		assertFalse("No account identifiers (resource from " + source + ")", identifiers == null
@@ -531,7 +534,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	}
 
 	private void checkOpenDjConfiguration(PrismObject<ResourceType> resource, String source) {
-		checkOpenResourceConfiguration(resource, CONNECTOR_LDAP_NAMESPACE, "credentials", 7, source);
+		checkOpenResourceConfiguration(resource, CONNECTOR_LDAP_NAMESPACE, "bindPassword", 8, source);
 	}
 
 	private void checkOpenResourceConfiguration(PrismObject<ResourceType> resource,
@@ -782,7 +785,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		AssertJUnit.assertNotNull(modelShadow);
 		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, modelShadow.getResourceRef().getOid());
 
-		assertAttributeNotNull(modelShadow, ConnectorFactoryIcfImpl.ICFS_UID);
+		assertAttributeNotNull(modelShadow, getOpenDjPrimaryIdentifierQName());
 		assertAttributes(modelShadow, "jackie", "Jack", "Sparrow", "Jack Sparrow");
 		// "middle of nowhere");
 		assertNull("carLicense attribute sneaked to LDAP",
@@ -874,9 +877,9 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		Task task = taskManager.createTaskInstance();
 		
-		//WHEN REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXISTS_UNLINKED_OPENDJ_FILENAME
+		//WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGNE_ACCOUNT, USER_WILL_OID, UserType.class, task, null, parentResult);
-//		TestUtil.displayWhen(TEST_NAME);
 
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -889,7 +892,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		ResourceAttributeContainer attributes = ShadowUtil.getAttributesContainer(account);
 
 		assertEquals("shadow secondary identifier not equal with the account dn. ", dn, attributes
-				.findAttribute(SchemaConstants.ICFS_NAME).getRealValue(String.class));
+				.findAttribute(getOpenDjSecondaryIdentifierQName()).getRealValue(String.class));
 
 		String identifier = attributes.getIdentifier().getRealValue(String.class);
 
@@ -948,8 +951,6 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 					.asObjectable();
 			assertShadowName(abombaShadow,
 					"uid=abomba,OU=people,DC=example,DC=com");
-			
-//			assertAttribute(abombaShadow, SchemaConstants.ICFS_NAME, "uid=abomba,OU=people,DC=example,DC=com");
 
 			repoAddObjectFromFile(USER_ABOM_FILENAME, UserType.class,
 					parentResult);
@@ -1044,9 +1045,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		TestUtil.displayTestTile("test017deleteObjectNotFound");
 		OperationResult parentResult = new OperationResult("Delete object not found");
 
-		repoAddObjectFromFile(ACCOUNT_GUYBRUSH_FILENAME, ShadowType.class, parentResult);
+		repoAddShadowFromFile(ACCOUNT_GUYBRUSH_FILE, parentResult);
 		repoAddObjectFromFile(USER_GUYBRUSH_FILENAME, UserType.class, parentResult);
-
 		
 		Task task = taskManager.createTaskInstance();
 		requestToExecuteChanges(REQUEST_USER_MODIFY_DELETE_ACCOUNT, USER_GUYBRUSH_OID, UserType.class, task, null, parentResult);
@@ -1076,7 +1076,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		OperationResult parentResult = new OperationResult(
 				"Modify account not found => reaction: Delete account");
 
-		repoAddObjectFromFile(ACCOUNT_GUYBRUSH_FILENAME, ShadowType.class, parentResult);
+		repoAddShadowFromFile(ACCOUNT_GUYBRUSH_FILE, parentResult);
 		repoAddObjectFromFile(USER_GUYBRUSH_FILENAME, UserType.class, parentResult);
 
 		assertUserOneAccountRef(USER_GUYBRUSH_OID);
@@ -1111,7 +1111,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		OperationResult parentResult = new OperationResult(
 				"Modify account not found => reaction: Re-create account, apply changes.");
 
-		repoAddObjectFromFile(ACCOUNT_GUYBRUSH_MODIFY_DELETE_FILENAME, ShadowType.class, parentResult);
+		repoAddShadowFromFile(ACCOUNT_GUYBRUSH_MODIFY_DELETE_FILE, parentResult);
 		repoAddObjectFromFile(USER_GUYBRUSH_NOT_FOUND_FILENAME, UserType.class, parentResult);
 
 		assertUserOneAccountRef(USER_GUYBRUSH_NOT_FOUND_OID);
@@ -1148,7 +1148,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		OperationResult parentResult = new OperationResult(
 				"Get account not found => reaction: Re-create account, return re-created.");
 
-		repoAddObjectFromFile(ACCOUNT_HECTOR_FILENAME, ShadowType.class, parentResult);
+		repoAddShadowFromFile(ACCOUNT_HECTOR_FILE, parentResult);
 		repoAddObjectFromFile(USER_HECTOR_NOT_FOUND_FILENAME, UserType.class, parentResult);
 
 		assertUserOneAccountRef(USER_HECTOR_NOT_FOUND_OID);
@@ -1797,11 +1797,11 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        assertAccountShadowRepo(accountShadow, accountOid, "uid=morgan,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo);
+        assertShadowRepo(accountShadow, accountOid, "uid=morgan,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-        assertAccountShadowModel(accountModel, accountOid, "uid=morgan,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo);
+        assertShadowModel(accountModel, accountOid, "uid=morgan,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
         
         // TODO: check OpenDJ Account        
 	}
@@ -1851,11 +1851,11 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        assertAccountShadowRepo(accountShadow, accountOid, "uid=chuck,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo);
+        assertShadowRepo(accountShadow, accountOid, "uid=chuck,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-        assertAccountShadowModel(accountModel, accountOid, "uid=chuck,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo);
+        assertShadowModel(accountModel, accountOid, "uid=chuck,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
         ShadowType accountTypeModel = accountModel.asObjectable();
         
         assertAttribute(accountTypeModel, resourceTypeOpenDjrepo, "uid", "chuck");
@@ -1919,11 +1919,11 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        assertAccountShadowRepo(accountShadow, accountOid, "uid=ht,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo);
+        assertShadowRepo(accountShadow, accountOid, "uid=ht,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-        assertAccountShadowModel(accountModel, accountOid, "uid=ht,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo);
+        assertShadowModel(accountModel, accountOid, "uid=ht,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
         ShadowType accountTypeModel = accountModel.asObjectable();
         
         // Check account's attributes
@@ -2032,7 +2032,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
         mapping.setExpression(expression);
         
         ResourceAttributeDefinitionType attrDefType = new ResourceAttributeDefinitionType();
-        attrDefType.setRef(new ItemPathType(new ItemPath(SchemaConstants.ICFS_NAME)));
+        attrDefType.setRef(new ItemPathType(new ItemPath(getOpenDjSecondaryIdentifierQName())));
         attrDefType.setOutbound(mapping);
         
         ConstructionType construction = new ConstructionType();
@@ -2064,11 +2064,11 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		// Check shadow
         
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        assertAccountShadowRepo(accountShadow, accountOid, "uid=morgan,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo);
+        assertShadowRepo(accountShadow, accountOid, "uid=morgan,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-        assertAccountShadowModel(accountModel, accountOid, "uid=morgan,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo);
+        assertShadowModel(accountModel, accountOid, "uid=morgan,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
         ResourceAttribute attributes = ShadowUtil.getAttribute(accountModel, new QName(resourceTypeOpenDjrepo.getNamespace(), "uid"));
         assertEquals("morgan", attributes.getAnyRealValue());
         // TODO: check OpenDJ Account        
@@ -2139,7 +2139,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		
 		String elaineAccountOid = assertUserOneAccountRef(USER_ELAINE_OID);
 		modifiedAccount = checkNormalizedShadowBasic(elaineAccountOid, "elaine", true, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), null, result);
-		assertIcfsNameAttribute(modifiedAccount, "uid=elaine,ou=people,dc=example,dc=com");
+		assertAttribute(modifiedAccount, getOpenDjSecondaryIdentifierQName(), "uid=elaine,ou=people,dc=example,dc=com");
 
 		accountOid = assertUserOneAccountRef(USER_JACK2_OID);
 		ShadowType jack2Shadow = checkNormalizedShadowBasic(accountOid, "jack2", true, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), null, result);
@@ -2187,7 +2187,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		assertEquals(1, identifiers.size());
 
 		
-		ResourceAttribute icfNameAttr = attributeContainer.findAttribute(new QName(SchemaConstants.NS_ICF_SCHEMA, "name"));
+		ResourceAttribute icfNameAttr = attributeContainer.findAttribute(getOpenDjSecondaryIdentifierQName());
 		assertEquals("Wrong secondary indetifier.", "uid=e123,ou=people,dc=example,dc=com", icfNameAttr.getRealValue());
 		
 		assertEquals("Wrong shadow name. ", "uid=e123,ou=people,dc=example,dc=com", eAccount.getName().getOrig());
@@ -2197,7 +2197,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		provisioningService.applyDefinition(repoShadow, result);
 		
 		ResourceAttributeContainer repoAttributeContainer = ShadowUtil.getAttributesContainer(repoShadow);
-		ResourceAttribute repoIcfNameAttr = repoAttributeContainer.findAttribute(new QName(SchemaConstants.NS_ICF_SCHEMA, "name"));
+		ResourceAttribute repoIcfNameAttr = repoAttributeContainer.findAttribute(getOpenDjSecondaryIdentifierQName());
 		assertEquals("Wrong secondary indetifier.", "uid=e123,ou=people,dc=example,dc=com", repoIcfNameAttr.getRealValue());
 		
 		assertEquals("Wrong shadow name. ", "uid=e123,ou=people,dc=example,dc=com", repoShadow.asObjectable().getName().getOrig());
@@ -2224,33 +2224,37 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 				taskManager.getLocallyRunningTasks(new OperationResult("dummy")));
 	}
 
-	// TODO: test for missing/corrupt system configuration
-	// TODO: test for missing sample config (bad reference in expression
-	// arguments)
-
 	private String checkRepoShadow(PrismObject<ShadowType> repoShadow) {
 		ShadowType repoShadowType = repoShadow.asObjectable();
 		String uid = null;
-		boolean hasOthers = false;
-		List<Object> xmlAttributes = repoShadowType.getAttributes().getAny();
-		for (Object element : xmlAttributes) {
-			if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(element))) {
-				if (uid != null) {
-					AssertJUnit.fail("Multiple values for ICF UID in shadow attributes");
-				} else {
-					uid = ((Element) element).getTextContent();
-				}
-			} else if (ConnectorFactoryIcfImpl.ICFS_NAME.equals(JAXBUtil.getElementQName(element))) {
-				// This is OK
-			} else {
-				hasOthers = true;
-			}
-		}
+        boolean hasOthers = false;
+        List<Object> xmlAttributes = repoShadowType.getAttributes().getAny();
+        for (Object element : xmlAttributes) {
+            if (getOpenDjPrimaryIdentifierQName().equals(JAXBUtil.getElementQName(element)) || getOpenDjPrimaryIdentifierQName().equals(JAXBUtil.getElementQName(element))) {
+                if (uid != null) {
+                    AssertJUnit.fail("Multiple values for ICF UID in shadow attributes");
+                } else {
+                    uid = ((Element) element).getTextContent();
+                }
+            } else if (ConnectorFactoryIcfImpl.ICFS_NAME.equals(JAXBUtil.getElementQName(element)) || getOpenDjSecondaryIdentifierQName().equals(JAXBUtil.getElementQName(element))) {
+            	// This is OK
+        	} else {
+                hasOthers = true;
+            }
+        }
 
-		assertFalse("Shadow " + repoShadow + " has unexpected elements", hasOthers);
-		assertNotNull(uid);
+        assertFalse("Shadow "+repoShadow+" has unexpected elements", hasOthers);
+        assertNotNull(uid);
+        
+        return uid;
+	}
+    
+    private QName getOpenDjPrimaryIdentifierQName() {
+    	return new QName(RESOURCE_OPENDJ_NS, RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME);
+	}
 
-		return uid;
+	private QName getOpenDjSecondaryIdentifierQName() {
+		return new QName(RESOURCE_OPENDJ_NS, RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME);
 	}
 	
 	private String checkUser(String userOid, Task task, OperationResult parentResult) throws Exception{
@@ -2282,7 +2286,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		AssertJUnit.assertNotNull(createdShadow);
 		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, createdShadow.getResourceRef().getOid());
-		assertAttributeNotNull(createdShadow, ConnectorFactoryIcfImpl.ICFS_UID);
+		assertAttributeNotNull(createdShadow, getOpenDjPrimaryIdentifierQName());
 		
 		assertAttributes(createdShadow, uid, givenName, sn, cn);
 		

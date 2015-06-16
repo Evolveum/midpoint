@@ -740,6 +740,11 @@ public class OpenDJController extends AbstractResourceController {
         return entry;
 	}
 
+	public ChangeRecordEntry modifyReplace(String entryDn, String attributeName, String value) throws IOException, LDIFException {
+        String ldif = "dn: " + entryDn + "\nchangetype: modify\nreplace: "+attributeName+"\n"+attributeName+": " + value;
+        return executeLdifChange(ldif);
+    }
+	
 	public String dumpEntries() throws DirectoryException {
 		InternalSearchOperation op = getInternalConnection().processSearch(
 				LDAP_SUFFIX, SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 100,

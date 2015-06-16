@@ -111,7 +111,7 @@ public class PageForgetPassword extends PageBase {
 
 
 				UserType user= checkUser(email.getModelObject(),username.getModelObject() );
-				System.out.println("checkkk");
+				//System.out.println("checkkk");
 				if(user!=null){
 					//If the parameters are ok reset the password
 					
@@ -119,7 +119,7 @@ public class PageForgetPassword extends PageBase {
 					//	PageForgetPasswordQuestions pageForgetPasswordQuestions =new PageForgetPasswordQuestions();
 					//		pageForgetPasswordQuestions.setUserTypeObject(user);
 
-					System.out.println("pOid");
+					//System.out.println("pOid");
 					getSession().setAttribute("pOid", user.getOid());
 					getSecurityEnforcer().setupPreAuthenticatedSecurityContext((Authentication) null);
 			        setResponsePage(PageSecurityQuestions.class);
@@ -149,10 +149,11 @@ public class PageForgetPassword extends PageBase {
 				}
 				else{
 					
-					getSession().error(getString("pageForgetPassword.message.usernotfound"));
-					getSession().invalidate();
+					
+					//getSession().invalidate();
 					SecurityContext securityContext = SecurityContextHolder.getContext();
 					securityContext.setAuthentication(null);
+					getSession().error(getString("pageForgetPassword.message.usernotfound"));
 					throw new RestartResponseException(PageForgetPassword.class);
 
 
@@ -355,7 +356,7 @@ public class PageForgetPassword extends PageBase {
 		
 		deltas.add(ObjectDelta.createModifyDelta(user.getOid(), delta, type, getPrismContext()));
 		try {
-			System.out.println("Reset Password5");
+			//System.out.println("Reset Password5");
 		
 				getModelService().executeChanges(deltas, null, task, result);
 			setAuthenticationNull();

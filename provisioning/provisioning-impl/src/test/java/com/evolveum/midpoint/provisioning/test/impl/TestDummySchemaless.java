@@ -29,6 +29,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
+import java.io.File;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
@@ -43,6 +44,7 @@ import org.w3c.dom.Element;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
+import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -92,13 +94,11 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 
 	private static final String TEST_DIR = "src/test/resources/impl/dummy-schemaless/";
 
-	private static final String RESOURCE_DUMMY_NO_SCHEMA_FILENAME = TEST_DIR 
-			+ "resource-dummy-schemaless-no-schema.xml";
+	private static final File RESOURCE_DUMMY_NO_SCHEMA_FILE = new File(TEST_DIR, "resource-dummy-schemaless-no-schema.xml");
 	private static final String RESOURCE_DUMMY_NO_SCHEMA_OID = "ef2bc95b-76e0-59e2-86d6-9999dddd0000";
 	private static final String RESOURCE_DUMMY_NO_SCHEMA_INSTANCE_ID = "schemaless";
 	
-	private static final String RESOURCE_DUMMY_STATIC_SCHEMA_FILENAME = TEST_DIR 
-			+ "resource-dummy-schemaless-static-schema.xml";
+	private static final File RESOURCE_DUMMY_STATIC_SCHEMA_FILE = new File(TEST_DIR, "resource-dummy-schemaless-static-schema.xml");
 	private static final String RESOURCE_DUMMY_STATIC_SCHEMA_OID = "ef2bc95b-76e0-59e2-86d6-9999dddd0505";
 	private static final String RESOURCE_DUMMY_STATIC_SCHEMA_INSTANCE_ID = "staticSchema";
 	
@@ -140,15 +140,17 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		provisioningService.postInit(initResult);
+		
+		InternalsConfig.encryptionChecks = false;
 
-		resourceSchemaless = addResourceFromFile(RESOURCE_DUMMY_NO_SCHEMA_FILENAME, IntegrationTestTools.DUMMY_CONNECTOR_TYPE, initResult);
+		resourceSchemaless = addResourceFromFile(RESOURCE_DUMMY_NO_SCHEMA_FILE, IntegrationTestTools.DUMMY_CONNECTOR_TYPE, initResult);
 		resourceTypeSchemaless = resourceSchemaless.asObjectable();
 
 		dummyResourceSchemalessCtl = DummyResourceContoller.create(RESOURCE_DUMMY_NO_SCHEMA_INSTANCE_ID);
 		dummyResourceSchemalessCtl.setResource(resourceSchemaless);
 		dummyResourceSchemaless = dummyResourceSchemalessCtl.getDummyResource();
 				
-		resourceStaticSchema = addResourceFromFile(RESOURCE_DUMMY_STATIC_SCHEMA_FILENAME, IntegrationTestTools.DUMMY_CONNECTOR_TYPE, initResult);
+		resourceStaticSchema = addResourceFromFile(RESOURCE_DUMMY_STATIC_SCHEMA_FILE, IntegrationTestTools.DUMMY_CONNECTOR_TYPE, initResult);
 		resourceTypeStaticSchema = resourceStaticSchema.asObjectable();
 
 		dummyResourceStaticSchema = DummyResource.getInstance(RESOURCE_DUMMY_STATIC_SCHEMA_INSTANCE_ID);

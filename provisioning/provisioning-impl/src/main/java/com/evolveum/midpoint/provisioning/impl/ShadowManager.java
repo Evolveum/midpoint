@@ -62,6 +62,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -163,9 +164,8 @@ public class ShadowManager {
 //		PagingType paging = new PagingType();
 
 		// TODO: check for errors
-		List<PrismObject<ShadowType>> results;
-
-		results = repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
+		 List<PrismObject<ShadowType>> results = repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
+		 MiscSchemaUtil.reduceSearchResult(results);
 
 		LOGGER.trace("lookupShadow found {} objects", results.size());
 
@@ -176,9 +176,9 @@ public class ShadowManager {
 			for (PrismObject<ShadowType> result : results) {
 				LOGGER.trace("Search result:\n{}", result.debugDump());
 			}
-			LOGGER.error("More than one shadows found for " + resourceShadow);
+			LOGGER.error("More than one shadow found for " + resourceShadow);
 			// TODO: Better error handling later
-			throw new IllegalStateException("More than one shadows found for " + resourceShadow);
+			throw new IllegalStateException("More than one shadow found for " + resourceShadow);
 		}
 
 		return results.get(0);
@@ -191,7 +191,7 @@ public class ShadowManager {
 		ObjectQuery query = createSearchShadowQuery(identifierContainer.getValue().getItems(), rObjClassDef, resource, prismContext,
 				parentResult);
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Searching for shadow using filter:\n{}",
+			LOGGER.trace("Searching for shadow using filter (repo):\n{}",
 					query.debugDump());
 		}
 //		PagingType paging = new PagingType();
@@ -200,6 +200,7 @@ public class ShadowManager {
 		List<PrismObject<ShadowType>> results;
 
 		results = repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
+		MiscSchemaUtil.reduceSearchResult(results);
 
 		LOGGER.trace("lookupShadow found {} objects", results.size());
 
@@ -207,12 +208,14 @@ public class ShadowManager {
 			return null;
 		}
 		if (results.size() > 1) {
-			for (PrismObject<ShadowType> result : results) {
-				LOGGER.trace("Search result:\n{}", result.debugDump());
+			LOGGER.error("More than one shadow found in repository for " + identifierContainer);
+			if (LOGGER.isDebugEnabled()) {
+				for (PrismObject<ShadowType> result : results) {
+					LOGGER.debug("Conflicting shadow (repo):\n{}", result.debugDump());
+				}
 			}
-			LOGGER.error("More than one shadows found for " + identifierContainer);
 			// TODO: Better error handling later
-			throw new IllegalStateException("More than one shadows found for " + identifierContainer);
+			throw new IllegalStateException("More than one shadows found in repository for " + identifierContainer);
 		}
 
 		return results.get(0);
@@ -257,9 +260,8 @@ public class ShadowManager {
 		}
 
 		// TODO: check for errors
-		List<PrismObject<ShadowType>> results;
-
-		results = repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
+		List<PrismObject<ShadowType>> results = repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
+		MiscSchemaUtil.reduceSearchResult(results);
 
 		LOGGER.trace("lookupShadow found {} objects", results.size());
 
@@ -297,7 +299,12 @@ public class ShadowManager {
 			for (PrismObject<ShadowType> result : conflictingShadows) {
 				LOGGER.trace("Search result:\n{}", result.debugDump());
 			}
-			LOGGER.error("More than one shadows found for " + resourceShadow);
+			LOGGER.error("More than one shadow found for " + resourceShadow);
+			if (LOGGER.isDebugEnabled()) {
+				for (PrismObject<ShadowType> conflictingShadow: conflictingShadows) {
+					LOGGER.debug("Conflicting shadow:\n{}", conflictingShadow.debugDump());
+				}
+			}
 			// TODO: Better error handling later
 			throw new IllegalStateException("More than one shadows found for " + resourceShadow);
 		}
@@ -444,6 +451,7 @@ public class ShadowManager {
 			throw new SchemaException("Failed to search shadow according to the identifiers: "
 					+ change.getIdentifiers() + ". Reason: " + ex.getMessage(), ex);
 		}
+		MiscSchemaUtil.reduceSearchResult(accountList);
 		return accountList;
 	}
 	
@@ -555,6 +563,9 @@ public class ShadowManager {
 		}
 		QName attrName = eqFilter.getElementName();
 		RefinedAttributeDefinition rAttrDef = objectClassDef.findAttributeDefinition(attrName);
+		if (rAttrDef == null) {
+			throw new SchemaException("Unknown attribute "+attrName+" in filter "+filter);
+		}
 		QName matchingRuleQName = rAttrDef.getMatchingRuleQName();
 		if (matchingRuleQName == null) {
 			return;

@@ -87,13 +87,4 @@ public class AccountType
         this.attributes = value;
     }
 
-    @Override
-    public PrismObject asPrismObject() {
-        throw new UnsupportedOperationException("not implemented yet");
-    }
-
-    @Override
-    public void setupContainer(PrismObject object) {
-        throw new UnsupportedOperationException("not implemented yet");
-    }
 }

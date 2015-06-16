@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.ConnectorManager;
 import com.evolveum.midpoint.provisioning.test.mock.SynchornizationServiceMock;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -45,30 +46,36 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 	protected static final String TEST_DIR_NAME = "src/test/resources/impl/opendj";
 	protected static final File TEST_DIR = new File(TEST_DIR_NAME);
 	
-	protected static final String RESOURCE_OPENDJ_FILENAME = ProvisioningTestUtil.COMMON_TEST_DIR_FILENAME + "resource-opendj.xml";
-	protected static final String RESOURCE_OPENDJ_INITIALIZED_FILENAME = ProvisioningTestUtil.COMMON_TEST_DIR_FILENAME + "resource-opendj-initialized.xml";
+	protected static final File RESOURCE_OPENDJ_FILE = new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "resource-opendj.xml");
+	protected static final File RESOURCE_OPENDJ_INITIALIZED_FILE = new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILENAME, "resource-opendj-initialized.xml");
 	protected static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 	
-	protected static final String ACCOUNT1_FILENAME = TEST_DIR_NAME + "/account1.xml";
-	protected static final String ACCOUNT1_REPO_FILENAME = TEST_DIR_NAME + "/account1-repo.xml";
+	protected static final File RESOURCE_OPENDJ_BAD_CREDENTIALS_FILE = new File(TEST_DIR, "resource-opendj-bad-credentials.xml");
+	protected static final String RESOURCE_OPENDJ_BAD_CREDENTIALS_OID = "8bc3ff5a-ef5d-11e4-8bba-001e8c717e5b";
+	
+	protected static final File RESOURCE_OPENDJ_BAD_BIND_DN_FILE = new File(TEST_DIR, "resource-opendj-bad-bind-dn.xml");
+	protected static final String RESOURCE_OPENDJ_BAD_BIND_DN_OID = "d180258a-ef5f-11e4-8737-001e8c717e5b";
+	
+	protected static final File ACCOUNT1_FILE = new File (TEST_DIR_NAME, "account1.xml");
+	protected static final File ACCOUNT1_REPO_FILE = new File(TEST_DIR_NAME, "account1-repo.xml");
 	protected static final String ACCOUNT1_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1cccc";
 	
 	protected static final String ACCOUNT_NEW_FILENAME = TEST_DIR_NAME + "/account-new.xml";
 	protected static final String ACCOUNT_NEW_OID = "c0c010c0-d34d-b44f-f11d-333222123456";
 	protected static final String ACCOUNT_NEW_DN = "uid=will,ou=People,dc=example,dc=com";
 	
-	protected static final String ACCOUNT_BAD_FILENAME = TEST_DIR_NAME + "/account-bad.xml";
+	protected static final File ACCOUNT_BAD_FILE = new File(TEST_DIR, "account-bad.xml");
 	protected static final String ACCOUNT_BAD_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1ffff";
 	
-	protected static final String ACCOUNT_MODIFY_FILENAME = TEST_DIR_NAME + "/account-modify.xml";
-	protected static final String ACCOUNT_MODIFY_REPO_FILENAME = TEST_DIR_NAME + "/account-modify-repo.xml";
+	protected static final File ACCOUNT_MODIFY_FILE = new File(TEST_DIR_NAME, "account-modify.xml");
+	protected static final File ACCOUNT_MODIFY_REPO_FILE = new File(TEST_DIR_NAME, "account-modify-repo.xml");
 	protected static final String ACCOUNT_MODIFY_OID = "c0c010c0-d34d-b44f-f11d-333222444555";
 	
-	protected static final String ACCOUNT_MODIFY_PASSWORD_FILENAME = TEST_DIR_NAME + "/account-modify-password.xml";
+	protected static final File ACCOUNT_MODIFY_PASSWORD_FILE = new File(TEST_DIR_NAME, "account-modify-password.xml");
 	protected static final String ACCOUNT_MODIFY_PASSWORD_OID = "c0c010c0-d34d-b44f-f11d-333222444566";
 	
 	protected static final String ACCOUNT_DELETE_FILENAME = TEST_DIR_NAME + "/account-delete.xml";
-	protected static final String ACCOUNT_DELETE_REPO_FILENAME = TEST_DIR_NAME + "/account-delete-repo.xml";
+	protected static final File ACCOUNT_DELETE_REPO_FILE = new File(TEST_DIR_NAME, "account-delete-repo.xml");
 	protected static final String ACCOUNT_DELETE_OID = "c0c010c0-d34d-b44f-f11d-333222654321";
 	
 	protected static final String ACCOUNT_SEARCH_ITERATIVE_FILENAME = TEST_DIR_NAME + "/account-search-iterative.xml";
@@ -105,9 +112,13 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 	protected static final String NON_EXISTENT_OID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
 	
 	protected static final String RESOURCE_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
-	protected static final QName RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS = new QName(RESOURCE_NS,"AccountObjectClass");
-	protected static final String LDAP_CONNECTOR_TYPE = "org.identityconnectors.ldap.LdapConnector";
-		
+	protected static final QName RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS = new QName(RESOURCE_NS,"inetOrgPerson");
+	protected static final String LDAP_CONNECTOR_TYPE = "com.evolveum.polygon.connector.ldap.LdapConnector";
+	
+	protected static final File QUERY_COMPLEX_FILTER_FILE = new File(TEST_DIR, "query-complex-filter.xml");
+	
+	protected static final String OBJECT_CLASS_INETORGPERSON_NAME = "inetOrgPerson";
+	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractOpenDJTest.class);
 	
 	protected PrismObject<ResourceType> resource;
@@ -131,9 +142,8 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 		// not have a definition here
 		InternalsConfig.encryptionChecks = false;
 		provisioningService.postInit(initResult);
-		PrismObject<ResourceType> resource = addResourceFromFile(RESOURCE_OPENDJ_FILENAME, LDAP_CONNECTOR_TYPE, initResult);
-//		addObjectFromFile(FILENAME_ACCOUNT1);
-		repoAddObjectFromFile(ACCOUNT_BAD_FILENAME, ShadowType.class, initResult);
+		resource = addResourceFromFile(RESOURCE_OPENDJ_FILE, LDAP_CONNECTOR_TYPE, initResult);
+		repoAddShadowFromFile(ACCOUNT_BAD_FILE, initResult);
 	}
 	
 	protected <T> void assertAttribute(ShadowType shadow, String attrName, T... expectedValues) {
@@ -142,5 +152,13 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 
 	protected <T> void assertAttribute(ShadowType shadow, QName attrName, T... expectedValues) {
 		ProvisioningTestUtil.assertAttribute(resource, shadow, attrName, expectedValues);
+	}
+	
+	protected QName getPrimaryIdentifierQName() {
+		return new QName(ResourceTypeUtil.getResourceNamespace(resourceType), ProvisioningTestUtil.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME);
+	}
+
+	protected QName getSecondaryIdentifierQName() {
+		return new QName(ResourceTypeUtil.getResourceNamespace(resourceType), ProvisioningTestUtil.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME);
 	}
 }

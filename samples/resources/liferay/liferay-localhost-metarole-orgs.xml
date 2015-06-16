@@ -1,0 +1,47 @@
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      oid="88f645c6-5938-4775-bcbf-cfd20cb1d93d"
+      version="1">
+    <name>Liferay Localhost Metarole for ORGs</name>
+    <metadata>
+        <createTimestamp>2015-06-09T17:36:59.639+02:00</createTimestamp>
+        <creatorRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></creatorRef>
+        <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</createChannel>
+    </metadata>
+    <activation>
+        <administrativeStatus>enabled</administrativeStatus>
+        <effectiveStatus>enabled</effectiveStatus>
+        <enableTimestamp>2015-06-09T17:36:59.489+02:00</enableTimestamp>
+    </activation>
+    <iteration>0</iteration>
+    <iterationToken/>
+    <inducement id="1">
+        <description>Creates a Liferay organization for this Org</description>
+        <construction>
+            <resourceRef oid="ee0a9074-6bcd-4f8d-8a7d-88dca572769c" type="c:ResourceType"><!-- Localhost Liferay --></resourceRef>
+            <kind>entitlement</kind>
+            <intent>organization</intent>
+        </construction>
+    </inducement>
+    <inducement id="2">
+        <description>Assigns a user a Liferay organization created for this Org</description>
+        <construction>
+            <resourceRef oid="ee0a9074-6bcd-4f8d-8a7d-88dca572769c" type="c:ResourceType"><!-- Localhost Liferay --></resourceRef>
+            <attribute>
+                <c:ref>ri:organizationIds</c:ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <c:path>$immediateRole/identifier</c:path>
+                    </source>
+                </outbound>
+            </attribute>
+        </construction>
+        <order>2</order>
+    </inducement>
+    <requestable>false</requestable>
+</role>

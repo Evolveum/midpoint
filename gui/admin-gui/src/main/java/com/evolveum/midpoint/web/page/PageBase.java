@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page;
 
+import com.evolveum.midpoint.certification.api.CertificationManager;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
@@ -79,6 +80,8 @@ public abstract class PageBase extends PageTemplate {
     private MidpointConfiguration midpointConfiguration;
     @SpringBean(name = "reportManager")
     private ReportManager reportManager;
+    @SpringBean(name = "certificationManager")
+    private CertificationManager certificationManager;
     @SpringBean(name = "accessDecisionManager")
     private SecurityEnforcer securityEnforcer;
     @SpringBean
@@ -126,6 +129,10 @@ public abstract class PageBase extends PageTemplate {
         return reportManager;
     }
 
+    public CertificationManager getCertificationManager() {
+        return certificationManager;
+    }
+
     public ModelService getModelService() {
         return modelService;
     }
@@ -159,8 +166,12 @@ public abstract class PageBase extends PageTemplate {
     }
 
     public static StringResourceModel createStringResourceStatic(Component component, Enum e) {
-        String resourceKey = e.getDeclaringClass().getSimpleName() + "." + e.name();
+        String resourceKey = createEnumResourceKey(e);
         return createStringResourceStatic(component, resourceKey);
+    }
+
+    public static String createEnumResourceKey(Enum e) {
+        return e.getDeclaringClass().getSimpleName() + "." + e.name();
     }
 
     public Task createSimpleTask(String operation, PrismObject<UserType> owner) {

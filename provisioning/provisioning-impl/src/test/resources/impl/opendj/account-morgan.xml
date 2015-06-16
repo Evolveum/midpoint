@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2014 Evolveum
+  ~ Copyright (c) 2014-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -23,10 +23,10 @@
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
 	<name>uid=morgan,ou=People,dc=example,dc=com</name>
 	<resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
-	<objectClass>ri:AccountObjectClass</objectClass>
+	<objectClass>ri:inetOrgPerson</objectClass>
 	<kind>account</kind>
 	<attributes>
-		<icfs:name>uid=morgan,ou=People,dc=example,dc=com</icfs:name>
+		<ri:dn>uid=morgan,ou=People,dc=example,dc=com</ri:dn>
 		<ri:uid>morgan</ri:uid>
 		<ri:cn>Henry Morgan</ri:cn>
 		<ri:givenName>Henry</ri:givenName>

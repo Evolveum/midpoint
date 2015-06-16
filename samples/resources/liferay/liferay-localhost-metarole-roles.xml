@@ -1,0 +1,32 @@
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      oid="06621ab3-7515-4c1c-b532-9e8c16c96c28"
+      version="1">
+    <name>Liferay Localhost Metarole for Roles</name>
+    <metadata>
+        <createTimestamp>2015-06-09T17:41:21.905+02:00</createTimestamp>
+        <creatorRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></creatorRef>
+        <createChannel>http://midpoint.evolveum.com/xml/ns/public/model/channels-3#objectImport</createChannel>
+    </metadata>
+    <inducement id="1">
+        <description>Assigns a user a Liferay role</description>
+        <construction>
+            <resourceRef oid="ee0a9074-6bcd-4f8d-8a7d-88dca572769c" type="c:ResourceType"><!-- Localhost Liferay --></resourceRef>
+            <attribute>
+                <c:ref>ri:roles</c:ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <c:path>$immediateRole/identifier</c:path>
+                    </source>
+                </outbound>
+            </attribute>
+        </construction>
+        <order>2</order>
+    </inducement>
+    <requestable>false</requestable>
+</role>

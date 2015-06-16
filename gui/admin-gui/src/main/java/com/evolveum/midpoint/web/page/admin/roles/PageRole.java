@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.web.page.admin.roles;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -42,7 +43,9 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypeDialog;
+import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.roles.component.MultiplicityPolicyDialog;
 import com.evolveum.midpoint.web.page.admin.roles.component.UserOrgReferenceChoosePanel;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
@@ -70,6 +73,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
 import java.util.ArrayList;
@@ -148,8 +152,17 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
         }
     };
 
-    public PageRole(){
+    public PageRole() {
+        initialize();
+    }
 
+    public PageRole(PageParameters parameters, PageTemplate previousPage) {
+        getPageParameters().overwriteWith(parameters);
+        setPreviousPage(previousPage);
+        initialize();
+    }
+
+    protected void initialize() {
         model = new LoadableModel<PrismObject<RoleType>>(false) {
             @Override
             protected PrismObject<RoleType> load() {
@@ -770,7 +783,7 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form){
-                backPerformed();
+                setSpecificResponsePage();
             }
         };
         back.setDefaultFormProcessing(false);
@@ -880,12 +893,34 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
         return false;
     }
 
+    /**
+     * Removes empty policy constraints from role.
+     * It was created when loading model (not very good model implementation).
+     * MID-2366
+     *
+     * TODO improve
+     *
+     * @param prism
+     */
+    private void removeEmptyPolicyConstraints(PrismObject<RoleType> prism) {
+        RoleType role = prism.asObjectable();
+        PolicyConstraintsType pc =role.getPolicyConstraints();
+        if (pc == null) {
+            return;
+        }
+
+        if (pc.getExclusion().isEmpty() && pc.getMinAssignees().isEmpty() && pc.getMaxAssignees().isEmpty()) {
+            role.setPolicyConstraints(null);
+        }
+    }
+
     private void savePerformed(AjaxRequestTarget target){
         OperationResult result = new OperationResult(OPERATION_SAVE_ROLE);
         try {
             WebMiscUtil.revive(model, getPrismContext());
             WebMiscUtil.revive(approversModel, getPrismContext());
             PrismObject<RoleType> newRole = model.getObject();
+            removeEmptyPolicyConstraints(newRole);
             handleApproverReferences(newRole);
 
             ObjectDelta delta = null;
@@ -962,7 +997,7 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
                 progressReporter.isAllSuccess() &&
                 WebMiscUtil.isSuccessOrHandledErrorOrInProgress(result)) {
             showResultInSession(result);
-            setResponsePage(new PageRoles(false));
+            setSpecificResponsePage();
         } else {
             showResult(result);
             target.add(getFeedbackPanel());
@@ -993,7 +1028,11 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
         return delta;
     }
 
-    private void backPerformed(){
-        setResponsePage(new PageRoles(false));
+    private void setSpecificResponsePage() {
+        if (getPreviousPage() != null) {
+            goBack(PageDashboard.class);            // parameter is not used
+        } else {
+            setResponsePage(new PageRoles(false));
+        }
     }
 }

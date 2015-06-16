@@ -16,32 +16,43 @@
 
 package com.evolveum.midpoint.web.page.admin;
 
+import com.evolveum.midpoint.common.SystemConfigurationHolder;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.menu.top.MenuBarItem;
 import com.evolveum.midpoint.web.component.menu.top.MenuItem;
 import com.evolveum.midpoint.web.component.menu.top.TopMenuBar;
 import com.evolveum.midpoint.web.component.menu.top.UserMenuPanel;
 import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.admin.configuration.*;
+import com.evolveum.midpoint.web.page.admin.certification.PageCertCampaigns;
+import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
+import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinitions;
+import com.evolveum.midpoint.web.page.admin.configuration.PageAbout;
+import com.evolveum.midpoint.web.page.admin.configuration.PageAccounts;
+import com.evolveum.midpoint.web.page.admin.configuration.PageBulkAction;
+import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
+import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
+import com.evolveum.midpoint.web.page.admin.configuration.PageInternals;
+import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
 import com.evolveum.midpoint.web.page.admin.reports.PageNewReport;
 import com.evolveum.midpoint.web.page.admin.reports.PageReports;
-import com.evolveum.midpoint.web.page.admin.resources.PageResourceEdit;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.web.page.admin.users.*;
+import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
+import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
+import com.evolveum.midpoint.web.page.admin.users.PageUser;
+import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstancesAll;
 import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstancesRequestedBy;
 import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstancesRequestedFor;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItems;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItemsClaimable;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
@@ -96,6 +107,12 @@ public class PageAdmin extends PageBase {
             if (getWorkflowManager().isEnabled()) {
                 items.add(createWorkItemsItems());
             }
+        }
+
+        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CERTIFICATION_URL,
+                AuthorizationConstants.AUTZ_GUI_ALL_URI)
+                && SystemConfigurationHolder.isExperimentalCodeEnabled()) {
+            items.add(createCertificationItems());
         }
 
         if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_TASKS_URL,
@@ -157,6 +174,18 @@ public class PageAdmin extends PageBase {
         reports.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.reports.created"), PageCreatedReports.class));
 
         return reports;
+    }
+
+    private MenuBarItem createCertificationItems() {
+        MenuBarItem certification = new MenuBarItem(createStringResource("PageAdmin.menu.top.certification"), null);
+        certification.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.certification.definitions"), PageCertDefinitions.class));
+        certification.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.certification.newDefinition"), PageImportObject.class));
+        certification.addMenuItem(new MenuItem(null));
+        certification.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.certification.campaigns"), PageCertCampaigns.class));
+        certification.addMenuItem(new MenuItem(null));
+        certification.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.certification.decisions"), PageCertDecisions.class));
+
+        return certification;
     }
 
     private MenuBarItem createConfigurationItems() {

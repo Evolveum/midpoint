@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -20,18 +20,11 @@
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
-	<!-- No OID for account. The OID will be generated once the account shadow 
-		is added to the repository. -->
-	<!-- No name here. We expect that it will be generated -->
 	<c:name>uid=guybrush,ou=People,dc=example,dc=com</c:name>
 	<c:resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
-	<c:objectClass>ri:AccountObjectClass</c:objectClass>
+	<c:objectClass>ri:inetOrgPerson</c:objectClass>
 	<c:attributes>
-		<icfs:name>uid=guybrush,ou=People,dc=example,dc=com</icfs:name>
-		<icfs:uid>f1f2f3f4-0987-6543-1234-hjk345j8j090</icfs:uid>
-<!-- 		<ri:uid>guybrush</ri:uid> -->
-<!-- 		<ri:cn>Guybrush Threepwood</ri:cn> -->
-<!-- 		<ri:givenName>Guybrush</ri:givenName> -->
-<!-- 		<ri:sn>Threepwood</ri:sn> -->
+		<ri:dn>uid=guybrush,ou=People,dc=example,dc=com</ri:dn>
+		<ri:entryUUID>f1f2f3f4-0987-6543-1234-hjk345j8j090</ri:entryUUID>
 	</c:attributes>
 </c:account>

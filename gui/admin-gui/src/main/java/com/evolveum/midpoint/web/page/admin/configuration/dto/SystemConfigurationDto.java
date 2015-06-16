@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
+import com.evolveum.midpoint.common.SystemConfigurationHolder;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -36,11 +37,14 @@ public class SystemConfigurationDto implements Serializable {
     public static final String F_OBJECT_TEMPLATE = "objectTemplateDto";
     public static final String F_OBJECT_POLICY_LIST = "objectPolicyList";
     public static final String F_NOTIFICATION_CONFIGURATION = "notificationConfig";
+    public static final String F_ENABLE_EXPERIMENTAL_CODE = "enableExperimentalCode";
 
     private AEPlevel aepLevel;
 
     private String auditCleanupValue;
     private String taskCleanupValue;
+
+    private Boolean enableExperimentalCode;
 
     private ObjectViewDto<ValuePolicyType> passPolicyDto;
     private ObjectViewDto<ObjectTemplateType> objectTemplateDto;
@@ -88,6 +92,11 @@ public class SystemConfigurationDto implements Serializable {
             notificationConfig = new NotificationConfigurationDto(config.getNotificationConfiguration());
         } else {
             notificationConfig = new NotificationConfigurationDto();
+        }
+
+        enableExperimentalCode = config.isEnableExperimentalCode();
+        if (enableExperimentalCode == null) {
+            enableExperimentalCode = SystemConfigurationHolder.EXPERIMENTAL_CODE_ENABLED_BY_DEFAULT;        // to show the real state
         }
     }
 
@@ -171,5 +180,13 @@ public class SystemConfigurationDto implements Serializable {
 
     public void setObjectPolicyList(List<ObjectPolicyConfigurationTypeDto> objectPolicyList) {
         this.objectPolicyList = objectPolicyList;
+    }
+
+    public Boolean getEnableExperimentalCode() {
+        return enableExperimentalCode;
+    }
+
+    public void setEnableExperimentalCode(Boolean enableExperimentalCode) {
+        this.enableExperimentalCode = enableExperimentalCode;
     }
 }

@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2010-2015 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!--
+
+Expected cases and reviewers:
+
+Case                        Stage1                      Stage2
+==================================================================
+elaine->CEO                 elaine                      elaine
+guybrush->COO               cheese                      elaine
+
+-->
+
+<accessCertificationDefinition
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        oid="33333333-0000-0000-0000-000000000003">
+    <name>Certification of critical roles</name>
+    <description>Certification of critical roles. First the review is done by users' managers, then by Elaine the Governor.</description>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/handlers-3#direct-assignment</handlerUri>
+    <scopeDefinition xsi:type="AccessCertificationAssignmentReviewScopeType">
+        <objectType>UserType</objectType>
+        <searchFilter>
+            <q:org>
+                <q:path>parentOrgRef</q:path>
+                <q:orgRef oid="00000000-8888-6666-0000-100000000001">       <!-- Governor Office -->
+                    <q:scope>SUBTREE</q:scope>
+                </q:orgRef>
+            </q:org>
+        </searchFilter>
+        <itemSelectionExpression>
+            <script>
+                <code>
+                    role = midpoint.resolveReferenceIfExists(assignment.targetRef)
+                    return role != null &amp;&amp; role.riskLevel == 'critical'
+                </code>
+            </script>
+        </itemSelectionExpression>
+        <includeRoles>true</includeRoles>
+        <includeOrgs>false</includeOrgs>
+        <includeResources>false</includeResources>
+    </scopeDefinition>
+    <remediationDefinition>
+        <style>automated</style>
+    </remediationDefinition>
+    <stageDefinition>
+        <number>1</number>
+        <days>7</days>
+        <reviewerSpecification>
+            <useObjectManager>
+                <orgType>functional</orgType>
+                <allowSelf>true</allowSelf>
+            </useObjectManager>
+        </reviewerSpecification>
+    </stageDefinition>
+    <stageDefinition>
+        <number>2</number>
+        <days>14</days>
+        <reviewerSpecification>
+            <defaultReviewerRef oid="c0c010c0-d34d-b33f-f00d-11111111111e" type="UserType" />   <!-- elaine -->
+        </reviewerSpecification>
+    </stageDefinition>
+</accessCertificationDefinition>

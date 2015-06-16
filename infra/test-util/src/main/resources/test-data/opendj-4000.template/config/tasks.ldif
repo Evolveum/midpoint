@@ -18,150 +18,328 @@ objectClass: top
 objectClass: untypedObject
 cn: Recurring Tasks
 
-dn: ds-task-id=dsreplication-reset-generation-id-1,cn=Scheduled Tasks,cn=Tasks
-objectClass: ds-task-reset-generation-id
+dn: ds-task-id=20150317163823165,cn=Scheduled Tasks,cn=Tasks
 objectClass: ds-task
+objectClass: ds-task-rebuild
 objectClass: top
-ds-task-log-message: [09/Mar/2015:13:14:51 +0100] severity="NOTICE" msgCount=0 msgID=9896349 message="Set Generation ID task dsreplication-reset-generation-id-1 started execution"
-ds-task-log-message: [09/Mar/2015:13:14:51 +0100] severity="NOTICE" msgCount=1 msgID=9896350 message="Set Generation ID task dsreplication-reset-generation-id-1 finished execution"
-ds-task-id: dsreplication-reset-generation-id-1
-ds-task-actual-start-time: 20150309121451Z
-ds-task-completion-time: 20150309121451Z
+ds-task-rebuild-index: aci
+ds-task-rebuild-base-dn: dc=example,dc=com
+ds-task-log-message: [17/Mar/2015:16:38:23 +0100] severity="NOTICE" msgCount=0 msgID=9896349 message="Rebuild Index task 20150317163823165 started execution"
+ds-task-log-message: [17/Mar/2015:16:38:23 +0100] severity="INFORMATION" msgCount=1 msgID=9437595 message="Local DB backend userRoot does not specify the number of lock tables: defaulting to 97"
+ds-task-log-message: [17/Mar/2015:16:38:23 +0100] severity="INFORMATION" msgCount=2 msgID=9437594 message="Local DB backend userRoot does not specify the number of cleaner threads: defaulting to 24 threads"
+ds-task-log-message: [17/Mar/2015:16:38:23 +0100] severity="NOTICE" msgCount=3 msgID=9896306 message="The backend userRoot is now taken offline"
+ds-task-log-message: [17/Mar/2015:16:38:23 +0100] severity="NOTICE" msgCount=4 msgID=8847546 message="The amount of free memory available to the import task is 604913154 bytes. The number of phase one buffers required is 2 buffers"
+ds-task-log-message: [17/Mar/2015:16:38:23 +0100] severity="NOTICE" msgCount=5 msgID=8847568 message="The amount memory available to the temporary DN cache environment is 199618637 bytes"
+ds-task-log-message: [17/Mar/2015:16:38:23 +0100] severity="NOTICE" msgCount=6 msgID=8847545 message="Setting DB cache size to 199618637 bytes and phase one buffer size to to 34277948 bytes"
+ds-task-log-message: [17/Mar/2015:16:38:23 +0100] severity="NOTICE" msgCount=7 msgID=8847510 message="Due to changes in the configuration, index dc_example_dc_com_vlv.entryUUID asc is currently operating in a degraded state and must be rebuilt before it can be used"
+ds-task-log-message: [17/Mar/2015:16:38:23 +0100] severity="NOTICE" msgCount=8 msgID=8847510 message="Due to changes in the configuration, index dc_example_dc_com_vlv.cn asc is currently operating in a degraded state and must be rebuilt before it can be used"
+ds-task-log-message: [17/Mar/2015:16:38:23 +0100] severity="NOTICE" msgCount=9 msgID=8847497 message="Rebuild of index(es) aci started with 4005 total entries to process"
+ds-task-log-message: [17/Mar/2015:16:38:26 +0100] severity="NOTICE" msgCount=10 msgID=8847556 message="The available memory for phase two processing is 604913154 bytes. The read ahead cache size is 34277948 bytes calculated using 1 buffers"
+ds-task-log-message: [17/Mar/2015:16:38:26 +0100] severity="NOTICE" msgCount=11 msgID=8847493 message="Rebuild complete. Processed 4005 entries in 3 seconds (average rate 1274.3/sec)"
+ds-task-log-message: [17/Mar/2015:16:38:26 +0100] severity="INFORMATION" msgCount=12 msgID=9437595 message="Local DB backend userRoot does not specify the number of lock tables: defaulting to 97"
+ds-task-log-message: [17/Mar/2015:16:38:26 +0100] severity="INFORMATION" msgCount=13 msgID=9437594 message="Local DB backend userRoot does not specify the number of cleaner threads: defaulting to 24 threads"
+ds-task-log-message: [17/Mar/2015:16:38:26 +0100] severity="NOTICE" msgCount=14 msgID=8847510 message="Due to changes in the configuration, index dc_example_dc_com_vlv.entryUUID asc is currently operating in a degraded state and must be rebuilt before it can be used"
+ds-task-log-message: [17/Mar/2015:16:38:26 +0100] severity="NOTICE" msgCount=15 msgID=8847510 message="Due to changes in the configuration, index dc_example_dc_com_vlv.cn asc is currently operating in a degraded state and must be rebuilt before it can be used"
+ds-task-log-message: [17/Mar/2015:16:38:26 +0100] severity="NOTICE" msgCount=16 msgID=8847402 message="The database backend userRoot containing 4005 entries has started"
+ds-task-log-message: [17/Mar/2015:16:38:26 +0100] severity="INFORMATION" msgCount=17 msgID=12582962 message="Added 1 Access Control Instruction (ACI) attribute types found in context "dc=example,dc=com" to the access control evaluation engine"
+ds-task-log-message: [17/Mar/2015:16:38:26 +0100] severity="NOTICE" msgCount=18 msgID=9896350 message="Rebuild Index task 20150317163823165 finished execution"
+ds-task-id: 20150317163823165
+ds-task-actual-start-time: 20150317153823Z
+ds-task-completion-time: 20150317153826Z
 ds-task-state: COMPLETED_SUCCESSFULLY
-ds-task-class-name: org.opends.server.tasks.SetGenerationIdTask
-ds-task-reset-generation-id-domain-base-dn: dc=example,dc=com
+ds-task-class-name: org.opends.server.tasks.RebuildTask
 creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
-createTimestamp: 20150309121451Z
-entryUUID: 53212548-4303-4f9a-ab69-b8af5af419fc
+createTimestamp: 20150317153823Z
+entryUUID: 3142bc0e-1395-4fd8-bd95-f2619be4fd2c
 
-dn: ds-task-id=20150309131523812,cn=Scheduled Tasks,cn=Tasks
-objectClass: ds-task-import
+dn: ds-task-id=20150317163616229,cn=Scheduled Tasks,cn=Tasks
 objectClass: ds-task
+objectClass: ds-task-rebuild
 objectClass: top
-ds-task-import-backend-id: userRoot
-ds-task-log-message: [09/Mar/2015:13:15:23 +0100] severity="NOTICE" msgCount=0 msgID=9896349 message="Import task 20150309131523812 started execution"
-ds-task-log-message: [09/Mar/2015:13:15:23 +0100] severity="INFORMATION" msgCount=1 msgID=9437595 message="Local DB backend userRoot does not specify the number of lock tables: defaulting to 97"
-ds-task-log-message: [09/Mar/2015:13:15:23 +0100] severity="INFORMATION" msgCount=2 msgID=9437594 message="Local DB backend userRoot does not specify the number of cleaner threads: defaulting to 24 threads"
-ds-task-log-message: [09/Mar/2015:13:15:23 +0100] severity="NOTICE" msgCount=3 msgID=9896306 message="The backend userRoot is now taken offline"
-ds-task-log-message: [09/Mar/2015:13:15:23 +0100] severity="NOTICE" msgCount=4 msgID=20381717 message="Installation Directory:  /opt/opendj-2.6.2"
-ds-task-log-message: [09/Mar/2015:13:15:23 +0100] severity="NOTICE" msgCount=5 msgID=20381719 message="Instance Directory:      /opt/opendj-2.6.2"
-ds-task-log-message: [09/Mar/2015:13:15:23 +0100] severity="NOTICE" msgCount=6 msgID=20381713 message="JVM Information: 1.7.0_75-b13 by Oracle Corporation, 64-bit architecture, 1862270976 bytes heap size"
-ds-task-log-message: [09/Mar/2015:13:15:23 +0100] severity="NOTICE" msgCount=7 msgID=20381714 message="JVM Host: triglav.nlight.eu, running Linux 3.16.0-30-generic amd64, 8372068352 bytes physical memory size, number of processors available 4"
-ds-task-log-message: [09/Mar/2015:13:15:23 +0100] severity="NOTICE" msgCount=8 msgID=20381715 message="JVM Arguments: "-Dorg.opends.server.scriptName=start-ds""
-ds-task-log-message: [09/Mar/2015:13:15:23 +0100] severity="NOTICE" msgCount=9 msgID=8847546 message="The amount of free memory available to the import task is 636111093 bytes. The number of phase one buffers required is 320 buffers"
-ds-task-log-message: [09/Mar/2015:13:15:23 +0100] severity="NOTICE" msgCount=10 msgID=8847568 message="The amount memory available to the temporary DN cache environment is 419725186 bytes"
-ds-task-log-message: [09/Mar/2015:13:15:23 +0100] severity="NOTICE" msgCount=11 msgID=8847545 message="Setting DB cache size to 8388608 bytes and phase one buffer size to to 519583 bytes"
-ds-task-log-message: [09/Mar/2015:13:15:24 +0100] severity="NOTICE" msgCount=12 msgID=8847533 message="OpenDJ 2.6.2 starting import (build 20150306161742Z, R-1)"
-ds-task-log-message: [09/Mar/2015:13:15:24 +0100] severity="NOTICE" msgCount=13 msgID=8847449 message="Import Thread Count: 8 threads"
-ds-task-log-message: [09/Mar/2015:13:15:26 +0100] severity="NOTICE" msgCount=14 msgID=8847556 message="The available memory for phase two processing is 636111093 bytes. The read ahead cache size is 519583 bytes calculated using 12 buffers"
-ds-task-log-message: [09/Mar/2015:13:15:28 +0100] severity="NOTICE" msgCount=15 msgID=8847569 message="Total import time was 4 seconds. Phase one processing completed in 2 seconds, phase two processing completed in 1 seconds"
-ds-task-log-message: [09/Mar/2015:13:15:28 +0100] severity="NOTICE" msgCount=16 msgID=8847454 message="Processed 4005 entries, imported 4005, skipped 0, rejected 0 and migrated 0 in 4 seconds (average rate 993.1/sec)"
-ds-task-log-message: [09/Mar/2015:13:15:29 +0100] severity="NOTICE" msgCount=17 msgID=8847536 message="Import LDIF environment close took 0 seconds"
-ds-task-log-message: [09/Mar/2015:13:15:29 +0100] severity="INFORMATION" msgCount=18 msgID=9437595 message="Local DB backend userRoot does not specify the number of lock tables: defaulting to 97"
-ds-task-log-message: [09/Mar/2015:13:15:29 +0100] severity="INFORMATION" msgCount=19 msgID=9437594 message="Local DB backend userRoot does not specify the number of cleaner threads: defaulting to 24 threads"
-ds-task-log-message: [09/Mar/2015:13:15:29 +0100] severity="NOTICE" msgCount=20 msgID=8847402 message="The database backend userRoot containing 4005 entries has started"
-ds-task-log-message: [09/Mar/2015:13:15:29 +0100] severity="INFORMATION" msgCount=21 msgID=12582962 message="Added 1 Access Control Instruction (ACI) attribute types found in context "dc=example,dc=com" to the access control evaluation engine"
-ds-task-log-message: [09/Mar/2015:13:15:29 +0100] severity="NOTICE" msgCount=22 msgID=15138878 message="Directory server DS(161) has connected to replication server RS(9664) for domain "dc=example,dc=com" at localhost/127.0.0.1:10989 with generation ID 19681402"
-ds-task-log-message: [09/Mar/2015:13:15:29 +0100] severity="NOTICE" msgCount=23 msgID=9896350 message="Import task 20150309131523812 finished execution"
-ds-task-import-thread-count: 0
-ds-task-id: 20150309131523812
-ds-task-actual-start-time: 20150309121523Z
-ds-task-import-random-seed: 0
-ds-task-completion-time: 20150309121529Z
+ds-task-rebuild-index: vlv.cn asc
+ds-task-rebuild-base-dn: dc=example,dc=com
+ds-task-log-message: [17/Mar/2015:16:36:16 +0100] severity="NOTICE" msgCount=0 msgID=9896349 message="Rebuild Index task 20150317163616229 started execution"
+ds-task-log-message: [17/Mar/2015:16:36:16 +0100] severity="INFORMATION" msgCount=1 msgID=9437595 message="Local DB backend userRoot does not specify the number of lock tables: defaulting to 97"
+ds-task-log-message: [17/Mar/2015:16:36:16 +0100] severity="INFORMATION" msgCount=2 msgID=9437594 message="Local DB backend userRoot does not specify the number of cleaner threads: defaulting to 24 threads"
+ds-task-log-message: [17/Mar/2015:16:36:16 +0100] severity="NOTICE" msgCount=3 msgID=9896306 message="The backend userRoot is now taken offline"
+ds-task-log-message: [17/Mar/2015:16:36:16 +0100] severity="NOTICE" msgCount=4 msgID=8847546 message="The amount of free memory available to the import task is 598892874 bytes. The number of phase one buffers required is 2 buffers"
+ds-task-log-message: [17/Mar/2015:16:36:16 +0100] severity="NOTICE" msgCount=5 msgID=8847568 message="The amount memory available to the temporary DN cache environment is 197631945 bytes"
+ds-task-log-message: [17/Mar/2015:16:36:16 +0100] severity="NOTICE" msgCount=6 msgID=8847545 message="Setting DB cache size to 197631945 bytes and phase one buffer size to to 33936798 bytes"
+ds-task-log-message: [17/Mar/2015:16:36:16 +0100] severity="NOTICE" msgCount=7 msgID=8847510 message="Due to changes in the configuration, index dc_example_dc_com_vlv.entryUUID asc is currently operating in a degraded state and must be rebuilt before it can be used"
+ds-task-log-message: [17/Mar/2015:16:36:16 +0100] severity="NOTICE" msgCount=8 msgID=8847510 message="Due to changes in the configuration, index dc_example_dc_com_vlv.cn asc is currently operating in a degraded state and must be rebuilt before it can be used"
+ds-task-log-message: [17/Mar/2015:16:36:16 +0100] severity="NOTICE" msgCount=9 msgID=8847497 message="Rebuild of index(es) vlv.cn asc started with 4005 total entries to process"
+ds-task-log-message: [17/Mar/2015:16:36:19 +0100] severity="NOTICE" msgCount=10 msgID=8847493 message="Rebuild complete. Processed 4005 entries in 2 seconds (average rate 1354.9/sec)"
+ds-task-log-message: [17/Mar/2015:16:36:19 +0100] severity="INFORMATION" msgCount=11 msgID=9437595 message="Local DB backend userRoot does not specify the number of lock tables: defaulting to 97"
+ds-task-log-message: [17/Mar/2015:16:36:19 +0100] severity="INFORMATION" msgCount=12 msgID=9437594 message="Local DB backend userRoot does not specify the number of cleaner threads: defaulting to 24 threads"
+ds-task-log-message: [17/Mar/2015:16:36:19 +0100] severity="NOTICE" msgCount=13 msgID=8847510 message="Due to changes in the configuration, index dc_example_dc_com_vlv.entryUUID asc is currently operating in a degraded state and must be rebuilt before it can be used"
+ds-task-log-message: [17/Mar/2015:16:36:19 +0100] severity="NOTICE" msgCount=14 msgID=8847510 message="Due to changes in the configuration, index dc_example_dc_com_vlv.cn asc is currently operating in a degraded state and must be rebuilt before it can be used"
+ds-task-log-message: [17/Mar/2015:16:36:19 +0100] severity="NOTICE" msgCount=15 msgID=8847402 message="The database backend userRoot containing 4005 entries has started"
+ds-task-log-message: [17/Mar/2015:16:36:19 +0100] severity="INFORMATION" msgCount=16 msgID=12582962 message="Added 1 Access Control Instruction (ACI) attribute types found in context "dc=example,dc=com" to the access control evaluation engine"
+ds-task-log-message: [17/Mar/2015:16:36:19 +0100] severity="NOTICE" msgCount=17 msgID=9896350 message="Rebuild Index task 20150317163616229 finished execution"
+ds-task-id: 20150317163616229
+ds-task-actual-start-time: 20150317153616Z
+ds-task-completion-time: 20150317153619Z
 ds-task-state: COMPLETED_SUCCESSFULLY
-ds-task-class-name: org.opends.server.tasks.ImportTask
-ds-task-import-ldif-file: /home/semancik/projects/evolveum/midpoint/git/infra/test-util/src/main/resources/test-data/ldif/example-4000.ldif
-ds-task-import-clear-backend: true
+ds-task-class-name: org.opends.server.tasks.RebuildTask
 creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
-createTimestamp: 20150309121523Z
-entryUUID: 776518fc-8442-4799-badf-7adf43c79c41
+createTimestamp: 20150317153616Z
+entryUUID: 667b6975-68da-4b1c-97ec-7d6b74833ebb
 
-dn: ds-task-id=dsreplication-initialize1,cn=Scheduled Tasks,cn=Tasks
+dn: ds-task-id=20150317162732410,cn=Scheduled Tasks,cn=Tasks
 objectClass: ds-task
-objectClass: ds-task-initialize-remote-replica
+objectClass: ds-task-rebuild
 objectClass: top
-ds-task-log-message: [09/Mar/2015:13:14:51 +0100] severity="NOTICE" msgCount=0 msgID=9896349 message="Initialize Backend task dsreplication-initialize1 started execution"
-ds-task-log-message: [09/Mar/2015:13:14:51 +0100] severity="NOTICE" msgCount=1 msgID=15139025 message="Starting total update: exporting 9 entries in domain "dc=example,dc=com" from this directory server DS(161) to all remote directory servers"
-ds-task-log-message: [09/Mar/2015:13:14:51 +0100] severity="NOTICE" msgCount=2 msgID=8847447 message="Exported 9 entries and skipped 0 in 0 seconds (average rate 4500.0/sec)"
-ds-task-log-message: [09/Mar/2015:13:14:51 +0100] severity="NOTICE" msgCount=3 msgID=15139026 message="Finished total update: exported domain "dc=example,dc=com" from this directory server DS(161) to all remote directory servers. "
-ds-task-log-message: [09/Mar/2015:13:14:51 +0100] severity="NOTICE" msgCount=4 msgID=9896350 message="Initialize Backend task dsreplication-initialize1 finished execution"
-ds-task-id: dsreplication-initialize1
-ds-task-actual-start-time: 20150309121451Z
-ds-task-completion-time: 20150309121451Z
+ds-task-rebuild-index: entryUUID
+ds-task-rebuild-base-dn: dc=example,dc=com
+ds-task-log-message: [17/Mar/2015:16:27:32 +0100] severity="NOTICE" msgCount=0 msgID=9896349 message="Rebuild Index task 20150317162732410 started execution"
+ds-task-log-message: [17/Mar/2015:16:27:32 +0100] severity="INFORMATION" msgCount=1 msgID=9437595 message="Local DB backend userRoot does not specify the number of lock tables: defaulting to 97"
+ds-task-log-message: [17/Mar/2015:16:27:32 +0100] severity="INFORMATION" msgCount=2 msgID=9437594 message="Local DB backend userRoot does not specify the number of cleaner threads: defaulting to 24 threads"
+ds-task-log-message: [17/Mar/2015:16:27:32 +0100] severity="NOTICE" msgCount=3 msgID=9896306 message="The backend userRoot is now taken offline"
+ds-task-log-message: [17/Mar/2015:16:27:32 +0100] severity="NOTICE" msgCount=4 msgID=8847546 message="The amount of free memory available to the import task is 523776954 bytes. The number of phase one buffers required is 4 buffers"
+ds-task-log-message: [17/Mar/2015:16:27:32 +0100] severity="NOTICE" msgCount=5 msgID=8847568 message="The amount memory available to the temporary DN cache environment is 172840988 bytes"
+ds-task-log-message: [17/Mar/2015:16:27:32 +0100] severity="NOTICE" msgCount=6 msgID=8847545 message="Setting DB cache size to 172840988 bytes and phase one buffer size to to 14839882 bytes"
+ds-task-log-message: [17/Mar/2015:16:27:32 +0100] severity="NOTICE" msgCount=7 msgID=8847510 message="Due to changes in the configuration, index dc_example_dc_com_entryUUID is currently operating in a degraded state and must be rebuilt before it can be used"
+ds-task-log-message: [17/Mar/2015:16:27:32 +0100] severity="NOTICE" msgCount=8 msgID=8847510 message="Due to changes in the configuration, index dc_example_dc_com_vlv.entryUUID asc is currently operating in a degraded state and must be rebuilt before it can be used"
+ds-task-log-message: [17/Mar/2015:16:27:32 +0100] severity="NOTICE" msgCount=9 msgID=8847497 message="Rebuild of index(es) entryUUID started with 4005 total entries to process"
+ds-task-log-message: [17/Mar/2015:16:27:35 +0100] severity="NOTICE" msgCount=10 msgID=8847556 message="The available memory for phase two processing is 523776954 bytes. The read ahead cache size is 14839882 bytes calculated using 2 buffers"
+ds-task-log-message: [17/Mar/2015:16:27:35 +0100] severity="NOTICE" msgCount=11 msgID=8847493 message="Rebuild complete. Processed 4005 entries in 2 seconds (average rate 1369.2/sec)"
+ds-task-log-message: [17/Mar/2015:16:27:36 +0100] severity="INFORMATION" msgCount=12 msgID=9437595 message="Local DB backend userRoot does not specify the number of lock tables: defaulting to 97"
+ds-task-log-message: [17/Mar/2015:16:27:36 +0100] severity="INFORMATION" msgCount=13 msgID=9437594 message="Local DB backend userRoot does not specify the number of cleaner threads: defaulting to 24 threads"
+ds-task-log-message: [17/Mar/2015:16:27:36 +0100] severity="NOTICE" msgCount=14 msgID=8847510 message="Due to changes in the configuration, index dc_example_dc_com_vlv.entryUUID asc is currently operating in a degraded state and must be rebuilt before it can be used"
+ds-task-log-message: [17/Mar/2015:16:27:36 +0100] severity="NOTICE" msgCount=15 msgID=8847402 message="The database backend userRoot containing 4005 entries has started"
+ds-task-log-message: [17/Mar/2015:16:27:36 +0100] severity="INFORMATION" msgCount=16 msgID=12582962 message="Added 1 Access Control Instruction (ACI) attribute types found in context "dc=example,dc=com" to the access control evaluation engine"
+ds-task-log-message: [17/Mar/2015:16:27:36 +0100] severity="NOTICE" msgCount=17 msgID=9896350 message="Rebuild Index task 20150317162732410 finished execution"
+ds-task-id: 20150317162732410
+ds-task-actual-start-time: 20150317152732Z
+ds-task-completion-time: 20150317152736Z
 ds-task-state: COMPLETED_SUCCESSFULLY
-ds-task-class-name: org.opends.server.tasks.InitializeTargetTask
-ds-task-initialize-replica-server-id: all
-ds-task-initialize-domain-dn: dc=example,dc=com
-ds-task-processed-entry-count: 0
-ds-task-unprocessed-entry-count: 9
+ds-task-class-name: org.opends.server.tasks.RebuildTask
 creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
-createTimestamp: 20150309121451Z
-entryUUID: 51544530-d566-40c6-8627-0d4adbe47035
+createTimestamp: 20150317152732Z
+entryUUID: bd787aa5-c48d-493f-9d7a-5617d7e0a926
 
-dn: ds-task-id=dsreplication-initialize2,cn=Scheduled Tasks,cn=Tasks
+dn: ds-task-id=20150317162631044,cn=Scheduled Tasks,cn=Tasks
 objectClass: ds-task
-objectClass: ds-task-initialize-remote-replica
+objectClass: ds-task-rebuild
 objectClass: top
-ds-task-log-message: [09/Mar/2015:13:15:31 +0100] severity="NOTICE" msgCount=0 msgID=9896349 message="Initialize Backend task dsreplication-initialize2 started execution"
-ds-task-log-message: [09/Mar/2015:13:15:31 +0100] severity="NOTICE" msgCount=1 msgID=15139025 message="Starting total update: exporting 4005 entries in domain "dc=example,dc=com" from this directory server DS(161) to all remote directory servers"
-ds-task-log-message: [09/Mar/2015:13:15:31 +0100] severity="SEVERE_ERROR" msgCount=2 msgID=10747963 message="An error occurred while attempting to process the LDIF export:  I/O error occurred while exporting entry: IOException with nested DirectoryException"
-ds-task-log-message: [09/Mar/2015:13:15:31 +0100] severity="NOTICE" msgCount=3 msgID=15139026 message="Finished total update: exported domain "dc=example,dc=com" from this directory server DS(161) to all remote directory servers. When initializing remote server(s), the initialized server with serverId=-1 is potentially stopped or too slow"
-ds-task-log-message: [09/Mar/2015:13:15:31 +0100] severity="SEVERE_ERROR" msgCount=4 msgID=-1 message="When initializing remote server(s), the initialized server with serverId=-1 is potentially stopped or too slow"
-ds-task-log-message: [09/Mar/2015:13:15:31 +0100] severity="NOTICE" msgCount=5 msgID=9896350 message="Initialize Backend task dsreplication-initialize2 finished execution"
-ds-task-id: dsreplication-initialize2
-ds-task-actual-start-time: 20150309121531Z
-ds-task-completion-time: 20150309121531Z
-ds-task-state: STOPPED_BY_ERROR
-ds-task-class-name: org.opends.server.tasks.InitializeTargetTask
-ds-task-initialize-replica-server-id: all
-ds-task-initialize-domain-dn: dc=example,dc=com
-ds-task-processed-entry-count: 0
-ds-task-unprocessed-entry-count: 4005
-creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
-createTimestamp: 20150309121531Z
-entryUUID: 85a067c1-650f-4e50-8b5a-4e9adf320ca3
-
-dn: ds-task-id=20150309131447937,cn=Scheduled Tasks,cn=Tasks
-objectClass: ds-task-import
-objectClass: ds-task
-objectClass: top
-ds-task-import-backend-id: userRoot
-ds-task-log-message: [09/Mar/2015:13:14:47 +0100] severity="NOTICE" msgCount=0 msgID=9896349 message="Import task 20150309131447937 started execution"
-ds-task-log-message: [09/Mar/2015:13:14:47 +0100] severity="INFORMATION" msgCount=1 msgID=9437595 message="Local DB backend userRoot does not specify the number of lock tables: defaulting to 97"
-ds-task-log-message: [09/Mar/2015:13:14:47 +0100] severity="INFORMATION" msgCount=2 msgID=9437594 message="Local DB backend userRoot does not specify the number of cleaner threads: defaulting to 24 threads"
-ds-task-log-message: [09/Mar/2015:13:14:47 +0100] severity="NOTICE" msgCount=3 msgID=9896306 message="The backend userRoot is now taken offline"
-ds-task-log-message: [09/Mar/2015:13:14:47 +0100] severity="NOTICE" msgCount=4 msgID=20381717 message="Installation Directory:  /opt/opendj-2.6.2"
-ds-task-log-message: [09/Mar/2015:13:14:47 +0100] severity="NOTICE" msgCount=5 msgID=20381719 message="Instance Directory:      /opt/opendj-2.6.2"
-ds-task-log-message: [09/Mar/2015:13:14:47 +0100] severity="NOTICE" msgCount=6 msgID=20381713 message="JVM Information: 1.7.0_75-b13 by Oracle Corporation, 64-bit architecture, 1862270976 bytes heap size"
-ds-task-log-message: [09/Mar/2015:13:14:47 +0100] severity="NOTICE" msgCount=7 msgID=20381714 message="JVM Host: triglav.nlight.eu, running Linux 3.16.0-30-generic amd64, 8372068352 bytes physical memory size, number of processors available 4"
-ds-task-log-message: [09/Mar/2015:13:14:47 +0100] severity="NOTICE" msgCount=8 msgID=20381715 message="JVM Arguments: "-Dorg.opends.server.scriptName=start-ds""
-ds-task-log-message: [09/Mar/2015:13:14:48 +0100] severity="NOTICE" msgCount=9 msgID=8847546 message="The amount of free memory available to the import task is 629286336 bytes. The number of phase one buffers required is 320 buffers"
-ds-task-log-message: [09/Mar/2015:13:14:48 +0100] severity="NOTICE" msgCount=10 msgID=8847568 message="The amount memory available to the temporary DN cache environment is 415220847 bytes"
-ds-task-log-message: [09/Mar/2015:13:14:48 +0100] severity="NOTICE" msgCount=11 msgID=8847545 message="Setting DB cache size to 8388608 bytes and phase one buffer size to to 513782 bytes"
-ds-task-log-message: [09/Mar/2015:13:14:48 +0100] severity="NOTICE" msgCount=12 msgID=8847533 message="OpenDJ 2.6.2 starting import (build 20150306161742Z, R-1)"
-ds-task-log-message: [09/Mar/2015:13:14:48 +0100] severity="NOTICE" msgCount=13 msgID=8847449 message="Import Thread Count: 8 threads"
-ds-task-log-message: [09/Mar/2015:13:14:48 +0100] severity="NOTICE" msgCount=14 msgID=8847556 message="The available memory for phase two processing is 629286336 bytes. The read ahead cache size is 513782 bytes calculated using 26 buffers"
-ds-task-log-message: [09/Mar/2015:13:14:48 +0100] severity="NOTICE" msgCount=15 msgID=8847569 message="Total import time was 0 seconds. Phase one processing completed in 0 seconds, phase two processing completed in 0 seconds"
-ds-task-log-message: [09/Mar/2015:13:14:49 +0100] severity="NOTICE" msgCount=16 msgID=8847454 message="Processed 9 entries, imported 9, skipped 0, rejected 0 and migrated 0 in 0 seconds (average rate 23.2/sec)"
-ds-task-log-message: [09/Mar/2015:13:14:49 +0100] severity="NOTICE" msgCount=17 msgID=8847536 message="Import LDIF environment close took 0 seconds"
-ds-task-log-message: [09/Mar/2015:13:14:49 +0100] severity="INFORMATION" msgCount=18 msgID=9437595 message="Local DB backend userRoot does not specify the number of lock tables: defaulting to 97"
-ds-task-log-message: [09/Mar/2015:13:14:49 +0100] severity="INFORMATION" msgCount=19 msgID=9437594 message="Local DB backend userRoot does not specify the number of cleaner threads: defaulting to 24 threads"
-ds-task-log-message: [09/Mar/2015:13:14:49 +0100] severity="NOTICE" msgCount=20 msgID=8847402 message="The database backend userRoot containing 9 entries has started"
-ds-task-log-message: [09/Mar/2015:13:14:49 +0100] severity="INFORMATION" msgCount=21 msgID=12582962 message="Added 1 Access Control Instruction (ACI) attribute types found in context "dc=example,dc=com" to the access control evaluation engine"
-ds-task-log-message: [09/Mar/2015:13:14:49 +0100] severity="NOTICE" msgCount=22 msgID=8847447 message="Exported 9 entries and skipped 0 in 0 seconds (average rate 4500.0/sec)"
-ds-task-log-message: [09/Mar/2015:13:14:49 +0100] severity="NOTICE" msgCount=23 msgID=15138878 message="Directory server DS(161) has connected to replication server RS(9664) for domain "dc=example,dc=com" at localhost/127.0.0.1:10989 with generation ID 135297"
-ds-task-log-message: [09/Mar/2015:13:14:49 +0100] severity="NOTICE" msgCount=24 msgID=9896350 message="Import task 20150309131447937 finished execution"
-ds-task-log-message: [09/Mar/2015:13:14:51 +0100] severity="MILD_ERROR" msgCount=25 msgID=14876751 message="The following error has been received : Domain dc=example,dc=com: the server with serverId=-2 is unreachable In Replication Server=Replication Server 10989 9664 unroutable message =DoneMsg Details:routing table is empty"
-ds-task-import-thread-count: 0
-ds-task-id: 20150309131447937
-ds-task-actual-start-time: 20150309121447Z
-ds-task-import-random-seed: 0
-ds-task-completion-time: 20150309121449Z
+ds-task-rebuild-index: vlv.entryUUID asc
+ds-task-rebuild-base-dn: dc=example,dc=com
+ds-task-log-message: [17/Mar/2015:16:26:31 +0100] severity="NOTICE" msgCount=0 msgID=9896349 message="Rebuild Index task 20150317162631044 started execution"
+ds-task-log-message: [17/Mar/2015:16:26:31 +0100] severity="INFORMATION" msgCount=1 msgID=9437595 message="Local DB backend userRoot does not specify the number of lock tables: defaulting to 97"
+ds-task-log-message: [17/Mar/2015:16:26:31 +0100] severity="INFORMATION" msgCount=2 msgID=9437594 message="Local DB backend userRoot does not specify the number of cleaner threads: defaulting to 24 threads"
+ds-task-log-message: [17/Mar/2015:16:26:31 +0100] severity="NOTICE" msgCount=3 msgID=9896306 message="The backend userRoot is now taken offline"
+ds-task-log-message: [17/Mar/2015:16:26:31 +0100] severity="NOTICE" msgCount=4 msgID=8847546 message="The amount of free memory available to the import task is 525239916 bytes. The number of phase one buffers required is 2 buffers"
+ds-task-log-message: [17/Mar/2015:16:26:31 +0100] severity="NOTICE" msgCount=5 msgID=8847568 message="The amount memory available to the temporary DN cache environment is 173326468 bytes"
+ds-task-log-message: [17/Mar/2015:16:26:31 +0100] severity="NOTICE" msgCount=6 msgID=8847545 message="Setting DB cache size to 173326468 bytes and phase one buffer size to to 29763131 bytes"
+ds-task-log-message: [17/Mar/2015:16:26:31 +0100] severity="NOTICE" msgCount=7 msgID=8847510 message="Due to changes in the configuration, index dc_example_dc_com_vlv.entryUUID asc is currently operating in a degraded state and must be rebuilt before it can be used"
+ds-task-log-message: [17/Mar/2015:16:26:31 +0100] severity="NOTICE" msgCount=8 msgID=8847497 message="Rebuild of index(es) vlv.entryUUID asc started with 4005 total entries to process"
+ds-task-log-message: [17/Mar/2015:16:26:34 +0100] severity="NOTICE" msgCount=9 msgID=8847493 message="Rebuild complete. Processed 4005 entries in 3 seconds (average rate 1256.3/sec)"
+ds-task-log-message: [17/Mar/2015:16:26:35 +0100] severity="INFORMATION" msgCount=10 msgID=9437595 message="Local DB backend userRoot does not specify the number of lock tables: defaulting to 97"
+ds-task-log-message: [17/Mar/2015:16:26:35 +0100] severity="INFORMATION" msgCount=11 msgID=9437594 message="Local DB backend userRoot does not specify the number of cleaner threads: defaulting to 24 threads"
+ds-task-log-message: [17/Mar/2015:16:26:35 +0100] severity="NOTICE" msgCount=12 msgID=8847510 message="Due to changes in the configuration, index dc_example_dc_com_vlv.entryUUID asc is currently operating in a degraded state and must be rebuilt before it can be used"
+ds-task-log-message: [17/Mar/2015:16:26:35 +0100] severity="NOTICE" msgCount=13 msgID=8847402 message="The database backend userRoot containing 4005 entries has started"
+ds-task-log-message: [17/Mar/2015:16:26:35 +0100] severity="INFORMATION" msgCount=14 msgID=12582962 message="Added 1 Access Control Instruction (ACI) attribute types found in context "dc=example,dc=com" to the access control evaluation engine"
+ds-task-log-message: [17/Mar/2015:16:26:35 +0100] severity="NOTICE" msgCount=15 msgID=9896350 message="Rebuild Index task 20150317162631044 finished execution"
+ds-task-id: 20150317162631044
+ds-task-actual-start-time: 20150317152631Z
+ds-task-completion-time: 20150317152635Z
 ds-task-state: COMPLETED_SUCCESSFULLY
-ds-task-class-name: org.opends.server.tasks.ImportTask
-ds-task-import-ldif-file: /home/semancik/projects/evolveum/midpoint/git/infra/test-util/src/main/resources/test-data/ldif/example-4000.ldif
-ds-task-import-clear-backend: true
+ds-task-class-name: org.opends.server.tasks.RebuildTask
 creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
-createTimestamp: 20150309121447Z
-entryUUID: 895a4a31-927b-4dbb-9a60-551767b484c5
+createTimestamp: 20150317152631Z
+entryUUID: 36e4ea09-ba40-4e02-b3b5-9690c3344135
+
+dn: ds-task-id=20150317163851368,cn=Scheduled Tasks,cn=Tasks
+objectClass: ds-task
+objectClass: ds-task-rebuild
+objectClass: top
+ds-task-rebuild-index: objectClass
+ds-task-rebuild-base-dn: dc=example,dc=com
+ds-task-log-message: [17/Mar/2015:16:38:51 +0100] severity="NOTICE" msgCount=0 msgID=9896349 message="Rebuild Index task 20150317163851368 started execution"
+ds-task-log-message: [17/Mar/2015:16:38:51 +0100] severity="INFORMATION" msgCount=1 msgID=9437595 message="Local DB backend userRoot does not specify the number of lock tables: defaulting to 97"
+ds-task-log-message: [17/Mar/2015:16:38:51 +0100] severity="INFORMATION" msgCount=2 msgID=9437594 message="Local DB backend userRoot does not specify the number of cleaner threads: defaulting to 24 threads"
+ds-task-log-message: [17/Mar/2015:16:38:51 +0100] severity="NOTICE" msgCount=3 msgID=9896306 message="The backend userRoot is now taken offline"
+ds-task-log-message: [17/Mar/2015:16:38:51 +0100] severity="NOTICE" msgCount=4 msgID=8847546 message="The amount of free memory available to the import task is 583803114 bytes. The number of phase one buffers required is 2 buffers"
+ds-task-log-message: [17/Mar/2015:16:38:51 +0100] severity="NOTICE" msgCount=5 msgID=8847568 message="The amount memory available to the temporary DN cache environment is 192652324 bytes"
+ds-task-log-message: [17/Mar/2015:16:38:51 +0100] severity="NOTICE" msgCount=6 msgID=8847545 message="Setting DB cache size to 192652324 bytes and phase one buffer size to to 33081712 bytes"
+ds-task-log-message: [17/Mar/2015:16:38:51 +0100] severity="NOTICE" msgCount=7 msgID=8847510 message="Due to changes in the configuration, index dc_example_dc_com_vlv.entryUUID asc is currently operating in a degraded state and must be rebuilt before it can be used"
+ds-task-log-message: [17/Mar/2015:16:38:51 +0100] severity="NOTICE" msgCount=8 msgID=8847510 message="Due to changes in the configuration, index dc_example_dc_com_vlv.cn asc is currently operating in a degraded state and must be rebuilt before it can be used"
+ds-task-log-message: [17/Mar/2015:16:38:51 +0100] severity="NOTICE" msgCount=9 msgID=8847497 message="Rebuild of index(es) objectClass started with 4005 total entries to process"
+ds-task-log-message: [17/Mar/2015:16:38:54 +0100] severity="NOTICE" msgCount=10 msgID=8847556 message="The available memory for phase two processing is 583803114 bytes. The read ahead cache size is 33081712 bytes calculated using 1 buffers"
+ds-task-log-message: [17/Mar/2015:16:38:54 +0100] severity="NOTICE" msgCount=11 msgID=8847493 message="Rebuild complete. Processed 4005 entries in 3 seconds (average rate 1314.4/sec)"
+ds-task-log-message: [17/Mar/2015:16:38:54 +0100] severity="INFORMATION" msgCount=12 msgID=9437595 message="Local DB backend userRoot does not specify the number of lock tables: defaulting to 97"
+ds-task-log-message: [17/Mar/2015:16:38:54 +0100] severity="INFORMATION" msgCount=13 msgID=9437594 message="Local DB backend userRoot does not specify the number of cleaner threads: defaulting to 24 threads"
+ds-task-log-message: [17/Mar/2015:16:38:55 +0100] severity="NOTICE" msgCount=14 msgID=8847510 message="Due to changes in the configuration, index dc_example_dc_com_vlv.entryUUID asc is currently operating in a degraded state and must be rebuilt before it can be used"
+ds-task-log-message: [17/Mar/2015:16:38:55 +0100] severity="NOTICE" msgCount=15 msgID=8847510 message="Due to changes in the configuration, index dc_example_dc_com_vlv.cn asc is currently operating in a degraded state and must be rebuilt before it can be used"
+ds-task-log-message: [17/Mar/2015:16:38:55 +0100] severity="NOTICE" msgCount=16 msgID=8847402 message="The database backend userRoot containing 4005 entries has started"
+ds-task-log-message: [17/Mar/2015:16:38:55 +0100] severity="INFORMATION" msgCount=17 msgID=12582962 message="Added 1 Access Control Instruction (ACI) attribute types found in context "dc=example,dc=com" to the access control evaluation engine"
+ds-task-log-message: [17/Mar/2015:16:38:55 +0100] severity="NOTICE" msgCount=18 msgID=9896350 message="Rebuild Index task 20150317163851368 finished execution"
+ds-task-id: 20150317163851368
+ds-task-actual-start-time: 20150317153851Z
+ds-task-completion-time: 20150317153855Z
+ds-task-state: COMPLETED_SUCCESSFULLY
+ds-task-class-name: org.opends.server.tasks.RebuildTask
+creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+createTimestamp: 20150317153851Z
+entryUUID: 1f9f0504-db71-4290-8212-2c3cb10e316f
+
+dn: ds-task-id=20150317163836889,cn=Scheduled Tasks,cn=Tasks
+objectClass: ds-task
+objectClass: ds-task-rebuild
+objectClass: top
+ds-task-rebuild-index: entryUUID
+ds-task-rebuild-base-dn: dc=example,dc=com
+ds-task-log-message: [17/Mar/2015:16:38:36 +0100] severity="NOTICE" msgCount=0 msgID=9896349 message="Rebuild Index task 20150317163836889 started execution"
+ds-task-log-message: [17/Mar/2015:16:38:36 +0100] severity="INFORMATION" msgCount=1 msgID=9437595 message="Local DB backend userRoot does not specify the number of lock tables: defaulting to 97"
+ds-task-log-message: [17/Mar/2015:16:38:36 +0100] severity="INFORMATION" msgCount=2 msgID=9437594 message="Local DB backend userRoot does not specify the number of cleaner threads: defaulting to 24 threads"
+ds-task-log-message: [17/Mar/2015:16:38:36 +0100] severity="NOTICE" msgCount=3 msgID=9896306 message="The backend userRoot is now taken offline"
+ds-task-log-message: [17/Mar/2015:16:38:36 +0100] severity="NOTICE" msgCount=4 msgID=8847546 message="The amount of free memory available to the import task is 678983676 bytes. The number of phase one buffers required is 4 buffers"
+ds-task-log-message: [17/Mar/2015:16:38:36 +0100] severity="NOTICE" msgCount=5 msgID=8847568 message="The amount memory available to the temporary DN cache environment is 224059206 bytes"
+ds-task-log-message: [17/Mar/2015:16:38:37 +0100] severity="NOTICE" msgCount=6 msgID=8847545 message="Setting DB cache size to 224059206 bytes and phase one buffer size to to 19237406 bytes"
+ds-task-log-message: [17/Mar/2015:16:38:37 +0100] severity="NOTICE" msgCount=7 msgID=8847510 message="Due to changes in the configuration, index dc_example_dc_com_vlv.entryUUID asc is currently operating in a degraded state and must be rebuilt before it can be used"
+ds-task-log-message: [17/Mar/2015:16:38:37 +0100] severity="NOTICE" msgCount=8 msgID=8847510 message="Due to changes in the configuration, index dc_example_dc_com_vlv.cn asc is currently operating in a degraded state and must be rebuilt before it can be used"
+ds-task-log-message: [17/Mar/2015:16:38:37 +0100] severity="NOTICE" msgCount=9 msgID=8847497 message="Rebuild of index(es) entryUUID started with 4005 total entries to process"
+ds-task-log-message: [17/Mar/2015:16:38:40 +0100] severity="NOTICE" msgCount=10 msgID=8847556 message="The available memory for phase two processing is 678983676 bytes. The read ahead cache size is 19237406 bytes calculated using 2 buffers"
+ds-task-log-message: [17/Mar/2015:16:38:40 +0100] severity="NOTICE" msgCount=11 msgID=8847493 message="Rebuild complete. Processed 4005 entries in 3 seconds (average rate 1220.3/sec)"
+ds-task-log-message: [17/Mar/2015:16:38:40 +0100] severity="INFORMATION" msgCount=12 msgID=9437595 message="Local DB backend userRoot does not specify the number of lock tables: defaulting to 97"
+ds-task-log-message: [17/Mar/2015:16:38:40 +0100] severity="INFORMATION" msgCount=13 msgID=9437594 message="Local DB backend userRoot does not specify the number of cleaner threads: defaulting to 24 threads"
+ds-task-log-message: [17/Mar/2015:16:38:40 +0100] severity="NOTICE" msgCount=14 msgID=8847510 message="Due to changes in the configuration, index dc_example_dc_com_vlv.entryUUID asc is currently operating in a degraded state and must be rebuilt before it can be used"
+ds-task-log-message: [17/Mar/2015:16:38:40 +0100] severity="NOTICE" msgCount=15 msgID=8847510 message="Due to changes in the configuration, index dc_example_dc_com_vlv.cn asc is currently operating in a degraded state and must be rebuilt before it can be used"
+ds-task-log-message: [17/Mar/2015:16:38:40 +0100] severity="NOTICE" msgCount=16 msgID=8847402 message="The database backend userRoot containing 4005 entries has started"
+ds-task-log-message: [17/Mar/2015:16:38:40 +0100] severity="INFORMATION" msgCount=17 msgID=12582962 message="Added 1 Access Control Instruction (ACI) attribute types found in context "dc=example,dc=com" to the access control evaluation engine"
+ds-task-log-message: [17/Mar/2015:16:38:40 +0100] severity="NOTICE" msgCount=18 msgID=9896350 message="Rebuild Index task 20150317163836889 finished execution"
+ds-task-id: 20150317163836889
+ds-task-actual-start-time: 20150317153836Z
+ds-task-completion-time: 20150317153840Z
+ds-task-state: COMPLETED_SUCCESSFULLY
+ds-task-class-name: org.opends.server.tasks.RebuildTask
+creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+createTimestamp: 20150317153836Z
+entryUUID: c7b3f423-fd23-48d6-9c96-c3e07eaa7bb8
+
+dn: ds-task-id=20150317163239297,cn=Scheduled Tasks,cn=Tasks
+objectClass: ds-task
+objectClass: ds-task-rebuild
+objectClass: top
+ds-task-rebuild-index: vlv.entryUUID asc
+ds-task-rebuild-base-dn: dc=example,dc=com
+ds-task-log-message: [17/Mar/2015:16:32:39 +0100] severity="NOTICE" msgCount=0 msgID=9896349 message="Rebuild Index task 20150317163239297 started execution"
+ds-task-log-message: [17/Mar/2015:16:32:39 +0100] severity="INFORMATION" msgCount=1 msgID=9437595 message="Local DB backend userRoot does not specify the number of lock tables: defaulting to 97"
+ds-task-log-message: [17/Mar/2015:16:32:39 +0100] severity="INFORMATION" msgCount=2 msgID=9437594 message="Local DB backend userRoot does not specify the number of cleaner threads: defaulting to 24 threads"
+ds-task-log-message: [17/Mar/2015:16:32:39 +0100] severity="NOTICE" msgCount=3 msgID=9896306 message="The backend userRoot is now taken offline"
+ds-task-log-message: [17/Mar/2015:16:32:39 +0100] severity="NOTICE" msgCount=4 msgID=8847546 message="The amount of free memory available to the import task is 578982702 bytes. The number of phase one buffers required is 2 buffers"
+ds-task-log-message: [17/Mar/2015:16:32:39 +0100] severity="NOTICE" msgCount=5 msgID=8847568 message="The amount memory available to the temporary DN cache environment is 191061588 bytes"
+ds-task-log-message: [17/Mar/2015:16:32:39 +0100] severity="NOTICE" msgCount=6 msgID=8847545 message="Setting DB cache size to 191061588 bytes and phase one buffer size to to 32808555 bytes"
+ds-task-log-message: [17/Mar/2015:16:32:39 +0100] severity="NOTICE" msgCount=7 msgID=8847510 message="Due to changes in the configuration, index dc_example_dc_com_vlv.entryUUID asc is currently operating in a degraded state and must be rebuilt before it can be used"
+ds-task-log-message: [17/Mar/2015:16:32:39 +0100] severity="NOTICE" msgCount=8 msgID=8847497 message="Rebuild of index(es) vlv.entryUUID asc started with 4005 total entries to process"
+ds-task-log-message: [17/Mar/2015:16:32:41 +0100] severity="NOTICE" msgCount=9 msgID=8847493 message="Rebuild complete. Processed 4005 entries in 1 seconds (average rate 2418.5/sec)"
+ds-task-log-message: [17/Mar/2015:16:32:41 +0100] severity="INFORMATION" msgCount=10 msgID=9437595 message="Local DB backend userRoot does not specify the number of lock tables: defaulting to 97"
+ds-task-log-message: [17/Mar/2015:16:32:41 +0100] severity="INFORMATION" msgCount=11 msgID=9437594 message="Local DB backend userRoot does not specify the number of cleaner threads: defaulting to 24 threads"
+ds-task-log-message: [17/Mar/2015:16:32:41 +0100] severity="NOTICE" msgCount=12 msgID=8847510 message="Due to changes in the configuration, index dc_example_dc_com_vlv.entryUUID asc is currently operating in a degraded state and must be rebuilt before it can be used"
+ds-task-log-message: [17/Mar/2015:16:32:41 +0100] severity="NOTICE" msgCount=13 msgID=8847402 message="The database backend userRoot containing 4005 entries has started"
+ds-task-log-message: [17/Mar/2015:16:32:41 +0100] severity="INFORMATION" msgCount=14 msgID=12582962 message="Added 1 Access Control Instruction (ACI) attribute types found in context "dc=example,dc=com" to the access control evaluation engine"
+ds-task-log-message: [17/Mar/2015:16:32:41 +0100] severity="NOTICE" msgCount=15 msgID=9896350 message="Rebuild Index task 20150317163239297 finished execution"
+ds-task-id: 20150317163239297
+ds-task-actual-start-time: 20150317153239Z
+ds-task-completion-time: 20150317153241Z
+ds-task-state: COMPLETED_SUCCESSFULLY
+ds-task-class-name: org.opends.server.tasks.RebuildTask
+creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+createTimestamp: 20150317153239Z
+entryUUID: cf13387c-df09-479a-9999-ea417cd583f4
+
+dn: ds-task-id=20150317163417546,cn=Scheduled Tasks,cn=Tasks
+objectClass: ds-task
+objectClass: ds-task-rebuild
+objectClass: top
+ds-task-rebuild-index: vlv.entryUUID asc
+ds-task-rebuild-base-dn: dc=example,dc=com
+ds-task-log-message: [17/Mar/2015:16:34:17 +0100] severity="NOTICE" msgCount=0 msgID=9896349 message="Rebuild Index task 20150317163417546 started execution"
+ds-task-log-message: [17/Mar/2015:16:34:17 +0100] severity="INFORMATION" msgCount=1 msgID=9437595 message="Local DB backend userRoot does not specify the number of lock tables: defaulting to 97"
+ds-task-log-message: [17/Mar/2015:16:34:17 +0100] severity="INFORMATION" msgCount=2 msgID=9437594 message="Local DB backend userRoot does not specify the number of cleaner threads: defaulting to 24 threads"
+ds-task-log-message: [17/Mar/2015:16:34:17 +0100] severity="NOTICE" msgCount=3 msgID=9896306 message="The backend userRoot is now taken offline"
+ds-task-log-message: [17/Mar/2015:16:34:17 +0100] severity="NOTICE" msgCount=4 msgID=8847546 message="The amount of free memory available to the import task is 591946158 bytes. The number of phase one buffers required is 2 buffers"
+ds-task-log-message: [17/Mar/2015:16:34:17 +0100] severity="NOTICE" msgCount=5 msgID=8847568 message="The amount memory available to the temporary DN cache environment is 195339528 bytes"
+ds-task-log-message: [17/Mar/2015:16:34:17 +0100] severity="NOTICE" msgCount=6 msgID=8847545 message="Setting DB cache size to 195339528 bytes and phase one buffer size to to 33543151 bytes"
+ds-task-log-message: [17/Mar/2015:16:34:17 +0100] severity="NOTICE" msgCount=7 msgID=8847510 message="Due to changes in the configuration, index dc_example_dc_com_vlv.entryUUID asc is currently operating in a degraded state and must be rebuilt before it can be used"
+ds-task-log-message: [17/Mar/2015:16:34:17 +0100] severity="NOTICE" msgCount=8 msgID=8847497 message="Rebuild of index(es) vlv.entryUUID asc started with 4005 total entries to process"
+ds-task-log-message: [17/Mar/2015:16:34:19 +0100] severity="NOTICE" msgCount=9 msgID=8847493 message="Rebuild complete. Processed 4005 entries in 1 seconds (average rate 2299.1/sec)"
+ds-task-log-message: [17/Mar/2015:16:34:19 +0100] severity="INFORMATION" msgCount=10 msgID=9437595 message="Local DB backend userRoot does not specify the number of lock tables: defaulting to 97"
+ds-task-log-message: [17/Mar/2015:16:34:19 +0100] severity="INFORMATION" msgCount=11 msgID=9437594 message="Local DB backend userRoot does not specify the number of cleaner threads: defaulting to 24 threads"
+ds-task-log-message: [17/Mar/2015:16:34:19 +0100] severity="NOTICE" msgCount=12 msgID=8847510 message="Due to changes in the configuration, index dc_example_dc_com_vlv.entryUUID asc is currently operating in a degraded state and must be rebuilt before it can be used"
+ds-task-log-message: [17/Mar/2015:16:34:19 +0100] severity="NOTICE" msgCount=13 msgID=8847402 message="The database backend userRoot containing 4005 entries has started"
+ds-task-log-message: [17/Mar/2015:16:34:19 +0100] severity="INFORMATION" msgCount=14 msgID=12582962 message="Added 1 Access Control Instruction (ACI) attribute types found in context "dc=example,dc=com" to the access control evaluation engine"
+ds-task-log-message: [17/Mar/2015:16:34:19 +0100] severity="NOTICE" msgCount=15 msgID=9896350 message="Rebuild Index task 20150317163417546 finished execution"
+ds-task-id: 20150317163417546
+ds-task-actual-start-time: 20150317153417Z
+ds-task-completion-time: 20150317153419Z
+ds-task-state: COMPLETED_SUCCESSFULLY
+ds-task-class-name: org.opends.server.tasks.RebuildTask
+creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+createTimestamp: 20150317153417Z
+entryUUID: f10fd822-5bc4-43e6-8f46-44b1700f9bac
+
+dn: ds-task-id=20150317163115594,cn=Scheduled Tasks,cn=Tasks
+objectClass: ds-task
+objectClass: ds-task-rebuild
+objectClass: top
+ds-task-rebuild-index: vlv.entryUUID asc
+ds-task-rebuild-base-dn: dc=example,dc=com
+ds-task-log-message: [17/Mar/2015:16:31:15 +0100] severity="NOTICE" msgCount=0 msgID=9896349 message="Rebuild Index task 20150317163115594 started execution"
+ds-task-log-message: [17/Mar/2015:16:31:15 +0100] severity="INFORMATION" msgCount=1 msgID=9437595 message="Local DB backend userRoot does not specify the number of lock tables: defaulting to 97"
+ds-task-log-message: [17/Mar/2015:16:31:15 +0100] severity="INFORMATION" msgCount=2 msgID=9437594 message="Local DB backend userRoot does not specify the number of cleaner threads: defaulting to 24 threads"
+ds-task-log-message: [17/Mar/2015:16:31:15 +0100] severity="NOTICE" msgCount=3 msgID=9896306 message="The backend userRoot is now taken offline"
+ds-task-log-message: [17/Mar/2015:16:31:15 +0100] severity="NOTICE" msgCount=4 msgID=8847546 message="The amount of free memory available to the import task is 551325174 bytes. The number of phase one buffers required is 2 buffers"
+ds-task-log-message: [17/Mar/2015:16:31:15 +0100] severity="NOTICE" msgCount=5 msgID=8847568 message="The amount memory available to the temporary DN cache environment is 181934604 bytes"
+ds-task-log-message: [17/Mar/2015:16:31:15 +0100] severity="NOTICE" msgCount=6 msgID=8847545 message="Setting DB cache size to 181934604 bytes and phase one buffer size to to 31241295 bytes"
+ds-task-log-message: [17/Mar/2015:16:31:15 +0100] severity="NOTICE" msgCount=7 msgID=8847510 message="Due to changes in the configuration, index dc_example_dc_com_vlv.entryUUID asc is currently operating in a degraded state and must be rebuilt before it can be used"
+ds-task-log-message: [17/Mar/2015:16:31:15 +0100] severity="NOTICE" msgCount=8 msgID=8847497 message="Rebuild of index(es) vlv.entryUUID asc started with 4005 total entries to process"
+ds-task-log-message: [17/Mar/2015:16:31:17 +0100] severity="NOTICE" msgCount=9 msgID=8847493 message="Rebuild complete. Processed 4005 entries in 1 seconds (average rate 2076.2/sec)"
+ds-task-log-message: [17/Mar/2015:16:31:18 +0100] severity="INFORMATION" msgCount=10 msgID=9437595 message="Local DB backend userRoot does not specify the number of lock tables: defaulting to 97"
+ds-task-log-message: [17/Mar/2015:16:31:18 +0100] severity="INFORMATION" msgCount=11 msgID=9437594 message="Local DB backend userRoot does not specify the number of cleaner threads: defaulting to 24 threads"
+ds-task-log-message: [17/Mar/2015:16:31:18 +0100] severity="NOTICE" msgCount=12 msgID=8847510 message="Due to changes in the configuration, index dc_example_dc_com_vlv.entryUUID asc is currently operating in a degraded state and must be rebuilt before it can be used"
+ds-task-log-message: [17/Mar/2015:16:31:18 +0100] severity="NOTICE" msgCount=13 msgID=8847402 message="The database backend userRoot containing 4005 entries has started"
+ds-task-log-message: [17/Mar/2015:16:31:18 +0100] severity="INFORMATION" msgCount=14 msgID=12582962 message="Added 1 Access Control Instruction (ACI) attribute types found in context "dc=example,dc=com" to the access control evaluation engine"
+ds-task-log-message: [17/Mar/2015:16:31:18 +0100] severity="NOTICE" msgCount=15 msgID=9896350 message="Rebuild Index task 20150317163115594 finished execution"
+ds-task-id: 20150317163115594
+ds-task-actual-start-time: 20150317153115Z
+ds-task-completion-time: 20150317153118Z
+ds-task-state: COMPLETED_SUCCESSFULLY
+ds-task-class-name: org.opends.server.tasks.RebuildTask
+creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+createTimestamp: 20150317153115Z
+entryUUID: 2997e34f-1fcf-4bb7-af86-d3f4cb208715
+
+dn: ds-task-id=20150317163025049,cn=Scheduled Tasks,cn=Tasks
+objectClass: ds-task
+objectClass: ds-task-rebuild
+objectClass: top
+ds-task-rebuild-index: cn
+ds-task-rebuild-base-dn: dc=example,dc=com
+ds-task-log-message: [17/Mar/2015:16:30:24 +0100] severity="NOTICE" msgCount=0 msgID=9896349 message="Rebuild Index task 20150317163025049 started execution"
+ds-task-log-message: [17/Mar/2015:16:30:24 +0100] severity="INFORMATION" msgCount=1 msgID=9437595 message="Local DB backend userRoot does not specify the number of lock tables: defaulting to 97"
+ds-task-log-message: [17/Mar/2015:16:30:24 +0100] severity="INFORMATION" msgCount=2 msgID=9437594 message="Local DB backend userRoot does not specify the number of cleaner threads: defaulting to 24 threads"
+ds-task-log-message: [17/Mar/2015:16:30:25 +0100] severity="NOTICE" msgCount=3 msgID=9896306 message="The backend userRoot is now taken offline"
+ds-task-log-message: [17/Mar/2015:16:30:25 +0100] severity="NOTICE" msgCount=4 msgID=8847546 message="The amount of free memory available to the import task is 536803752 bytes. The number of phase one buffers required is 8 buffers"
+ds-task-log-message: [17/Mar/2015:16:30:25 +0100] severity="NOTICE" msgCount=5 msgID=8847568 message="The amount memory available to the temporary DN cache environment is 177134424 bytes"
+ds-task-log-message: [17/Mar/2015:16:30:25 +0100] severity="NOTICE" msgCount=6 msgID=8847545 message="Setting DB cache size to 177134424 bytes and phase one buffer size to to 7604255 bytes"
+ds-task-log-message: [17/Mar/2015:16:30:25 +0100] severity="NOTICE" msgCount=7 msgID=8847510 message="Due to changes in the configuration, index dc_example_dc_com_cn is currently operating in a degraded state and must be rebuilt before it can be used"
+ds-task-log-message: [17/Mar/2015:16:30:25 +0100] severity="NOTICE" msgCount=8 msgID=8847510 message="Due to changes in the configuration, index dc_example_dc_com_vlv.entryUUID asc is currently operating in a degraded state and must be rebuilt before it can be used"
+ds-task-log-message: [17/Mar/2015:16:30:25 +0100] severity="NOTICE" msgCount=9 msgID=8847497 message="Rebuild of index(es) cn started with 4005 total entries to process"
+ds-task-log-message: [17/Mar/2015:16:30:27 +0100] severity="NOTICE" msgCount=10 msgID=8847556 message="The available memory for phase two processing is 536803752 bytes. The read ahead cache size is 7604255 bytes calculated using 4 buffers"
+ds-task-log-message: [17/Mar/2015:16:30:28 +0100] severity="NOTICE" msgCount=11 msgID=8847493 message="Rebuild complete. Processed 4005 entries in 2 seconds (average rate 1417.2/sec)"
+ds-task-log-message: [17/Mar/2015:16:30:28 +0100] severity="INFORMATION" msgCount=12 msgID=9437595 message="Local DB backend userRoot does not specify the number of lock tables: defaulting to 97"
+ds-task-log-message: [17/Mar/2015:16:30:28 +0100] severity="INFORMATION" msgCount=13 msgID=9437594 message="Local DB backend userRoot does not specify the number of cleaner threads: defaulting to 24 threads"
+ds-task-log-message: [17/Mar/2015:16:30:29 +0100] severity="NOTICE" msgCount=14 msgID=8847510 message="Due to changes in the configuration, index dc_example_dc_com_vlv.entryUUID asc is currently operating in a degraded state and must be rebuilt before it can be used"
+ds-task-log-message: [17/Mar/2015:16:30:29 +0100] severity="NOTICE" msgCount=15 msgID=8847402 message="The database backend userRoot containing 4005 entries has started"
+ds-task-log-message: [17/Mar/2015:16:30:29 +0100] severity="INFORMATION" msgCount=16 msgID=12582962 message="Added 1 Access Control Instruction (ACI) attribute types found in context "dc=example,dc=com" to the access control evaluation engine"
+ds-task-log-message: [17/Mar/2015:16:30:29 +0100] severity="NOTICE" msgCount=17 msgID=9896350 message="Rebuild Index task 20150317163025049 finished execution"
+ds-task-id: 20150317163025049
+ds-task-actual-start-time: 20150317153024Z
+ds-task-completion-time: 20150317153029Z
+ds-task-state: COMPLETED_SUCCESSFULLY
+ds-task-class-name: org.opends.server.tasks.RebuildTask
+creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+createTimestamp: 20150317153024Z
+entryUUID: a0f4655b-31c9-40f0-8908-530c9ea2f29d
 

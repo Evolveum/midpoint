@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -26,10 +26,10 @@
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 	<name>ht</name>
 	<resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" type="ResourceType"/>
-	<objectClass>ri:AccountObjectClass</objectClass>
+	<objectClass>ri:inetOrgPerson</objectClass>
 	<intent>default</intent>
 	<attributes>
-		<icfs:name>uid=ht,ou=people,dc=example,dc=com</icfs:name>
+		<ri:dn>uid=ht,ou=people,dc=example,dc=com</ri:dn>
 		<ri:uid>ht</ri:uid>
 		<ri:cn>Herman Toothrot</ri:cn>
 		<ri:givenName>Herman</ri:givenName>

@@ -38,17 +38,18 @@
 	
     <!-- "TRACE" is just too much info, "DEBUG" should be enough for the following talkative components ... 
          if any of the following is set to "TRACE" then it was changed by mistake and should be changed back -->
-	<logger name="com.evolveum.midpoint.model.impl.lens.projector" level="TRACE" />
-	<logger name="com.evolveum.midpoint.model.impl.lens.projector.Projector" level="TRACE" />
-	<logger name="com.evolveum.midpoint.model.impl.lens" level="TRACE" />
+	<logger name="com.evolveum.midpoint.model.impl.lens.projector" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.model.impl.lens.projector.Projector" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.model.impl.lens" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.impl.lens.Clockwork" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.impl.lens.ChangeExecutor" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.impl.lens.ShadowConstraintsChecker" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.impl.lens.LensUtil" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.model.impl.expr" level="TRACE" />
+	<logger name="com.evolveum.midpoint.model.impl.expr" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.impl.util" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.model.impl.sync" level="TRACE" />
+	<logger name="com.evolveum.midpoint.model.impl.sync" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler" level="TRACE" />
 	<logger name="com.evolveum.midpoint.model.impl.sync.CorrelationConfirmationEvaluator" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.expression" level="DEBUG" />
@@ -58,7 +59,7 @@
 	<logger name="com.evolveum.midpoint.common.monitor" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.notifications" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.impl.controller.SystemConfigurationHandler" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.model.common.expression.evaluator.AbstractSearchExpressionEvaluator" level="TRACE" />
+	<logger name="com.evolveum.midpoint.model.common.expression.evaluator.AbstractSearchExpressionEvaluator" level="DEBUG" />
 	
 	<logger name="com.evolveum.midpoint.repo" level="INFO" />
 

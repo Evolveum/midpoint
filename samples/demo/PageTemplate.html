@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2010-2015 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<html xmlns:wicket="http://wicket.apache.org" lang="en" class="no-js">
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <title>
+        <span wicket:id="title"/>
+    </title>
+    <link rel="shortcut icon" type="image/x-icon" href="img/favicon.ico"/>
+
+    <!-- TO BE REMOVED START -->
+    <link type="text/css" rel="stylesheet" href="css/evolveum.css"/>
+    <link rel="stylesheet" type="text/css" href="css/css-fixed-nonIE.css"/>
+    <!--[if IE]>
+    <link rel="stylesheet" type="text/css" href="css/css-fixed-IE.css"/>
+    <![endif]-->
+    <!--[if lt IE 7]>
+    <link rel="stylesheet" type="text/css" href="css/css-fixed-IE.css?444"/>
+    <![endif]-->
+
+    <script type="text/javascript" src="js/evolveum.js"></script>
+    <!-- TO BE REMOVED END -->
+
+
+    <link type="text/css" rel="stylesheet" href="wro/all.css"/>
+
+    <!-- BOOTSTRAP RESOURCES START -->
+    <link type="text/css" rel="stylesheet" href="wro/bootstrap.css"/>
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+    <script src="js/support/html5shiv.js"></script>
+    <script src="js/support/respond.min.js"></script>
+    <![endif]-->
+
+    <link type="text/css" rel="stylesheet" href="wro/bootstrap-override.css"/>
+
+    <link type="text/css" rel="stylesheet" href="css/easy-pie-chart/jquery.easypiechart.css"/>
+
+    <!--https://github.com/silviomoreto/bootstrap-select/releases-->
+    <link rel="stylesheet" type="text/css" href="css/bootstrap-select/bootstrap-multiselect.css"/>
+    <link rel="stylesheet" type="text/css" href="css/bootstrap-select/bootstrap-select.css"/>
+
+    <link rel="stylesheet" type="text/css" href="css/pnotify/jquery.pnotify.default.css"/>
+
+    <link type="text/css" rel="stylesheet" href="css/silk.css"/>
+    <link type="text/css" rel="stylesheet" href="css/flag.css"/>
+    <link type="text/css" rel="stylesheet" href="css/font-awesome.css"/>
+    <link type="text/css" rel="stylesheet" href="wro/midpoint.css"/>
+
+    <script type="text/javascript" src="js/easy-pie-chart/jquery.easypiechart.js"></script>
+    <script type="text/javascript" src="wro/bootstrap.js"></script>
+
+    <!--https://github.com/silviomoreto/bootstrap-select/releases-->
+    <script type="text/javascript" src="js/bootstrap-select/bootstrap-multiselect.js"></script>
+    <script type="text/javascript" src="js/bootstrap-select/bootstrap-select.js"></script>
+
+    <script type="text/javascript" src="js/ace/ace.js" charset="utf-8"></script>
+
+    <script type="text/javascript" src="js/pnotify/jquery.pnotify.js" charset="utf-8"></script>
+
+    <script type="text/javascript" src="wro/midpoint.js"></script>
+    <!-- BOOTSTRAP RESOURCES END -->
+</head>
+<body>
+    <div id="blackWindow"></div>
+    <div id="xmlExport">
+        <span id="xmlExportContent"></span>
+    </div>
+
+    <div wicket:id="topMenu" />
+
+    <div wicket:id="version" class="pull-right version-info">
+        <wicket:message key="pageBase.midPointVersion"/>
+    </div>
+    <img id="ajax_busy" class="pull-right version-info" src="img/ajax-loader.gif"/>
+
+    <div class="mp-main-container">
+        <div class="row mainContainer">
+            <div class="page-header" wicket:id="pageTitleContainer">
+                <h1 wicket:id="pageTitle">
+                    <span wicket:id="pageTitleReal"></span>
+                    <small wicket:id="pageSubtitle"></small>
+                </h1>
+            </div>
+
+            <!--<div wicket:id="feedbackList"/>-->
+            <!--<div wicket:id="feedbackDetails"/>-->
+
+            <div wicket:id="feedbackContainer" class="feedbackContainer">
+                <div wicket:id="feedback" class="messagePanel"/>
+                <div wicket:id="tempFeedback" class="tempMessage"/>
+            </div>
+            <wicket:child/>
+
+        </div>
+
+        <div class="wicket-debug-buttons" wicket:id="debugBar">
+            <a wicket:id="clearCssCache">Clear css cache</a>
+        </div>
+        <div wicket:id="debugPanel" style="z-index: 10000;"/>
+    </div>
+
+    <!-- Footer -->
+    <div class="mp-footer">
+        Thank you for using <a href="http://midpoint.evolveum.com">midPoint</a>, developed by
+        <a href="https://www.evolveum.com/">Evolveum</a> and partners, &copy;&nbsp;2010-2015&nbsp;
+    </div>
+
+
+    <!-- begin changes -->
+    <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+        ga('create', 'UA-26112360-4', 'auto');
+        ga('send', 'pageview');
+
+    </script>
+    <!-- end changes -->
+
+</body>
+</html>

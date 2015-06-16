@@ -501,7 +501,7 @@ public class ModelCrudService {
 
 	public List<PrismObject<? extends ShadowType>> listResourceObjects(String resourceOid, QName objectClass,
 			ObjectPaging paging, Task task, OperationResult parentResult) throws SchemaException,
-			ObjectNotFoundException, CommunicationException, ConfigurationException {
+			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		return modelController.listResourceObjects(resourceOid, objectClass, paging, task, parentResult);
 	}
 

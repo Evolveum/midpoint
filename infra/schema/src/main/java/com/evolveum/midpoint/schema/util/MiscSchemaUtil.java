@@ -17,7 +17,10 @@ package com.evolveum.midpoint.schema.util;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -58,6 +61,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyLimitationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -346,6 +350,23 @@ public class MiscSchemaUtil {
 			}
 		}
 		return layers.contains(layer);
+	}
+
+	// Some searches may return duplicate objects. This is an utility method to remove the duplicates.
+	public static <O extends ObjectType> void reduceSearchResult(List<PrismObject<O>> results) {
+		if (results == null || results.isEmpty()) {
+			return;
+		}
+		Map<String,PrismObject<O>> map = new HashMap<>();
+		Iterator<PrismObject<O>> iterator = results.iterator();
+		while (iterator.hasNext()) {
+			PrismObject<O> prismObject = iterator.next();
+			if (map.containsKey(prismObject.getOid())) {
+				iterator.remove();
+			} else {
+				map.put(prismObject.getOid(), prismObject);
+			}
+		}
 	}
 
 }

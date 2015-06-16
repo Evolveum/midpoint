@@ -29,6 +29,7 @@
 	<extension>
 		<my:shipState>capsized</my:shipState>
 		<my:dead xsi:type="xsd:int">42</my:dead>
+		<!-- No objectclass parameter, sync everything. -->
 	</extension>
 	
 	<taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3ffff</taskIdentifier>

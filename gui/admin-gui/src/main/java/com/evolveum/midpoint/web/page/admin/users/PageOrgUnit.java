@@ -48,7 +48,7 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -68,6 +68,7 @@ import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.*;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
 import java.util.ArrayList;
@@ -142,11 +143,21 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
     };
 
     public PageOrgUnit() {
-        this(null);
+        initialize(null);
     }
 
     //todo improve [erik]
     public PageOrgUnit(final PrismObject<OrgType> unitToEdit) {
+        initialize(unitToEdit);
+    }
+
+    public PageOrgUnit(PageParameters parameters, PageTemplate previousPage) {
+        getPageParameters().overwriteWith(parameters);
+        setPreviousPage(previousPage);
+        initialize(null);
+    }
+
+    protected void initialize(final PrismObject<OrgType> unitToEdit) {
         orgModel = new LoadableModel<PrismObject<OrgType>>(false) {
 
             @Override
@@ -526,7 +537,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                backPerformed(target);
+                setSpecificResponsePage();
             }
         };
         form.add(back);
@@ -539,8 +550,8 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
         return oid != null && StringUtils.isNotEmpty(oid.toString());
     }
 
-    private void backPerformed(AjaxRequestTarget target) {
-        setResponsePage(PageOrgTree.class);
+    private void setSpecificResponsePage() {
+        goBack(PageOrgTree.class);
     }
 
     //todo improve later [erik]
@@ -713,7 +724,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
     public void finishProcessing(AjaxRequestTarget target, OperationResult result) {
         if (!executeOptionsModel.getObject().isKeepDisplayingResults() && progressReporter.isAllSuccess() && WebMiscUtil.isSuccessOrHandledErrorOrInProgress(result)) {
             showResultInSession(result);
-            setResponsePage(PageOrgTree.class);
+            setSpecificResponsePage();
         } else {
             showResult(result);
             target.add(getFeedbackPanel());

@@ -217,6 +217,10 @@ public class ComplexTypeDefinition extends Definition {
         return null;
     }
 
+	public <ID extends ItemDefinition> ID findItemDefinition(ItemPath path) {
+		return (ID)findItemDefinition(path, ItemDefinition.class);
+	}
+
 	public <ID extends ItemDefinition> ID findItemDefinition(ItemPath path, Class<ID> clazz) {
     	while (!path.isEmpty() && !(path.first() instanceof NameItemPathSegment)) {
     		path = path.rest();
