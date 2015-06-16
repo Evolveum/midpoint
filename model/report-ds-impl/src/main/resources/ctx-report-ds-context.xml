@@ -44,6 +44,8 @@
       p:password="${auht.password}"
       p:endpoint="${service.endpoint}"/>
       
+      
+    
       <jaxws:client id="reportPort"
                   serviceClass="com.evolveum.midpoint.xml.ns._public.report.report_3.ReportPortType"
                   address="${service.endpoint}"

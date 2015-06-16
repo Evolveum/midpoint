@@ -11,30 +11,17 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-
 import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRField;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.prism.parser.JaxbDomHack;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.report.report_3.RemoteReportParameterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
 import com.evolveum.midpoint.xml.ns._public.report.report_3.ReportPortType;
-import com.evolveum.midpoint.xml.ns._public.report.report_3.reportPortImpl;
 
 public class MidPointRemoteDataSource implements JRDataSource {
 
@@ -98,7 +85,7 @@ public class MidPointRemoteDataSource implements JRDataSource {
 			return currentObject.getOid();
 		}
 
-		RemoteReportParameterType param = reportPort.getFieldValue(
+		ReportParameterType param = reportPort.getFieldValue(
 				QNameUtil.qNameToUri(new QName(fieldName)), currentObject);
 
 		if (param == null) {

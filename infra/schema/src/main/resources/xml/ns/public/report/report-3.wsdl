@@ -26,10 +26,12 @@
     xmlns:apit="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
     xmlns:aud="http://midpoint.evolveum.com/xml/ns/public/common/audit-3"
     xmlns:f="http://midpoint.evolveum.com/xml/ns/public/common/fault-3"
+    xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
 	xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" >
  <documentation>
  	Web service interface for jasper report data source provider
  </documentation>
+ 
  
    <types>
         <!-- Element form name is QUALIFIED to prevent some problems with marshalling/unmarshalling. This deviates from RPC/Literal convention, but we
@@ -43,11 +45,15 @@
             			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/audit-3"/>
             <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"
             			schemaLocation="http://prism.evolveum.com/xml/ns/public/query-3"/>
- 
+            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"
+            			schemaLocation="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+         
      
         <xsd:complexType name="ProcessReportType">
           <xsd:sequence>
-            <xsd:element name="report" type="c:ReportType"/>
+            <xsd:element name="query" type="xsd:string"/>
+            <xsd:element name="parameters" type="tns:RemoteReportParametersType"/>
+            <xsd:element name="options" type="apit:SelectorQualifiedGetOptionsType" minOccurs="0"/>
           </xsd:sequence>
         </xsd:complexType>
       <xsd:element name="processReport" type="tns:ProcessReportType" />
@@ -69,13 +75,14 @@
           <xsd:sequence>
             <xsd:element name="query" type="xsd:string"/>
             <xsd:element name="parameters" type="tns:RemoteReportParametersType"/>
+            
           </xsd:sequence>
         </xsd:complexType>
       <xsd:element name="parseQuery" type="tns:ParseQueryType" />
       
         <xsd:complexType name="ParseQueryResponseType">
           <xsd:sequence>
-          <xsd:element name="parsedQuery" type="xsd:string">
+          <xsd:element name="parsedQuery" type="q:QueryType">
                         <xsd:annotation>
                             <xsd:documentation>
                                 parsedQuery
@@ -87,6 +94,7 @@
       <xsd:element name="parseQueryResponse" type="tns:ParseQueryResponseType"/>
       
       
+    
        <xsd:complexType name="SearchObjectsType">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -95,7 +103,7 @@
                 </xsd:annotation>
                 <xsd:sequence>
                     
-                    <xsd:element name="query" type="xsd:string" minOccurs="0">
+                    <xsd:element name="query" type="q:QueryType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Search criteria. If not specified, all objects of a given type are returned.
@@ -257,7 +265,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
                 <xsd:sequence>
-                    <xsd:element name="value" type="tns:RemoteReportParameterType">
+                    <xsd:element name="value" type="c:ReportParameterType">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Name of the jasper report parameter
@@ -269,12 +277,15 @@
             </xsd:complexType>
             <xsd:element name="getFieldValueResponse" type="tns:GetFieldValueResponseType"/>
       
-            
+    
             <xsd:complexType name="RemoteReportParametersType">
                 <xsd:annotation>
                     <xsd:documentation>
                         A response from searchObjects operation.
                     </xsd:documentation>
+	                <xsd:appinfo>
+	                	<a:container/>
+	            	</xsd:appinfo>
                 </xsd:annotation>
                 <xsd:sequence>
                     <xsd:element name="remoteParameter" type="tns:RemoteReportParameterType" minOccurs="0" maxOccurs="unbounded">
@@ -293,6 +304,9 @@
                     <xsd:documentation>
                         A response from searchObjects operation.
                     </xsd:documentation>
+                    <xsd:appinfo>
+	                	<a:container/>
+	                </xsd:appinfo>
                 </xsd:annotation>
                 <xsd:sequence>
                     <xsd:element name="parameterName" type="xsd:string">
@@ -309,7 +323,7 @@
                 </xsd:sequence>
             </xsd:complexType>
             <xsd:element name="remoteReportParameter" type="tns:RemoteReportParameterType"/>
-            
+        
             
       
        
@@ -415,6 +429,7 @@
         <soap:body use="literal"/>
       </output>
     </operation>
+    
     <operation name="evaluateScript">
       <soap:operation name="evaluateScript"/>
       <input>

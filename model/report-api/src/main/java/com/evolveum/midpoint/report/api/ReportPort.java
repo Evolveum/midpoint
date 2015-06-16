@@ -11,6 +11,7 @@ public interface ReportPort {
 
 	
 	 public static final QName PARSE_QUERY_RESPONSE = new QName(SchemaConstants.NS_REPORT_WS, "parseQueryResponse");
+	 public static final QName PROCESS_REPORT_RESPONSE = new QName(SchemaConstants.NS_REPORT_WS, "processReportResponse");
 	 public static final QName EVALUATE_SCRIPT_RESPONSE = new QName(SchemaConstants.NS_REPORT_WS, "evaluateScriptResponse");
 	 public static final QName EVALUATE_AUDIT_SCRIPT_RESPONSE = new QName(SchemaConstants.NS_REPORT_WS, "evaluateAuditScriptResponse");
 	 public static final QName SEARCH_OBJECTS_RESPONSE = new QName(SchemaConstants.NS_REPORT_WS, "searchObjectsResponse");

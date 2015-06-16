@@ -764,7 +764,8 @@ public class QueryConvertor {
 	
 	private static MapXNode serializeNoneFilter(NoneFilter filter, XNodeSerializer xnodeSerializer) {
 		MapXNode map =  new MapXNode();
-		map.put(KEY_FILTER_NONE_TYPE, new PrimitiveXNode<>());
+		MapXNode none = new MapXNode();
+		map.put(KEY_FILTER_NONE_TYPE, none);
 		return map;
 	}
 	

@@ -26,11 +26,13 @@ import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.report.report_3.RemoteReportParameterType;
 import com.evolveum.midpoint.xml.ns._public.report.report_3.RemoteReportParametersType;
 import com.evolveum.midpoint.xml.ns._public.report.report_3.ReportPortType;
 import com.evolveum.midpoint.xml.ns._public.report.report_3.ReportService;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 
@@ -39,7 +41,6 @@ public class MidPointRemoteQueryExecuterTest {
 	public Object getParsedQuery(PrismContext prismContext, ReportPortType reportPort) throws  SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		
 		RemoteReportParametersType reportParameters = new RemoteReportParametersType();
-		
 		RemoteReportParameterType reportParameter = new RemoteReportParameterType();
 		reportParameter.setParameterName("stringExample");
 		reportParameter.getAny().add("someString");
@@ -59,6 +60,8 @@ public class MidPointRemoteQueryExecuterTest {
 			
 		EqualFilter f = EqualFilter.createEqual(UserType.F_NAME, UserType.class, prismContext, PrismTestUtil.createPolyString("someName"));
 		SearchFilterType filterType = QueryConvertor.createSearchFilterType(f, prismContext);
+		QueryType q = new QueryType();
+		q.setFilter(filterType);
 		
 		return reportPort.parseQuery(prismContext.serializeAtomicValue(filterType, SearchFilterType.COMPLEX_TYPE, PrismContext.LANG_XML), reportParameters);
 //		return getStringQuery();
@@ -77,8 +80,8 @@ public class MidPointRemoteQueryExecuterTest {
 		
 //		ReportPortType reportPort = createReportPort(PrismTestUtil.getPrismContext());
 		
-		String f = (String) t.getParsedQuery(PrismTestUtil.getPrismContext(), reportPort);
-		System.out.println("returned filter: " + f);
+		QueryType f = (QueryType) t.getParsedQuery(PrismTestUtil.getPrismContext(), reportPort);
+		System.out.println("returned filter: " + f.debugDump());
 		} catch (SchemaException | SAXException | IOException | ObjectNotFoundException | ExpressionEvaluationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

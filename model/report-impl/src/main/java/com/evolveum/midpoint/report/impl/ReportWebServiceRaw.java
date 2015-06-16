@@ -20,6 +20,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.report.api.ReportPort;
@@ -30,6 +31,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.report.report_3.EvaluateAuditScriptResponseType;
 import com.evolveum.midpoint.xml.ns._public.report.report_3.EvaluateAuditScriptType;
@@ -39,10 +41,12 @@ import com.evolveum.midpoint.xml.ns._public.report.report_3.GetFieldValueRespons
 import com.evolveum.midpoint.xml.ns._public.report.report_3.GetFieldValueType;
 import com.evolveum.midpoint.xml.ns._public.report.report_3.ParseQueryResponseType;
 import com.evolveum.midpoint.xml.ns._public.report.report_3.ParseQueryType;
-import com.evolveum.midpoint.xml.ns._public.report.report_3.RemoteReportParameterType;
+import com.evolveum.midpoint.xml.ns._public.report.report_3.ProcessReportResponseType;
+import com.evolveum.midpoint.xml.ns._public.report.report_3.ProcessReportType;
+import com.evolveum.midpoint.xml.ns._public.report.report_3.ReportPortType;
 import com.evolveum.midpoint.xml.ns._public.report.report_3.SearchObjectsResponseType;
 import com.evolveum.midpoint.xml.ns._public.report.report_3.SearchObjectsType;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 @Service
 public class ReportWebServiceRaw implements Provider<DOMSource> {
@@ -114,7 +118,7 @@ public class ReportWebServiceRaw implements Provider<DOMSource> {
 	        try {
 	        	if (requestObject instanceof ParseQueryType){
 	        		ParseQueryType p = (ParseQueryType) requestObject;
-	        		String parsed = reportService.parseQuery(p.getQuery(), p.getParameters());
+	        		QueryType parsed = reportService.parseQuery(p.getQuery(), p.getParameters());
 	        		ParseQueryResponseType pr = new ParseQueryResponseType();
 	        		pr.setParsedQuery(parsed);
 	        		response =  prismContext.serializeAnyDataToElement(pr, ReportPort.PARSE_QUERY_RESPONSE);
@@ -138,10 +142,21 @@ public class ReportWebServiceRaw implements Provider<DOMSource> {
 	        		response = prismContext.serializeAnyDataToElement(sr, ReportPort.EVALUATE_AUDIT_SCRIPT_RESPONSE);
 	            } else if (requestObject instanceof GetFieldValueType){
 	            	GetFieldValueType g = (GetFieldValueType) requestObject;
-	        		RemoteReportParameterType param = reportService.getFieldValue(g.getParameterName(), g.getObject());
+	        		ReportParameterType param = reportService.getFieldValue(g.getParameterName(), g.getObject());
 	        		GetFieldValueResponseType gr = new GetFieldValueResponseType();
 	        		gr.setValue(param);
+//	        		XNode valueNode = prismContext.getXnodeProcessor().serializeItemValue(param.asPrismContainerValue());
+//	        		MapXNode paramXnode = new MapXNode();
+//	        		paramXnode.put(new QName(SchemaConstants.NS_REPORT_WS, "value"), valueNode);
+//	        		RootXNode rootXNode = new RootXNode(ReportPort.GET_FIELD_VALUE_RESPONSE, paramXnode);
+//	        		response = prismContext.getParserDom().serializeXRootToElement(rootXNode);
 	        		response = prismContext.serializeAnyDataToElement(gr, ReportPort.GET_FIELD_VALUE_RESPONSE);
+	            } else if (requestObject instanceof ProcessReportType){
+	            	ProcessReportType p = (ProcessReportType) requestObject;
+	            	ObjectListType olt = reportService.processReport(p.getQuery(), p.getParameters(), p.getOptions());
+	            	ProcessReportResponseType pr = new ProcessReportResponseType();
+	            	pr.setObjectList(olt);
+	            	response = prismContext.serializeAnyDataToElement(pr, ReportPort.PROCESS_REPORT_RESPONSE);
 	            } else {
 	            	throw new FaultMessage("Unsupported request type: " + requestObject);
 	            }
