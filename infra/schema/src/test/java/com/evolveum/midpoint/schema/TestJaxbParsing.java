@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBElement;
@@ -71,7 +72,6 @@ import static org.testng.AssertJUnit.assertNotNull;
  */
 public class TestJaxbParsing {
 
-    private static final String TEST_COMMON_DIR = "src/test/resources/common/";
     private static final String NS_FOO = "http://www.example.com/foo";
 
     @BeforeSuite
@@ -86,7 +86,7 @@ public class TestJaxbParsing {
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         // Try to use the schema to validate Jack
-        UserType userType = PrismTestUtil.parseObjectable(new File(TEST_COMMON_DIR, "user-jack.xml"), UserType.class);
+        UserType userType = PrismTestUtil.parseObjectable(new File(TestConstants.COMMON_DIR, "user-jack.xml"), UserType.class);
 
         // WHEN
 
@@ -133,7 +133,7 @@ public class TestJaxbParsing {
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         // Try to use the schema to validate Jack
-        ShadowType accType = PrismTestUtil.parseObjectable(new File(TEST_COMMON_DIR, "account-jack.xml"), ShadowType.class);
+        ShadowType accType = PrismTestUtil.parseObjectable(new File(TestConstants.COMMON_DIR, "account-jack.xml"), ShadowType.class);
 
         PrismObject<ShadowType> account = accType.asPrismObject();
         account.revive(prismContext);
@@ -155,7 +155,7 @@ public class TestJaxbParsing {
 
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
-        RoleType roleType = PrismTestUtil.parseObjectable(new File(TEST_COMMON_DIR, "role.xml"), RoleType.class);
+        RoleType roleType = PrismTestUtil.parseObjectable(new File(TestConstants.COMMON_DIR, "role.xml"), RoleType.class);
 
         // WHEN
 
@@ -181,7 +181,7 @@ public class TestJaxbParsing {
 
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
-        GenericObjectType object = PrismTestUtil.parseObjectable(new File(TEST_COMMON_DIR, "generic-sample-configuration.xml"),
+        GenericObjectType object = PrismTestUtil.parseObjectable(new File(TestConstants.COMMON_DIR, "generic-sample-configuration.xml"),
                 GenericObjectType.class);
 
         PrismObject<GenericObjectType> prism = object.asPrismObject();
@@ -230,7 +230,7 @@ public class TestJaxbParsing {
     }
 
     @Test
-    public void testParseAnyValue() throws SchemaException, SAXException, IOException, JAXBException {
+    public void testParseAnyValue() throws Exception {
 
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
@@ -248,6 +248,22 @@ public class TestJaxbParsing {
         Object oValue = prismContext.parseAnyValueAsJAXBElement(dataValue, PrismContext.LANG_XML);
         System.out.println("Parsed expression evaluator: " + dataValue + " as " + oValue);
         AssertJUnit.assertTrue("result is of wrong class (not JAXBElement): " + oValue.getClass(), oValue instanceof JAXBElement);
+    }
+    
+    @Test
+    public void testParseValueFilterWithAny() throws Exception {
+
+        PrismContext prismContext = PrismTestUtil.getPrismContext();
+
+        Document doc = DOMUtil.parseFile(new File(TestConstants.COMMON_DIR, "value-filter-with-any.xml"));
+        Element rootElement = DOMUtil.getFirstChildElement(doc);
+        
+        // WHEN
+
+        Object parsedObject = prismContext.parseAnyValue(rootElement);
+
+        // THEN
+        System.out.println("Parsed object: "  + parsedObject);
     }
 
 }
