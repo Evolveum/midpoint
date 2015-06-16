@@ -472,11 +472,17 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 		// Deprecated
 		if (patternType.getName() != null) {
 			RefinedAttributeDefinition<String> attributeDefinition = rAccountDef.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA,"name"));
+			if (attributeDefinition == null) {
+				throw new SchemaException("No ICF NAME attribute in schema as specified in the definition of protected objects (this is deprecated syntax anyway, convert it to filter)");
+			}
 			ResourceAttribute<String> attr = attributeDefinition.instantiate();
 			attr.setRealValue(patternType.getName());
 			resourceObjectPattern.addIdentifier(attr);
 		} else if (patternType.getUid() != null) {
 			RefinedAttributeDefinition attributeDefinition = rAccountDef.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA,"uid"));
+			if (attributeDefinition == null) {
+				throw new SchemaException("No ICF UID attribute in schema as specified in the definition of protected objects (this is deprecated syntax anyway, convert it to filter)");
+			}
 			ResourceAttribute<String> attr = attributeDefinition.instantiate();
 			attr.setRealValue(patternType.getName());
 			resourceObjectPattern.addIdentifier(attr);			

@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 public class TestConstants {
 	
 	public static final String COMMON_DIR_PATH = "src/test/resources/common";
+	public static final File COMMON_DIR = new File(COMMON_DIR_PATH);
 	
 	public static final String NS_EXTENSION = SchemaConstants.NS_MIDPOINT_TEST + "/extension";
 	public static final String NS_FOO = "http://www.example.com/foo";
@@ -37,8 +38,6 @@ public class TestConstants {
 	public static final QName EXTENSION_INT_TYPE_ELEMENT = new QName(NS_EXTENSION, "intType");
 	public static final QName EXTENSION_IGNORED_TYPE_ELEMENT = new QName(NS_EXTENSION, "ignoredType");
     public static final QName EXTENSION_USER_REF_ELEMENT = new QName(NS_EXTENSION, "userRef");
-    
-    public static final File COMMON_DIR = new File("src/test/resources/common");
 	
     public static final String USER_FILE_BASENAME = "user-jack";
 	public static final File USER_FILE = new File(COMMON_DIR, "user-jack.xml");

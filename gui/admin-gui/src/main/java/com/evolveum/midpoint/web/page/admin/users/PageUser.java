@@ -680,9 +680,15 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
 
                 ResourceType resource = accountType.getResource();
                 String resourceName = WebMiscUtil.getName(resource);
-                
-                ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(resourceName, WebMiscUtil.getOrigStringFromPoly(accountType
-                        .getName()), account, ContainerStatus.MODIFYING, true, this);
+
+                StringBuilder description = new StringBuilder();
+                if (accountType.getIntent() != null) {
+                    description.append(accountType.getIntent()).append(", ");
+                }
+                description.append(WebMiscUtil.getOrigStringFromPoly(accountType.getName()));
+
+                ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(resourceName, description.toString(),
+                            account, ContainerStatus.MODIFYING, true, this);
 //                ObjectWrapper wrapper = new ObjectWrapper(resourceName, WebMiscUtil.getOrigStringFromPoly(accountType
 //                        .getName()), account, ContainerStatus.MODIFYING);
                 wrapper.setFetchResult(OperationResult.createOperationResult(fetchResult));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,16 @@ package com.evolveum.midpoint.prism.parser;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.prism.schema.SchemaDescription;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.Handler;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Node;
 
 import javax.xml.XMLConstants;
+import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementDecl;
@@ -34,6 +37,7 @@ import javax.xml.bind.annotation.XmlSchema;
 import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -153,12 +157,22 @@ public class PrismBeanInspector {
         });
     }
 
-    private Map<Package,Class> _getObjectFactoryClass = Collections.synchronizedMap(new HashMap());
+    private Map<Package,Class> _getObjectFactoryClassPackage = Collections.synchronizedMap(new HashMap());
     Class getObjectFactoryClass(Package aPackage) {
-        return find1(_getObjectFactoryClass, aPackage, new Getter1<Class,Package>() {
+        return find1(_getObjectFactoryClassPackage, aPackage, new Getter1<Class,Package>() {
             @Override
             public Class get(Package p) {
                 return getObjectFactoryClassUncached(p);
+            }
+        });
+    }
+    
+    private Map<String,Class> _getObjectFactoryClassNamespace = Collections.synchronizedMap(new HashMap());
+    Class getObjectFactoryClass(String namespaceUri) {
+        return find1(_getObjectFactoryClassNamespace, namespaceUri, new Getter1<Class,String>() {
+            @Override
+            public Class get(String s) {
+                return getObjectFactoryClassUncached(s);
             }
         });
     }
@@ -427,6 +441,18 @@ public class PrismBeanInspector {
             throw new IllegalArgumentException("Cannot find object factory class in package "+pkg.getName()+": "+e.getMessage(), e);
         }
     }
+    
+    private Class getObjectFactoryClassUncached(String namespaceUri) {
+    	SchemaDescription schemaDescription = prismContext.getSchemaRegistry().findSchemaDescriptionByNamespace(namespaceUri);
+    	if (schemaDescription == null) {
+    		throw new IllegalArgumentException("Cannot find object factory class for namespace "+namespaceUri+": unknown schema namespace");
+    	}
+    	Package compileTimeClassesPackage = schemaDescription.getCompileTimeClassesPackage();
+    	if (compileTimeClassesPackage == null) {
+    		throw new IllegalArgumentException("Cannot find object factory class for namespace "+namespaceUri+": not a compile-time schema");
+    	}
+        return getObjectFactoryClassUncached(compileTimeClassesPackage);
+    }
 
     private Method findElementMethodInObjectFactoryUncached(Class objectFactoryClass, String propName) {
         for (Method method: objectFactoryClass.getDeclaredMethods()) {
@@ -629,4 +655,13 @@ public class PrismBeanInspector {
         return new QName(realNamespace, realLocalName);
     }
     //endregion
+    
+    public <T> Field findAnyField(Class<T> beanClass) {
+    	return findField(beanClass, new Handler<Field>() {
+			@Override
+			public boolean handle(Field field) {
+				return (field.getAnnotation(XmlAnyElement.class) != null);
+			}
+    	});
+    }
 }

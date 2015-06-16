@@ -209,7 +209,7 @@ public class PrismBeanConverter {
 			Method elementMethod = null;
 			Object objectFactory = null;
 			if (field == null && propertyGetter == null) {
-				// We have to try to find a more generic field, such as xsd:any (TODO) or substitution element
+				// We have to try to find a more generic field, such as xsd:any or substitution element
 				// check for global element definition first
                 Class objectFactoryClass = inspector.getObjectFactoryClass(beanClass.getPackage());
 				objectFactory = instantiateObjectFactory(objectFactoryClass);
@@ -219,7 +219,13 @@ public class PrismBeanConverter {
 				}
 				field = inspector.lookupSubstitution(beanClass, elementMethod);
 				if (field == null) {
-					throw new SchemaException("No field "+propName+" in class "+beanClass+" (and no suitable substitution too)");
+					// Check for "any" field
+					field = inspector.findAnyField(beanClass);
+					if (field == null) {
+						throw new SchemaException("No field "+propName+" in class "+beanClass+" (no suitable substitution and no 'any' field)");
+					}
+					unmarshallToAny(bean, field, key, xsubnode);
+					continue;
 				}
 			}
 
@@ -427,6 +433,38 @@ public class PrismBeanConverter {
 		return bean;
 	}
 
+	private <T,S> void unmarshallToAny(T bean, Field anyField, QName elementName, XNode xsubnode) throws SchemaException{
+		Class<T> beanClass = (Class<T>) bean.getClass();
+		
+		Class objectFactoryClass = inspector.getObjectFactoryClass(elementName.getNamespaceURI());
+		Object objectFactory = instantiateObjectFactory(objectFactoryClass);
+		Method elementFactoryMethod = inspector.findElementMethodInObjectFactory(objectFactoryClass, elementName.getLocalPart());
+		Class<S> subBeanClass = (Class<S>) elementFactoryMethod.getParameterTypes()[0];
+		
+		S subBean = unmarshall(xsubnode, subBeanClass);
+		JAXBElement<S> subBeanElement;
+		try {
+			subBeanElement = (JAXBElement<S>) elementFactoryMethod.invoke(objectFactory, subBean);
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e1) {
+			throw new IllegalArgumentException("Cannot invoke factory method "+elementFactoryMethod+" on "+objectFactoryClass+" with "+subBean+": "+e1, e1);
+		}
+		
+		Method getter = inspector.findPropertyGetter(beanClass, anyField.getName());
+		Collection<Object> col;
+		Object getterReturn;
+		try {
+			getterReturn = getter.invoke(bean);
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			throw new SystemException("Cannot invoke getter "+getter+" on bean of type "+beanClass+": "+e.getMessage(), e);
+		}
+		try {
+			col = (Collection<Object>)getterReturn;
+		} catch (ClassCastException e) {
+			throw new SystemException("Getter "+getter+" on bean of type "+beanClass+" returned "+getterReturn+" instead of collection");
+		}
+		col.add(subBeanElement);
+	}
+	
     private Object instantiateObjectFactory(Class objectFactoryClass) {
         try {
             return objectFactoryClass.newInstance();
