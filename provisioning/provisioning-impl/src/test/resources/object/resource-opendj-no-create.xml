@@ -20,6 +20,7 @@
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
           xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
@@ -100,8 +101,14 @@
             	<explicitReferentialIntegrity>true</explicitReferentialIntegrity>
             </association>
        		<protected>
-       			<!-- WilDCapiTaLIzaTioN makes sure that this is matched case-insensitive -->
-				<icfs:name>uid=cAlyPSo,ou=PeoPle,DC=example,dc=COM</icfs:name>
+       			<filter>
+	       			<q:equal>
+	       				<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#distinguishedName</q:matching>
+		            	<q:path>attributes/ri:dn</q:path>
+		            	<!-- WilDCapiTaLIzaTioN and spacing makes sure that this is matched properly -->
+		                <q:value>uid=cAlyPSo, ou=PeoPle,    DC=example,dc=COM</q:value>
+		            </q:equal>
+	            </filter>
 			</protected>
 			<configuredCapabilities>
 				<cap:pagedSearch>
