@@ -313,6 +313,9 @@
 
     <xsd:element name="present" substitutionGroup="tns:filterClause" type="tns:PropertyNoValueFilterClauseType"/>
     <xsd:element name="true" substitutionGroup="tns:filterClause" type="tns:PropertyNoValueFilterClauseType"/>
+    
+    <xsd:element name="all" substitutionGroup="tns:filterClause" type="tns:FilterClauseType"/>
+    <xsd:element name="none" substitutionGroup="tns:filterClause" type="tns:FilterClauseType"/>
 
     <xsd:complexType name="LogicalOperatorFilterClauseType" abstract="true">
         <xsd:complexContent>
