@@ -209,6 +209,8 @@ public class TestOrgStructMeta extends TestOrgStruct {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Proud member of F0006");
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "Arr!", "I say: Hosting the worst scumm of the Caribbean.");
         
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -235,6 +237,8 @@ public class TestOrgStructMeta extends TestOrgStruct {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "Arr!");
         
         // Postcondition
         assertMonkeyIslandOrgSanity();
