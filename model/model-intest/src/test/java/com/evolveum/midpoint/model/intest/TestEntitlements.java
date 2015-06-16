@@ -377,5 +377,33 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertNoGroupMember(dummyGroupAtOrange, USER_LARGO_USERNAME);
         assertGroupMember(dummyGroupAtOrange, "newLargo");
     }
+    
+    @Test
+    public void test319UnassignRoleWimpFromLargo() throws Exception {
+		final String TEST_NAME = "test319UnassignRoleWimpFromLargo";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        unassignRole(USER_LARGO_OID, ROLE_WIMP_OID, task, result);
+        
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+                
+        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
+        assertNotNull("No group on dummy resource", dummyGroup);
+        display("Group", dummyGroup);
+        assertNoGroupMember(dummyGroup, USER_LARGO_USERNAME);
+        assertNoGroupMember(dummyGroup, "newLargo");
+
+        DummyGroup dummyGroupAtOrange = dummyResourceOrange.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
+        assertNotNull("No group on orange dummy resource", dummyGroupAtOrange);
+        display("Group @orange", dummyGroupAtOrange);
+        assertNoGroupMember(dummyGroupAtOrange, USER_LARGO_USERNAME);
+        assertNoGroupMember(dummyGroupAtOrange, "newLargo");
+	}
 
 }
