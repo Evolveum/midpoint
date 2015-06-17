@@ -34,8 +34,8 @@ import javax.persistence.UniqueConstraint;
 import java.util.Collection;
 
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(name = "uc_access_certification_campaign_name", columnNames = {"name_norm"}))
-@ForeignKey(name = "fk_access_certification_campaign")
+@Table(uniqueConstraints = @UniqueConstraint(name = "uc_a6_c13_campaign_name", columnNames = {"name_norm"}))
+@ForeignKey(name = "fk_a6_c13_campaign")
 public class RAccessCertificationCampaign extends RObject<AccessCertificationCampaignType> {
 
     private RPolyString name;

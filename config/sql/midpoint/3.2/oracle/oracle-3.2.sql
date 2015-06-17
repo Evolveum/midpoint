@@ -1,6 +1,23 @@
 -- INITRANS added because we use serializable transactions http://docs.oracle.com/cd/B14117_01/appdev.101/b10795/adfns_sq.htm#1025374
 -- replace ");" with ") INITRANS 30;"
 
+CREATE TABLE m1_a6_c13_definition (
+    name_norm VARCHAR2(255 CHAR),
+    name_orig VARCHAR2(255 CHAR),
+    oid VARCHAR2(36 CHAR) NOT NULL,
+    PRIMARY KEY (oid)
+) INITRANS 30;
+
+CREATE TABLE m1_a6_certification_campaign (
+    definitionRef_relation VARCHAR2(157 CHAR),
+    definitionRef_targetOid VARCHAR2(36 CHAR),
+    definitionRef_type NUMBER(10,0),
+    name_norm VARCHAR2(255 CHAR),
+    name_orig VARCHAR2(255 CHAR),
+    oid VARCHAR2(36 CHAR) NOT NULL,
+    PRIMARY KEY (oid)
+) INITRANS 30;
+
 CREATE TABLE m_abstract_role (
   approvalProcess VARCHAR2(255 CHAR),
   requestable     NUMBER(1, 0),
@@ -594,6 +611,12 @@ CREATE TABLE m_value_policy (
   PRIMARY KEY (oid)
 ) INITRANS 30;
 
+ALTER TABLE m1_a6_c13_definition
+    ADD CONSTRAINT uc_a6_c13_definition_name  UNIQUE (name_norm) INITRANS 30;
+
+ALTER TABLE m1_a6_certification_campaign
+    ADD CONSTRAINT uc_a6_c13_campaign_name  UNIQUE (name_norm) INITRANS 30;
+
 CREATE INDEX iRequestable ON m_abstract_role (requestable) INITRANS 30;
 
 CREATE INDEX iAssignmentAdministrative ON m_assignment (administrativeStatus) INITRANS 30;
@@ -721,6 +744,16 @@ CREATE INDEX iLocality ON m_user (locality_orig) INITRANS 30;
 
 ALTER TABLE m_value_policy
 ADD CONSTRAINT uc_value_policy_name UNIQUE (name_norm) INITRANS 30;
+
+ALTER TABLE m1_a6_c13_definition
+    ADD CONSTRAINT fk_a6_c13_definition
+    FOREIGN KEY (oid)
+    REFERENCES m_object;
+
+ALTER TABLE m1_a6_certification_campaign
+    ADD CONSTRAINT fk_a6_c13_campaign
+    FOREIGN KEY (oid)
+    REFERENCES m_object;
 
 ALTER TABLE m_abstract_role
 ADD CONSTRAINT fk_abstract_role
