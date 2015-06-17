@@ -273,9 +273,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> user = findUserByUsername(USER_WALLY_NAME);
         
 		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
         assignRole(user.getOid(), ROLE_MAPMAKER_OID, task, result);
         
         // THEN
+        TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
                 
@@ -283,6 +285,31 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertNotNull("No group on dummy resource", dummyGroup);
         display("Group", dummyGroup);
         assertGroupMember(dummyGroup, USER_WALLY_NAME);
+	}
+    
+    @Test
+    public void test224UnassignRoleMapmakerFromWally() throws Exception {
+		final String TEST_NAME = "test224UnassignRoleMapmakerFromWally";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> user = findUserByUsername(USER_WALLY_NAME);
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        unassignRole(user.getOid(), ROLE_MAPMAKER_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+                
+        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_MAPMAKERS_NAME);
+        assertNotNull("No group on dummy resource", dummyGroup);
+        display("Group", dummyGroup);
+        assertNoGroupMember(dummyGroup, USER_WALLY_NAME);
 	}
 
     
@@ -295,9 +322,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
 		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
         addObject(ROLE_WIMP_FILE, task, result);
         
         // THEN
+        TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
                 
@@ -325,9 +354,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         addObject(USER_LARGO_FILE);
         
 		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
         assignRole(USER_LARGO_OID, ROLE_WIMP_OID, task, result);
         
         // THEN
+        TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
                 
@@ -357,9 +388,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
 		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
         modifyUserReplace(USER_LARGO_OID, UserType.F_NAME, task, result, PrismTestUtil.createPolyString("newLargo"));
         
         // THEN
+        TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
                 
@@ -387,9 +420,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
 		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
         unassignRole(USER_LARGO_OID, ROLE_WIMP_OID, task, result);
         
         // THEN
+        TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
                 
@@ -403,7 +438,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertNotNull("No group on orange dummy resource", dummyGroupAtOrange);
         display("Group @orange", dummyGroupAtOrange);
         assertNoGroupMember(dummyGroupAtOrange, USER_LARGO_USERNAME);
-        assertNoGroupMember(dummyGroupAtOrange, "newLargo");
+        // Orange resource has explicit referential integrity switched off 
+        assertGroupMember(dummyGroupAtOrange, "newLargo");
 	}
-
 }
