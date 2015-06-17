@@ -17,6 +17,8 @@ package com.evolveum.midpoint.provisioning.impl;
 
 import java.util.Collection;
 
+import javax.xml.namespace.QName;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -75,37 +77,6 @@ public class ProvisioningContextFactory {
 		ctx.setObjectClassDefinition(objectClassDefinition);
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 		ctx.setConnector(connector);
-		return ctx;
-	}
-	
-	/**
-	 * Creates a context for a different object class on the same resource.
-	 */
-	public ProvisioningContext create(ProvisioningContext baseCtx, ShadowKindType kind, String intent) {
-		ProvisioningContext ctx = createSameResource(baseCtx);
-		RefinedResourceSchema refinedSchema = ctx.getRefinedSchema();
-		RefinedObjectClassDefinition objectClassDefinition = refinedSchema.getRefinedDefinition(kind, intent);
-		ctx.setObjectClassDefinition(objectClassDefinition);
-		return ctx;
-	}
-	
-	/**
-	 * Creates a context for a different object class on the same resource.
-	 */
-	public ProvisioningContext create(ProvisioningContext baseCtx, ShadowKindType kind, Collection<String> intents) throws SchemaException {
-		ProvisioningContext ctx = createSameResource(baseCtx);
-		RefinedResourceSchema refinedSchema = ctx.getRefinedSchema();
-		RefinedObjectClassDefinition objectClassDefinition = refinedSchema.getRefinedDefinition(kind, intents);
-		ctx.setObjectClassDefinition(objectClassDefinition);
-		return ctx;
-	}
-	
-	private ProvisioningContext createSameResource(ProvisioningContext baseCtx) {
-		ProvisioningContext ctx = new ProvisioningContext();
-		ctx.setTask(baseCtx.getTask());
-		ctx.setResource(baseCtx.getResource());
-		ctx.setConnector(baseCtx.getConnector());
-		ctx.setRefinedSchema(baseCtx.getRefinedSchema());
 		return ctx;
 	}
 	

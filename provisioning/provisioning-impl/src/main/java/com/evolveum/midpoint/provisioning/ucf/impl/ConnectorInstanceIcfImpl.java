@@ -808,6 +808,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			ocDef.setNativeObjectClass(objectClassInfo.getType());
 			ocDef.setDisplayNameAttribute(nameDefinition.getName());
 			ocDef.setNamingAttribute(nameDefinition.getName());
+			ocDef.setAuxiliary(objectClassInfo.isAuxiliary());
 
 		}
 
@@ -1227,17 +1228,16 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public Collection<ResourceAttribute<?>> addObject(PrismObject<? extends ShadowType> object,
+	public Collection<ResourceAttribute<?>> addObject(PrismObject<? extends ShadowType> shadow,
 			Collection<Operation> additionalOperations, OperationResult parentResult) throws CommunicationException,
 			GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException {
-		validateShadow(object, "add", false);
-		ShadowType objectType = object.asObjectable();
+		validateShadow(shadow, "add", false);
+		ShadowType shadowType = shadow.asObjectable();
 
-		ResourceAttributeContainer attributesContainer = ShadowUtil
-				.getAttributesContainer(object);
+		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
 				+ ".addObject");
-		result.addParam("resourceObject", object);
+		result.addParam("resourceObject", shadow);
 		result.addParam("additionalOperations", DebugUtil.debugDump(additionalOperations));         // because of serialization issues
 
 		ObjectClassComplexTypeDefinition ocDef;
@@ -1245,18 +1245,18 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		if (attrContDef != null) {
 			ocDef = attrContDef.getComplexTypeDefinition();
 		} else {
-			ocDef = resourceSchema.findObjectClassDefinition(object.asObjectable().getObjectClass());
+			ocDef = resourceSchema.findObjectClassDefinition(shadow.asObjectable().getObjectClass());
 			if (ocDef == null) {
-				throw new SchemaException("Unknown object class "+object.asObjectable().getObjectClass());
+				throw new SchemaException("Unknown object class "+shadow.asObjectable().getObjectClass());
 			}
 		}
 		
 		// getting icf object class from resource object class
-		ObjectClass icfObjectClass = icfNameMapper.objectClassToIcf(object, getSchemaNamespace(), connectorType, legacySchema);
+		ObjectClass icfObjectClass = icfNameMapper.objectClassToIcf(shadow, getSchemaNamespace(), connectorType, legacySchema);
 
 		if (icfObjectClass == null) {
-			result.recordFatalError("Couldn't get icf object class from " + object);
-			throw new IllegalArgumentException("Couldn't get icf object class from " + object);
+			result.recordFatalError("Couldn't get icf object class from " + shadow);
+			throw new IllegalArgumentException("Couldn't get icf object class from " + shadow);
 		}
 
 		// setting ifc attributes from resource object attributes
@@ -1267,24 +1267,24 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			}
 			attributes = icfConvertor.convertFromResourceObject(attributesContainer, ocDef);
 
-			if (objectType.getCredentials() != null && objectType.getCredentials().getPassword() != null) {
-				PasswordType password = objectType.getCredentials().getPassword();
+			if (shadowType.getCredentials() != null && shadowType.getCredentials().getPassword() != null) {
+				PasswordType password = shadowType.getCredentials().getPassword();
 				ProtectedStringType protectedString = password.getValue();
 				GuardedString guardedPassword = toGuardedString(protectedString, "new password");
 				attributes.add(AttributeBuilder.build(OperationalAttributes.PASSWORD_NAME,
 						guardedPassword));
 			}
 			
-			if (ActivationUtil.hasAdministrativeActivation(objectType)){
-				attributes.add(AttributeBuilder.build(OperationalAttributes.ENABLE_NAME, ActivationUtil.isAdministrativeEnabled(objectType)));
+			if (ActivationUtil.hasAdministrativeActivation(shadowType)){
+				attributes.add(AttributeBuilder.build(OperationalAttributes.ENABLE_NAME, ActivationUtil.isAdministrativeEnabled(shadowType)));
 			}
 			
-			if (ActivationUtil.hasValidFrom(objectType)){
-				attributes.add(AttributeBuilder.build(OperationalAttributes.ENABLE_DATE_NAME, XmlTypeConverter.toMillis(objectType.getActivation().getValidFrom())));
+			if (ActivationUtil.hasValidFrom(shadowType)){
+				attributes.add(AttributeBuilder.build(OperationalAttributes.ENABLE_DATE_NAME, XmlTypeConverter.toMillis(shadowType.getActivation().getValidFrom())));
 			}
 
-			if (ActivationUtil.hasValidTo(objectType)){
-				attributes.add(AttributeBuilder.build(OperationalAttributes.DISABLE_DATE_NAME, XmlTypeConverter.toMillis(objectType.getActivation().getValidTo())));
+			if (ActivationUtil.hasValidTo(shadowType)){
+				attributes.add(AttributeBuilder.build(OperationalAttributes.DISABLE_DATE_NAME, XmlTypeConverter.toMillis(shadowType.getActivation().getValidTo())));
 			}
 			
 			if (LOGGER.isTraceEnabled()) {
@@ -1301,12 +1301,23 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			throw new IllegalStateException("Couldn't set attributes for icf.");
 		}
 
+		Set<ObjectClass> icfAuxiliaryObjectClasses = new HashSet<>();
+		for (QName auxiliaryObjectClass: shadowType.getAuxiliaryObjectClass()) {
+			icfAuxiliaryObjectClasses.add(icfNameMapper.objectClassToIcf(auxiliaryObjectClass, resourceSchemaNamespace, connectorType, false));
+		}
+		OperationOptionsBuilder operationOptionsBuilder = new OperationOptionsBuilder();
+		if (!icfAuxiliaryObjectClasses.isEmpty()) {
+			operationOptionsBuilder.setAuxiliaryObjectClasses(icfAuxiliaryObjectClasses);
+		}
+		OperationOptions options = operationOptionsBuilder.build();
+		
 		checkAndExecuteAdditionalOperation(additionalOperations, BeforeAfterType.BEFORE, result);
 
 		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".create");
 		icfResult.addArbitraryObjectAsParam("objectClass", icfObjectClass);
+		icfResult.addArbitraryCollectionAsParam("auxiliaryObjectClasses", icfAuxiliaryObjectClasses);
 		icfResult.addArbitraryCollectionAsParam("attributes", attributes);
-		icfResult.addParam("options", null);
+		icfResult.addArbitraryObjectAsParam("options", options);
 		icfResult.addContext("connector", icfConnectorFacade.getClass());
 
 		Uid uid = null;
@@ -1314,7 +1325,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 			// CALL THE ICF FRAMEWORK
 			InternalMonitor.recordConnectorOperation("create");
-			uid = icfConnectorFacade.create(icfObjectClass, attributes, new OperationOptionsBuilder().build());
+			uid = icfConnectorFacade.create(icfObjectClass, attributes, options);
 
 		} catch (Throwable ex) {
 			Throwable midpointEx = processIcfException(ex, this, icfResult);

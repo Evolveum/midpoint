@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 	private ShadowKindType kind;
 	private String intent;
 	private String nativeObjectClass;
+	private boolean auxiliary;
 
 	public ObjectClassComplexTypeDefinition(QName typeName, PrismContext prismContext) {
 		super(typeName, prismContext);
@@ -194,6 +195,14 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 		this.nativeObjectClass = nativeObjectClass;
 	}
 	
+	public boolean isAuxiliary() {
+		return auxiliary;
+	}
+
+	public void setAuxiliary(boolean auxiliary) {
+		this.auxiliary = auxiliary;
+	}
+
 	public ShadowKindType getKind() {
 		return kind;
 	}
@@ -340,6 +349,7 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 		clone.namingAttribute = this.namingAttribute;
 		clone.nativeObjectClass = this.nativeObjectClass;
 		clone.secondaryIdentifiers = this.secondaryIdentifiers;
+		clone.auxiliary = this.auxiliary;
 	}
 
 	@Override
@@ -352,6 +362,9 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 		super.extendDumpHeader(sb);
 		if (defaultInAKind) {
 			sb.append(" def");
+		}
+		if (auxiliary) {
+			sb.append(" aux");
 		}
 		if (kind != null) {
 			sb.append(" ").append(kind.value());

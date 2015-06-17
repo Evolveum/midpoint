@@ -15,12 +15,18 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
+import java.util.Collection;
+
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 /**
  * @author semancik
@@ -74,6 +80,10 @@ public class ProvisioningContext {
 	public void setTask(Task task) {
 		this.task = task;
 	}
+	
+	public String getChannel() {
+		return task==null?null:task.getChannel();
+	}
 
 	public ConnectorInstance getConnector() {
 		return connector;
@@ -81,5 +91,51 @@ public class ProvisioningContext {
 
 	public void setConnector(ConnectorInstance connector) {
 		this.connector = connector;
+	}
+	
+	public boolean isWildcard() {
+		return objectClassDefinition == null;
+	}
+	
+	/**
+	 * Creates a context for a different object class on the same resource.
+	 */
+	public ProvisioningContext spawn(ShadowKindType kind, String intent) {
+		ProvisioningContext ctx = spawnSameResource();
+		RefinedResourceSchema refinedSchema = ctx.getRefinedSchema();
+		RefinedObjectClassDefinition objectClassDefinition = refinedSchema.getRefinedDefinition(kind, intent);
+		ctx.setObjectClassDefinition(objectClassDefinition);
+		return ctx;
+	}
+	
+	/**
+	 * Creates a context for a different object class on the same resource.
+	 */
+	public ProvisioningContext spawn(ShadowKindType kind, Collection<String> intents) throws SchemaException {
+		ProvisioningContext ctx = spawnSameResource();
+		RefinedResourceSchema refinedSchema = ctx.getRefinedSchema();
+		RefinedObjectClassDefinition objectClassDefinition = refinedSchema.getRefinedDefinition(kind, intents);
+		ctx.setObjectClassDefinition(objectClassDefinition);
+		return ctx;
+	}
+	
+	/**
+	 * Creates a context for a different object class on the same resource.
+	 */
+	public ProvisioningContext spawn(QName objectClassQName) throws SchemaException {
+		ProvisioningContext ctx = spawnSameResource();
+		RefinedResourceSchema refinedSchema = ctx.getRefinedSchema();
+		RefinedObjectClassDefinition objectClassDefinition = refinedSchema.getRefinedDefinition(objectClassQName);
+		ctx.setObjectClassDefinition(objectClassDefinition);
+		return ctx;
+	}
+	
+	private ProvisioningContext spawnSameResource() {
+		ProvisioningContext ctx = new ProvisioningContext();
+		ctx.setTask(this.getTask());
+		ctx.setResource(this.getResource());
+		ctx.setConnector(this.getConnector());
+		ctx.setRefinedSchema(this.getRefinedSchema());
+		return ctx;
 	}
 }

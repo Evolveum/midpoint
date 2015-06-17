@@ -18,10 +18,12 @@ package com.evolveum.midpoint.common.refinery;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 
 import org.apache.commons.lang.Validate;
@@ -38,6 +40,7 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
@@ -112,6 +115,76 @@ public class RefinedResourceSchema extends ResourceSchema implements DebugDumpab
 			}
 		}
 		return null;
+	}
+	
+	public CompositeRefinedObjectClassDefinition determineCompositeObjectClassDefinition(ResourceShadowDiscriminator discriminator) {		
+		RefinedObjectClassDefinition structuralObjectClassDefinition = getRefinedDefinition(discriminator.getKind(), discriminator.getIntent());
+		if (structuralObjectClassDefinition == null) {
+			return null;
+		}
+		Collection<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions = structuralObjectClassDefinition.getAuxiliaryObjectClassDefinitions();
+		return new CompositeRefinedObjectClassDefinition(structuralObjectClassDefinition, auxiliaryObjectClassDefinitions);
+	}
+	
+	public CompositeRefinedObjectClassDefinition determineCompositeObjectClassDefinition(PrismObject<ShadowType> shadow) throws SchemaException {
+		ShadowType shadowType = shadow.asObjectable();
+		
+		RefinedObjectClassDefinition structuralObjectClassDefinition = null;
+		Collection<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions;
+		ShadowKindType kind = shadowType.getKind();
+		String intent = shadowType.getIntent();
+		QName structuralObjectClassQName = shadowType.getObjectClass();
+		if (kind != null) {
+			structuralObjectClassDefinition = getRefinedDefinition(kind, intent);
+		} 
+		if (structuralObjectClassDefinition == null) {
+			// Fallback to objectclass only
+			if (structuralObjectClassQName == null) {
+				throw new SchemaException("No kind nor objectclass definied in "+shadow);
+			}
+			structuralObjectClassDefinition = getRefinedDefinition(structuralObjectClassQName);
+			List<QName> auxiliaryObjectClassQNames = shadowType.getAuxiliaryObjectClass();
+			auxiliaryObjectClassDefinitions = new ArrayList<>(auxiliaryObjectClassQNames.size());
+			for (QName auxiliaryObjectClassQName: auxiliaryObjectClassQNames) {
+				RefinedObjectClassDefinition auxiliaryObjectClassDef = getRefinedDefinition(auxiliaryObjectClassQName);
+				if (auxiliaryObjectClassDef == null) {
+					throw new SchemaException("Auxiliary object class "+auxiliaryObjectClassQName+" specified in "+shadow+" does not exist");
+				}
+				auxiliaryObjectClassDefinitions.add(auxiliaryObjectClassDef);
+			}
+		} else {
+			auxiliaryObjectClassDefinitions = structuralObjectClassDefinition.getAuxiliaryObjectClassDefinitions();
+		}
+		
+		if (structuralObjectClassDefinition == null) {
+			throw new SchemaException("Definition for "+shadow+" not found (objectClass=" + PrettyPrinter.prettyPrint(structuralObjectClassQName) +
+					", kind="+kind+", intent='"+intent+"')");
+		}		
+		
+		return new CompositeRefinedObjectClassDefinition(structuralObjectClassDefinition, auxiliaryObjectClassDefinitions);
+	}
+	
+	public CompositeRefinedObjectClassDefinition determineCompositeObjectClassDefinition(QName structuralObjectClassQName, ShadowKindType kind, String intent) {
+		RefinedObjectClassDefinition structuralObjectClassDefinition = null;
+		Collection<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions;
+		if (kind != null) {
+			structuralObjectClassDefinition = getRefinedDefinition(kind, intent);
+		} 
+		if (structuralObjectClassDefinition == null) {
+			// Fallback to objectclass only
+			if (structuralObjectClassQName == null) {
+				throw new IllegalArgumentException("No kind nor objectclass defined");
+			}
+			structuralObjectClassDefinition = getRefinedDefinition(structuralObjectClassQName);
+		}
+		
+		if (structuralObjectClassDefinition == null) {
+			return null;
+		}		
+
+		auxiliaryObjectClassDefinitions = structuralObjectClassDefinition.getAuxiliaryObjectClassDefinitions();
+		
+		return new CompositeRefinedObjectClassDefinition(structuralObjectClassDefinition, auxiliaryObjectClassDefinitions);
 	}
 
     /**
@@ -366,10 +439,11 @@ public class RefinedResourceSchema extends ResourceSchema implements DebugDumpab
 			rSchema.add(rOcDef);
 		}
 		
-		// We need to parse associations in a second pass. We need to have all object classes parsed before correctly setting association
+		// We need to parse associations and auxiliary object classes in a second pass. We need to have all object classes parsed before correctly setting association
 		// targets
 		for (RefinedObjectClassDefinition rOcDef: rSchema.getRefinedDefinitions()) {
 			rOcDef.parseAssociations(rSchema);
+			rOcDef.parseAuxiliaryObjectClasses(rSchema);
 		}
 	}
 

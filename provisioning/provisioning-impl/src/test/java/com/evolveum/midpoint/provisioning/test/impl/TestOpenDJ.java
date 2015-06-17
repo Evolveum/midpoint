@@ -412,7 +412,45 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		assertNull("The _PASSSWORD_ attribute sneaked into schema",
 				accountDef.findAttributeDefinition(new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));
+		
+		assertNull("The userPassword attribute sneaked into schema",
+				accountDef.findAttributeDefinition(new QName(accountDef.getTypeName().getNamespaceURI(), "userPassword")));
+		
+		assertNull("The objectClass attribute sneaked into schema",
+				accountDef.findAttributeDefinition(new QName(accountDef.getTypeName().getNamespaceURI(), "objectClass")));
 
+		assertNull("The objectclass attribute sneaked into schema",
+				accountDef.findAttributeDefinition(new QName(accountDef.getTypeName().getNamespaceURI(), "objectclass")));
+
+		ObjectClassComplexTypeDefinition posixAccountDef = resourceSchema.findObjectClassDefinition(RESOURCE_OPENDJ_POSIX_ACCOUNT_OBJECTCLASS);
+		assertNotNull("posixAccount definition is missing", posixAccountDef);
+		assertNotNull("Null identifiers in posixAccount", posixAccountDef.getIdentifiers());
+		assertFalse("Empty identifiers in posixAccount", posixAccountDef.getIdentifiers().isEmpty());
+		assertNotNull("Null secondary identifiers in posixAccount", posixAccountDef.getSecondaryIdentifiers());
+		assertFalse("Empty secondary identifiers in posixAccount", posixAccountDef.getSecondaryIdentifiers().isEmpty());
+		assertNotNull("No naming attribute in posixAccount", posixAccountDef.getNamingAttribute());
+		assertFalse("No nativeObjectClass in posixAccount", StringUtils.isEmpty(posixAccountDef.getNativeObjectClass()));
+		assertTrue("posixAccount is not auxiliary", posixAccountDef.isAuxiliary());
+
+		ResourceAttributeDefinition<String> posixIdPrimaryDef = posixAccountDef.findAttributeDefinition(getPrimaryIdentifierQName());
+		assertEquals(1, posixIdPrimaryDef.getMaxOccurs());
+		assertEquals(0, posixIdPrimaryDef.getMinOccurs());
+		assertFalse("UID has create", posixIdPrimaryDef.canAdd());
+		assertFalse("UID has update", posixIdPrimaryDef.canModify());
+		assertTrue("No UID read", posixIdPrimaryDef.canRead());
+		assertTrue("UID definition not in identifiers", accountDef.getIdentifiers().contains(posixIdPrimaryDef));
+		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Uid.NAME, posixIdPrimaryDef.getFrameworkAttributeName());
+
+		ResourceAttributeDefinition<String> posixIdSecondaryDef = posixAccountDef.findAttributeDefinition(getSecondaryIdentifierQName());
+		assertEquals(1, posixIdSecondaryDef.getMaxOccurs());
+		assertEquals(1, posixIdSecondaryDef.getMinOccurs());
+		assertTrue("No NAME create", posixIdSecondaryDef.canAdd());
+		assertTrue("No NAME update", posixIdSecondaryDef.canModify());
+		assertTrue("No NAME read", posixIdSecondaryDef.canRead());
+		assertTrue("NAME definition not in secondary identifiers", accountDef.getSecondaryIdentifiers().contains(posixIdSecondaryDef));
+		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Name.NAME, posixIdSecondaryDef.getFrameworkAttributeName());
+
+		
 		assertShadows(1);
 	}
 	
@@ -701,6 +739,35 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 	}
 	
 	@Test
+	public void test122AddObjectPosix() throws Exception {
+		final String TEST_NAME = "test122AddObjectPosix";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+				+ "." + TEST_NAME);
+
+		ShadowType object = parseObjectType(ACCOUNT_POSIX_MCMUTTON_FILE, ShadowType.class);
+
+		System.out.println(SchemaDebugUtil.prettyPrint(object));
+		System.out.println(object.asPrismObject().debugDump());
+
+		Task task = taskManager.createTaskInstance();
+		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, task, result);
+		assertEquals(ACCOUNT_NEW_OID, addedObjectOid);
+
+		ShadowType repoShadowType =  repositoryService.getObject(ShadowType.class, ACCOUNT_POSIX_MCMUTTON_OID,
+				null, result).asObjectable();
+		PrismAsserts.assertEqualsPolyString("Name not equal (repo)", "uid=will,ou=People,dc=example,dc=com", repoShadowType.getName());
+		assertAttribute(repoShadowType, getSecondaryIdentifierQName(), StringUtils.lowerCase(ACCOUNT_POSIX_MCMUTTON_DN));
+
+		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_POSIX_MCMUTTON_OID,
+				null, task, result).asObjectable();
+		PrismAsserts.assertEqualsPolyString("Name not equal.", ACCOUNT_POSIX_MCMUTTON_DN, provisioningAccountType.getName());
+		
+		assertShadows(2);
+	}
+	
+	@Test
 	public void test125AddObjectNull() throws Exception {
 		final String TEST_NAME = "test125AddObjectNull";
 		TestUtil.displayTestTile(TEST_NAME);
@@ -720,7 +787,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			assertEquals("Object to add must not be null.", ex.getMessage());
 		}
 		
-		assertShadows(1);
+		assertShadows(2);
 	}
 
 	

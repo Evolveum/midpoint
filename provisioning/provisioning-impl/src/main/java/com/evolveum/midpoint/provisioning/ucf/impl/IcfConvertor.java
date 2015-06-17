@@ -26,6 +26,7 @@ import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
+import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.Uid;
 
@@ -119,6 +120,14 @@ public class IcfConvertor {
 				.findOrCreateContainer(ShadowType.F_ATTRIBUTES);
 		ResourceAttributeContainerDefinition attributesContainerDefinition = attributesContainer.getDefinition();
 		shadow.setObjectClass(attributesContainerDefinition.getTypeName());
+		
+		Set<ObjectClass> auxiliaryIcfObjectClasses = co.getAuxiliaryObjectClasses();
+		if (auxiliaryIcfObjectClasses != null) {
+			List<QName> auxiliaryObjectClasses = shadow.getAuxiliaryObjectClass();
+			for (ObjectClass auxiliaryIcfObjectClass: auxiliaryIcfObjectClasses) {
+				auxiliaryObjectClasses.add(icfNameMapper.objectClassToQname(auxiliaryIcfObjectClass.getObjectClassValue(), resourceSchemaNamespace, false));
+			}
+		}
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Resource attribute container definition {}.", attributesContainerDefinition.debugDump());

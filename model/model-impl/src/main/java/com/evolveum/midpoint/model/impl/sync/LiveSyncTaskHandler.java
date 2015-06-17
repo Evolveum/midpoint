@@ -26,6 +26,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -171,6 +172,8 @@ public class LiveSyncTaskHandler implements TaskHandler {
             LOGGER.debug("Syncing all object classes");
         }
 
+		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(resourceOid, objectClass==null?null:objectClass.getTypeName());
+        		
         int changesProcessed;
 		
 		try {
@@ -181,7 +184,7 @@ public class LiveSyncTaskHandler implements TaskHandler {
 			// It will use extension of task to store synchronization state
 
             Utils.clearRequestee(task);
-			changesProcessed = provisioningService.synchronize(resourceOid, objectClass==null?null:objectClass.getTypeName(), task, opResult);
+			changesProcessed = provisioningService.synchronize(coords, task, opResult);
             progress += changesProcessed;
 			
 		} catch (ObjectNotFoundException ex) {

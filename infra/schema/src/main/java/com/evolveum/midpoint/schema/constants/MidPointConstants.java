@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ public class MidPointConstants {
 	public static final QName RA_IDENTIFIER = new QName(NS_RA, "identifier");
 	public static final QName RA_SECONDARY_IDENTIFIER = new QName(NS_RA, "secondaryIdentifier");
 	public static final QName RA_DEFAULT = new QName(NS_RA, "default");
+	public static final QName RA_AUXILIARY = new QName(NS_RA, "auxiliary");
 
 	@Deprecated
 	public static final QName RA_ACCOUNT = new QName(NS_RA, "account");
