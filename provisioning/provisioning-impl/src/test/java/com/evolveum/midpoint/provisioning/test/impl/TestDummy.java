@@ -2908,10 +2908,12 @@ public class TestDummy extends AbstractDummyTest {
 		delta.checkConsistence();
 
 		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
 				new OperationProvisioningScriptsType(), null, task, result);
 
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
 		display("modifyObject result", result);
 		TestUtil.assertSuccess(result);
@@ -4132,7 +4134,7 @@ public class TestDummy extends AbstractDummyTest {
 		display("Resource before sync", dummyResource.debugDump());
 
 		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, 
-				ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
+				objectClass);
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -4204,7 +4206,7 @@ public class TestDummy extends AbstractDummyTest {
 		dummyAccount.replaceAttributeValue("fullname", "Captain Drake");
 
 		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, 
-				ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
+				objectClass);
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -4278,7 +4280,7 @@ public class TestDummy extends AbstractDummyTest {
 		display("Resource before sync", dummyResource.debugDump());
 
 		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, 
-				ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
+				objectClass);
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -4355,7 +4357,7 @@ public class TestDummy extends AbstractDummyTest {
 		display("Resource before sync", dummyResource.debugDump());
 
 		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, 
-				ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
+				objectClass);
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -4434,7 +4436,7 @@ public class TestDummy extends AbstractDummyTest {
 		display("Resource before sync", dummyResource.debugDump());
 
 		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, 
-				ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
+				objectClass);
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);

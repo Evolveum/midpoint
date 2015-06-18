@@ -21,6 +21,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowDiscriminatorType;
@@ -248,9 +249,13 @@ public class ResourceShadowDiscriminator implements Serializable {
 	}
     
     public String toHumanReadableString() {
-    	StringBuilder sb = new StringBuilder();
-    	sb.append(kind.value());
-    	sb.append(" (").append(intent).append(") on ");
+    	StringBuilder sb = new StringBuilder("RSD(");
+    	sb.append(kind==null?"null":kind.value());
+    	sb.append(" (").append(intent).append(")");
+    	if (objectClass != null) {
+    		sb.append(": ").append(PrettyPrinter.prettyPrint(objectClass));
+    	}
+    	sb.append(" @");
     	sb.append(resourceOid);
     	if (order != 0) {
     		sb.append(" order=");
@@ -259,6 +264,7 @@ public class ResourceShadowDiscriminator implements Serializable {
     	if (thombstone) {
     		sb.append(" THOMBSTONE");
     	}
+    	sb.append(")");
     	return sb.toString();
     }
 }

@@ -66,6 +66,12 @@ public class ProvisioningContextFactory {
 		return ctx;
 	}
 	
+	public ProvisioningContext createAndAssertDefinition(PrismObject<ShadowType> shadow, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+		ProvisioningContext ctx = create(shadow, task, parentResult);
+		ctx.assertDefinition("Cannot locate object class definition for "+shadow+" in "+ctx.getResource());
+		return ctx;
+	}
+	
 	public ProvisioningContext create(ResourceShadowDiscriminator coords, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		ProvisioningContext ctx = new ProvisioningContext();
 		ctx.setTask(task);
@@ -77,6 +83,12 @@ public class ProvisioningContextFactory {
 		ctx.setObjectClassDefinition(objectClassDefinition);
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 		ctx.setConnector(connector);
+		return ctx;
+	}
+	
+	public ProvisioningContext createAndAssertDefinition(ResourceShadowDiscriminator coords, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+		ProvisioningContext ctx = create(coords, task, parentResult);
+		ctx.assertDefinition("Cannot locate object class definition for "+coords+" in "+ctx.getResource());
 		return ctx;
 	}
 	

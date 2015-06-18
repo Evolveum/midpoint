@@ -125,7 +125,7 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
 	
 		ShadowCache shadowCache = getShadowCache(Mode.STANDARD);
 		
-		ProvisioningContext ctx = provisioningContextFactory.create(shadow, task, parentResult);		
+		ProvisioningContext ctx = provisioningContextFactory.createAndAssertDefinition(shadow, task, parentResult);		
 		
 		Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(shadow);
 		

@@ -468,7 +468,7 @@ public class ResourceObjectConverter {
 			}
 			
 			// Execute primary ICF operation on this shadow
-			sideEffectChanges = executeModify(ctx, shadow, ctx.getObjectClassDefinition(), identifiers, operations, parentResult);
+			sideEffectChanges = executeModify(ctx, shadow, identifiers, operations, parentResult);
 		}
 
         /*
@@ -493,13 +493,12 @@ public class ResourceObjectConverter {
 		return sideEffectChanges;
 	}
 
-	// objectClassDefinition is explicit here, because this also modifies entitlements
 	private Collection<PropertyModificationOperation> executeModify(ProvisioningContext ctx, 
-			PrismObject<ShadowType> currentShadow,  RefinedObjectClassDefinition objectClassDefinition,
-			Collection<? extends ResourceAttribute<?>> identifiers, 
+			PrismObject<ShadowType> currentShadow, Collection<? extends ResourceAttribute<?>> identifiers, 
 					Collection<Operation> operations, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException {
 		Collection<PropertyModificationOperation> sideEffectChanges = new HashSet<>();
 
+		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
 		if (operations.isEmpty()){
 			LOGGER.trace("No modifications for connector object. Skipping modification.");
 			// TODO [mederly] shouldn't "return new HashSet<>()" be here?
@@ -960,7 +959,7 @@ public class ResourceObjectConverter {
 		
 	}
 	
-	private void executeEntitlements(ProvisioningContext ctx,
+	private void executeEntitlements(ProvisioningContext subjectCtx,
 			Map<ResourceObjectDiscriminator, ResourceObjectOperations> roMap, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException {
 		for (Entry<ResourceObjectDiscriminator,ResourceObjectOperations> entry: roMap.entrySet()) {
 			ResourceObjectDiscriminator disc = entry.getKey();
@@ -969,8 +968,8 @@ public class ResourceObjectConverter {
 			Collection<Operation> operations = entry.getValue().getOperations();
 			
 			// TODO: better handling of result, partial failures, etc.
-			
-			executeModify(ctx, null, ocDef, identifiers, operations, parentResult);
+			ProvisioningContext entitlementCtx = subjectCtx.spawn(ocDef);
+			executeModify(entitlementCtx, null, identifiers, operations, parentResult);
 			
 		}
 	}

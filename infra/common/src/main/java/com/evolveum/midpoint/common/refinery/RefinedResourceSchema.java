@@ -117,8 +117,16 @@ public class RefinedResourceSchema extends ResourceSchema implements DebugDumpab
 		return null;
 	}
 	
-	public CompositeRefinedObjectClassDefinition determineCompositeObjectClassDefinition(ResourceShadowDiscriminator discriminator) {		
-		RefinedObjectClassDefinition structuralObjectClassDefinition = getRefinedDefinition(discriminator.getKind(), discriminator.getIntent());
+	public CompositeRefinedObjectClassDefinition determineCompositeObjectClassDefinition(ResourceShadowDiscriminator discriminator) {
+		if (discriminator.getKind() == null && discriminator.getObjectClass() == null) {
+			return null;
+		}
+		RefinedObjectClassDefinition structuralObjectClassDefinition;
+		if (discriminator.getKind() == null && discriminator.getObjectClass() != null) {
+			structuralObjectClassDefinition = getRefinedDefinition(discriminator.getObjectClass());
+		} else {
+			structuralObjectClassDefinition = getRefinedDefinition(discriminator.getKind(), discriminator.getIntent());
+		}
 		if (structuralObjectClassDefinition == null) {
 			return null;
 		}

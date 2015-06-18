@@ -17,6 +17,8 @@ package com.evolveum.midpoint.schema.processor;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.util.PrettyPrinter;
+
 /**
  * @author semancik
  *
@@ -38,6 +40,43 @@ public class ResourceObjectIdentification {
 
 	public ObjectClassComplexTypeDefinition getObjectClassDefinition() {
 		return objectClassDefinition;
+	}
+	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((identifiers == null) ? 0 : identifiers.hashCode());
+		result = prime * result + ((objectClassDefinition == null) ? 0 : objectClassDefinition.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ResourceObjectIdentification other = (ResourceObjectIdentification) obj;
+		if (identifiers == null) {
+			if (other.identifiers != null)
+				return false;
+		} else if (!identifiers.equals(other.identifiers))
+			return false;
+		if (objectClassDefinition == null) {
+			if (other.objectClassDefinition != null)
+				return false;
+		} else if (!objectClassDefinition.equals(other.objectClassDefinition))
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "ResourceObjectIdentification(" + PrettyPrinter.prettyPrint(objectClassDefinition.getTypeName()) 
+				+ ": " + identifiers + ")";
 	}
 	
 }

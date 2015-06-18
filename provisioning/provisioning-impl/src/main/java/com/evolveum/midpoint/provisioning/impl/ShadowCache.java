@@ -233,7 +233,7 @@ public abstract class ShadowCache {
 
 		ProvisioningContext ctx;
 		try {
-			ctx = ctxFactory.create(repositoryShadow, task, parentResult);
+			ctx = ctxFactory.createAndAssertDefinition(repositoryShadow, task, parentResult);
 		} catch (ObjectNotFoundException | SchemaException |  CommunicationException | ConfigurationException e){
 			String msg = e.getMessage()+" (returning repository shadow)";
 			LOGGER.error("{}", msg, e);
@@ -332,7 +332,7 @@ public abstract class ShadowCache {
 			LOGGER.trace("Start adding shadow object:\n{}", shadow.debugDump());
 		}
 	
-		ProvisioningContext ctx = ctxFactory.create(shadow, task, parentResult);
+		ProvisioningContext ctx = ctxFactory.createAndAssertDefinition(shadow, task, parentResult);
 		
 		PrismContainer<?> attributesContainer = shadow.findContainer(
 				ShadowType.F_ATTRIBUTES);
@@ -394,7 +394,7 @@ public abstract class ShadowCache {
 
 		InternalMonitor.recordShadowChangeOperation();
 		
-		ProvisioningContext ctx = ctxFactory.create(shadow, task, parentResult);
+		ProvisioningContext ctx = ctxFactory.createAndAssertDefinition(shadow, task, parentResult);
 		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Modifying resource shadow:\n{}", shadow.debugDump());
@@ -483,7 +483,7 @@ public abstract class ShadowCache {
 
 		ProvisioningContext ctx;
 		try {
-			ctx = ctxFactory.create(shadow, task, parentResult);
+			ctx = ctxFactory.createAndAssertDefinition(shadow, task, parentResult);
 		} catch (ObjectNotFoundException ex) {
 			// if the force option is set, delete shadow from the repo
 			// although the resource does not exists..
@@ -562,21 +562,21 @@ public abstract class ShadowCache {
 		}
 		ProvisioningContext ctx;
 		if (shadow == null) {
-			ctx = ctxFactory.create(discriminator, null, parentResult);
+			ctx = ctxFactory.createAndAssertDefinition(discriminator, null, parentResult);
 		} else {
-			ctx = ctxFactory.create(shadow, null, parentResult);
+			ctx = ctxFactory.createAndAssertDefinition(shadow, null, parentResult);
 		}
 		applyAttributesDefinition(ctx, delta);
 	}
 
 	public void applyDefinition(PrismObject<ShadowType> shadow, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
-		ProvisioningContext ctx = ctxFactory.create(shadow, null, parentResult);
+		ProvisioningContext ctx = ctxFactory.createAndAssertDefinition(shadow, null, parentResult);
 		applyAttributesDefinition(ctx, shadow);
 	}
 
 	public void applyDefinition(final ObjectQuery query, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
-		ProvisioningContext ctx = ctxFactory.create(ProvisioningUtil.getCoordinates(query.getFilter()), null, result);
+		ProvisioningContext ctx = ctxFactory.createAndAssertDefinition(ProvisioningUtil.getCoordinates(query.getFilter()), null, result);
 		applyDefinition(ctx, query);
 	}
 	
@@ -689,7 +689,7 @@ public abstract class ShadowCache {
 			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		ResourceShadowDiscriminator coordinates = ProvisioningUtil.getCoordinates(query.getFilter());
-		final ProvisioningContext ctx = ctxFactory.create(coordinates, null, parentResult);
+		final ProvisioningContext ctx = ctxFactory.createAndAssertDefinition(coordinates, null, parentResult);
 		applyDefinition(ctx, query);
 		
 		
@@ -916,7 +916,7 @@ public abstract class ShadowCache {
 			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		ResourceShadowDiscriminator coordinates = ProvisioningUtil.getCoordinates(query.getFilter());
-		final ProvisioningContext ctx = ctxFactory.create(coordinates, null, result);
+		final ProvisioningContext ctx = ctxFactory.createAndAssertDefinition(coordinates, null, result);
 		applyDefinition(ctx, query);
 	
 		RefinedObjectClassDefinition objectClassDef = ctx.getObjectClassDefinition();
@@ -1040,7 +1040,9 @@ public abstract class ShadowCache {
 			
 			for (Change<ShadowType> change: changes) {	
 				
-				processChange(ctx, change, parentResult);
+				ProvisioningContext shadowCtx = ctx.spawn(change.getObjectClassDefinition().getTypeName());
+				
+				processChange(shadowCtx, change, parentResult);
 				
 				// this is the case,when we want to skip processing of change,
 				// because the shadow was not created or found to the resource
@@ -1055,7 +1057,7 @@ public abstract class ShadowCache {
 					LOGGER.debug("Skipping processing change. Can't find appropriate shadow (e.g. the object was deleted on the resource meantime).");
 					continue;
 				}
-				boolean isSuccess = processSynchronization(ctx, change, parentResult);
+				boolean isSuccess = processSynchronization(shadowCtx, change, parentResult);
 
 				if (isSuccess) {
 //					// get updated token from change,

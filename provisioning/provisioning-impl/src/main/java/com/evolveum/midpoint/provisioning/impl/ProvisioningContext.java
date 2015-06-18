@@ -108,6 +108,12 @@ public class ProvisioningContext {
 		return ctx;
 	}
 	
+	public ProvisioningContext spawnAndAssertDefinition(ShadowKindType kind, String intent) throws SchemaException {
+		ProvisioningContext ctx = spawn(kind, intent);
+		ctx.assertDefinition("Cannot locate object class definition for kind="+kind+", intent="+intent+" in "+ctx.getResource());
+		return ctx;
+	}
+	
 	/**
 	 * Creates a context for a different object class on the same resource.
 	 */
@@ -116,6 +122,12 @@ public class ProvisioningContext {
 		RefinedResourceSchema refinedSchema = ctx.getRefinedSchema();
 		RefinedObjectClassDefinition objectClassDefinition = refinedSchema.getRefinedDefinition(kind, intents);
 		ctx.setObjectClassDefinition(objectClassDefinition);
+		return ctx;
+	}
+	
+	public ProvisioningContext spawnAndAssertDefinition(ShadowKindType kind, Collection<String> intents) throws SchemaException {
+		ProvisioningContext ctx = spawn(kind, intents);
+		ctx.assertDefinition("Cannot locate object class definition for kind="+kind+", intents="+intents+" in "+ctx.getResource());
 		return ctx;
 	}
 	
@@ -130,6 +142,21 @@ public class ProvisioningContext {
 		return ctx;
 	}
 	
+	public ProvisioningContext spawnAndAssertDefinition(QName objectClassQName) throws SchemaException {
+		ProvisioningContext ctx = spawn(objectClassQName);
+		ctx.assertDefinition("Cannot locate object class definition of objectclass "+objectClassQName+" in "+ctx.getResource());
+		return ctx;
+	}
+	
+	/**
+	 * Creates a context for a different object class on the same resource.
+	 */
+	public ProvisioningContext spawn(RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
+		ProvisioningContext ctx = spawnSameResource();
+		ctx.setObjectClassDefinition(objectClassDefinition);
+		return ctx;
+	}
+	
 	private ProvisioningContext spawnSameResource() {
 		ProvisioningContext ctx = new ProvisioningContext();
 		ctx.setTask(this.getTask());
@@ -137,5 +164,11 @@ public class ProvisioningContext {
 		ctx.setConnector(this.getConnector());
 		ctx.setRefinedSchema(this.getRefinedSchema());
 		return ctx;
+	}
+
+	public void assertDefinition(String message) throws SchemaException {
+		if (objectClassDefinition == null) {
+			throw new SchemaException(message);
+		}
 	}
 }
