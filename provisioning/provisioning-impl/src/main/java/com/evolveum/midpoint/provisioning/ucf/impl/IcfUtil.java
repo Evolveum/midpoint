@@ -374,9 +374,10 @@ class IcfUtil {
 			DebugUtil.indentDebugDump(sb, 1);
 			sb.append(attr.getClass().getSimpleName()).append("(");
 			sb.append("name=").append(attr.getName());
-			sb.append(", value=").append(attr.getValue());
-			if (attr.getValue() != null) {
-				sb.append(", type=").append(attr.getValue().getClass().getSimpleName());
+			List<Object> value = attr.getValue();
+			sb.append(", value=").append(value);
+			if (value != null && !value.isEmpty()) {
+				sb.append(", type=").append(value.iterator().next().getClass().getSimpleName());
 			}
 			sb.append(")\n");
 		}

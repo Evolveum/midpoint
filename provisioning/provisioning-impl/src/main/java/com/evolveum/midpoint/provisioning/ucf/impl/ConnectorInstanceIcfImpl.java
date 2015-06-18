@@ -168,6 +168,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCa
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationLockoutStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationValidityCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AuxiliaryObjectClassesCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
@@ -215,6 +216,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	private String description;
 	private boolean caseIgnoreAttributeNames = false;
 	private boolean legacySchema = false;
+	private boolean supportsReturnDefaultAttributes = false;
 
 	public ConnectorInstanceIcfImpl(ConnectorInfo connectorInfo, ConnectorType connectorType,
 			String schemaNamespace, PrismSchema connectorSchema, Protector protector,
@@ -938,6 +940,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		boolean canPageSize = false;
 		boolean canPageOffset = false;
 		boolean canSort = false;
+		boolean supportsAuxiliaryObjectClasses = false;
 		for (OperationOptionInfo searchOption: icfSchema.getSupportedOptionsByOperation(SearchApiOp.class)) {
 			switch (searchOption.getName()) {
 				case OperationOptions.OP_PAGE_SIZE:
@@ -949,6 +952,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				case OperationOptions.OP_SORT_KEYS:
 					canSort = true;
 					break;
+				case OperationOptions.OP_RETURN_DEFAULT_ATTRIBUTES:
+					supportsReturnDefaultAttributes = true;
+					break;
+				case OperationOptions.OP_AUXILIARY_OBJECT_CLASSES:
+					supportsAuxiliaryObjectClasses = true;
+					break;
 			}
 			
 		}
@@ -956,6 +965,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		if (canPageSize || canPageOffset || canSort) {
 			PagedSearchCapabilityType capPage = new PagedSearchCapabilityType();
 			capabilities.add(capabilityObjectFactory.createPagedSearch(capPage));
+		}
+		
+		if (supportsAuxiliaryObjectClasses) {
+			AuxiliaryObjectClassesCapabilityType capAux = new AuxiliaryObjectClassesCapabilityType();
+			capabilities.add(capabilityObjectFactory.createAuxiliaryObjectClasses(capAux));
 		}
 
 	}
@@ -1048,10 +1062,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 		
 		OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
-		String[] attributesToGet = convertToIcfAttrsToGet(objectClassDefinition, attributesToReturn);
-		if (attributesToGet != null) {
-			optionsBuilder.setAttributesToGet(attributesToGet);
-		}
+		convertToIcfAttrsToGet(objectClassDefinition, attributesToReturn, optionsBuilder);
 		optionsBuilder.setAllowPartialResults(true);
 		OperationOptions options = optionsBuilder.build();
 		
@@ -1170,22 +1181,27 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return co;
 	}
 
-	private String[] convertToIcfAttrsToGet(ObjectClassComplexTypeDefinition objectClassDefinition, AttributesToReturn attributesToReturn) throws SchemaException {
+	private void convertToIcfAttrsToGet(ObjectClassComplexTypeDefinition objectClassDefinition, 
+			AttributesToReturn attributesToReturn, OperationOptionsBuilder optionsBuilder) throws SchemaException {
 		if (attributesToReturn == null) {
-			return null;
+			return;
 		}
 		Collection<? extends ResourceAttributeDefinition> attrs = attributesToReturn.getAttributesToReturn();
 		if (attributesToReturn.isReturnDefaultAttributes() && !attributesToReturn.isReturnPasswordExplicit()
 				&& (attrs == null || attrs.isEmpty())) {
-			return null;
+			return;
 		}
 		List<String> icfAttrsToGet = new ArrayList<String>(); 
 		if (attributesToReturn.isReturnDefaultAttributes()) {
-			// Add all the attributes that are defined as "returned by default" by the schema
-			for (ResourceAttributeDefinition attributeDef: objectClassDefinition.getAttributeDefinitions()) {
-				if (attributeDef.isReturnedByDefault()) {
-					String attrName = icfNameMapper.convertAttributeNameToIcf(attributeDef);
-					icfAttrsToGet.add(attrName);
+			if (supportsReturnDefaultAttributes) {
+				optionsBuilder.setReturnDefaultAttributes(true);
+			} else {
+				// Add all the attributes that are defined as "returned by default" by the schema
+				for (ResourceAttributeDefinition attributeDef: objectClassDefinition.getAttributeDefinitions()) {
+					if (attributeDef.isReturnedByDefault()) {
+						String attrName = icfNameMapper.convertAttributeNameToIcf(attributeDef);
+						icfAttrsToGet.add(attrName);
+					}
 				}
 			}
 		}
@@ -1209,7 +1225,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				}
 			}
 		}
-		return icfAttrsToGet.toArray(new String[0]);
+		optionsBuilder.setAttributesToGet(icfAttrsToGet);
 	}
 
 	private boolean passwordReturnedByDefault() {
@@ -1914,12 +1930,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 
 		OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
-		String[] attributesToGet = null; 
 		if (objectClass != null) {
-			attributesToGet = convertToIcfAttrsToGet(objectClass, attrsToReturn);
-		}
-		if (attributesToGet != null) {
-			optionsBuilder.setAttributesToGet(attributesToGet);
+			convertToIcfAttrsToGet(objectClass, attrsToReturn, optionsBuilder);
 		}
 		OperationOptions options = optionsBuilder.build();
 		
@@ -2080,10 +2092,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		};
 		
 		OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
-		String[] attributesToGet = convertToIcfAttrsToGet(objectClassDefinition, attributesToReturn);
-		if (attributesToGet != null) {
-			optionsBuilder.setAttributesToGet(attributesToGet);
-		}
+		convertToIcfAttrsToGet(objectClassDefinition, attributesToReturn, optionsBuilder);
 		if (query != null && query.isAllowPartialResults()) {
 			optionsBuilder.setAllowPartialResults(query.isAllowPartialResults());
 		}

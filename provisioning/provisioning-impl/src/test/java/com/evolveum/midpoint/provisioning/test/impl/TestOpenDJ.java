@@ -22,6 +22,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
@@ -39,6 +40,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import org.apache.commons.lang.StringUtils;
 import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.Uid;
+import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -837,23 +839,22 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 	}
 
 	@Test
-	public void test140ModifyObject() throws Exception {
-		final String TEST_NAME = "test140ModifyObject";
+	public void test140AddAndModifyAccountJack() throws Exception {
+		final String TEST_NAME = "test140AddAndModifyAccountJack";
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ "." + TEST_NAME);
 
-		ShadowType object = unmarshallValueFromFile(ACCOUNT_MODIFY_FILE, ShadowType.class);
+		ShadowType object = unmarshallValueFromFile(ACCOUNT_JACK_FILE, ShadowType.class);
 
 		System.out.println(SchemaDebugUtil.prettyPrint(object));
 		System.out.println(object.asPrismObject().debugDump());
 
 		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
-		assertEquals(ACCOUNT_MODIFY_OID, addedObjectOid);
+		assertEquals(ACCOUNT_JACK_OID, addedObjectOid);
 
-		ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(
-                new File("src/test/resources/impl/account-change-description.xml"), ObjectModificationType.COMPLEX_TYPE);
+		ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(ACCOUNT_JACK_CHANGE_FILE, ObjectModificationType.COMPLEX_TYPE);
 		ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, object.asPrismObject().getDefinition());
 		
 		ItemPath icfNamePath = new ItemPath(
@@ -861,11 +862,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		PrismPropertyDefinition icfNameDef = object
 				.asPrismObject().getDefinition().findPropertyDefinition(icfNamePath);
 		ItemDelta renameDelta = PropertyDelta.createModificationReplaceProperty(icfNamePath, icfNameDef, "uid=rename,ou=People,dc=example,dc=com");
-//			renameDelta.addValueToDelete(new PrismPropertyValue("uid=jack,ou=People,dc=example,dc=com"));
 		((Collection)delta.getModifications()).add(renameDelta);
-		
-//			renameDelta = PropertyDelta.createModificationDeleteProperty(icfNamePath, icfNameDef, "uid=jack,ou=People,dc=example,dc=com");
-//			((Collection)delta.getModifications()).add(renameDelta);
 		
 		display("Object change",delta);
 		
@@ -880,7 +877,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		TestUtil.assertSuccess(result);
 		
 		ShadowType accountType = provisioningService.getObject(ShadowType.class,
-				ACCOUNT_MODIFY_OID, null, taskManager.createTaskInstance(), result).asObjectable();
+				ACCOUNT_JACK_OID, null, taskManager.createTaskInstance(), result).asObjectable();
 		
 		display("Object after change",accountType);
 		
@@ -1456,8 +1453,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		final List<ShadowType> objectTypeList = new ArrayList<ShadowType>();
 
-		QueryType queryType = PrismTestUtil.parseAtomicValue(new File(
-                "src/test/resources/impl/query-filter-all-accounts.xml"), QueryType.COMPLEX_TYPE);
+		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
 		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 		
 		provisioningService.searchObjectsIterative(ShadowType.class, query, null, new ResultHandler<ShadowType>() {
@@ -1495,8 +1491,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
 		assertEquals(ACCOUNT_SEARCH_OID, addedObjectOid);
 
-		QueryType queryType = PrismTestUtil.parseAtomicValue(new File("src/test/resources/impl/query-filter-all-accounts.xml"),
-                QueryType.COMPLEX_TYPE);
+		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
 		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 		
 		rememberConnectorOperationCount();
@@ -1518,10 +1513,11 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 	@Test
 	public void test202SearchObjectsCompexFilter() throws Exception {
-		TestUtil.displayTestTile("test202SearchObjectsCompexFilter");
+		final String TEST_NAME = "test202SearchObjectsCompexFilter";
+		TestUtil.displayTestTile(TEST_NAME);
 
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
-				+ ".test202SearchObjectsCompexFilter");
+				+ "." + TEST_NAME);
 
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_COMPLEX_FILTER_FILE,
                 QueryType.COMPLEX_TYPE);
@@ -1536,12 +1532,11 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		// THEN
 		for (PrismObject<ShadowType> objType : objListType) {
-			if (objType == null) {
-				System.out.println("Object not found in repository.");
-			} else {
-				System.out.println("found object: " + objType.asObjectable().getName());
-			}
+			assertNotNull("Null search result", objType);
+			display("found object", objType);
 		}
+		
+		assertEquals("Unexpected number of objects found", 1, objListType.size());
 		
 		assertConnectorOperationIncrement(1);
 		assertConnectorSimulatedPagingSearchIncrement(0);
@@ -1554,8 +1549,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
 
-		QueryType queryType = PrismTestUtil.parseAtomicValue(new File("src/test/resources/impl/query-filter-all-accounts.xml"),
-                QueryType.COMPLEX_TYPE);
+		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
 		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 		
 		ObjectPaging paging = ObjectPaging.createPaging(null, 3);
@@ -1586,8 +1580,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
 
-		QueryType queryType = PrismTestUtil.parseAtomicValue(new File("src/test/resources/impl/query-filter-all-accounts.xml"),
-                QueryType.COMPLEX_TYPE);
+		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
 		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 		
 		ObjectPaging paging = ObjectPaging.createPaging(0, 4);
@@ -1618,8 +1611,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
 
-		QueryType queryType = PrismTestUtil.parseAtomicValue(new File("src/test/resources/impl/query-filter-all-accounts.xml"),
-                QueryType.COMPLEX_TYPE);
+		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
 		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 		
 		ObjectPaging paging = ObjectPaging.createPaging(2, 5);
@@ -1665,8 +1657,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
 
-		QueryType queryType = PrismTestUtil.parseAtomicValue(new File("src/test/resources/impl/query-filter-all-accounts.xml"),
-                QueryType.COMPLEX_TYPE);
+		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
 		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 
 		// WHEN
@@ -1742,8 +1733,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 	}
 	
 	@Test
-	public void test320AddObjectPosix() throws Exception {
-		final String TEST_NAME = "test320AddObjectPosix";
+	public void test320AddAccountPosix() throws Exception {
+		final String TEST_NAME = "test320AddAccountPosix";
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
@@ -1764,19 +1755,82 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		ShadowType repoShadowType =  repositoryService.getObject(ShadowType.class, ACCOUNT_POSIX_MCMUTTON_OID,
 				null, result).asObjectable();
+		display("Repo shadow", repoShadowType);
 		PrismAsserts.assertEqualsPolyString("Name not equal (repo)", ACCOUNT_POSIX_MCMUTTON_DN, repoShadowType.getName());
 		assertAttribute(repoShadowType, getSecondaryIdentifierQName(), StringUtils.lowerCase(ACCOUNT_POSIX_MCMUTTON_DN));
 		MidPointAsserts.assertObjectClass(repoShadowType, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS, RESOURCE_OPENDJ_POSIX_ACCOUNT_OBJECTCLASS);
 
 		ShadowType provisioningShadowType = provisioningService.getObject(ShadowType.class, ACCOUNT_POSIX_MCMUTTON_OID,
 				null, task, result).asObjectable();
+		display("Provisioning shadow", provisioningShadowType);
 		PrismAsserts.assertEqualsPolyString("Name not equal.", ACCOUNT_POSIX_MCMUTTON_DN, provisioningShadowType.getName());
 		MidPointAsserts.assertObjectClass(provisioningShadowType, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS, RESOURCE_OPENDJ_POSIX_ACCOUNT_OBJECTCLASS);
+		assertAttribute(provisioningShadowType, "cn", "Haggis McMutton");
+		assertAttribute(provisioningShadowType, "sn", "McMutton");
+		assertAttribute(provisioningShadowType, "homeDirectory", "/home/scotland");
+		assertAttribute(provisioningShadowType, "uidNumber", "1001");
+		
+		String uid = ShadowUtil.getSingleStringAttributeValue(repoShadowType, getPrimaryIdentifierQName());
+		assertNotNull(uid);
+		
+		// Check if object was modified in LDAP
+		
+		SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(uid);			
+		display("LDAP account", entry);
+		OpenDJController.assertAttribute(entry, "cn", "Haggis McMutton");
+		OpenDJController.assertAttribute(entry, "sn", "McMutton");
+		OpenDJController.assertAttribute(entry, "uidNumber", "1001");
+		OpenDJController.assertAttribute(entry, "loginShell", "/bin/whisky");
+		OpenDJController.assertAttribute(entry, "homeDirectory", "/home/scotland");
 		
 		assertShadows(17);
 	}
 	
-	// TODO: modify
+	@Test
+	public void test322ModifyAccountPosix() throws Exception {
+		final String TEST_NAME = "test322ModifyAccountPosix";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+				+ "." + TEST_NAME);
+
+		ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(ACCOUNT_POSIX_MCMUTTON_CHANGE_FILE, ObjectModificationType.COMPLEX_TYPE);
+		ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, getShadowDefinition());
+		
+		display("Object change",delta);
+		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		provisioningService.modifyObject(ShadowType.class, objectChange.getOid(),
+				delta.getModifications(), null, null, taskManager.createTaskInstance(), result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		
+		ShadowType accountType = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_POSIX_MCMUTTON_OID, null, taskManager.createTaskInstance(), result).asObjectable();
+		display("Object after change",accountType);
+
+		String uid = ShadowUtil.getSingleStringAttributeValue(accountType, getPrimaryIdentifierQName());
+		assertNotNull(uid);
+		assertAttribute(accountType, "cn", "Haggis McMutton");
+		assertAttribute(accountType, "homeDirectory", "/home/caribbean");
+		assertAttribute(accountType, "roomNumber", "Barber Shop");
+		assertAttribute(accountType, "uidNumber", "1001");
+		
+		// Check if object was modified in LDAP
+		
+		SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(uid);			
+		display("LDAP account", entry);
+		OpenDJController.assertAttribute(entry, "cn", "Haggis McMutton");
+		OpenDJController.assertAttribute(entry, "homeDirectory", "/home/caribbean");
+		OpenDJController.assertAttribute(entry, "roomNumber", "Barber Shop");
+		OpenDJController.assertAttribute(entry, "uidNumber", "1001");
+				
+		assertShadows(17);
+	}
 	
 	@Test
 	public void test329DeleteAccountPosix() throws Exception {
@@ -1813,6 +1867,51 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		assertShadows(16);
 	}
+	
+	/**
+	 * Search for account created directly on resource (no shadow in repo). The account has
+	 * posixAccount auxiliary object class. Provisioning should figure that out.
+	 */
+	@Test
+	public void test330SearchForPosixAccount() throws Exception {
+		final String TEST_NAME = "test330SearchForPosixAccount";
+		TestUtil.displayTestTile(TEST_NAME);
+
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+				+ "." + TEST_NAME);
+
+		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_VANHELGEN_FILE,
+                QueryType.COMPLEX_TYPE);
+		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		
+		Entry entry = openDJController.addEntryFromLdifFile(ACCOUNT_POSIX_VANHELGEN_LDIF_FILE);
+
+		rememberConnectorOperationCount();
+		rememberConnectorSimulatedPagingSearchCount();
+		
+		// WHEN
+		List<PrismObject<ShadowType>> objListType = 
+			provisioningService.searchObjects(ShadowType.class, query, null, result);
+		
+		// THEN
+		for (PrismObject<ShadowType> objType : objListType) {
+			assertNotNull("Null search result", objType);
+			display("found object", objType);
+		}
+		
+		assertEquals("Unexpected number of objects found", 1, objListType.size());
+		
+		PrismObject<ShadowType> provisioningShadow = objListType.get(0);
+		assertAttribute(provisioningShadow, "cn", "Edward Van Helgen");
+		assertAttribute(provisioningShadow, "homeDirectory", "/home/vanhelgen");
+		assertAttribute(provisioningShadow, "uidNumber", "1002");
+		
+		assertConnectorOperationIncrement(1);
+		assertConnectorSimulatedPagingSearchIncrement(0);
+	}
+	
+	// TODO: synchronization of auxiliary object classes
+
 	
 	@Test
 	public void test401ConfiguredCapabilityNoRead() throws Exception{

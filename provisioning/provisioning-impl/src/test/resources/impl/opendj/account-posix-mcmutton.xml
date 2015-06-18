@@ -33,7 +33,7 @@
 		<ri:sn>McMutton</ri:sn>
 		<ri:uidNumber>1001</ri:uidNumber>
 		<ri:gidNumber>1001</ri:gidNumber>
-		<ri:homeDirectory>1001</ri:homeDirectory>
+		<ri:homeDirectory>/home/scotland</ri:homeDirectory>
 		<ri:loginShell>/bin/whisky</ri:loginShell>
 	</attributes>
 </shadow>

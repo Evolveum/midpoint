@@ -99,7 +99,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		
 		repoAddShadowFromFile(ACCOUNT1_REPO_FILE, initResult);
 		repoAddShadowFromFile(ACCOUNT_SPARROW_REPO_FILE, initResult);
-		repoAddShadowFromFile(ACCOUNT_MODIFY_REPO_FILE, initResult);
+		repoAddShadowFromFile(ACCOUNT_JACK_REPO_FILE, initResult);
 	}
 	
 // We are NOT starting OpenDJ here. We want to see the blood .. err ... errors
@@ -384,8 +384,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
 				+ "." + TEST_NAME);
 
-		ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(
-                new File("src/test/resources/impl/account-change-description.xml"), ObjectModificationType.COMPLEX_TYPE);
+		ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(ACCOUNT_JACK_CHANGE_FILE, ObjectModificationType.COMPLEX_TYPE);
 		ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, ShadowType.class, PrismTestUtil.getPrismContext());
 		display("Object change",delta);
 		
@@ -694,8 +693,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
 				+ "." + TEST_NAME);
 
-		ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(
-                new File("src/test/resources/impl/account-change-description.xml"), ObjectModificationType.COMPLEX_TYPE);
+		ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(ACCOUNT_JACK_CHANGE_FILE, ObjectModificationType.COMPLEX_TYPE);
 		ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, ShadowType.class, PrismTestUtil.getPrismContext());
 		display("Object change",delta);
 		
@@ -709,7 +707,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		display("deleteObject result", result);
 		assertEquals("Wrong result", OperationResultStatus.HANDLED_ERROR, result.getStatus());
 		
-		ShadowType repoAccountType =  repositoryService.getObject(ShadowType.class, ACCOUNT_MODIFY_OID,
+		ShadowType repoAccountType =  repositoryService.getObject(ShadowType.class, ACCOUNT_JACK_OID,
 				null, result).asObjectable();
 		display("repo shadow", repoAccountType);
 		assertEquals("Wrong failedOperationType in repo", FailedOperationTypeType.MODIFY, repoAccountType.getFailedOperationType());
@@ -717,7 +715,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		assertNotNull("No result in shadow (repo)", repoResult);
 		TestUtil.assertFailure("Result in shadow (repo)", repoResult);
 
-		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_MODIFY_OID,
+		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_JACK_OID,
 				null, task, result).asObjectable();
 		display("provisioning shadow", provisioningAccountType);
 		assertEquals("Wrong failedOperationType in repo", FailedOperationTypeType.MODIFY, provisioningAccountType.getFailedOperationType());
