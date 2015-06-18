@@ -271,7 +271,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
       final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
       QName objectClass = new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME);
 
-      ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), objectClass, prismContext);
+      ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(resource.getOid(), objectClass, prismContext);
       
       try {
     	  
@@ -301,7 +301,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
       final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
       QName objectClass = new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME);
 
-      ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), objectClass, prismContext);
+      ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(resource.getOid(), objectClass, prismContext);
       
       ResultHandler handler = new ResultHandler<ObjectType>() {
           @Override
@@ -553,7 +553,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
       final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
       QName objectClass = new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME);
 
-      ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), objectClass, prismContext);
+      ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(resource.getOid(), objectClass, prismContext);
       
       try {
     	  
@@ -582,7 +582,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
       final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
       QName objectClass = new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME);
 
-      ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), objectClass, prismContext);
+      ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(resource.getOid(), objectClass, prismContext);
       
       ResultHandler handler = new ResultHandler<ObjectType>() {
           @Override

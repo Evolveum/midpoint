@@ -356,7 +356,6 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resourceType, prismContext);
 		display("Resource schema", resourceSchema);
 
-
 		ObjectClassComplexTypeDefinition accountDef = resourceSchema.findObjectClassDefinition(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
 		assertNotNull("Account definition is missing", accountDef);
 		assertNotNull("Null identifiers in account", accountDef.getIdentifiers());
@@ -520,6 +519,34 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		assertNull("The _PASSSWORD_ attribute sneaked into schema",
 				accountDef.findAttributeDefinition(new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));
+		
+		RefinedObjectClassDefinition posixAccountDef = refinedSchema.getRefinedDefinition(RESOURCE_OPENDJ_POSIX_ACCOUNT_OBJECTCLASS);
+		assertNotNull("posixAccount definition is missing", posixAccountDef);
+		assertNotNull("Null identifiers in posixAccount", posixAccountDef.getIdentifiers());
+		assertFalse("Empty identifiers in posixAccount", posixAccountDef.getIdentifiers().isEmpty());
+		assertNotNull("Null secondary identifiers in posixAccount", posixAccountDef.getSecondaryIdentifiers());
+		assertFalse("Empty secondary identifiers in posixAccount", posixAccountDef.getSecondaryIdentifiers().isEmpty());
+		assertNotNull("No naming attribute in posixAccount", posixAccountDef.getNamingAttribute());
+		assertFalse("No nativeObjectClass in posixAccount", StringUtils.isEmpty(posixAccountDef.getNativeObjectClass()));
+		assertTrue("posixAccount is not auxiliary", posixAccountDef.isAuxiliary());
+
+		RefinedAttributeDefinition<String> posixIdPrimaryDef = posixAccountDef.findAttributeDefinition(getPrimaryIdentifierQName());
+		assertEquals(1, posixIdPrimaryDef.getMaxOccurs());
+		assertEquals(0, posixIdPrimaryDef.getMinOccurs());
+		assertFalse("UID has create", posixIdPrimaryDef.canAdd());
+		assertFalse("UID has update", posixIdPrimaryDef.canModify());
+		assertTrue("No UID read", posixIdPrimaryDef.canRead());
+		assertTrue("UID definition not in identifiers", accountDef.getIdentifiers().contains(posixIdPrimaryDef));
+		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Uid.NAME, posixIdPrimaryDef.getFrameworkAttributeName());
+
+		RefinedAttributeDefinition<String> posixIdSecondaryDef = posixAccountDef.findAttributeDefinition(getSecondaryIdentifierQName());
+		assertEquals(1, posixIdSecondaryDef.getMaxOccurs());
+		assertEquals(1, posixIdSecondaryDef.getMinOccurs());
+		assertTrue("No NAME create", posixIdSecondaryDef.canAdd());
+		assertTrue("No NAME update", posixIdSecondaryDef.canModify());
+		assertTrue("No NAME read", posixIdSecondaryDef.canRead());
+		assertTrue("NAME definition not in secondary identifiers", accountDef.getSecondaryIdentifiers().contains(posixIdSecondaryDef));
+		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Name.NAME, posixIdSecondaryDef.getFrameworkAttributeName());
 
 		assertShadows(1);
 	}
@@ -1025,7 +1052,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
         final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
         QName objectClass = new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME);
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), objectClass, prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(resource.getOid(), objectClass, prismContext);
         
         final Collection<ObjectType> objects = new HashSet<ObjectType>();
 

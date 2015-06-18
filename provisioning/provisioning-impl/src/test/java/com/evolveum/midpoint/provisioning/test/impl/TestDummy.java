@@ -1211,7 +1211,7 @@ public class TestDummy extends AbstractDummyTest {
 		newAccount.setPassword("parrotMonster");
 		dummyResource.addAccount(newAccount);
 
-		ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(RESOURCE_DUMMY_OID, 
+		ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, 
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceType),
 						ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), prismContext); 
 
@@ -1296,7 +1296,7 @@ public class TestDummy extends AbstractDummyTest {
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ "." + TEST_NAME);
 
-		ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(RESOURCE_DUMMY_OID, 
+		ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, 
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceType),
 						ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), prismContext); 
 
@@ -2488,7 +2488,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		ObjectQuery query;
         if (useObjectClassFilter) {
-            query = ObjectQueryUtil.createResourceAndAccountQuery(RESOURCE_DUMMY_OID, new QName(ResourceTypeUtil.getResourceNamespace(resourceType),
+            query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, new QName(ResourceTypeUtil.getResourceNamespace(resourceType),
                     ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), prismContext);
             if (attrFilter != null) {
                 AndFilter filter = (AndFilter) query.getFilter();

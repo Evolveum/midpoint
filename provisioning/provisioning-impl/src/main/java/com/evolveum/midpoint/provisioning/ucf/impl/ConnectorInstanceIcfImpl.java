@@ -1301,13 +1301,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			throw new IllegalStateException("Couldn't set attributes for icf.");
 		}
 
-		Set<ObjectClass> icfAuxiliaryObjectClasses = new HashSet<>();
+		List<ObjectClass> icfAuxiliaryObjectClasses = new ArrayList<>();
 		for (QName auxiliaryObjectClass: shadowType.getAuxiliaryObjectClass()) {
 			icfAuxiliaryObjectClasses.add(icfNameMapper.objectClassToIcf(auxiliaryObjectClass, resourceSchemaNamespace, connectorType, false));
 		}
 		OperationOptionsBuilder operationOptionsBuilder = new OperationOptionsBuilder();
 		if (!icfAuxiliaryObjectClasses.isEmpty()) {
-			operationOptionsBuilder.setAuxiliaryObjectClasses(icfAuxiliaryObjectClasses);
+			operationOptionsBuilder.setAuxiliaryObjectClasses(icfAuxiliaryObjectClasses.toArray(new ObjectClass[icfAuxiliaryObjectClasses.size()]));
 		}
 		OperationOptions options = operationOptionsBuilder.build();
 		

@@ -395,19 +395,16 @@ public class RefinedResourceSchema extends ResourceSchema implements DebugDumpab
 			return null;
 		}
 		
-		SchemaHandlingType schemaHandling = resourceType.getSchemaHandling();
-		
 		RefinedResourceSchema rSchema = new RefinedResourceSchema(resourceType, originalResourceSchema, prismContext);
 		
-		if (hasAnyObjectTypeDef(schemaHandling)) {
-			
+		SchemaHandlingType schemaHandling = resourceType.getSchemaHandling();
+		if (schemaHandling != null) {
 			parseObjectTypeDefsFromSchemaHandling(rSchema, resourceType, schemaHandling, 
-					schemaHandling.getObjectType(), null, prismContext, "definition of "+resourceType);
-					
-		} else {
-			parseObjectTypesFromSchema(rSchema, resourceType, prismContext, 
-					"definition of "+resourceType);
+				schemaHandling.getObjectType(), null, prismContext, "definition of "+resourceType);
 		}
+
+		parseObjectTypesFromSchema(rSchema, resourceType, prismContext, 
+				"definition of "+resourceType);
 		
 		return rSchema;
 	}
@@ -460,23 +457,23 @@ public class RefinedResourceSchema extends ResourceSchema implements DebugDumpab
 
 		RefinedObjectClassDefinition rAccountDefDefault = null;
 		for(ObjectClassComplexTypeDefinition objectClassDef: rSchema.getOriginalResourceSchema().getObjectClassDefinitions()) {
-			if (objectClassDef.getKind() == ShadowKindType.ACCOUNT) {
-				QName objectClassname = objectClassDef.getTypeName();
-				RefinedObjectClassDefinition rAccountDef = RefinedObjectClassDefinition.parseFromSchema(objectClassDef, resourceType, rSchema, prismContext,
-						"object class " + objectClassname + " (interpreted as account type definition), in " + contextDescription);
-				
-				if (rAccountDef.isDefault()) {
-					if (rAccountDefDefault == null) {
-						rAccountDefDefault = rAccountDef;
-					} else {
-						throw new SchemaException("More than one default account definitions ("+rAccountDefDefault+", "+rAccountDef+") in " + contextDescription);
-					}
-				}
-					
-				rSchema.add(rAccountDef);
+			if (rSchema.getRefinedDefinition(objectClassDef.getTypeName()) != null) {
+				continue;
 			}
-		}
-		
+			QName objectClassname = objectClassDef.getTypeName();
+			RefinedObjectClassDefinition rOcDef = RefinedObjectClassDefinition.parseFromSchema(objectClassDef, resourceType, rSchema, prismContext,
+					"object class " + objectClassname + ", in " + contextDescription);
+			
+			if (objectClassDef.getKind() == ShadowKindType.ACCOUNT && rOcDef.isDefault()) {
+				if (rAccountDefDefault == null) {
+					rAccountDefDefault = rOcDef;
+				} else {
+					throw new SchemaException("More than one default account definitions ("+rAccountDefDefault+", "+rOcDef+") in " + contextDescription);
+				}
+			}
+			
+			rSchema.add(rOcDef);
+		}		
 	}
 		
 	public LayerRefinedResourceSchema forLayer(LayerType layer) {

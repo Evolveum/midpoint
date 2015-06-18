@@ -946,19 +946,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		if (objectClass == null) {
 			throw new IllegalArgumentException("Objectclass not defined in a search query");
 		}
-
-		PrismObject<ResourceType> resource = null;
-				
-		try{
-			resource = getObject(ResourceType.class, resourceOid, null, null, result);
-		} catch (SecurityViolationException ex){
-			ProvisioningUtil.recordFatalError(LOGGER, result, "Could not get resource: security violation: " + ex.getMessage(), ex);
-			result.cleanupResult(ex);
-			throw new SystemException("Could not get resource: security violation: " +ex.getMessage(), ex);
-		}
+		
+		ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(resourceOid, objectClass, prismContext);
 		
 		final List<PrismObject<? extends ShadowType>> objectList = new ArrayList<PrismObject<? extends ShadowType>>();
-
 		final ShadowHandler shadowHandler = new ShadowHandler() {
 			@Override
 			public boolean handle(ShadowType shadow) {
@@ -972,7 +963,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		};
 
 		try {
-			getShadowCache(Mode.STANDARD).searchObjectsIterative(null, null, shadowHandler, false, result);
+			getShadowCache(Mode.STANDARD).searchObjectsIterative(query, null, shadowHandler, false, result);
 		} catch (ConfigurationException ex) {
 			parentResult.recordFatalError(ex.getMessage(), ex);
 			result.cleanupResult(ex);

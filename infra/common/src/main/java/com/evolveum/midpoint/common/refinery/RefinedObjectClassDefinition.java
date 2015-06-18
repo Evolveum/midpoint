@@ -497,45 +497,35 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
                                                         RefinedResourceSchema rSchema,
                                                         PrismContext prismContext, String contextDescription) throws SchemaException {
 
-        RefinedObjectClassDefinition rAccountDef = new RefinedObjectClassDefinition(prismContext, resourceType, objectClassDef);
+        RefinedObjectClassDefinition rOcDef = new RefinedObjectClassDefinition(prismContext, resourceType, objectClassDef);
 
-        String accountTypeName = null;
-        if (objectClassDef.getIntent() != null) {
-            accountTypeName = objectClassDef.getIntent();
-            if (accountTypeName == null) {
-            	accountTypeName = SchemaConstants.INTENT_DEFAULT;
-            }
-            rAccountDef.setIntent(accountTypeName);
-        } else {
-            if (objectClassDef.isDefaultInAKind()) {
-                rAccountDef.setIntent(MidPointConstants.DEFAULT_ACCOUNT_TYPE_NAME);
-            } else {
-                throw new SchemaException("Account type definition does not have a name, in " + contextDescription);
-            }
+        String intent = objectClassDef.getIntent();
+        if (intent == null) {
+        	intent = SchemaConstants.INTENT_DEFAULT;
         }
-
+        rOcDef.setIntent(intent);
 
         if (objectClassDef.getDisplayName() != null) {
-            rAccountDef.setDisplayName(objectClassDef.getDisplayName());
+            rOcDef.setDisplayName(objectClassDef.getDisplayName());
         }
 
-        rAccountDef.setDefault(objectClassDef.isDefaultInAKind());
+        rOcDef.setDefault(objectClassDef.isDefaultInAKind());
 
         for (ResourceAttributeDefinition attrDef : objectClassDef.getAttributeDefinitions()) {
-            String attrContextDescription = accountTypeName + ", in " + contextDescription;
+            String attrContextDescription = intent + ", in " + contextDescription;
 
             RefinedAttributeDefinition rAttrDef = RefinedAttributeDefinition.parse(attrDef, null, objectClassDef, prismContext,
             		attrContextDescription);
-            rAccountDef.processIdentifiers(rAttrDef, objectClassDef);
+            rOcDef.processIdentifiers(rAttrDef, objectClassDef);
 
-            if (rAccountDef.containsAttributeDefinition(rAttrDef.getName())) {
+            if (rOcDef.containsAttributeDefinition(rAttrDef.getName())) {
                 throw new SchemaException("Duplicate definition of attribute " + rAttrDef.getName() + " in " + attrContextDescription);
             }
-            rAccountDef.add(rAttrDef);
+            rOcDef.add(rAttrDef);
 
         }
 
-        return rAccountDef;
+        return rOcDef;
 
     }
 	
@@ -842,6 +832,12 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         return getEffectiveCapability(CountObjectsCapabilityType.class) != null;
     }
     
+    
+    
+	public boolean isAuxiliary() {
+		return objectClassDefinition.isAuxiliary();
+	}
+
 	public boolean matches(ShadowType shadowType) {
 		if (shadowType == null) {
 			return false;
