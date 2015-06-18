@@ -8,6 +8,8 @@ DETERMINISTIC
   BEGIN
     DECLARE run TINYINT DEFAULT 0;
 
+    DELETE FROM m1_a6_certification_campaign;
+    DELETE FROM m1_a6_c13_definition;
     DELETE FROM m_audit_delta;
     DELETE FROM m_audit_event;
     DELETE FROM m_object_ext_date;

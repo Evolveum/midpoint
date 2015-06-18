@@ -1,3 +1,20 @@
+CREATE TABLE m1_a6_c13_definition (
+    name_norm VARCHAR(255),
+    name_orig VARCHAR(255),
+    oid VARCHAR(36) NOT NULL,
+    PRIMARY KEY (oid)
+);
+
+CREATE TABLE m1_a6_certification_campaign (
+    definitionRef_relation VARCHAR(157),
+    definitionRef_targetOid VARCHAR(36),
+    definitionRef_type int4,
+    name_norm VARCHAR(255),
+    name_orig VARCHAR(255),
+    oid VARCHAR(36) NOT NULL,
+    PRIMARY KEY (oid)
+);
+
 CREATE TABLE m_abstract_role (
   approvalProcess VARCHAR(255),
   requestable     BOOLEAN,
@@ -584,6 +601,12 @@ CREATE TABLE m_value_policy (
   PRIMARY KEY (oid)
 );
 
+ALTER TABLE m1_a6_c13_definition
+    ADD CONSTRAINT uc_a6_c13_definition_name  UNIQUE (name_norm);
+
+ALTER TABLE m1_a6_certification_campaign
+    ADD CONSTRAINT uc_a6_c13_campaign_name  UNIQUE (name_norm);
+
 CREATE INDEX iRequestable ON m_abstract_role (requestable);
 
 CREATE INDEX iAssignmentAdministrative ON m_assignment (administrativeStatus);
@@ -711,6 +734,16 @@ CREATE INDEX iLocality ON m_user (locality_orig);
 
 ALTER TABLE m_value_policy
 ADD CONSTRAINT uc_value_policy_name UNIQUE (name_norm);
+
+ALTER TABLE m1_a6_c13_definition
+    ADD CONSTRAINT fk_a6_c13_definition
+    FOREIGN KEY (oid)
+    REFERENCES m_object;
+
+ALTER TABLE m1_a6_certification_campaign
+    ADD CONSTRAINT fk_a6_c13_campaign
+    FOREIGN KEY (oid)
+    REFERENCES m_object;
 
 ALTER TABLE m_abstract_role
 ADD CONSTRAINT fk_abstract_role
