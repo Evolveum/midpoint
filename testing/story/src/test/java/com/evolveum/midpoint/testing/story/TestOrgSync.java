@@ -19,6 +19,7 @@ package com.evolveum.midpoint.testing.story;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
@@ -134,6 +135,10 @@ public class TestOrgSync extends AbstractStoryTest {
 	private static final String ACCOUNT_SHARPTOOTH_USERNAME = "sharptooth";
 	private static final String ACCOUNT_SHARPTOOTH_FIST_NAME = "Sharptooth";
 	private static final String ACCOUNT_SHARPTOOTH_LAST_NAME = "Canibal";
+	
+	private static final String ACCOUNT_REDSKULL_USERNAME = "redskull";
+	private static final String ACCOUNT_REDSKULL_FIST_NAME = "Redskull";
+	private static final String ACCOUNT_REDSKULL_LAST_NAME = "Canibal";
 
 	private static final String ACCOUNT_GUYBRUSH_USERNAME = "guybrush";
 	private static final String ACCOUNT_GUYBRUSH_FIST_NAME = "Guybrush";
@@ -422,6 +427,120 @@ public class TestOrgSync extends AbstractStoryTest {
         String thisRoleCanibalismOid = assertResponsibility(user, RESP_CANIBALISM);
         assertEquals("Canibalism role OID has changed", roleCanibalismOid, thisRoleCanibalismOid);
         assertAssignments(user, 3);
+	}
+	
+	/**
+	 * Yet another canibal to play with.
+	 */
+	@Test
+    public void test107AddHrAccountRedskull() throws Exception {
+		final String TEST_NAME = "test107AddHrAccountRedskull";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        
+        DummyAccount newAccount = new DummyAccount(ACCOUNT_REDSKULL_USERNAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_REDSKULL_FIST_NAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_REDSKULL_LAST_NAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_ORGPATH, ORGPATH_MONKEY_ISLAND);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_RESPONSIBILITIES, RESP_CANIBALISM);
+		
+        // WHEN
+        dummyResourceHr.addAccount(newAccount);
+        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        
+        // THEN
+        PrismObject<UserType> user = findUserByUsername(ACCOUNT_REDSKULL_USERNAME);
+        assertNotNull("No redskull user", user);
+        display("User", user);
+        assertUser(user, ACCOUNT_REDSKULL_USERNAME, ACCOUNT_REDSKULL_FIST_NAME, ACCOUNT_REDSKULL_LAST_NAME);
+        assertAccount(user, RESOURCE_DUMMY_HR_OID);
+        
+        dumpOrgTree();
+        
+        PrismObject<OrgType> org = getAndAssertReplicatedOrg(ORGPATH_MONKEY_ISLAND);
+        assertAssignedOrg(user, org.getOid());
+        assertHasOrg(user, org.getOid());
+        assertHasOrg(org, ORG_TOP_OID);
+        assertEquals("Monkey island Org OID has changed", orgMonkeyIslandOid, org.getOid());
+        
+        assertSubOrgs(org,0);
+        assertSubOrgs(ORG_TOP_OID,1);
+        
+        assertBasicRoleAndResources(user);
+        String thisRoleCanibalismOid = assertResponsibility(user, RESP_CANIBALISM);
+        assertEquals("Canibalism role OID has changed", roleCanibalismOid, thisRoleCanibalismOid);
+        assertAssignments(user, 3);
+	}
+	
+	/**
+	 * Remove "canibalism" responsibility from redskull.
+	 */
+	@Test
+    public void test108RedskullGoesVegeratian() throws Exception {
+		final String TEST_NAME = "test108RedskullGoesVegeratian";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        
+        DummyAccount account = dummyResourceHr.getAccountByUsername(ACCOUNT_REDSKULL_USERNAME);
+		
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        account.removeAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_RESPONSIBILITIES, RESP_CANIBALISM);
+        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        PrismObject<UserType> user = findUserByUsername(ACCOUNT_REDSKULL_USERNAME);
+        assertNotNull("No redskull user", user);
+        display("User", user);
+        assertUser(user, ACCOUNT_REDSKULL_USERNAME, ACCOUNT_REDSKULL_FIST_NAME, ACCOUNT_REDSKULL_LAST_NAME);
+        assertAccount(user, RESOURCE_DUMMY_HR_OID);
+
+        dumpOrgTree();
+        
+        PrismObject<OrgType> org = getAndAssertReplicatedOrg(ORGPATH_MONKEY_ISLAND);
+        assertAssignedOrg(user, org.getOid());
+        assertHasOrg(user, org.getOid());
+        assertHasOrg(org, ORG_TOP_OID);
+        
+        assertSubOrgs(org,0);
+        assertSubOrgs(ORG_TOP_OID,1);
+        
+        assertEquals("Monkey island Org OID has changed", orgMonkeyIslandOid, org.getOid());
+        
+        assertBasicRoleAndResources(user);
+        roleCanibalismOid = assertNoResponsibility(user, RESP_CANIBALISM);
+        assertAssignments(user, 2);
+	}
+	
+	/**
+	 * Vegetarian cannibal? Not really!
+	 */
+	@Test
+    public void test109HrDeleteRedskull() throws Exception {
+		final String TEST_NAME = "test109HrDeleteRedskull";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        dummyResourceHr.deleteAccountByName(ACCOUNT_REDSKULL_USERNAME);
+        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        PrismObject<UserType> user = findUserByUsername(ACCOUNT_REDSKULL_USERNAME);
+        display("User", user);
+        assertNull("Redskull user not gone", user);
+
+        dumpOrgTree();
+        
+        PrismObject<OrgType> org = getAndAssertReplicatedOrg(ORGPATH_MONKEY_ISLAND);
+        assertHasOrg(org, ORG_TOP_OID);        
+        assertSubOrgs(org,0);
+        assertSubOrgs(ORG_TOP_OID,1);
+        
+        assertEquals("Monkey island Org OID has changed", orgMonkeyIslandOid, org.getOid());        
 	}
 	
 	/**
@@ -1125,6 +1244,32 @@ public class TestOrgSync extends AbstractStoryTest {
 		openDJController.assertUniqueMember(groupEntry, accountDn);
 		
 		IntegrationTestTools.assertAssociation(accountShadow, OPENDJ_ASSOCIATION_GROUP_NAME, shadow.getOid());
+		
+		return respRole.getOid();
+	}
+	
+	private String assertNoResponsibility(PrismObject<UserType> user, String respName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
+		String respRoleName = "R_"+respName;
+		PrismObject<RoleType> respRole = searchObjectByName(RoleType.class, respRoleName);
+		assertNotNull("No role for responsibility "+respName);
+		display("Responsibility role for "+respName, respRole);
+		assertNotAssignedRole(user, respRole.getOid());
+		
+		PrismReferenceValue linkRef = getSingleLinkRef(respRole);
+		PrismObject<ShadowType> shadow = getShadowModel(linkRef.getOid());
+		display("Role "+respRoleName+" shadow", shadow);
+		// TODO assert shadow content
+		
+		String groupDn = "cn="+respRoleName+",ou=groups,"+openDJController.getSuffix();
+		SearchResultEntry groupEntry = openDJController.fetchAndAssertEntry(groupDn, "groupOfUniqueNames");
+		display("Group entry", groupEntry);
+		
+		PrismReferenceValue accountLinkRef = getLinkRef(user, RESOURCE_OPENDJ_OID);
+		PrismObject<ShadowType> accountShadow = getShadowModel(accountLinkRef.getOid());
+		String accountDn = IntegrationTestTools.getSecondaryIdentifier(accountShadow);
+		openDJController.assertNoUniqueMember(groupEntry, accountDn);
+		
+		IntegrationTestTools.assertNoAssociation(accountShadow, OPENDJ_ASSOCIATION_GROUP_NAME, shadow.getOid());
 		
 		return respRole.getOid();
 	}

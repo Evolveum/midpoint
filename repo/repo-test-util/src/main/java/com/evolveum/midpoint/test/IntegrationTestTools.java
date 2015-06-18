@@ -893,4 +893,18 @@ public class IntegrationTestTools {
 		}
 		AssertJUnit.fail("No association for entitlement "+entitlementOid+" in "+shadow);
 	}
+	
+	public static void assertNoAssociation(PrismObject<ShadowType> shadow, QName associationName, String entitlementOid) {
+		ShadowType accountType = shadow.asObjectable();
+		List<ShadowAssociationType> associations = accountType.getAssociation();
+		if (associations == null) {
+			return;
+		}
+		for (ShadowAssociationType association: associations) {
+			if (associationName.equals(association.getName()) &&
+					entitlementOid.equals(association.getShadowRef().getOid())) {
+				AssertJUnit.fail("Unexpected association for entitlement "+entitlementOid+" in "+shadow);
+			}
+		}
+	}
 }
