@@ -34,9 +34,12 @@ import javax.persistence.UniqueConstraint;
 import java.util.Collection;
 
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(name = "uc_a6_c13_campaign_name", columnNames = {"name_norm"}))
-@ForeignKey(name = "fk_a6_c13_campaign")
+@Table(name = RAccessCertificationCampaign.TABLE_NAME,
+        uniqueConstraints = @UniqueConstraint(name = "uc_acc_cert_campaign_name", columnNames = {"name_norm"}))
+@ForeignKey(name = "fk_acc_cert_campaign")
 public class RAccessCertificationCampaign extends RObject<AccessCertificationCampaignType> {
+
+    public static final String TABLE_NAME = "m_acc_cert_campaign";
 
     private RPolyString name;
     private REmbeddedReference definitionRef;

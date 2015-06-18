@@ -11,7 +11,7 @@
 
 # remove iAncestor and iDescendant index, they are the same as FK for that fields
 
-CREATE TABLE m1_a6_c13_definition (
+CREATE TABLE m_acc_cert_definition (
     name_norm VARCHAR(255),
     name_orig VARCHAR(255),
     oid VARCHAR(36) NOT NULL,
@@ -21,7 +21,7 @@ CREATE TABLE m1_a6_c13_definition (
   COLLATE utf8_bin
   ENGINE=InnoDB;
 
-CREATE TABLE m1_a6_certification_campaign (
+CREATE TABLE m_acc_cert_campaign (
     definitionRef_relation VARCHAR(157),
     definitionRef_targetOid VARCHAR(36),
     definitionRef_type INTEGER,
@@ -767,11 +767,11 @@ CREATE TABLE m_value_policy (
   COLLATE utf8_bin
   ENGINE = InnoDB;
 
-ALTER TABLE m1_a6_c13_definition
-    ADD CONSTRAINT uc_a6_c13_definition_name  UNIQUE (name_norm);
+ALTER TABLE m_acc_cert_definition
+    ADD CONSTRAINT uc_acc_cert_definition_name  UNIQUE (name_norm);
 
-ALTER TABLE m1_a6_certification_campaign
-    ADD CONSTRAINT uc_a6_c13_campaign_name  UNIQUE (name_norm);
+ALTER TABLE m_acc_cert_campaign
+    ADD CONSTRAINT uc_acc_cert_campaign_name  UNIQUE (name_norm);
 
 CREATE INDEX iRequestable ON m_abstract_role (requestable);
 
@@ -903,13 +903,13 @@ CREATE INDEX iLocality ON m_user (locality_orig);
 ALTER TABLE m_value_policy
 ADD CONSTRAINT uc_value_policy_name UNIQUE (name_norm);
 
-ALTER TABLE m1_a6_c13_definition
-    ADD CONSTRAINT fk_a6_c13_definition
+ALTER TABLE m_acc_cert_definition
+    ADD CONSTRAINT fk_acc_cert_definition
     FOREIGN KEY (oid)
     REFERENCES m_object (oid);
 
-ALTER TABLE m1_a6_certification_campaign
-    ADD CONSTRAINT fk_a6_c13_campaign
+ALTER TABLE m_acc_cert_campaign
+    ADD CONSTRAINT fk_acc_cert_campaign
     FOREIGN KEY (oid)
     REFERENCES m_object (oid);
 
