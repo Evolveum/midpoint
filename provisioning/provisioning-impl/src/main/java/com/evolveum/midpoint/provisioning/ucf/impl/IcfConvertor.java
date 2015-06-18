@@ -122,7 +122,7 @@ public class IcfConvertor {
 		shadow.setObjectClass(attributesContainerDefinition.getTypeName());
 		
 		Set<ObjectClass> auxiliaryIcfObjectClasses = co.getAuxiliaryObjectClasses();
-		if (auxiliaryIcfObjectClasses != null) {
+		if (auxiliaryIcfObjectClasses != null && !auxiliaryIcfObjectClasses.isEmpty()) {
 			List<QName> auxiliaryObjectClasses = shadow.getAuxiliaryObjectClass();
 			for (ObjectClass auxiliaryIcfObjectClass: auxiliaryIcfObjectClasses) {
 				auxiliaryObjectClasses.add(icfNameMapper.objectClassToQname(auxiliaryIcfObjectClass.getObjectClassValue(), resourceSchemaNamespace, false));
