@@ -1832,14 +1832,19 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public <T> PrismProperty<T> fetchCurrentToken(ObjectClassComplexTypeDefinition objectClass,
+	public <T> PrismProperty<T> fetchCurrentToken(ObjectClassComplexTypeDefinition objectClassDef,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException {
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
 				+ ".fetchCurrentToken");
-		result.addParam("objectClass", objectClass);
+		result.addParam("objectClass", objectClassDef);
 
-		ObjectClass icfObjectClass = icfNameMapper.objectClassToIcf(objectClass, getSchemaNamespace(), connectorType, legacySchema);
+		ObjectClass icfObjectClass;
+		if (objectClassDef == null) {
+			icfObjectClass = ObjectClass.ALL;
+		} else {
+			icfObjectClass = icfNameMapper.objectClassToIcf(objectClassDef, getSchemaNamespace(), connectorType, legacySchema);
+		}
 		
 		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".sync");
 		icfResult.addContext("connector", icfConnectorFacade.getClass());

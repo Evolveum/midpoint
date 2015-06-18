@@ -35,6 +35,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -52,7 +54,7 @@ public class ShadowCacheProvisioner extends ShadowCache {
 	
 	@Override
 	public String afterAddOnResource(ProvisioningContext ctx, PrismObject<ShadowType> shadow, OperationResult parentResult)
-					throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+					throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ConfigurationException, CommunicationException {
 		
 	shadow = shadowManager.createRepositoryShadow(ctx, shadow);
 

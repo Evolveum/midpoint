@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Evolveum
+ * Copyright (c) 2013-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,6 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
-import net.sf.saxon.type.SchemaException;
-
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.refinery.PropertyLimitations;
@@ -34,6 +32,10 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -53,7 +55,7 @@ public class AccessChecker {
 	private static final Trace LOGGER = TraceManager.getTrace(AccessChecker.class);
 
 	public void checkAdd(ProvisioningContext ctx, PrismObject<ShadowType> shadow, OperationResult parentResult) 
-			throws SchemaException, SecurityViolationException {
+			throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException {
 		OperationResult result = parentResult.createMinorSubresult(OPERATION_NAME);
 		ResourceAttributeContainer attributeCont = ShadowUtil.getAttributesContainer(shadow);
 		

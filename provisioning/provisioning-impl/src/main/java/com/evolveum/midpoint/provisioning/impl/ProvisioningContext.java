@@ -22,11 +22,18 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
+import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author semancik
@@ -34,27 +41,37 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
  */
 public class ProvisioningContext {
 	
-	private ResourceType resource;
-	private RefinedResourceSchema refinedSchema;
+	private ResourceManager resourceManager;
+	private ConnectorManager connectorManager;
+	private OperationResult parentResult;
+	
+	private String resourceOid;
+	private PrismObject<ShadowType> originalShadow;
 	private ResourceShadowDiscriminator shadowCoordinates;
+	
 	private RefinedObjectClassDefinition objectClassDefinition;
 	private Task task;
+	
+	private ResourceType resource;
 	private ConnectorInstance connector;
+	private RefinedResourceSchema refinedSchema;
 	
-	public ResourceType getResource() {
-		return resource;
+	public ProvisioningContext(ConnectorManager connectorManager, ResourceManager resourceManager, OperationResult parentResult) {
+		super();
+		this.connectorManager = connectorManager;
+		this.resourceManager = resourceManager;
+		this.parentResult = parentResult;
 	}
 	
-	public void setResource(ResourceType resource) {
-		this.resource = resource;
+	public String getResourceOid() {
+		return resourceOid;
 	}
-	
-	public RefinedResourceSchema getRefinedSchema() {
-		return refinedSchema;
-	}
-	
-	public void setRefinedSchema(RefinedResourceSchema refinedSchema) {
-		this.refinedSchema = refinedSchema;
+
+	public void setResourceOid(String resourceOid) {
+		this.resourceOid = resourceOid;
+		this.resource = null;
+		this.connector = null;
+		this.refinedSchema = null;
 	}
 	
 	public ResourceShadowDiscriminator getShadowCoordinates() {
@@ -64,15 +81,43 @@ public class ProvisioningContext {
 	public void setShadowCoordinates(ResourceShadowDiscriminator shadowCoordinates) {
 		this.shadowCoordinates = shadowCoordinates;
 	}
+
+	public PrismObject<ShadowType> getOriginalShadow() {
+		return originalShadow;
+	}
+
+	public void setOriginalShadow(PrismObject<ShadowType> originalShadow) {
+		this.originalShadow = originalShadow;
+	}
+
+	public ResourceType getResource() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+		if (resource == null) {
+			if (resourceOid == null) {
+				throw new SchemaException("Null resource OID "+getDesc());
+			}
+			resource = resourceManager.getResource(resourceOid, parentResult).asObjectable();
+		}
+		return resource;
+	}
 	
-	public RefinedObjectClassDefinition getObjectClassDefinition() {
+	public RefinedResourceSchema getRefinedSchema() throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+		if (refinedSchema == null) {
+			refinedSchema = ProvisioningUtil.getRefinedSchema(getResource());
+		}
+		return refinedSchema;
+	}
+	
+	public RefinedObjectClassDefinition getObjectClassDefinition() throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+		if (objectClassDefinition == null) {
+			if (originalShadow != null) {
+				objectClassDefinition = getRefinedSchema().determineCompositeObjectClassDefinition(originalShadow);
+			} else if (shadowCoordinates != null && !shadowCoordinates.isWildcard()) {
+				objectClassDefinition = getRefinedSchema().determineCompositeObjectClassDefinition(shadowCoordinates);
+			}
+		}
 		return objectClassDefinition;
 	}
 	
-	public void setObjectClassDefinition(RefinedObjectClassDefinition objectClassDefinition) {
-		this.objectClassDefinition = objectClassDefinition;
-	}
-
 	public Task getTask() {
 		return task;
 	}
@@ -85,16 +130,15 @@ public class ProvisioningContext {
 		return task==null?null:task.getChannel();
 	}
 
-	public ConnectorInstance getConnector() {
+	public ConnectorInstance getConnector(OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+		if (connector == null) {
+			connector = getConnectorInstance(parentResult);
+		}
 		return connector;
-	}
-
-	public void setConnector(ConnectorInstance connector) {
-		this.connector = connector;
 	}
 	
 	public boolean isWildcard() {
-		return objectClassDefinition == null;
+		return (shadowCoordinates == null && originalShadow == null) || (shadowCoordinates != null && shadowCoordinates.isWildcard());
 	}
 	
 	/**
@@ -102,73 +146,75 @@ public class ProvisioningContext {
 	 */
 	public ProvisioningContext spawn(ShadowKindType kind, String intent) {
 		ProvisioningContext ctx = spawnSameResource();
-		RefinedResourceSchema refinedSchema = ctx.getRefinedSchema();
-		RefinedObjectClassDefinition objectClassDefinition = refinedSchema.getRefinedDefinition(kind, intent);
-		ctx.setObjectClassDefinition(objectClassDefinition);
+		ctx.shadowCoordinates = new ResourceShadowDiscriminator(resourceOid, kind, intent);
 		return ctx;
 	}
-	
-	public ProvisioningContext spawnAndAssertDefinition(ShadowKindType kind, String intent) throws SchemaException {
-		ProvisioningContext ctx = spawn(kind, intent);
-		ctx.assertDefinition("Cannot locate object class definition for kind="+kind+", intent="+intent+" in "+ctx.getResource());
-		return ctx;
-	}
-	
-	/**
-	 * Creates a context for a different object class on the same resource.
-	 */
-	public ProvisioningContext spawn(ShadowKindType kind, Collection<String> intents) throws SchemaException {
-		ProvisioningContext ctx = spawnSameResource();
-		RefinedResourceSchema refinedSchema = ctx.getRefinedSchema();
-		RefinedObjectClassDefinition objectClassDefinition = refinedSchema.getRefinedDefinition(kind, intents);
-		ctx.setObjectClassDefinition(objectClassDefinition);
-		return ctx;
-	}
-	
-	public ProvisioningContext spawnAndAssertDefinition(ShadowKindType kind, Collection<String> intents) throws SchemaException {
-		ProvisioningContext ctx = spawn(kind, intents);
-		ctx.assertDefinition("Cannot locate object class definition for kind="+kind+", intents="+intents+" in "+ctx.getResource());
-		return ctx;
-	}
-	
+		
 	/**
 	 * Creates a context for a different object class on the same resource.
 	 */
 	public ProvisioningContext spawn(QName objectClassQName) throws SchemaException {
 		ProvisioningContext ctx = spawnSameResource();
-		RefinedResourceSchema refinedSchema = ctx.getRefinedSchema();
-		RefinedObjectClassDefinition objectClassDefinition = refinedSchema.getRefinedDefinition(objectClassQName);
-		ctx.setObjectClassDefinition(objectClassDefinition);
+		ctx.shadowCoordinates = new ResourceShadowDiscriminator(resourceOid, null, null);
+		ctx.shadowCoordinates.setObjectClass(objectClassQName);
 		return ctx;
 	}
-	
-	public ProvisioningContext spawnAndAssertDefinition(QName objectClassQName) throws SchemaException {
-		ProvisioningContext ctx = spawn(objectClassQName);
-		ctx.assertDefinition("Cannot locate object class definition of objectclass "+objectClassQName+" in "+ctx.getResource());
-		return ctx;
-	}
-	
-	/**
-	 * Creates a context for a different object class on the same resource.
-	 */
-	public ProvisioningContext spawn(RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
-		ProvisioningContext ctx = spawnSameResource();
-		ctx.setObjectClassDefinition(objectClassDefinition);
-		return ctx;
-	}
+		
+//	/**
+//	 * Creates a context for a different object class on the same resource.
+//	 */
+//	public ProvisioningContext spawn(RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
+//		ProvisioningContext ctx = spawnSameResource();
+//		ctx.setObjectClassDefinition(objectClassDefinition);
+//		return ctx;
+//	}
 	
 	private ProvisioningContext spawnSameResource() {
-		ProvisioningContext ctx = new ProvisioningContext();
-		ctx.setTask(this.getTask());
-		ctx.setResource(this.getResource());
-		ctx.setConnector(this.getConnector());
-		ctx.setRefinedSchema(this.getRefinedSchema());
+		ProvisioningContext ctx = new ProvisioningContext(connectorManager, resourceManager, parentResult);
+		ctx.task = this.task;
+		ctx.resourceOid = this.resourceOid;
+		ctx.resource = this.resource;
+		ctx.connector = this.connector;
+		ctx.refinedSchema = this.refinedSchema;
 		return ctx;
 	}
 
-	public void assertDefinition(String message) throws SchemaException {
-		if (objectClassDefinition == null) {
-			throw new SchemaException(message);
+	public void assertDefinition(String message) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+		if (getObjectClassDefinition() == null) {
+			throw new SchemaException(message + " " + getDesc());
 		}
 	}
+	
+	public void assertDefinition() throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+		assertDefinition("Cannot locate object class definition");
+	}
+		
+	public String getDesc() {
+		if (originalShadow != null) {
+			return "for " + originalShadow + " in " + (resource==null?("resource "+resourceOid):resource);
+		} else if (shadowCoordinates != null && !shadowCoordinates.isWildcard()) {
+			return "for " + shadowCoordinates + " in " + (resource==null?("resource "+resourceOid):resource);
+		} else {
+			return "for wildcard in " + (resource==null?("resource "+resourceOid):resource);
+		}
+	}
+
+	private ConnectorInstance getConnectorInstance(OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+		OperationResult connectorResult = parentResult.createMinorSubresult(ProvisioningContext.class.getName() + ".getConnectorInstance");
+		try {
+			ConnectorInstance connector = connectorManager.getConfiguredConnectorInstance(getResource().asPrismObject(), false, parentResult);
+			connectorResult.recordSuccess();
+			return connector;
+		} catch (ObjectNotFoundException | SchemaException |  CommunicationException | ConfigurationException e){
+			connectorResult.recordPartialError("Could not get connector instance " + getDesc() + ": " +  e.getMessage(),  e);
+			throw e;
+		}
+	}
+
+	@Override
+	public String toString() {
+		return "ProvisioningContext("+getDesc()+")";
+	}
+	
 }

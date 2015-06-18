@@ -291,7 +291,7 @@ public class ProvisioningUtil {
 		return scriptOperation;
 	}
 
-	public static AttributesToReturn createAttributesToReturn(ProvisioningContext ctx) throws SchemaException {
+	public static AttributesToReturn createAttributesToReturn(ProvisioningContext ctx) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
 		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
 		ResourceType resource = ctx.getResource();
 		

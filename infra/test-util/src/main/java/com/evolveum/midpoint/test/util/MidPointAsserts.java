@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,14 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+
 import org.apache.commons.lang.StringUtils;
 import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -36,6 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -254,5 +258,10 @@ public class MidPointAsserts {
 				AssertJUnit.fail(message+", expected that value "+expectedValue+" will not be present but it is");
 			}
 		}
+	}
+
+	public static void assertObjectClass(ShadowType shadow, QName expectedStructuralObjectClass, QName... expectedAuxiliaryObjectClasses) {
+		assertEquals("Wrong object class in "+shadow, expectedStructuralObjectClass, shadow.getObjectClass());
+		PrismAsserts.assertEqualsCollectionUnordered("Wrong auxiliary object classes in "+shadow, shadow.getAuxiliaryObjectClass(), expectedAuxiliaryObjectClasses);
 	}
 }

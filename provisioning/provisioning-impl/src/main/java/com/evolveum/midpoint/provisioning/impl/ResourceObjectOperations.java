@@ -34,7 +34,7 @@ public class ResourceObjectOperations {
 	
 	private Collection<Operation> operations = new ArrayList<>();
 	private PrismObject<ShadowType> currentShadow = null;
-	private RefinedObjectClassDefinition objectClassDefinition = null;
+	private ProvisioningContext resourceObjectContext = null;
 	
 	public PrismObject<ShadowType> getCurrentShadow() {
 		return currentShadow;
@@ -44,59 +44,22 @@ public class ResourceObjectOperations {
 		this.currentShadow = currentShadow;
 	}
 	
-	public RefinedObjectClassDefinition getObjectClassDefinition() {
-		return objectClassDefinition;
+	public ProvisioningContext getResourceObjectContext() {
+		return resourceObjectContext;
 	}
-	
-	public void setObjectClassDefinition(RefinedObjectClassDefinition objectClassDefinition) {
-		this.objectClassDefinition = objectClassDefinition;
+
+	public void setResourceObjectContext(ProvisioningContext resourceObjectContext) {
+		this.resourceObjectContext = resourceObjectContext;
 	}
-	
+
 	public Collection<Operation> getOperations() {
 		return operations;
 	}
 
 	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((currentShadow == null) ? 0 : currentShadow.hashCode());
-		result = prime * result + ((objectClassDefinition == null) ? 0 : objectClassDefinition.hashCode());
-		result = prime * result + ((operations == null) ? 0 : operations.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		ResourceObjectOperations other = (ResourceObjectOperations) obj;
-		if (currentShadow == null) {
-			if (other.currentShadow != null)
-				return false;
-		} else if (!currentShadow.equals(other.currentShadow))
-			return false;
-		if (objectClassDefinition == null) {
-			if (other.objectClassDefinition != null)
-				return false;
-		} else if (!objectClassDefinition.equals(other.objectClassDefinition))
-			return false;
-		if (operations == null) {
-			if (other.operations != null)
-				return false;
-		} else if (!operations.equals(other.operations))
-			return false;
-		return true;
-	}
-
-	@Override
 	public String toString() {
 		return "ResourceObjectOperations(operations=" + operations + ", currentShadow=" + currentShadow
-				+ ", objectClassDefinition=" + objectClassDefinition + ")";
+				+ ", ctx=" + resourceObjectContext + ")";
 	}
 
 	

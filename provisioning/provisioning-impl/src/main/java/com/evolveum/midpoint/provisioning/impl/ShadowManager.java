@@ -148,12 +148,10 @@ public class ShadowManager {
 	 * 
 	 * @return current unchanged shadow object that corresponds to provided
 	 *         resource object or null if the object does not exist
-	 * @throws SchemaException
-	 * @throws ConfigurationException 
 	 */
 	public PrismObject<ShadowType> lookupShadowInRepository(ProvisioningContext ctx, PrismObject<ShadowType> resourceShadow,
 			OperationResult parentResult) 
-					throws SchemaException, ConfigurationException {
+					throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
 
 		ObjectQuery query = createSearchShadowQuery(ctx, resourceShadow, prismContext,
 				parentResult);
@@ -186,7 +184,7 @@ public class ShadowManager {
 
 	public PrismObject<ShadowType> lookupShadowInRepository(ProvisioningContext ctx, ResourceAttributeContainer identifierContainer,
 			OperationResult parentResult) 
-					throws SchemaException, ConfigurationException {
+					throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
 
 		ObjectQuery query = createSearchShadowQuery(ctx, identifierContainer.getValue().getItems(), prismContext,
 				parentResult);
@@ -223,7 +221,7 @@ public class ShadowManager {
 
 	public PrismObject<ShadowType> lookupShadowBySecondaryIdentifiers( 
 			ProvisioningContext ctx, PrismObject<ShadowType> resourceShadow, OperationResult parentResult) 
-					throws SchemaException, ConfigurationException {
+					throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
 
 		Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(resourceShadow);
 //		ResourceAttribute<?> secondaryIdentifier = null;
@@ -244,12 +242,7 @@ public class ShadowManager {
 		} else {
 			secondaryIdentifierFilter = secondaryEquals.iterator().next();
 		}
-		
-//		
-//		
-//		secondaryIdentifier = secondaryIdentifiers.iterator().next();
-//		LOGGER.trace("Shadow secondary identifier {}", secondaryIdentifier);
-		
+				
 		AndFilter filter = AndFilter.createAnd(
 				RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, ctx.getResource()), secondaryIdentifierFilter);
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
@@ -267,14 +260,7 @@ public class ShadowManager {
 		if (results.size() == 0) {
 			return null;
 		}
-//		if (results.size() > 1) {
-//			for (PrismObject<ShadowType> result : results) {
-//				LOGGER.trace("Search result:\n{}", result.debugDump());
-//			}
-//			LOGGER.error("More than one shadows found for " + resourceShadow);
-//			// TODO: Better error handling later
-//			throw new IllegalStateException("More than one shadows found for " + resourceShadow);
-//		}
+
 		List<PrismObject<ShadowType>> conflictingShadows = new ArrayList<PrismObject<ShadowType>>();
 		for (PrismObject<ShadowType> shadow: results){
 			ShadowType repoShadowType = shadow.asObjectable();
@@ -334,7 +320,7 @@ public class ShadowManager {
     // beware, may return null if an shadow that was to be marked as DEAD, was deleted in the meantime
 	public PrismObject<ShadowType> findOrCreateShadowFromChange(ProvisioningContext ctx, Change<ShadowType> change,
 			OperationResult parentResult) throws SchemaException, CommunicationException,
-			ConfigurationException, SecurityViolationException {
+			ConfigurationException, SecurityViolationException, ObjectNotFoundException {
 
 		// Try to locate existing shadow in the repository
 		List<PrismObject<ShadowType>> accountList = searchShadowByIdenifiers(ctx, change, parentResult);
@@ -405,7 +391,7 @@ public class ShadowManager {
 	private PrismObject<ShadowType> createNewAccountFromChange(ProvisioningContext ctx, Change<ShadowType> change, 
 			OperationResult parentResult) throws SchemaException,
 			CommunicationException, ConfigurationException,
-			SecurityViolationException {
+			SecurityViolationException, ObjectNotFoundException {
 
 		PrismObject<ShadowType> shadow = change.getCurrentShadow();
 		
@@ -434,7 +420,7 @@ public class ShadowManager {
 	}
 	
 	private List<PrismObject<ShadowType>> searchShadowByIdenifiers(ProvisioningContext ctx, Change<ShadowType> change, OperationResult parentResult)
-			throws SchemaException {
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
 
 		ObjectQuery query = createSearchShadowQuery(ctx, change.getIdentifiers(), prismContext, parentResult);
 
@@ -453,7 +439,7 @@ public class ShadowManager {
 	}
 	
 	private ObjectQuery createSearchShadowQuery(ProvisioningContext ctx, Collection<ResourceAttribute<?>> identifiers,
-			PrismContext prismContext, OperationResult parentResult) throws SchemaException {
+			PrismContext prismContext, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
 		List<ObjectFilter> conditions = new ArrayList<ObjectFilter>();
 		for (PrismProperty<?> identifier : identifiers) {
 			PrismPropertyValue<?> identifierValue = identifier.getValue();
@@ -484,7 +470,7 @@ public class ShadowManager {
 	}
 
 	private ObjectQuery createSearchShadowQuery(ProvisioningContext ctx, PrismObject<ShadowType> resourceShadow, 
-			PrismContext prismContext, OperationResult parentResult) throws SchemaException {
+			PrismContext prismContext, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
 		ResourceAttributeContainer attributesContainer = ShadowUtil
 				.getAttributesContainer(resourceShadow);
 		PrismProperty identifier = attributesContainer.getIdentifier();
@@ -520,7 +506,7 @@ public class ShadowManager {
 	public SearchResultMetadata searchObjectsIterativeRepository(
 			ProvisioningContext ctx, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options,
-			com.evolveum.midpoint.schema.ResultHandler<ShadowType> repoHandler, OperationResult parentResult) throws SchemaException {
+			com.evolveum.midpoint.schema.ResultHandler<ShadowType> repoHandler, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
 		
 		ObjectQuery repoQuery = query.clone();
 		processQueryMatchingRules(repoQuery, ctx.getObjectClassDefinition());
@@ -590,7 +576,7 @@ public class ShadowManager {
 	 * Create a copy of a shadow that is suitable for repository storage.
 	 */
 	public PrismObject<ShadowType> createRepositoryShadow(ProvisioningContext ctx, PrismObject<ShadowType> shadow)
-			throws SchemaException {
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
 
 		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
 		

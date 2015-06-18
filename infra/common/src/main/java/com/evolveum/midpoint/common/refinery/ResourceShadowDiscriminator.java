@@ -141,6 +141,11 @@ public class ResourceShadowDiscriminator implements Serializable {
 		this.thombstone = thombstone;
 	}
 	
+	public boolean isWildcard() {
+		return kind == null && objectClass == null;
+	}
+
+	
     public ShadowDiscriminatorType toResourceShadowDiscriminatorType() {
         ShadowDiscriminatorType rsdt = new ShadowDiscriminatorType();
         rsdt.setIntent(intent);

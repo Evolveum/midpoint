@@ -60,9 +60,9 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 	protected static final File ACCOUNT1_REPO_FILE = new File(TEST_DIR_NAME, "account1-repo.xml");
 	protected static final String ACCOUNT1_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1cccc";
 	
-	protected static final String ACCOUNT_NEW_FILENAME = TEST_DIR_NAME + "/account-new.xml";
-	protected static final String ACCOUNT_NEW_OID = "c0c010c0-d34d-b44f-f11d-333222123456";
-	protected static final String ACCOUNT_NEW_DN = "uid=will,ou=People,dc=example,dc=com";
+	protected static final File ACCOUNT_WILL_FILE = new File(TEST_DIR, "account-will.xml");
+	protected static final String ACCOUNT_WILL_OID = "c0c010c0-d34d-b44f-f11d-333222123456";
+	protected static final String ACCOUNT_WILL_DN = "uid=will,ou=People,dc=example,dc=com";
 	
 	protected static final File ACCOUNT_BAD_FILE = new File(TEST_DIR, "account-bad.xml");
 	protected static final String ACCOUNT_BAD_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1ffff";
@@ -74,9 +74,9 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 	protected static final File ACCOUNT_MODIFY_PASSWORD_FILE = new File(TEST_DIR_NAME, "account-modify-password.xml");
 	protected static final String ACCOUNT_MODIFY_PASSWORD_OID = "c0c010c0-d34d-b44f-f11d-333222444566";
 	
-	protected static final String ACCOUNT_DELETE_FILENAME = TEST_DIR_NAME + "/account-delete.xml";
-	protected static final File ACCOUNT_DELETE_REPO_FILE = new File(TEST_DIR_NAME, "account-delete-repo.xml");
-	protected static final String ACCOUNT_DELETE_OID = "c0c010c0-d34d-b44f-f11d-333222654321";
+	protected static final File ACCOUNT_SPARROW_FILE = new File(TEST_DIR_NAME, "account-sparrow.xml");
+	protected static final File ACCOUNT_SPARROW_REPO_FILE = new File(TEST_DIR_NAME, "account-sparrow-repo.xml");
+	protected static final String ACCOUNT_SPARROW_OID = "c0c010c0-d34d-b44f-f11d-333222654321";
 	
 	protected static final String ACCOUNT_SEARCH_ITERATIVE_FILENAME = TEST_DIR_NAME + "/account-search-iterative.xml";
 	protected static final String ACCOUNT_SEARCH_ITERATIVE_OID = "c0c010c0-d34d-b44f-f11d-333222666666";

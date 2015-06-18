@@ -68,7 +68,6 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
 	@Autowired
 	private ChangeNotificationDispatcher notificationManager;
 	
-	
 	@PostConstruct
 	public void registerForResourceObjectChangeNotifications() {
 		notificationManager.registerNotificationListener(this);
@@ -125,7 +124,8 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
 	
 		ShadowCache shadowCache = getShadowCache(Mode.STANDARD);
 		
-		ProvisioningContext ctx = provisioningContextFactory.createAndAssertDefinition(shadow, task, parentResult);		
+		ProvisioningContext ctx = provisioningContextFactory.create(shadow, task, parentResult);
+		ctx.assertDefinition();
 		
 		Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(shadow);
 		

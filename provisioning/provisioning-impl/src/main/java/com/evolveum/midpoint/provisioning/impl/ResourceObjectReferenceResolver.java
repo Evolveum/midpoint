@@ -72,7 +72,7 @@ public class ResourceObjectReferenceResolver {
 			OperationResult parentResult) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, SecurityViolationException, ConfigurationException {
 		ResourceType resource = ctx.getResource();
-		ConnectorInstance connector = ctx.getConnector();
+		ConnectorInstance connector = ctx.getConnector(parentResult);
 		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
 		
 		try {

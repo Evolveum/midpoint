@@ -965,11 +965,11 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		try {
 			getShadowCache(Mode.STANDARD).searchObjectsIterative(query, null, shadowHandler, false, result);
 		} catch (ConfigurationException ex) {
-			parentResult.recordFatalError(ex.getMessage(), ex);
+			result.recordFatalError(ex.getMessage(), ex);
 			result.cleanupResult(ex);
 			throw ex;
 		} catch (SecurityViolationException ex) {
-			parentResult.recordFatalError(ex.getMessage(), ex);
+			result.recordFatalError(ex.getMessage(), ex);
 			result.cleanupResult(ex);
 			throw ex;
 		}

@@ -53,69 +53,21 @@ public class ProvisioningContextFactory {
 	private ConnectorManager connectorManager;
 	
 	public ProvisioningContext create(PrismObject<ShadowType> shadow, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-		ProvisioningContext ctx = new ProvisioningContext();
+		ProvisioningContext ctx = new ProvisioningContext(connectorManager, resourceManager, parentResult);
 		ctx.setTask(task);
-		ResourceType resource = getResource(shadow, parentResult);
-		ctx.setResource(resource);
-		RefinedResourceSchema refinedSchema = ProvisioningUtil.getRefinedSchema(resource);
-		ctx.setRefinedSchema(refinedSchema);
-		RefinedObjectClassDefinition objectClassDefinition = refinedSchema.determineCompositeObjectClassDefinition(shadow);
-		ctx.setObjectClassDefinition(objectClassDefinition);
-		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
-		ctx.setConnector(connector);
-		return ctx;
-	}
-	
-	public ProvisioningContext createAndAssertDefinition(PrismObject<ShadowType> shadow, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-		ProvisioningContext ctx = create(shadow, task, parentResult);
-		ctx.assertDefinition("Cannot locate object class definition for "+shadow+" in "+ctx.getResource());
+		ctx.setOriginalShadow(shadow);
+		String resourceOid = ShadowUtil.getResourceOid(shadow.asObjectable());
+		ctx.setResourceOid(resourceOid);
 		return ctx;
 	}
 	
 	public ProvisioningContext create(ResourceShadowDiscriminator coords, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-		ProvisioningContext ctx = new ProvisioningContext();
+		ProvisioningContext ctx = new ProvisioningContext(connectorManager, resourceManager, parentResult);
 		ctx.setTask(task);
-		ResourceType resource = getResource(coords.getResourceOid(), parentResult);
-		ctx.setResource(resource);
-		RefinedResourceSchema refinedSchema = ProvisioningUtil.getRefinedSchema(resource);
-		ctx.setRefinedSchema(refinedSchema);
-		RefinedObjectClassDefinition objectClassDefinition = refinedSchema.determineCompositeObjectClassDefinition(coords);
-		ctx.setObjectClassDefinition(objectClassDefinition);
-		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
-		ctx.setConnector(connector);
+		ctx.setShadowCoordinates(coords);
+		String resourceOid = coords.getResourceOid();
+		ctx.setResourceOid(resourceOid);
 		return ctx;
 	}
 	
-	public ProvisioningContext createAndAssertDefinition(ResourceShadowDiscriminator coords, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-		ProvisioningContext ctx = create(coords, task, parentResult);
-		ctx.assertDefinition("Cannot locate object class definition for "+coords+" in "+ctx.getResource());
-		return ctx;
-	}
-	
-	private ResourceType getResource(String resourceOid, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-		return resourceManager.getResource(resourceOid, parentResult).asObjectable();
-	}
-	
-	private ResourceType getResource(PrismObject<ShadowType> shadow, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-		String resourceOid = ShadowUtil.getResourceOid(shadow.asObjectable());
-		if (resourceOid == null) {
-			throw new SchemaException("Shadow " + shadow + " does not have an resource OID");
-		}
-		return getResource(ShadowUtil.getResourceOid(shadow.asObjectable()), parentResult);
-	}
-	
-	ConnectorInstance getConnectorInstance(ResourceType resource, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-		OperationResult connectorResult = parentResult.createMinorSubresult(ShadowCache.class.getName() + ".getConnectorInstance");
-		try {
-			ConnectorInstance connector = connectorManager.getConfiguredConnectorInstance(resource.asPrismObject(), false, parentResult);
-			connectorResult.recordSuccess();
-			return connector;
-		} catch (ObjectNotFoundException | SchemaException |  CommunicationException | ConfigurationException e){
-			connectorResult.recordPartialError("Could not get connector instance. " + e.getMessage(),  e);
-			throw e;
-		}
-	}
 }

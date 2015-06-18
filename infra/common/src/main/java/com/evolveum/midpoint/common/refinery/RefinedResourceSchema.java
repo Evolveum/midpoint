@@ -148,7 +148,7 @@ public class RefinedResourceSchema extends ResourceSchema implements DebugDumpab
 		if (structuralObjectClassDefinition == null) {
 			// Fallback to objectclass only
 			if (structuralObjectClassQName == null) {
-				throw new SchemaException("No kind nor objectclass definied in "+shadow);
+				return null;
 			}
 			structuralObjectClassDefinition = getRefinedDefinition(structuralObjectClassQName);
 			List<QName> auxiliaryObjectClassQNames = shadowType.getAuxiliaryObjectClass();
@@ -165,8 +165,7 @@ public class RefinedResourceSchema extends ResourceSchema implements DebugDumpab
 		}
 		
 		if (structuralObjectClassDefinition == null) {
-			throw new SchemaException("Definition for "+shadow+" not found (objectClass=" + PrettyPrinter.prettyPrint(structuralObjectClassQName) +
-					", kind="+kind+", intent='"+intent+"')");
+			return null;
 		}		
 		
 		return new CompositeRefinedObjectClassDefinition(structuralObjectClassDefinition, auxiliaryObjectClassDefinitions);
