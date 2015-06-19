@@ -159,6 +159,15 @@ public class ProvisioningContext {
 		ctx.shadowCoordinates.setObjectClass(objectClassQName);
 		return ctx;
 	}
+	
+	/**
+	 * Creates a context for a different object class on the same resource.
+	 */
+	public ProvisioningContext spawn(PrismObject<ShadowType> shadow) throws SchemaException {
+		ProvisioningContext ctx = spawnSameResource();
+		ctx.setOriginalShadow(shadow);
+		return ctx;
+	}
 		
 //	/**
 //	 * Creates a context for a different object class on the same resource.

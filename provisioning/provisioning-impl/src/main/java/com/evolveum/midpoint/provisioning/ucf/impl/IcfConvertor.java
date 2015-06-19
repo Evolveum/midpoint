@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 Evolveum
+ * Copyright (c) 2014-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -30,6 +31,7 @@ import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.Uid;
 
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -122,10 +124,17 @@ public class IcfConvertor {
 		shadow.setObjectClass(attributesContainerDefinition.getTypeName());
 		
 		Set<ObjectClass> auxiliaryIcfObjectClasses = co.getAuxiliaryObjectClasses();
+		List<ObjectClassComplexTypeDefinition> auxiliaryObjectClassDefinitions = new ArrayList<>(auxiliaryIcfObjectClasses==null?0:auxiliaryIcfObjectClasses.size());
 		if (auxiliaryIcfObjectClasses != null && !auxiliaryIcfObjectClasses.isEmpty()) {
 			List<QName> auxiliaryObjectClasses = shadow.getAuxiliaryObjectClass();
 			for (ObjectClass auxiliaryIcfObjectClass: auxiliaryIcfObjectClasses) {
-				auxiliaryObjectClasses.add(icfNameMapper.objectClassToQname(auxiliaryIcfObjectClass.getObjectClassValue(), resourceSchemaNamespace, false));
+				QName auxiliaryObjectClassQname = icfNameMapper.objectClassToQname(auxiliaryIcfObjectClass.getObjectClassValue(), resourceSchemaNamespace, false);
+				auxiliaryObjectClasses.add(auxiliaryObjectClassQname);
+				ObjectClassComplexTypeDefinition auxiliaryObjectClassDefinition = icfNameMapper.getResourceSchema().findObjectClassDefinition(auxiliaryObjectClassQname);
+				if (auxiliaryObjectClassDefinition == null) {
+					throw new SchemaException("Resource object "+co+" refers to auxiliary objetc class "+auxiliaryObjectClassQname+" which is not in the schema");
+				}
+				auxiliaryObjectClassDefinitions.add(auxiliaryObjectClassDefinition);
 			}
 		}
 
@@ -202,7 +211,16 @@ public class IcfConvertor {
 			ResourceAttributeDefinition attributeDefinition = attributesContainerDefinition.findAttributeDefinition(qname, caseIgnoreAttributeNames);
 
 			if (attributeDefinition == null) {
-				throw new SchemaException("Unknown attribute "+qname+" in definition of object class "+attributesContainerDefinition.getTypeName()+". Original ICF name: "+icfAttr.getName(), qname);
+				// Try to locate definition in auxiliary object classes
+				for (ObjectClassComplexTypeDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
+					attributeDefinition = auxiliaryObjectClassDefinition.findAttributeDefinition(qname, caseIgnoreAttributeNames);
+					if (attributeDefinition != null) {
+						break;
+					}
+				}
+				if (attributeDefinition == null) {
+					throw new SchemaException("Unknown attribute "+qname+" in definition of object class "+attributesContainerDefinition.getTypeName()+". Original ICF name: "+icfAttr.getName(), qname);
+				}
 			}
 
 			if (caseIgnoreAttributeNames) {

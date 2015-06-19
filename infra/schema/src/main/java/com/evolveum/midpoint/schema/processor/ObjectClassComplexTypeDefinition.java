@@ -291,6 +291,10 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
         return findItemDefinition(name, ResourceAttributeDefinition.class);
     }
     
+    public <X> ResourceAttributeDefinition<X> findAttributeDefinition(QName name, boolean caseInsensitive) {
+        return findItemDefinition(name, ResourceAttributeDefinition.class, caseInsensitive);
+    }
+    
     public <X> ResourceAttributeDefinition<X> findAttributeDefinition(String name) {
     	QName qname = new QName(getTypeName().getNamespaceURI(), name);
         return findAttributeDefinition(qname);

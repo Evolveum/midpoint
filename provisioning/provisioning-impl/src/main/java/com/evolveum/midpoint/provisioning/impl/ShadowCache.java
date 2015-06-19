@@ -723,16 +723,17 @@ public abstract class ShadowCache {
 				LOGGER.trace("Found resource object {}", SchemaDebugUtil.prettyPrint(resourceShadow));
 				PrismObject<ShadowType> resultShadow;
 				try {
+					ProvisioningContext shadowCtx = reapplyDefinitions(ctx, resourceShadow);
 					// Try to find shadow that corresponds to the resource object
 					if (readFromRepository) {
-						PrismObject<ShadowType> repoShadow = lookupOrCreateShadowInRepository(ctx, resourceShadow, 
+						PrismObject<ShadowType> repoShadow = lookupOrCreateShadowInRepository(shadowCtx, resourceShadow, 
 								parentResult); 
 						
-						applyAttributesDefinition(ctx, repoShadow);
+						applyAttributesDefinition(shadowCtx, repoShadow);
 						
-						forceRenameIfNeeded(ctx, resourceShadow.asObjectable(), repoShadow.asObjectable(), parentResult);
+						forceRenameIfNeeded(shadowCtx, resourceShadow.asObjectable(), repoShadow.asObjectable(), parentResult);
 
-						resultShadow = completeShadow(ctx, resourceShadow, repoShadow, parentResult);
+						resultShadow = completeShadow(shadowCtx, resourceShadow, repoShadow, parentResult);
 
 					} else {
 						resultShadow = resourceShadow;
@@ -1456,6 +1457,27 @@ public abstract class ShadowCache {
 		}
 		
 		return objectClassDefinition;
+	}
+	
+	/**
+	 * Reapplies definition to the shadow if needed. The definition needs to be reapplied e.g.
+	 * if the shadow has auxiliary object classes, it if subclass of the object class that was originally
+	 * requested, etc. 
+	 */
+	private ProvisioningContext reapplyDefinitions(ProvisioningContext ctx, PrismObject<ShadowType> rawResourceShadow) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+		ShadowType rawResourceShadowType = rawResourceShadow.asObjectable();
+		QName objectClassQName = rawResourceShadowType.getObjectClass();
+		List<QName> auxiliaryObjectClassQNames = rawResourceShadowType.getAuxiliaryObjectClass();
+		if (auxiliaryObjectClassQNames.isEmpty() && objectClassQName.equals(ctx.getObjectClassDefinition().getTypeName())) {
+			// shortcut, no need to reapply anything
+			return ctx;
+		}
+		ProvisioningContext shadowCtx = ctx.spawn(rawResourceShadow);
+		shadowCtx.assertDefinition();
+		RefinedObjectClassDefinition shadowDef = shadowCtx.getObjectClassDefinition();
+		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(rawResourceShadow);
+		attributesContainer.applyDefinition(shadowDef.toResourceAttributeContainerDefinition());
+		return shadowCtx;
 	}
 	
 	/**
