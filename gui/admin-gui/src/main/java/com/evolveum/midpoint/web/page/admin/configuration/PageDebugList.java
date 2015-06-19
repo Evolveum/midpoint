@@ -27,9 +27,11 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -64,6 +66,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -239,6 +243,9 @@ public class PageDebugList extends PageAdminConfiguration {
                         break;
                     case DELETE_SELECTED:
                         deleteSelectedConfirmed(target, dto.getObjects());
+                        break;
+                    case DELETE_RESOURCE_SHADOWS:
+                        deleteAllShadowsOnResourceConfirmed(target);
                         break;
                 }
             }
@@ -508,6 +515,13 @@ public class PageDebugList extends PageAdminConfiguration {
         DropDownChoice resource = new DropDownChoice(ID_RESOURCE, new PropertyModel(searchModel, DebugSearchDto.F_RESOURCE_OID),
                 resourcesModel, createResourceRenderer());
         resource.setNullValid(true);
+        resource.add(new AjaxFormComponentUpdatingBehavior("onblur") {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                //nothing to do, it's here just to update model
+            }
+        });
         resource.add(new VisibleEnableBehaviour() {
 
             @Override
@@ -655,6 +669,10 @@ public class PageDebugList extends PageAdminConfiguration {
                         DebugObjectItem selectedItem = selectedList.get(0);
                         return createStringResource("pageDebugList.message.deleteObjectConfirm",
                                 selectedItem.getName()).getString();
+                    case DELETE_RESOURCE_SHADOWS:
+                        DebugSearchDto search = searchModel.getObject();
+                        return createStringResource("pageDebugList.messsage.deleteAllResourceShadows",
+                                search.getResource().getName()).getString();
                 }
 
                 return "";
@@ -895,13 +913,28 @@ public class PageDebugList extends PageAdminConfiguration {
             return;
         }
 
-        //todo show confirmation dialog
+        LOGGER.debug("Displaying delete all shadows on resource {} confirmation dialog", dto.getResource().getName());
+
+        DebugConfDialogDto dialogDto = new DebugConfDialogDto(DebugConfDialogDto.Operation.DELETE_RESOURCE_SHADOWS,
+                null, null);
+        confDialogModel.setObject(dialogDto);
+
+        ModalWindow dialog = (ModalWindow) get(ID_CONFIRM_DELETE_POPUP);
+        dialog.show(target);
     }
 
     private void deleteAllShadowsOnResourceConfirmed(AjaxRequestTarget target) {
         DebugSearchDto dto = searchModel.getObject();
         String resourceOid = dto.getResource().getOid();
 
-        //todo implement
+        LOGGER.debug("Deleting shadows on resource {}", resourceOid);
+        //todo implement async task
+
+        TaskManager taskManager = getTaskManager();
+//        Task task = taskManager.createTaskInstance(OPERATION_INITIAL_OBJECTS_IMPORT);
+//        task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+
+        info(getString("pageDebugList.messsage.deleteAllShadowsStarted", dto.getResource().getName()));
+        target.add(getFeedbackPanel());
     }
 }
