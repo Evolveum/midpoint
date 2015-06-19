@@ -119,29 +119,23 @@ public class PageAdminResources extends PageAdmin {
         OperationResult result = new OperationResult(OPERATION_DELETE_SYNC_TOKEN);
         ObjectQuery query;
 
-        try {
-            ObjectFilter refFilter = RefFilter.createReferenceEqual(TaskType.F_OBJECT_REF, TaskType.class,
-                    getPrismContext(), resourceOid);
+        ObjectFilter refFilter = RefFilter.createReferenceEqual(TaskType.F_OBJECT_REF, TaskType.class,
+                getPrismContext(), resourceOid);
 
-            ObjectFilter filterHandleUri = EqualFilter.createEqual(TaskType.F_HANDLER_URI, TaskType.class,
-                    getPrismContext(), null, handlerUri);
+        ObjectFilter filterHandleUri = EqualFilter.createEqual(TaskType.F_HANDLER_URI, TaskType.class,
+                getPrismContext(), null, handlerUri);
 
-            query = new ObjectQuery();
-            query.setFilter(AndFilter.createAnd(refFilter, filterHandleUri));
+        query = new ObjectQuery();
+        query.setFilter(AndFilter.createAnd(refFilter, filterHandleUri));
 
-            List<PrismObject<TaskType>> taskList = WebModelUtils.searchObjects(TaskType.class, query,
-                    result, this);
+        List<PrismObject<TaskType>> taskList = WebModelUtils.searchObjects(TaskType.class, query,
+                result, this);
 
-            if(taskList.size() != 1){
-                error(getString("pageResource.message.invalidTaskSearch"));
-            } else {
-                oldTask = taskList.get(0);
-                saveTask(oldTask, result);
-            }
-
-        }catch (SchemaException e){
-            LoggingUtils.logException(LOGGER, "Couldn't create reference query for task.", e);
-            error("Couldn't create reference query for task." + e.getMessage());
+        if(taskList.size() != 1){
+            error(getString("pageResource.message.invalidTaskSearch"));
+        } else {
+            oldTask = taskList.get(0);
+            saveTask(oldTask, result);
         }
 
         result.recomputeStatus();
