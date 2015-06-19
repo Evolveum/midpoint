@@ -154,7 +154,7 @@ public class PrismUtil {
 
 	public static PrismBeanConverter getBeanConverter(PrismContext prismContext) {
 		if (prismContext == null) {
-			return new PrismBeanConverter(null);
+			return new PrismBeanConverter(null, null);
 		} else {
 			return prismContext.getBeanConverter();
 		}
