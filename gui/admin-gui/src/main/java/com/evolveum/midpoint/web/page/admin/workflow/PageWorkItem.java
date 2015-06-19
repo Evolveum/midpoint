@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,7 +80,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
         @AuthorizationAction(actionUri = PageAdminWorkItems.AUTH_WORK_ITEMS_ALL,
                 label = PageAdminWorkItems.AUTH_WORK_ITEMS_ALL_LABEL,
                 description = PageAdminWorkItems.AUTH_WORK_ITEMS_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#workItem",
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_WORK_ITEM_URL,
                 label = "PageWorkItem.auth.workItem.label",
                 description = "PageWorkItem.auth.workItem.description")})
 public class PageWorkItem extends PageAdminWorkItems {

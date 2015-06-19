@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,7 +95,7 @@ import java.util.*;
         @AuthorizationAction(actionUri = PageAdminTasks.AUTHORIZATION_TASKS_ALL,
                 label = PageAdminTasks.AUTH_TASKS_ALL_LABEL,
                 description = PageAdminTasks.AUTH_TASKS_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#task",
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_TASK_URL,
                 label = "PageTaskEdit.auth.task.label",
                 description = "PageTaskEdit.auth.task.description")})
 public class PageTaskEdit extends PageAdminTasks {

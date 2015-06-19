@@ -27,7 +27,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
         @AuthorizationAction(actionUri = PageAdminWorkItems.AUTH_WORK_ITEMS_ALL,
                 label = PageAdminWorkItems.AUTH_WORK_ITEMS_ALL_LABEL,
                 description = PageAdminWorkItems.AUTH_WORK_ITEMS_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#workItems",
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_WORK_ITEMS_URL,
                 label = "PageWorkItemsClaimable.auth.workItems.label",
                 description = "PageWorkItemsClaimable.auth.workItems.description")})
 public class PageWorkItemsClaimable extends PageWorkItems {

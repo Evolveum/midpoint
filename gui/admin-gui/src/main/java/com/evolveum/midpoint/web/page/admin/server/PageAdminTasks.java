@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import com.evolveum.midpoint.web.page.admin.PageAdmin;
  */
 public class PageAdminTasks extends PageAdmin {
 
-    public static final String AUTHORIZATION_TASKS_ALL = AuthorizationConstants.NS_AUTHORIZATION + "#tasksAll";
+    public static final String AUTHORIZATION_TASKS_ALL = AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL;
     public static final String AUTH_TASKS_ALL_LABEL = "PageAdminTasks.auth.tasksAll.label";
     public static final String AUTH_TASKS_ALL_DESCRIPTION = "PageAdminTasks.auth.tasksAll.description";
 }

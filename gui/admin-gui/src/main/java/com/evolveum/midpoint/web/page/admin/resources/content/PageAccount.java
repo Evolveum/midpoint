@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,7 +68,7 @@ import java.util.Collection;
         @AuthorizationAction(actionUri = PageAdminResources.AUTH_RESOURCE_ALL,
                 label = PageAdminResources.AUTH_RESOURCE_ALL_LABEL,
                 description = PageAdminResources.AUTH_RESOURCE_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#resourcesAccount",
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCES_ACCOUNT_URL,
                 label = "PageAccount.auth.resourcesAccount.label",
                 description = "PageAccount.auth.resourcesAccount.description")})
 public class PageAccount extends PageAdminResources {

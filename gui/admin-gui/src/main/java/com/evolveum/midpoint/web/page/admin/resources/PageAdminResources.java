@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ public class PageAdminResources extends PageAdmin {
 
     protected static final Trace LOGGER = TraceManager.getTrace(PageAdminResources.class);
 
-    public static final String AUTH_RESOURCE_ALL = AuthorizationConstants.NS_AUTHORIZATION + "#resourcesAll";
+    public static final String AUTH_RESOURCE_ALL = AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL;
     public static final String AUTH_RESOURCE_ALL_LABEL = "PageAdminResources.auth.resourcesAll.label";
     public static final String AUTH_RESOURCE_ALL_DESCRIPTION = "PageAdminResources.auth.resourcesAll.description";
 

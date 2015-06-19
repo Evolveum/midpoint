@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,7 +70,7 @@ import java.util.List;
 @PageDescriptor(url = "/admin/myPasswords", action = {
         @AuthorizationAction(actionUri = PageAdminHome.AUTH_HOME_ALL_URI,
                 label = PageAdminHome.AUTH_HOME_ALL_LABEL, description = PageAdminHome.AUTH_HOME_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#myPasswords",
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_MY_PASSWORDS_URL,
                 label = "PageMyPasswords.auth.myPasswords.label", description = "PageMyPasswords.auth.myPasswords.description")})
 public class PageMyPasswords extends PageAdminHome {
 

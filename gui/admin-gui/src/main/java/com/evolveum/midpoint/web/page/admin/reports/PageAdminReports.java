@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
  */
 public class PageAdminReports extends PageAdmin {
 
-    public static final String AUTH_REPORTS_ALL = AuthorizationConstants.NS_AUTHORIZATION + "#reportsAll";
+    public static final String AUTH_REPORTS_ALL = AuthorizationConstants.AUTZ_UI_REPORTS_ALL_URL;
     public static final String AUTH_REPORTS_ALL_LABEL = "PageAdminReports.auth.reportsAll.label";
     public static final String AUTH_REPORTS_ALL_DESCRIPTION = "PageAdminReports.auth.reportsAll.description";
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,7 +83,7 @@ import java.util.Map;
         @AuthorizationAction(actionUri = PageAdminUsers.AUTH_USERS_ALL,
                 label = PageAdminUsers.AUTH_USERS_ALL_LABEL,
                 description = PageAdminUsers.AUTH_USERS_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#users",
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USERS_URL,
                 label = "PageUsers.auth.users.label",
                 description = "PageUsers.auth.users.description")})
 public class PageUsers extends PageAdminUsers {

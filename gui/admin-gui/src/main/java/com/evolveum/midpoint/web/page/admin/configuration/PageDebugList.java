@@ -86,7 +86,7 @@ import java.util.*;
 @PageDescriptor(url = "/admin/config/debugs", action = {
         @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
                 label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#debugs",
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONFIGURATION_DEBUGS_URL,
                 label = "PageDebugList.auth.debugs.label", description = "PageDebugList.auth.debugs.description")})
 public class PageDebugList extends PageAdminConfiguration {
 
