@@ -37,6 +37,7 @@
     <properties>
         <!-- Build system options -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.build.locale>en_US</project.build.locale>
         <ansi.color>true</ansi.color>
         <verbose.jaxb2>false</verbose.jaxb2>
         <verbose.jaxws>false</verbose.jaxws>
