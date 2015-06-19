@@ -80,7 +80,6 @@
     <system systemId="datatypes" uri="../xml/ns/standard/datatypes.dtd" />
 
     <public publicId="-//W3C//DTD XMLSchema 200102//EN" uri="../xml/ns/standard/XMLSchema.dtd" />
-    <public publicId="-//W3C//DTD XMLSCHEMA 200102//EN" uri="../xml/ns/standard/XMLSchema.dtd" />
     <system systemId="-//W3C//DTD XMLSCHEMA 200102//EN" uri="../xml/ns/standard/XMLSchema.dtd" />
 
     <public publicId="XMLSchema.dtd" uri="../xml/ns/standard/XMLSchema.dtd" />
@@ -94,6 +93,9 @@
 
     <public publicId="http://www.w3.org/XML/1998/namespace" uri="../xml/ns/standard/xml.xsd" />
     <system systemId="http://www.w3.org/XML/1998/namespace" uri="../xml/ns/standard/xml.xsd" />
+    
+    <public publicId="xml.xsd" uri="../xml/ns/standard/xml.xsd" />
+    <system systemId="xml.xsd" uri="../xml/ns/standard/xml.xsd" />
 
     <public publicId="http://www.w3.org/2000/09/xmldsig" uri="../xml/ns/standard/xmldsig-core-schema.xsd" />
     <system systemId="http://www.w3.org/2000/09/xmldsig" uri="../xml/ns/standard/xmldsig-core-schema.xsd" />
