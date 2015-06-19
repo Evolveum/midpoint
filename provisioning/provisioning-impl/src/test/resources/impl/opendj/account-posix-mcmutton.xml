@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2015 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<shadow oid="3a1902a4-14d8-11e5-b0b5-001e8c717e5b"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
+	<name>uid=mcmutton,ou=People,dc=example,dc=com</name>
+	<resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
+	<objectClass>ri:inetOrgPerson</objectClass>
+	<auxiliaryObjectClass>ri:posixAccount</auxiliaryObjectClass>
+	<kind>account</kind>
+	<intent>posix</intent>
+	<attributes>
+		<ri:dn>uid=mcmutton,ou=People,dc=example,dc=com</ri:dn>
+		<ri:uid>mcmutton</ri:uid>
+		<ri:cn>Haggis McMutton</ri:cn>
+		<ri:givenName>Haggis</ri:givenName>
+		<ri:sn>McMutton</ri:sn>
+		<ri:uidNumber>1001</ri:uidNumber>
+		<ri:gidNumber>1001</ri:gidNumber>
+		<ri:homeDirectory>/home/scotland</ri:homeDirectory>
+		<ri:loginShell>/bin/whisky</ri:loginShell>
+	</attributes>
+</shadow>

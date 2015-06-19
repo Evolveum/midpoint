@@ -90,7 +90,7 @@ public class ObjectQueryUtil {
 		return createNameQuery(object.asObjectable().getName(), object.getPrismContext());
 	}
 	
-	public static ObjectQuery createResourceAndAccountQuery(String resourceOid, QName objectClass, PrismContext prismContext) throws SchemaException {
+	public static ObjectQuery createResourceAndObjectClassQuery(String resourceOid, QName objectClass, PrismContext prismContext) throws SchemaException {
 		Validate.notNull(resourceOid, "Resource where to search must not be null.");
 		Validate.notNull(objectClass, "Object class to search must not be null.");
 		Validate.notNull(prismContext, "Prism context must not be null.");

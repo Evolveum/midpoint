@@ -3369,6 +3369,15 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="auxiliaryObjectClass" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+               <xsd:annotation>
+                   <xsd:documentation>
+                       The reference to additional type definitions for this object. The reference should
+                       point to object class definition (complex type definition in resource schema) and
+                       this definition should be marked as auxiliary.
+                   </xsd:documentation>
+               </xsd:annotation>
+           </xsd:element>
             <xsd:element name="baseContext" type="tns:ResourceObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -6199,15 +6208,24 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 The reference to a type definition for this object. The reference should point
-                                to the complexType definition in the resource schema or a fixed schema
-                                provided during deployment.
+                                to the object class definition (complex type definition in resource schema).
 
-                                The attributes contained in the following "attributes" element are expected to
-                                comply with the type definition specified in this element.
+                                The attributes contained in the "attributes" element below are expected to
+                                comply with the type definition specified in this element (with addition of
+                                auxiliary object class definitions).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="auxiliaryObjectClass" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The reference to additional type definitions for this object. The reference should
+                                point to object class definition (complex type definition in resource schema) and
+                                this definition should be marked as auxiliary.
 
-                                This QName instead of URI becase it may refer to a foreign (non-midPoint)
-                                schema. Such schemas may have uknown URI-QName mapping, therefore using
-                                QName seems to be more reliable.
+                                The attributes contained in the "attributes" element below are expected to
+                                comply with the type definition specified in the objectClass element merged
+                                with definitions specified in this element.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

@@ -236,7 +236,7 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
 	@Override
 	protected ObjectQuery createQuery(SynchronizeAccountResultHandler handler, TaskRunResult runResult, Task task, OperationResult opResult) {
         try {
-			return ObjectQueryUtil.createResourceAndAccountQuery(handler.getResourceOid(),
+			return ObjectQueryUtil.createResourceAndObjectClassQuery(handler.getResourceOid(),
 					handler.getObjectClass().getTypeName(), prismContext);
 		} catch (SchemaException e) {
 			LOGGER.error("Import: Schema error during creating search query: {}",e.getMessage());

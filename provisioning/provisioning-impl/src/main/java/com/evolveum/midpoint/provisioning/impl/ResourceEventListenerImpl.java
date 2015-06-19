@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2010-2015 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.evolveum.midpoint.provisioning.impl;
 
 import java.util.Collection;
@@ -38,16 +54,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 @Component
-public class ResourceEventListenerImpl implements ResourceEventListener{
+public class ResourceEventListenerImpl implements ResourceEventListener {
 
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ResourceEventListenerImpl.class);
 	
 	@Autowired(required = true)
 	private ShadowCacheFactory shadowCacheFactory;
+	
+	@Autowired(required = true)
+	private ProvisioningContextFactory provisioningContextFactory;
+	
 	@Autowired
 	private ChangeNotificationDispatcher notificationManager;
-	
 	
 	@PostConstruct
 	public void registerForResourceObjectChangeNotifications() {
@@ -104,24 +123,9 @@ public class ResourceEventListenerImpl implements ResourceEventListener{
 		
 	
 		ShadowCache shadowCache = getShadowCache(Mode.STANDARD);
-		ResourceType resource = null;
-		try {
-			resource = shadowCache.getResource(shadow, parentResult);
-		} catch (ObjectNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (SchemaException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (CommunicationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ConfigurationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		
-		
+		ProvisioningContext ctx = provisioningContextFactory.create(shadow, task, parentResult);
+		ctx.assertDefinition();
 		
 		Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(shadow);
 		
@@ -129,15 +133,13 @@ public class ResourceEventListenerImpl implements ResourceEventListener{
 		ObjectClassComplexTypeDefinition objectClassDefinition = ShadowUtil.getObjectClassDefinition(shadow);
 		change.setObjectClassDefinition(objectClassDefinition);
 		
-		ConnectorInstance connector = shadowCache.getConnectorInstance(resource, parentResult);
-		
 		ShadowType shadowType = shadow.asObjectable();
 		
 		LOGGER.trace("Start to precess change: {}", change.toString());
-		shadowCache.processChange(resource, null, shadowType.getObjectClass(), parentResult, change, connector);
+		shadowCache.processChange(ctx, change, parentResult);
 		
 		LOGGER.trace("Change after processing {} . Start synchronizing.", change.toString());
-		shadowCache.processSynchronization(change, task, resource, eventDescription.getSourceChannel(), parentResult);
+		shadowCache.processSynchronization(ctx, change, parentResult);
 	
 	}
 

@@ -386,7 +386,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         
         ResourceAttributeDefinition ldapUidAttrDef = accountObjectClassDefinition.findAttributeDefinition("uid");
         
-        ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
         ObjectFilter additionalFilter = EqualFilter.createEqual(
         		new ItemPath(ShadowType.F_ATTRIBUTES, ldapUidAttrDef.getName()), ldapUidAttrDef, ACCOUNT_0_UID);
 		ObjectQueryUtil.filterAnd(query.getFilter(), additionalFilter);
@@ -425,7 +425,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
         
         SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, NUMBER_OF_GENERATED_ACCOUNTS + (isIdmAdminInteOrgPerson()?1:0), task, result);
         
@@ -450,7 +450,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
         
         ObjectPaging paging = ObjectPaging.createEmptyPaging();
         paging.setMaxSize(50);
@@ -480,7 +480,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
         
         ObjectPaging paging = ObjectPaging.createEmptyPaging();
         paging.setMaxSize(222);
@@ -507,7 +507,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
         
         ObjectPaging paging = ObjectPaging.createEmptyPaging();
         paging.setOffset(0);
@@ -540,7 +540,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
         
         ObjectPaging paging = ObjectPaging.createPaging(20, 50);
 		query.setPaging(paging);
@@ -570,7 +570,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
         
         ObjectPaging paging = ObjectPaging.createPaging(20, 222);
 		query.setPaging(paging);
@@ -601,7 +601,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
         
         ObjectPaging paging = ObjectPaging.createPaging(20, 50);
         paging.setOrderBy(getAttributeQName(resource, "uid"));
@@ -636,7 +636,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
         
         ObjectPaging paging = ObjectPaging.createPaging(20, 222);
         paging.setOrderBy(getAttributeQName(resource, "uid"));
@@ -669,7 +669,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
         query.setAllowPartialResults(true);
         
 		SearchResultList<PrismObject<ShadowType>> resultList = doSearch(TEST_NAME, query, getSearchSizeLimit(), task, result);

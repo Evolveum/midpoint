@@ -36,6 +36,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
 import com.evolveum.midpoint.common.InternalsConfig;
+import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -166,9 +167,12 @@ public class TestSynchronization extends AbstractIntegrationTest {
 
 		AssertJUnit.assertEquals("LDAP add operation failed", ResultCode.SUCCESS,
 				addOperation.getResultCode());
+		
+		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(resourceType.getOid(), 
+				AbstractOpenDJTest.RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
 
 		// WHEN
-		provisioningService.synchronize(resourceType.getOid(), AbstractOpenDJTest.RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS,
+		provisioningService.synchronize(coords,
 				syncTask, result);
 		
 		// THEN
@@ -212,9 +216,12 @@ public class TestSynchronization extends AbstractIntegrationTest {
 
 		AssertJUnit.assertEquals("LDAP add operation failed", ResultCode.SUCCESS,
 				addOperation.getResultCode());
+		
+		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(resourceType.getOid(), 
+				AbstractOpenDJTest.RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
 
 		// WHEN
-		provisioningService.synchronize(resourceType.getOid(), AbstractOpenDJTest.RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS,
+		provisioningService.synchronize(coords,
 				syncTask, result);
 		
 		// THEN

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -46,16 +48,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 @Component
-public class ShadowCacheProvisioner extends ShadowCache{
+public class ShadowCacheProvisioner extends ShadowCache {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowCacheProvisioner.class);
 	
 	@Override
-	public String afterAddOnResource(PrismObject<ShadowType> shadow, ResourceType resource, 
-			RefinedObjectClassDefinition objectClassDefinition, OperationResult parentResult)
-					throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+	public String afterAddOnResource(ProvisioningContext ctx, PrismObject<ShadowType> shadow, OperationResult parentResult)
+					throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ConfigurationException, CommunicationException {
 		
-	shadow = shadowManager.createRepositoryShadow(shadow, resource, objectClassDefinition);
+	shadow = shadowManager.createRepositoryShadow(ctx, shadow);
 
 	if (shadow == null) {
 		parentResult

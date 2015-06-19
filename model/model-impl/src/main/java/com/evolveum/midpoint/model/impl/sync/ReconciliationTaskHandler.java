@@ -691,7 +691,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	private ObjectQuery createObjectclassSearchQuery(PrismObject<ResourceType> resource,
 			ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
 		QName objectClass = objectClassDefinition.getTypeName();
-		return ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), objectClass, prismContext);
+		return ObjectQueryUtil.createResourceAndObjectClassQuery(resource.getOid(), objectClass, prismContext);
 	}
 
 	@Override

@@ -124,12 +124,12 @@ public class TestDummyNegative extends AbstractDummyTest {
 	
 	@Test
 	public void test200AddAccountNullAttributes() throws Exception {
-		TestUtil.displayTestTile("test200AddAccountNullAttributes");
+		final String TEST_NAME = "test200AddAccountNullAttributes";
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummyNegative.class.getName()
-				+ ".test200AddAccountNullAttributes");
-		OperationResult result = new OperationResult(TestDummyNegative.class.getName()
-				+ ".test200AddAccountNullAttributes");
+				+ "." + TEST_NAME);
+		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
 		ShadowType accountType = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, ShadowType.class);
@@ -219,12 +219,12 @@ public class TestDummyNegative extends AbstractDummyTest {
 	
 	@Test
 	public void test220AddAccountNoResourceRef() throws Exception {
-		TestUtil.displayTestTile("test220AddAccountNoResourceRef");
+		final String TEST_NAME = "test220AddAccountNoResourceRef";
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummyNegative.class.getName()
-				+ ".test220AddAccountNoResourceRef");
-		OperationResult result = new OperationResult(TestDummyNegative.class.getName()
-				+ ".test220AddAccountNoResourceRef");
+				+ "." + TEST_NAME);
+		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
 		ShadowType accountType = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, ShadowType.class);

@@ -224,7 +224,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestCaseIgnore.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(RESOURCE_DUMMY_UPCASE_OID, 
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_UPCASE_OID, 
         		new QName(ResourceTypeUtil.getResourceNamespace(resourceDummyUpcaseType),
                 ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), prismContext);
         rememberShadowFetchOperationCount();    
