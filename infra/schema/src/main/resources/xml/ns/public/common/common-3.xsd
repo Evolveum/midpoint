@@ -4356,6 +4356,14 @@
         <xsd:complexContent>
         	<xsd:extension base="tns:ResourceItemDefinitionType">
 		     	<xsd:sequence>
+		     		<xsd:element name="auxiliaryObjectClass" type="xsd:QName" minOccurs="0" maxOccurs="1">
+		               <xsd:annotation>
+		                   <xsd:documentation>
+		                       This association is considered valid only if the resource object (subject)
+		                       has the specified auxiliary object class.
+		                   </xsd:documentation>
+		               </xsd:annotation>
+		           </xsd:element>
 		     		<xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0"></xsd:element>
 		     		<xsd:element name="intent" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
@@ -7415,6 +7423,18 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="association" type="tns:ResourceObjectAssociationType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="auxiliaryObjectClass" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+               <xsd:annotation>
+                   <xsd:documentation>
+                       The reference to additional type definitions for this object. These auxiliary object
+                       classes will be added to the resource object when the construction is provisioned. 
+                       
+                       The reference should
+                       point to object class definition (complex type definition in resource schema) and
+                       this definition should be marked as auxiliary.
+                   </xsd:documentation>
+               </xsd:annotation>
+           </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="construction" type="tns:ConstructionType"/>
