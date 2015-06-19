@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,11 @@ package com.evolveum.midpoint.common.refinery;
 
 import java.io.Serializable;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowDiscriminatorType;
@@ -31,6 +34,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
  * 
  * This is used mostly as a key in hashes and for searches.
  * 
+ * TODO: split to two objects:
+ * 1: ResourceShadowCoordinates which will stay in common
+ * 2: ResourceShadowDiscriminator (subclass) which will go to model. This will contains thombstone and order.
+ * 
  * @author Radovan Semancik
  */
 public class ResourceShadowDiscriminator implements Serializable {
@@ -39,6 +46,7 @@ public class ResourceShadowDiscriminator implements Serializable {
 	private String resourceOid;
 	private ShadowKindType kind = ShadowKindType.ACCOUNT;
 	private String intent;
+	private QName objectClass;
 	private boolean thombstone;
 	private int order = 0;
 	
@@ -72,6 +80,12 @@ public class ResourceShadowDiscriminator implements Serializable {
 		setIntent(accRefType.getIntent());
 		setKind(kind);
 	}
+	
+	public ResourceShadowDiscriminator(String resourceOid, QName objectClass) {
+		this.resourceOid = resourceOid;
+		this.objectClass = objectClass;
+		this.kind = null;
+	}
 
 	public String getResourceOid() {
 		return resourceOid;
@@ -86,9 +100,6 @@ public class ResourceShadowDiscriminator implements Serializable {
 	}
 
 	public void setKind(ShadowKindType kind) {
-		if (kind == null) {
-			throw new IllegalArgumentException("Kind cannot be null");
-		}
 		this.kind = kind;
 	}
 
@@ -101,6 +112,14 @@ public class ResourceShadowDiscriminator implements Serializable {
 			intent = SchemaConstants.INTENT_DEFAULT;
 		}
 		this.intent = intent;
+	}
+	
+	public QName getObjectClass() {
+		return objectClass;
+	}
+
+	public void setObjectClass(QName objectClass) {
+		this.objectClass = objectClass;
 	}
 
 	public int getOrder() {
@@ -121,6 +140,11 @@ public class ResourceShadowDiscriminator implements Serializable {
 	public void setThombstone(boolean thombstone) {
 		this.thombstone = thombstone;
 	}
+	
+	public boolean isWildcard() {
+		return kind == null && objectClass == null;
+	}
+
 	
     public ShadowDiscriminatorType toResourceShadowDiscriminatorType() {
         ShadowDiscriminatorType rsdt = new ShadowDiscriminatorType();
@@ -230,9 +254,13 @@ public class ResourceShadowDiscriminator implements Serializable {
 	}
     
     public String toHumanReadableString() {
-    	StringBuilder sb = new StringBuilder();
-    	sb.append(kind.value());
-    	sb.append(" (").append(intent).append(") on ");
+    	StringBuilder sb = new StringBuilder("RSD(");
+    	sb.append(kind==null?"null":kind.value());
+    	sb.append(" (").append(intent).append(")");
+    	if (objectClass != null) {
+    		sb.append(": ").append(PrettyPrinter.prettyPrint(objectClass));
+    	}
+    	sb.append(" @");
     	sb.append(resourceOid);
     	if (order != 0) {
     		sb.append(" order=");
@@ -241,6 +269,7 @@ public class ResourceShadowDiscriminator implements Serializable {
     	if (thombstone) {
     		sb.append(" THOMBSTONE");
     	}
+    	sb.append(")");
     	return sb.toString();
     }
 }

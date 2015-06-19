@@ -598,11 +598,6 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
     }
 
     @Override
-    public void setAssociations(Collection<RefinedAssociationDefinition> associations) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     protected String getResourceNamespace() {
         return refinedObjectClassDefinition.getResourceNamespace();
     }

@@ -197,7 +197,7 @@ public interface ProvisioningService {
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
 	 */
-	public int synchronize(String resourceOid, QName objectClass, Task task, OperationResult parentResult) throws ObjectNotFoundException, 
+	public int synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult parentResult) throws ObjectNotFoundException, 
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException;
 
 

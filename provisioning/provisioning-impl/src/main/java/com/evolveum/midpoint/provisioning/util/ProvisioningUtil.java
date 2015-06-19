@@ -20,6 +20,8 @@ import com.evolveum.midpoint.common.StaticExpressionUtil;
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
@@ -35,6 +37,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ResourceObjectDiscriminator;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
@@ -75,6 +78,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptTy
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
@@ -287,8 +291,10 @@ public class ProvisioningUtil {
 		return scriptOperation;
 	}
 
-	public static AttributesToReturn createAttributesToReturn(
-			RefinedObjectClassDefinition objectClassDefinition, ResourceType resource) throws SchemaException {
+	public static AttributesToReturn createAttributesToReturn(ProvisioningContext ctx) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
+		ResourceType resource = ctx.getResource();
+		
 		boolean apply = false;
 		AttributesToReturn attributesToReturn = new AttributesToReturn();
 		attributesToReturn.setReturnDefaultAttributes(true);
@@ -371,5 +377,60 @@ public class ProvisioningUtil {
 		PropertyDelta<T> filteredDelta = propertyDelta.narrow(currentShadow, matchingRule);
 		return filteredDelta;
 	}
+	
+	public static RefinedResourceSchema getRefinedSchema(ResourceType resourceType) throws SchemaException, ConfigurationException {
+		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceType);
+		if (refinedSchema == null) {
+			throw new ConfigurationException("No schema for "+resourceType);
+		}
+		return refinedSchema;
+	}
+	
+	public static RefinedResourceSchema getRefinedSchema(PrismObject<ResourceType> resource) throws SchemaException, ConfigurationException {
+		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
+		if (refinedSchema == null) {
+			throw new ConfigurationException("No schema for "+resource);
+		}
+		return refinedSchema;
+	}
+	
+	public static void recordFatalError(Trace logger, OperationResult opResult, String message, Throwable ex) {
+		if (message == null) {
+			message = ex.getMessage();
+		}
+		logger.error(message, ex);
+		opResult.recordFatalError(message, ex);
+		opResult.cleanupResult(ex);
+	}
 
+	public static void logWarning(Trace logger, OperationResult opResult, String message, Exception ex) {
+		logger.error(message, ex);
+		opResult.recordWarning(message, ex);
+	}
+	
+	public static ResourceShadowDiscriminator getCoordinates(ObjectFilter filter) throws SchemaException {
+		String resourceOid = null;
+        QName objectClass = null;
+        ShadowKindType kind = null;
+        String intent = null;
+
+        if (filter instanceof AndFilter) {
+            List<? extends ObjectFilter> conditions = ((AndFilter) filter).getConditions();
+            resourceOid = ProvisioningUtil.getResourceOidFromFilter(conditions);
+            objectClass = ProvisioningUtil.getValueFromFilter(conditions, ShadowType.F_OBJECT_CLASS);
+            kind = ProvisioningUtil.getValueFromFilter(conditions, ShadowType.F_KIND);
+			intent = ProvisioningUtil.getValueFromFilter(conditions, ShadowType.F_INTENT);
+        }
+
+        if (resourceOid == null) {
+            throw new SchemaException("Resource not defined in a search query");
+        }
+        if (objectClass == null && kind == null) {
+        	throw new SchemaException("Neither objectclass not kind is specified in a search query");
+        }
+        
+        ResourceShadowDiscriminator coordinates = new ResourceShadowDiscriminator(resourceOid, kind, intent, false);
+        coordinates.setObjectClass(objectClass);
+        return coordinates;
+	}
 }

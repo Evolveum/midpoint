@@ -1,0 +1,17 @@
+dn: uid=vanhelgen,ou=People,dc=example,dc=com
+uid: vanhelgen
+cn: Edward Van Helgen
+sn: Van Helgen
+givenName: Edward
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+objectclass: posixAccount
+l: Puerto Pollo
+userpassword: bornToPirate
+uidNumber: 1002
+gidNumber: 1002
+homeDirectory: /home/vanhelgen
+loginShell: /bin/bash
+

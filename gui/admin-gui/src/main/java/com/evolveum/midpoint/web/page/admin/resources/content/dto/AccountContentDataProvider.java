@@ -131,7 +131,7 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Account
     }
 
     private ObjectQuery getObjectQuery() throws SchemaException {
-        ObjectQuery baseQuery = ObjectQueryUtil.createResourceAndAccountQuery(resourceOid.getObject(),
+        ObjectQuery baseQuery = ObjectQueryUtil.createResourceAndObjectClassQuery(resourceOid.getObject(),
                 objectClass.getObject(), getPage().getPrismContext());
         ObjectQuery query = getQuery();
         if (query != null) {
