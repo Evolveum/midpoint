@@ -443,6 +443,7 @@ public class PrismBeanConverter {
 				} else if (!problem) {
 					throw new IllegalStateException("Strange. Multival property "+propName+" in "+beanClass+" produced null values list, parsed from "+xnode);
 				}
+				checkJaxbElementConsistence(col);
 			} else {
 				throw new IllegalStateException("Uh? No setter nor getter.");
 			}
@@ -453,6 +454,40 @@ public class PrismBeanConverter {
 		}
 		
 		return bean;
+	}
+
+	/*
+	 *  We want to avoid this:
+	 *    <expression>
+     *      <script>
+     *        <code>'up'</code>
+     *      </script>
+     *      <value>up</value>
+     *    </expression>
+     *
+     *  Because it cannot be reasonably serialized in XNode (<value> gets changed to <script>).
+	 */
+	private void checkJaxbElementConsistence(Collection<Object> collection) throws SchemaException {
+		QName elementName = null;
+		for (Object object : collection) {
+			if (!(object instanceof JAXBElement)) {
+				continue;
+			}
+			JAXBElement element = (JAXBElement) object;
+			if (elementName == null) {
+				elementName = element.getName();
+			} else {
+				if (!QNameUtil.match(elementName, element.getName())) {
+					String m = "Mixing incompatible element names in one property: "
+							+ elementName + " and " + element.getName();
+					if (mode != XNodeProcessorEvaluationMode.COMPAT) {
+						throw new SchemaException(m);
+					} else {
+						LOGGER.warn("{}", m);
+					}
+				}
+			}
+		}
 	}
 
 	protected boolean processSchemaException(SchemaException e, XNode xsubnode) throws SchemaException {
