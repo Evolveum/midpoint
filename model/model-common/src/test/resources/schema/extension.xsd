@@ -64,8 +64,19 @@
                 <a:objectReferenceTargetType>c:UserType</a:objectReferenceTargetType>
             </xsd:appinfo>
         </xsd:annotation>
-    </xsd:element> 
-    
+    </xsd:element>
+
+    <xsd:simpleType name="TShirtSizeType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="xs"/>
+            <xsd:enumeration value="s"/>
+            <xsd:enumeration value="m"/>
+            <xsd:enumeration value="l"/>
+            <xsd:enumeration value="xl"/>
+            <xsd:enumeration value="xxl"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
     <xsd:complexType name="UserExtensionType">
 		<xsd:annotation>
 			<xsd:appinfo>
@@ -82,6 +93,7 @@
 			<xsd:element ref="tns:dateType" minOccurs="0"/>
 			
 			<xsd:element name="ship" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="tShirtSize" type="tns:TShirtSizeType" minOccurs="0"/>
 		</xsd:sequence>
 	</xsd:complexType>
 
