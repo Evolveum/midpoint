@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,7 +69,7 @@ import java.util.List;
         @AuthorizationAction(actionUri = PageAdminReports.AUTH_REPORTS_ALL,
                 label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL,
                 description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#report",
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_REPORT_URL,
                 label = "PageReport.auth.report.label",
                 description = "PageReport.auth.report.description")})
 public class PageReport<T extends Serializable> extends PageAdminReports {

@@ -314,7 +314,7 @@ public class TestLdap extends AbstractModelIntegrationTest {
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
         
-        ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(RESOURCE_OPENDJ_OID, 
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_OPENDJ_OID, 
         		new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), prismContext);
         
         final MutableInt count = new MutableInt(0);

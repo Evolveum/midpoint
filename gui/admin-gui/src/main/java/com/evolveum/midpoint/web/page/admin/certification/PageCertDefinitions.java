@@ -32,20 +32,17 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.data.column.MultiButtonColumn;
-import com.evolveum.midpoint.web.component.data.column.SingleButtonColumn;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.certification.dto.CertCampaignListItemDto;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -74,9 +71,11 @@ public class PageCertDefinitions extends PageAdminWorkItems {
     private static final String DOT_CLASS = PageCertDefinitions.class.getName() + ".";
     private static final String OPERATION_CREATE_CAMPAIGN = DOT_CLASS + "createCampaign";
     private static final String OPERATION_DELETE_DEFINITION = DOT_CLASS + "deleteDefinition";
+    private static final String DIALOG_CONFIRM_DELETE = "confirmDeletePopup";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_DEFINITIONS_TABLE = "definitionsTable";
+    private AccessCertificationDefinitionType singleDelete;
 
     public PageCertDefinitions() {
         initLayout();
@@ -119,17 +118,47 @@ public class PageCertDefinitions extends PageAdminWorkItems {
         add(mainForm);
 
         ObjectDataProvider provider = createProvider();
+        
+        add(new ConfirmationDialog(DIALOG_CONFIRM_DELETE,
+                createStringResource("PageCertDefinitions.title.confirmDelete"), createDeleteConfirmString()) {
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                close(target);
+                deleteDefinitionPerformed(target, singleDelete);
+            }
+        });
         TablePanel table = new TablePanel<>(ID_DEFINITIONS_TABLE, provider, initColumns());
         table.setShowPaging(false);
         table.setOutputMarkupId(true);
         mainForm.add(table);
     }
+    
+    private TablePanel getTable() {
+        return (TablePanel) get(createComponentPath(ID_MAIN_FORM, ID_DEFINITIONS_TABLE));
+    }
 
+    private IModel<String> createDeleteConfirmString() {
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                if(singleDelete == null){
+                    return "";
+                } else {
+                    return createStringResource("PageCertDefinitions.deleteDefinitionConfirmSingle",
+                            singleDelete.getName()).getString();
+                }
+            }
+        };
+    }
     private List<IColumn<AccessCertificationDefinitionType, String>> initColumns() {
         List<IColumn<AccessCertificationDefinitionType, String>> columns = new ArrayList<>();
 
+        columns.add(new CheckBoxHeaderColumn());
+        
         IColumn column;
-
+        
 //        column = new CheckBoxHeaderColumn<>();
 //        columns.add(column);
 
@@ -175,7 +204,7 @@ public class PageCertDefinitions extends PageAdminWorkItems {
                 switch (id) {
                     case 0: createCampaignPerformed(target, model.getObject().getValue()); break;
                     case 1: showCampaignsPerformed(target, model.getObject().getValue()); break;
-                    case 2: deleteDefinitionPerformed(target, model.getObject().getValue()); break;
+                    case 2: deleteConfirmation(target, model.getObject().getValue()); break;
                 }
             }
 
@@ -213,6 +242,13 @@ public class PageCertDefinitions extends PageAdminWorkItems {
         showResult(result);
         target.add(getFeedbackPanel());
     }
+    
+    private void deleteConfirmation(AjaxRequestTarget target, AccessCertificationDefinitionType definition) {
+    	
+    	   this.singleDelete = definition;
+           ModalWindow dialog = (ModalWindow) get(DIALOG_CONFIRM_DELETE);
+           dialog.show(target);
+       }
 
     private void deleteDefinitionPerformed(AjaxRequestTarget target, AccessCertificationDefinitionType definition) {
         OperationResult result = new OperationResult(OPERATION_DELETE_DEFINITION);

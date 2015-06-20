@@ -364,6 +364,8 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 			LensContext<F> context, Class<F> focusType, File file) throws JAXBException, SchemaException,
             IOException {
 		PrismObject<ShadowType> account = PrismTestUtil.parseObject(file);
+		account.trim();
+		account.checkConsistence();
 		LensFocusContext<F> focusContext = context.getOrCreateFocusContext();
 		ObjectDelta<F> userDelta = ObjectDelta.createModificationAddReference(focusType, focusContext
 				.getObjectOld().getOid(), FocusType.F_LINK_REF, prismContext, account);

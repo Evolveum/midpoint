@@ -65,7 +65,7 @@ import java.util.List;
         @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
                 label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL,
                 description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#configSystemConfiguration",
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONFIGURATION_SYSTEM_CONFIG_URL,
                 label = "PageSystemConfiguration.auth.configSystemConfiguration.label",
                 description = "PageSystemConfiguration.auth.configSystemConfiguration.description")})
 public class PageSystemConfiguration extends PageAdminConfiguration {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ import java.util.List;
         @AuthorizationAction(actionUri = PageAdminUsers.AUTH_ORG_ALL,
                 label = PageAdminUsers.AUTH_ORG_ALL_LABEL,
                 description = PageAdminUsers.AUTH_ORG_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#orgTree",
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ORG_TREE_URL,
                 label = "PageOrgTree.auth.orgTree.label",
                 description = "PageOrgTree.auth.orgTree.description")})
 public class PageOrgTree extends PageAdminUsers {

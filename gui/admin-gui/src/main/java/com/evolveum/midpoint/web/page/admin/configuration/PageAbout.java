@@ -52,7 +52,7 @@ import java.util.List;
 @PageDescriptor(url = "/admin/config/about", action = {
         @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
                 label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#configAbout",
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONFIGURATION_ABOUT_URL,
                 label = "PageAbout.auth.configAbout.label", description = "PageAbout.auth.configAbout.description")})
 public class PageAbout extends PageAdminConfiguration {
 

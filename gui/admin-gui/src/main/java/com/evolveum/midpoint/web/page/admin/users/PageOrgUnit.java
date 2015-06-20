@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,7 +82,7 @@ import java.util.List;
         @AuthorizationAction(actionUri = PageAdminUsers.AUTH_ORG_ALL,
                 label = PageAdminUsers.AUTH_ORG_ALL_LABEL,
                 description = PageAdminUsers.AUTH_ORG_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#orgUnit",
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ORG_UNIT_URL,
                 label = "PageOrgUnit.auth.orgUnit.label",
                 description = "PageOrgUnit.auth.orgUnit.description")})
 public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwarePage {

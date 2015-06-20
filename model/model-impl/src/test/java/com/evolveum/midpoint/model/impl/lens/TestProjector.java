@@ -271,7 +271,7 @@ public class TestProjector extends AbstractLensTest {
                 accountToAddPrimary.findProperty(ShadowType.F_OBJECT_CLASS).getRealValue());
         PrismReference resourceRef = accountToAddPrimary.findReference(ShadowType.F_RESOURCE_REF);
         assertEquals(resourceDummyType.getOid(), resourceRef.getOid());
-        PrismAsserts.assertNoEmptyItem(accountToAddPrimary);
+        accountToAddPrimary.checkConsistence();
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());

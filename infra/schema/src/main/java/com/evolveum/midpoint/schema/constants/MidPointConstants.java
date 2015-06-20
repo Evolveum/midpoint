@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ public class MidPointConstants {
 	public static final QName RA_IDENTIFIER = new QName(NS_RA, "identifier");
 	public static final QName RA_SECONDARY_IDENTIFIER = new QName(NS_RA, "secondaryIdentifier");
 	public static final QName RA_DEFAULT = new QName(NS_RA, "default");
+	public static final QName RA_AUXILIARY = new QName(NS_RA, "auxiliary");
 
 	@Deprecated
 	public static final QName RA_ACCOUNT = new QName(NS_RA, "account");
@@ -50,14 +51,6 @@ public class MidPointConstants {
 	public static final String NS_RI = NS_MIDPOINT_PUBLIC_PREFIX+"/resource/instance-3";
 	public static final String PREFIX_NS_RI = "ri";
 	
-	/**
-	 * Default account type name.
-	 * WARNING! This is intended to be used only when processing a schema to supply a
-	 * intent name for a definition that does not have one. It is NOT a substitute for
-	 * a missing account type name in schemaHandling, etc.
-	 */
-	public static final String DEFAULT_ACCOUNT_TYPE_NAME = "default";
-
 	public static final String FUNCTION_LIBRARY_BASIC_VARIABLE_NAME = "basic";
 	public static final String NS_FUNC_BASIC = NS_MIDPOINT_PUBLIC_PREFIX+"/function/basic-3";
 	

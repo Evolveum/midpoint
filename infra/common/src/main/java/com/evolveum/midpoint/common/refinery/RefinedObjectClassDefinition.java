@@ -71,6 +71,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	private Collection<ResourceObjectPattern> protectedObjectPatterns;
 	private List<RefinedAttributeDefinition<?>> attributeDefinitions;
 	private Collection<RefinedAssociationDefinition> associations = new ArrayList<RefinedAssociationDefinition>();
+	private Collection<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions;
 	private ResourceObjectReferenceType baseContext; 
 	
     /**
@@ -209,10 +210,6 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 		return retAssoc;
 	}
 
-	public void setAssociations(Collection<RefinedAssociationDefinition> associations) {
-		this.associations = associations;
-	}
-	
 	public RefinedAssociationDefinition findAssociation(QName name) {
 		for (RefinedAssociationDefinition assocType: getAssociations()) {
 			if (QNameUtil.match(assocType.getName(), name)) {
@@ -252,8 +249,12 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         }
         return names;
     }
+    
+    public Collection<RefinedObjectClassDefinition> getAuxiliaryObjectClassDefinitions() {
+		return auxiliaryObjectClassDefinitions;
+	}
 
-    public Collection<ResourceObjectPattern> getProtectedObjectPatterns() {
+	public Collection<ResourceObjectPattern> getProtectedObjectPatterns() {
 		if (protectedObjectPatterns == null) {
 			protectedObjectPatterns = new ArrayList<ResourceObjectPattern>();
 		}
@@ -372,7 +373,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     
 	@Override
     public List<? extends ItemDefinition> getDefinitions() {
-        return attributeDefinitions;
+        return (List) getAttributeDefinitions();
     }
 
     public ResourceType getResourceType() {
@@ -496,45 +497,35 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
                                                         RefinedResourceSchema rSchema,
                                                         PrismContext prismContext, String contextDescription) throws SchemaException {
 
-        RefinedObjectClassDefinition rAccountDef = new RefinedObjectClassDefinition(prismContext, resourceType, objectClassDef);
+        RefinedObjectClassDefinition rOcDef = new RefinedObjectClassDefinition(prismContext, resourceType, objectClassDef);
 
-        String accountTypeName = null;
-        if (objectClassDef.getIntent() != null) {
-            accountTypeName = objectClassDef.getIntent();
-            if (accountTypeName == null) {
-            	accountTypeName = SchemaConstants.INTENT_DEFAULT;
-            }
-            rAccountDef.setIntent(accountTypeName);
-        } else {
-            if (objectClassDef.isDefaultInAKind()) {
-                rAccountDef.setIntent(MidPointConstants.DEFAULT_ACCOUNT_TYPE_NAME);
-            } else {
-                throw new SchemaException("Account type definition does not have a name, in " + contextDescription);
-            }
+        String intent = objectClassDef.getIntent();
+        if (intent == null) {
+        	intent = SchemaConstants.INTENT_DEFAULT;
         }
-
+        rOcDef.setIntent(intent);
 
         if (objectClassDef.getDisplayName() != null) {
-            rAccountDef.setDisplayName(objectClassDef.getDisplayName());
+            rOcDef.setDisplayName(objectClassDef.getDisplayName());
         }
 
-        rAccountDef.setDefault(objectClassDef.isDefaultInAKind());
+        rOcDef.setDefault(objectClassDef.isDefaultInAKind());
 
         for (ResourceAttributeDefinition attrDef : objectClassDef.getAttributeDefinitions()) {
-            String attrContextDescription = accountTypeName + ", in " + contextDescription;
+            String attrContextDescription = intent + ", in " + contextDescription;
 
             RefinedAttributeDefinition rAttrDef = RefinedAttributeDefinition.parse(attrDef, null, objectClassDef, prismContext,
             		attrContextDescription);
-            rAccountDef.processIdentifiers(rAttrDef, objectClassDef);
+            rOcDef.processIdentifiers(rAttrDef, objectClassDef);
 
-            if (rAccountDef.containsAttributeDefinition(rAttrDef.getName())) {
+            if (rOcDef.containsAttributeDefinition(rAttrDef.getName())) {
                 throw new SchemaException("Duplicate definition of attribute " + rAttrDef.getName() + " in " + attrContextDescription);
             }
-            rAccountDef.add(rAttrDef);
+            rOcDef.add(rAttrDef);
 
         }
 
-        return rAccountDef;
+        return rOcDef;
 
     }
 	
@@ -628,6 +619,18 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 			RefinedObjectClassDefinition assocTarget = rSchema.getRefinedDefinition(assocKind, rAssocDef.getIntents());
 			rAssocDef.setAssociationTarget(assocTarget);
 			associations.add(rAssocDef);
+		}
+	}
+	
+	public void parseAuxiliaryObjectClasses(RefinedResourceSchema rSchema) throws SchemaException {
+		List<QName> auxiliaryObjectClassQNames = schemaHandlingObjectTypeDefinitionType.getAuxiliaryObjectClass();
+		auxiliaryObjectClassDefinitions = new ArrayList<>(auxiliaryObjectClassQNames.size());
+		for (QName auxiliaryObjectClassQName: auxiliaryObjectClassQNames) {
+			RefinedObjectClassDefinition auxiliaryObjectClassDef = rSchema.getRefinedDefinition(auxiliaryObjectClassQName);
+			if (auxiliaryObjectClassDef == null) {
+				throw new SchemaException("Auxiliary object class "+auxiliaryObjectClassQName+" specified in "+this+" does not exist");
+			}
+			auxiliaryObjectClassDefinitions.add(auxiliaryObjectClassDef);
 		}
 	}
 
@@ -813,37 +816,28 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 		return biType.getFetchStrategy();
 	}
     
-    public static RefinedObjectClassDefinition determineObjectClassDefinition(PrismObject<ShadowType> shadow, ResourceType resource) throws SchemaException, ConfigurationException {
-		ShadowType shadowType = shadow.asObjectable();
-		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, resource.asPrismObject().getPrismContext());
-		if (refinedSchema == null) {
-			throw new ConfigurationException("No schema defined for "+resource);
-		}
-		
-		
-		RefinedObjectClassDefinition objectClassDefinition = null;
-		ShadowKindType kind = shadowType.getKind();
-		String intent = shadowType.getIntent();
-		QName objectClass = shadow.asObjectable().getObjectClass();
-		if (kind != null) {
-			objectClassDefinition = refinedSchema.getRefinedDefinition(kind, intent);
-		} 
-		if (objectClassDefinition == null) {
-			// Fallback to objectclass only
-			if (objectClass == null) {
-				throw new SchemaException("No kind nor objectclass definied in "+shadow);
-			}
-			objectClassDefinition = refinedSchema.findRefinedDefinitionByObjectClassQName(kind, objectClass);
-		}
-		
-		if (objectClassDefinition == null) {
-			throw new SchemaException("Definition for "+shadow+" not found (objectClass=" + PrettyPrinter.prettyPrint(objectClass) +
-					", kind="+kind+", intent='"+intent+"') in schema of " + resource);
-		}		
-		
-		return objectClassDefinition;
+    public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass) {
+		return ResourceTypeUtil.getEffectiveCapability(resourceType, schemaHandlingObjectTypeDefinitionType, capabilityClass);
 	}
+
+    public PagedSearchCapabilityType getPagedSearches() {
+        return getEffectiveCapability(PagedSearchCapabilityType.class);
+    }
+
+    public boolean isPagedSearchEnabled() {
+        return getPagedSearches() != null;          // null means nothing or disabled
+    }
+
+    public boolean isObjectCountingEnabled() {
+        return getEffectiveCapability(CountObjectsCapabilityType.class) != null;
+    }
     
+    
+    
+	public boolean isAuxiliary() {
+		return objectClassDefinition.isAuxiliary();
+	}
+
 	public boolean matches(ShadowType shadowType) {
 		if (shadowType == null) {
 			return false;
@@ -925,21 +919,5 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 			return getKind()+":"+getIntent();
 		}
 	}
-	
-	public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass) {
-		return ResourceTypeUtil.getEffectiveCapability(resourceType, schemaHandlingObjectTypeDefinitionType, capabilityClass);
-	}
-
-    public PagedSearchCapabilityType getPagedSearches() {
-        return getEffectiveCapability(PagedSearchCapabilityType.class);
-    }
-
-    public boolean isPagedSearchEnabled() {
-        return getPagedSearches() != null;          // null means nothing or disabled
-    }
-
-    public boolean isObjectCountingEnabled() {
-        return getEffectiveCapability(CountObjectsCapabilityType.class) != null;
-    }
 
 }

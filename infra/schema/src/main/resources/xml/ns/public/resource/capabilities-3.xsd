@@ -528,6 +528,21 @@
 	</xsd:complexType>
 
 	<xsd:element name="addRemoveAttributeValues" type="tns:AddRemoveAttributeValuesCapabilityType"/>
+	
+	<xsd:complexType name="AuxiliaryObjectClassesCapabilityType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Describes capability to specify additional (auxiliary) object classes in addition to the
+				primary object class.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:CapabilityType">
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	
+	<xsd:element name="auxiliaryObjectClasses" type="tns:AuxiliaryObjectClassesCapabilityType"/>
 
 </xsd:schema>
 

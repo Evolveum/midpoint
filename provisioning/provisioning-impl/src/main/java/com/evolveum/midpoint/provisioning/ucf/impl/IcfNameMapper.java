@@ -223,9 +223,9 @@ public class IcfNameMapper {
 		}
 	}
 
-	public ObjectClass objectClassToIcf(PrismObject<? extends ShadowType> object, String schemaNamespace, ConnectorType connectorType, boolean legacySchema) {
+	public ObjectClass objectClassToIcf(PrismObject<? extends ShadowType> shadow, String schemaNamespace, ConnectorType connectorType, boolean legacySchema) {
 
-		ShadowType shadowType = object.asObjectable();
+		ShadowType shadowType = shadow.asObjectable();
 		QName qnameObjectClass = shadowType.getObjectClass();
 		if (qnameObjectClass == null) {
 			ResourceAttributeContainer attrContainer = ShadowUtil
@@ -253,7 +253,7 @@ public class IcfNameMapper {
 		return objectClassToIcf(qnameObjectClass, schemaNamespace, connectorType, legacySchema);
 	}
 
-	private ObjectClass objectClassToIcf(QName qnameObjectClass, String schemaNamespace, ConnectorType connectorType, boolean legacySchema) {
+	public ObjectClass objectClassToIcf(QName qnameObjectClass, String schemaNamespace, ConnectorType connectorType, boolean legacySchema) {
 		if (!schemaNamespace.equals(qnameObjectClass.getNamespaceURI())) {
 			throw new IllegalArgumentException("ObjectClass QName " + qnameObjectClass
 					+ " is not in the appropriate namespace for "

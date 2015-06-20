@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ import org.apache.wicket.util.string.StringValue;
         @AuthorizationAction(actionUri = PageAdminWorkItems.AUTH_WORK_ITEMS_ALL,
                 label = PageAdminWorkItems.AUTH_WORK_ITEMS_ALL_LABEL,
                 description = PageAdminWorkItems.AUTH_WORK_ITEMS_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#workItemsProcessInstance",
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_WORK_ITEMS_PROCESS_INSTANCE_URL,
                 label = "PageProcessInstance.auth.workItemsProcessInstance.label",
                 description = "PageProcessInstance.auth.workItemsProcessInstance.description")})
 public class PageProcessInstance extends PageAdminWorkItems {

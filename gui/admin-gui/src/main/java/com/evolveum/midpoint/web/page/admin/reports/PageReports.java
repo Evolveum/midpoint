@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
         @AuthorizationAction(actionUri = PageAdminReports.AUTH_REPORTS_ALL,
                 label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL,
                 description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#reports",
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_REPORTS_URL,
                 label = "PageReports.auth.reports.label",
                 description = "PageReports.auth.reports.description")})
 public class PageReports extends PageAdminReports {

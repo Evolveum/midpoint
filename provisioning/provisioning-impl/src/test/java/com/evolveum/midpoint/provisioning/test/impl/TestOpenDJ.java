@@ -22,6 +22,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
@@ -39,6 +40,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import org.apache.commons.lang.StringUtils;
 import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.Uid;
+import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -93,6 +95,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
+import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -356,7 +359,6 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resourceType, prismContext);
 		display("Resource schema", resourceSchema);
 
-
 		ObjectClassComplexTypeDefinition accountDef = resourceSchema.findObjectClassDefinition(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
 		assertNotNull("Account definition is missing", accountDef);
 		assertNotNull("Null identifiers in account", accountDef.getIdentifiers());
@@ -412,7 +414,45 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		assertNull("The _PASSSWORD_ attribute sneaked into schema",
 				accountDef.findAttributeDefinition(new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));
+		
+		assertNull("The userPassword attribute sneaked into schema",
+				accountDef.findAttributeDefinition(new QName(accountDef.getTypeName().getNamespaceURI(), "userPassword")));
+		
+		assertNull("The objectClass attribute sneaked into schema",
+				accountDef.findAttributeDefinition(new QName(accountDef.getTypeName().getNamespaceURI(), "objectClass")));
 
+		assertNull("The objectclass attribute sneaked into schema",
+				accountDef.findAttributeDefinition(new QName(accountDef.getTypeName().getNamespaceURI(), "objectclass")));
+
+		ObjectClassComplexTypeDefinition posixAccountDef = resourceSchema.findObjectClassDefinition(RESOURCE_OPENDJ_POSIX_ACCOUNT_OBJECTCLASS);
+		assertNotNull("posixAccount definition is missing", posixAccountDef);
+		assertNotNull("Null identifiers in posixAccount", posixAccountDef.getIdentifiers());
+		assertFalse("Empty identifiers in posixAccount", posixAccountDef.getIdentifiers().isEmpty());
+		assertNotNull("Null secondary identifiers in posixAccount", posixAccountDef.getSecondaryIdentifiers());
+		assertFalse("Empty secondary identifiers in posixAccount", posixAccountDef.getSecondaryIdentifiers().isEmpty());
+		assertNotNull("No naming attribute in posixAccount", posixAccountDef.getNamingAttribute());
+		assertFalse("No nativeObjectClass in posixAccount", StringUtils.isEmpty(posixAccountDef.getNativeObjectClass()));
+		assertTrue("posixAccount is not auxiliary", posixAccountDef.isAuxiliary());
+
+		ResourceAttributeDefinition<String> posixIdPrimaryDef = posixAccountDef.findAttributeDefinition(getPrimaryIdentifierQName());
+		assertEquals(1, posixIdPrimaryDef.getMaxOccurs());
+		assertEquals(0, posixIdPrimaryDef.getMinOccurs());
+		assertFalse("UID has create", posixIdPrimaryDef.canAdd());
+		assertFalse("UID has update", posixIdPrimaryDef.canModify());
+		assertTrue("No UID read", posixIdPrimaryDef.canRead());
+		assertTrue("UID definition not in identifiers", accountDef.getIdentifiers().contains(posixIdPrimaryDef));
+		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Uid.NAME, posixIdPrimaryDef.getFrameworkAttributeName());
+
+		ResourceAttributeDefinition<String> posixIdSecondaryDef = posixAccountDef.findAttributeDefinition(getSecondaryIdentifierQName());
+		assertEquals(1, posixIdSecondaryDef.getMaxOccurs());
+		assertEquals(1, posixIdSecondaryDef.getMinOccurs());
+		assertTrue("No NAME create", posixIdSecondaryDef.canAdd());
+		assertTrue("No NAME update", posixIdSecondaryDef.canModify());
+		assertTrue("No NAME read", posixIdSecondaryDef.canRead());
+		assertTrue("NAME definition not in secondary identifiers", accountDef.getSecondaryIdentifiers().contains(posixIdSecondaryDef));
+		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Name.NAME, posixIdSecondaryDef.getFrameworkAttributeName());
+
+		
 		assertShadows(1);
 	}
 	
@@ -482,6 +522,34 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		assertNull("The _PASSSWORD_ attribute sneaked into schema",
 				accountDef.findAttributeDefinition(new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));
+		
+		RefinedObjectClassDefinition posixAccountDef = refinedSchema.getRefinedDefinition(RESOURCE_OPENDJ_POSIX_ACCOUNT_OBJECTCLASS);
+		assertNotNull("posixAccount definition is missing", posixAccountDef);
+		assertNotNull("Null identifiers in posixAccount", posixAccountDef.getIdentifiers());
+		assertFalse("Empty identifiers in posixAccount", posixAccountDef.getIdentifiers().isEmpty());
+		assertNotNull("Null secondary identifiers in posixAccount", posixAccountDef.getSecondaryIdentifiers());
+		assertFalse("Empty secondary identifiers in posixAccount", posixAccountDef.getSecondaryIdentifiers().isEmpty());
+		assertNotNull("No naming attribute in posixAccount", posixAccountDef.getNamingAttribute());
+		assertFalse("No nativeObjectClass in posixAccount", StringUtils.isEmpty(posixAccountDef.getNativeObjectClass()));
+		assertTrue("posixAccount is not auxiliary", posixAccountDef.isAuxiliary());
+
+		RefinedAttributeDefinition<String> posixIdPrimaryDef = posixAccountDef.findAttributeDefinition(getPrimaryIdentifierQName());
+		assertEquals(1, posixIdPrimaryDef.getMaxOccurs());
+		assertEquals(0, posixIdPrimaryDef.getMinOccurs());
+		assertFalse("UID has create", posixIdPrimaryDef.canAdd());
+		assertFalse("UID has update", posixIdPrimaryDef.canModify());
+		assertTrue("No UID read", posixIdPrimaryDef.canRead());
+		assertTrue("UID definition not in identifiers", accountDef.getIdentifiers().contains(posixIdPrimaryDef));
+		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Uid.NAME, posixIdPrimaryDef.getFrameworkAttributeName());
+
+		RefinedAttributeDefinition<String> posixIdSecondaryDef = posixAccountDef.findAttributeDefinition(getSecondaryIdentifierQName());
+		assertEquals(1, posixIdSecondaryDef.getMaxOccurs());
+		assertEquals(1, posixIdSecondaryDef.getMinOccurs());
+		assertTrue("No NAME create", posixIdSecondaryDef.canAdd());
+		assertTrue("No NAME update", posixIdSecondaryDef.canModify());
+		assertTrue("No NAME read", posixIdSecondaryDef.canRead());
+		assertTrue("NAME definition not in secondary identifiers", accountDef.getSecondaryIdentifiers().contains(posixIdSecondaryDef));
+		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Name.NAME, posixIdSecondaryDef.getFrameworkAttributeName());
 
 		assertShadows(1);
 	}
@@ -642,28 +710,28 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 	}
 
 	@Test
-	public void test120AddObject() throws Exception {
-		final String TEST_NAME = "test120AddObject";
+	public void test120AddAccountWill() throws Exception {
+		final String TEST_NAME = "test120AddAccountWill";
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ "." + TEST_NAME);
 
-		ShadowType object = parseObjectTypeFromFile(ACCOUNT_NEW_FILENAME, ShadowType.class);
+		ShadowType object = parseObjectType(ACCOUNT_WILL_FILE, ShadowType.class);
 
 		System.out.println(SchemaDebugUtil.prettyPrint(object));
 		System.out.println(object.asPrismObject().debugDump());
 
 		Task task = taskManager.createTaskInstance();
 		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, task, result);
-		assertEquals(ACCOUNT_NEW_OID, addedObjectOid);
+		assertEquals(ACCOUNT_WILL_OID, addedObjectOid);
 
-		ShadowType repoShadowType =  repositoryService.getObject(ShadowType.class, ACCOUNT_NEW_OID,
+		ShadowType repoShadowType =  repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID,
 				null, result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Name not equal (repo)", "uid=will,ou=People,dc=example,dc=com", repoShadowType.getName());
-		assertAttribute(repoShadowType, getSecondaryIdentifierQName(), StringUtils.lowerCase(ACCOUNT_NEW_DN));
+		assertAttribute(repoShadowType, getSecondaryIdentifierQName(), StringUtils.lowerCase(ACCOUNT_WILL_DN));
 
-		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_NEW_OID,
+		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID,
 				null, task, result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Name not equal.", "uid=will,ou=People,dc=example,dc=com", provisioningAccountType.getName());
 		
@@ -682,17 +750,17 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		SearchResultEntry entry = openDJController.fetchEntry("uid=will123,ou=People,dc=example,dc=com");
 		assertNotNull("Entry with dn uid=will123,ou=People,dc=example,dc=com does not exist", entry);
 		
-		ShadowType repoShadowType =  repositoryService.getObject(ShadowType.class, ACCOUNT_NEW_OID,
+		ShadowType repoShadowType =  repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID,
 				null, result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Name not equal (repo)", "uid=will,ou=People,dc=example,dc=com", repoShadowType.getName());
-		assertAttribute(repoShadowType, getSecondaryIdentifierQName(), StringUtils.lowerCase(ACCOUNT_NEW_DN));
+		assertAttribute(repoShadowType, getSecondaryIdentifierQName(), StringUtils.lowerCase(ACCOUNT_WILL_DN));
 
-		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_NEW_OID,
+		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID,
 				null, task, result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Name not equal.", "uid=will123,ou=People,dc=example,dc=com", provisioningAccountType.getName());
 		assertAttribute(provisioningAccountType, getSecondaryIdentifierQName(), "uid=will123,ou=people,dc=example,dc=com");
 		
-		repoShadowType =  repositoryService.getObject(ShadowType.class, ACCOUNT_NEW_OID,
+		repoShadowType =  repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID,
 				null, result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Name not equal (repo after provisioning)", "uid=will123,ou=People,dc=example,dc=com", repoShadowType.getName());
 		assertAttribute(repoShadowType, getSecondaryIdentifierQName(), "uid=will123,ou=people,dc=example,dc=com");
@@ -722,71 +790,71 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		assertShadows(1);
 	}
-
 	
 	@Test
-	public void test130DeleteObject() throws Exception {
-		final String TEST_NAME = "test130DeleteObject";
+	public void test130AddDeleteAccountSparrow() throws Exception {
+		final String TEST_NAME = "test130AddDeleteAccountSparrow";
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ "." + TEST_NAME);
 
 	
-		ShadowType object = parseObjectTypeFromFile(ACCOUNT_DELETE_FILENAME, ShadowType.class);
+		ShadowType object = parseObjectType(ACCOUNT_SPARROW_FILE, ShadowType.class);
 
 		System.out.println(SchemaDebugUtil.prettyPrint(object));
 		System.out.println(object.asPrismObject().debugDump());
 
 		Task task = taskManager.createTaskInstance();
 		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, task, result);
-		assertEquals(ACCOUNT_DELETE_OID, addedObjectOid);
+		assertEquals(ACCOUNT_SPARROW_OID, addedObjectOid);
 
-		provisioningService.deleteObject(ShadowType.class, ACCOUNT_DELETE_OID, null, null, task, result);
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		provisioningService.deleteObject(ShadowType.class, ACCOUNT_SPARROW_OID, null, null, task, result);
 
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
 		ShadowType objType = null;
 
 		try {
-			objType = provisioningService.getObject(ShadowType.class, ACCOUNT_DELETE_OID,
-					null, task, result).asObjectable();
+			provisioningService.getObject(ShadowType.class, ACCOUNT_SPARROW_OID,
+					null, task, result);
 			Assert.fail("Expected exception ObjectNotFoundException, but haven't got one.");
 		} catch (ObjectNotFoundException ex) {
-			System.out.println("Catched ObjectNotFoundException.");
-			assertNull(objType);
+			display("Expected exception", ex);
 		}
 
 		try {
-			objType = repositoryService.getObject(ShadowType.class, ACCOUNT_DELETE_OID,
+			objType = repositoryService.getObject(ShadowType.class, ACCOUNT_SPARROW_OID,
 					null, result).asObjectable();
 			// objType = container.getObject();
 			Assert.fail("Expected exception, but haven't got one.");
-		} catch (Exception ex) {
-			assertNull(objType);
-            assertEquals(ex.getClass(), ObjectNotFoundException.class);
-            assertTrue(ex.getMessage().contains(ACCOUNT_DELETE_OID));
+		} catch (ObjectNotFoundException ex) {
+			display("Expected exception", ex);
+            assertTrue(ex.getMessage().contains(ACCOUNT_SPARROW_OID));
 		}
 		
 		assertShadows(1);
 	}
 
 	@Test
-	public void test140ModifyObject() throws Exception {
-		final String TEST_NAME = "test140ModifyObject";
+	public void test140AddAndModifyAccountJack() throws Exception {
+		final String TEST_NAME = "test140AddAndModifyAccountJack";
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ "." + TEST_NAME);
 
-		ShadowType object = unmarshallValueFromFile(ACCOUNT_MODIFY_FILE, ShadowType.class);
+		ShadowType object = unmarshallValueFromFile(ACCOUNT_JACK_FILE, ShadowType.class);
 
 		System.out.println(SchemaDebugUtil.prettyPrint(object));
 		System.out.println(object.asPrismObject().debugDump());
 
 		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
-		assertEquals(ACCOUNT_MODIFY_OID, addedObjectOid);
+		assertEquals(ACCOUNT_JACK_OID, addedObjectOid);
 
-		ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(
-                new File("src/test/resources/impl/account-change-description.xml"), ObjectModificationType.COMPLEX_TYPE);
+		ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(ACCOUNT_JACK_CHANGE_FILE, ObjectModificationType.COMPLEX_TYPE);
 		ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, object.asPrismObject().getDefinition());
 		
 		ItemPath icfNamePath = new ItemPath(
@@ -794,11 +862,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		PrismPropertyDefinition icfNameDef = object
 				.asPrismObject().getDefinition().findPropertyDefinition(icfNamePath);
 		ItemDelta renameDelta = PropertyDelta.createModificationReplaceProperty(icfNamePath, icfNameDef, "uid=rename,ou=People,dc=example,dc=com");
-//			renameDelta.addValueToDelete(new PrismPropertyValue("uid=jack,ou=People,dc=example,dc=com"));
 		((Collection)delta.getModifications()).add(renameDelta);
-		
-//			renameDelta = PropertyDelta.createModificationDeleteProperty(icfNamePath, icfNameDef, "uid=jack,ou=People,dc=example,dc=com");
-//			((Collection)delta.getModifications()).add(renameDelta);
 		
 		display("Object change",delta);
 		
@@ -813,7 +877,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		TestUtil.assertSuccess(result);
 		
 		ShadowType accountType = provisioningService.getObject(ShadowType.class,
-				ACCOUNT_MODIFY_OID, null, taskManager.createTaskInstance(), result).asObjectable();
+				ACCOUNT_JACK_OID, null, taskManager.createTaskInstance(), result).asObjectable();
 		
 		display("Object after change",accountType);
 		
@@ -958,7 +1022,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
         final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
         QName objectClass = new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME);
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), objectClass, prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(resource.getOid(), objectClass, prismContext);
         
         final Collection<ObjectType> objects = new HashSet<ObjectType>();
 
@@ -1003,7 +1067,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
         assertShadows(10);
         
         // Bad things may happen, so let's check if the shadow is still there and that is has the same OID
-        PrismObject<ShadowType> accountNew = provisioningService.getObject(ShadowType.class, ACCOUNT_NEW_OID, null, taskManager.createTaskInstance(), result);
+        PrismObject<ShadowType> accountNew = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, taskManager.createTaskInstance(), result);
     }
 
 	private void assertShadows(int expectedCount) throws SchemaException {
@@ -1176,7 +1240,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		Task task = taskManager.createTaskInstance();
 
 		// WHEN
-		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_NEW_OID,
+		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID,
 				null, task, result);
 		
 		// THEN
@@ -1203,7 +1267,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 				);
 
 		// WHEN
-		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_NEW_OID,
+		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID,
 				null, task, result);
 		
 		// THEN
@@ -1222,7 +1286,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		OperationResult result = task.getResult();
 
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_NEW_OID, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, prismContext, LockoutStatusType.NORMAL);
+				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, prismContext, LockoutStatusType.NORMAL);
 
 		// WHEN
 		provisioningService.modifyObject(ShadowType.class, delta.getOid(),
@@ -1233,7 +1297,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertSuccess(result);
 		
 		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class,
-				ACCOUNT_NEW_OID, null, taskManager.createTaskInstance(), result);
+				ACCOUNT_WILL_OID, null, taskManager.createTaskInstance(), result);
 		
 		display("Object after change",shadow);
 		
@@ -1389,8 +1453,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		final List<ShadowType> objectTypeList = new ArrayList<ShadowType>();
 
-		QueryType queryType = PrismTestUtil.parseAtomicValue(new File(
-                "src/test/resources/impl/query-filter-all-accounts.xml"), QueryType.COMPLEX_TYPE);
+		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
 		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 		
 		provisioningService.searchObjectsIterative(ShadowType.class, query, null, new ResultHandler<ShadowType>() {
@@ -1428,8 +1491,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
 		assertEquals(ACCOUNT_SEARCH_OID, addedObjectOid);
 
-		QueryType queryType = PrismTestUtil.parseAtomicValue(new File("src/test/resources/impl/query-filter-all-accounts.xml"),
-                QueryType.COMPLEX_TYPE);
+		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
 		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 		
 		rememberConnectorOperationCount();
@@ -1451,10 +1513,11 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 	@Test
 	public void test202SearchObjectsCompexFilter() throws Exception {
-		TestUtil.displayTestTile("test202SearchObjectsCompexFilter");
+		final String TEST_NAME = "test202SearchObjectsCompexFilter";
+		TestUtil.displayTestTile(TEST_NAME);
 
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
-				+ ".test202SearchObjectsCompexFilter");
+				+ "." + TEST_NAME);
 
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_COMPLEX_FILTER_FILE,
                 QueryType.COMPLEX_TYPE);
@@ -1469,12 +1532,11 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		// THEN
 		for (PrismObject<ShadowType> objType : objListType) {
-			if (objType == null) {
-				System.out.println("Object not found in repository.");
-			} else {
-				System.out.println("found object: " + objType.asObjectable().getName());
-			}
+			assertNotNull("Null search result", objType);
+			display("found object", objType);
 		}
+		
+		assertEquals("Unexpected number of objects found", 1, objListType.size());
 		
 		assertConnectorOperationIncrement(1);
 		assertConnectorSimulatedPagingSearchIncrement(0);
@@ -1487,8 +1549,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
 
-		QueryType queryType = PrismTestUtil.parseAtomicValue(new File("src/test/resources/impl/query-filter-all-accounts.xml"),
-                QueryType.COMPLEX_TYPE);
+		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
 		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 		
 		ObjectPaging paging = ObjectPaging.createPaging(null, 3);
@@ -1519,8 +1580,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
 
-		QueryType queryType = PrismTestUtil.parseAtomicValue(new File("src/test/resources/impl/query-filter-all-accounts.xml"),
-                QueryType.COMPLEX_TYPE);
+		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
 		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 		
 		ObjectPaging paging = ObjectPaging.createPaging(0, 4);
@@ -1551,8 +1611,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
 
-		QueryType queryType = PrismTestUtil.parseAtomicValue(new File("src/test/resources/impl/query-filter-all-accounts.xml"),
-                QueryType.COMPLEX_TYPE);
+		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
 		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 		
 		ObjectPaging paging = ObjectPaging.createPaging(2, 5);
@@ -1598,8 +1657,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
 
-		QueryType queryType = PrismTestUtil.parseAtomicValue(new File("src/test/resources/impl/query-filter-all-accounts.xml"),
-                QueryType.COMPLEX_TYPE);
+		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
 		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 
 		// WHEN
@@ -1675,6 +1733,187 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 	}
 	
 	@Test
+	public void test320AddAccountPosix() throws Exception {
+		final String TEST_NAME = "test320AddAccountPosix";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+				+ "." + TEST_NAME);
+
+		ShadowType object = parseObjectType(ACCOUNT_POSIX_MCMUTTON_FILE, ShadowType.class);
+		display("Adding account", object);
+
+		Task task = taskManager.createTaskInstance();
+		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, task, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		assertEquals(ACCOUNT_POSIX_MCMUTTON_OID, addedObjectOid);
+
+		ShadowType repoShadowType =  repositoryService.getObject(ShadowType.class, ACCOUNT_POSIX_MCMUTTON_OID,
+				null, result).asObjectable();
+		display("Repo shadow", repoShadowType);
+		PrismAsserts.assertEqualsPolyString("Name not equal (repo)", ACCOUNT_POSIX_MCMUTTON_DN, repoShadowType.getName());
+		assertAttribute(repoShadowType, getSecondaryIdentifierQName(), StringUtils.lowerCase(ACCOUNT_POSIX_MCMUTTON_DN));
+		MidPointAsserts.assertObjectClass(repoShadowType, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS, RESOURCE_OPENDJ_POSIX_ACCOUNT_OBJECTCLASS);
+
+		ShadowType provisioningShadowType = provisioningService.getObject(ShadowType.class, ACCOUNT_POSIX_MCMUTTON_OID,
+				null, task, result).asObjectable();
+		display("Provisioning shadow", provisioningShadowType);
+		PrismAsserts.assertEqualsPolyString("Name not equal.", ACCOUNT_POSIX_MCMUTTON_DN, provisioningShadowType.getName());
+		MidPointAsserts.assertObjectClass(provisioningShadowType, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS, RESOURCE_OPENDJ_POSIX_ACCOUNT_OBJECTCLASS);
+		assertAttribute(provisioningShadowType, "cn", "Haggis McMutton");
+		assertAttribute(provisioningShadowType, "sn", "McMutton");
+		assertAttribute(provisioningShadowType, "homeDirectory", "/home/scotland");
+		assertAttribute(provisioningShadowType, "uidNumber", "1001");
+		
+		String uid = ShadowUtil.getSingleStringAttributeValue(repoShadowType, getPrimaryIdentifierQName());
+		assertNotNull(uid);
+		
+		// Check if object was modified in LDAP
+		
+		SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(uid);			
+		display("LDAP account", entry);
+		OpenDJController.assertAttribute(entry, "cn", "Haggis McMutton");
+		OpenDJController.assertAttribute(entry, "sn", "McMutton");
+		OpenDJController.assertAttribute(entry, "uidNumber", "1001");
+		OpenDJController.assertAttribute(entry, "loginShell", "/bin/whisky");
+		OpenDJController.assertAttribute(entry, "homeDirectory", "/home/scotland");
+		
+		assertShadows(17);
+	}
+	
+	@Test
+	public void test322ModifyAccountPosix() throws Exception {
+		final String TEST_NAME = "test322ModifyAccountPosix";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+				+ "." + TEST_NAME);
+
+		ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(ACCOUNT_POSIX_MCMUTTON_CHANGE_FILE, ObjectModificationType.COMPLEX_TYPE);
+		ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, getShadowDefinition());
+		
+		display("Object change",delta);
+		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		provisioningService.modifyObject(ShadowType.class, objectChange.getOid(),
+				delta.getModifications(), null, null, taskManager.createTaskInstance(), result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		
+		ShadowType accountType = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_POSIX_MCMUTTON_OID, null, taskManager.createTaskInstance(), result).asObjectable();
+		display("Object after change",accountType);
+
+		String uid = ShadowUtil.getSingleStringAttributeValue(accountType, getPrimaryIdentifierQName());
+		assertNotNull(uid);
+		assertAttribute(accountType, "cn", "Haggis McMutton");
+		assertAttribute(accountType, "homeDirectory", "/home/caribbean");
+		assertAttribute(accountType, "roomNumber", "Barber Shop");
+		assertAttribute(accountType, "uidNumber", "1001");
+		
+		// Check if object was modified in LDAP
+		
+		SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(uid);			
+		display("LDAP account", entry);
+		OpenDJController.assertAttribute(entry, "cn", "Haggis McMutton");
+		OpenDJController.assertAttribute(entry, "homeDirectory", "/home/caribbean");
+		OpenDJController.assertAttribute(entry, "roomNumber", "Barber Shop");
+		OpenDJController.assertAttribute(entry, "uidNumber", "1001");
+				
+		assertShadows(17);
+	}
+	
+	@Test
+	public void test329DeleteAccountPosix() throws Exception {
+		final String TEST_NAME = "test329DeleteAccountPosix";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+				+ "." + TEST_NAME);
+	
+		Task task = taskManager.createTaskInstance();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		provisioningService.deleteObject(ShadowType.class, ACCOUNT_POSIX_MCMUTTON_OID, null, null, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+
+		try {
+			provisioningService.getObject(ShadowType.class, ACCOUNT_POSIX_MCMUTTON_OID, null, task, result);
+			Assert.fail("Expected exception ObjectNotFoundException, but haven't got one.");
+		} catch (ObjectNotFoundException ex) {
+			display("Expected exception", ex);
+		}
+
+		try {
+			repositoryService.getObject(ShadowType.class, ACCOUNT_POSIX_MCMUTTON_OID, null, result);
+			// objType = container.getObject();
+			Assert.fail("Expected exception, but haven't got one.");
+		} catch (ObjectNotFoundException ex) {
+			display("Expected exception", ex);
+            assertTrue(ex.getMessage().contains(ACCOUNT_POSIX_MCMUTTON_OID));
+		}
+		
+		assertShadows(16);
+	}
+	
+	/**
+	 * Search for account created directly on resource (no shadow in repo). The account has
+	 * posixAccount auxiliary object class. Provisioning should figure that out.
+	 */
+	@Test
+	public void test330SearchForPosixAccount() throws Exception {
+		final String TEST_NAME = "test330SearchForPosixAccount";
+		TestUtil.displayTestTile(TEST_NAME);
+
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+				+ "." + TEST_NAME);
+
+		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_VANHELGEN_FILE,
+                QueryType.COMPLEX_TYPE);
+		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		
+		Entry entry = openDJController.addEntryFromLdifFile(ACCOUNT_POSIX_VANHELGEN_LDIF_FILE);
+
+		rememberConnectorOperationCount();
+		rememberConnectorSimulatedPagingSearchCount();
+		
+		// WHEN
+		List<PrismObject<ShadowType>> objListType = 
+			provisioningService.searchObjects(ShadowType.class, query, null, result);
+		
+		// THEN
+		for (PrismObject<ShadowType> objType : objListType) {
+			assertNotNull("Null search result", objType);
+			display("found object", objType);
+		}
+		
+		assertEquals("Unexpected number of objects found", 1, objListType.size());
+		
+		PrismObject<ShadowType> provisioningShadow = objListType.get(0);
+		assertAttribute(provisioningShadow, "cn", "Edward Van Helgen");
+		assertAttribute(provisioningShadow, "homeDirectory", "/home/vanhelgen");
+		assertAttribute(provisioningShadow, "uidNumber", "1002");
+		
+		assertConnectorOperationIncrement(1);
+		assertConnectorSimulatedPagingSearchIncrement(0);
+	}
+	
+	// TODO: synchronization of auxiliary object classes
+
+	
+	@Test
 	public void test401ConfiguredCapabilityNoRead() throws Exception{
 		
 		OperationResult parentResult = new OperationResult("test401noReadNativeCapability");
@@ -1685,7 +1924,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		
 		try {
-			provisioningService.getObject(ShadowType.class, ACCOUNT_NEW_OID,
+			provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID,
 					null, task, parentResult);
 			AssertJUnit
 					.fail("Expected unsupported operation exception, but haven't got one.");
@@ -1705,7 +1944,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		
 		try {
-			PrismObject<ShadowType> shadow = parseObjectType(new File(ACCOUNT_NEW_FILENAME), ShadowType.class).asPrismObject();
+			PrismObject<ShadowType> shadow = parseObjectType(ACCOUNT_WILL_FILE, ShadowType.class).asPrismObject();
 			provisioningService.addObject(shadow, null, null, task, parentResult);
 			AssertJUnit
 					.fail("Expected unsupported operation exception, but haven't got one.");
@@ -1726,7 +1965,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		
 		try {
-			provisioningService.deleteObject(ShadowType.class, ACCOUNT_NEW_OID, null, null, task, parentResult);
+			provisioningService.deleteObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, task, parentResult);
 			AssertJUnit
 					.fail("Expected unsupported operation exception, but haven't got one.");
 		} catch (SystemException ex) {
@@ -1747,7 +1986,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		try {
 			PropertyDelta delta = PropertyDelta.createModificationReplaceProperty(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(resourceType.getNamespace(), "sn")), prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class), "doesnotmatter");
 			Collection modifications = MiscUtil.createCollection(delta);
-			provisioningService.modifyObject(ShadowType.class, ACCOUNT_NEW_OID, modifications, null, null, task, parentResult);
+			provisioningService.modifyObject(ShadowType.class, ACCOUNT_WILL_OID, modifications, null, null, task, parentResult);
 			AssertJUnit
 					.fail("Expected unsupported operation exception, but haven't got one.");
 		} catch (SystemException ex) {

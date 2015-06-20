@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,7 +87,7 @@ import java.util.List;
         @AuthorizationAction(actionUri = PageAdminRoles.AUTH_ROLE_ALL,
                 label = PageAdminRoles.AUTH_ROLE_ALL_LABEL,
                 description = PageAdminRoles.AUTH_ROLE_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#role",
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLE_URL,
                 label = "PageRole.auth.role.label",
                 description = "PageRole.auth.role.description")})
 public class PageRole extends PageAdminRoles implements ProgressReportingAwarePage {

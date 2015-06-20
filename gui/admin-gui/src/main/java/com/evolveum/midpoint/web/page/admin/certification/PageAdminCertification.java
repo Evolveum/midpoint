@@ -25,7 +25,7 @@ import com.evolveum.midpoint.web.page.admin.PageAdmin;
  */
 public class PageAdminCertification extends PageAdmin {
 
-    public static final String AUTH_CERTIFICATION_ALL = AuthorizationConstants.NS_AUTHORIZATION + "#certificationAll";
+    public static final String AUTH_CERTIFICATION_ALL = AuthorizationConstants.AUTZ_UI_CERTIFICATION_ALL_URL;
     public static final String AUTH_CERTIFICATION_ALL_LABEL = "PageAdminWorkItems.auth.workItemsAll.label";
     public static final String AUTH_CERTIFICATION_ALL_DESCRIPTION = "PageAdminWorkItems.auth.workItemsAll.description";
 }

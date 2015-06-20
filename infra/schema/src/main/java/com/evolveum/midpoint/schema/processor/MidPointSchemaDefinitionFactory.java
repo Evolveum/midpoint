@@ -89,6 +89,13 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 			ocDef.setDefaultInAKind(defaultInAKind);
 		}
 		
+		Boolean auxiliary = SchemaProcessorUtil.getAnnotationBooleanMarker(annotation, MidPointConstants.RA_AUXILIARY);
+		if (auxiliary == null) {
+			ocDef.setAuxiliary(false);
+		} else {
+			ocDef.setAuxiliary(auxiliary);
+		}
+		
 		String intent = null;
 		Element intentElement = SchemaProcessorUtil.getAnnotationElement(annotation, MidPointConstants.RA_INTENT);
 		if (intentElement != null) {
@@ -205,6 +212,9 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 		}
 		if (definition.isDefaultInAKind()) {
 			processor.addAnnotation(MidPointConstants.RA_DEFAULT, true, appinfo);
+		}
+		if (definition.isAuxiliary()) {
+			processor.addAnnotation(MidPointConstants.RA_AUXILIARY, true, appinfo);
 		}
 		if (definition.getIntent() != null) {
 			processor.addAnnotation(MidPointConstants.RA_INTENT, definition.getIntent(), appinfo);
