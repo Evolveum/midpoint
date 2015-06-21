@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2014 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -89,6 +89,18 @@
                 For some of them (user recomputation, import from resource) the default is 'all available objects'.
                 By setting this item it is possible to restrict the set of objects to be searched (or extend it,
                 in case of handlers that by default provide a non-empty query).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <xsd:element name="objectType" type="xsd:QName">
+        <xsd:annotation>
+            <xsd:documentation>
+                Object type to use for search queries or other operations (e.g. UserType, ShadowType)
             </xsd:documentation>
             <xsd:appinfo>
                 <a:minOccurs>0</a:minOccurs>

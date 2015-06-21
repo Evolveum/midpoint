@@ -1,6 +1,6 @@
 package com.evolveum.midpoint.testing.longtest;
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,6 +29,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
 import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.opends.server.types.Entry;
@@ -45,7 +47,9 @@ import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -104,6 +108,9 @@ public class TestLdap extends AbstractModelIntegrationTest {
 	private static final String USER_LECHUCK_NAME = "lechuck";
 	private static final String ACCOUNT_LECHUCK_NAME = "lechuck";
 	private static final String ACCOUNT_CHARLES_NAME = "charles";
+	
+    protected static final File TASK_DELETE_DUMMY_SHADOWS_FILE = new File(TEST_DIR, "task-delete-dummy-shadows.xml");
+    protected static final String TASK_DELETE_DUMMY_SHADOWS_OID = "412218e4-184b-11e5-9c9b-3c970e467874";
 	
 	// Make it at least 1501 so it will go over the 3000 entries size limit
 	private static final int NUM_LDAP_ENTRIES = 1600;
@@ -414,6 +421,50 @@ public class TestLdap extends AbstractModelIntegrationTest {
         assertEquals("Unexpected number of users", 2*NUM_LDAP_ENTRIES + 8, userCount);
     }
 
+    @Test
+    public void test900DeleteShadows() throws Exception {
+        final String TEST_NAME = "test900DeleteShadows";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+
+        Task task = taskManager.createTaskInstance(TestLdap.class.getName() + "." + TEST_NAME);
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
+        OperationResult result = task.getResult();
+        
+        rememberShadowFetchOperationCount();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        importObjectFromFile(TASK_DELETE_DUMMY_SHADOWS_FILE);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        
+        waitForTaskFinish(TASK_DELETE_DUMMY_SHADOWS_OID, false);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        
+        assertShadowFetchOperationCountIncrement(0);
+        
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_OPENDJ_OID, 
+        		new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), prismContext);
+        
+        final MutableInt count = new MutableInt(0);
+        ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
+			@Override
+			public boolean handle(PrismObject<ShadowType> shadow, OperationResult parentResult) {
+				count.increment();
+				display("Found",shadow);
+				return true;
+			}
+		};		
+		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
+		modelService.searchObjectsIterative(ShadowType.class, query, handler, options, task, result);
+        assertEquals("Unexpected number of search results", 0, count.getValue());
+    }
+    
     private void loadEntries(String prefix) throws LDIFException, IOException {
         long ldapPopStart = System.currentTimeMillis();
         
