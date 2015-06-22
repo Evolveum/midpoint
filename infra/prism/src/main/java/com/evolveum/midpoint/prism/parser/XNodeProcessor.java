@@ -524,7 +524,8 @@ public class XNodeProcessor {
                     throw e;
                 } else {
                     // just skip the value
-                    LoggingUtils.logException(LOGGER, "Couldn't parse primitive value of type {}. Value: {}", e, typeName, xprim.getStringValue());
+                    LoggingUtils.logException(LOGGER, "Couldn't parse primitive value of type {}. Value: {}.\nDefinition: {}",
+                            e, typeName, xprim.getStringValue(), def != null ? def.debugDump() : "(null)");
                     return null;
                 }
             }
