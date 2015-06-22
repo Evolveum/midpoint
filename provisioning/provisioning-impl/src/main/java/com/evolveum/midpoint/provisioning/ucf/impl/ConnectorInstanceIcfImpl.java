@@ -3025,4 +3025,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return connectorType.toString() + ": " + description;
 	}
 
+	@Override
+	public void dispose() {
+		// Nothing to do
+	}
+
 }

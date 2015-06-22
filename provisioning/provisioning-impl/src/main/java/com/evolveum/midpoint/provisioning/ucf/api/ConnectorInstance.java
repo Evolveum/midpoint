@@ -306,5 +306,8 @@ public interface ConnectorInstance {
 	
 	// Maybe this should be moved to ConnectorManager? In that way it can also test connector instantiation.
 	public void test(OperationResult parentResult);
+
+
+	public void dispose();
 	
 }

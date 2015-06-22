@@ -96,4 +96,6 @@ public interface ConnectorFactory {
      * @return
      */
     String getFrameworkVersion();
+
+	void shutdown();
 }
