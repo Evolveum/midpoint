@@ -57,6 +57,7 @@ import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
 import org.identityconnectors.framework.spi.Configuration;
 import org.identityconnectors.framework.spi.Connector;
 import org.identityconnectors.framework.spi.ConnectorClass;
+import org.identityconnectors.framework.spi.PoolableConnector;
 import org.identityconnectors.framework.spi.operations.AuthenticateOp;
 import org.identityconnectors.framework.spi.operations.CreateOp;
 import org.identityconnectors.framework.spi.operations.DeleteOp;
@@ -96,7 +97,7 @@ import com.evolveum.icf.dummy.resource.SchemaViolationException;
  */
 @ConnectorClass(displayNameKey = "UI_CONNECTOR_NAME",
 configurationClass = DummyConfiguration.class)
-public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernameOp, CreateOp, DeleteOp, SchemaOp,
+public class DummyConnector implements PoolableConnector, AuthenticateOp, ResolveUsernameOp, CreateOp, DeleteOp, SchemaOp,
         ScriptOnConnectorOp, ScriptOnResourceOp, SearchOp<Filter>, SyncOp, TestOp, UpdateAttributeValuesOp {
 	
 	// We want to see if the ICF framework logging works properly
@@ -159,7 +160,9 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         	});
         }
         
-        log.info("Dummy resource instance {0}", resource);
+        resource.connect();
+        
+        log.info("Connected to dummy resource instance {0} ({1} connections open)", resource, resource.getConnectionCount());
     }
 
     /**
@@ -168,7 +171,14 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      * @see Connector#dispose()
      */
     public void dispose() {
+    	resource.disconnect();
+    	log.info("Disconnected from dummy resource instance {0} ({1} connections still open)", resource, resource.getConnectionCount());
     }
+    
+    @Override
+	public void checkAlive() {
+		// notthig to do. always alive.
+	}
 
     /******************
      * SPI Operations

@@ -49,6 +49,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
@@ -207,6 +208,11 @@ public class TestDummy extends AbstractDummyTest {
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 //		InternalMonitor.setTraceConnectorOperation(true);
+	}
+	
+	@AfterClass
+	public static void assertCleanShutdown() throws Exception {
+		dummyResource.assertNoConnections();
 	}
 
 	@Test
@@ -4528,13 +4534,12 @@ public class TestDummy extends AbstractDummyTest {
 	}
 
 	@Test
-	public void test901FailResourceNotFound() throws FileNotFoundException, JAXBException,
-			ObjectAlreadyExistsException, SchemaException, CommunicationException, ObjectNotFoundException,
-			ConfigurationException, SecurityViolationException {
-		TestUtil.displayTestTile("test901FailResourceNotFound");
+	public void test901FailResourceNotFound() throws Exception {
+		final String TEST_NAME = "test901FailResourceNotFound";
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ ".test901FailResourceNotFound");
+				+ "." + TEST_NAME);
 
 		// WHEN
 		try {
@@ -4551,6 +4556,19 @@ public class TestDummy extends AbstractDummyTest {
 		TestUtil.assertFailure(result);
 		
 		assertSteadyResource();
+	}
+	
+	
+	@Test
+	public void test999Shutdown() throws Exception {
+		final String TEST_NAME = "test999Shutdown";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// WHEN
+		provisioningService.shutdown();
+		
+		// THEN
+		dummyResource.assertNoConnections();
 	}
 	
 	private void checkAccountShadow(ShadowType shadow, OperationResult parentResult) throws SchemaException {
