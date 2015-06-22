@@ -44,6 +44,7 @@ import org.identityconnectors.common.Version;
 import org.identityconnectors.common.security.Encryptor;
 import org.identityconnectors.common.security.EncryptorFactory;
 import org.identityconnectors.common.security.GuardedString;
+import org.identityconnectors.framework.api.ConnectorFacadeFactory;
 import org.identityconnectors.framework.api.ConnectorInfo;
 import org.identityconnectors.framework.api.ConnectorInfoManager;
 import org.identityconnectors.framework.api.ConnectorInfoManagerFactory;
@@ -797,6 +798,11 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		apiOpMap.put("validate", ValidateApiOp.class);
 		apiOpMap.put("sync", SyncApiOp.class);
 		apiOpMap.put("schema", SchemaApiOp.class);
+	}
+
+	@Override
+	public void shutdown() {
+		ConnectorFacadeFactory.getInstance().dispose();
 	}
 
 }

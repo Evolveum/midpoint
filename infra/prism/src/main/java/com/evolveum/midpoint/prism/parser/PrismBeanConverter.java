@@ -38,6 +38,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.exception.TunnelException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -83,9 +84,17 @@ public class PrismBeanConverter {
 	
 	private PrismContext prismContext;
 
-	public PrismBeanConverter(PrismContext prismContext) {
+	// Not fully implemented yet.
+	private XNodeProcessorEvaluationMode mode;
+
+	public PrismBeanConverter(PrismContext prismContext, PrismBeanInspector inspector) {
+		this(prismContext, inspector, XNodeProcessorEvaluationMode.STRICT);
+	}
+
+	public PrismBeanConverter(PrismContext prismContext, PrismBeanInspector inspector, XNodeProcessorEvaluationMode mode) {
 		this.prismContext = prismContext;
-        this.inspector = new PrismBeanInspector(prismContext);
+		this.inspector = inspector;
+		this.mode = mode;
 	}
 	
 	public PrismContext getPrismContext() {
@@ -375,22 +384,35 @@ public class PrismBeanConverter {
 					paramType = explicitParamType; 
 				}
 			}
-			
+
+			boolean problem = false;
 			Object propValue = null;
 			Collection<Object> propValues = null;
 			if (xsubnode instanceof ListXNode) {
 				ListXNode xlist = (ListXNode)xsubnode;
 				if (setter != null) {
-					propValue = convertSinglePropValue(xsubnode, fieldName, paramType, storeAsRawType, beanClass, paramNamespace);
+					try {
+						propValue = convertSinglePropValue(xsubnode, fieldName, paramType, storeAsRawType, beanClass, paramNamespace);
+					} catch (SchemaException e) {
+						problem = processSchemaException(e, xsubnode);
+					}
 				} else {
 					// No setter, we have to use collection getter
 					propValues = new ArrayList<>(xlist.size());
-					for(XNode xsubsubnode: xlist) {
-						propValues.add(convertSinglePropValue(xsubsubnode, fieldName, paramType, storeAsRawType, beanClass, paramNamespace));
+					for (XNode xsubsubnode: xlist) {
+						try {
+							propValues.add(convertSinglePropValue(xsubsubnode, fieldName, paramType, storeAsRawType, beanClass, paramNamespace));
+						} catch (SchemaException e) {
+							problem = processSchemaException(e, xsubsubnode);
+						}
 					}
 				}
 			} else {
-				propValue = convertSinglePropValue(xsubnode, fieldName, paramType, storeAsRawType, beanClass, paramNamespace);
+				try {
+					propValue = convertSinglePropValue(xsubnode, fieldName, paramType, storeAsRawType, beanClass, paramNamespace);
+				} catch (SchemaException e) {
+					problem = processSchemaException(e, xsubnode);
+				}
 			}
 			
 			if (setter != null) {
@@ -418,9 +440,10 @@ public class PrismBeanConverter {
 					for (Object propVal: propValues) {
 						col.add(prepareValueToBeStored(propVal, wrapInJaxbElement, objectFactory, elementMethod, propName, beanClass));
 					}
-				} else {
+				} else if (!problem) {
 					throw new IllegalStateException("Strange. Multival property "+propName+" in "+beanClass+" produced null values list, parsed from "+xnode);
 				}
+				checkJaxbElementConsistence(col);
 			} else {
 				throw new IllegalStateException("Uh? No setter nor getter.");
 			}
@@ -431,6 +454,51 @@ public class PrismBeanConverter {
 		}
 		
 		return bean;
+	}
+
+	/*
+	 *  We want to avoid this:
+	 *    <expression>
+     *      <script>
+     *        <code>'up'</code>
+     *      </script>
+     *      <value>up</value>
+     *    </expression>
+     *
+     *  Because it cannot be reasonably serialized in XNode (<value> gets changed to <script>).
+	 */
+	private void checkJaxbElementConsistence(Collection<Object> collection) throws SchemaException {
+		QName elementName = null;
+		for (Object object : collection) {
+			if (!(object instanceof JAXBElement)) {
+				continue;
+			}
+			JAXBElement element = (JAXBElement) object;
+			if (elementName == null) {
+				elementName = element.getName();
+			} else {
+				if (!QNameUtil.match(elementName, element.getName())) {
+					String m = "Mixing incompatible element names in one property: "
+							+ elementName + " and " + element.getName();
+					if (mode != XNodeProcessorEvaluationMode.COMPAT) {
+						throw new SchemaException(m);
+					} else {
+						LOGGER.warn("{}", m);
+					}
+				}
+			}
+		}
+	}
+
+	protected boolean processSchemaException(SchemaException e, XNode xsubnode) throws SchemaException {
+		boolean problem;
+		if (mode != XNodeProcessorEvaluationMode.COMPAT) {
+            throw e;
+        } else {
+            LoggingUtils.logException(LOGGER, "Couldn't parse part of the document. It will be ignored. Document part:\n{}", e, xsubnode);
+            problem = true;
+        }
+		return problem;
 	}
 
 	private <T,S> void unmarshallToAny(T bean, Field anyField, QName elementName, XNode xsubnode) throws SchemaException{
@@ -624,7 +692,7 @@ public class PrismBeanConverter {
 		}
 		
 		if (!classType.isEnum()) {
-			throw new SystemException("Cannot convert primitive value to non-enum bean of type "+classType);
+			throw new SchemaException("Cannot convert primitive value to non-enum bean of type " + classType);
 		}
 		// Assume string, maybe TODO extend later
 		String primValue = (String) xprim.getParsedValue(DOMUtil.XSD_STRING);

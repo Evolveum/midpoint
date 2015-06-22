@@ -137,6 +137,12 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 		if (javaReturnType == null) {
 			javaReturnType = prismContext.getSchemaRegistry().getCompileTimeClass(xsdReturnType);
 		}
+
+		if (javaReturnType == null) {
+			// TODO quick and dirty hack - because this could be because of enums defined in schema extension (MID-2399)
+			// ...and enums (xsd:simpleType) are not parsed into ComplexTypeDefinitions
+			javaReturnType = (Class) String.class;
+		}
         
 		List<V> pvals = new ArrayList<V>();
 		

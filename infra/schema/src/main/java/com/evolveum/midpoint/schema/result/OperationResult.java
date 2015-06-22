@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,17 +19,13 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.Map.Entry;
 
-import javax.xml.bind.JAXBElement;
-
 import com.evolveum.midpoint.prism.util.CloneUtil;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ParamsTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -39,14 +35,9 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizedMessageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ParamsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UnknownJavaObjectType;
 
 /**
  * Nested Operation Result.
@@ -310,6 +301,19 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 			}
 		}
 		return null;
+	}
+	
+	public List<OperationResult> findSubresults(String operation) {
+		List<OperationResult> found = new ArrayList<>();
+		if (subresults == null) {
+			return found;
+		}
+		for (OperationResult subResult: getSubresults()) {
+			if (operation.equals(subResult.getOperation())) {
+				found.add(subResult);
+			}
+		}
+		return found;
 	}
 
 	/**
@@ -967,10 +971,14 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		String localizedMessage = message == null ? null : message.getKey();
 		List<Serializable> localizedArguments = message == null ? null : (List<Serializable>) (List) message.getArgument();         // FIXME: brutal hack
 
-		return new OperationResult(result.getOperation(), params, context, returns, 
+		OperationResult opResult = new OperationResult(result.getOperation(), params, context, returns, 
 				OperationResultStatus.parseStatusType(result.getStatus()), result.getToken(),
 				result.getMessageCode(), result.getMessage(), localizedMessage, localizedArguments, null,
 				subresults);
+		if (result.getCount() != null) {
+			opResult.setCount(result.getCount());
+		}
+		return opResult;
 	}
 
 	public OperationResultType createOperationResultType() {
@@ -981,6 +989,9 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		OperationResultType result = new OperationResultType();
 		result.setToken(opResult.getToken());
 		result.setStatus(OperationResultStatus.createStatusType(opResult.getStatus()));
+		if (opResult.getCount() != 1) {
+			result.setCount(opResult.getCount());
+		}
 		result.setOperation(opResult.getOperation());
 		result.setMessage(opResult.getMessage());
 		result.setMessageCode(opResult.getMessageCode());
@@ -1205,6 +1216,9 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		OperationResult similar = null;
 		for (OperationResult sub: getSubresults()) {
 			if (sub == subresult) {
+				continue;
+			}
+			if (!sub.operation.equals(subresult.operation)) {
 				continue;
 			}
 			if (sub.status != subresult.status) {

@@ -91,7 +91,7 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue> {
 
     // beware, creating reference with (oid, ObjectType) may result in not matching a concrete reference of e.g. (oid, RoleType)
 	public static <O extends Containerable> RefFilter createReferenceEqual(QName propertyName, Class<O> type, PrismContext prismContext,
-			String... oids) throws SchemaException {
+			String... oids) {
 		ItemPath path = new ItemPath(propertyName);
 		PrismReferenceDefinition refDefinition = (PrismReferenceDefinition) findItemDefinition(path, type, prismContext);
 		return createReferenceEqual(path, refDefinition, oids);

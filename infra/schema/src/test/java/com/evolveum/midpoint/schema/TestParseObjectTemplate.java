@@ -51,6 +51,7 @@ import java.io.IOException;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.fail;
 
 /**
  * @author semancik
@@ -61,6 +62,7 @@ public class TestParseObjectTemplate {
 	public static final File TEST_DIR = new File("src/test/resources/object-template");
 	private static final File OBJECT_TEMPLATE_FILE = new File(TEST_DIR, "object-template.xml");
 	private static final File USER_TEMPLATE_FILE = new File(TEST_DIR, "user-template.xml");
+	private static final File WRONG_TEMPLATE_FILE = new File(TEST_DIR, "wrong-template.xml");
 	
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
@@ -71,16 +73,39 @@ public class TestParseObjectTemplate {
 	
 	@Test
 	public void testParseObjectTemplateFile() throws Exception {
-		roundTrip("testParseObjectTemplateFile", OBJECT_TEMPLATE_FILE, 
+		roundTrip("testParseObjectTemplateFile", OBJECT_TEMPLATE_FILE,
 				new QName(SchemaConstantsGenerated.NS_COMMON, "objectTemplate"));
 	}
 	
 	@Test
 	public void testParseUserTemplateFile() throws Exception {
-		roundTrip("testParseUserTemplateFile", USER_TEMPLATE_FILE, 
+		roundTrip("testParseUserTemplateFile", USER_TEMPLATE_FILE,
 				new QName(SchemaConstantsGenerated.NS_COMMON, "userTemplate"));
 	}
-	
+
+	@Test
+	public void testParseWrongTemplateFile() throws Exception {
+		final String TEST_NAME = "testParseWrongTemplateFile";
+		File file = WRONG_TEMPLATE_FILE;
+
+		System.out.println("===[ "+TEST_NAME+" ]===");
+
+		// GIVEN
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+
+		// WHEN
+		try {
+			PrismObject<ObjectTemplateType> object = prismContext.parseObject(file);
+			System.out.println("Parsed object - SHOULD NOT OCCUR:");
+			System.out.println(object.debugDump());
+			fail("Object was successfully parsed while it should not!");
+		}
+		// THEN
+		catch (SchemaException e) {
+			// ok
+		}
+	}
+
 	private void roundTrip(final String TEST_NAME, File file, QName elementName) throws Exception {
 		System.out.println("===[ "+TEST_NAME+" ]===");
 

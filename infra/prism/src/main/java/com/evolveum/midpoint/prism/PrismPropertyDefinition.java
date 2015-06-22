@@ -158,6 +158,9 @@ public class PrismPropertyDefinition<T> extends ItemDefinition<PrismProperty<T>>
 		if (indexed != null && indexed) {
 			sb.append(",I");
 		}
+		if (allowedValues != null && !allowedValues.isEmpty()) {
+			sb.append(",AVals:").append(allowedValues.size());
+		}
 	}
     
     @Override

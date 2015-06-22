@@ -488,4 +488,6 @@ public interface ProvisioningService {
 
 	void exitConstraintsCheckerCache();
 
+	public void shutdown();
+
 }

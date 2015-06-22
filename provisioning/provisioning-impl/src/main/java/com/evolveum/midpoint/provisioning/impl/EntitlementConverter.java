@@ -711,10 +711,7 @@ class EntitlementConverter {
 					currentObjectShadow = resourceObjectReferenceResolver.fetchResourceObject(entitlementCtx, identifiers, null, result);
 					operations.setCurrentShadow(currentObjectShadow);
 				}
-				LOGGER.info("Delta before narrow:\n{}", attributeDelta.debugDump());
-				LOGGER.info("currentObjectShadow:\n{}", currentObjectShadow==null?"null":currentObjectShadow.debugDump());
 				attributeDelta = ProvisioningUtil.narrowPropertyDelta(attributeDelta, currentObjectShadow, matchingRuleRegistry);
-				LOGGER.info("Delta after narrow:\n{}", attributeDelta.debugDump());
 			}
 			
 			if (attributeDelta != null && !attributeDelta.isEmpty()) {

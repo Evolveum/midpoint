@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -1416,6 +1417,11 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		result.computeStatus("Provisioning post-initialization failed");
 		result.cleanupResult();
+	}
+	
+	@PreDestroy
+    public void shutdown() {
+		connectorManager.shutdown();
 	}
 
 	@Override

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2014 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -96,6 +96,18 @@
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
+    
+    <xsd:element name="objectType" type="xsd:QName">
+        <xsd:annotation>
+            <xsd:documentation>
+                Object type to use for search queries or other operations (e.g. UserType, ShadowType)
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
 
     <xsd:element name="workerThreads" type="xsd:int">
         <xsd:annotation>
@@ -174,6 +186,17 @@
         </xsd:annotation>
     </xsd:element>
 
+    <xsd:element name="optionRaw" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                Raw option for some operations (e.g. bulk delete task)
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+    
 </xsd:schema>
 
 
