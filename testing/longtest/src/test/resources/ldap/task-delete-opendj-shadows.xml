@@ -31,7 +31,7 @@
 			<q:filter>
 				<q:and>
 					<q:ref>
-                        <q:path>i:resourceRef</q:path>
+                        <q:path>resourceRef</q:path>
                         <q:value>
                                 <oid>10000000-0000-0000-0000-000000000003</oid>
                         </q:value>

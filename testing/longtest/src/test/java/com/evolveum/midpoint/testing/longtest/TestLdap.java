@@ -63,6 +63,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -109,8 +110,8 @@ public class TestLdap extends AbstractModelIntegrationTest {
 	private static final String ACCOUNT_LECHUCK_NAME = "lechuck";
 	private static final String ACCOUNT_CHARLES_NAME = "charles";
 	
-    protected static final File TASK_DELETE_DUMMY_SHADOWS_FILE = new File(TEST_DIR, "task-delete-dummy-shadows.xml");
-    protected static final String TASK_DELETE_DUMMY_SHADOWS_OID = "412218e4-184b-11e5-9c9b-3c970e467874";
+    protected static final File TASK_DELETE_OPENDJ_SHADOWS_FILE = new File(TEST_DIR, "task-delete-opendj-shadows.xml");
+    protected static final String TASK_DELETE_OPENDJ_SHADOWS_OID = "412218e4-184b-11e5-9c9b-3c970e467874";
 	
 	// Make it at least 1501 so it will go over the 3000 entries size limit
 	private static final int NUM_LDAP_ENTRIES = 1600;
@@ -436,12 +437,12 @@ public class TestLdap extends AbstractModelIntegrationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        importObjectFromFile(TASK_DELETE_DUMMY_SHADOWS_FILE);
+        importObjectFromFile(TASK_DELETE_OPENDJ_SHADOWS_FILE);
 		
         // THEN
         TestUtil.displayThen(TEST_NAME);
         
-        waitForTaskFinish(TASK_DELETE_DUMMY_SHADOWS_OID, false);
+        waitForTaskFinish(TASK_DELETE_OPENDJ_SHADOWS_OID, false);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -463,6 +464,10 @@ public class TestLdap extends AbstractModelIntegrationTest {
 		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
 		modelService.searchObjectsIterative(ShadowType.class, query, handler, options, task, result);
         assertEquals("Unexpected number of search results", 0, count.getValue());
+        
+        PrismObject<TaskType> finishedDeleteTask = getTask(TASK_DELETE_OPENDJ_SHADOWS_OID);
+        // TODO: check result, check summarization
+        
     }
     
     private void loadEntries(String prefix) throws LDIFException, IOException {
