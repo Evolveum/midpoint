@@ -253,7 +253,7 @@ public class TestUnix extends AbstractStoryTest {
     public void test100AddUserHermanBasic() throws Exception {
 		final String TEST_NAME = "test100AddHrAccountHerman";
         TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = createUser(USER_HERMAN_USERNAME, USER_HERMAN_FIST_NAME, USER_HERMAN_LAST_NAME, null, ROLE_BASIC_OID);
@@ -264,6 +264,8 @@ public class TestUnix extends AbstractStoryTest {
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
         PrismObject<UserType> userAfter = findUserByUsername(USER_HERMAN_USERNAME);
         assertNotNull("No herman user", userAfter);
         display("User after", userAfter);
@@ -279,7 +281,7 @@ public class TestUnix extends AbstractStoryTest {
     public void test110AddUserMancombUnix() throws Exception {
 		final String TEST_NAME = "test110AddUserMancombUnix";
         TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = createUser(USER_MANCOMB_USERNAME, USER_MANCOMB_FIST_NAME, USER_MANCOMB_LAST_NAME, 1001, ROLE_UNIX_OID);
@@ -290,6 +292,8 @@ public class TestUnix extends AbstractStoryTest {
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
         PrismObject<UserType> userAfter = findUserByUsername(USER_MANCOMB_USERNAME);
         assertNotNull("No herman user", userAfter);
         display("User after", userAfter);

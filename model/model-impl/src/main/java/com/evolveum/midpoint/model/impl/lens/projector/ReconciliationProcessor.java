@@ -39,6 +39,7 @@ import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.model.impl.lens.ItemValueWithOrigin;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
@@ -286,7 +287,7 @@ public class ReconciliationProcessor {
 
 			boolean hasValue = false;
 			for (ItemValueWithOrigin<? extends PrismPropertyValue<?>,PrismPropertyDefinition<?>> shouldBePvwo : shouldBePValues) {
-				Mapping<?,?> shouldBeMapping = shouldBePvwo.getMapping();
+				PrismValueDeltaSetTripleProducer<?,?> shouldBeMapping = shouldBePvwo.getMapping();
 				if (shouldBeMapping == null) {
 					continue;
 				}
@@ -422,7 +423,7 @@ public class ReconciliationProcessor {
 				for (ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> shouldBeCValue : shouldBeCValues) {
 					sb.append("\n    ");
 					sb.append(shouldBeCValue.getItemValue());
-					Mapping<?,?> shouldBeMapping = shouldBeCValue.getMapping();
+					PrismValueDeltaSetTripleProducer<?,?> shouldBeMapping = shouldBeCValue.getMapping();
 					if (shouldBeMapping.getStrength() == MappingStrengthType.STRONG) {
 						sb.append(" STRONG");
 					}
@@ -494,7 +495,7 @@ public class ReconciliationProcessor {
             };
 
             for (ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> shouldBeCvwo : shouldBeCValues) {
-                Mapping<?,?> shouldBeMapping = shouldBeCvwo.getMapping();
+            	PrismValueDeltaSetTripleProducer<?,?> shouldBeMapping = shouldBeCvwo.getMapping();
                 if (shouldBeMapping == null) {
                     continue;
                 }

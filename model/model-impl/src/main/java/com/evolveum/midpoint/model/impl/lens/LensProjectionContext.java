@@ -170,6 +170,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     
     private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes;
     private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> squeezedAssociations;
+    private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>>>> squeezedAuxiliaryObjectClasses;
     
     // Cached copy, to avoid constructing it over and over again
     private transient PrismObjectDefinition<ShadowType> shadowDefinition = null;
@@ -479,6 +480,15 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	public void setSqueezedAssociations(
 			Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> squeezedAssociations) {
 		this.squeezedAssociations = squeezedAssociations;
+	}
+
+	public Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>>> getSqueezedAuxiliaryObjectClasses() {
+		return squeezedAuxiliaryObjectClasses;
+	}
+
+	public void setSqueezedAuxiliaryObjectClasses(
+			Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>>> squeezedAuxiliaryObjectClasses) {
+		this.squeezedAuxiliaryObjectClasses = squeezedAuxiliaryObjectClasses;
 	}
 
 	public ResourceObjectTypeDefinitionType getResourceObjectTypeDefinitionType() {

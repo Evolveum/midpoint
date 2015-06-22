@@ -100,19 +100,6 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
 		}
 	}
 
-	private V getAnyValue() {
-		if (zeroSet != null && !zeroSet.isEmpty()) {
-			return zeroSet.iterator().next();
-		}
-		if (plusSet != null && !plusSet.isEmpty()) {
-			return plusSet.iterator().next();
-		}
-		if (minusSet != null && !minusSet.isEmpty()) {
-			return minusSet.iterator().next();
-		}
-		return null;
-	}
-	
 	public boolean isRaw() {
 		return (isRaw(zeroSet) || isRaw(plusSet) || isRaw(minusSet));
 	}

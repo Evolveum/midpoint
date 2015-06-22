@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015 Evolveum
+ * Copyright (c) 2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.model.impl.lens.projector;
+package com.evolveum.midpoint.model.common.mapping;
 
-import java.util.Collection;
+import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.common.mapping.Mapping;
-import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
-import com.evolveum.midpoint.model.impl.lens.Construction;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
 
-public interface MappingExtractor<V extends PrismValue, D extends ItemDefinition, F extends FocusType> {
+public interface PrismValueDeltaSetTripleProducer<V extends PrismValue, D extends ItemDefinition> {
 
-	Collection<? extends PrismValueDeltaSetTripleProducer<V,D>> getMappings(Construction<F> construction);
+	QName getMappingQName();
+
+	PrismValueDeltaSetTriple<V> getOutputTriple();
 	
-	
+	MappingStrengthType getStrength();
+
+	PrismValueDeltaSetTripleProducer<V, D> clone();
+
+	boolean isExclusive();
+
+	boolean isAuthoritative(); 
+
 }
