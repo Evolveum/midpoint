@@ -23,6 +23,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.util.JAXBUtil;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.commons.lang.StringUtils;
@@ -70,6 +73,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
 public class XNodeProcessor {
+
+    private static final Trace LOGGER = TraceManager.getTrace(XNodeProcessor.class);
 
     public static final String ARTIFICIAL_OBJECT_NAME = "anObject";
 
@@ -462,7 +467,7 @@ public class XNodeProcessor {
         if (xnode instanceof PrimitiveXNode<?>) {
             return parseAtomicValueFromPrimitive((PrimitiveXNode<T>) xnode, propertyDef, propertyDef.getTypeName());
         } else if (xnode instanceof MapXNode) {
-            return parsePrismPropertyRealValueFromMap((MapXNode)xnode, null, propertyDef);
+            return parsePrismPropertyRealValueFromMap((MapXNode) xnode, null, propertyDef);
         } else {
             throw new IllegalArgumentException("Cannot parse property value from "+xnode);
         }
@@ -506,12 +511,23 @@ public class XNodeProcessor {
         				throw new SchemaException("Illegal value found in property "+xprim+". Allowed values are: "+  def.getAllowedValues());
         			} else {
         				// just skip the value
+                        LOGGER.error("Skipping unknown value of type {}. Value: {}", typeName, xprim.getStringValue());
         				return null;
         			}
         		}
         	
         } else {
-            realValue = xprim.getParsedValue(typeName);
+            try {
+                realValue = xprim.getParsedValue(typeName);
+            } catch (SchemaException e) {
+                if (isStrict()) {
+                    throw e;
+                } else {
+                    // just skip the value
+                    LoggingUtils.logException(LOGGER, "Couldn't parse primitive value of type {}. Value: {}", e, typeName, xprim.getStringValue());
+                    return null;
+                }
+            }
         }
 
         if (realValue == null) {
