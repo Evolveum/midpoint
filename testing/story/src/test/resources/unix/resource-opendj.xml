@@ -28,7 +28,7 @@
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
           xmlns:func="http://midpoint.evolveum.com/xml/ns/public/function/basic-3"
-          xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext">
+          xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/unix/ext">
 
     <name>Embedded Test OpenDJ</name>
 
@@ -48,7 +48,7 @@
 			<icfcldap:port>10389</icfcldap:port>
 			<icfcldap:host>localhost</icfcldap:host>
 			<icfcldap:baseContext>dc=example,dc=com</icfcldap:baseContext>
-			<icfcldap:bindDn>cn=directory manager</icfcldap:bindDn>
+			<icfcldap:bindDn>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:bindDn>
 			<icfcldap:bindPassword><t:clearValue>secret</t:clearValue></icfcldap:bindPassword>
 			<icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
 			<icfcldap:vlvSortAttribute>entryUUID</icfcldap:vlvSortAttribute>
@@ -72,7 +72,6 @@
             <displayName>Default Account</displayName>
             <default>true</default>
             <objectClass>ri:inetOrgPerson</objectClass>
-            <auxiliaryObjectClass>posixAccount</auxiliaryObjectClass>
             <attribute>
                 <ref>ri:dn</ref>
                 <displayName>Distinguished Name</displayName>
@@ -272,12 +271,12 @@
         	<kind>entitlement</kind>
             <intent>unixGroup</intent>
             <displayName>UNIX Group</displayName>
-            <objectClass>ri:posixGroup</objectClass>
+            <objectClass>ri:groupOfNames</objectClass>
+            <auxiliaryObjectClass>ri:posixGroup</auxiliaryObjectClass>
             <attribute>
                 <ref>ri:dn</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
-                    <!-- Name cannot be weak. Changes in name trigger object rename. -->
 					<source>
 						<path>$focus/name</path>
 					</source>
@@ -299,8 +298,6 @@
                 <ref>ri:cn</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
-                	<!-- This MUST be weak in case of OpenDJ. If DN (name) is changed then the uid will be changed
-                	     as a side-effect as it is a naming attribute. -->
                 	<strength>weak</strength>
                 	<source>
                 		<path>$focus/name</path>
@@ -316,7 +313,7 @@
                 	</source>
                 </outbound>
             </attribute>
-            <attribute>
+<!--              <attribute>
                 <ref>ri:gidNumber</ref>
                 <outbound>
                 	<strength>strong</strength>
@@ -324,8 +321,8 @@
                 		<path>extension/gidNumber</path>
                 	</source>
                 </outbound>
-            </attribute>        
-    	</objectType>
+            </attribute>  -->        
+    	</objectType>  
         
     </schemaHandling>
 

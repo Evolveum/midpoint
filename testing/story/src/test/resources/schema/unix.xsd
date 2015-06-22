@@ -16,7 +16,7 @@
   ~ limitations under the License.
   -->
 <xsd:schema elementFormDefault="qualified"
-            targetNamespace="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext"
+            targetNamespace="http://midpoint.evolveum.com/xml/ns/story/unix/ext"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema">

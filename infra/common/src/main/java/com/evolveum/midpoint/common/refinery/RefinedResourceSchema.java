@@ -405,6 +405,13 @@ public class RefinedResourceSchema extends ResourceSchema implements DebugDumpab
 		parseObjectTypesFromSchema(rSchema, resourceType, prismContext, 
 				"definition of "+resourceType);
 		
+		// We need to parse associations and auxiliary object classes in a second pass. We need to have all object classes parsed before correctly setting association
+		// targets
+		for (RefinedObjectClassDefinition rOcDef: rSchema.getRefinedDefinitions()) {
+			rOcDef.parseAssociations(rSchema);
+			rOcDef.parseAuxiliaryObjectClasses(rSchema);
+		}
+		
 		return rSchema;
 	}
 
@@ -441,13 +448,6 @@ public class RefinedResourceSchema extends ResourceSchema implements DebugDumpab
 			}
 				
 			rSchema.add(rOcDef);
-		}
-		
-		// We need to parse associations and auxiliary object classes in a second pass. We need to have all object classes parsed before correctly setting association
-		// targets
-		for (RefinedObjectClassDefinition rOcDef: rSchema.getRefinedDefinitions()) {
-			rOcDef.parseAssociations(rSchema);
-			rOcDef.parseAuxiliaryObjectClasses(rSchema);
 		}
 	}
 

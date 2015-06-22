@@ -1497,6 +1497,25 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return user;
 	}
 	
+	protected PrismObject<UserType> createUser(String name, String givenName, String familyName, Boolean enabled) throws SchemaException {
+		PrismObject<UserType> user = getUserDefinition().instantiate();
+		UserType userType = user.asObjectable();
+		userType.setName(PrismTestUtil.createPolyStringType(name));
+		userType.setGivenName(PrismTestUtil.createPolyStringType(givenName));
+		userType.setFamilyName(PrismTestUtil.createPolyStringType(familyName));
+		userType.setFullName(PrismTestUtil.createPolyStringType(givenName + " " + familyName));
+		if (enabled != null) {
+			ActivationType activation = new ActivationType();
+			userType.setActivation(activation);
+			if (enabled) {
+				activation.setAdministrativeStatus(ActivationStatusType.ENABLED);
+			} else {
+				activation.setAdministrativeStatus(ActivationStatusType.DISABLED);
+			}
+		}
+		return user;
+	}
+	
 	protected void fillinUser(PrismObject<UserType> user, String name, String fullName) {
 		user.asObjectable().setName(PrismTestUtil.createPolyStringType(name));
 		user.asObjectable().setFullName(PrismTestUtil.createPolyStringType(fullName));
