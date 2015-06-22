@@ -252,6 +252,7 @@ public abstract class Definition implements Serializable, DebugDumpable, Revivab
         clone.documentation = this.documentation;
         clone.isAbstract = this.isAbstract;
         clone.deprecated = this.deprecated;
+		clone.isRuntimeSchema = this.isRuntimeSchema;
     }
 	
 	@Override
