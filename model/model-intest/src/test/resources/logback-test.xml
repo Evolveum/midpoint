@@ -74,6 +74,7 @@
     <logger name="com.evolveum.midpoint.model.impl.controller.ModelController" level="DEBUG" />
     <logger name="com.evolveum.icf.dummy" level="INFO" />
     <logger name="com.evolveum.midpoint.model.impl.expr" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.model.impl.util.DeleteTaskHandler" level="TRACE" />
     
     <logger name="com.evolveum.midpoint.security.impl.SecurityEnforcerImpl" level="DEBUG" />
     

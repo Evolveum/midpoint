@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.mutable.MutableInt;
+import org.opends.messages.TaskMessages;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -43,18 +45,24 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
 import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskResultListener;
 import com.evolveum.midpoint.model.impl.util.DebugReconciliationTaskResultListener;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -175,6 +183,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
 	protected static final File TASK_RECONCILE_DUMMY_LIME_FILE = new File(TEST_DIR, "task-reconcile-dummy-lime.xml");
 	protected static final String TASK_RECONCILE_DUMMY_LIME_OID = "10000000-0000-0000-5656-565600131204";
+	
+	protected static final File TASK_DELETE_DUMMY_SHADOWS_FILE = new File(TEST_DIR, "task-delete-dummy-shadows.xml");
+    protected static final String TASK_DELETE_DUMMY_SHADOWS_OID = "abaab842-18be-11e5-9416-001e8c717e5b";
 	
 	protected DummyResource dummyResourceAzure;
 	protected DummyResourceContoller dummyResourceCtlAzure;
@@ -1344,6 +1355,66 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         assertShadowKindIntent(ACCOUNT_AUGUSTUS_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
         assertShadowKindIntent(ACCOUNT_TAUGUSTUS_OID, ShadowKindType.ACCOUNT, INTENT_TEST);
+	}
+	
+	@Test
+    public void test900DeleteDummyShadows() throws Exception {
+		final String TEST_NAME = "test900DeleteDummyShadows";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // Preconditions
+		assertUsers(17);
+        dummyAuditService.clear();
+        rememberShadowFetchOperationCount();
+        
+     // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        importObjectFromFile(TASK_DELETE_DUMMY_SHADOWS_FILE);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        
+        waitForTaskFinish(TASK_DELETE_DUMMY_SHADOWS_OID, true, 20000);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        assertShadowFetchOperationCountIncrement(0);
+        
+        PrismObject<TaskType> deleteTask = getTask(TASK_DELETE_DUMMY_SHADOWS_OID);
+        OperationResultType deleteTaskResultType = deleteTask.asObjectable().getResult();
+        display("Final delete task result", deleteTaskResultType);
+        TestUtil.assertSuccess(deleteTaskResultType);
+        OperationResult deleteTaskResult = OperationResult.createOperationResult(deleteTaskResultType);
+        TestUtil.assertSuccess(deleteTaskResult);
+        List<OperationResult> opExecResults = deleteTaskResult.findSubresults(ModelService.EXECUTE_CHANGES);
+        assertEquals(1, opExecResults.size());
+        OperationResult opExecResult = opExecResults.get(0);
+        TestUtil.assertSuccess(opExecResult);
+        assertEquals("Wrong exec operation count", 17, opExecResult.getCount());
+        assertTrue("Too many subresults: "+deleteTaskResult.getSubresults().size(), deleteTaskResult.getSubresults().size() < 10);
+        
+        assertUsers(17);
+        
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, 
+        		new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), prismContext);
+        
+        final MutableInt count = new MutableInt(0);
+        ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
+			@Override
+			public boolean handle(PrismObject<ShadowType> shadow, OperationResult parentResult) {
+				count.increment();
+				display("Found",shadow);
+				return true;
+			}
+		};		
+		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
+		modelService.searchObjectsIterative(ShadowType.class, query, handler, options, task, result);
+        assertEquals("Unexpected number of search results", 0, count.getValue());
+        
 	}
 
 	private void assertImportAuditModifications(int expectedModifications) {

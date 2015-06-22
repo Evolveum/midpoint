@@ -106,6 +106,10 @@ public class DeleteTaskHandler implements TaskHandler {
 		opResult.setStatus(OperationResultStatus.IN_PROGRESS);
 		TaskRunResult runResult = new TaskRunResult();
 		runResult.setOperationResult(opResult);
+		
+		opResult.setSummarizeErrors(true);
+		opResult.setSummarizePartialErrors(true);
+		opResult.setSummarizeSuccesses(true);
 
 		QueryType queryType;
 		PrismProperty<QueryType> objectQueryPrismProperty = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
@@ -203,7 +207,11 @@ public class DeleteTaskHandler implements TaskHandler {
 					progress++;
 	            }
 	            
+	            opResult.summarize();
 	            task.setProgress(progress);
+	            if (LOGGER.isTraceEnabled()) {
+	            	LOGGER.trace("Deleted {} objects, result:\n{}", progress, opResult.debugDump());
+	            }
 	            
             } while (!objects.isEmpty());
 
@@ -225,6 +233,8 @@ public class DeleteTaskHandler implements TaskHandler {
 
         runResult.setProgress(progress);
         runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
+        opResult.summarize();
+        opResult.recordSuccess();
 
         long wallTime = System.currentTimeMillis() - startTimestamp;
 

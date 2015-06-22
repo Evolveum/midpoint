@@ -210,7 +210,6 @@ public class ModelController implements ModelService, ModelInteractionService, T
 
 	// Constants for OperationResult
 	public static final String CLASS_NAME_WITH_DOT = ModelController.class.getName() + ".";
-	public static final String SEARCH_OBJECTS = CLASS_NAME_WITH_DOT + "searchObjects";
 	public static final String ADD_OBJECT_WITH_EXCLUSION = CLASS_NAME_WITH_DOT + "addObjectWithExclusion";
 	public static final String MODIFY_OBJECT_WITH_EXCLUSION = CLASS_NAME_WITH_DOT
 			+ "modifyObjectWithExclusion";
