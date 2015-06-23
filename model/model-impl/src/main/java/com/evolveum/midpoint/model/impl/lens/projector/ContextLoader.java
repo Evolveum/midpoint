@@ -1003,7 +1003,7 @@ public class ContextLoader {
 		}
 		
 		//Determine refined schema and password policies for account type
-		RefinedObjectClassDefinition rad = projContext.getRefinedAccountDefinition();
+		RefinedObjectClassDefinition rad = projContext.getStructuralObjectClassDefinition();
 		if (rad != null) {
 			ObjectReferenceType passwordPolicyRef = rad.getPasswordPolicy();
 			if (passwordPolicyRef != null && passwordPolicyRef.getOid() != null) {

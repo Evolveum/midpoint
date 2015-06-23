@@ -331,9 +331,11 @@ public class CompositeRefinedObjectClassDefinition extends RefinedObjectClassDef
         for (int i = 0; i < indent; i++) {
             sb.append(INDENT_STRING);
         }
-        sb.append(getDebugDumpClassName()).append("(");
+        sb.append(getDebugDumpClassName()).append(": ");
         sb.append(SchemaDebugUtil.prettyPrint(getTypeName()));
+        sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "structural", structuralObjectClassDefinition, indent + 1);
+        sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "auxiliary", auxiliaryObjectClassDefinitions, indent + 1);
         return sb.toString();
     }
@@ -351,6 +353,21 @@ public class CompositeRefinedObjectClassDefinition extends RefinedObjectClassDef
 			return getDisplayName();
 		} else {
 			return getKind()+":"+getIntent();
+		}
+	}
+	
+	@Override
+	public String toString() {
+		if (auxiliaryObjectClassDefinitions == null || auxiliaryObjectClassDefinitions.isEmpty()) {
+			return getDebugDumpClassName() + " ("+getTypeName()+")";
+		} else {
+			StringBuilder sb = new StringBuilder();
+			sb.append(getDebugDumpClassName()).append("(").append(getTypeName());
+			for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
+				sb.append("+").append(auxiliaryObjectClassDefinition.getTypeName());
+			}
+			sb.append(")");
+			return sb.toString();
 		}
 	}
 }

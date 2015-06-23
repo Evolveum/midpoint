@@ -149,7 +149,7 @@ public class InboundProcessor {
             		continue;
             	}
 
-                RefinedObjectClassDefinition accountDefinition = accountContext.getRefinedAccountDefinition();
+                RefinedObjectClassDefinition accountDefinition = accountContext.getStructuralObjectClassDefinition();
                 if (accountDefinition == null) {
                     LOGGER.error("Definition for account type {} not found in the context, but it " +
                             "should be there, dumping context:\n{}", rat, context.debugDump());

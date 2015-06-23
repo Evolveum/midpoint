@@ -341,6 +341,10 @@ public abstract class ShadowCache {
 			return null;
 		}
 		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Definition:\n{}", ctx.getObjectClassDefinition().debugDump());
+		}
+		
 		PrismContainer<?> attributesContainer = shadow.findContainer(
 				ShadowType.F_ATTRIBUTES);
 		if (attributesContainer == null || attributesContainer.isEmpty()) {

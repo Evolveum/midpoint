@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -34,6 +35,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jvnet.jaxb2_commons.lang.Validate;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
+import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
@@ -175,6 +177,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     // Cached copy, to avoid constructing it over and over again
     private transient PrismObjectDefinition<ShadowType> shadowDefinition = null;
     
+    private transient RefinedObjectClassDefinition structuralObjectClassDefinition;
+    private transient Collection<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions;
+    
     private ValuePolicyType accountPasswordPolicy;
 
     
@@ -256,7 +261,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     	}
     	if (rsd.getIntent() == null) {
 			try {
-				if (!getRefinedAccountDefinition().isDefaultInAKind()) {
+				if (!getStructuralObjectClassDefinition().isDefaultInAKind()) {
 					return false;
 				}
 			} catch (SchemaException e) {
@@ -330,7 +335,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	public PrismObjectDefinition<ShadowType> getObjectDefinition() {
 		if (shadowDefinition == null) {
 			try {
-				shadowDefinition = ShadowUtil.applyObjectClass(super.getObjectDefinition(), getRefinedAccountDefinition());
+				shadowDefinition = ShadowUtil.applyObjectClass(super.getObjectDefinition(), getStructuralObjectClassDefinition());
 			} catch (SchemaException e) {
 				// This should not happen
 				throw new SystemException(e.getMessage(), e);
@@ -511,14 +516,64 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     	return RefinedResourceSchema.getRefinedSchema(resource, LayerType.MODEL, getNotNullPrismContext());
     }
     
-    public RefinedObjectClassDefinition getRefinedAccountDefinition() throws SchemaException {
-		RefinedResourceSchema refinedSchema = getRefinedResourceSchema();
-		if (refinedSchema == null) {
-			return null;
+    public RefinedObjectClassDefinition getStructuralObjectClassDefinition() throws SchemaException {
+    	if (structuralObjectClassDefinition == null) {
+			RefinedResourceSchema refinedSchema = getRefinedResourceSchema();
+			if (refinedSchema == null) {
+				throw new IllegalStateException("No refined schema");
+			}
+			structuralObjectClassDefinition = refinedSchema.getRefinedDefinition(getResourceShadowDiscriminator().getKind(), getResourceShadowDiscriminator().getIntent());
+    	}
+    	return structuralObjectClassDefinition;
+	}
+
+    public Collection<RefinedObjectClassDefinition> getAuxiliaryObjectClassDefinitions() throws SchemaException {
+    	if (auxiliaryObjectClassDefinitions == null) {
+			RefinedResourceSchema refinedSchema = getRefinedResourceSchema();
+			if (refinedSchema == null) {
+				throw new IllegalStateException("No refined schema");
+			}
+			List<QName> auxiliaryObjectClassQNames = new ArrayList<>();
+			addAuxiliaryObjectClassNames(auxiliaryObjectClassQNames, getObjectOld());
+			addAuxiliaryObjectClassNames(auxiliaryObjectClassQNames, getObjectNew());
+			auxiliaryObjectClassDefinitions = new ArrayList<>(auxiliaryObjectClassQNames.size());
+			for (QName auxiliaryObjectClassQName: auxiliaryObjectClassQNames) {
+				RefinedObjectClassDefinition auxiliaryObjectClassDef = refinedSchema.getRefinedDefinition(auxiliaryObjectClassQName);
+				if (auxiliaryObjectClassDef == null) {
+					throw new SchemaException("Auxiliary object class "+auxiliaryObjectClassQName+" specified in "+this+" does not exist");
+				}
+				auxiliaryObjectClassDefinitions.add(auxiliaryObjectClassDef);
+			}
+    	}
+    	return auxiliaryObjectClassDefinitions;
+	}
+
+	private void addAuxiliaryObjectClassNames(List<QName> auxiliaryObjectClassQNames,
+			PrismObject<ShadowType> shadow) {
+		if (shadow == null) {
+			return;
 		}
-		return refinedSchema.getRefinedDefinition(getResourceShadowDiscriminator().getKind(), getResourceShadowDiscriminator().getIntent());
+		for (QName aux: shadow.asObjectable().getAuxiliaryObjectClass()) {
+			if (!auxiliaryObjectClassQNames.contains(aux)) {
+				auxiliaryObjectClassQNames.add(aux);
+			}
+		}
 	}
 	
+	public <T> RefinedAttributeDefinition<T> findAttributeDefinition(QName attrName) throws SchemaException {
+		RefinedAttributeDefinition<T> attrDef = getStructuralObjectClassDefinition().findAttributeDefinition(attrName);
+		if (attrDef != null) {
+			return attrDef;
+		}
+		for (RefinedObjectClassDefinition auxOcDef: getAuxiliaryObjectClassDefinitions()) {
+			attrDef = auxOcDef.findAttributeDefinition(attrName);
+			if (attrDef != null) {
+				return attrDef;
+			}
+		}
+		return null;
+	}
+
 	public Collection<ResourceObjectTypeDependencyType> getDependencies() {
 		if (dependencies == null) {
 			ResourceObjectTypeDefinitionType resourceAccountTypeDefinitionType = getResourceObjectTypeDefinitionType();
@@ -627,7 +682,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         }
         
         if (base == null && accDelta.isModify()) {
-        	RefinedObjectClassDefinition rAccountDef = getRefinedAccountDefinition();
+        	RefinedObjectClassDefinition rAccountDef = getStructuralObjectClassDefinition();
         	if (rAccountDef != null) {
         		base = (PrismObject<ShadowType>) rAccountDef.createBlankShadow();
         	}
@@ -716,7 +771,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             	// We need to convert modify delta to ADD
             	ObjectDelta<ShadowType> addDelta = new ObjectDelta<ShadowType>(getObjectTypeClass(),
                 		ChangeType.ADD, getPrismContext());
-                RefinedObjectClassDefinition rAccount = getRefinedAccountDefinition();
+                RefinedObjectClassDefinition rAccount = getStructuralObjectClassDefinition();
 
                 if (rAccount == null) {
                     throw new IllegalStateException("Definition for account type " + getResourceShadowDiscriminator() 

@@ -167,7 +167,7 @@ public class CredentialsProcessor {
             return;
         }
 
-        RefinedObjectClassDefinition refinedAccountDef = accCtx.getRefinedAccountDefinition();
+        RefinedObjectClassDefinition refinedAccountDef = accCtx.getStructuralObjectClassDefinition();
         if (refinedAccountDef == null){
         	LOGGER.trace("No RefinedAccountDefinition, therefore also no password outbound definition, skipping credentials processing for account " + rat);
           return;

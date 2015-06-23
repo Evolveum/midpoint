@@ -141,36 +141,35 @@ public class RefinedResourceSchema extends ResourceSchema implements DebugDumpab
 		ShadowType shadowType = shadow.asObjectable();
 		
 		RefinedObjectClassDefinition structuralObjectClassDefinition = null;
-		Collection<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions;
 		ShadowKindType kind = shadowType.getKind();
 		String intent = shadowType.getIntent();
 		QName structuralObjectClassQName = shadowType.getObjectClass();
+		
 		if (kind != null) {
 			structuralObjectClassDefinition = getRefinedDefinition(kind, intent);
-		} 
+		}
+		
 		if (structuralObjectClassDefinition == null) {
 			// Fallback to objectclass only
 			if (structuralObjectClassQName == null) {
 				return null;
 			}
 			structuralObjectClassDefinition = getRefinedDefinition(structuralObjectClassQName);
-			List<QName> auxiliaryObjectClassQNames = shadowType.getAuxiliaryObjectClass();
-			auxiliaryObjectClassDefinitions = new ArrayList<>(auxiliaryObjectClassQNames.size());
-			for (QName auxiliaryObjectClassQName: auxiliaryObjectClassQNames) {
-				RefinedObjectClassDefinition auxiliaryObjectClassDef = getRefinedDefinition(auxiliaryObjectClassQName);
-				if (auxiliaryObjectClassDef == null) {
-					throw new SchemaException("Auxiliary object class "+auxiliaryObjectClassQName+" specified in "+shadow+" does not exist");
-				}
-				auxiliaryObjectClassDefinitions.add(auxiliaryObjectClassDef);
-			}
-		} else {
-			auxiliaryObjectClassDefinitions = structuralObjectClassDefinition.getAuxiliaryObjectClassDefinitions();
 		}
 		
 		if (structuralObjectClassDefinition == null) {
-			return null;
-		}		
-		
+			return null;			
+		}
+		List<QName> auxiliaryObjectClassQNames = shadowType.getAuxiliaryObjectClass();
+		Collection<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions = new ArrayList<>(auxiliaryObjectClassQNames.size());
+		for (QName auxiliaryObjectClassQName: auxiliaryObjectClassQNames) {
+			RefinedObjectClassDefinition auxiliaryObjectClassDef = getRefinedDefinition(auxiliaryObjectClassQName);
+			if (auxiliaryObjectClassDef == null) {
+				throw new SchemaException("Auxiliary object class "+auxiliaryObjectClassQName+" specified in "+shadow+" does not exist");
+			}
+			auxiliaryObjectClassDefinitions.add(auxiliaryObjectClassDef);
+		}
+				
 		return new CompositeRefinedObjectClassDefinition(structuralObjectClassDefinition, auxiliaryObjectClassDefinitions);
 	}
 	
