@@ -520,7 +520,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     	if (structuralObjectClassDefinition == null) {
 			RefinedResourceSchema refinedSchema = getRefinedResourceSchema();
 			if (refinedSchema == null) {
-				throw new IllegalStateException("No refined schema");
+				return null;
 			}
 			structuralObjectClassDefinition = refinedSchema.getRefinedDefinition(getResourceShadowDiscriminator().getKind(), getResourceShadowDiscriminator().getIntent());
     	}
@@ -531,7 +531,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     	if (auxiliaryObjectClassDefinitions == null) {
 			RefinedResourceSchema refinedSchema = getRefinedResourceSchema();
 			if (refinedSchema == null) {
-				throw new IllegalStateException("No refined schema");
+				return null;
 			}
 			List<QName> auxiliaryObjectClassQNames = new ArrayList<>();
 			addAuxiliaryObjectClassNames(auxiliaryObjectClassQNames, getObjectOld());
