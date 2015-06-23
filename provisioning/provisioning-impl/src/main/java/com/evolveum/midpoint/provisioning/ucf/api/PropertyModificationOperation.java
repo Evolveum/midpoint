@@ -18,6 +18,8 @@ package com.evolveum.midpoint.provisioning.ucf.api;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 
+import javax.xml.namespace.QName;
+
 /**
  * @author Radovan Semancik
  *
@@ -25,12 +27,26 @@ import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 public final class PropertyModificationOperation extends Operation {
 	
 	private PropertyDelta propertyDelta;
+
+	// Matching rule for entitlements can be specified at the level of association definition.
+	// And we need this information, if avoidDuplicateValues == true.
+	// So, in order to preserve it, we store it here.
+
+	private QName matchingRuleQName;
 	
 	public PropertyModificationOperation(PropertyDelta propertyDelta) {
 		super();
 		this.propertyDelta = propertyDelta;
 	}
-	
+
+	public QName getMatchingRuleQName() {
+		return matchingRuleQName;
+	}
+
+	public void setMatchingRuleQName(QName matchingRuleQName) {
+		this.matchingRuleQName = matchingRuleQName;
+	}
+
 	public PropertyDelta getPropertyDelta() {
 		return propertyDelta;
 	}

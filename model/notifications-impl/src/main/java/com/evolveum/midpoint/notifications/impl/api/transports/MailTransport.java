@@ -158,7 +158,7 @@ public class MailTransport implements Transport {
                 for (String recipient : mailMessage.getTo()) {
                     mimeMessage.addRecipient(javax.mail.Message.RecipientType.TO, new InternetAddress(recipient));
                 }
-                mimeMessage.setSubject(mailMessage.getSubject());
+                mimeMessage.setSubject(mailMessage.getSubject(), "utf-8");
                 String contentType = mailMessage.getContentType();
                 if (StringUtils.isEmpty(contentType)) {
                     contentType = "text/plain; charset=UTF-8";
