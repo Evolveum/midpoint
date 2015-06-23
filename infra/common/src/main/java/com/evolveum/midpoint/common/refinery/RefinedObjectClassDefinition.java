@@ -515,6 +515,9 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         RefinedObjectClassDefinition rOcDef = new RefinedObjectClassDefinition(prismContext, resourceType, objectClassDef);
 
         String intent = objectClassDef.getIntent();
+        if (intent == null && objectClassDef.isDefaultInAKind()) {
+        	intent = SchemaConstants.INTENT_DEFAULT;
+        }
         rOcDef.setIntent(intent);
 
         if (objectClassDef.getDisplayName() != null) {

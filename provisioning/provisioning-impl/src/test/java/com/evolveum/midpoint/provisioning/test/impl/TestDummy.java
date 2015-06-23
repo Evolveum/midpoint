@@ -476,9 +476,9 @@ public class TestDummy extends AbstractDummyTest {
 	}
 
 	@Test
-	public void test006RefinedSchema() throws ObjectNotFoundException, CommunicationException, SchemaException,
-			ConfigurationException {
-		TestUtil.displayTestTile("test006RefinedSchema");
+	public void test006RefinedSchema() throws Exception {
+		final String TEST_NAME = "test006RefinedSchema";
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 
 		// WHEN
@@ -500,6 +500,12 @@ public class TestDummy extends AbstractDummyTest {
 		assertFalse("Empty secondary identifiers in account", accountDef.getSecondaryIdentifiers().isEmpty());
 		assertNotNull("No naming attribute in account", accountDef.getNamingAttribute());
 		assertFalse("No nativeObjectClass in account", StringUtils.isEmpty(accountDef.getNativeObjectClass()));
+		
+		assertEquals("Unexpected kind in account definition", ShadowKindType.ACCOUNT, accountDef.getKind());
+		assertTrue("Account definition in not default", accountDef.isDefaultInAKind());
+		assertEquals("Wrong intent in account definition", SchemaConstants.INTENT_DEFAULT, accountDef.getIntent());
+		assertFalse("Account definition is deprecated", accountDef.isDeprecated());
+		assertFalse("Account definition in auxiliary", accountDef.isAuxiliary());
 
 		RefinedAttributeDefinition uidDef = accountDef.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
 		assertEquals(1, uidDef.getMaxOccurs());

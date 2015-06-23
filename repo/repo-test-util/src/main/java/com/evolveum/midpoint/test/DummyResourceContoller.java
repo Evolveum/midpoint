@@ -263,6 +263,11 @@ public class DummyResourceContoller extends AbstractResourceController {
 		assertEquals("Unexpected number of defnitions", 17, accountDef.getDefinitions().size());
 		ResourceAttributeDefinition treasureDef = accountDef.findAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_TREASURE_NAME);
 		assertFalse("Treasure IS returned by default and should not be", treasureDef.isReturnedByDefault());
+		assertEquals("Unexpected kind in account definition", ShadowKindType.ACCOUNT, accountDef.getKind());
+		assertTrue("Account definition in not default", accountDef.isDefaultInAKind());
+		assertNull("Non-null intent in account definition", accountDef.getIntent());
+		assertFalse("Account definition is deprecated", accountDef.isDeprecated());
+		assertFalse("Account definition in auxiliary", accountDef.isAuxiliary());
 	}
 
 	public void assertRefinedSchemaSanity(RefinedResourceSchema refinedSchema) {

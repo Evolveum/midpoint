@@ -459,10 +459,10 @@ public class RefinedResourceSchema extends ResourceSchema implements DebugDumpab
 
 		RefinedObjectClassDefinition rAccountDefDefault = null;
 		for(ObjectClassComplexTypeDefinition objectClassDef: rSchema.getOriginalResourceSchema().getObjectClassDefinitions()) {
-			if (rSchema.getRefinedDefinition(objectClassDef.getTypeName()) != null) {
+			QName objectClassname = objectClassDef.getTypeName();
+			if (rSchema.getRefinedDefinition(objectClassname) != null) {
 				continue;
 			}
-			QName objectClassname = objectClassDef.getTypeName();
 			RefinedObjectClassDefinition rOcDef = RefinedObjectClassDefinition.parseFromSchema(objectClassDef, resourceType, rSchema, prismContext,
 					"object class " + objectClassname + ", in " + contextDescription);
 			

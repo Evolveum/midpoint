@@ -177,6 +177,8 @@
             	<direction>objectToSubject</direction>
             	<associationAttribute>ri:uniqueMember</associationAttribute>
             	<valueAttribute>ri:dn</valueAttribute>
+            	<shortcutAssociationAttribute>ri:isMemberOf</shortcutAssociationAttribute>
+            	<shortcutValueAttribute>ri:dn</shortcutValueAttribute>
             </association>
 
 			<protected>
