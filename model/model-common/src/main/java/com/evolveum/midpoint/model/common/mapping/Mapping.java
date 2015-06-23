@@ -105,7 +105,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueFilterType;
  * @author Radovan Semancik
  *
  */
-public class Mapping<V extends PrismValue,D extends ItemDefinition> implements DebugDumpable {
+public class Mapping<V extends PrismValue,D extends ItemDefinition> implements DebugDumpable, PrismValueDeltaSetTripleProducer<V, D> {
 	
 	private static final QName CONDITION_OUTPUT_NAME = new QName(SchemaConstants.NS_C, "condition");
 	
@@ -458,6 +458,10 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		return evaluationEndTime - evaluationStartTime;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer#getMappingQName()
+	 */
+	@Override
 	public QName getMappingQName() {
 		return mappingQName;
 	}
@@ -995,6 +999,10 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer#getOutputTriple()
+	 */
+	@Override
 	public PrismValueDeltaSetTriple<V> getOutputTriple() {
 		if (outputTriple != null && InternalsConfig.consistencyChecks) {
 			try {
@@ -1038,7 +1046,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 	/**
 	 * Shallow clone. Only the output is cloned deeply.
 	 */
-	public Mapping<V,D> clone() {
+	public PrismValueDeltaSetTripleProducer<V, D> clone() {
 		Mapping<V,D> clone = new Mapping<>(mappingType, contextDescription, expressionFactory, securityEnforcer);
 		clone.conditionMaskNew = this.conditionMaskNew;
 		clone.conditionMaskOld = this.conditionMaskOld;

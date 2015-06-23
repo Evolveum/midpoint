@@ -31,6 +31,7 @@ import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.expression.StringPolicyResolver;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
+import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.model.impl.lens.Construction;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
@@ -107,7 +108,7 @@ public class OutboundProcessor {
 
         LOGGER.trace("Processing outbound expressions for {} starting", discr);
 
-        RefinedObjectClassDefinition rOcDef = projCtx.getRefinedAccountDefinition();
+        RefinedObjectClassDefinition rOcDef = projCtx.getStructuralObjectClassDefinition();
         if (rOcDef == null) {
             LOGGER.error("Definition for {} not found in the context, but it should be there, dumping context:\n{}", discr, context.debugDump());
             throw new IllegalStateException("Definition for " + discr + " not found in the context, but it should be there");
@@ -117,6 +118,9 @@ public class OutboundProcessor {
         ObjectDeltaObject<ShadowType> projectionOdo = projCtx.getObjectDeltaObject();
         
         Construction<F> outboundConstruction = new Construction<>(null, projCtx.getResource());
+        outboundConstruction.setRefinedObjectClassDefinition(rOcDef);
+        
+        // TODO: Auxiliary object classes
         
         String operation = projCtx.getOperation().getValue();
 
@@ -175,7 +179,7 @@ public class OutboundProcessor {
         projCtx.setOutboundConstruction(outboundConstruction);
     }
     
-    private <F extends FocusType, V extends PrismValue, D extends ItemDefinition> Mapping<V,D> evaluateMapping(final Mapping<V,D> mapping, QName mappingQName,
+    private <F extends FocusType, V extends PrismValue, D extends ItemDefinition> Mapping<V, D> evaluateMapping(final Mapping<V,D> mapping, QName mappingQName,
     		D targetDefinition, ObjectDeltaObject<F> focusOdo, ObjectDeltaObject<ShadowType> projectionOdo,
     		String operation, RefinedObjectClassDefinition rOcDef, RefinedObjectClassDefinition assocTargetObjectClassDefinition,
     		LensContext<F> context, LensProjectionContext projCtx, Task task, OperationResult result) 

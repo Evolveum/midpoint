@@ -39,6 +39,7 @@ import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.model.impl.lens.ItemValueWithOrigin;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
@@ -119,7 +120,7 @@ public class ReconciliationProcessor {
 	}
 
 	<F extends ObjectType> void processReconciliationFocus(LensContext<F> context,
-                                                           LensProjectionContext accContext, OperationResult result) throws SchemaException,
+                                                           LensProjectionContext projCtx, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
 
@@ -130,50 +131,50 @@ public class ReconciliationProcessor {
 			// full shadow
 			// reconciliation is cheap if the shadow is already fetched
 			// therefore just do it
-			if (!accContext.isDoReconciliation() && !accContext.isFullShadow()) {
+			if (!projCtx.isDoReconciliation() && !projCtx.isFullShadow()) {
 				return;
 			}
 
-			SynchronizationPolicyDecision policyDecision = accContext.getSynchronizationPolicyDecision();
+			SynchronizationPolicyDecision policyDecision = projCtx.getSynchronizationPolicyDecision();
 			if (policyDecision != null
 					&& (policyDecision == SynchronizationPolicyDecision.DELETE || policyDecision == SynchronizationPolicyDecision.UNLINK)) {
 				return;
 			}
 
-			if (accContext.getObjectCurrent() == null) {
+			if (projCtx.getObjectCurrent() == null) {
 				LOGGER.warn("Can't do reconciliation. Account context doesn't contain current version of account.");
 				return;
 			}
 
-			if (!accContext.isFullShadow()) {
+			if (!projCtx.isFullShadow()) {
 				// We need to load the object
 				PrismObject<ShadowType> objectOld = provisioningService.getObject(ShadowType.class,
-						accContext.getOid(), SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery())
+						projCtx.getOid(), SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery())
 						, null, result);
 				ShadowType oldShadow = objectOld.asObjectable();
-				accContext.determineFullShadowFlag(oldShadow.getFetchResult());
-				accContext.setLoadedObject(objectOld);
+				projCtx.determineFullShadowFlag(oldShadow.getFetchResult());
+				projCtx.setLoadedObject(objectOld);
 
-				accContext.recompute();
+				projCtx.recompute();
 			}
 
-            RefinedObjectClassDefinition accountDefinition = accContext.getRefinedAccountDefinition();
+            RefinedObjectClassDefinition rOcDef = projCtx.getStructuralObjectClassDefinition();
 
-			Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes = accContext
+			Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes = projCtx
 					.getSqueezedAttributes();
 			if (squeezedAttributes != null && !squeezedAttributes.isEmpty()) {
                 if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Attribute reconciliation processing {}", accContext.getHumanReadableName());
+                    LOGGER.trace("Attribute reconciliation processing {}", projCtx.getHumanReadableName());
                 }
-                reconcileProjectionAttributes(accContext, squeezedAttributes, accountDefinition);
+                reconcileProjectionAttributes(projCtx, squeezedAttributes, rOcDef);
             }
 
-            Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> squeezedAssociations = accContext.getSqueezedAssociations();
+            Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> squeezedAssociations = projCtx.getSqueezedAssociations();
             if (squeezedAssociations != null && !squeezedAssociations.isEmpty()) {
                 if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Association reconciliation processing {}", accContext.getHumanReadableName());
+                    LOGGER.trace("Association reconciliation processing {}", projCtx.getHumanReadableName());
                 }
-                reconcileProjectionAssociations(accContext, squeezedAssociations, accountDefinition);
+                reconcileProjectionAssociations(projCtx, squeezedAssociations, rOcDef);
             }
 
 		} catch (RuntimeException e) {
@@ -190,7 +191,7 @@ public class ReconciliationProcessor {
 	private void reconcileProjectionAttributes(
             LensProjectionContext projCtx,
             Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes,
-            RefinedObjectClassDefinition accountDefinition) throws SchemaException {
+            RefinedObjectClassDefinition rOcDef) throws SchemaException {
 
 		PrismObject<ShadowType> shadowNew = projCtx.getObjectNew();
 
@@ -200,8 +201,7 @@ public class ReconciliationProcessor {
 
 		for (QName attrName : attributeNames) {
 			// LOGGER.trace("Attribute reconciliation processing attribute {}",attrName);
-			RefinedAttributeDefinition attributeDefinition = accountDefinition
-					.getAttributeDefinition(attrName);
+			RefinedAttributeDefinition attributeDefinition = projCtx.findAttributeDefinition(attrName);
 			if (attributeDefinition == null) {
 				throw new SchemaException("No definition for attribute " + attrName + " in "
 						+ projCtx.getResourceShadowDiscriminator());
@@ -286,7 +286,7 @@ public class ReconciliationProcessor {
 
 			boolean hasValue = false;
 			for (ItemValueWithOrigin<? extends PrismPropertyValue<?>,PrismPropertyDefinition<?>> shouldBePvwo : shouldBePValues) {
-				Mapping<?,?> shouldBeMapping = shouldBePvwo.getMapping();
+				PrismValueDeltaSetTripleProducer<?,?> shouldBeMapping = shouldBePvwo.getMapping();
 				if (shouldBeMapping == null) {
 					continue;
 				}
@@ -422,7 +422,7 @@ public class ReconciliationProcessor {
 				for (ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> shouldBeCValue : shouldBeCValues) {
 					sb.append("\n    ");
 					sb.append(shouldBeCValue.getItemValue());
-					Mapping<?,?> shouldBeMapping = shouldBeCValue.getMapping();
+					PrismValueDeltaSetTripleProducer<?,?> shouldBeMapping = shouldBeCValue.getMapping();
 					if (shouldBeMapping.getStrength() == MappingStrengthType.STRONG) {
 						sb.append(" STRONG");
 					}
@@ -494,7 +494,7 @@ public class ReconciliationProcessor {
             };
 
             for (ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> shouldBeCvwo : shouldBeCValues) {
-                Mapping<?,?> shouldBeMapping = shouldBeCvwo.getMapping();
+            	PrismValueDeltaSetTripleProducer<?,?> shouldBeMapping = shouldBeCvwo.getMapping();
                 if (shouldBeMapping == null) {
                     continue;
                 }

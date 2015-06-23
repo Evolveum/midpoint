@@ -51,6 +51,7 @@ import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
+import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
@@ -237,7 +238,7 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 		Construction<UserType> construction = evaluatedAssignment.getConstructions().getZeroSet().iterator().next();
 		assertNotNull("No object class definition in construction", construction.getRefinedObjectClassDefinition());
 		assertEquals(1,construction.getAttributeMappings().size());
-		Mapping<PrismPropertyValue<String>,PrismPropertyDefinition<String>> attributeMapping = (Mapping<PrismPropertyValue<String>,PrismPropertyDefinition<String>>) construction.getAttributeMappings().iterator().next();
+		Mapping<PrismPropertyValue<String>, PrismPropertyDefinition<String>> attributeMapping = (Mapping<PrismPropertyValue<String>, PrismPropertyDefinition<String>>) construction.getAttributeMappings().iterator().next();
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = attributeMapping.getOutputTriple();
 		PrismAsserts.assertTripleNoZero(outputTriple);
 	  	PrismAsserts.assertTriplePlus(outputTriple, "The best captain the world has ever seen");
@@ -304,7 +305,7 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 		Construction<UserType> construction = evaluatedAssignment.getConstructions().getZeroSet().iterator().next();
 		assertNotNull("No object class definition in construction", construction.getRefinedObjectClassDefinition());
 		assertEquals(1,construction.getAttributeMappings().size());
-		Mapping<PrismPropertyValue<String>,PrismPropertyDefinition<String>> attributeMapping = (Mapping<PrismPropertyValue<String>,PrismPropertyDefinition<String>>) construction.getAttributeMappings().iterator().next();
+		PrismValueDeltaSetTripleProducer<PrismPropertyValue<String>, PrismPropertyDefinition<String>> attributeMapping = (PrismValueDeltaSetTripleProducer<PrismPropertyValue<String>, PrismPropertyDefinition<String>>) construction.getAttributeMappings().iterator().next();
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = attributeMapping.getOutputTriple();
 		PrismAsserts.assertTripleNoZero(outputTriple);
 	  	PrismAsserts.assertTriplePlus(outputTriple, "The best sailor the world has ever seen");
@@ -634,7 +635,7 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
     private void assertNoConstruction(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, PlusMinusZero constructionSet, String attributeName) {
         Collection<Construction<UserType>> constructions = evaluatedAssignment.getConstructionSet(constructionSet);
         for (Construction construction : constructions) {
-            Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>> mapping = construction.getAttributeMapping(new QName(MidPointConstants.NS_RI, attributeName));
+            PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> mapping = construction.getAttributeMapping(new QName(MidPointConstants.NS_RI, attributeName));
             assertNull("Unexpected mapping for " + attributeName, mapping);
         }
     }
@@ -643,7 +644,7 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
         Collection<Construction<UserType>> constructions = evaluatedAssignment.getConstructionSet(constructionSet);
         Set<String> realValues = new HashSet<>();
         for (Construction construction : constructions) {
-            Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>> mapping = construction.getAttributeMapping(new QName(MidPointConstants.NS_RI, attributeName));
+            PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> mapping = construction.getAttributeMapping(new QName(MidPointConstants.NS_RI, attributeName));
             if (mapping != null && mapping.getOutputTriple() != null) {
                 Collection<? extends PrismPropertyValue<?>> valsInMapping = mapping.getOutputTriple().getSet(attributeSet);
                 if (valsInMapping != null) {

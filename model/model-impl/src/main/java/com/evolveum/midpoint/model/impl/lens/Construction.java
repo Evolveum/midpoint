@@ -19,15 +19,18 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
+import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.Item;
@@ -99,6 +102,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 	private Collection<Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>>> attributeMappings;
 	private Collection<Mapping<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>> associationMappings;
 	private RefinedObjectClassDefinition refinedObjectClassDefinition;
+	private List<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions;
 	private AssignmentPathVariables assignmentPathVariables = null;
 	private PrismContext prismContext;
 	private PrismContainerDefinition<ShadowAssociationType> associationContainerDefinition;
@@ -192,6 +196,14 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 	public RefinedObjectClassDefinition getRefinedObjectClassDefinition() {
 		return refinedObjectClassDefinition;
 	}
+	
+	public void setRefinedObjectClassDefinition(RefinedObjectClassDefinition refinedObjectClassDefinition) {
+		this.refinedObjectClassDefinition = refinedObjectClassDefinition;
+	}
+
+	public List<RefinedObjectClassDefinition> getAuxiliaryObjectClassDefinitions() {
+		return auxiliaryObjectClassDefinitions;
+	}
 
 	public ShadowKindType getKind() {
 		if (refinedObjectClassDefinition == null) {
@@ -218,7 +230,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		return attributeMappings;
 	}
 	
-	public Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>> getAttributeMapping(QName attrName) {
+	public Mapping<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> getAttributeMapping(QName attrName) {
 		for (Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>> myVc : getAttributeMappings()) {
 			if (myVc.getItemName().equals(attrName)) {
 				return myVc;
@@ -288,13 +300,13 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 	}
 	
 	public void evaluate(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
-		evaluateKindIntent(result);
+		evaluateKindIntentObjectClass(result);
 		assignmentPathVariables = LensUtil.computeAssignmentPathVariables(assignmentPath);
 		evaluateAttributes(task, result);
 		evaluateAssociations(task, result);
 	}
 	
-	private void evaluateKindIntent(OperationResult result) throws SchemaException, ObjectNotFoundException {
+	private void evaluateKindIntentObjectClass(OperationResult result) throws SchemaException, ObjectNotFoundException {
 		String resourceOid = null;
 		if (constructionType.getResourceRef() != null) {
 			resourceOid = constructionType.getResourceRef().getOid();
@@ -326,6 +338,15 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 				throw new SchemaException("No default "+kind+" type found in " + resource + " as specified in construction in "+source);
 			}
 		}
+		
+		auxiliaryObjectClassDefinitions = new ArrayList<>(constructionType.getAuxiliaryObjectClass().size());
+		for (QName auxiliaryObjectClassName: constructionType.getAuxiliaryObjectClass()) {
+			RefinedObjectClassDefinition auxOcDef = refinedSchema.getRefinedDefinition(auxiliaryObjectClassName);
+			if (auxOcDef == null) {
+				throw new SchemaException("No auxiliary object class "+auxiliaryObjectClassName+" found in "+getResource(result)+" as specified in construction in "+source);
+			}
+			auxiliaryObjectClassDefinitions.add(auxOcDef);
+		}
 	}
 
 	private void evaluateAttributes(Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
@@ -351,7 +372,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		}
 	}
 
-	private <T> Mapping<PrismPropertyValue<T>,ResourceAttributeDefinition<T>> evaluateAttribute(ResourceAttributeDefinitionType attribudeDefinitionType,
+	private <T> Mapping<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> evaluateAttribute(ResourceAttributeDefinitionType attribudeDefinitionType,
 			Task task, OperationResult result) 
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		QName attrName = ItemPathUtil.getOnlySegmentQName(attribudeDefinitionType.getRef());
@@ -372,14 +393,27 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		Mapping<PrismPropertyValue<T>,ResourceAttributeDefinition<T>> mapping = mappingFactory.createMapping(outboundMappingType,
 				"for attribute " + PrettyPrinter.prettyPrint(attrName)  + " in "+source);
 		
-		Mapping<PrismPropertyValue<T>,ResourceAttributeDefinition<T>> evaluatedMapping = evaluateMapping(mapping, attrName, outputDefinition, null, task, result);		
+		Mapping<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> evaluatedMapping = evaluateMapping(mapping, attrName, outputDefinition, null, task, result);		
 		
 		LOGGER.trace("Evaluated mapping for attribute "+attrName+": "+evaluatedMapping);
 		return evaluatedMapping;
 	}
 
-	private ResourceAttributeDefinition findAttributeDefinition(QName attributeName) {
-		return refinedObjectClassDefinition.findAttributeDefinition(attributeName);
+	public <T> RefinedAttributeDefinition<T> findAttributeDefinition(QName attributeName) {
+		if (refinedObjectClassDefinition == null) {
+			throw new IllegalStateException("Construction "+this+" was not evaluated:\n"+this.debugDump());
+		}
+		RefinedAttributeDefinition<T> attrDef = refinedObjectClassDefinition.findAttributeDefinition(attributeName);
+		if (attrDef != null) {
+			return attrDef;
+		}
+		for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
+			attrDef = auxiliaryObjectClassDefinition.findAttributeDefinition(attributeName);
+			if (attrDef != null) {
+				return attrDef;
+			}
+		}
+		return null;
 	}
 	
 	public boolean hasValueForAttribute(QName attributeName) {
@@ -412,7 +446,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		}
 	}
 
-	private Mapping<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> evaluateAssociation(ResourceObjectAssociationType associationDefinitionType,
+	private Mapping<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> evaluateAssociation(ResourceObjectAssociationType associationDefinitionType,
 			Task task, OperationResult result) 
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		QName assocName = ItemPathUtil.getOnlySegmentQName(associationDefinitionType.getRef());
@@ -435,14 +469,14 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 					+" in construction in "+source);
 		}
 		
-		Mapping<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> evaluatedMapping = evaluateMapping(mapping, assocName, outputDefinition, 
+		Mapping<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> evaluatedMapping = evaluateMapping(mapping, assocName, outputDefinition, 
 				rAssocDef.getAssociationTarget(), task, result);
 		
 		LOGGER.trace("Evaluated mapping for association "+assocName+": "+evaluatedMapping);
 		return evaluatedMapping;
 	}
 	
-	private <V extends PrismValue,D extends ItemDefinition> Mapping<V,D> evaluateMapping(Mapping<V,D> mapping, QName mappingQName, D outputDefinition,
+	private <V extends PrismValue,D extends ItemDefinition> Mapping<V, D> evaluateMapping(Mapping<V,D> mapping, QName mappingQName, D outputDefinition,
 			RefinedObjectClassDefinition assocTargetObjectClassDefinition, Task task, OperationResult result) 
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		
@@ -564,6 +598,17 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		} else {
 			sb.append(refinedObjectClassDefinition.getShadowDiscriminator());
 		}
+		DebugUtil.debugDumpLabel(sb, "auxiliary object classes", indent+1);
+		if (auxiliaryObjectClassDefinitions == null) {
+			sb.append(" (null)");
+		} else {
+			sb.append("\n");
+			for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
+				sb.append("\n");
+				DebugUtil.indentDebugDump(sb, indent+2);
+				sb.append(auxiliaryObjectClassDefinition.getTypeName());
+			}
+		}
 		if (attributeMappings != null && !attributeMappings.isEmpty()) {
 			sb.append("\n");
 			DebugUtil.debugDumpLabel(sb, "attribute mappings", indent+1);
@@ -589,7 +634,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 
 	@Override
 	public String toString() {
-		return "Construction(" + (refinedObjectClassDefinition == null ? "unknown" : refinedObjectClassDefinition.getShadowDiscriminator()) + ")";
+		return "Construction(" + (refinedObjectClassDefinition == null ? constructionType : refinedObjectClassDefinition.getShadowDiscriminator()) + ")";
 	}
 	
 }

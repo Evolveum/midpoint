@@ -185,7 +185,7 @@ public class XNodeSerializer {
         if (beanConverter.getPrismContext() == null) {
             throw new IllegalStateException("No prismContext in beanConverter!");
         }
-        if (definition == null){
+        if (definition == null && itemValue instanceof PrismPropertyValue){
 //        	if (itemValue instanceof PrismPropertyValue && beanConverter.canProcess(((PrismPropertyValue) itemValue).getValue().getClass())){
 //        		xnode = beanConverter.marshall(((PrismPropertyValue)itemValue).getValue());
 //                xnode.setExplicitTypeDeclaration(true);
@@ -202,7 +202,7 @@ public class XNodeSerializer {
         } else {
             throw new IllegalArgumentException("Unsupported value type "+itemValue.getClass());
         }
-        if (definition.isDynamic()) {
+        if (definition != null && definition.isDynamic()) {
             xnode.setExplicitTypeDeclaration(true);
         }
         Object commentValue = itemValue.getUserData(USER_DATA_KEY_COMMENT);

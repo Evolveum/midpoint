@@ -43,6 +43,35 @@
       p:username="${auth.username}"
       p:password="${auht.password}"
       p:endpoint="${service.endpoint}"/>
+      
+      
     
+      <jaxws:client id="reportPort"
+                  serviceClass="com.evolveum.midpoint.xml.ns._public.report.report_3.ReportPortType"
+                  address="${service.endpoint}"
+                  username="${auth.username}"
+                  password="${auht.password}" >
+     <jaxws:inInterceptors>
+      <bean class="org.apache.cxf.interceptor.LoggingInInterceptor"/>
+    </jaxws:inInterceptors>
+    <jaxws:outInterceptors>
+      <bean class="org.apache.cxf.interceptor.LoggingOutInterceptor"/>
+       <ref bean="wss4jInterceptor"/>
+    </jaxws:outInterceptors>
+                 
+      </jaxws:client>
+      
+      <bean id="wss4jInterceptor" class="org.apache.cxf.ws.security.wss4j.WSS4JOutInterceptor">
+      	<constructor-arg index="0" ref="wss4jProperties"/>
+      </bean>
+    
+    <util:map id="wss4jProperties">
+    <entry key="action" value="UsernameToken"/>
+    <entry key="passwordType" value="PasswordDigest"/>
+    <entry key="user" value="${auth.username}"/>
+    <entry key="passwordCallbackClass" value="com.evolveum.midpoint.report.ds.impl.ClientPasswordHandler"/>
+</util:map>
 
+<bean id="passwordClientHandler" class="com.evolveum.midpoint.report.ds.impl.ClientPasswordHandler"/>
+    
 </beans>

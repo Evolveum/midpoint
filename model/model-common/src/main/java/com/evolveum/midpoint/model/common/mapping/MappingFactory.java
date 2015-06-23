@@ -114,7 +114,7 @@ public class MappingFactory {
 		this.profiling = profiling;
 	}
 
-	public <V extends PrismValue, D extends ItemDefinition> Mapping<V,D> createMapping(MappingType mappingType, String shortDesc) {
+	public <V extends PrismValue, D extends ItemDefinition> Mapping<V, D> createMapping(MappingType mappingType, String shortDesc) {
 		Mapping<V,D> mapping = new Mapping<>(mappingType, shortDesc, expressionFactory, securityEnforcer);
 		mapping.setFilterManager(filterManager);
 		mapping.setProfiling(profiling);

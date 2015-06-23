@@ -569,6 +569,12 @@ public class OpenDJController extends AbstractResourceController {
 		AssertJUnit.assertTrue("Wrong objectclass for entry "+getDn(response)+", expected "+expected+" but got "+objectClassValues,
 				objectClassValues.contains(expected));
 	}
+	
+	public static void assertNoObjectClass(SearchResultEntry response, String unexpected) throws DirectoryException {
+		Collection<String> objectClassValues = getAttributeValues(response, "objectClass");
+		AssertJUnit.assertFalse("Unexpected objectclass for entry "+getDn(response)+": "+unexpected+", got "+objectClassValues,
+				objectClassValues.contains(unexpected));
+	}
 
 	public void assertUniqueMember(SearchResultEntry groupEntry, String accountDn) throws DirectoryException {
 		Collection<String> members = getAttributeValues(groupEntry, "uniqueMember");

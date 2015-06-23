@@ -170,7 +170,7 @@ public class TestProjectorRoleEntitlement extends AbstractLensTest {
                 accountToAddPrimary.findProperty(ShadowType.F_OBJECT_CLASS).getRealValue());
         PrismReference resourceRef = accountToAddPrimary.findReference(ShadowType.F_RESOURCE_REF);
         assertEquals(resourceDummyType.getOid(), resourceRef.getOid());
-        PrismAsserts.assertNoEmptyItem(accountToAddPrimary);
+        accountToAddPrimary.checkConsistence();
 
         ObjectDelta<ShadowType> projSecondaryDelta = projContext.getSecondaryDelta();
         assertEquals(ChangeType.MODIFY, projSecondaryDelta.getChangeType());

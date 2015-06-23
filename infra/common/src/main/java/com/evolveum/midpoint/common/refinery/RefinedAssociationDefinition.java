@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Evolveum
+ * Copyright (c) 2014-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,8 +61,12 @@ public class RefinedAssociationDefinition implements Serializable {
     public Collection<String> getIntents() {
         return resourceObjectAssociationType.getIntent();
     }
+    
+    public QName getAuxiliaryObjectClass() {
+		return resourceObjectAssociationType.getAuxiliaryObjectClass();
+	}
 
-    public MappingType getOutboundMappingType() {
+	public MappingType getOutboundMappingType() {
 		return resourceObjectAssociationType.getOutbound();
 	}
 	

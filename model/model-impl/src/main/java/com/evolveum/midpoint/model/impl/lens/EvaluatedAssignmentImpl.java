@@ -23,6 +23,7 @@ import com.evolveum.midpoint.model.api.context.EvaluatedConstruction;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -270,7 +271,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		if (!focusMappings.isEmpty()) {
 			sb.append("\n");
 			DebugUtil.debugDumpLabel(sb, "Focus Mappings", indent+1);
-			for (Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>> mapping: focusMappings) {
+			for (PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> mapping: focusMappings) {
 				sb.append("\n");
 				DebugUtil.indentDebugDump(sb, indent+2);
 				sb.append(mapping.toString());

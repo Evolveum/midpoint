@@ -253,6 +253,18 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     public Collection<RefinedObjectClassDefinition> getAuxiliaryObjectClassDefinitions() {
 		return auxiliaryObjectClassDefinitions;
 	}
+    
+	public boolean hasAuxiliaryObjectClass(QName expectedObjectClassName) {
+		if (auxiliaryObjectClassDefinitions == null) {
+			return false;
+		}
+		for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
+			if (auxiliaryObjectClassDefinition.getTypeName().equals(expectedObjectClassName)) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	public Collection<ResourceObjectPattern> getProtectedObjectPatterns() {
 		if (protectedObjectPatterns == null) {
@@ -445,6 +457,9 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     		kind = ShadowKindType.ACCOUNT;
     	}
     	String intent = entTypeDefType.getIntent();
+    	if (intent == null) {
+    		intent = SchemaConstants.INTENT_DEFAULT;
+    	}
 		RefinedObjectClassDefinition rObjectClassDef = parseRefinedObjectClass(entTypeDefType, 
 				resourceType, rSchema, prismContext, kind, intent, kind.value(), kind.value() + " type definition '"+intent+"' in " + contextDescription);
 
@@ -500,7 +515,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         RefinedObjectClassDefinition rOcDef = new RefinedObjectClassDefinition(prismContext, resourceType, objectClassDef);
 
         String intent = objectClassDef.getIntent();
-        if (intent == null) {
+        if (intent == null && objectClassDef.isDefaultInAKind()) {
         	intent = SchemaConstants.INTENT_DEFAULT;
         }
         rOcDef.setIntent(intent);
@@ -613,6 +628,9 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	}
 
 	public void parseAssociations(RefinedResourceSchema rSchema) throws SchemaException {
+		if (schemaHandlingObjectTypeDefinitionType == null) {
+			return;
+		}
 		for (ResourceObjectAssociationType resourceObjectAssociationType: schemaHandlingObjectTypeDefinitionType.getAssociation()) {
 			RefinedAssociationDefinition rAssocDef = new RefinedAssociationDefinition(resourceObjectAssociationType);
 			ShadowKindType assocKind = rAssocDef.getKind();
@@ -623,6 +641,9 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	}
 	
 	public void parseAuxiliaryObjectClasses(RefinedResourceSchema rSchema) throws SchemaException {
+		if (schemaHandlingObjectTypeDefinitionType == null) {
+			return;
+		}
 		List<QName> auxiliaryObjectClassQNames = schemaHandlingObjectTypeDefinitionType.getAuxiliaryObjectClass();
 		auxiliaryObjectClassDefinitions = new ArrayList<>(auxiliaryObjectClassQNames.size());
 		for (QName auxiliaryObjectClassQName: auxiliaryObjectClassQNames) {

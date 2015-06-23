@@ -313,6 +313,16 @@ public class MiscUtil {
         }
     }
 
+    public static XMLGregorianCalendar asXMLGregorianCalendar(Long timeInMilis) {
+        if (timeInMilis == null || timeInMilis == 0) {
+            return null;
+        } else {
+            GregorianCalendar gc = new GregorianCalendar();
+            gc.setTimeInMillis(timeInMilis);
+            return df.newXMLGregorianCalendar(gc);
+        }
+    }
+    
     /**
      * Converts an XMLGregorianCalendar to an instance of java.util.Date
      *
@@ -326,6 +336,14 @@ public class MiscUtil {
             return null;
         } else {
             return xgc.toGregorianCalendar().getTime();
+        }
+    }
+    
+    public static Long asLong(XMLGregorianCalendar xgc) {
+        if (xgc == null) {
+            return null;
+        } else {
+            return xgc.toGregorianCalendar().getTimeInMillis();
         }
     }
     

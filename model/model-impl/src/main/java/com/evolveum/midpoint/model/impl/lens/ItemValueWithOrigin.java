@@ -18,7 +18,7 @@ package com.evolveum.midpoint.model.impl.lens;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -34,11 +34,11 @@ import com.evolveum.midpoint.util.DebugUtil;
 public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition> implements DebugDumpable {
 	
 	private V itemValue;
-	private Mapping<V,D> mapping;
+	private PrismValueDeltaSetTripleProducer<V, D> mapping;
 	private Construction construction;
 	
 	public ItemValueWithOrigin(V propertyValue,
-			Mapping<V,D> mapping, Construction accountConstruction) {
+			PrismValueDeltaSetTripleProducer<V, D> mapping, Construction accountConstruction) {
 		super();
 		this.itemValue = propertyValue;
 		this.mapping = mapping;
@@ -60,7 +60,7 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
         this.itemValue = value;
     }
 	
-	public Mapping<V,D> getMapping() {
+	public PrismValueDeltaSetTripleProducer<V, D> getMapping() {
 		return mapping;
 	}
 	
@@ -91,7 +91,7 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
 		clone.construction = this.construction;
 	}
 	
-	public static <V extends PrismValue, D extends ItemDefinition> DeltaSetTriple<ItemValueWithOrigin<V,D>> createOutputTriple(Mapping<V,D> mapping) {
+	public static <V extends PrismValue, D extends ItemDefinition> DeltaSetTriple<ItemValueWithOrigin<V,D>> createOutputTriple(PrismValueDeltaSetTripleProducer<V, D> mapping) {
 		PrismValueDeltaSetTriple<V> outputTriple = mapping.getOutputTriple();
 		if (outputTriple == null) {
 			return null;
@@ -103,7 +103,7 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
 		return ivwoTriple;
 	}
 	
-	private static <V extends PrismValue, D extends ItemDefinition> Collection<ItemValueWithOrigin<V,D>> convertSet(Collection<V> valueSet, Mapping<V,D> mapping) {
+	private static <V extends PrismValue, D extends ItemDefinition> Collection<ItemValueWithOrigin<V,D>> convertSet(Collection<V> valueSet, PrismValueDeltaSetTripleProducer<V, D> mapping) {
 		if (valueSet == null) {
 			return null;
 		}

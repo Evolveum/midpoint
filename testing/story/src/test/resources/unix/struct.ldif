@@ -1,0 +1,4 @@
+dn: ou=unixgroups,dc=example,dc=com
+ou: unixgroups
+objectclass: top
+objectclass: organizationalUnit

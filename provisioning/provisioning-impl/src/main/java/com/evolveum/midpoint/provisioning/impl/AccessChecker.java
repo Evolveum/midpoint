@@ -63,6 +63,11 @@ public class AccessChecker {
 			RefinedAttributeDefinition attrDef = ctx.getObjectClassDefinition().findAttributeDefinition(attribute.getElementName());
 			// Need to check model layer, not schema. Model means IDM logic which can be overridden in schemaHandling,
 			// schema layer is the original one. 
+			if (attrDef == null) {
+				String msg = "No definition for attribute "+attribute.getElementName()+" in "+ctx.getObjectClassDefinition();
+				result.recordFatalError(msg);
+				throw new SchemaException(msg);
+			}
 			PropertyLimitations limitations = attrDef.getLimitations(LayerType.MODEL);
 			if (limitations == null) {
 				continue;

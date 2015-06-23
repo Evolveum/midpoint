@@ -17,17 +17,19 @@
 package com.evolveum.midpoint.prism.query;
 
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.DEFAULT_NAMESPACE_PREFIX;
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.*;
-import static org.testng.AssertJUnit.*;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.createPolyString;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.displayQuery;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.displayTestTitle;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getFilterCondition;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.parser.DomParser;
-import com.evolveum.midpoint.prism.util.PrismUtil;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
@@ -35,33 +37,18 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismInternalTestUtil;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.LogicalFilter;
-import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrFilter;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
-import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DomAsserts;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -74,6 +61,7 @@ public class TestQueryConvertors {
 
 	private static final File FILTER_USER_NAME_FILE = new File(TEST_DIR, "filter-user-name.xml");
 	private static final File FILTER_USER_AND_FILE = new File(TEST_DIR, "filter-user-and.xml");
+	private static final File FILTER_TYPE_USER_NONE = new File(TEST_DIR, "filter-type-user-none.xml");
 
 	@BeforeSuite
 	public void setupDebug() throws SchemaException, SAXException, IOException {
@@ -169,6 +157,44 @@ public class TestQueryConvertors {
 		DomAsserts.assertTextContent(secondValueElement, "Caribbean");
 	}
 
+	@Test
+	public void testFilterTypeUserNone() throws Exception {
+		displayTestTitle("testFilterTypeUserNone");
+
+        
+		SearchFilterType filterType = PrismTestUtil.parseAnyValue(FILTER_TYPE_USER_NONE);
+        
+		ObjectQuery query = toObjectQuery(UserType.class, filterType);
+		displayQuery(query);
+
+		assertNotNull(query);
+
+		ObjectFilter filter = query.getFilter();
+		assertTrue("Filter is not of TYPE type", filter instanceof TypeFilter);
+		
+		ObjectFilter subFilter = ((TypeFilter) filter).getFilter();
+		assertTrue("Filter is not of NONE type", subFilter instanceof NoneFilter);
+	
+		QueryType convertedQueryType = toQueryType(query);
+		System.out.println("Re-converted query type");
+		System.out.println(convertedQueryType.debugDump());
+
+		Element filterClauseElement = convertedQueryType.getFilter().getFilterClauseAsElement();
+		LOGGER.info(convertedQueryType.getFilter().getFilterClauseXNode().debugDump());
+
+		
+		System.out.println("Serialized filter (JAXB->DOM)");
+		String filterAsString = DOMUtil.serializeDOMToString(filterClauseElement);
+		System.out.println(filterAsString);
+		LOGGER.info(filterAsString);
+		
+		DomAsserts.assertElementQName(filterClauseElement, new QName(PrismConstants.NS_QUERY, "type"));
+        
+	
+		
+	}
+
+	
 	private ObjectQuery toObjectQuery(Class type, QueryType queryType) throws Exception {
 		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(type, queryType,
 				getPrismContext());

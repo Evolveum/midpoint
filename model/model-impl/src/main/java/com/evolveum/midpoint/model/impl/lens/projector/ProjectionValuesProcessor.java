@@ -463,7 +463,7 @@ public class ProjectionValuesProcessor {
 		if (accountDelta == null) {
 			return false;
 		}
-		RefinedObjectClassDefinition oOcDef = projectionContext.getRefinedAccountDefinition();
+		RefinedObjectClassDefinition oOcDef = projectionContext.getStructuralObjectClassDefinition();
 		for (RefinedAttributeDefinition identifierDef: oOcDef.getIdentifiers()) {
 			ItemPath identifierPath = new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName());
 			if (accountDelta.findPropertyDelta(identifierPath) != null) {
@@ -556,7 +556,7 @@ public class ProjectionValuesProcessor {
 			return;
 		}
 		
-		RefinedObjectClassDefinition rAccountDef = accountContext.getRefinedAccountDefinition();
+		RefinedObjectClassDefinition rAccountDef = accountContext.getStructuralObjectClassDefinition();
 		if (rAccountDef == null) {
 			throw new SchemaException("No definition for account type '"
 					+accountContext.getResourceShadowDiscriminator()+"' in "+accountContext.getResource());

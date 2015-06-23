@@ -110,7 +110,10 @@ public class RefinedResourceSchema extends ResourceSchema implements DebugDumpab
 			if (intent == null && acctDef.isDefault()) {
 				return acctDef;
 			}
-			if (acctDef.getIntent().equals(intent)) {
+			if (acctDef.getIntent() != null && acctDef.getIntent().equals(intent)) {
+				return acctDef;
+			}
+			if (acctDef.getIntent() == null && intent == null) {
 				return acctDef;
 			}
 		}
@@ -138,36 +141,35 @@ public class RefinedResourceSchema extends ResourceSchema implements DebugDumpab
 		ShadowType shadowType = shadow.asObjectable();
 		
 		RefinedObjectClassDefinition structuralObjectClassDefinition = null;
-		Collection<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions;
 		ShadowKindType kind = shadowType.getKind();
 		String intent = shadowType.getIntent();
 		QName structuralObjectClassQName = shadowType.getObjectClass();
+		
 		if (kind != null) {
 			structuralObjectClassDefinition = getRefinedDefinition(kind, intent);
-		} 
+		}
+		
 		if (structuralObjectClassDefinition == null) {
 			// Fallback to objectclass only
 			if (structuralObjectClassQName == null) {
 				return null;
 			}
 			structuralObjectClassDefinition = getRefinedDefinition(structuralObjectClassQName);
-			List<QName> auxiliaryObjectClassQNames = shadowType.getAuxiliaryObjectClass();
-			auxiliaryObjectClassDefinitions = new ArrayList<>(auxiliaryObjectClassQNames.size());
-			for (QName auxiliaryObjectClassQName: auxiliaryObjectClassQNames) {
-				RefinedObjectClassDefinition auxiliaryObjectClassDef = getRefinedDefinition(auxiliaryObjectClassQName);
-				if (auxiliaryObjectClassDef == null) {
-					throw new SchemaException("Auxiliary object class "+auxiliaryObjectClassQName+" specified in "+shadow+" does not exist");
-				}
-				auxiliaryObjectClassDefinitions.add(auxiliaryObjectClassDef);
-			}
-		} else {
-			auxiliaryObjectClassDefinitions = structuralObjectClassDefinition.getAuxiliaryObjectClassDefinitions();
 		}
 		
 		if (structuralObjectClassDefinition == null) {
-			return null;
-		}		
-		
+			return null;			
+		}
+		List<QName> auxiliaryObjectClassQNames = shadowType.getAuxiliaryObjectClass();
+		Collection<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions = new ArrayList<>(auxiliaryObjectClassQNames.size());
+		for (QName auxiliaryObjectClassQName: auxiliaryObjectClassQNames) {
+			RefinedObjectClassDefinition auxiliaryObjectClassDef = getRefinedDefinition(auxiliaryObjectClassQName);
+			if (auxiliaryObjectClassDef == null) {
+				throw new SchemaException("Auxiliary object class "+auxiliaryObjectClassQName+" specified in "+shadow+" does not exist");
+			}
+			auxiliaryObjectClassDefinitions.add(auxiliaryObjectClassDef);
+		}
+				
 		return new CompositeRefinedObjectClassDefinition(structuralObjectClassDefinition, auxiliaryObjectClassDefinitions);
 	}
 	
@@ -405,6 +407,13 @@ public class RefinedResourceSchema extends ResourceSchema implements DebugDumpab
 		parseObjectTypesFromSchema(rSchema, resourceType, prismContext, 
 				"definition of "+resourceType);
 		
+		// We need to parse associations and auxiliary object classes in a second pass. We need to have all object classes parsed before correctly setting association
+		// targets
+		for (RefinedObjectClassDefinition rOcDef: rSchema.getRefinedDefinitions()) {
+			rOcDef.parseAssociations(rSchema);
+			rOcDef.parseAuxiliaryObjectClasses(rSchema);
+		}
+		
 		return rSchema;
 	}
 
@@ -442,13 +451,6 @@ public class RefinedResourceSchema extends ResourceSchema implements DebugDumpab
 				
 			rSchema.add(rOcDef);
 		}
-		
-		// We need to parse associations and auxiliary object classes in a second pass. We need to have all object classes parsed before correctly setting association
-		// targets
-		for (RefinedObjectClassDefinition rOcDef: rSchema.getRefinedDefinitions()) {
-			rOcDef.parseAssociations(rSchema);
-			rOcDef.parseAuxiliaryObjectClasses(rSchema);
-		}
 	}
 
 	private static void parseObjectTypesFromSchema(RefinedResourceSchema rSchema, ResourceType resourceType,
@@ -456,10 +458,10 @@ public class RefinedResourceSchema extends ResourceSchema implements DebugDumpab
 
 		RefinedObjectClassDefinition rAccountDefDefault = null;
 		for(ObjectClassComplexTypeDefinition objectClassDef: rSchema.getOriginalResourceSchema().getObjectClassDefinitions()) {
-			if (rSchema.getRefinedDefinition(objectClassDef.getTypeName()) != null) {
+			QName objectClassname = objectClassDef.getTypeName();
+			if (rSchema.getRefinedDefinition(objectClassname) != null) {
 				continue;
 			}
-			QName objectClassname = objectClassDef.getTypeName();
 			RefinedObjectClassDefinition rOcDef = RefinedObjectClassDefinition.parseFromSchema(objectClassDef, resourceType, rSchema, prismContext,
 					"object class " + objectClassname + ", in " + contextDescription);
 			

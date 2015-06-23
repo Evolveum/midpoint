@@ -17,6 +17,8 @@ package com.evolveum.midpoint.model.intest.negative;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertTrue;
 import static com.evolveum.midpoint.test.util.TestUtil.assertFailure;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertNoRepoCache;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
@@ -26,6 +28,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -33,13 +38,18 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.BreakMode;
+import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.model.intest.TestModelServiceContract;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -94,6 +104,62 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);		
+	}
+	
+	@Test
+	public void test010RefinedSchemaWhite() throws Exception {
+		final String TEST_NAME = "test010RefinedSchemaWhite";
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+
+		// WHEN
+		PrismObject<ResourceType> resourceWhite = getObject(ResourceType.class, RESOURCE_DUMMY_WHITE_OID);
+		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceWhite, prismContext);
+		display("Refined schema", refinedSchema);
+		
+		RefinedObjectClassDefinition accountDef = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+		assertNotNull("Account definition is missing", accountDef);
+		assertNotNull("Null identifiers in account", accountDef.getIdentifiers());
+		assertFalse("Empty identifiers in account", accountDef.getIdentifiers().isEmpty());
+		assertNotNull("Null secondary identifiers in account", accountDef.getSecondaryIdentifiers());
+		assertFalse("Empty secondary identifiers in account", accountDef.getSecondaryIdentifiers().isEmpty());
+		assertNotNull("No naming attribute in account", accountDef.getNamingAttribute());
+		assertFalse("No nativeObjectClass in account", StringUtils.isEmpty(accountDef.getNativeObjectClass()));
+		
+		assertEquals("Unexpected kind in account definition", ShadowKindType.ACCOUNT, accountDef.getKind());
+		assertTrue("Account definition in not default", accountDef.isDefaultInAKind());
+		assertEquals("Wrong intent in account definition", SchemaConstants.INTENT_DEFAULT, accountDef.getIntent());
+		assertFalse("Account definition is deprecated", accountDef.isDeprecated());
+		assertFalse("Account definition in auxiliary", accountDef.isAuxiliary());
+
+		RefinedAttributeDefinition uidDef = accountDef.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
+		assertEquals(1, uidDef.getMaxOccurs());
+		assertEquals(0, uidDef.getMinOccurs());
+		assertFalse("No UID display name", StringUtils.isBlank(uidDef.getDisplayName()));
+		assertFalse("UID has create", uidDef.canAdd());
+		assertFalse("UID has update", uidDef.canModify());
+		assertTrue("No UID read", uidDef.canRead());
+		assertTrue("UID definition not in identifiers", accountDef.getIdentifiers().contains(uidDef));
+
+		RefinedAttributeDefinition nameDef = accountDef.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
+		assertEquals(1, nameDef.getMaxOccurs());
+		assertEquals(1, nameDef.getMinOccurs());
+		assertFalse("No NAME displayName", StringUtils.isBlank(nameDef.getDisplayName()));
+		assertTrue("No NAME create", nameDef.canAdd());
+		assertTrue("No NAME update", nameDef.canModify());
+		assertTrue("No NAME read", nameDef.canRead());
+		assertTrue("NAME definition not in identifiers", accountDef.getSecondaryIdentifiers().contains(nameDef));
+
+		RefinedAttributeDefinition fullnameDef = accountDef.findAttributeDefinition("fullname");
+		assertNotNull("No definition for fullname", fullnameDef);
+		assertEquals(1, fullnameDef.getMaxOccurs());
+		assertEquals(1, fullnameDef.getMinOccurs());
+		assertTrue("No fullname create", fullnameDef.canAdd());
+		assertTrue("No fullname update", fullnameDef.canModify());
+		assertTrue("No fullname read", fullnameDef.canRead());
+
+		assertNull("The _PASSSWORD_ attribute sneaked into schema",
+				accountDef.findAttributeDefinition(new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));		
 	}
 	
 	/**

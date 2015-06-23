@@ -46,6 +46,7 @@ import com.evolveum.midpoint.model.common.expression.StringPolicyResolver;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
+import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.lens.projector.ValueMatcher;
 import com.evolveum.midpoint.model.impl.util.Utils;
@@ -251,7 +252,7 @@ public class LensUtil {
             boolean zeroHasStrong = false;
             if (!zeroPvwos.isEmpty()) {
             	for (ItemValueWithOrigin<V,D> pvwo : zeroPvwos) {
-                    Mapping<V,D> mapping = pvwo.getMapping();
+            		PrismValueDeltaSetTripleProducer<V,D> mapping = pvwo.getMapping();
                     if (mapping.getStrength() == MappingStrengthType.STRONG) {
                     	zeroHasStrong = true;
                     }
@@ -268,7 +269,7 @@ public class LensUtil {
                 continue;
             }
             
-            Mapping<V,D> exclusiveMapping = null;
+            PrismValueDeltaSetTripleProducer<V, D> exclusiveMapping = null;
             Collection<ItemValueWithOrigin<V,D>> pvwosToAdd = null;
             if (addUnchangedValues) {
                 pvwosToAdd = MiscUtil.union(zeroPvwos, plusPvwos);
@@ -282,7 +283,7 @@ public class LensUtil {
             	// There may be several mappings that imply that value. So check them all for
                 // exclusions and strength
                 for (ItemValueWithOrigin<V,D> pvwoToAdd : pvwosToAdd) {
-                    Mapping<V,D> mapping = pvwoToAdd.getMapping();
+                	PrismValueDeltaSetTripleProducer<V,D> mapping = pvwoToAdd.getMapping();
                     if (mapping.getStrength() != MappingStrengthType.WEAK) {
                         weakOnly = false;
                     }
@@ -340,7 +341,7 @@ public class LensUtil {
             	// There may be several mappings that imply that value. So check them all for
                 // exclusions and strength
                 for (ItemValueWithOrigin<V,D> pvwo : minusPvwos) {
-                    Mapping<V,D> mapping = pvwo.getMapping();
+                	PrismValueDeltaSetTripleProducer<V,D> mapping = pvwo.getMapping();
                     if (mapping.getStrength() != MappingStrengthType.WEAK) {
                         weakOnly = false;
                     }
@@ -393,7 +394,7 @@ public class LensUtil {
             	// There may be several mappings that imply that value. So check them all for
                 // exclusions and strength
                 for (ItemValueWithOrigin<V,D> pvwo : zeroPvwos) {
-                    Mapping<V,D> mapping = pvwo.getMapping();
+                	PrismValueDeltaSetTripleProducer<V,D> mapping = pvwo.getMapping();
                     if (mapping.getStrength() != MappingStrengthType.WEAK) {
                         weakOnly = false;
                     }
@@ -955,7 +956,7 @@ public class LensUtil {
 		return effectiveStatus == ActivationStatusType.ENABLED;
 	}
     
-    public static <V extends PrismValue, D extends ItemDefinition , F extends FocusType> Mapping<V,D> createFocusMapping(final MappingFactory mappingFactory,
+    public static <V extends PrismValue, D extends ItemDefinition , F extends FocusType> Mapping<V, D> createFocusMapping(final MappingFactory mappingFactory,
     		final LensContext<F> context, final MappingType mappingType, ObjectType originObject, 
 			ObjectDeltaObject<F> focusOdo, AssignmentPathVariables assignmentPathVariables, PrismObject<SystemConfigurationType> configuration,
 			XMLGregorianCalendar now, String contextDesc, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
@@ -974,7 +975,7 @@ public class LensUtil {
     			iteration, iterationToken, configuration, now, contextDesc, result);
     }
     
-    public static <V extends PrismValue, D extends ItemDefinition, F extends FocusType> Mapping<V,D> createFocusMapping(final MappingFactory mappingFactory,
+    public static <V extends PrismValue, D extends ItemDefinition, F extends FocusType> Mapping<V, D> createFocusMapping(final MappingFactory mappingFactory,
     		final LensContext<F> context, final MappingType mappingType, ObjectType originObject, 
 			ObjectDeltaObject<F> focusOdo, AssignmentPathVariables assignmentPathVariables, 
 			Integer iteration, String iterationToken, PrismObject<SystemConfigurationType> configuration,

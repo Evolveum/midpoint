@@ -31,5 +31,17 @@ public enum RetrieveOption {
             default: throw new IllegalStateException("Unsupported RetrieveOptionType: " + retrieveOptionType);
         }
     }
+    
+    public static RetrieveOptionType toRetrieveOptionType(RetrieveOption retrieveOption) {
+        if (retrieveOption == null) {
+            return RetrieveOptionType.DEFAULT;
+        }
+        switch(retrieveOption) {
+            case DEFAULT: return RetrieveOptionType.DEFAULT;
+            case INCLUDE: return RetrieveOptionType.INCLUDE;
+            case EXCLUDE: return RetrieveOptionType.EXCLUDE;
+            default: throw new IllegalStateException("Unsupported RetrieveOption: " + retrieveOption);
+        }
+    }
 
 }

@@ -268,6 +268,19 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
         return MiscUtil.union(zeroSet, plusSet, minusSet);
     }
     
+    public T getAnyValue() {
+    	if (zeroSet != null && !zeroSet.isEmpty()) {
+    		return zeroSet.iterator().next();
+    	}
+    	if (plusSet != null && !plusSet.isEmpty()) {
+    		return plusSet.iterator().next();
+    	}
+    	if (minusSet != null && !minusSet.isEmpty()) {
+    		return minusSet.iterator().next();
+    	}
+    	return null;
+    }
+    
     public Collection<T> getAllValues() {
     	Collection<T> allValues = new ArrayList<T>(size());
     	addAllValuesSet(allValues, zeroSet);

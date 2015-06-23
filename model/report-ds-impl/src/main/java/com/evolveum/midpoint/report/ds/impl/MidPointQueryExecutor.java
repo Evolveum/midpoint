@@ -37,10 +37,10 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-public class MidPointQueryExecutor extends JRAbstractQueryExecuter{
+public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter{
 	
-	private static final Trace LOGGER = TraceManager.getTrace(MidPointQueryExecutor.class);
-	private ObjectQuery query;
+	private static final Trace LOGGER = TraceManager.getTrace(MidPointLocalQueryExecutor.class);
+	private Object query;
 	private String script;
 	private Class type;
 	private ReportService reportService;
@@ -48,28 +48,20 @@ public class MidPointQueryExecutor extends JRAbstractQueryExecuter{
 	public String getScript() {
 		return script;
 	}
-	public ObjectQuery getQuery() {
+	public Object getQuery() {
 		return query;
 	}
 	public Class getType() {
 		return type;
 	}
-	
-	private Object getObjectQueryFromParameters(){
+		
+	protected Map<QName, Object> getParameters(){
 		JRParameter[] params = dataset.getParameters();
 		Map<QName, Object> expressionParameters = new HashMap<QName, Object>();
 		for (JRParameter param : params){
-			if ("finalQuery".equals(param.getName())){
-				return getParameterValue(param.getName());
+			if (param.isSystemDefined()){
+				continue;
 			}
-		}
-		return null;
-	}
-	
-	private Map<QName, Object> getParameters(){
-		JRParameter[] params = dataset.getParameters();
-		Map<QName, Object> expressionParameters = new HashMap<QName, Object>();
-		for (JRParameter param : params){
 			LOGGER.trace(((JRBaseParameter)param).getName());
 			Object v = getParameterValue(param.getName());
 			try{ 
@@ -83,7 +75,7 @@ public class MidPointQueryExecutor extends JRAbstractQueryExecuter{
 		return expressionParameters;
 	}
 	
-	private Map<QName, Object> getPromptingParameters(){
+	protected Map<QName, Object> getPromptingParameters(){
 		JRParameter[] params = dataset.getParameters();
 		Map<QName, Object> expressionParameters = new HashMap<QName, Object>();
 		for (JRParameter param : params){
@@ -106,66 +98,50 @@ public class MidPointQueryExecutor extends JRAbstractQueryExecuter{
 		return expressionParameters;
 	}
 	
+	protected abstract Object getParsedQuery(String query, Map<QName, Object> expressionParameters) throws  SchemaException, ObjectNotFoundException, ExpressionEvaluationException;
+	
+	protected String getParsedScript(String script){
+		String normalized = script.replace("<code>", "");
+		return normalized.replace("</code>", "");
+	}
+	
 	@Override
 	protected void parseQuery() {
-		// TODO Auto-generated method stub
-		
-		
-		
 		String s = dataset.getQuery().getText();
-		
-		JRBaseParameter p = (JRBaseParameter) dataset.getParameters()[0];
-		
+
 		Map<QName, Object> expressionParameters = getParameters();
-		LOGGER.info("query: " + s);
-		if (StringUtils.isEmpty(s)){
+		LOGGER.trace("query: " + s);
+		if (StringUtils.isEmpty(s)) {
 			query = null;
 		} else {
 			try {
-			if (s.startsWith("<filter")){
-			
-				Object queryParam = getObjectQueryFromParameters();
-				if (queryParam != null){
-					if (queryParam instanceof String){
-						s = (String) queryParam;
-					} else if (queryParam instanceof ObjectQuery){
-						query = (ObjectQuery) queryParam;
-					}
+				if (s.startsWith("<filter")) {
+
+					query = getParsedQuery(s, expressionParameters);
+				} else if (s.startsWith("<code")) {
+					script = getParsedScript(s);
 				}
-				
-				if (query == null){
-					query = reportService.parseQuery(s, expressionParameters);
-				}
-			} else if (s.startsWith("<code")){
-				String normalized = s.replace("<code>", "");
-				script = normalized.replace("</code>", "");
-				
-			}
 			} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
-		
+
 	}
-	
-	
-	public MidPointQueryExecutor(JasperReportsContext jasperReportsContext, JRDataset dataset,
-			Map<String, ? extends JRValueParameter> parametersMap, ReportService reportService){
-		super(jasperReportsContext, dataset, parametersMap);
-	}
-	
+
 	protected MidPointQueryExecutor(JasperReportsContext jasperReportsContext, JRDataset dataset,
 			Map<String, ? extends JRValueParameter> parametersMap) {
 		super(jasperReportsContext, dataset, parametersMap);
-		
-		JRFillParameter fillparam = (JRFillParameter) parametersMap.get(JRParameter.REPORT_PARAMETERS_MAP);
-		Map reportParams = (Map) fillparam.getValue();
-		reportService = (ReportService) parametersMap.get(ReportService.PARAMETER_REPORT_SERVICE).getValue();
-
-		parseQuery();
 	}
+	
+	protected abstract Collection searchObjects(Object query, Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException;
 
+	protected abstract Collection evaluateScript(String script, Map<QName, Object> parameters) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+	
+	protected abstract Collection<AuditEventRecord> searchAuditRecords(String script, Map<QName, Object> parameters) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException;
+	
+	protected abstract JRDataSource createDataSource(Collection results);
+	
 	@Override
 	public JRDataSource createDatasource() throws JRException {
 		Collection<PrismObject<? extends ObjectType>> results = new ArrayList<>();
@@ -176,13 +152,13 @@ public class MidPointQueryExecutor extends JRAbstractQueryExecuter{
 			}
 			
 			if (query != null){
-				results = reportService.searchObjects(query, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+				results = searchObjects(query, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
 			} else {
 				if (script.contains("AuditEventRecord")){
-					Collection<AuditEventRecord> audtiEventRecords = reportService.evaluateAuditScript(script, getPromptingParameters());
+					Collection<AuditEventRecord> audtiEventRecords = searchAuditRecords(script, getPromptingParameters()); 
 					return new JRBeanCollectionDataSource(audtiEventRecords);
 				} else {
-					results = reportService.evaluateScript(script, getParameters());
+					results = evaluateScript(script, getParameters());
 				}
 			}
 		} catch (SchemaException | ObjectNotFoundException | SecurityViolationException
@@ -191,9 +167,8 @@ public class MidPointQueryExecutor extends JRAbstractQueryExecuter{
 			throw new JRException(e);
 		}
 		
-		MidPointDataSource mds = new MidPointDataSource(results);
+		return createDataSource(results);
 		
-		return mds;
 	}
 	
 	

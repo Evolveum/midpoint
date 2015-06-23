@@ -27,6 +27,9 @@
 
     <public publicId="http://prism.evolveum.com/xml/ns/public/query-3" uri="../prism/xml/ns/public/query-3.xsd" />
     <system systemId="http://prism.evolveum.com/xml/ns/public/query-3" uri="../prism/xml/ns/public/query-3.xsd" />
+    
+    <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/audit-3" uri="../xml/ns/public/common/audit-3.xsd" />
+    <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/audit-3" uri="../xml/ns/public/common/audit-3.xsd" />
 
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/common-3" uri="../xml/ns/public/common/common-3.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-3" uri="../xml/ns/public/common/common-3.xsd" />

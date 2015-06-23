@@ -211,6 +211,12 @@ class EntitlementConverter {
 			throw new SchemaException("No name in entitlement association "+assocDefType+" in "+resourceType);
 		}
 		
+		QName associationAuxiliaryObjectClass = assocDefType.getAuxiliaryObjectClass();
+		if (associationAuxiliaryObjectClass != null && !subjectCtx.getObjectClassDefinition().hasAuxiliaryObjectClass(associationAuxiliaryObjectClass)) {
+			LOGGER.trace("Ignoring association {} because subject does not have auxiliary object class {}", associationName, associationAuxiliaryObjectClass);
+			return;
+		}
+		
 		QName assocAttrName = assocDefType.getResourceObjectAssociationType().getAssociationAttribute();
 		if (assocAttrName == null) {
 			throw new SchemaException("No association attribute defined in entitlement association '"+associationName+"' in "+resourceType);

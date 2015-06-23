@@ -46,7 +46,7 @@ public class MidPointQueryExecutorFactory extends AbstractQueryExecuterFactory{
 	public JRQueryExecuter createQueryExecuter(JasperReportsContext jasperReportsContext, JRDataset dataset,
 			Map<String, ? extends JRValueParameter> parameters) throws JRException {
 		
-		return new MidPointQueryExecutor(jasperReportsContext, dataset, parameters);
+		return new MidPointLocalQueryExecutor(jasperReportsContext, dataset, parameters);
 	}
 
 	@Override

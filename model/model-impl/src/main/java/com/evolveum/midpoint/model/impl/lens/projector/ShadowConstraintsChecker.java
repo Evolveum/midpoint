@@ -105,7 +105,7 @@ public class ShadowConstraintsChecker<F extends FocusType> {
 
 	public void check(OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		
-		RefinedObjectClassDefinition projDef = projectionContext.getRefinedAccountDefinition();
+		RefinedObjectClassDefinition projDef = projectionContext.getStructuralObjectClassDefinition();
 		PrismObject<ShadowType> projectionNew = projectionContext.getObjectNew();
 		if (projectionNew == null) {
 			// This must be delete
