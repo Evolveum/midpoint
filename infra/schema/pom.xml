@@ -213,6 +213,7 @@
                                         <extraarg>-impl</extraarg>
                                         <extraarg>-verbose</extraarg>
                                         <extraarg>-validate</extraarg>
+                                        <extraarg>-xjc-nv</extraarg>
                                         <extraarg>-xjc-Xts</extraarg>
                                         <extraarg>-xjc-XhashCode</extraarg>
                                         <extraarg>-xjc-Xequals</extraarg>

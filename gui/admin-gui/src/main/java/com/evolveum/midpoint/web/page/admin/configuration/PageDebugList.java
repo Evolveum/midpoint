@@ -27,9 +27,11 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -47,12 +49,14 @@ import com.evolveum.midpoint.web.component.dialog.DeleteAllDialog;
 import com.evolveum.midpoint.web.component.dialog.DeleteAllDto;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.DebugButtonPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.configuration.component.PageDebugDownloadBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugConfDialogDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugObjectItem;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugSearchDto;
+import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.session.ConfigurationStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
@@ -62,6 +66,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -86,7 +92,7 @@ import java.util.*;
 @PageDescriptor(url = "/admin/config/debugs", action = {
         @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
                 label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#debugs",
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONFIGURATION_DEBUGS_URL,
                 label = "PageDebugList.auth.debugs.label", description = "PageDebugList.auth.debugs.description")})
 public class PageDebugList extends PageAdminConfiguration {
 
@@ -95,6 +101,8 @@ public class PageDebugList extends PageAdminConfiguration {
     private static final String OPERATION_DELETE_OBJECTS = DOT_CLASS + "deleteObjects";
 
     private static final String OPERATION_LAXATIVE_DELETE = DOT_CLASS + "laxativeDelete";
+
+    private static final String OPERATION_LOAD_RESOURCES = DOT_CLASS + "loadResources";
 
     private static final String ID_CONFIRM_DELETE_POPUP = "confirmDeletePopup";
     private static final String ID_MAIN_FORM = "mainForm";
@@ -106,6 +114,7 @@ public class PageDebugList extends PageAdminConfiguration {
     private static final String ID_SEARCH_FORM = "searchForm";
     private static final String ID_BASIC_SEARCH = "basicSearch";
     private static final String ID_DELETE_ALL_DIALOG = "confirmDeleteAll";
+    private static final String ID_RESOURCE = "resource";
 
     private static final Integer DELETE_LOG_INTERVAL = 50;
 
@@ -113,6 +122,7 @@ public class PageDebugList extends PageAdminConfiguration {
     private IModel<DebugSearchDto> searchModel;
     // confirmation dialog model
     private IModel<DebugConfDialogDto> confDialogModel;
+    private IModel<List<ObjectViewDto>> resourcesModel;
 
     private int objectsDeleted = 0;
 
@@ -138,8 +148,43 @@ public class PageDebugList extends PageAdminConfiguration {
             }
         };
 
+        resourcesModel= new LoadableModel<List<ObjectViewDto>>() {
+
+            @Override
+            protected List<ObjectViewDto> load() {
+                return loadResources();
+            }
+        };
+
         getSessionStorage().clearPagingInSession(clearPagingInSession);
         initLayout();
+    }
+
+    private List<ObjectViewDto> loadResources() {
+        List<ObjectViewDto> objects = new ArrayList<>();
+
+        try {
+            OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCES);
+            List<PrismObject<ResourceType>> list = WebModelUtils.searchObjects(ResourceType.class, null,
+                    SelectorOptions.createCollection(GetOperationOptions.createRaw()), result, this, null);
+
+            for (PrismObject obj : list) {
+                ObjectViewDto dto = new ObjectViewDto(obj.getOid(), WebMiscUtil.getName(obj));
+                objects.add(dto);
+            }
+        } catch (Exception ex) {
+            //todo implement error handling
+        }
+
+        Collections.sort(objects, new Comparator<ObjectViewDto>() {
+
+            @Override
+            public int compare(ObjectViewDto o1, ObjectViewDto o2) {
+                return String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName());
+            }
+        });
+
+        return objects;
     }
 
     private void initLayout() {
@@ -198,6 +243,9 @@ public class PageDebugList extends PageAdminConfiguration {
                         break;
                     case DELETE_SELECTED:
                         deleteSelectedConfirmed(target, dto.getObjects());
+                        break;
+                    case DELETE_RESOURCE_SHADOWS:
+                        deleteAllShadowsOnResourceConfirmed(target);
                         break;
                 }
             }
@@ -380,6 +428,24 @@ public class PageDebugList extends PageAdminConfiguration {
 //                    }
 //                }));
 
+        headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.deleteShadowsOnResource"),
+                new Model(true),
+                new AbstractReadOnlyModel<Boolean>() {
+
+            @Override
+            public Boolean getObject() {
+                DebugSearchDto dto = searchModel.getObject();
+                return ObjectTypes.SHADOW.equals(dto.getType());
+            }
+
+        }, false, new HeaderMenuAction(this) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                deleteAllShadowsOnResource(target);
+            }
+        }));
+
         headerMenuItems.add(new InlineMenuItem());
 
         headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.deleteAllIdentities"), true,
@@ -399,7 +465,25 @@ public class PageDebugList extends PageAdminConfiguration {
         return zipCheck.getModelObject();
     }
 
-    private void initSearchForm(Form searchForm) {
+    private IChoiceRenderer<ObjectViewDto> createResourceRenderer() {
+        return new IChoiceRenderer<ObjectViewDto>() {
+
+            @Override
+            public Object getDisplayValue(ObjectViewDto object) {
+                if (object == null) {
+                    return getString("pageDebugList.resource");
+                }
+                return object.getName();
+            }
+
+            @Override
+            public String getIdValue(ObjectViewDto object, int index) {
+                return Integer.toString(index);
+            }
+        };
+    }
+
+    private void initSearchForm(final Form searchForm) {
         IChoiceRenderer<ObjectTypes> renderer = new IChoiceRenderer<ObjectTypes>() {
 
             @Override
@@ -423,9 +507,30 @@ public class PageDebugList extends PageAdminConfiguration {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
+                target.add(searchForm);
                 listObjectsPerformed(target);
             }
         });
+
+        DropDownChoice resource = new DropDownChoice(ID_RESOURCE, new PropertyModel(searchModel, DebugSearchDto.F_RESOURCE_OID),
+                resourcesModel, createResourceRenderer());
+        resource.setNullValid(true);
+        resource.add(new AjaxFormComponentUpdatingBehavior("onblur") {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                //nothing to do, it's here just to update model
+            }
+        });
+        resource.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                DebugSearchDto dto = searchModel.getObject();
+                return ObjectTypes.SHADOW.equals(dto.getType());
+            }
+        });
+        searchForm.add(resource);
 
         BasicSearchPanel<DebugSearchDto> basicSearch = new BasicSearchPanel<DebugSearchDto>(ID_BASIC_SEARCH) {
 
@@ -498,21 +603,34 @@ public class PageDebugList extends PageAdminConfiguration {
 
     private ObjectQuery createQuery(){
         DebugSearchDto dto = searchModel.getObject();
-        String nameText = dto.getText();
-        ObjectQuery query = new ObjectQuery();
 
-        if (StringUtils.isNotEmpty(nameText)) {
-                PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
-                String normalizedString = normalizer.normalize(nameText);
-
-                ObjectFilter substring = SubstringFilter.createSubstring(ObjectType.F_NAME, ObjectType.class, getPrismContext(),
-                        PolyStringNormMatchingRule.NAME, normalizedString);
-                query.setFilter(substring);
-
-            return  query;
+        List<ObjectFilter> filters = new ArrayList<>();
+        if (dto.getResource() != null) {
+            String oid = dto.getResource().getOid();
+            RefFilter ref = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class,
+                    getPrismContext(), oid);
+            filters.add(ref);
         }
 
-        return null;
+        if (StringUtils.isNotEmpty(dto.getText())) {
+            String nameText = dto.getText();
+            PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
+            String normalizedString = normalizer.normalize(nameText);
+
+            ObjectFilter substring = SubstringFilter.createSubstring(ObjectType.F_NAME, ObjectType.class,
+                    getPrismContext(), PolyStringNormMatchingRule.NAME, normalizedString);
+            filters.add(substring);
+        }
+
+        if (filters.isEmpty()) {
+            return null;
+        }
+
+        ObjectFilter filter = filters.size() > 1 ? AndFilter.createAnd(filters) : filters.get(0);
+        ObjectQuery query = new ObjectQuery();
+        query.setFilter(filter);
+
+        return query;
     }
 
     private void objectEditPerformed(AjaxRequestTarget target, String oid, Class<? extends ObjectType> type) {
@@ -551,6 +669,10 @@ public class PageDebugList extends PageAdminConfiguration {
                         DebugObjectItem selectedItem = selectedList.get(0);
                         return createStringResource("pageDebugList.message.deleteObjectConfirm",
                                 selectedItem.getName()).getString();
+                    case DELETE_RESOURCE_SHADOWS:
+                        DebugSearchDto search = searchModel.getObject();
+                        return createStringResource("pageDebugList.messsage.deleteAllResourceShadows",
+                                search.getResource().getName()).getString();
                 }
 
                 return "";
@@ -776,20 +898,43 @@ public class PageDebugList extends PageAdminConfiguration {
     }
 
     private void clearSearchPerformed(AjaxRequestTarget target){
-        DebugSearchDto dto = new DebugSearchDto();
-
-        TablePanel panel = getListTable();
-        DataTable table = panel.getDataTable();
-        RepositoryObjectDataProvider provider = (RepositoryObjectDataProvider) table.getDataProvider();
-        provider.setQuery(null);
-
-        provider.setType(dto.getType().getClassDefinition());
-        searchModel.setObject(new DebugSearchDto());
-
-        ConfigurationStorage storage = getSessionStorage().getConfiguration();
-        storage.setDebugSearchDto(searchModel.getObject());
+        DebugSearchDto dto = searchModel.getObject();
+        dto.setText(null);
 
         target.add(get(ID_SEARCH_FORM));
-        target.add(panel);
+        listObjectsPerformed(target);
+    }
+
+    private void deleteAllShadowsOnResource(AjaxRequestTarget target) {
+        DebugSearchDto dto = searchModel.getObject();
+        if (dto.getResource() == null) {
+            error(getString("pageDebugList.message.resourceNotSelected"));
+            target.add(getFeedbackPanel());
+            return;
+        }
+
+        LOGGER.debug("Displaying delete all shadows on resource {} confirmation dialog", dto.getResource().getName());
+
+        DebugConfDialogDto dialogDto = new DebugConfDialogDto(DebugConfDialogDto.Operation.DELETE_RESOURCE_SHADOWS,
+                null, null);
+        confDialogModel.setObject(dialogDto);
+
+        ModalWindow dialog = (ModalWindow) get(ID_CONFIRM_DELETE_POPUP);
+        dialog.show(target);
+    }
+
+    private void deleteAllShadowsOnResourceConfirmed(AjaxRequestTarget target) {
+        DebugSearchDto dto = searchModel.getObject();
+        String resourceOid = dto.getResource().getOid();
+
+        LOGGER.debug("Deleting shadows on resource {}", resourceOid);
+        //todo implement async task
+
+        TaskManager taskManager = getTaskManager();
+//        Task task = taskManager.createTaskInstance(OPERATION_INITIAL_OBJECTS_IMPORT);
+//        task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+
+        info(getString("pageDebugList.messsage.deleteAllShadowsStarted", dto.getResource().getName()));
+        target.add(getFeedbackPanel());
     }
 }

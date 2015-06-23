@@ -58,6 +58,7 @@ import org.hibernate.tuple.IdentifierProperty;
 import org.hibernate.tuple.entity.EntityMetamodel;
 import org.w3c.dom.Element;
 
+import javax.persistence.Table;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
@@ -418,6 +419,10 @@ public final class RUtil {
     }
 
     public static String getTableName(Class hqlType) {
+        Table tableAnnotation = (Table) hqlType.getAnnotation(Table.class);     // TODO what about performance here? (synchronized call)
+        if (tableAnnotation != null && StringUtils.isNotEmpty(tableAnnotation.name())) {
+            return tableAnnotation.name();
+        }
         MidPointNamingStrategy namingStrategy = new MidPointNamingStrategy();
         return namingStrategy.classToTableName(hqlType.getSimpleName());
     }

@@ -215,6 +215,14 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
+    
+    <xsd:element name="auxiliary" type="xsd:boolean" default="false">
+        <xsd:annotation>
+            <xsd:documentation>
+                A flag that specifies whether this object class is an auxiliary object class.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
 
 </xsd:schema>
 

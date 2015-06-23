@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.parser.JaxbDomHack;
 import com.evolveum.midpoint.prism.parser.JsonParser;
 import com.evolveum.midpoint.prism.parser.Parser;
 import com.evolveum.midpoint.prism.parser.PrismBeanConverter;
+import com.evolveum.midpoint.prism.parser.PrismBeanInspector;
 import com.evolveum.midpoint.prism.parser.XNodeProcessor;
 import com.evolveum.midpoint.prism.parser.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.prism.parser.YamlParser;
@@ -75,6 +76,7 @@ public class PrismContext {
 	private SchemaRegistry schemaRegistry;
 	private XNodeProcessor xnodeProcessor;
 	private PrismBeanConverter beanConverter;
+	private PrismBeanConverter compatModeBeanConverter;
 	private SchemaDefinitionFactory definitionFactory;
 	private PolyStringNormalizer defaultPolyStringNormalizer;
 	private Map<String, Parser> parserMap;
@@ -96,7 +98,9 @@ public class PrismContext {
 		schemaRegistry.setPrismContext(prismContext);
 
 		prismContext.xnodeProcessor = new XNodeProcessor(prismContext);
-		prismContext.beanConverter = new PrismBeanConverter(prismContext);
+		PrismBeanInspector inspector = new PrismBeanInspector(prismContext);
+		prismContext.beanConverter = new PrismBeanConverter(prismContext, inspector);
+		prismContext.compatModeBeanConverter = new PrismBeanConverter(prismContext, inspector, XNodeProcessorEvaluationMode.COMPAT);
 
 		prismContext.parserMap = new HashMap<String, Parser>();
 		DomParser parserDom = new DomParser(schemaRegistry);
@@ -156,6 +160,10 @@ public class PrismContext {
 
 	public PrismBeanConverter getBeanConverter() {
 		return beanConverter;
+	}
+
+	public PrismBeanConverter getCompatModeBeanConverter() {
+		return compatModeBeanConverter;
 	}
 
 	public JaxbDomHack getJaxbDomHack() {

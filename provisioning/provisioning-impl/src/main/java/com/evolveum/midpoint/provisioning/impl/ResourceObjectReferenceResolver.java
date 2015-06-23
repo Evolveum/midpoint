@@ -66,14 +66,15 @@ public class ResourceObjectReferenceResolver {
 		PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, shadowRef.getOid(), null, result);
 		return shadow;
 	}
-	
-	public PrismObject<ShadowType> fetchResourceObject(ConnectorInstance connector, ResourceType resource,
-			RefinedObjectClassDefinition objectClassDefinition,
+	public PrismObject<ShadowType> fetchResourceObject(ProvisioningContext ctx,
 			Collection<? extends ResourceAttribute<?>> identifiers, 
 			AttributesToReturn attributesToReturn,
 			OperationResult parentResult) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, SecurityViolationException, ConfigurationException {
-
+		ResourceType resource = ctx.getResource();
+		ConnectorInstance connector = ctx.getConnector(parentResult);
+		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
+		
 		try {
 		
 			if (!ResourceTypeUtil.hasReadCapability(resource)){

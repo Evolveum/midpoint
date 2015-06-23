@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -495,6 +496,13 @@ public class ConnectorManager {
 
 	public void connectorFrameworkSelfTest(OperationResult parentTestResult, Task task) {
 		connectorFactory.selfTest(parentTestResult);
+	}
+
+	public void shutdown() {
+		for (Entry<String,ConfiguredConnectorInstanceEntry> connectorInstanceCacheEntry: connectorInstanceCache.entrySet()) {
+			connectorInstanceCacheEntry.getValue().connectorInstance.dispose();
+		}
+		connectorFactory.shutdown();
 	}
 
 }

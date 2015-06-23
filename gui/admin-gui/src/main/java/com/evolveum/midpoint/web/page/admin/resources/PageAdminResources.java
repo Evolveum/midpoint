@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ public class PageAdminResources extends PageAdmin {
 
     protected static final Trace LOGGER = TraceManager.getTrace(PageAdminResources.class);
 
-    public static final String AUTH_RESOURCE_ALL = AuthorizationConstants.NS_AUTHORIZATION + "#resourcesAll";
+    public static final String AUTH_RESOURCE_ALL = AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL;
     public static final String AUTH_RESOURCE_ALL_LABEL = "PageAdminResources.auth.resourcesAll.label";
     public static final String AUTH_RESOURCE_ALL_DESCRIPTION = "PageAdminResources.auth.resourcesAll.description";
 
@@ -119,29 +119,23 @@ public class PageAdminResources extends PageAdmin {
         OperationResult result = new OperationResult(OPERATION_DELETE_SYNC_TOKEN);
         ObjectQuery query;
 
-        try {
-            ObjectFilter refFilter = RefFilter.createReferenceEqual(TaskType.F_OBJECT_REF, TaskType.class,
-                    getPrismContext(), resourceOid);
+        ObjectFilter refFilter = RefFilter.createReferenceEqual(TaskType.F_OBJECT_REF, TaskType.class,
+                getPrismContext(), resourceOid);
 
-            ObjectFilter filterHandleUri = EqualFilter.createEqual(TaskType.F_HANDLER_URI, TaskType.class,
-                    getPrismContext(), null, handlerUri);
+        ObjectFilter filterHandleUri = EqualFilter.createEqual(TaskType.F_HANDLER_URI, TaskType.class,
+                getPrismContext(), null, handlerUri);
 
-            query = new ObjectQuery();
-            query.setFilter(AndFilter.createAnd(refFilter, filterHandleUri));
+        query = new ObjectQuery();
+        query.setFilter(AndFilter.createAnd(refFilter, filterHandleUri));
 
-            List<PrismObject<TaskType>> taskList = WebModelUtils.searchObjects(TaskType.class, query,
-                    result, this);
+        List<PrismObject<TaskType>> taskList = WebModelUtils.searchObjects(TaskType.class, query,
+                result, this);
 
-            if(taskList.size() != 1){
-                error(getString("pageResource.message.invalidTaskSearch"));
-            } else {
-                oldTask = taskList.get(0);
-                saveTask(oldTask, result);
-            }
-
-        }catch (SchemaException e){
-            LoggingUtils.logException(LOGGER, "Couldn't create reference query for task.", e);
-            error("Couldn't create reference query for task." + e.getMessage());
+        if(taskList.size() != 1){
+            error(getString("pageResource.message.invalidTaskSearch"));
+        } else {
+            oldTask = taskList.get(0);
+            saveTask(oldTask, result);
         }
 
         result.recomputeStatus();

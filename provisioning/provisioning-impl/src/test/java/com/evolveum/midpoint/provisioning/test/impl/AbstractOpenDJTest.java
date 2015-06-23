@@ -60,23 +60,24 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 	protected static final File ACCOUNT1_REPO_FILE = new File(TEST_DIR_NAME, "account1-repo.xml");
 	protected static final String ACCOUNT1_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1cccc";
 	
-	protected static final String ACCOUNT_NEW_FILENAME = TEST_DIR_NAME + "/account-new.xml";
-	protected static final String ACCOUNT_NEW_OID = "c0c010c0-d34d-b44f-f11d-333222123456";
-	protected static final String ACCOUNT_NEW_DN = "uid=will,ou=People,dc=example,dc=com";
+	protected static final File ACCOUNT_WILL_FILE = new File(TEST_DIR, "account-will.xml");
+	protected static final String ACCOUNT_WILL_OID = "c0c010c0-d34d-b44f-f11d-333222123456";
+	protected static final String ACCOUNT_WILL_DN = "uid=will,ou=People,dc=example,dc=com";
 	
 	protected static final File ACCOUNT_BAD_FILE = new File(TEST_DIR, "account-bad.xml");
 	protected static final String ACCOUNT_BAD_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1ffff";
 	
-	protected static final File ACCOUNT_MODIFY_FILE = new File(TEST_DIR_NAME, "account-modify.xml");
-	protected static final File ACCOUNT_MODIFY_REPO_FILE = new File(TEST_DIR_NAME, "account-modify-repo.xml");
-	protected static final String ACCOUNT_MODIFY_OID = "c0c010c0-d34d-b44f-f11d-333222444555";
+	protected static final File ACCOUNT_JACK_FILE = new File(TEST_DIR, "account-jack.xml");
+	protected static final File ACCOUNT_JACK_REPO_FILE = new File(TEST_DIR, "account-jack-repo.xml");
+	protected static final String ACCOUNT_JACK_OID = "c0c010c0-d34d-b44f-f11d-333222444555";
+	protected static final File ACCOUNT_JACK_CHANGE_FILE = new File(TEST_DIR, "account-jack-change.xml");
 	
 	protected static final File ACCOUNT_MODIFY_PASSWORD_FILE = new File(TEST_DIR_NAME, "account-modify-password.xml");
 	protected static final String ACCOUNT_MODIFY_PASSWORD_OID = "c0c010c0-d34d-b44f-f11d-333222444566";
 	
-	protected static final String ACCOUNT_DELETE_FILENAME = TEST_DIR_NAME + "/account-delete.xml";
-	protected static final File ACCOUNT_DELETE_REPO_FILE = new File(TEST_DIR_NAME, "account-delete-repo.xml");
-	protected static final String ACCOUNT_DELETE_OID = "c0c010c0-d34d-b44f-f11d-333222654321";
+	protected static final File ACCOUNT_SPARROW_FILE = new File(TEST_DIR_NAME, "account-sparrow.xml");
+	protected static final File ACCOUNT_SPARROW_REPO_FILE = new File(TEST_DIR_NAME, "account-sparrow-repo.xml");
+	protected static final String ACCOUNT_SPARROW_OID = "c0c010c0-d34d-b44f-f11d-333222654321";
 	
 	protected static final String ACCOUNT_SEARCH_ITERATIVE_FILENAME = TEST_DIR_NAME + "/account-search-iterative.xml";
 	protected static final String ACCOUNT_SEARCH_ITERATIVE_OID = "c0c010c0-d34d-b44f-f11d-333222666666";
@@ -96,6 +97,13 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 	protected static final String ACCOUNT_DISABLE_SIMULATED_FILENAME = TEST_DIR_NAME + "/account-disable-simulated-opendj.xml";
 	protected static final String ACCOUNT_DISABLE_SIMULATED_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1aaaa";
 	
+	protected static final File ACCOUNT_POSIX_MCMUTTON_FILE = new File (TEST_DIR, "account-posix-mcmutton.xml");
+	protected static final String ACCOUNT_POSIX_MCMUTTON_OID = "3a1902a4-14d8-11e5-b0b5-001e8c717e5b";
+	protected static final String ACCOUNT_POSIX_MCMUTTON_DN = "uid=mcmutton,ou=People,dc=example,dc=com";
+	protected static final File ACCOUNT_POSIX_MCMUTTON_CHANGE_FILE = new File (TEST_DIR, "account-posix-mcmutton-change.xml");
+
+	protected static final File ACCOUNT_POSIX_VANHELGEN_LDIF_FILE = new File(TEST_DIR, "vanhelgen.ldif");
+	
 	protected static final String REQUEST_DISABLE_ACCOUNT_SIMULATED_FILENAME = TEST_DIR_NAME + "/disable-account-simulated.xml";
 	
 	protected static final String ACCOUNT_NO_SN_FILENAME = TEST_DIR_NAME + "/account-opendj-no-sn.xml";
@@ -113,9 +121,12 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 	
 	protected static final String RESOURCE_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 	protected static final QName RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS = new QName(RESOURCE_NS,"inetOrgPerson");
+	protected static final QName RESOURCE_OPENDJ_POSIX_ACCOUNT_OBJECTCLASS = new QName(RESOURCE_NS,"posixAccount");
 	protected static final String LDAP_CONNECTOR_TYPE = "com.evolveum.polygon.connector.ldap.LdapConnector";
 	
 	protected static final File QUERY_COMPLEX_FILTER_FILE = new File(TEST_DIR, "query-complex-filter.xml");
+	protected static final File QUERY_ALL_ACCOUNTS_FILE = new File(TEST_DIR, "query-filter-all-accounts.xml");
+	protected static final File QUERY_VANHELGEN_FILE = new File(TEST_DIR, "query-vanhelgen.xml");
 	
 	protected static final String OBJECT_CLASS_INETORGPERSON_NAME = "inetOrgPerson";
 	
@@ -148,6 +159,10 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 	
 	protected <T> void assertAttribute(ShadowType shadow, String attrName, T... expectedValues) {
 		ProvisioningTestUtil.assertAttribute(resource, shadow, attrName, expectedValues);
+	}
+	
+	protected <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName, T... expectedValues) {
+		ProvisioningTestUtil.assertAttribute(resource, shadow.asObjectable(), attrName, expectedValues);
 	}
 
 	protected <T> void assertAttribute(ShadowType shadow, QName attrName, T... expectedValues) {

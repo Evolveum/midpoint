@@ -197,7 +197,7 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 		
 	private void notifyOp(String notificationDesc, ResourceOperationDescription opDescription,
 			Task task, OperationResult parentResult, boolean failure) {
-		LOGGER.debug("Notify "+notificationDesc+" mock called with {}", opDescription);
+		LOGGER.debug("Notify "+notificationDesc+" mock called with:\n{}", opDescription.debugDump());
 
 		// Some basic sanity checks
 		assertNotNull("No op description", opDescription);

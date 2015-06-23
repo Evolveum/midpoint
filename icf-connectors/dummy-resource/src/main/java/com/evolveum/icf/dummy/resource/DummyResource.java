@@ -83,6 +83,7 @@ public class DummyResource implements DebugDumpable {
 	private boolean enforceSchema = true;
 	private boolean caseIgnoreId = false;
 	private boolean caseIgnoreValues = false;
+	private int connectionCount = 0;
 	
 	private BreakMode schemaBreakMode = BreakMode.NONE;
 	private BreakMode getBreakMode = BreakMode.NONE;
@@ -259,6 +260,23 @@ public class DummyResource implements DebugDumpable {
 	public void setCaseIgnoreValues(boolean caseIgnoreValues) {
 		this.caseIgnoreValues = caseIgnoreValues;
 	}
+	
+	public int getConnectionCount() {
+		return connectionCount;
+	}
+
+	public synchronized void connect() {
+		connectionCount++;
+	}
+	
+	public synchronized void disconnect() {
+		connectionCount--;
+	}
+	
+	public void assertNoConnections() {
+		assert connectionCount == 0 : "Dummy resource: "+connectionCount+" connections still open";
+	}
+
 
 	public DummyObjectClass getAccountObjectClass() throws ConnectException, FileNotFoundException {
 		if (schemaBreakMode == BreakMode.NONE) {

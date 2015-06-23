@@ -23,6 +23,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.util.JAXBUtil;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.commons.lang.StringUtils;
@@ -70,6 +73,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
 public class XNodeProcessor {
+
+    private static final Trace LOGGER = TraceManager.getTrace(XNodeProcessor.class);
 
     public static final String ARTIFICIAL_OBJECT_NAME = "anObject";
 
@@ -401,7 +406,7 @@ public class XNodeProcessor {
                                                               PrismPropertyDefinition<T> propertyDefinition) throws SchemaException {
         PrismProperty prop = propertyDefinition.instantiate();
 
-        SchemaDefinitionType schemaDefType = getPrismContext().getBeanConverter().unmarshalSchemaDefinitionType((SchemaXNode) xnode);
+        SchemaDefinitionType schemaDefType = getBeanConverter().unmarshalSchemaDefinitionType((SchemaXNode) xnode);
         PrismPropertyValue<SchemaDefinitionType> val = new PrismPropertyValue<>(schemaDefType);
         prop.add(val);
 
@@ -462,7 +467,7 @@ public class XNodeProcessor {
         if (xnode instanceof PrimitiveXNode<?>) {
             return parseAtomicValueFromPrimitive((PrimitiveXNode<T>) xnode, propertyDef, propertyDef.getTypeName());
         } else if (xnode instanceof MapXNode) {
-            return parsePrismPropertyRealValueFromMap((MapXNode)xnode, null, propertyDef);
+            return parsePrismPropertyRealValueFromMap((MapXNode) xnode, null, propertyDef);
         } else {
             throw new IllegalArgumentException("Cannot parse property value from "+xnode);
         }
@@ -494,9 +499,9 @@ public class XNodeProcessor {
         } else if (ProtectedStringType.COMPLEX_TYPE.equals(typeName)){
         	return (T) parseProtectedTypeFromPrimitive(xprim);
         } else
-        if (prismContext.getBeanConverter().canProcess(typeName) && !typeName.equals(PolyStringType.COMPLEX_TYPE) && !typeName.equals(ItemPathType.COMPLEX_TYPE)) {
+        if (getBeanConverter().canProcess(typeName) && !typeName.equals(PolyStringType.COMPLEX_TYPE) && !typeName.equals(ItemPathType.COMPLEX_TYPE)) {
             // Primitive elements may also have complex Java representations (e.g. enums)
-            return prismContext.getBeanConverter().unmarshallPrimitive(xprim, typeName);
+            return getBeanConverter().unmarshallPrimitive(xprim, typeName);
         } else if (def != null && def.isRuntimeSchema() && def.getAllowedValues() != null && def.getAllowedValues().size() > 0){
         	//TODO: ugly hack to support enum in extension schemas --- need to be fixed
         	
@@ -506,12 +511,24 @@ public class XNodeProcessor {
         				throw new SchemaException("Illegal value found in property "+xprim+". Allowed values are: "+  def.getAllowedValues());
         			} else {
         				// just skip the value
+                        LOGGER.error("Skipping unknown value of type {}. Value: {}", typeName, xprim.getStringValue());
         				return null;
         			}
         		}
         	
         } else {
-            realValue = xprim.getParsedValue(typeName);
+            try {
+                realValue = xprim.getParsedValue(typeName);
+            } catch (SchemaException e) {
+                if (isStrict()) {
+                    throw e;
+                } else {
+                    // just skip the value
+                    LoggingUtils.logException(LOGGER, "Couldn't parse primitive value of type {}. Value: {}.\nDefinition: {}",
+                            e, typeName, xprim.getStringValue(), def != null ? def.debugDump() : "(null)");
+                    return null;
+                }
+            }
         }
 
         if (realValue == null) {
@@ -558,8 +575,8 @@ public class XNodeProcessor {
             }
             typeName = propertyDefinition.getTypeName();
         }
-        if (prismContext.getBeanConverter().canProcess(typeName)) {
-            return prismContext.getBeanConverter().unmarshall(xmap, typeName);
+        if (getBeanConverter().canProcess(typeName)) {
+            return getBeanConverter().unmarshall(xmap, typeName);
         } else {
             if (propertyDefinition != null) {
                 if (propertyDefinition.isRuntimeSchema()) {
@@ -611,7 +628,7 @@ public class XNodeProcessor {
 //            if (!(xEncryptedData instanceof MapXNode)) {
 //                throw new SchemaException("Cannot parse encryptedData from "+xEncryptedData);
 //            }
-//            EncryptedDataType encryptedDataType = prismContext.getBeanConverter().unmarshall((MapXNode)xEncryptedData, EncryptedDataType.class);
+//            EncryptedDataType encryptedDataType = getBeanConverter().unmarshall((MapXNode)xEncryptedData, EncryptedDataType.class);
 //            protectedType.setEncryptedData(encryptedDataType);
 //        } else {
 //            // Check for legacy EncryptedData
@@ -631,7 +648,7 @@ public class XNodeProcessor {
 //                        return new QName(null, elementName);
 //                    }
 //                });
-//                EncryptedDataType encryptedDataType = prismContext.getBeanConverter().unmarshall(xConvertedEncryptedData, EncryptedDataType.class);
+//                EncryptedDataType encryptedDataType = getBeanConverter().unmarshall(xConvertedEncryptedData, EncryptedDataType.class);
 //                protectedType.setEncryptedData(encryptedDataType);
 //            }
 //        }
@@ -1148,7 +1165,7 @@ public class XNodeProcessor {
 //        } else {
 //            throw new SchemaException("Couldn't parse " + clazz + " bean from " + xnode + ", as it is not a MapXNode");
 //        }
-//        return prismContext.getBeanConverter().unmarshall(mapXNode, clazz);
+//        return getBeanConverter().unmarshall(mapXNode, clazz);
 //    }
 
     //endregion
@@ -1219,7 +1236,7 @@ public class XNodeProcessor {
             return root;
         } else {
             Validate.notNull(defaultRootElementName, "rootElementName must be specified for non-Item objects");
-            XNode valueXNode = prismContext.getBeanConverter().marshall(object);
+            XNode valueXNode = getBeanConverter().marshall(object);
             QName typeQName = JAXBUtil.getTypeQName(object.getClass());
             if (valueXNode.getTypeQName() == null) {
                 if (typeQName != null) {
@@ -1235,7 +1252,7 @@ public class XNodeProcessor {
 
     // TODO: very preliminary implementation - does not care for special cases (e.g. PolyString etc)
     public RootXNode serializeAtomicValue(Object object, QName elementName) throws SchemaException {
-        XNode valueXNode = prismContext.getBeanConverter().marshall(object);
+        XNode valueXNode = getBeanConverter().marshall(object);
         QName typeQName = JAXBUtil.getTypeQName(object.getClass());
         if (typeQName != null) {
             valueXNode.setTypeQName(typeQName);
@@ -1255,8 +1272,18 @@ public class XNodeProcessor {
         if (object instanceof Item) {
             return true;
         } else {
-            return prismContext.getBeanConverter().canProcess(object.getClass());
+            return getBeanConverter().canProcess(object.getClass());
         }
     }
+
     //endregion
+
+    private PrismBeanConverter getBeanConverter() {
+        if (mode == XNodeProcessorEvaluationMode.COMPAT) {
+            return prismContext.getCompatModeBeanConverter();
+        } else {
+            return prismContext.getBeanConverter();
+        }
+    }
+
 }

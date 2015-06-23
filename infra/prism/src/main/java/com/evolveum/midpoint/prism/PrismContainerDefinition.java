@@ -154,6 +154,14 @@ public class PrismContainerDefinition<C extends Containerable> extends ItemDefin
 		}
 	}
 
+    /*
+     * TODO clean this up: There are three definition-finding algorithms:
+     *  - findItemDefinition (QName ...)
+     *  - findItemDefinition (ItemPath ...)
+     *  - findPropertyDefinition (ItemPath ...)
+     *
+     *  This has to be replaced by a single algorithm.
+     */
     public <D extends ItemDefinition> D findItemDefinition(QName name, Class<D> clazz) {
         return findItemDefinition(name, clazz, false);
     }
@@ -165,13 +173,38 @@ public class PrismContainerDefinition<C extends Containerable> extends ItemDefin
         if (name == null) {
             throw new IllegalArgumentException("name not specified while searching in " + this);
         }
-        
-        if (complexTypeDefinition == null) {
+
+        D itemDefinition;
+        if (complexTypeDefinition != null) {
+            itemDefinition = complexTypeDefinition.findItemDefinition(name, clazz, caseInsensitive);
+        } else {
         	// xsd:any and similar dynamic definitions
-        	return null;
+        	itemDefinition = null;
         }
 
-        return complexTypeDefinition.findItemDefinition(name, clazz, caseInsensitive);
+        if (itemDefinition == null && isRuntimeSchema()) {
+            itemDefinition = findRuntimeItemDefinition(name, null, clazz);        // TODO what about case insensitive?
+        }
+        return itemDefinition;
+    }
+
+    private <D extends ItemDefinition> D findRuntimeItemDefinition(QName firstName, ItemPath rest, Class<D> clazz) {
+        if (prismContext == null) {
+            return null;            // should not occur
+        }
+        ItemDefinition definition = prismContext.getSchemaRegistry().findItemDefinitionByElementName(firstName);
+        if (definition == null) {
+            return null;
+        }
+        if (rest != null && !rest.isEmpty()) {
+            return (D) definition.findItemDefinition(rest, clazz);
+        }
+        // this is the last step of search
+        if (clazz.isAssignableFrom(definition.getClass())) {
+            return (D) definition;
+        } else {
+            return null;
+        }
     }
 
     public <ID extends ItemDefinition> ID findItemDefinition(ItemPath path, Class<ID> clazz) {
@@ -183,6 +216,7 @@ public class PrismContainerDefinition<C extends Containerable> extends ItemDefin
         }
         
         QName firstName = ((NameItemPathSegment)path.first()).getName();
+        ItemPath rest = path.rest();
         
 		// we need to be compatible with older versions..soo if the path does
 		// not contains qnames with namespaces defined (but the prefix was
@@ -190,16 +224,21 @@ public class PrismContainerDefinition<C extends Containerable> extends ItemDefin
         if (StringUtils.isEmpty(firstName.getNamespaceURI())) {
         	for (ItemDefinition def : getDefinitions()){
         		if (QNameUtil.match(firstName, def.getName())){
-        			return (ID) def.findItemDefinition(path.rest(), clazz);
+        			return (ID) def.findItemDefinition(rest, clazz);
         		}
         	}
         }
         
         for (ItemDefinition def : getDefinitions()) {
             if (firstName.equals(def.getName())) {
-                return (ID) def.findItemDefinition(path.rest(), clazz);
+                return (ID) def.findItemDefinition(rest, clazz);
             }
         }
+
+        if (isRuntimeSchema()) {
+            return findRuntimeItemDefinition(firstName, rest, clazz);
+        }
+
         return null;
     }
 
@@ -356,7 +395,6 @@ public class PrismContainerDefinition<C extends Containerable> extends ItemDefin
     protected void copyDefinitionData(PrismContainerDefinition<C> clone) {
         super.copyDefinitionData(clone);
         clone.complexTypeDefinition = this.complexTypeDefinition;
-        clone.isRuntimeSchema = this.isRuntimeSchema;
         clone.compileTimeClass = this.compileTimeClass;
     }
     
@@ -547,11 +585,4 @@ public class PrismContainerDefinition<C extends Containerable> extends ItemDefin
         return "container";
     }
 
-	@Override
-	protected void extendToString(StringBuilder sb) {
-		super.extendToString(sb);
-		if (isRuntimeSchema) {
-			sb.append(",runtime");
-		}
-	}
 }

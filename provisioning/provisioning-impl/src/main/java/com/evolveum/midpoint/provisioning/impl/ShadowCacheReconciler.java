@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,8 +49,7 @@ public class ShadowCacheReconciler extends ShadowCache{
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowCacheReconciler.class);
 
 	@Override
-	public String afterAddOnResource(PrismObject<ShadowType> shadow, ResourceType resource, 
-			RefinedObjectClassDefinition objectClassDefinition, OperationResult parentResult)
+	public String afterAddOnResource(ProvisioningContext ctx, PrismObject<ShadowType> shadow, OperationResult parentResult)
 					throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 		
 		cleanShadowInRepository(shadow, parentResult);

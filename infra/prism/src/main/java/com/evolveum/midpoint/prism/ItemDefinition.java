@@ -473,7 +473,12 @@ public abstract class ItemDefinition<I extends Item> extends Definition implemen
 		} else {
 			sb.append("-");
 		}
-
+		if (isRuntimeSchema()) {
+			sb.append(",runtime");
+		}
+		if (isOperational()) {
+			sb.append(",oper");
+		}
 	}
 	
 }

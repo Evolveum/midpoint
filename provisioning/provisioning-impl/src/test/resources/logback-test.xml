@@ -36,6 +36,9 @@
     <logger name="com.evolveum.icf" level="TRACE" />
     <logger name="org.forgerock.openicf" level="TRACE" />
     
+    <!-- too loud -->
+    <logger name="com.evolveum.midpoint.provisioning.impl.ResourceManager" level="DEBUG" />
+    
     <!-- WARNING! See also logging.properties. Apache LDAP API logs too much. Therefore it is limited on JUL level. -->
     <logger name="org.apache.directory" level="DEBUG" />
     <logger name="org.apache.directory.api.ldap.model.schema.registries" level="INFO" />

@@ -979,6 +979,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         } catch (SchemaException e) {
             LOGGER.debug("Couldn't parse object because of schema exception ({}):\nObject: {}", e, xml);
             throw e;
+        } catch (RuntimeException e) {
+            LOGGER.debug("Couldn't parse object because of unexpected exception ({}):\nObject: {}", e, xml);
+            throw e;
         }
 
         if (UserType.class.equals(prismObject.getCompileTimeClass())) {

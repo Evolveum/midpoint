@@ -369,7 +369,8 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		if (StringUtils.isEmpty(namespace)) {
 			namespace = schema.getNamespace();
 		}
-		LOGGER.trace("Parsed schema {}, namespace: {}",schemaDescription.getSourceDescription(),namespace);
+		LOGGER.trace("Parsed schema {}, namespace: {}, isRuntime: {}",
+				schemaDescription.getSourceDescription(), namespace, isRuntime);
 		schemaDescription.setSchema(schema);
 		detectExtensionSchema(schema);
 	}

@@ -168,6 +168,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCa
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationLockoutStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationValidityCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AuxiliaryObjectClassesCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
@@ -215,6 +216,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	private String description;
 	private boolean caseIgnoreAttributeNames = false;
 	private boolean legacySchema = false;
+	private boolean supportsReturnDefaultAttributes = false;
 
 	public ConnectorInstanceIcfImpl(ConnectorInfo connectorInfo, ConnectorType connectorType,
 			String schemaNamespace, PrismSchema connectorSchema, Protector protector,
@@ -808,6 +810,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			ocDef.setNativeObjectClass(objectClassInfo.getType());
 			ocDef.setDisplayNameAttribute(nameDefinition.getName());
 			ocDef.setNamingAttribute(nameDefinition.getName());
+			ocDef.setAuxiliary(objectClassInfo.isAuxiliary());
 
 		}
 
@@ -937,6 +940,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		boolean canPageSize = false;
 		boolean canPageOffset = false;
 		boolean canSort = false;
+		boolean supportsAuxiliaryObjectClasses = false;
 		for (OperationOptionInfo searchOption: icfSchema.getSupportedOptionsByOperation(SearchApiOp.class)) {
 			switch (searchOption.getName()) {
 				case OperationOptions.OP_PAGE_SIZE:
@@ -948,6 +952,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				case OperationOptions.OP_SORT_KEYS:
 					canSort = true;
 					break;
+				case OperationOptions.OP_RETURN_DEFAULT_ATTRIBUTES:
+					supportsReturnDefaultAttributes = true;
+					break;
+				case OperationOptions.OP_AUXILIARY_OBJECT_CLASSES:
+					supportsAuxiliaryObjectClasses = true;
+					break;
 			}
 			
 		}
@@ -955,6 +965,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		if (canPageSize || canPageOffset || canSort) {
 			PagedSearchCapabilityType capPage = new PagedSearchCapabilityType();
 			capabilities.add(capabilityObjectFactory.createPagedSearch(capPage));
+		}
+		
+		if (supportsAuxiliaryObjectClasses) {
+			AuxiliaryObjectClassesCapabilityType capAux = new AuxiliaryObjectClassesCapabilityType();
+			capabilities.add(capabilityObjectFactory.createAuxiliaryObjectClasses(capAux));
 		}
 
 	}
@@ -1047,10 +1062,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 		
 		OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
-		String[] attributesToGet = convertToIcfAttrsToGet(objectClassDefinition, attributesToReturn);
-		if (attributesToGet != null) {
-			optionsBuilder.setAttributesToGet(attributesToGet);
-		}
+		convertToIcfAttrsToGet(objectClassDefinition, attributesToReturn, optionsBuilder);
 		optionsBuilder.setAllowPartialResults(true);
 		OperationOptions options = optionsBuilder.build();
 		
@@ -1169,22 +1181,27 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return co;
 	}
 
-	private String[] convertToIcfAttrsToGet(ObjectClassComplexTypeDefinition objectClassDefinition, AttributesToReturn attributesToReturn) throws SchemaException {
+	private void convertToIcfAttrsToGet(ObjectClassComplexTypeDefinition objectClassDefinition, 
+			AttributesToReturn attributesToReturn, OperationOptionsBuilder optionsBuilder) throws SchemaException {
 		if (attributesToReturn == null) {
-			return null;
+			return;
 		}
 		Collection<? extends ResourceAttributeDefinition> attrs = attributesToReturn.getAttributesToReturn();
 		if (attributesToReturn.isReturnDefaultAttributes() && !attributesToReturn.isReturnPasswordExplicit()
 				&& (attrs == null || attrs.isEmpty())) {
-			return null;
+			return;
 		}
 		List<String> icfAttrsToGet = new ArrayList<String>(); 
 		if (attributesToReturn.isReturnDefaultAttributes()) {
-			// Add all the attributes that are defined as "returned by default" by the schema
-			for (ResourceAttributeDefinition attributeDef: objectClassDefinition.getAttributeDefinitions()) {
-				if (attributeDef.isReturnedByDefault()) {
-					String attrName = icfNameMapper.convertAttributeNameToIcf(attributeDef);
-					icfAttrsToGet.add(attrName);
+			if (supportsReturnDefaultAttributes) {
+				optionsBuilder.setReturnDefaultAttributes(true);
+			} else {
+				// Add all the attributes that are defined as "returned by default" by the schema
+				for (ResourceAttributeDefinition attributeDef: objectClassDefinition.getAttributeDefinitions()) {
+					if (attributeDef.isReturnedByDefault()) {
+						String attrName = icfNameMapper.convertAttributeNameToIcf(attributeDef);
+						icfAttrsToGet.add(attrName);
+					}
 				}
 			}
 		}
@@ -1208,7 +1225,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				}
 			}
 		}
-		return icfAttrsToGet.toArray(new String[0]);
+		optionsBuilder.setAttributesToGet(icfAttrsToGet);
 	}
 
 	private boolean passwordReturnedByDefault() {
@@ -1227,17 +1244,16 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public Collection<ResourceAttribute<?>> addObject(PrismObject<? extends ShadowType> object,
+	public Collection<ResourceAttribute<?>> addObject(PrismObject<? extends ShadowType> shadow,
 			Collection<Operation> additionalOperations, OperationResult parentResult) throws CommunicationException,
 			GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException {
-		validateShadow(object, "add", false);
-		ShadowType objectType = object.asObjectable();
+		validateShadow(shadow, "add", false);
+		ShadowType shadowType = shadow.asObjectable();
 
-		ResourceAttributeContainer attributesContainer = ShadowUtil
-				.getAttributesContainer(object);
+		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
 				+ ".addObject");
-		result.addParam("resourceObject", object);
+		result.addParam("resourceObject", shadow);
 		result.addParam("additionalOperations", DebugUtil.debugDump(additionalOperations));         // because of serialization issues
 
 		ObjectClassComplexTypeDefinition ocDef;
@@ -1245,18 +1261,18 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		if (attrContDef != null) {
 			ocDef = attrContDef.getComplexTypeDefinition();
 		} else {
-			ocDef = resourceSchema.findObjectClassDefinition(object.asObjectable().getObjectClass());
+			ocDef = resourceSchema.findObjectClassDefinition(shadow.asObjectable().getObjectClass());
 			if (ocDef == null) {
-				throw new SchemaException("Unknown object class "+object.asObjectable().getObjectClass());
+				throw new SchemaException("Unknown object class "+shadow.asObjectable().getObjectClass());
 			}
 		}
 		
 		// getting icf object class from resource object class
-		ObjectClass icfObjectClass = icfNameMapper.objectClassToIcf(object, getSchemaNamespace(), connectorType, legacySchema);
+		ObjectClass icfObjectClass = icfNameMapper.objectClassToIcf(shadow, getSchemaNamespace(), connectorType, legacySchema);
 
 		if (icfObjectClass == null) {
-			result.recordFatalError("Couldn't get icf object class from " + object);
-			throw new IllegalArgumentException("Couldn't get icf object class from " + object);
+			result.recordFatalError("Couldn't get icf object class from " + shadow);
+			throw new IllegalArgumentException("Couldn't get icf object class from " + shadow);
 		}
 
 		// setting ifc attributes from resource object attributes
@@ -1267,24 +1283,24 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			}
 			attributes = icfConvertor.convertFromResourceObject(attributesContainer, ocDef);
 
-			if (objectType.getCredentials() != null && objectType.getCredentials().getPassword() != null) {
-				PasswordType password = objectType.getCredentials().getPassword();
+			if (shadowType.getCredentials() != null && shadowType.getCredentials().getPassword() != null) {
+				PasswordType password = shadowType.getCredentials().getPassword();
 				ProtectedStringType protectedString = password.getValue();
 				GuardedString guardedPassword = toGuardedString(protectedString, "new password");
 				attributes.add(AttributeBuilder.build(OperationalAttributes.PASSWORD_NAME,
 						guardedPassword));
 			}
 			
-			if (ActivationUtil.hasAdministrativeActivation(objectType)){
-				attributes.add(AttributeBuilder.build(OperationalAttributes.ENABLE_NAME, ActivationUtil.isAdministrativeEnabled(objectType)));
+			if (ActivationUtil.hasAdministrativeActivation(shadowType)){
+				attributes.add(AttributeBuilder.build(OperationalAttributes.ENABLE_NAME, ActivationUtil.isAdministrativeEnabled(shadowType)));
 			}
 			
-			if (ActivationUtil.hasValidFrom(objectType)){
-				attributes.add(AttributeBuilder.build(OperationalAttributes.ENABLE_DATE_NAME, XmlTypeConverter.toMillis(objectType.getActivation().getValidFrom())));
+			if (ActivationUtil.hasValidFrom(shadowType)){
+				attributes.add(AttributeBuilder.build(OperationalAttributes.ENABLE_DATE_NAME, XmlTypeConverter.toMillis(shadowType.getActivation().getValidFrom())));
 			}
 
-			if (ActivationUtil.hasValidTo(objectType)){
-				attributes.add(AttributeBuilder.build(OperationalAttributes.DISABLE_DATE_NAME, XmlTypeConverter.toMillis(objectType.getActivation().getValidTo())));
+			if (ActivationUtil.hasValidTo(shadowType)){
+				attributes.add(AttributeBuilder.build(OperationalAttributes.DISABLE_DATE_NAME, XmlTypeConverter.toMillis(shadowType.getActivation().getValidTo())));
 			}
 			
 			if (LOGGER.isTraceEnabled()) {
@@ -1301,12 +1317,23 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			throw new IllegalStateException("Couldn't set attributes for icf.");
 		}
 
+		List<ObjectClass> icfAuxiliaryObjectClasses = new ArrayList<>();
+		for (QName auxiliaryObjectClass: shadowType.getAuxiliaryObjectClass()) {
+			icfAuxiliaryObjectClasses.add(icfNameMapper.objectClassToIcf(auxiliaryObjectClass, resourceSchemaNamespace, connectorType, false));
+		}
+		OperationOptionsBuilder operationOptionsBuilder = new OperationOptionsBuilder();
+		if (!icfAuxiliaryObjectClasses.isEmpty()) {
+			operationOptionsBuilder.setAuxiliaryObjectClasses(icfAuxiliaryObjectClasses.toArray(new ObjectClass[icfAuxiliaryObjectClasses.size()]));
+		}
+		OperationOptions options = operationOptionsBuilder.build();
+		
 		checkAndExecuteAdditionalOperation(additionalOperations, BeforeAfterType.BEFORE, result);
 
 		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".create");
 		icfResult.addArbitraryObjectAsParam("objectClass", icfObjectClass);
+		icfResult.addArbitraryCollectionAsParam("auxiliaryObjectClasses", icfAuxiliaryObjectClasses);
 		icfResult.addArbitraryCollectionAsParam("attributes", attributes);
-		icfResult.addParam("options", null);
+		icfResult.addArbitraryObjectAsParam("options", options);
 		icfResult.addContext("connector", icfConnectorFacade.getClass());
 
 		Uid uid = null;
@@ -1314,7 +1341,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 			// CALL THE ICF FRAMEWORK
 			InternalMonitor.recordConnectorOperation("create");
-			uid = icfConnectorFacade.create(icfObjectClass, attributes, new OperationOptionsBuilder().build());
+			uid = icfConnectorFacade.create(icfObjectClass, attributes, options);
 
 		} catch (Throwable ex) {
 			Throwable midpointEx = processIcfException(ex, this, icfResult);
@@ -1821,14 +1848,19 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public <T> PrismProperty<T> fetchCurrentToken(ObjectClassComplexTypeDefinition objectClass,
+	public <T> PrismProperty<T> fetchCurrentToken(ObjectClassComplexTypeDefinition objectClassDef,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException {
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
 				+ ".fetchCurrentToken");
-		result.addParam("objectClass", objectClass);
+		result.addParam("objectClass", objectClassDef);
 
-		ObjectClass icfObjectClass = icfNameMapper.objectClassToIcf(objectClass, getSchemaNamespace(), connectorType, legacySchema);
+		ObjectClass icfObjectClass;
+		if (objectClassDef == null) {
+			icfObjectClass = ObjectClass.ALL;
+		} else {
+			icfObjectClass = icfNameMapper.objectClassToIcf(objectClassDef, getSchemaNamespace(), connectorType, legacySchema);
+		}
 		
 		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".sync");
 		icfResult.addContext("connector", icfConnectorFacade.getClass());
@@ -1898,12 +1930,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 
 		OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
-		String[] attributesToGet = null; 
 		if (objectClass != null) {
-			attributesToGet = convertToIcfAttrsToGet(objectClass, attrsToReturn);
-		}
-		if (attributesToGet != null) {
-			optionsBuilder.setAttributesToGet(attributesToGet);
+			convertToIcfAttrsToGet(objectClass, attrsToReturn, optionsBuilder);
 		}
 		OperationOptions options = optionsBuilder.build();
 		
@@ -2064,10 +2092,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		};
 		
 		OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
-		String[] attributesToGet = convertToIcfAttrsToGet(objectClassDefinition, attributesToReturn);
-		if (attributesToGet != null) {
-			optionsBuilder.setAttributesToGet(attributesToGet);
-		}
+		convertToIcfAttrsToGet(objectClassDefinition, attributesToReturn, optionsBuilder);
 		if (query != null && query.isAllowPartialResults()) {
 			optionsBuilder.setAllowPartialResults(query.isAllowPartialResults());
 		}
@@ -2998,6 +3023,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	public String getHumanReadableName() {
 		return connectorType.toString() + ": " + description;
+	}
+
+	@Override
+	public void dispose() {
+		// Nothing to do
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import org.apache.wicket.model.IModel;
         @AuthorizationAction(actionUri = PageAdminWorkItems.AUTH_WORK_ITEMS_ALL,
                 label = PageAdminWorkItems.AUTH_WORK_ITEMS_ALL_LABEL,
                 description = PageAdminWorkItems.AUTH_WORK_ITEMS_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#workItemsAllRequests",
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_REQUESTS_URL,
                 label = "PageProcessInstancesAll.auth.workItemsAllRequests.label",
                 description = "PageProcessInstancesAll.auth.workItemsAllRequests.description")})
 public class PageProcessInstancesAll extends PageProcessInstances {

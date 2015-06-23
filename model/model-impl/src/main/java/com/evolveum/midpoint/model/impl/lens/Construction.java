@@ -71,6 +71,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**
  * Live class that contains "construction" - a definition how to construct a resource object. It in fact reflects
@@ -101,6 +102,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 	private AssignmentPathVariables assignmentPathVariables = null;
 	private PrismContext prismContext;
 	private PrismContainerDefinition<ShadowAssociationType> associationContainerDefinition;
+	private PrismObject<SystemConfigurationType> systemConfiguration;		// only to provide $configuration variable (MID-2372)
 	
 	private static final Trace LOGGER = TraceManager.getTrace(Construction.class);
 	
@@ -177,6 +179,14 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 
 	public void setMappingFactory(MappingFactory mappingFactory) {
 		this.mappingFactory = mappingFactory;
+	}
+
+	public PrismObject<SystemConfigurationType> getSystemConfiguration() {
+		return systemConfiguration;
+	}
+
+	public void setSystemConfiguration(PrismObject<SystemConfigurationType> systemConfiguration) {
+		this.systemConfiguration = systemConfiguration;
 	}
 
 	public RefinedObjectClassDefinition getRefinedObjectClassDefinition() {
@@ -457,6 +467,9 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 			mapping.addVariableDefinition(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION, assocTargetObjectClassDefinition);
 		}
 		LensUtil.addAssignmentPathVariables(mapping, assignmentPathVariables);
+		if (getSystemConfiguration() != null) {
+			mapping.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, getSystemConfiguration());
+		}
 		// TODO: other variables ?
 		
 		// Set condition masks. There are used as a brakes to avoid evaluating to nonsense values in case user is not present

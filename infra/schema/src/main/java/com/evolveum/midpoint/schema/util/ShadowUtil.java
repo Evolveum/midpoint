@@ -342,7 +342,7 @@ public class ShadowUtil {
 	public static void checkConsistence(PrismObject<? extends ShadowType> shadow, String desc) {
 		PrismReference resourceRef = shadow.findReference(ShadowType.F_RESOURCE_REF);
     	if (resourceRef == null) {
-    		throw new IllegalStateException("No resourceRef in "+desc);
+    		throw new IllegalStateException("No resourceRef in "+shadow+" in "+desc);
     	}
     	if (StringUtils.isBlank(resourceRef.getOid())) {
     		throw new IllegalStateException("Null or empty OID in resourceRef in "+desc);
