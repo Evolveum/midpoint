@@ -364,17 +364,21 @@ public class ProvisioningUtil {
 	}
 	
 	public static <T> PropertyDelta<T> narrowPropertyDelta(PropertyDelta<T> propertyDelta,
-			PrismObject<ShadowType> currentShadow, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-		MatchingRule<T> matchingRule = null;
+			PrismObject<ShadowType> currentShadow, QName overridingMatchingRuleQName, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+		QName matchingRuleQName = overridingMatchingRuleQName;
 		ItemDefinition propertyDef = propertyDelta.getDefinition();
-		if (propertyDef instanceof RefinedAttributeDefinition) {
-			QName matchingRuleQName = ((RefinedAttributeDefinition)propertyDef).getMatchingRuleQName();
-			if (matchingRuleQName != null) {
-				matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleQName, propertyDef.getTypeName());
-			}
+		if (matchingRuleQName == null && propertyDef instanceof RefinedAttributeDefinition) {
+			matchingRuleQName = ((RefinedAttributeDefinition)propertyDef).getMatchingRuleQName();
 		}
-		LOGGER.trace("Narrowing attr def={}, matchingRule={}",propertyDef,matchingRule);
+		MatchingRule<T> matchingRule = null;
+		if (matchingRuleQName != null) {
+			matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleQName, propertyDef.getTypeName());
+		}
+		LOGGER.trace("Narrowing attr def={}, matchingRule={}", propertyDef, matchingRule);
 		PropertyDelta<T> filteredDelta = propertyDelta.narrow(currentShadow, matchingRule);
+		if (LOGGER.isTraceEnabled() && !filteredDelta.equals(propertyDelta)) {
+			LOGGER.trace("Narrowed delta: {}", filteredDelta.debugDump());
+		}
 		return filteredDelta;
 	}
 	

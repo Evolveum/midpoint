@@ -81,6 +81,10 @@ public class RefinedAssociationDefinition implements Serializable {
 	public boolean requiresExplicitReferentialIntegrity() {
 		return !BooleanUtils.isFalse(getResourceObjectAssociationType().isExplicitReferentialIntegrity());	// because default is TRUE
 	}
+
+	public QName getMatchingRule() {
+		return getResourceObjectAssociationType().getMatchingRule();
+	}
 	
 	public RefinedAssociationDefinition clone() {
 		RefinedAssociationDefinition clone = new RefinedAssociationDefinition(resourceObjectAssociationType);
