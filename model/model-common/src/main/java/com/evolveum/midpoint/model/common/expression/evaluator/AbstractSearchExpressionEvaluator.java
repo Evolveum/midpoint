@@ -165,7 +165,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 			query = ExpressionUtil.evaluateQueryExpressions(query, variables, params.getExpressionFactory(), 
 					prismContext, params.getContextDescription(), task, result);
 			if (LOGGER.isTraceEnabled()){
-				LOGGER.trace("Expression in query evalueated to: {}", query.debugDump());
+				LOGGER.trace("Expression in query evaluated to: {}", query.debugDump());
 			}
 			query = extendQuery(query, params);
 			

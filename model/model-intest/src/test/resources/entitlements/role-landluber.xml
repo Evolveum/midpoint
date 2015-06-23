@@ -29,13 +29,25 @@
             <association>
             	<ref>ri:group</ref>
             	<outbound>
+                    <source>
+                        <path>$configuration/name</path>
+                    </source>
             		<expression>
             			<associationTargetSearch>
             				<filter>
 								<q:equal>
 									<q:path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
                                         attributes/icfs:name</q:path>
-									<q:value>landlubers</q:value>
+                                    <expression>    <!-- expression is here only to test MID-2372 -->
+                                        <script>
+                                            <code>
+                                                log.info('config object name = {}', configuration.name)
+                                                log.info('config object name 2 = {}', name)
+                                                log.info('actor = {}', actor)
+                                                'landlubers'
+                                            </code>
+                                        </script>
+                                    </expression>
 								</q:equal>
             				</filter>
             			</associationTargetSearch>

@@ -474,10 +474,10 @@ public abstract class ItemDefinition<I extends Item> extends Definition implemen
 			sb.append("-");
 		}
 		if (isRuntimeSchema()) {
-			sb.append(",RT");
+			sb.append(",runtime");
 		}
 		if (isOperational()) {
-			sb.append(",OPER");
+			sb.append(",oper");
 		}
 	}
 	

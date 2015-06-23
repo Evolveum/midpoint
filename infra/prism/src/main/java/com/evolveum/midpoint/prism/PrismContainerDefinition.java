@@ -395,7 +395,6 @@ public class PrismContainerDefinition<C extends Containerable> extends ItemDefin
     protected void copyDefinitionData(PrismContainerDefinition<C> clone) {
         super.copyDefinitionData(clone);
         clone.complexTypeDefinition = this.complexTypeDefinition;
-        clone.isRuntimeSchema = this.isRuntimeSchema;
         clone.compileTimeClass = this.compileTimeClass;
     }
     
@@ -586,11 +585,4 @@ public class PrismContainerDefinition<C extends Containerable> extends ItemDefin
         return "container";
     }
 
-	@Override
-	protected void extendToString(StringBuilder sb) {
-		super.extendToString(sb);
-		if (isRuntimeSchema) {
-			sb.append(",runtime");
-		}
-	}
 }
