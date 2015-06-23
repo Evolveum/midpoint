@@ -24,11 +24,14 @@
     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     xmlns:apit="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
+    xmlns:aud="http://midpoint.evolveum.com/xml/ns/public/common/audit-3"
     xmlns:f="http://midpoint.evolveum.com/xml/ns/public/common/fault-3"
+    xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
 	xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" >
  <documentation>
  	Web service interface for jasper report data source provider
  </documentation>
+ 
  
    <types>
         <!-- Element form name is QUALIFIED to prevent some problems with marshalling/unmarshalling. This deviates from RPC/Literal convention, but we
@@ -38,13 +41,19 @@
             			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
             			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/audit-3"
+            			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/audit-3"/>
             <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"
             			schemaLocation="http://prism.evolveum.com/xml/ns/public/query-3"/>
- 
+            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"
+            			schemaLocation="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+         
      
         <xsd:complexType name="ProcessReportType">
           <xsd:sequence>
-            <xsd:element name="report" type="c:ReportType"/>
+            <xsd:element name="query" type="xsd:string"/>
+            <xsd:element name="parameters" type="tns:RemoteReportParametersType"/>
+            <xsd:element name="options" type="apit:SelectorQualifiedGetOptionsType" minOccurs="0"/>
           </xsd:sequence>
         </xsd:complexType>
       <xsd:element name="processReport" type="tns:ProcessReportType" />
@@ -62,28 +71,30 @@
         </xsd:complexType>
       <xsd:element name="processReportResponse" type="tns:ProcessReportResponseType"/>
       
-<!--        <xsd:complexType name="ParseQueryType"> -->
-<!--           <xsd:sequence> -->
-<!--             <xsd:element name="query" type="xsd:string"/> -->
-<!--             <xsd:element name="parameters" type="c:ParamsType"/> -->
-<!--           </xsd:sequence> -->
-<!--         </xsd:complexType> -->
-<!--       <xsd:element name="parseQuery" type="tns:ParseQueryType" /> -->
+       <xsd:complexType name="ParseQueryType">
+          <xsd:sequence>
+            <xsd:element name="query" type="xsd:string"/>
+            <xsd:element name="parameters" type="tns:RemoteReportParametersType"/>
+            
+          </xsd:sequence>
+        </xsd:complexType>
+      <xsd:element name="parseQuery" type="tns:ParseQueryType" />
       
-<!--         <xsd:complexType name="ParseQueryResponseType"> -->
-<!--           <xsd:sequence> -->
-<!--           <xsd:element name="parsedQuery" type="q:QueryType"> -->
-<!--                         <xsd:annotation> -->
-<!--                             <xsd:documentation> -->
-<!--                                 parsedQuery -->
-<!--                             </xsd:documentation> -->
-<!--                         </xsd:annotation> -->
-<!--                     </xsd:element> -->
-<!--           </xsd:sequence> -->
-<!--         </xsd:complexType> -->
-<!--       <xsd:element name="parseQueryResponse" type="tns:ParseQueryResponseType"/> -->
+        <xsd:complexType name="ParseQueryResponseType">
+          <xsd:sequence>
+          <xsd:element name="parsedQuery" type="q:QueryType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                parsedQuery
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+          </xsd:sequence>
+        </xsd:complexType>
+      <xsd:element name="parseQueryResponse" type="tns:ParseQueryResponseType"/>
       
       
+    
        <xsd:complexType name="SearchObjectsType">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -92,14 +103,14 @@
                 </xsd:annotation>
                 <xsd:sequence>
                     
-                    <xsd:element name="query" type="xsd:string" minOccurs="0">
+                    <xsd:element name="query" type="q:QueryType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Search criteria. If not specified, all objects of a given type are returned.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                     <xsd:element name="parameters" type="c:ParamsType"/>
+                
                     <xsd:element name="options" type="apit:SelectorQualifiedGetOptionsType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -145,7 +156,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                     <xsd:element name="parameters" type="c:ParamsType" minOccurs="0">
+                     <xsd:element name="parameters" type="tns:RemoteReportParametersType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Parameters needed for script evaluation
@@ -175,6 +186,151 @@
             </xsd:complexType>
             <xsd:element name="evaluateScriptResponse" type="tns:EvaluateScriptResponseType"/>
       
+      <xsd:complexType name="EvaluateAuditScriptType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A request for searchObjects operation.
+                    </xsd:documentation>
+                </xsd:annotation>
+                <xsd:sequence>
+                    
+                    <xsd:element name="script" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Script to evaluate
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                     <xsd:element name="parameters" type="tns:RemoteReportParametersType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Parameters needed for script evaluation
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="evaluateAuditScript" type="tns:EvaluateAuditScriptType"/>
+
+            <xsd:complexType name="EvaluateAuditScriptResponseType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A response from searchObjects operation.
+                    </xsd:documentation>
+                </xsd:annotation>
+                <xsd:sequence>
+                    <xsd:element name="objectList" type="aud:AuditEventRecordListType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                List of objects that match given criteria.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                   
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="evaluateAuditScriptResponse" type="tns:EvaluateAuditScriptResponseType"/>
+            
+             <xsd:complexType name="GetFieldValueType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A response from searchObjects operation.
+                    </xsd:documentation>
+                </xsd:annotation>
+                <xsd:sequence>
+                    <xsd:element name="parameterName" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Name of the jasper report parameter
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                   	<xsd:element name="object" type="c:ObjectType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                               Object to iterate
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+		            
+		                   
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="getFieldValue" type="tns:GetFieldValueType"/>
+            
+            <xsd:complexType name="GetFieldValueResponseType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A response from searchObjects operation.
+                    </xsd:documentation>
+                </xsd:annotation>
+                <xsd:sequence>
+                    <xsd:element name="value" type="c:ReportParameterType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Name of the jasper report parameter
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                 
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="getFieldValueResponse" type="tns:GetFieldValueResponseType"/>
+      
+    
+            <xsd:complexType name="RemoteReportParametersType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A response from searchObjects operation.
+                    </xsd:documentation>
+	                <xsd:appinfo>
+	                	<a:container/>
+	            	</xsd:appinfo>
+                </xsd:annotation>
+                <xsd:sequence>
+                    <xsd:element name="remoteParameter" type="tns:RemoteReportParameterType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Remote parameters
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                 </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="remoteReportParameters" type="tns:RemoteReportParametersType"/>
+            
+            <xsd:complexType name="RemoteReportParameterType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A response from searchObjects operation.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+	                	<a:container/>
+	                </xsd:appinfo>
+                </xsd:annotation>
+                <xsd:sequence>
+                    <xsd:element name="parameterName" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Name of the jasper report parameter
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    
+                     <xsd:element name="parameterValue" type="c:ReportParameterType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Name of the jasper report parameter
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                           
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="remoteReportParameter" type="tns:RemoteReportParameterType"/>
+        
+            
+      
        
     </xsd:schema>
   </types>
@@ -186,12 +342,12 @@
     <part element="tns:processReportResponse" name="parameters"/>
   </message>
   
-<!--    <message name="parseQuery"> -->
-<!--     <part element="tns:parseQuery" name="parameters"/> -->
-<!--   </message> -->
-<!--   <message name="parseQueryResponse"> -->
-<!--     <part element="tns:parseQueryResponse" name="parameters"/> -->
-<!--   </message> -->
+   <message name="parseQuery">
+    <part element="tns:parseQuery" name="parameters"/>
+  </message>
+  <message name="parseQueryResponse">
+    <part element="tns:parseQueryResponse" name="parameters"/>
+  </message>
   
    <message name="searchObjects">
     <part element="tns:searchObjects" name="parameters"/>
@@ -207,15 +363,29 @@
     <part element="tns:evaluateScriptResponse" name="parameters"/>
   </message>
   
+  <message name="evaluateAuditScript">
+    <part element="tns:evaluateAuditScript" name="parameters"/>
+  </message>
+  <message name="evaluateAuditScriptResponse">
+    <part element="tns:evaluateAuditScriptResponse" name="parameters"/>
+  </message>
+  
+  <message name="getFieldValue">
+    <part element="tns:getFieldValue" name="parameters"/>
+  </message>
+  <message name="getFieldValueResponse">
+    <part element="tns:getFieldValueResponse" name="parameters"/>
+  </message>
+  
   <portType name="reportPortType">
     <operation name="processReport">
       <input message="tns:processReport"/>
       <output message="tns:processReportResponse"/>
     </operation>
-<!--      <operation name="parseQuery"> -->
-<!--       <input message="tns:parseQuery"/> -->
-<!--       <output message="tns:parseQueryResponse"/> -->
-<!--     </operation> -->
+     <operation name="parseQuery">
+      <input message="tns:parseQuery"/>
+      <output message="tns:parseQueryResponse"/>
+    </operation>
      <operation name="searchObjects">
       <input message="tns:searchObjects"/>
       <output message="tns:searchObjectsResponse"/>
@@ -223,6 +393,14 @@
     <operation name="evaluateScript">
       <input message="tns:evaluateScript"/>
       <output message="tns:evaluateScriptResponse"/>
+    </operation>
+     <operation name="evaluateAuditScript">
+      <input message="tns:evaluateAuditScript"/>
+      <output message="tns:evaluateAuditScriptResponse"/>
+    </operation>
+     <operation name="getFieldValue">
+      <input message="tns:getFieldValue"/>
+      <output message="tns:getFieldValueResponse"/>
     </operation>
   </portType>
   
@@ -238,15 +416,15 @@
         <soap:body use="literal"/>
       </output>
     </operation>
-<!--      <operation name="parseQuery"> -->
-<!--       <soap:operation name="parseQuery"/> -->
-<!--       <input> -->
-<!--         <soap:body use="literal"/> -->
-<!--       </input> -->
-<!--       <output name="parseQueryResponse"> -->
-<!--         <soap:body use="literal"/> -->
-<!--       </output> -->
-<!--     </operation> -->
+     <operation name="parseQuery">
+      <soap:operation name="parseQuery"/>
+      <input>
+        <soap:body use="literal"/>
+      </input>
+      <output name="parseQueryResponse">
+        <soap:body use="literal"/>
+      </output>
+    </operation>
      <operation name="searchObjects">
       <soap:operation name="searchObjects"/>
       <input>
@@ -256,12 +434,32 @@
         <soap:body use="literal"/>
       </output>
     </operation>
+    
     <operation name="evaluateScript">
       <soap:operation name="evaluateScript"/>
       <input>
         <soap:body use="literal"/>
       </input>
       <output name="evaluateScriptResponse">
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+    <operation name="evaluateAuditScript">
+      <soap:operation name="evaluateAuditScript"/>
+      <input>
+        <soap:body use="literal"/>
+      </input>
+      <output name="evaluateAuditScriptResponse">
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+    
+    <operation name="getFieldValue">
+      <soap:operation name="getFieldValue"/>
+      <input>
+        <soap:body use="literal"/>
+      </input>
+      <output name="getFieldValueResponse">
         <soap:body use="literal"/>
       </output>
     </operation>

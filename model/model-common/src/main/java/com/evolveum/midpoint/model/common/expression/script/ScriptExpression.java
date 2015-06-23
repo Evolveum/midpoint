@@ -97,7 +97,7 @@ public class ScriptExpression {
 		this.functions = functions;
 	}
 
-	public <T> List<PrismPropertyValue<T>> evaluate(ExpressionVariables variables, ScriptExpressionReturnTypeType suggestedReturnType, 
+	public <V extends PrismValue> List<V> evaluate(ExpressionVariables variables, ScriptExpressionReturnTypeType suggestedReturnType, 
 			boolean useNew, String contextDescription, OperationResult result) 
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
@@ -107,7 +107,7 @@ public class ScriptExpression {
 		try {
 			context.setupThreadLocal();
 			
-			List<PrismPropertyValue<T>> expressionResult = evaluator.evaluate(scriptType, variables, outputDefinition, suggestedReturnType, objectResolver, functions, contextDescription, result);
+			List<V> expressionResult = evaluator.evaluate(scriptType, variables, outputDefinition, suggestedReturnType, objectResolver, functions, contextDescription, result);
 			
 			traceExpressionSuccess(variables, contextDescription, expressionResult);
 	        return expressionResult;

@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.prism.parser;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -224,14 +225,27 @@ public class PrismBeanConverter {
 				objectFactory = instantiateObjectFactory(objectFactoryClass);
 				elementMethod = inspector.findElementMethodInObjectFactory(objectFactoryClass, propName);
 				if (elementMethod == null) {
-					throw new SchemaException("No field "+propName+" in class "+beanClass+" (and no element method in object factory too)");
+					// Check for "any" method
+					elementMethod = inspector.findAnyMethod(beanClass);
+					if (elementMethod == null) {
+						throw new SchemaException("No field "+propName+" in class "+beanClass+" (and no element method in object factory too)");
+					}
+					unmarshallToAny(bean, elementMethod, key, xsubnode);
+					continue;
+					
 				}
 				field = inspector.lookupSubstitution(beanClass, elementMethod);
 				if (field == null) {
 					// Check for "any" field
 					field = inspector.findAnyField(beanClass);
 					if (field == null) {
-						throw new SchemaException("No field "+propName+" in class "+beanClass+" (no suitable substitution and no 'any' field)");
+						elementMethod = inspector.findAnyMethod(beanClass);
+						if (elementMethod == null) {
+							throw new SchemaException("No field "+propName+" in class "+beanClass+" (and no element method in object factory too)");
+						}
+						unmarshallToAny(bean, elementMethod, key, xsubnode);
+						continue;
+//						throw new SchemaException("No field "+propName+" in class "+beanClass+" (no suitable substitution and no 'any' field)");
 					}
 					unmarshallToAny(bean, field, key, xsubnode);
 					continue;
@@ -501,15 +515,29 @@ public class PrismBeanConverter {
 		return problem;
 	}
 
-	private <T,S> void unmarshallToAny(T bean, Field anyField, QName elementName, XNode xsubnode) throws SchemaException{
+	private <T,S> void unmarshallToAny(T bean, Method getter, QName elementName, XNode xsubnode) throws SchemaException{
 		Class<T> beanClass = (Class<T>) bean.getClass();
 		
 		Class objectFactoryClass = inspector.getObjectFactoryClass(elementName.getNamespaceURI());
 		Object objectFactory = instantiateObjectFactory(objectFactoryClass);
 		Method elementFactoryMethod = inspector.findElementMethodInObjectFactory(objectFactoryClass, elementName.getLocalPart());
 		Class<S> subBeanClass = (Class<S>) elementFactoryMethod.getParameterTypes()[0];
+
+		if (xsubnode instanceof ListXNode){
+			for (XNode xsubSubNode : ((ListXNode) xsubnode)){
+				S subBean = unmarshall(xsubSubNode, subBeanClass);
+				unmarshallToAnyValue(bean, beanClass, subBean, objectFactoryClass, objectFactory, elementFactoryMethod, getter);
+			}
+		} else{ 
+			S subBean = unmarshall(xsubnode, subBeanClass);
+			unmarshallToAnyValue(bean, beanClass, subBean, objectFactoryClass, objectFactory, elementFactoryMethod, getter);
+		}
 		
-		S subBean = unmarshall(xsubnode, subBeanClass);
+	}
+	
+	private <T, S> void unmarshallToAnyValue(T bean, Class beanClass, S subBean, Class objectFactoryClass, Object objectFactory, Method elementFactoryMethod, Method getter){
+		
+		
 		JAXBElement<S> subBeanElement;
 		try {
 			subBeanElement = (JAXBElement<S>) elementFactoryMethod.invoke(objectFactory, subBean);
@@ -517,7 +545,6 @@ public class PrismBeanConverter {
 			throw new IllegalArgumentException("Cannot invoke factory method "+elementFactoryMethod+" on "+objectFactoryClass+" with "+subBean+": "+e1, e1);
 		}
 		
-		Method getter = inspector.findPropertyGetter(beanClass, anyField.getName());
 		Collection<Object> col;
 		Object getterReturn;
 		try {
@@ -530,7 +557,12 @@ public class PrismBeanConverter {
 		} catch (ClassCastException e) {
 			throw new SystemException("Getter "+getter+" on bean of type "+beanClass+" returned "+getterReturn+" instead of collection");
 		}
-		col.add(subBeanElement);
+		col.add(subBeanElement != null ? subBeanElement.getValue() : subBeanElement);
+	}
+	
+	private <T,S> void unmarshallToAny(T bean, Field anyField, QName elementName, XNode xsubnode) throws SchemaException{
+		Method getter = inspector.findPropertyGetter(bean.getClass(), anyField.getName());
+		unmarshallToAny(bean, getter, elementName, xsubnode);
 	}
 	
     private Object instantiateObjectFactory(Class objectFactoryClass) {
@@ -770,7 +802,6 @@ public class PrismBeanConverter {
         } else if (prismContext != null && prismContext.getSchemaRegistry().determineDefinitionFromClass(bean.getClass()) != null){
         	return prismContext.getXnodeProcessor().serializeObject(((Objectable)bean).asPrismObject()).getSubnode();
         }
-
         // Note: SearchFilterType is treated below
 
         Class<? extends Object> beanClass = bean.getClass();

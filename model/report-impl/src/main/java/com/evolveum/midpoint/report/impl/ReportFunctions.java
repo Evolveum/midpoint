@@ -153,6 +153,20 @@ public class ReportFunctions {
 		return resolveAssignments(assignments, OrgType.class);
 	}
 	
+	public List<PrismObject<RoleType>> resolveRoles(AssignmentType assignments){
+		return resolveAssignments(assignments, RoleType.class);
+	}
+	
+	public List<PrismObject<OrgType>> resolveOrgs(AssignmentType assignments){
+		return resolveAssignments(assignments, OrgType.class);
+	}
+	
+	public <O extends ObjectType> List<PrismObject<O>> resolveAssignments(AssignmentType assignment, Class<O> type){
+		List<AssignmentType> assignments = new ArrayList<>();
+		assignments.add(assignment);
+		return resolveAssignments(assignments, type);
+	}
+	
 	public <O extends ObjectType> List<PrismObject<O>> resolveAssignments(Collection<AssignmentType> assignments, Class<O> type){
 		List<PrismObject<O>> resolvedAssignments = new ArrayList<>();
 		if (assignments == null){

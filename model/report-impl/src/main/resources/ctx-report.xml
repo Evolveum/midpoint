@@ -42,7 +42,7 @@
                     endpointName="report:reportPort"
                     xmlns:report="http://midpoint.evolveum.com/xml/ns/public/report/report-3">
         <jaxws:implementor>
-            <bean parent="reportWebService"/>
+            <bean parent="reportWebServiceRaw"/>
         </jaxws:implementor>
         <jaxws:inInterceptors>
             <ref bean="authenticationInterceptor"/>

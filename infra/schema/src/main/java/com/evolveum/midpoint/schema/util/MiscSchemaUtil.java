@@ -150,8 +150,46 @@ public class MiscSchemaUtil {
 		}
 		return itemPathList;
 	}
+	
+	public static SelectorQualifiedGetOptionsType optionsToOptionsType(Collection<SelectorOptions<GetOperationOptions>> options){
+		SelectorQualifiedGetOptionsType optionsType = new SelectorQualifiedGetOptionsType();
+		List<SelectorQualifiedGetOptionType> retval = new ArrayList<>();
+		for (SelectorOptions<GetOperationOptions> option: options){
+			retval.add(selectorOptionToSelectorQualifiedGetOptionType(option));
+		}
+		optionsType.getOption().addAll(retval);
+		return optionsType;
+	}
+	
+	private static SelectorQualifiedGetOptionType selectorOptionToSelectorQualifiedGetOptionType(SelectorOptions<GetOperationOptions> selectorOption){
+		ObjectSelectorType selectorType = selectorToSelectorType(selectorOption.getSelector());
+		GetOperationOptionsType getOptionsType = getOptionsToGetOptionsType(selectorOption.getOptions());
+		SelectorQualifiedGetOptionType selectorOptionType = new SelectorQualifiedGetOptionType();
+		selectorOptionType.setOptions(getOptionsType);
+		selectorOptionType.setSelector(selectorType);
+		return selectorOptionType;
+	}
 
-    public static List<SelectorOptions<GetOperationOptions>> optionsTypeToOptions(SelectorQualifiedGetOptionsType objectOptionsType) {
+	 private static ObjectSelectorType selectorToSelectorType(ObjectSelector selector) {
+			if (selector == null) {
+				return null;
+			}
+			ObjectSelectorType selectorType = new ObjectSelectorType();
+			selectorType.setPath(new ItemPathType(selector.getPath()));
+			return selectorType;
+		}
+	 
+	 private static GetOperationOptionsType getOptionsToGetOptionsType(GetOperationOptions options) {
+			GetOperationOptionsType optionsType = new GetOperationOptionsType();
+			optionsType.setRetrieve(RetrieveOption.toRetrieveOptionType(options.getRetrieve()));
+			optionsType.setResolve(options.getResolve());
+			optionsType.setNoFetch(options.getNoFetch());
+			optionsType.setRaw(options.getRaw());
+			optionsType.setNoDiscovery(options.getDoNotDiscovery());
+			return optionsType;
+		}
+   
+	 public static List<SelectorOptions<GetOperationOptions>> optionsTypeToOptions(SelectorQualifiedGetOptionsType objectOptionsType) {
         if (objectOptionsType == null) {
             return null;
         }
@@ -164,11 +202,11 @@ public class MiscSchemaUtil {
 
 	private static SelectorOptions<GetOperationOptions> selectorQualifiedGetOptionTypeToSelectorOption(SelectorQualifiedGetOptionType objectOptionsType) {
 		ObjectSelector selector = selectorTypeToSelector(objectOptionsType.getSelector());
-		GetOperationOptions options = getOptionsTypeToOptions(objectOptionsType.getOptions());
+		GetOperationOptions options = getOptionsTypeToGetOptions(objectOptionsType.getOptions());
 		return new SelectorOptions<>(selector, options);
 	}
 
-	private static GetOperationOptions getOptionsTypeToOptions(GetOperationOptionsType optionsType) {
+	private static GetOperationOptions getOptionsTypeToGetOptions(GetOperationOptionsType optionsType) {
 		GetOperationOptions options = new GetOperationOptions();
         options.setRetrieve(RetrieveOption.fromRetrieveOptionType(optionsType.getRetrieve()));
         options.setResolve(optionsType.isResolve());

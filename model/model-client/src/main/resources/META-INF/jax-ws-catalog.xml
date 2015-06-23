@@ -29,6 +29,9 @@
 
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3" uri="../xml/ns/public/model/scripting/scripting-3.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3" uri="../xml/ns/public/model/scripting/scripting-3.xsd" />
+    
+    <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/audit-3" uri="../xml/ns/public/common/audit-3.xsd" />
+    <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/audit-3" uri="../xml/ns/public/common/audit-3.xsd" />
 
     <nextCatalog catalog="catalog.xml"/>
 </catalog>

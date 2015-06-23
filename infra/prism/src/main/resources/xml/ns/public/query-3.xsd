@@ -284,7 +284,8 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-
+    
+   
 
     <xsd:element name="equal" substitutionGroup="tns:filterClause" type="tns:PropertyComplexValueFilterClauseType"/>
     <xsd:element name="greaterOrEqual" substitutionGroup="tns:filterClause" type="tns:PropertySimpleValueFilterClauseType"/>

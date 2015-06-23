@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
@@ -271,14 +272,27 @@ public class BasicExpressionFunctions {
 		
 		Collection<String> oids = new ArrayList<String>();
 		for (ObjectReferenceType ort : refs){
-			if (ort.getOid() != null){
+			if (StringUtils.isNotBlank(ort.getOid())){
 				oids.add(ort.getOid());
-			} else if (ort.asReferenceValue().getObject() != null){
+			} else if (ort.asReferenceValue().getObject() != null && StringUtils.isNotBlank(ort.asReferenceValue().getObject().getOid())){
 				oids.add(ort.asReferenceValue().getObject().getOid());
 			}
 		}
 		
 		return oids;
+		
+	}
+	
+	public Collection<String> getOids(ObjectReferenceType refs){
+		List<ObjectReferenceType> refList = new ArrayList<>();
+		refList.add(refs);
+		return getOids(refList);
+	}
+	
+	public Collection<String> getOids(ObjectType refs){
+		List<String> oid = new ArrayList<>();
+		oid.add(refs.getOid());
+		return oid;
 		
 	}
 	

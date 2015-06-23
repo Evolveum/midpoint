@@ -19,15 +19,26 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -281,6 +292,57 @@ public class AuditEventRecord implements DebugDumpable {
 //            }
 //        }
 	}
+    
+    public AuditEventRecordType createAuditEventRecordType(){
+    	AuditEventRecordType auditRecordType = new AuditEventRecordType();
+    	auditRecordType.setChannel(channel);
+    	auditRecordType.setEventIdentifier(eventIdentifier);
+    	auditRecordType.setEventStage(AuditEventStage.fromAuditEventStage(eventStage));
+    	auditRecordType.setEventType(AuditEventType.fromAuditEventType(eventType));
+    	auditRecordType.setHostIdentifier(hostIdentifier);
+    	auditRecordType.setInitiatorRef(ObjectTypeUtil.createObjectRef(initiator));
+    	auditRecordType.setMessage(message);
+    	auditRecordType.setOutcome(OperationResultStatus.createStatusType(outcome));
+    	auditRecordType.setParameter(parameter);
+    	auditRecordType.setResult(result);
+    	auditRecordType.setSessionIdentifier(sessionIdentifier);
+    	auditRecordType.setTargetOwnerRef(ObjectTypeUtil.createObjectRef(targetOwner));
+    	auditRecordType.setTargetRef(ObjectTypeUtil.createObjectRef(target));
+    	auditRecordType.setTaskIdentifier(taskIdentifier);
+    	auditRecordType.setTaskOID(taskOID);
+    	auditRecordType.setTimestamp(MiscUtil.asXMLGregorianCalendar(timestamp));
+    	return auditRecordType;
+	}
+    
+    public static AuditEventRecord createAuditEventRecord(AuditEventRecordType auditEventRecordType){
+    	AuditEventRecord auditRecord = new AuditEventRecord();
+    	auditRecord.setChannel(auditEventRecordType.getChannel());
+    	auditRecord.setEventIdentifier(auditEventRecordType.getEventIdentifier());
+    	auditRecord.setEventStage(AuditEventStage.toAuditEventStage(auditEventRecordType.getEventStage()));
+    	auditRecord.setEventType(AuditEventType.toAuditEventType(auditEventRecordType.getEventType()));
+    	auditRecord.setHostIdentifier(auditEventRecordType.getHostIdentifier());
+    	auditRecord.setInitiator(getObjectFromObjectReferenceType(auditEventRecordType.getInitiatorRef()));
+    	auditRecord.setMessage(auditEventRecordType.getMessage());
+    	auditRecord.setOutcome(OperationResultStatus.parseStatusType(auditEventRecordType.getOutcome()));
+    	auditRecord.setParameter(auditEventRecordType.getParameter());
+    	auditRecord.setResult(auditEventRecordType.getResult());
+    	auditRecord.setSessionIdentifier(auditEventRecordType.getSessionIdentifier());
+    	auditRecord.setTarget(getObjectFromObjectReferenceType(auditEventRecordType.getTargetRef()));
+    	auditRecord.setTargetOwner(getObjectFromObjectReferenceType(auditEventRecordType.getTargetOwnerRef()));
+    	auditRecord.setTaskIdentifier(auditEventRecordType.getTaskIdentifier());
+    	auditRecord.setTaskOID(auditEventRecordType.getTaskOID());
+    	auditRecord.setTimestamp(MiscUtil.asLong(auditEventRecordType.getTimestamp()));
+    	return auditRecord;
+    }
+    
+    private static PrismObject getObjectFromObjectReferenceType(ObjectReferenceType ref){
+    	if (ref == null){
+    		return null;
+    	}
+    	
+    	PrismReferenceValue prismRef = ref.asReferenceValue();
+    	return prismRef.getObject();
+    }
 	
 	public AuditEventRecord clone() {
 		AuditEventRecord clone = new AuditEventRecord();
