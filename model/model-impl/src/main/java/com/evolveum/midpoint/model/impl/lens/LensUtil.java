@@ -376,7 +376,8 @@ public class LensUtil {
                     continue;
                 }
                 if (filterExistingValues && !hasValue(itemExisting, value, valueMatcher, comparator)) {
-                	LOGGER.trace("Value {} NOT deleted to delta for item {} the item does not have that value in {}",
+					// temporarily changed from .trace to .info in order to assist with problems like MID-2368
+                	LOGGER.info("Value {} NOT deleted to delta for item {} the item does not have that value in {}",
                 			new Object[]{value, itemPath, contextDescription});
                 	continue;
                 }
