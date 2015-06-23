@@ -827,7 +827,7 @@ public class AssignmentProcessor {
     	while (iterator.hasNext()) {
     		EvaluatedAssignmentImpl<F> evaluatedAssignment = iterator.next();
     		try {
-				evaluatedAssignment.evaluateConstructions(focusOdo, task, result);
+				evaluatedAssignment.evaluateConstructions(focusOdo, context.getSystemConfiguration(), task, result);
     		} catch (ObjectNotFoundException ex){
             	if (LOGGER.isTraceEnabled()) {
                 	LOGGER.trace("Processing of assignment resulted in error {}: {}", ex, SchemaDebugUtil.prettyPrint(evaluatedAssignment.getAssignmentType()));
