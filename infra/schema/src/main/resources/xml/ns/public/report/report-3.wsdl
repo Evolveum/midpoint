@@ -316,10 +316,15 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                  
-		            <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
-		            </xsd:any>
-		                   
+                    
+                     <xsd:element name="parameterValue" type="c:ReportParameterType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Name of the jasper report parameter
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                           
                 </xsd:sequence>
             </xsd:complexType>
             <xsd:element name="remoteReportParameter" type="tns:RemoteReportParameterType"/>

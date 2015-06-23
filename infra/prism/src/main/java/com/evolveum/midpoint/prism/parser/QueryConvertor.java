@@ -667,12 +667,9 @@ public class QueryConvertor {
 			return serializeNoneFilter((NoneFilter) filter, xnodeSerializer);
 		}
 		
-		if (filter instanceof NoneFilter) {
-			return serializeNoneFilter((NoneFilter) filter, xnodeSerilizer);
-		}
-		
+	
 		if (filter instanceof AllFilter) {
-			return serializeAllFilter((AllFilter) filter, xnodeSerilizer);
+			return serializeAllFilter((AllFilter) filter, xnodeSerializer);
 		}
 
 		throw new UnsupportedOperationException("Unsupported filter type: " + filter);
@@ -779,8 +776,7 @@ public class QueryConvertor {
 	
 	private static MapXNode serializeNoneFilter(NoneFilter filter, XNodeSerializer xnodeSerializer) {
 		MapXNode map =  new MapXNode();
-		MapXNode none = new MapXNode();
-		map.put(KEY_FILTER_NONE_TYPE, none);
+		map.put(KEY_FILTER_NONE_TYPE, new MapXNode());
 		return map;
 	}
 	
@@ -794,12 +790,7 @@ public class QueryConvertor {
 		return xtypeFilter;
 	}
 	
-	private static MapXNode serializeNoneFilter(NoneFilter filter, XNodeSerializer xnodeSerializer) throws SchemaException{
-		MapXNode xtypeFilter= new MapXNode();
-		xtypeFilter.put(KEY_FILTER_NONE, null);
-		return xtypeFilter;
-		
-	}
+	
 	
 	private static MapXNode serializeAllFilter(AllFilter filter, XNodeSerializer xnodeSerializer) throws SchemaException{
 		MapXNode xtypeFilter= new MapXNode();

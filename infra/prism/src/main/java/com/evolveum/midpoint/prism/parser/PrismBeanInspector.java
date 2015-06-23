@@ -504,6 +504,19 @@ public class PrismBeanInspector {
         }
         return findField(superclass, selector);
     }
+    
+    private Method findMethod(Class classType, Handler<Method> selector) {
+        for (Method field: classType.getDeclaredMethods()) {
+            if (selector.handle(field)) {
+                return field;
+            }
+        }
+        Class superclass = classType.getSuperclass();
+        if (superclass.equals(Object.class)) {
+            return null;
+        }
+        return findMethod(superclass, selector);
+    }
 
     private List<String> getPropOrderUncached(Class<? extends Object> beanClass) {
         List<String> propOrder;
@@ -661,6 +674,15 @@ public class PrismBeanInspector {
 			@Override
 			public boolean handle(Field field) {
 				return (field.getAnnotation(XmlAnyElement.class) != null);
+			}
+    	});
+    }
+    
+    public <T> Method findAnyMethod(Class<T> beanClass) {
+    	return findMethod(beanClass, new Handler<Method>() {
+			@Override
+			public boolean handle(Method method) {
+				return (method.getAnnotation(XmlAnyElement.class) != null);
 			}
     	});
     }

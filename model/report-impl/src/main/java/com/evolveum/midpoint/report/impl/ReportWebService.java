@@ -142,9 +142,7 @@ public class ReportWebService implements ReportPortType, ReportPort {
 
 	private Map<QName, Object> getParamsMap(RemoteReportParametersType parametersType) throws SchemaException {
 
-		// prismContext.adopt(parametersType);
-		// PrismContainerValue<RemoteReportParametersType> parameter =
-		// parametersType.asPrismContainerValue();
+		prismContext.adopt(parametersType);
 		Map<QName, Object> parametersMap = new HashMap<>();
 		if (parametersType == null || parametersType.getRemoteParameter() == null
 				|| parametersType.getRemoteParameter().isEmpty()) {
@@ -153,30 +151,21 @@ public class ReportWebService implements ReportPortType, ReportPort {
 		List<RemoteReportParameterType> items = parametersType.getRemoteParameter();
 		for (RemoteReportParameterType item : items) {
 			QName paramName = new QName(SchemaConstants.NS_REPORT, item.getParameterName());
-			if (item.getAny().size() == 1) {
-				parametersMap.put(paramName, item.getAny().get(0));
+			ReportParameterType param = item.getParameterValue();
+			if (param == null){
+				parametersMap.put(paramName, null);
+				continue;
+			}
+			if (param.getAny().size() == 1) {
+				parametersMap.put(paramName, param.getAny().get(0));
 			} else {
-				parametersMap.put(paramName, item.getAny());
+				parametersMap.put(paramName, param.getAny());
 			}
 
 		}
 
 		return parametersMap;
-		// Map<QName, Object> params = null;
-		// if (parameters != null) {
-		// params = new HashMap<QName, Object>();
-		// for (EntryType entry : parameters.getEntry()) {
-		// Object obj = entry.getEntryValue();
-		// Serializable value = null;
-		// if (obj instanceof JAXBElement){
-		// value = (Serializable) ((JAXBElement) obj).getValue();
-		// } else {
-		// value = (Serializable) entry.getEntryValue();
-		// }
-		// params.put(new QName(entry.getKey()), value);
-		// }
-		// }
-		// return params;
+	
 
 	}
 
@@ -289,6 +278,7 @@ public class ReportWebService implements ReportPortType, ReportPort {
 			SelectorQualifiedGetOptionsType options) {
 
 		try {
+			
 			Map<QName, Object> parametersMap = getParamsMap(parameters);
 			ObjectQuery q = reportService.parseQuery(query, parametersMap);
 			Collection<PrismObject<? extends ObjectType>> resultList = reportService.searchObjects(q,

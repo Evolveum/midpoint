@@ -43,13 +43,13 @@ public class MidPointRemoteQueryExecuterTest {
 		RemoteReportParametersType reportParameters = new RemoteReportParametersType();
 		RemoteReportParameterType reportParameter = new RemoteReportParameterType();
 		reportParameter.setParameterName("stringExample");
-		reportParameter.getAny().add("someString");
+//		reportParameter.getAny().add("someString");
 		
 		reportParameters.getRemoteParameter().add(reportParameter);
 		
 		reportParameter = new RemoteReportParameterType();
 		reportParameter.setParameterName("intExample");
-		reportParameter.getAny().add(11);
+//		reportParameter.getAny().add(11);
 		
 		reportParameters.getRemoteParameter().add(reportParameter);
 		

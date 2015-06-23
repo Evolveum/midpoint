@@ -76,11 +76,11 @@ public class MidPointRemoteQueryExecutor extends MidPointQueryExecutor{
 			remoteParam.setParameterName(param.getKey().getLocalPart());
 //			DOM3SerializerImpl domser = new DOM3SerializerImpl(null);
 			Object value = ((PrismPropertyValue)param.getValue()).getValue();
-			if (value!= null && List.class.isAssignableFrom(value.getClass())){
-				remoteParam.getAny().addAll((List<Object>) value);
-			} else {
-				remoteParam.getAny().add(value);
-			}
+//			if (value!= null && List.class.isAssignableFrom(value.getClass())){
+//				remoteParam.getAny().addAll((List<Object>) value);
+//			} else {
+//				remoteParam.getAny().add(value);
+//			}
 			reportParams.getRemoteParameter().add(remoteParam);
 		}
 		return reportParams;
