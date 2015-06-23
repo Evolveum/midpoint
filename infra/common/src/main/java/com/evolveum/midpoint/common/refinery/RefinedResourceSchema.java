@@ -110,7 +110,10 @@ public class RefinedResourceSchema extends ResourceSchema implements DebugDumpab
 			if (intent == null && acctDef.isDefault()) {
 				return acctDef;
 			}
-			if (acctDef.getIntent().equals(intent)) {
+			if (acctDef.getIntent() != null && acctDef.getIntent().equals(intent)) {
+				return acctDef;
+			}
+			if (acctDef.getIntent() == null && intent == null) {
 				return acctDef;
 			}
 		}

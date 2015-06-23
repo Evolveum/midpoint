@@ -457,6 +457,9 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     		kind = ShadowKindType.ACCOUNT;
     	}
     	String intent = entTypeDefType.getIntent();
+    	if (intent == null) {
+    		intent = SchemaConstants.INTENT_DEFAULT;
+    	}
 		RefinedObjectClassDefinition rObjectClassDef = parseRefinedObjectClass(entTypeDefType, 
 				resourceType, rSchema, prismContext, kind, intent, kind.value(), kind.value() + " type definition '"+intent+"' in " + contextDescription);
 
