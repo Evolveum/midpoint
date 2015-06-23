@@ -107,5 +107,11 @@ public class TestImportReconDeprecated extends TestImportRecon {
 	public void test510ImportFromResourceDummy() throws Exception {
 		// Not relevant for deprecated syntax
 	}
+
+	@Override
+	public void test900DeleteDummyShadows() throws Exception {
+		// Not relevant for deprecated syntax
+	}
+	
 	
 }
