@@ -117,7 +117,10 @@ public class TestUnix extends AbstractStoryTest {
 	private static final String USER_MANCOMB_USERNAME = "mancomb";
 	private static final String USER_MANCOMB_FIST_NAME = "Mancomb";
 	private static final String USER_MANCOMB_LAST_NAME = "Seepgood";
-
+	
+	private static final String USER_LARGO_USERNAME = "largo";
+	private static final String USER_LARGO_FIST_NAME = "Largo";
+	private static final String USER_LARGO_LAST_NAME = "LaGrande";
 	
 	
 	private static final String ACCOUNT_LEMONHEAD_USERNAME = "lemonhead";
@@ -141,9 +144,7 @@ public class TestUnix extends AbstractStoryTest {
 	private static final String ACCOUNT_COBB_FIST_NAME = "Cobb";
 	private static final String ACCOUNT_COBB_LAST_NAME = "Loom";
 
-	private static final String ACCOUNT_LARGO_USERNAME = "largo";
-	private static final String ACCOUNT_LARGO_FIST_NAME = "Largo";
-	private static final String ACCOUNT_LARGO_LAST_NAME = "LaGrande";
+
 	
 	private static final String ACCOUNT_STAN_USERNAME = "stan";
 	private static final String ACCOUNT_STAN_FIST_NAME = "Stan";
@@ -170,6 +171,12 @@ public class TestUnix extends AbstractStoryTest {
 		
 	protected ResourceType resourceOpenDjType;
 	protected PrismObject<ResourceType> resourceOpenDj;
+	
+	private String accountMancombOid;
+	private String accountMancombDn;
+	
+	private String accountLargoOid;
+	private String accountLargoDn;
 	
 	@Override
     protected void startResources() throws Exception {
@@ -245,8 +252,6 @@ public class TestUnix extends AbstractStoryTest {
         assertNotNull("No refined objectclass "+OPENDJ_GROUP_POSIX_AUXILIARY_OBJECTCLASS_NAME+" in resource schema", rOcDefPosixGroup);
         assertTrue("Refined objectclass "+OPENDJ_GROUP_POSIX_AUXILIARY_OBJECTCLASS_NAME+" is not auxiliary", rOcDefPosixGroup.isAuxiliary());
         
-        // TODO
-        
 	}
 	
 	@Test
@@ -298,6 +303,117 @@ public class TestUnix extends AbstractStoryTest {
         assertNotNull("No herman user", userAfter);
         display("User after", userAfter);
         assertUser(userAfter, USER_MANCOMB_USERNAME, USER_MANCOMB_FIST_NAME, USER_MANCOMB_LAST_NAME);
+        accountMancombOid = getSingleLinkOid(userAfter);
+        
+        PrismObject<ShadowType> shadow = getShadowModel(accountMancombOid);
+        display("Shadow (model)", shadow);
+        accountMancombDn = assertPosixAccount(shadow);
+	}
+	
+	@Test
+    public void test119DeleteUserMancombUnix() throws Exception {
+		final String TEST_NAME = "test119DeleteUserMancombUnix";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = findUserByUsername(USER_MANCOMB_USERNAME);
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		deleteObject(UserType.class, userBefore.getOid(), task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        PrismObject<UserType> userAfter = findUserByUsername(USER_MANCOMB_USERNAME);
+        display("User after", userAfter);
+        assertNull("User mancomb sneaked in", userAfter);
+        
+        assertUser(userAfter, USER_MANCOMB_USERNAME, USER_MANCOMB_FIST_NAME, USER_MANCOMB_LAST_NAME);
+        assertLinks(userAfter, 0);
+        
+        assertNoObject(ShadowType.class, accountMancombOid, task, result);
+        
+        openDJController.assertNoEntry(accountMancombDn);
+	}
+	
+	@Test
+    public void test120AddUserLargo() throws Exception {
+		final String TEST_NAME = "test120AddUserLargo";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> user = createUser(USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME, 1002, null);
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+        addObject(user, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
+        assertNotNull("No user after", userAfter);
+        display("User after", userAfter);
+        assertUser(userAfter, USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME);
+        assertLinks(userAfter, 0);
+	}
+	
+	@Test
+    public void test122AssignUserLargoBasic() throws Exception {
+		final String TEST_NAME = "test122AssignUserLargoBasic";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+        assignRole(userBefore.getOid(), ROLE_BASIC_OID);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
+        assertNotNull("No user after", userAfter);
+        display("User after", userAfter);
+        assertUser(userAfter, USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME);
+        
+        accountLargoOid = getSingleLinkOid(userAfter);
+        
+        PrismObject<ShadowType> shadow = getShadowModel(accountLargoOid);
+        display("Shadow (model)", shadow);
+        accountLargoDn = assertBasicAccount(shadow);
+	}
+	
+	@Test
+    public void test124AssignUserLargoUnix() throws Exception {
+		final String TEST_NAME = "test124AssignUserLargoUnix";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+        assignRole(userBefore.getOid(), ROLE_UNIX_OID);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
+        assertNotNull("No user after", userAfter);
+        display("User after", userAfter);
+        assertUser(userAfter, USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME);
+        
         String accountOid = getSingleLinkOid(userAfter);
         
         PrismObject<ShadowType> shadow = getShadowModel(accountOid);
@@ -305,14 +421,73 @@ public class TestUnix extends AbstractStoryTest {
         assertPosixAccount(shadow);
 	}
 	
+	@Test
+    public void test126UnAssignUserLargoUnix() throws Exception {
+		final String TEST_NAME = "test126UnAssignUserLargoUnix";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+        unassignRole(userBefore.getOid(), ROLE_UNIX_OID);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
+        assertNotNull("No user after", userAfter);
+        display("User after", userAfter);
+        assertUser(userAfter, USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME);
+        
+        String accountOid = getSingleLinkOid(userAfter);
+        
+        PrismObject<ShadowType> shadow = getShadowModel(accountOid);
+        display("Shadow (model)", shadow);
+        assertBasicAccount(shadow);
+	}
+	
+	@Test
+    public void test128UnAssignUserLargoBasic() throws Exception {
+		final String TEST_NAME = "test122AssignUserLargoBasic";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+        unassignRole(userBefore.getOid(), ROLE_BASIC_OID);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
+        assertNotNull("No user after", userAfter);
+        display("User after", userAfter);
+        assertUser(userAfter, USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME);
+        assertLinks(userAfter, 0);
+        
+        assertNoObject(ShadowType.class, accountLargoOid, task, result);
+        
+        openDJController.assertNoEntry(accountLargoDn);
+	}
+	
 	private PrismObject<UserType> createUser(String username, String givenName, String familyName, Integer uidNumber, String roleOid) throws SchemaException {
 		PrismObject<UserType> user = createUser(username, givenName, familyName, true);
-        AssignmentType roleAssignemnt = new AssignmentType();
-        ObjectReferenceType roleTargetRef = new ObjectReferenceType();
-        roleTargetRef.setOid(roleOid);
-        roleTargetRef.setType(RoleType.COMPLEX_TYPE);
-		roleAssignemnt.setTargetRef(roleTargetRef);
-		user.asObjectable().getAssignment().add(roleAssignemnt);
+		if (roleOid != null) {
+	        AssignmentType roleAssignemnt = new AssignmentType();
+	        ObjectReferenceType roleTargetRef = new ObjectReferenceType();
+	        roleTargetRef.setOid(roleOid);
+	        roleTargetRef.setType(RoleType.COMPLEX_TYPE);
+			roleAssignemnt.setTargetRef(roleTargetRef);
+			user.asObjectable().getAssignment().add(roleAssignemnt);
+		}
 		if (uidNumber != null) {
 			PrismPropertyDefinition<String> uidNumberPropertyDef = new PrismPropertyDefinition<>(EXTENSION_UID_NUMBER_NAME, 
 					DOMUtil.XSD_STRING, prismContext);
@@ -337,7 +512,7 @@ public class TestUnix extends AbstractStoryTest {
 				firstName, lastName);
 	}
 
-	private void assertBasicAccount(PrismObject<ShadowType> shadow) throws DirectoryException {
+	private String assertBasicAccount(PrismObject<ShadowType> shadow) throws DirectoryException {
 		ShadowType shadowType = shadow.asObjectable();
 		assertEquals("Wrong objectclass in "+shadow, OPENDJ_ACCOUNT_STRUCTURAL_OBJECTCLASS_NAME, shadowType.getObjectClass());
 		assertTrue("Unexpected auxiliary objectclasses in "+shadow + ": "+shadowType.getAuxiliaryObjectClass(), 
@@ -349,9 +524,11 @@ public class TestUnix extends AbstractStoryTest {
 		display("Posix account entry", entry);
 		openDJController.assertObjectClass(entry, OPENDJ_ACCOUNT_STRUCTURAL_OBJECTCLASS_NAME.getLocalPart());
 		openDJController.assertNoObjectClass(entry, OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME.getLocalPart());
+		
+		return entry.getDN().toString();
 	}
 	
-	private void assertPosixAccount(PrismObject<ShadowType> shadow) throws DirectoryException {
+	private String assertPosixAccount(PrismObject<ShadowType> shadow) throws DirectoryException {
 		ShadowType shadowType = shadow.asObjectable();
 		assertEquals("Wrong objectclass in "+shadow, OPENDJ_ACCOUNT_STRUCTURAL_OBJECTCLASS_NAME, shadowType.getObjectClass());
 		PrismAsserts.assertEqualsCollectionUnordered("Wrong auxiliary objectclasses in "+shadow, 
@@ -363,6 +540,8 @@ public class TestUnix extends AbstractStoryTest {
 		display("Posix account entry", entry);
 		openDJController.assertObjectClass(entry, OPENDJ_ACCOUNT_STRUCTURAL_OBJECTCLASS_NAME.getLocalPart());
 		openDJController.assertObjectClass(entry, OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME.getLocalPart());
+		
+		return entry.getDN().toString();
 	}
 		
 }
