@@ -481,6 +481,8 @@ public class InboundProcessor {
     			if (targetFocusProperty != null && !targetFocusProperty.isEmpty()) {
     				outputUserPropertydelta.setValuesToReplace();
     			}
+
+				// TODO implement something similar also for scripted inbounds (MID-2421)
     		}
     		
     	}
