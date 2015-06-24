@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -66,7 +65,6 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -325,10 +323,10 @@ class EntitlementConverter {
 		if (associationContainer == null || associationContainer.isEmpty()) {
 			return;
 		}
-		Map<QName, PropertyDelta<?>> deltaMap = new HashMap<QName, PropertyDelta<?>>();
-		collectEntitlementToAttrsDelta(ctx, deltaMap, associationContainer.getValues(), ModificationType.ADD);
-		for (PropertyDelta<?> delta: deltaMap.values()) {
-			delta.applyTo(shadow);
+		Map<QName, PropertyModificationOperation> operationMap = new HashMap<>();
+		collectEntitlementToAttrsDelta(ctx, operationMap, associationContainer.getValues(), ModificationType.ADD);
+		for (PropertyModificationOperation operation : operationMap.values()) {
+			operation.getPropertyDelta().applyTo(shadow);
 		}
 	}
 	
@@ -354,16 +352,13 @@ class EntitlementConverter {
 	 */
 	public void collectEntitlementChange(ProvisioningContext ctx, ContainerDelta<ShadowAssociationType> itemDelta, 
 			Collection<Operation> operations) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
-		Map<QName, PropertyDelta<?>> deltaMap = new HashMap<QName, PropertyDelta<?>>();
+		Map<QName, PropertyModificationOperation> operationsMap = new HashMap<QName, PropertyModificationOperation>();
 		
-		collectEntitlementToAttrsDelta(ctx, deltaMap, itemDelta.getValuesToAdd(), ModificationType.ADD);
-		collectEntitlementToAttrsDelta(ctx, deltaMap, itemDelta.getValuesToDelete(), ModificationType.DELETE);
-		collectEntitlementToAttrsDelta(ctx, deltaMap, itemDelta.getValuesToReplace(), ModificationType.REPLACE);
+		collectEntitlementToAttrsDelta(ctx, operationsMap, itemDelta.getValuesToAdd(), ModificationType.ADD);
+		collectEntitlementToAttrsDelta(ctx, operationsMap, itemDelta.getValuesToDelete(), ModificationType.DELETE);
+		collectEntitlementToAttrsDelta(ctx, operationsMap, itemDelta.getValuesToReplace(), ModificationType.REPLACE);
 
-		for(PropertyDelta<?> attrDelta: deltaMap.values()) {
-			PropertyModificationOperation attributeModification = new PropertyModificationOperation(attrDelta);
-			operations.add(attributeModification);
-		}
+		operations.addAll(operationsMap.values());
 	}
 	
 	public <T> void collectEntitlementsAsObjectOperation(ProvisioningContext ctx, Map<ResourceObjectDiscriminator, ResourceObjectOperations> roMap,
@@ -399,7 +394,7 @@ class EntitlementConverter {
 			return;
 		}
 		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
-		for (RefinedAssociationDefinition assocDefType: subjectCtx.getObjectClassDefinition().getEntitlementAssociations()) {
+		for (final RefinedAssociationDefinition assocDefType: subjectCtx.getObjectClassDefinition().getEntitlementAssociations()) {
 			if (assocDefType.getResourceObjectAssociationType().getDirection() != ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT) {
 				// We can ignore these. They will die together with the object. No need to explicitly delete them.
 				LOGGER.trace("Ignoring subject-to-object association in deleted shadow");
@@ -491,6 +486,7 @@ class EntitlementConverter {
 						if (attributeDelta == null) {
 							attributeDelta = assocAttrDef.createEmptyDelta(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrName));
 							PropertyModificationOperation attributeModification = new PropertyModificationOperation(attributeDelta);
+							attributeModification.setMatchingRuleQName(assocDefType.getMatchingRule());
 							operations.getOperations().add(attributeModification);
 						}
 						
@@ -518,13 +514,13 @@ class EntitlementConverter {
 	// common
 	/////////
 	
-	private <T> void collectEntitlementToAttrsDelta(ProvisioningContext subjectCtx, Map<QName, PropertyDelta<?>> deltaMap, 
+	private <T> void collectEntitlementToAttrsDelta(ProvisioningContext subjectCtx, Map<QName, PropertyModificationOperation> operationMap,
 			Collection<PrismContainerValue<ShadowAssociationType>> set, ModificationType modificationType) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
 		if (set == null) {
 			return;
 		}
 		for (PrismContainerValue<ShadowAssociationType> associationCVal: set) {
-			collectEntitlementToAttrDelta(subjectCtx, deltaMap, associationCVal, modificationType);
+			collectEntitlementToAttrDelta(subjectCtx, operationMap, associationCVal, modificationType);
 		}
 	}
 	
@@ -533,7 +529,7 @@ class EntitlementConverter {
 	 *  Collects a single value.
 	 *  NOTE: only collects  SUBJECT_TO_ENTITLEMENT entitlement direction.
 	 */
-	private <T> void collectEntitlementToAttrDelta(ProvisioningContext ctx, Map<QName, PropertyDelta<?>> deltaMap, 
+	private <T> void collectEntitlementToAttrDelta(ProvisioningContext ctx, Map<QName, PropertyModificationOperation> operationMap,
 			PrismContainerValue<ShadowAssociationType> associationCVal, ModificationType modificationType) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
 		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
 		
@@ -562,15 +558,16 @@ class EntitlementConverter {
 		if (assocAttrDef == null) {
 			throw new SchemaException("Association attribute '"+assocAttrName+"'definied in entitlement association '"+associationName+"' was not found in schema for "+ctx.getResource());
 		}
-		PropertyDelta<T> attributeDelta = (PropertyDelta<T>) deltaMap.get(assocAttrName);
-		if (attributeDelta == null) {
-			attributeDelta = assocAttrDef.createEmptyDelta(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrName));
-			deltaMap.put(assocAttrName, attributeDelta);
+		PropertyModificationOperation attributeOperation = operationMap.get(assocAttrName);
+		if (attributeOperation == null) {
+			attributeOperation = new PropertyModificationOperation(assocAttrDef.createEmptyDelta(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrName)));
+			attributeOperation.setMatchingRuleQName(assocDefType.getMatchingRule());
+			operationMap.put(assocAttrName, attributeOperation);
 		}
 		
 		QName valueAttrName = assocDefType.getResourceObjectAssociationType().getValueAttribute();
 		if (valueAttrName == null) {
-			throw new SchemaException("No value attribute definied in entitlement association '"+associationName+"' in "+ctx.getResource());
+			throw new SchemaException("No value attribute defined in entitlement association '"+associationName+"' in "+ctx.getResource());
 		}
 		ResourceAttributeContainer identifiersContainer = 
 				ShadowUtil.getAttributesContainer(associationCVal, ShadowAssociationType.F_IDENTIFIERS);
@@ -580,12 +577,12 @@ class EntitlementConverter {
 		}
 		
 		if (modificationType == ModificationType.ADD) {
-			attributeDelta.addValuesToAdd(valueAttr.getClonedValues());
+			attributeOperation.getPropertyDelta().addValuesToAdd(valueAttr.getClonedValues());
 		} else if (modificationType == ModificationType.DELETE) {
-			attributeDelta.addValuesToDelete(valueAttr.getClonedValues());
+			attributeOperation.getPropertyDelta().addValuesToDelete(valueAttr.getClonedValues());
 		} else if (modificationType == ModificationType.REPLACE) {
 			// TODO: check if already exists
-			attributeDelta.setValuesToReplace(valueAttr.getClonedValues());
+			attributeOperation.getPropertyDelta().setValuesToReplace(valueAttr.getClonedValues());
 		}
 	}
 	
@@ -722,11 +719,14 @@ class EntitlementConverter {
 					currentObjectShadow = resourceObjectReferenceResolver.fetchResourceObject(entitlementCtx, identifiers, null, result);
 					operations.setCurrentShadow(currentObjectShadow);
 				}
-				attributeDelta = ProvisioningUtil.narrowPropertyDelta(attributeDelta, currentObjectShadow, matchingRuleRegistry);
+				// TODO it seems that duplicate values are checked twice: once here and the second time in ResourceObjectConverter.executeModify
+				// TODO check that and fix if necessary
+				attributeDelta = ProvisioningUtil.narrowPropertyDelta(attributeDelta, currentObjectShadow, assocDefType.getMatchingRule(), matchingRuleRegistry);
 			}
 			
 			if (attributeDelta != null && !attributeDelta.isEmpty()) {
 				PropertyModificationOperation attributeModification = new PropertyModificationOperation(attributeDelta);
+				attributeModification.setMatchingRuleQName(assocDefType.getMatchingRule());
 				operations.getOperations().add(attributeModification);
 			}
 		}

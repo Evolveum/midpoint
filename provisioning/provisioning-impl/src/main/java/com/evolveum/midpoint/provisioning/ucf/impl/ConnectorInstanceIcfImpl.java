@@ -1817,6 +1817,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// rename
 			PropertyDelta<String> uidDelta = createUidDelta(uid, getUidDefinition(identifiers));
 			PropertyModificationOperation uidMod = new PropertyModificationOperation(uidDelta);
+			// TODO what about matchingRuleQName ?
 			sideEffectChanges.add(uidMod);
 
 			replaceUidValue(identifiers, uid);

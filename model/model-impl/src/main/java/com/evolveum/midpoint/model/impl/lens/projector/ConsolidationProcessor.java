@@ -77,7 +77,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -396,8 +396,13 @@ public class ConsolidationProcessor {
     			
     			PrismReference ref1 = o1.findReference(ShadowAssociationType.F_SHADOW_REF);
     			PrismReference ref2 = o2.findReference(ShadowAssociationType.F_SHADOW_REF);
-    			
-    			if (ref1.equals(ref2)){
+
+				// We do not want to compare references in details. Comparing OIDs suffices.
+				// Otherwise we get into problems, as one of the references might be e.g. without type,
+				// causing unpredictable behavior (MID-2368)
+				String oid1 = ref1 != null ? ref1.getOid() : null;
+				String oid2 = ref2 != null ? ref2.getOid() : null;
+    			if (ObjectUtils.equals(oid1, oid2)) {
     				return 0;
     			}
     			

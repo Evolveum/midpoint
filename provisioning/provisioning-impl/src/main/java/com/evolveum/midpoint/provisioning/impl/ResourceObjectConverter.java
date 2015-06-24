@@ -519,15 +519,18 @@ public class ResourceObjectConverter {
 				Collection<Operation> filteredOperations = new ArrayList(operations.size());
 				for (Operation origOperation: operations) {
 					if (origOperation instanceof PropertyModificationOperation) {
-						PropertyDelta<?> propertyDelta = ((PropertyModificationOperation)origOperation).getPropertyDelta();
-						PropertyDelta<?> filteredDelta = ProvisioningUtil.narrowPropertyDelta(propertyDelta, currentShadow, matchingRuleRegistry);
+						PropertyModificationOperation modificationOperation = (PropertyModificationOperation)origOperation;
+						PropertyDelta<?> propertyDelta = modificationOperation.getPropertyDelta();
+						PropertyDelta<?> filteredDelta = ProvisioningUtil.narrowPropertyDelta(propertyDelta, currentShadow,
+								modificationOperation.getMatchingRuleQName(), matchingRuleRegistry);
 						if (filteredDelta != null && !filteredDelta.isEmpty()) {
 							if (propertyDelta == filteredDelta) {
 								filteredOperations.add(origOperation);
-							} else if (filteredDelta == null && filteredDelta.isEmpty()) {
+							} else if (filteredDelta == null || filteredDelta.isEmpty()) {
 									// nothing to do
 							} else {
 								PropertyModificationOperation newOp = new PropertyModificationOperation(filteredDelta);
+								newOp.setMatchingRuleQName(modificationOperation.getMatchingRuleQName());
 								filteredOperations.add(newOp);
 							}
 						}
@@ -684,7 +687,9 @@ public class ResourceObjectConverter {
 					QName attributeName = propertyDelta.getElementName();
 					RefinedAttributeDefinition rad = ctx.getObjectClassDefinition().findAttributeDefinition(attributeName);
 					if (isReadReplaceMode(rad, ctx.getObjectClassDefinition()) && (propertyDelta.isAdd() || propertyDelta.isDelete())) {
-						retval.add(convertToReplace(propertyDelta, currentShadow, rad.getMatchingRuleQName()));
+						PropertyModificationOperation newOp = convertToReplace(propertyDelta, currentShadow, rad.getMatchingRuleQName());
+						newOp.setMatchingRuleQName(((PropertyModificationOperation) operation).getMatchingRuleQName());
+						retval.add(newOp);
 						continue;
 					}
 
@@ -851,6 +856,7 @@ public class ResourceObjectConverter {
 //				cloneNameDelta.clearValuesToReplace();
 //				cloneNameDelta.setValueToReplace(new PrismPropertyValue<String>(newName));
 				PropertyModificationOperation operation = new PropertyModificationOperation(nameDelta.clone());
+				// TODO matchingRuleQName handling - but it should not be necessary here
 				deltas.add(operation);
 				
 				// $shadow/name
@@ -859,6 +865,7 @@ public class ResourceObjectConverter {
 					PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, shadow.getDefinition(), 
 							ProvisioningUtil.determineShadowName(shadow));
 					operation = new PropertyModificationOperation(shadowNameDelta);
+		  			// TODO matchingRuleQName handling - but it should not be necessary here
 					deltas.add(operation);
 //				}
 			
