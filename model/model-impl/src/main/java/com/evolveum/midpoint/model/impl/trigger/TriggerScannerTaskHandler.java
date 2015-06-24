@@ -95,7 +95,12 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 	private void initialize() {
 		taskManager.registerHandler(HANDLER_URI, this);
 	}
-		
+
+	@Override
+	protected Class<? extends ObjectType> getType(Task task) {
+		return ObjectType.class;		// TODO - is this ok???
+	}
+
 	@Override
 	protected ObjectQuery createQuery(AbstractScannerResultHandler<ObjectType> handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
 		ObjectQuery query = new ObjectQuery();

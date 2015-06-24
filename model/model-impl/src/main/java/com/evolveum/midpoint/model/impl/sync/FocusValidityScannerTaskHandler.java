@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.impl.sync;
 import javax.annotation.PostConstruct;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -90,7 +91,12 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 	private void initialize() {
 		taskManager.registerHandler(HANDLER_URI, this);
 	}
-	
+
+	@Override
+	protected Class<? extends ObjectType> getType(Task task) {
+		return UserType.class;
+	}
+
 	@Override
 	protected ObjectQuery createQuery(AbstractScannerResultHandler<UserType> handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
 		ObjectQuery query = new ObjectQuery();

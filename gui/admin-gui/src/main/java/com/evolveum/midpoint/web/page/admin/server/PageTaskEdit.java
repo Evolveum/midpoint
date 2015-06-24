@@ -600,7 +600,7 @@ public class PageTaskEdit extends PageAdminTasks {
                 TaskDto dto = model.getObject();
                 return TaskCategory.RECONCILIATION.equals(dto.getCategory()) ||
                         TaskCategory.IMPORTING_ACCOUNTS.equals(dto.getCategory()) ||
-                        TaskCategory.USER_RECOMPUTATION.equals(dto.getCategory());
+                        TaskCategory.RECOMPUTATION.equals(dto.getCategory());
             }
         });
 

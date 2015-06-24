@@ -537,7 +537,7 @@ public class PageTaskAdd extends PageAdminTasks {
         categories.add(TaskCategory.LIVE_SYNCHRONIZATION);
         categories.add(TaskCategory.RECONCILIATION);
         categories.add(TaskCategory.IMPORTING_ACCOUNTS);
-        categories.add(TaskCategory.USER_RECOMPUTATION);
+        categories.add(TaskCategory.RECOMPUTATION);
         categories.add(TaskCategory.DEMO);
         return categories;
     }

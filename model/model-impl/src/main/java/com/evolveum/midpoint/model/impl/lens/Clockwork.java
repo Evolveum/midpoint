@@ -585,7 +585,7 @@ public class Clockwork {
         reconTask.setBinding(TaskBinding.LOOSE);
         reconTask.setInitialExecutionStatus(TaskExecutionStatus.RUNNABLE);
         reconTask.setHandlerUri(RecomputeTaskHandler.HANDLER_URI);
-        reconTask.setCategory(TaskCategory.USER_RECOMPUTATION);
+        reconTask.setCategory(TaskCategory.RECOMPUTATION);
         taskManager.switchToBackground(reconTask, result);
         result.recordStatus(OperationResultStatus.IN_PROGRESS, "Reconciliation task switched to background");
         return HookOperationMode.BACKGROUND;

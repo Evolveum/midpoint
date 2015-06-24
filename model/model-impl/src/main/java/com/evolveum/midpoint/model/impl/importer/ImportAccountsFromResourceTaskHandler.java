@@ -20,6 +20,7 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -105,7 +106,7 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
     private static final Trace LOGGER = TraceManager.getTrace(ImportAccountsFromResourceTaskHandler.class);
 
     public ImportAccountsFromResourceTaskHandler() {
-        super(ShadowType.class, "Import from resource", OperationConstants.IMPORT_ACCOUNTS_FROM_RESOURCE);
+        super("Import from resource", OperationConstants.IMPORT_ACCOUNTS_FROM_RESOURCE);
         setLogFinishInfo(true);
     }
 
@@ -233,7 +234,12 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
 		return super.initializeRun(handler, runResult, task, opResult);
 	}
 
-	@Override
+    @Override
+    protected Class<? extends ObjectType> getType(Task task) {
+        return ShadowType.class;
+    }
+
+    @Override
 	protected ObjectQuery createQuery(SynchronizeAccountResultHandler handler, TaskRunResult runResult, Task task, OperationResult opResult) {
         try {
 			return ObjectQueryUtil.createResourceAndObjectClassQuery(handler.getResourceOid(),

@@ -55,7 +55,7 @@ public abstract class AbstractScannerTaskHandler<O extends ObjectType, H extends
 	private static final transient Trace LOGGER = TraceManager.getTrace(AbstractScannerTaskHandler.class);
 
 	public AbstractScannerTaskHandler(Class<O> type, String taskName, String taskOperationPrefix) {
-		super(type, taskName, taskOperationPrefix);
+		super(taskName, taskOperationPrefix);
 	}
 
 	@Override

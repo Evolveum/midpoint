@@ -18,8 +18,14 @@ package com.evolveum.midpoint.model.impl.sync;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
+import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +66,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 /**
  * The task hander for user recompute.
  * 
- *  This handler takes care of executing recompute "runs". The task will iterate over all users
+ *  This handler takes care of executing recompute "runs". The task will iterate over all objects of a given type
  *  and recompute their assignments and expressions. This is needed after the expressions are changed,
  *  e.g in resource outbound expressions or in a role definition.
  *
@@ -68,36 +74,26 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  *
  */
 @Component
-public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<UserType, AbstractSearchIterativeResultHandler<UserType>> {
+public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<FocusType, AbstractSearchIterativeResultHandler<FocusType>> {
 
 	public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/recompute/handler-3";
 
-    @Autowired(required=true)
+    @Autowired
 	private TaskManager taskManager;
 	
-	@Autowired(required=true)
-	@Qualifier("cacheRepositoryService")
-	private RepositoryService repositoryService;
-	
-	@Autowired(required=true)
+	@Autowired
 	private PrismContext prismContext;
 
-    @Autowired(required = true)
-    private ProvisioningService provisioningService;
-
-    @Autowired(required = true)
+    @Autowired
     private ContextFactory contextFactory;
     
-    @Autowired(required = true)
+    @Autowired
     private Clockwork clockwork;
     
-    @Autowired
-    private ChangeExecutor changeExecutor;
-    	
 	private static final transient Trace LOGGER = TraceManager.getTrace(RecomputeTaskHandler.class);
 	
 	public RecomputeTaskHandler() {
-        super(UserType.class, "Recompute users", OperationConstants.RECOMPUTE);
+        super("Recompute", OperationConstants.RECOMPUTE);
 		setLogFinishInfo(true);
     }
 
@@ -107,10 +103,14 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<Use
 	}
 	
 	@Override
-	protected ObjectQuery createQuery(AbstractSearchIterativeResultHandler<UserType> handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
-        QueryType queryFromTask = getObjectQueryTypeFromTask(task);
+	protected ObjectQuery createQuery(AbstractSearchIterativeResultHandler<FocusType> handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
+
+		Class<? extends ObjectType> objectClass = getType(task);
+		LOGGER.trace("Object class = {}", objectClass);
+
+		QueryType queryFromTask = getObjectQueryTypeFromTask(task);
         if (queryFromTask != null) {
-            ObjectQuery query = QueryJaxbConvertor.createObjectQuery(UserType.class, queryFromTask, prismContext);
+            ObjectQuery query = QueryJaxbConvertor.createObjectQuery(objectClass, queryFromTask, prismContext);
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Using object query from the task: {}", query.debugDump());
             }
@@ -120,16 +120,27 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<Use
 		    return new ObjectQuery();
         }
 	}
-	
+
+	protected Class<? extends ObjectType> getType(Task task) {
+		Class<? extends ObjectType> objectClass;
+		PrismProperty<QName> objectTypePrismProperty = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
+		if (objectTypePrismProperty != null && objectTypePrismProperty.getRealValue() != null) {
+			objectClass = ObjectTypes.getObjectTypeFromTypeQName(objectTypePrismProperty.getRealValue()).getClassDefinition();
+		} else {
+			objectClass = UserType.class;
+		}
+		return objectClass;
+	}
+
 	@Override
-	protected AbstractSearchIterativeResultHandler<UserType> createHandler(TaskRunResult runResult, final Task coordinatorTask,
+	protected AbstractSearchIterativeResultHandler<FocusType> createHandler(TaskRunResult runResult, final Task coordinatorTask,
 			OperationResult opResult) {
 		
-		AbstractSearchIterativeResultHandler<UserType> handler = new AbstractSearchIterativeResultHandler<UserType>(
+		AbstractSearchIterativeResultHandler<FocusType> handler = new AbstractSearchIterativeResultHandler<FocusType>(
 				coordinatorTask, RecomputeTaskHandler.class.getName(), "recompute", "recompute task", taskManager) {
 			@Override
-			protected boolean handleObject(PrismObject<UserType> user, Task workerTask, OperationResult result) throws CommonException {
-				recomputeUser(user, workerTask, result);
+			protected boolean handleObject(PrismObject<FocusType> object, Task workerTask, OperationResult result) throws CommonException {
+				recompute(object, workerTask, result);
 				return true;
 			}
 		};
@@ -137,22 +148,22 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<Use
         return handler;
 	}
 
-	private void recomputeUser(PrismObject<UserType> user, Task task, OperationResult result) throws SchemaException, 
+	private void recompute(PrismObject<FocusType> focalObject, Task task, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException, 
 			ConfigurationException, PolicyViolationException, SecurityViolationException {
-		LOGGER.trace("Recomputing user {}", user);
+		LOGGER.trace("Recomputing object {}", focalObject);
 
-		LensContext<UserType> syncContext = contextFactory.createRecomputeContext(user, task, result);
+		LensContext<FocusType> syncContext = contextFactory.createRecomputeContext(focalObject, task, result);
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Recomputing of user {}: context:\n{}", user, syncContext.debugDump());
+			LOGGER.trace("Recomputing object {}: context:\n{}", focalObject, syncContext.debugDump());
 		}
 		clockwork.run(syncContext, task, result);
-		LOGGER.trace("Recomputing of user {}: {}", user, result.getStatus());
+		LOGGER.trace("Recomputation of object {}: {}", focalObject, result.getStatus());
 	}
 
     @Override
     public String getCategoryName(Task task) {
-        return TaskCategory.USER_RECOMPUTATION;
+        return TaskCategory.RECOMPUTATION;
     }
 
     @Override

@@ -57,7 +57,6 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 	// all tasks of a specified type
 	private String taskName;
 	private String taskOperationPrefix;
-	private Class<O> type;
 	private boolean logFinishInfo = false;
     private boolean countObjectsOnStart = true;         // todo make configurable per task instance (if necessary)
 	
@@ -77,9 +76,8 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 	
 	private static final transient Trace LOGGER = TraceManager.getTrace(AbstractSearchIterativeTaskHandler.class);
 	
-	protected AbstractSearchIterativeTaskHandler(Class<O> type, String taskName, String taskOperationPrefix) {
+	protected AbstractSearchIterativeTaskHandler(String taskName, String taskOperationPrefix) {
 		super();
-		this.type = type;
 		this.taskName = taskName;
 		this.taskOperationPrefix = taskOperationPrefix;
 	}
@@ -114,7 +112,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 		
 		// TODO: error checking - already running
         handlers.put(coordinatorTask, resultHandler);
-        
+
         ObjectQuery query;
         try {
         	query = createQuery(resultHandler, runResult, coordinatorTask, opResult);
@@ -134,6 +132,8 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("{}: searching using query:\n{}", taskName, query.debugDump());
 		}
+
+        Class<? extends ObjectType> type = getType(coordinatorTask);
 
 		try {
 
@@ -159,7 +159,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
             }
 
             resultHandler.createWorkerThreads(coordinatorTask, opResult);
-            modelObjectResolver.searchIterative(type, query, null, resultHandler, opResult);
+            modelObjectResolver.searchIterative((Class<O>) type, query, null, resultHandler, opResult);
             resultHandler.completeProcessing(opResult);
 
         } catch (ObjectNotFoundException ex) {
@@ -345,7 +345,9 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
      */
 	protected abstract ObjectQuery createQuery(H handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException;
 
-	protected abstract  H createHandler(TaskRunResult runResult, Task coordinatorTask,
+    protected abstract Class<? extends ObjectType> getType(Task task);
+
+    protected abstract  H createHandler(TaskRunResult runResult, Task coordinatorTask,
 			OperationResult opResult);
 	
 	/**
