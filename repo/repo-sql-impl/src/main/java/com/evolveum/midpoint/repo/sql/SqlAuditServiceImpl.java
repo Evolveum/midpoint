@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
@@ -61,6 +60,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import org.hibernate.FlushMode;
 
 /**
  * @author lazyman
@@ -90,10 +90,10 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             }
         }
     }
-    
+
     @Override
-    public List<AuditEventRecord> listRecords(String query, Map<String, Object> params){
-    	final String operation = "listRecords";
+    public List<AuditEventRecord> listRecords(String query, Map<String, Object> params) {
+        final String operation = "listRecords";
         int attempt = 1;
 
         while (true) {
@@ -102,56 +102,56 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             } catch (RuntimeException ex) {
                 attempt = logOperationAttempt(null, operation, attempt, ex, null);
             }
-        }	   
+        }
     }
-    
-    private List<AuditEventRecord> listRecordsAttempt(String query, Map<String, Object> params){
-    	Session session = null;
-    	List<AuditEventRecord> auditRecords = null;
+
+    private List<AuditEventRecord> listRecordsAttempt(String query, Map<String, Object> params) {
+        Session session = null;
+        List<AuditEventRecord> auditRecords = null;
         try {
             session = beginTransaction();
+            session.setFlushMode(FlushMode.MANUAL);
             Query q = session.createQuery(query);
             Set<Entry<String, Object>> paramSet = params.entrySet();
-            for (Entry<String, Object> p : paramSet){
-            	if (p.getValue() == null){
-            		q.setParameter(p.getKey(), null);
-            		continue;
-            	}
-            	if (XMLGregorianCalendar.class.isAssignableFrom(p.getValue().getClass())){
-            		q.setParameter(p.getKey(), MiscUtil.asDate((XMLGregorianCalendar) p.getValue()));
-            	} else if (p.getValue() instanceof AuditEventType){
-            		q.setParameter(p.getKey(), RAuditEventType.toRepo((AuditEventType) p.getValue()));
-            	} else if (p.getValue() instanceof AuditEventStage){
-            		q.setParameter(p.getKey(), RAuditEventStage.toRepo((AuditEventStage) p.getValue()));
-            	} else {
-            		q.setParameter(p.getKey(), p.getValue());
-            	}
+            for (Entry<String, Object> p : paramSet) {
+                if (p.getValue() == null) {
+                    q.setParameter(p.getKey(), null);
+                    continue;
+                }
+                if (XMLGregorianCalendar.class.isAssignableFrom(p.getValue().getClass())) {
+                    q.setParameter(p.getKey(), MiscUtil.asDate((XMLGregorianCalendar) p.getValue()));
+                } else if (p.getValue() instanceof AuditEventType) {
+                    q.setParameter(p.getKey(), RAuditEventType.toRepo((AuditEventType) p.getValue()));
+                } else if (p.getValue() instanceof AuditEventStage) {
+                    q.setParameter(p.getKey(), RAuditEventStage.toRepo((AuditEventStage) p.getValue()));
+                } else {
+                    q.setParameter(p.getKey(), p.getValue());
+                }
             }
-          
+
 //            q.setResultTransformer(Transformers.aliasToBean(RAuditEventRecord.class));
             List resultList = q.list();
-            
+
             auditRecords = new ArrayList<>();
-            
-            for (Object o : resultList){
-            	if (!(o instanceof RAuditEventRecord)){
-            		throw new DtoTranslationException("Unexpected object in result set. Expected audit record, but got " + o.getClass().getSimpleName());
-            	}
-            	RAuditEventRecord raudit = (RAuditEventRecord) o;
-            	
-            	AuditEventRecord audit = RAuditEventRecord.fromRepo(raudit, getPrismContext());
-            	
-            	
-            	audit.setInitiator(resolve(session, (raudit.getInitiatorOid())));
-            	audit.setTarget(resolve(session, (raudit.getTargetOid())));
-            	audit.setTargetOwner(resolve(session, raudit.getTargetOwnerOid()));
-            	
-            	auditRecords.add(audit);
+
+            for (Object o : resultList) {
+                if (!(o instanceof RAuditEventRecord)) {
+                    throw new DtoTranslationException("Unexpected object in result set. Expected audit record, but got " + o.getClass().getSimpleName());
+                }
+                RAuditEventRecord raudit = (RAuditEventRecord) o;
+
+                AuditEventRecord audit = RAuditEventRecord.fromRepo(raudit, getPrismContext());
+
+                audit.setInitiator(resolve(session, (raudit.getInitiatorOid())));
+                audit.setTarget(resolve(session, (raudit.getTargetOid())));
+                audit.setTargetOwner(resolve(session, raudit.getTargetOwnerOid()));
+
+                auditRecords.add(audit);
             }
-            
+
             session.getTransaction().commit();
-           
-        } catch (DtoTranslationException | SchemaException ex ) {
+
+        } catch (DtoTranslationException | SchemaException ex) {
             handleGeneralCheckedException(ex, session, null);
         } catch (RuntimeException ex) {
             handleGeneralRuntimeException(ex, session, null);
@@ -159,22 +159,23 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             cleanupSessionAndResult(session, null);
         }
         return auditRecords;
-     
+
     }
-    
-    private PrismObject resolve(Session session, String oid) throws SchemaException{
-    	Query query = session.getNamedQuery("get.object");
-    	query.setParameter("oid", oid);
-    	query.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
-    	GetObjectResult object = (GetObjectResult) query.uniqueResult();
-    	
-    	PrismObject result = null;
-    	if (object != null){
-    		String xml = RUtil.getXmlFromByteArray(object.getFullObject(), getConfiguration().isUseZip());
-    		 result = getPrismContext().parseObject(xml);
-    	}
-    	
-    	return result;
+
+    private PrismObject resolve(Session session, String oid) throws SchemaException {
+        Query query = session.getNamedQuery("get.object");
+        query.setParameter("oid", oid);
+        query.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
+        GetObjectResult object = null;
+        object = (GetObjectResult) query.uniqueResult();
+
+        PrismObject result = null;
+        if (object != null) {
+            String xml = RUtil.getXmlFromByteArray(object.getFullObject(), getConfiguration().isUseZip());
+            result = getPrismContext().parseObject(xml);
+        }
+
+        return result;
     }
 
     private void auditAttempt(AuditEventRecord record) {
