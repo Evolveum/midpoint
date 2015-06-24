@@ -331,9 +331,6 @@ public class TestUnix extends AbstractStoryTest {
         display("User after", userAfter);
         assertNull("User mancomb sneaked in", userAfter);
         
-        assertUser(userAfter, USER_MANCOMB_USERNAME, USER_MANCOMB_FIST_NAME, USER_MANCOMB_LAST_NAME);
-        assertLinks(userAfter, 0);
-        
         assertNoObject(ShadowType.class, accountMancombOid, task, result);
         
         openDJController.assertNoEntry(accountMancombDn);

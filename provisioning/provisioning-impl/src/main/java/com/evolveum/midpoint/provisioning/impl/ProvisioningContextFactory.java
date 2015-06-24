@@ -61,6 +61,16 @@ public class ProvisioningContextFactory {
 		return ctx;
 	}
 	
+	public ProvisioningContext create(PrismObject<ShadowType> shadow, Collection<QName> additionalAuxiliaryObjectClassQNames, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+		ProvisioningContext ctx = new ProvisioningContext(connectorManager, resourceManager, parentResult);
+		ctx.setTask(task);
+		ctx.setOriginalShadow(shadow);
+		ctx.setAdditionalAuxiliaryObjectClassQNames(additionalAuxiliaryObjectClassQNames);
+		String resourceOid = ShadowUtil.getResourceOid(shadow.asObjectable());
+		ctx.setResourceOid(resourceOid);
+		return ctx;
+	}
+	
 	public ProvisioningContext create(ResourceShadowDiscriminator coords, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		ProvisioningContext ctx = new ProvisioningContext(connectorManager, resourceManager, parentResult);
 		ctx.setTask(task);

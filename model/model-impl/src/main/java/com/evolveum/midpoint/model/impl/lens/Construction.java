@@ -598,9 +598,12 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		} else {
 			sb.append(refinedObjectClassDefinition.getShadowDiscriminator());
 		}
+		sb.append("\n");
 		DebugUtil.debugDumpLabel(sb, "auxiliary object classes", indent+1);
 		if (auxiliaryObjectClassDefinitions == null) {
 			sb.append(" (null)");
+		} else if (auxiliaryObjectClassDefinitions.isEmpty()) {
+			sb.append(" (empty)");
 		} else {
 			sb.append("\n");
 			for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {

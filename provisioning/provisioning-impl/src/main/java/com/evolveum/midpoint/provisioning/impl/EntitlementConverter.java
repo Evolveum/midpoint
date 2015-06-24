@@ -405,6 +405,11 @@ class EntitlementConverter {
 				LOGGER.trace("Ignoring association in deleted shadow because it does not require explicit referential integrity assurance");
 				continue;
 			}
+			if (assocDefType.getAuxiliaryObjectClass() != null && 
+					!subjectCtx.getObjectClassDefinition().hasAuxiliaryObjectClass(assocDefType.getAuxiliaryObjectClass())) {
+				LOGGER.trace("Ignoring association in deleted shadow because subject does not have {} auxiliary object class", assocDefType.getAuxiliaryObjectClass());
+				continue;
+			}
 			QName associationName = assocDefType.getName();
 			if (associationName == null) {
 				throw new SchemaException("No name in entitlement association "+assocDefType+" in "+subjectCtx.getResource());

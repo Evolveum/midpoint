@@ -1411,7 +1411,15 @@ public class ResourceObjectConverter {
 					entitlementConverter.collectEntitlementChange(ctx, (ContainerDelta<ShadowAssociationType>)itemDelta, operations);
 				} else {
 					throw new UnsupportedOperationException("Not supported delta: " + itemDelta);
-				}				
+				}
+			} else if (new ItemPath(ShadowType.F_AUXILIARY_OBJECT_CLASS).equivalent(itemDelta.getPath())) {
+				if (itemDelta instanceof PropertyDelta) {
+					PropertyModificationOperation attributeModification = new PropertyModificationOperation(
+							(PropertyDelta) itemDelta);
+					operations.add(attributeModification);
+				} else {
+					throw new UnsupportedOperationException("Not supported delta: " + itemDelta);
+				}
 			} else {
 				LOGGER.trace("Skip converting item delta: {}. It's not resource object change, but it is shadow change.", itemDelta);	
 			}

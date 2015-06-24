@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,9 @@ import javax.xml.namespace.QName;
  * @author Radovan Semancik
  *
  */
-public final class PropertyModificationOperation extends Operation {
+public final class PropertyModificationOperation<T> extends Operation {
 	
-	private PropertyDelta propertyDelta;
+	private PropertyDelta<T> propertyDelta;
 
 	// Matching rule for entitlements can be specified at the level of association definition.
 	// And we need this information, if avoidDuplicateValues == true.
@@ -34,11 +34,11 @@ public final class PropertyModificationOperation extends Operation {
 
 	private QName matchingRuleQName;
 	
-	public PropertyModificationOperation(PropertyDelta propertyDelta) {
+	public PropertyModificationOperation(PropertyDelta<T> propertyDelta) {
 		super();
 		this.propertyDelta = propertyDelta;
 	}
-
+	
 	public QName getMatchingRuleQName() {
 		return matchingRuleQName;
 	}
@@ -51,7 +51,7 @@ public final class PropertyModificationOperation extends Operation {
 		return propertyDelta;
 	}
 
-	public void setPropertyDelta(PropertyDelta propertyDelta) {
+	public void setPropertyDelta(PropertyDelta<T> propertyDelta) {
 		this.propertyDelta = propertyDelta;
 	}
 

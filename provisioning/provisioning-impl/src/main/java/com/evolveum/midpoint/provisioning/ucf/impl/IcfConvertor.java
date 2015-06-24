@@ -29,6 +29,7 @@ import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.OperationalAttributes;
+import org.identityconnectors.framework.common.objects.PredefinedAttributes;
 import org.identityconnectors.framework.common.objects.Uid;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
@@ -123,20 +124,7 @@ public class IcfConvertor {
 		ResourceAttributeContainerDefinition attributesContainerDefinition = attributesContainer.getDefinition();
 		shadow.setObjectClass(attributesContainerDefinition.getTypeName());
 		
-		Set<ObjectClass> auxiliaryIcfObjectClasses = co.getAuxiliaryObjectClasses();
-		List<ObjectClassComplexTypeDefinition> auxiliaryObjectClassDefinitions = new ArrayList<>(auxiliaryIcfObjectClasses==null?0:auxiliaryIcfObjectClasses.size());
-		if (auxiliaryIcfObjectClasses != null && !auxiliaryIcfObjectClasses.isEmpty()) {
-			List<QName> auxiliaryObjectClasses = shadow.getAuxiliaryObjectClass();
-			for (ObjectClass auxiliaryIcfObjectClass: auxiliaryIcfObjectClasses) {
-				QName auxiliaryObjectClassQname = icfNameMapper.objectClassToQname(auxiliaryIcfObjectClass.getObjectClassValue(), resourceSchemaNamespace, false);
-				auxiliaryObjectClasses.add(auxiliaryObjectClassQname);
-				ObjectClassComplexTypeDefinition auxiliaryObjectClassDefinition = icfNameMapper.getResourceSchema().findObjectClassDefinition(auxiliaryObjectClassQname);
-				if (auxiliaryObjectClassDefinition == null) {
-					throw new SchemaException("Resource object "+co+" refers to auxiliary objetc class "+auxiliaryObjectClassQname+" which is not in the schema");
-				}
-				auxiliaryObjectClassDefinitions.add(auxiliaryObjectClassDefinition);
-			}
-		}
+		List<ObjectClassComplexTypeDefinition> auxiliaryObjectClassDefinitions = new ArrayList<>();
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Resource attribute container definition {}.", attributesContainerDefinition.debugDump());
@@ -148,11 +136,31 @@ public class IcfConvertor {
 		attributesContainer.getValue().add(uidRoa);
 
 		for (Attribute icfAttr : co.getAttributes()) {
+			if (icfAttr.is(PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME)) {
+				List<QName> auxiliaryObjectClasses = shadow.getAuxiliaryObjectClass();
+				for (Object auxiliaryIcfObjectClass: icfAttr.getValue()) {
+					QName auxiliaryObjectClassQname = icfNameMapper.objectClassToQname((String)auxiliaryIcfObjectClass, resourceSchemaNamespace, false);
+					auxiliaryObjectClasses.add(auxiliaryObjectClassQname);
+					ObjectClassComplexTypeDefinition auxiliaryObjectClassDefinition = icfNameMapper.getResourceSchema().findObjectClassDefinition(auxiliaryObjectClassQname);
+					if (auxiliaryObjectClassDefinition == null) {
+						throw new SchemaException("Resource object "+co+" refers to auxiliary objetc class "+auxiliaryObjectClassQname+" which is not in the schema");
+					}
+					auxiliaryObjectClassDefinitions.add(auxiliaryObjectClassDefinition);
+				}
+				break;
+			}
+		}
+		
+		for (Attribute icfAttr : co.getAttributes()) {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Reading ICF attribute {}: {}", icfAttr.getName(), icfAttr.getValue());
 			}
 			if (icfAttr.getName().equals(Uid.NAME)) {
 				// UID is handled specially (see above)
+				continue;
+			}
+			if (icfAttr.is(PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME)) {
+				// Already processed
 				continue;
 			}
 			if (icfAttr.getName().equals(OperationalAttributes.PASSWORD_NAME)) {
@@ -290,23 +298,25 @@ public class IcfConvertor {
 		}
 
 		for (ResourceAttribute<?> attribute : resourceAttributes) {
-			QName midPointAttrQName = attribute.getElementName();
-			if (midPointAttrQName.equals(ConnectorFactoryIcfImpl.ICFS_UID)) {
-				throw new SchemaException("ICF UID explicitly specified in attributes");
-			}
-
-			String icfAttrName = icfNameMapper.convertAttributeNameToIcf(attribute, ocDef);
-
-			Set<Object> convertedAttributeValues = new HashSet<Object>();
-			for (PrismPropertyValue<?> value : attribute.getValues()) {
-				convertedAttributeValues.add(UcfUtil.convertValueToIcf(value, protector, attribute.getElementName()));
-			}
-
-			Attribute connectorAttribute = AttributeBuilder.build(icfAttrName, convertedAttributeValues);
-
-			attributes.add(connectorAttribute);
+			attributes.add(convertToConnIdAttribute(attribute, ocDef));
 		}
 		return attributes;
+	}
+	
+	Attribute convertToConnIdAttribute(ResourceAttribute<?> mpAttribute, ObjectClassComplexTypeDefinition ocDef) throws SchemaException {
+		QName midPointAttrQName = mpAttribute.getElementName();
+		if (midPointAttrQName.equals(ConnectorFactoryIcfImpl.ICFS_UID)) {
+			throw new SchemaException("ICF UID explicitly specified in attributes");
+		}
+
+		String connIdAttrName = icfNameMapper.convertAttributeNameToIcf(mpAttribute, ocDef);
+
+		Set<Object> connIdAttributeValues = new HashSet<Object>();
+		for (PrismPropertyValue<?> pval: mpAttribute.getValues()) {
+			connIdAttributeValues.add(UcfUtil.convertValueToIcf(pval, protector, mpAttribute.getElementName()));
+		}
+
+		return AttributeBuilder.build(connIdAttrName, connIdAttributeValues);
 	}
 	
 	private <T> T getSingleValue(Attribute icfAttr, Class<T> type) throws SchemaException {
