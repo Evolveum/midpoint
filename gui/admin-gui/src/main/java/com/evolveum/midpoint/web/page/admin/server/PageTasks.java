@@ -94,6 +94,7 @@ public class PageTasks extends PageAdminTasks {
     private static final String OPERATION_DEACTIVATE_SERVICE_THREADS = DOT_CLASS + "deactivateServiceThreads";
     private static final String OPERATION_REACTIVATE_SERVICE_THREADS = DOT_CLASS + "reactivateServiceThreads";
     private static final String OPERATION_SYNCHRONIZE_TASKS = DOT_CLASS + "synchronizeTasks";
+    private static final String OPERATION_REFRESH_TASKS = DOT_CLASS + "refreshTasks";
     private static final String ALL_CATEGORIES = "";
 
     public static final long WAIT_FOR_TASK_STOP = 2000L;
@@ -727,6 +728,18 @@ public class PageTasks extends PageAdminTasks {
             }
         };
         add(synchronize);
+
+//      adding Refresh button
+        AjaxButton refresh = new AjaxButton("refreshTasks",
+                createStringResource("pageTasks.button.refreshTasks")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                refreshTasks(target);
+            }
+        };
+
+        add(refresh);
     }
 
     private TablePanel getTaskTable() {
@@ -1066,6 +1079,21 @@ public class PageTasks extends PageAdminTasks {
         target.add(getNodeTable());
     }
     //endregion
+
+    private void refreshTasks(AjaxRequestTarget target) {
+        searchModel = new LoadableModel<TasksSearchDto>(false) {
+
+            @Override
+            protected TasksSearchDto load() {
+                return loadTasksSearchDto();
+            }
+        };
+
+        //refresh feedback and table
+        target.add(getFeedbackPanel());
+        target.add(getTaskTable());
+        target.add(getNodeTable());
+    }
 
     private void searchFilterPerformed(AjaxRequestTarget target) {
         TasksSearchDto dto = searchModel.getObject();
