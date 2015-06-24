@@ -454,7 +454,7 @@ public class TestLdap extends AbstractModelIntegrationTest {
         // THEN
         TestUtil.displayThen(TEST_NAME);
         
-        waitForTaskFinish(TASK_DELETE_OPENDJ_SHADOWS_OID, true, 20000 + NUM_LDAP_ENTRIES*1000);
+        waitForTaskFinish(TASK_DELETE_OPENDJ_SHADOWS_OID, true, 20000 + NUM_LDAP_ENTRIES*1500);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -473,7 +473,7 @@ public class TestLdap extends AbstractModelIntegrationTest {
         assertEquals(1, opExecResults.size());
         OperationResult opExecResult = opExecResults.get(0);
         TestUtil.assertSuccess(opExecResult);
-        assertEquals("Wrong exec operation count", 17, opExecResult.getCount());
+        assertEquals("Wrong exec operation count", 2*NUM_LDAP_ENTRIES+8, opExecResult.getCount());
         assertTrue("Too many subresults: "+deleteTaskResult.getSubresults().size(), deleteTaskResult.getSubresults().size() < 10);
         
         assertOpenDjAccountShadows(0, true, task, result);
@@ -481,7 +481,7 @@ public class TestLdap extends AbstractModelIntegrationTest {
         
         // Check that the actual accounts were NOT deleted
         // (This also re-creates shadows)
-        assertOpenDjAccountShadows(2*NUM_LDAP_ENTRIES, false, task, result);
+        assertOpenDjAccountShadows(2*NUM_LDAP_ENTRIES+8, false, task, result);
     }
     
     @Test
@@ -503,7 +503,7 @@ public class TestLdap extends AbstractModelIntegrationTest {
         // THEN
         TestUtil.displayThen(TEST_NAME);
         
-        waitForTaskFinish(TASK_DELETE_OPENDJ_ACCOUNTS_OID, true, 20000 + NUM_LDAP_ENTRIES*2000);
+        waitForTaskFinish(TASK_DELETE_OPENDJ_ACCOUNTS_OID, true, 20000 + NUM_LDAP_ENTRIES*3000);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
