@@ -616,6 +616,11 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
     public ResourceObjectReferenceType getBaseContext() {
 		return refinedObjectClassDefinition.getBaseContext();
 	}
+    
+    @Override
+	public Collection<RefinedObjectClassDefinition> getAuxiliaryObjectClassDefinitions() {
+		return refinedObjectClassDefinition.getAuxiliaryObjectClassDefinitions();
+	}
 
 	@Override
     protected String debugDump(int indent, LayerType layer) {

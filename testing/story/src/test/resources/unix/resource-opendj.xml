@@ -48,7 +48,7 @@
 			<icfcldap:port>10389</icfcldap:port>
 			<icfcldap:host>localhost</icfcldap:host>
 			<icfcldap:baseContext>dc=example,dc=com</icfcldap:baseContext>
-			<icfcldap:bindDn>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:bindDn>
+			<icfcldap:bindDn>cn=directory manager</icfcldap:bindDn>
 			<icfcldap:bindPassword><t:clearValue>secret</t:clearValue></icfcldap:bindPassword>
 			<icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
 			<icfcldap:vlvSortAttribute>entryUUID</icfcldap:vlvSortAttribute>
@@ -313,7 +313,7 @@
                 	</source>
                 </outbound>
             </attribute>
-<!--              <attribute>
+             <attribute>
                 <ref>ri:gidNumber</ref>
                 <outbound>
                 	<strength>strong</strength>
@@ -321,7 +321,7 @@
                 		<path>extension/gidNumber</path>
                 	</source>
                 </outbound>
-            </attribute>  -->        
+            </attribute>        
     	</objectType>  
         
     </schemaHandling>

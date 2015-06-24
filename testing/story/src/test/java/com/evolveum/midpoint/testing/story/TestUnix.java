@@ -77,6 +77,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author Radovan Semancik
@@ -97,6 +98,8 @@ public class TestUnix extends AbstractStoryTest {
 	protected static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
 	protected static final QName OPENDJ_ACCOUNT_STRUCTURAL_OBJECTCLASS_NAME = new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson");
 	protected static final QName OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME = new QName(RESOURCE_OPENDJ_NAMESPACE, "posixAccount");
+	protected static final QName OPENDJ_GROUP_STRUCTURAL_OBJECTCLASS_NAME = new QName(RESOURCE_OPENDJ_NAMESPACE, "groupOfUniqueNames");
+	protected static final QName OPENDJ_GROUP_UNIX_STRUCTURAL_OBJECTCLASS_NAME = new QName(RESOURCE_OPENDJ_NAMESPACE, "groupOfNames");
 	protected static final QName OPENDJ_GROUP_POSIX_AUXILIARY_OBJECTCLASS_NAME = new QName(RESOURCE_OPENDJ_NAMESPACE, "posixGroup");
 	protected static final QName OPENDJ_ASSOCIATION_LDAP_GROUP_NAME = new QName(RESOURCE_OPENDJ_NAMESPACE, "ldapGroup"); 
 	protected static final QName OPENDJ_ASSOCIATION_UNIX_GROUP_NAME = new QName(RESOURCE_OPENDJ_NAMESPACE, "unixGroup");
@@ -107,8 +110,11 @@ public class TestUnix extends AbstractStoryTest {
 	public static final File ROLE_UNIX_FILE = new File(TEST_DIR, "role-unix.xml");
 	public static final String ROLE_UNIX_OID = "744a54f8-18e5-11e5-808f-001e8c717e5b";
 
-	public static final File ROLE_META_UNIXGROUP_FILE = new File(TEST_DIR, "role-meta-unixgroup.xml");
-	public static final String ROLE_META_UNIXGROUP_OID = "10000000-0000-0000-0000-000000006601";
+	public static final File ROLE_META_UNIXGROUP_FILE = new File(TEST_DIR, "role-meta-unix-group.xml");
+	public static final String ROLE_META_UNIXGROUP_OID = "31ea66ac-1a8e-11e5-8ab8-001e8c717e5b";
+	
+	public static final File ROLE_META_LDAPGROUP_FILE = new File(TEST_DIR, "role-meta-ldap-group.xml");
+	public static final String ROLE_META_LDAPGROUP_OID = "9c6d1dbe-1a87-11e5-b107-001e8c717e5b";
 	
 	private static final String USER_HERMAN_USERNAME = "ht";
 	private static final String USER_HERMAN_FIST_NAME = "Herman";
@@ -121,7 +127,16 @@ public class TestUnix extends AbstractStoryTest {
 	private static final String USER_LARGO_USERNAME = "largo";
 	private static final String USER_LARGO_FIST_NAME = "Largo";
 	private static final String USER_LARGO_LAST_NAME = "LaGrande";
+
 	
+	private static final File STRUCT_LDIF_FILE = new File(TEST_DIR, "struct.ldif");
+
+	private static final String ROLE_MONKEY_ISLAND_NAME = "Monkey Island";
+	
+	private static final String ROLE_VILLAINS_NAME = "villains";
+	private static final Integer ROLE_VILLAINS_GID = 666;
+
+
 	
 	private static final String ACCOUNT_LEMONHEAD_USERNAME = "lemonhead";
 	private static final String ACCOUNT_LEMONHEAD_FIST_NAME = "Lemonhead";
@@ -161,8 +176,8 @@ public class TestUnix extends AbstractStoryTest {
 	private static final String ACCOUNT_AUGUSTUS_USERNAME = "augustus";
 	private static final String ACCOUNT_AUGUSTUS_FIST_NAME = "Augustus";
 	private static final String ACCOUNT_AUGUSTUS_LAST_NAME = "DeWaat";
+
 	
-	private static final File STRUCT_LDIF_FILE = new File(TEST_DIR, "struct.ldif");
 
     @Autowired(required=true)
 	private ReconciliationTaskHandler reconciliationTaskHandler;
@@ -177,6 +192,13 @@ public class TestUnix extends AbstractStoryTest {
 	
 	private String accountLargoOid;
 	private String accountLargoDn;
+	
+	private String roleMonkeyIslandOid; 
+	private String groupMonkeyIslandDn;
+	
+	private String roleVillainsOid;
+	private String groupVillainsDn;
+	
 	
 	@Override
     protected void startResources() throws Exception {
@@ -207,6 +229,8 @@ public class TestUnix extends AbstractStoryTest {
 		// Role
 		importObjectFromFile(ROLE_BASIC_FILE, initResult);
 		importObjectFromFile(ROLE_UNIX_FILE, initResult);
+		importObjectFromFile(ROLE_META_LDAPGROUP_FILE, initResult);
+		importObjectFromFile(ROLE_META_UNIXGROUP_FILE, initResult);
 	}
 	
 	@Test
@@ -475,6 +499,93 @@ public class TestUnix extends AbstractStoryTest {
         openDJController.assertNoEntry(accountLargoDn);
 	}
 	
+	@Test
+    public void test200AddLdapGroupMonkeyIsland() throws Exception {
+		final String TEST_NAME = "test200AddLdapGroupMonkeyIsland";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<RoleType> role = createLdapGroupRole(ROLE_MONKEY_ISLAND_NAME);
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+        addObject(role, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        PrismObject<RoleType> roleAfter = getObject(RoleType.class, role.getOid());
+        assertNotNull("No role", roleAfter);
+        display("Role after", roleAfter);
+        assertObject(roleAfter);
+        roleMonkeyIslandOid = roleAfter.getOid();
+        String ldapGroupOid = getSingleLinkOid(roleAfter);
+        
+        PrismObject<ShadowType> shadow = getShadowModel(ldapGroupOid);
+        display("Shadow (model)", shadow);
+        groupMonkeyIslandDn = assertLdapGroup(shadow);
+	}
+	
+	@Test
+    public void test202AssignUserHermanMonkeyIsland() throws Exception {
+		final String TEST_NAME = "test202AssignUserHermanMonkeyIsland";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> user = findUserByUsername(USER_HERMAN_USERNAME);
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+        assignRole(user.getOid(), roleMonkeyIslandOid);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        PrismObject<UserType> userAfter = findUserByUsername(USER_HERMAN_USERNAME);
+        assertNotNull("No herman user", userAfter);
+        display("User after", userAfter);
+        assertUserHerman(userAfter);
+        String accountOid = getSingleLinkOid(userAfter);
+        
+        PrismObject<ShadowType> shadow = getShadowModel(accountOid);
+        display("Shadow (model)", shadow);
+        String accountHermanDn = assertBasicAccount(shadow);
+        openDJController.assertUniqueMember(groupMonkeyIslandDn, accountHermanDn);
+	}
+	
+	@Test
+    public void test210AddUnixGroupVillains() throws Exception {
+		final String TEST_NAME = "test210AddUnixGroupVillains";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<RoleType> role = createUnixGroupRole(ROLE_VILLAINS_NAME, ROLE_VILLAINS_GID);
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+        addObject(role, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        PrismObject<RoleType> roleAfter = getObject(RoleType.class, role.getOid());
+        assertNotNull("No role", roleAfter);
+        display("Role after", roleAfter);
+        assertObject(roleAfter);
+        roleVillainsOid = roleAfter.getOid();
+        String ldapGroupOid = getSingleLinkOid(roleAfter);
+        
+        PrismObject<ShadowType> shadow = getShadowModel(ldapGroupOid);
+        display("Shadow (model)", shadow);
+        groupVillainsDn = assertUnixGroup(shadow, ROLE_VILLAINS_GID);
+	}
+	
 	private PrismObject<UserType> createUser(String username, String givenName, String familyName, Integer uidNumber, String roleOid) throws SchemaException {
 		PrismObject<UserType> user = createUser(username, givenName, familyName, true);
 		if (roleOid != null) {
@@ -540,5 +651,73 @@ public class TestUnix extends AbstractStoryTest {
 		
 		return entry.getDN().toString();
 	}
+	
+	private PrismObject<RoleType> createLdapGroupRole(String name) throws SchemaException {
+		PrismObject<RoleType> role = getRoleDefinition().instantiate();
+		RoleType roleType = role.asObjectable();
+		roleType.setName(new PolyStringType(name));
+        AssignmentType roleAssignemnt = new AssignmentType();
+        ObjectReferenceType roleTargetRef = new ObjectReferenceType();
+        roleTargetRef.setOid(ROLE_META_LDAPGROUP_OID);
+        roleTargetRef.setType(RoleType.COMPLEX_TYPE);
+		roleAssignemnt.setTargetRef(roleTargetRef);
+		roleType.getAssignment().add(roleAssignemnt);
+		return role;
+	}
+	
+	private PrismObject<RoleType> createUnixGroupRole(String name, Integer gidNumber) throws SchemaException {
+		PrismObject<RoleType> role = getRoleDefinition().instantiate();
+		RoleType roleType = role.asObjectable();
+		roleType.setName(new PolyStringType(name));
+        
+		AssignmentType roleAssignemnt = new AssignmentType();
+        ObjectReferenceType roleTargetRef = new ObjectReferenceType();
+        roleTargetRef.setOid(ROLE_META_UNIXGROUP_OID);
+        roleTargetRef.setType(RoleType.COMPLEX_TYPE);
+		roleAssignemnt.setTargetRef(roleTargetRef);
+		roleType.getAssignment().add(roleAssignemnt);
 		
+		if (gidNumber != null) {
+			PrismPropertyDefinition<String> gidNumberPropertyDef = new PrismPropertyDefinition<>(EXTENSION_GID_NUMBER_NAME, 
+					DOMUtil.XSD_STRING, prismContext);
+			PrismProperty<String> gidNumberProperty = gidNumberPropertyDef.instantiate();
+			gidNumberProperty.setRealValue(gidNumber.toString());
+			role.createExtension().add(gidNumberProperty);
+		}
+		
+		return role;
+	}
+	
+	private String assertLdapGroup(PrismObject<ShadowType> shadow) throws DirectoryException {
+		ShadowType shadowType = shadow.asObjectable();
+		assertEquals("Wrong objectclass in "+shadow, OPENDJ_GROUP_STRUCTURAL_OBJECTCLASS_NAME, shadowType.getObjectClass());
+		assertTrue("Unexpected auxiliary objectclasses in "+shadow + ": "+shadowType.getAuxiliaryObjectClass(), 
+				shadowType.getAuxiliaryObjectClass().isEmpty());
+		String dn = (String) ShadowUtil.getSecondaryIdentifiers(shadow).iterator().next().getRealValue();
+
+		SearchResultEntry entry = openDJController.fetchEntry(dn);
+		assertNotNull("No group LDAP entry for "+dn);
+		display("Ldap group entry", entry);
+		openDJController.assertObjectClass(entry, OPENDJ_GROUP_STRUCTURAL_OBJECTCLASS_NAME.getLocalPart());
+		openDJController.assertNoObjectClass(entry, OPENDJ_GROUP_POSIX_AUXILIARY_OBJECTCLASS_NAME.getLocalPart());
+		
+		return entry.getDN().toString();
+	}
+	
+	private String assertUnixGroup(PrismObject<ShadowType> shadow, Integer expectedGidNumber) throws DirectoryException {
+		ShadowType shadowType = shadow.asObjectable();
+		assertEquals("Wrong objectclass in "+shadow, OPENDJ_GROUP_UNIX_STRUCTURAL_OBJECTCLASS_NAME, shadowType.getObjectClass());
+		PrismAsserts.assertEqualsCollectionUnordered("Wrong auxiliary objectclasses in "+shadow, 
+				shadowType.getAuxiliaryObjectClass(), OPENDJ_GROUP_POSIX_AUXILIARY_OBJECTCLASS_NAME);
+		String dn = (String) ShadowUtil.getSecondaryIdentifiers(shadow).iterator().next().getRealValue();
+
+		SearchResultEntry entry = openDJController.fetchEntry(dn);
+		assertNotNull("No group LDAP entry for "+dn);
+		display("Posix account entry", entry);
+		openDJController.assertObjectClass(entry, OPENDJ_GROUP_UNIX_STRUCTURAL_OBJECTCLASS_NAME.getLocalPart());
+		openDJController.assertObjectClass(entry, OPENDJ_GROUP_POSIX_AUXILIARY_OBJECTCLASS_NAME.getLocalPart());
+		openDJController.assertAttribute(entry, "gidNumber", expectedGidNumber.toString());
+		
+		return entry.getDN().toString();
+	}
 }

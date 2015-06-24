@@ -404,22 +404,28 @@ public class RefinedResourceSchema extends ResourceSchema implements DebugDumpab
 			return null;
 		}
 		
+		String contextDescription = "definition of "+resourceType;
+		
 		RefinedResourceSchema rSchema = new RefinedResourceSchema(resourceType, originalResourceSchema, prismContext);
 		
 		SchemaHandlingType schemaHandling = resourceType.getSchemaHandling();
 		if (schemaHandling != null) {
 			parseObjectTypeDefsFromSchemaHandling(rSchema, resourceType, schemaHandling, 
-				schemaHandling.getObjectType(), null, prismContext, "definition of "+resourceType);
+				schemaHandling.getObjectType(), null, prismContext, contextDescription);
 		}
 
-		parseObjectTypesFromSchema(rSchema, resourceType, prismContext, 
-				"definition of "+resourceType);
+		parseObjectTypesFromSchema(rSchema, resourceType, prismContext, contextDescription);
 		
 		// We need to parse associations and auxiliary object classes in a second pass. We need to have all object classes parsed before correctly setting association
 		// targets
 		for (RefinedObjectClassDefinition rOcDef: rSchema.getRefinedDefinitions()) {
 			rOcDef.parseAssociations(rSchema);
 			rOcDef.parseAuxiliaryObjectClasses(rSchema);
+		}
+		
+		// We can parse attributes only after we have all the object class info parsed (including auxiliary object classes)
+		for (RefinedObjectClassDefinition rOcDef: rSchema.getRefinedDefinitions()) {
+			rOcDef.parseAttributes(rSchema, contextDescription);
 		}
 		
 		return rSchema;

@@ -204,6 +204,14 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 	public List<RefinedObjectClassDefinition> getAuxiliaryObjectClassDefinitions() {
 		return auxiliaryObjectClassDefinitions;
 	}
+	
+	public void addAuxiliaryObjectClassDefinition(RefinedObjectClassDefinition auxiliaryObjectClassDefinition) {
+		if (auxiliaryObjectClassDefinitions == null) {
+			auxiliaryObjectClassDefinitions = new ArrayList<>();
+		}
+		auxiliaryObjectClassDefinitions.add(auxiliaryObjectClassDefinition);
+	}
+
 
 	public ShadowKindType getKind() {
 		if (refinedObjectClassDefinition == null) {

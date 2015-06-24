@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector;
 
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.bind.JAXBElement;
@@ -120,7 +121,12 @@ public class OutboundProcessor {
         Construction<F> outboundConstruction = new Construction<>(null, projCtx.getResource());
         outboundConstruction.setRefinedObjectClassDefinition(rOcDef);
         
-        // TODO: Auxiliary object classes
+        Collection<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions = rOcDef.getAuxiliaryObjectClassDefinitions();
+        if (auxiliaryObjectClassDefinitions != null) {
+        	for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
+        		outboundConstruction.addAuxiliaryObjectClassDefinition(auxiliaryObjectClassDefinition);
+        	}
+        }
         
         String operation = projCtx.getOperation().getValue();
 

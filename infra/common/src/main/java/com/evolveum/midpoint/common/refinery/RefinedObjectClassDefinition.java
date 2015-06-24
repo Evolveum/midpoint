@@ -595,35 +595,6 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         	rOcDef.setBaseContext(schemaHandlingObjDefType.getBaseContext());
         }
         
-        for (ResourceAttributeDefinition road : objectClassDef.getAttributeDefinitions()) {
-            String attrContextDescription = road.getName() + ", in " + contextDescription;
-            ResourceAttributeDefinitionType attrDefType = findAttributeDefinitionType(road.getName(), schemaHandlingObjDefType,
-            		typeDesc, attrContextDescription);
-            // We MUST NOT skip ignored attribute definitions here. We must include them in the schema as
-            // the shadows will still have that attributes and we will need their type definition to work
-            // well with them. They may also be mandatory. We cannot pretend that they do not exist.
-
-            RefinedAttributeDefinition rAttrDef = RefinedAttributeDefinition.parse(road, attrDefType, objectClassDef,
-            		prismContext, "in "+typeDesc+" type " + intent + ", in " + contextDescription);
-            rOcDef.processIdentifiers(rAttrDef, objectClassDef);
-
-            if (rOcDef.containsAttributeDefinition(rAttrDef.getName())) {
-                throw new SchemaException("Duplicate definition of attribute " + rAttrDef.getName() + " in "+typeDesc+" type " +
-                		intent + ", in " + contextDescription);
-            }
-            rOcDef.add(rAttrDef);
-
-        }
-
-        // Check for extra attribute definitions in the account type
-        for (ResourceAttributeDefinitionType attrDefType : schemaHandlingObjDefType.getAttribute()) {
-            if (!rOcDef.containsAttributeDefinition(attrDefType.getRef()) && !RefinedAttributeDefinition.isIgnored(attrDefType)) {
-                throw new SchemaException("Definition of attribute " + attrDefType.getRef() + " not found in object class " + objectClassDef.getTypeName() + " as defined in " + contextDescription);
-            }
-        }
-        
-        parseProtected(rOcDef, schemaHandlingObjDefType);
-   
         return rOcDef;
 	}
 
@@ -655,6 +626,63 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 		}
 	}
 
+	public void parseAttributes(RefinedResourceSchema rSchema, String contextDescription) throws SchemaException {
+		if (schemaHandlingObjectTypeDefinitionType == null) {
+			// this is definition from schema. We already have all we need.
+			return;
+		}
+		
+		parseAttributesFrom(rSchema, objectClassDefinition, false, contextDescription);
+		if (auxiliaryObjectClassDefinitions != null) {
+			for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
+				parseAttributesFrom(rSchema, auxiliaryObjectClassDefinition, true, contextDescription);
+			}
+		}
+
+		// Check for extra attribute definitions in the account type
+        for (ResourceAttributeDefinitionType attrDefType : schemaHandlingObjectTypeDefinitionType.getAttribute()) {
+            if (!containsAttributeDefinition(attrDefType.getRef()) && !RefinedAttributeDefinition.isIgnored(attrDefType)) {
+                throw new SchemaException("Definition of attribute " + attrDefType.getRef() + " not found in object class " + objectClassDefinition.getTypeName() + " as defined in " + contextDescription);
+            }
+        }
+        
+        parseProtected(this, schemaHandlingObjectTypeDefinitionType);
+	}
+	
+	public void parseAttributesFrom(RefinedResourceSchema rSchema, ObjectClassComplexTypeDefinition ocDef, boolean auxiliary, String contextDescription) throws SchemaException {
+		if (schemaHandlingObjectTypeDefinitionType == null) {
+			// this is definition from schema. We already have all we need.
+			return;
+		}
+		for (ResourceAttributeDefinition road : ocDef.getAttributeDefinitions()) {
+            String attrContextDescription = road.getName() + ", in " + contextDescription;
+            ResourceAttributeDefinitionType attrDefType = findAttributeDefinitionType(road.getName(), schemaHandlingObjectTypeDefinitionType,
+            		attrContextDescription);
+            // We MUST NOT skip ignored attribute definitions here. We must include them in the schema as
+            // the shadows will still have that attributes and we will need their type definition to work
+            // well with them. They may also be mandatory. We cannot pretend that they do not exist.
+
+            RefinedAttributeDefinition rAttrDef = RefinedAttributeDefinition.parse(road, attrDefType, ocDef,
+            		prismContext, "in "+kind+" type " + intent + ", in " + contextDescription);
+            if (!auxiliary) {
+            	processIdentifiers(rAttrDef, ocDef);
+            }
+
+            if (containsAttributeDefinition(rAttrDef.getName())) {
+            	if (auxiliary) {
+            		continue;
+            	} else {
+            		throw new SchemaException("Duplicate definition of attribute " + rAttrDef.getName() + " in "+kind+" type " +
+                		intent + ", in " + contextDescription);
+            	}
+            }
+            add(rAttrDef);
+
+        }
+
+        
+	}
+
 	private void processIdentifiers(RefinedAttributeDefinition rAttrDef, ObjectClassComplexTypeDefinition objectClassDef) {
 		QName attrName = rAttrDef.getName();
 		if (objectClassDef.isIdentifier(attrName)) {
@@ -670,8 +698,8 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 		return rAttrDef;
 	}
 
-	private static ResourceAttributeDefinitionType findAttributeDefinitionType(QName attrName,
-			ResourceObjectTypeDefinitionType rOcDefType, String typeDesc, String contextDescription) throws SchemaException {
+	private ResourceAttributeDefinitionType findAttributeDefinitionType(QName attrName,
+			ResourceObjectTypeDefinitionType rOcDefType, String contextDescription) throws SchemaException {
         ResourceAttributeDefinitionType foundAttrDefType = null;
         for (ResourceAttributeDefinitionType attrDefType : rOcDefType.getAttribute()) {
             if (attrDefType.getRef() != null) {
@@ -680,7 +708,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
                     if (foundAttrDefType == null) {
                         foundAttrDefType = attrDefType;
                     } else {
-                        throw new SchemaException("Duplicate definition of attribute " + ref + " in "+typeDesc+" type "
+                        throw new SchemaException("Duplicate definition of attribute " + ref + " in "+kind+" type "
                                 + rOcDefType.getIntent() + ", in " + contextDescription);
                     }
                 }
