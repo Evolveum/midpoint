@@ -82,7 +82,7 @@ object.
 	            </icfcldap:bindPassword>
 	            <icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
 	            <icfcldap:vlvSortAttribute>entryUUID</icfcldap:vlvSortAttribute>
-				<icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
+<!--                                <icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>-->
 				<icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
 	 			<icfcldap:operationalAttributes>isMemberOf</icfcldap:operationalAttributes>
 			</icfc:configurationProperties>

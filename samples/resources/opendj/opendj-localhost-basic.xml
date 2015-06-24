@@ -60,13 +60,13 @@ This resource definition contains only the very basic definitions for midPoint t
 				<icfcldap:port>1389</icfcldap:port>
 				<icfcldap:host>localhost</icfcldap:host>
 				<icfcldap:baseContext>dc=example,dc=com</icfcldap:baseContext>
-				<icfcldap:bindDn>cn=idm,ou=Administrators,dc=example,dc=com</icfcldap:bindDn>
+				<icfcldap:bindDn>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:bindDn>
 				<icfcldap:bindPassword>
 	                    <t:clearValue>secret</t:clearValue>
 	            </icfcldap:bindPassword>
 	            <icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
 	            <icfcldap:vlvSortAttribute>entryUUID</icfcldap:vlvSortAttribute>
-				<icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
+<!--                                <icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>-->
 				<icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
 	 			<icfcldap:operationalAttributes>isMemberOf</icfcldap:operationalAttributes>
 			</icfc:configurationProperties>
