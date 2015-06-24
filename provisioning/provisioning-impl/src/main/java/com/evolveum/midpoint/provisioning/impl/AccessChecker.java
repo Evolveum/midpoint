@@ -97,7 +97,7 @@ public class AccessChecker {
 
 	public void checkModify(ResourceType resource, PrismObject<ShadowType> shadow,
 			Collection<? extends ItemDelta> modifications, RefinedObjectClassDefinition objectClassDefinition,
-			OperationResult parentResult) throws SecurityViolationException {
+			OperationResult parentResult) throws SecurityViolationException, SchemaException {
 		
 		OperationResult result = parentResult.createMinorSubresult(OPERATION_NAME);
 		for (ItemDelta modification: modifications) {
@@ -111,6 +111,9 @@ public class AccessChecker {
 			}
 			QName attrName = attrDelta.getElementName();
 			RefinedAttributeDefinition attrDef = objectClassDefinition.findAttributeDefinition(attrName);
+			if (attrDef == null) {
+				throw new SchemaException("Cannot find definition of attribute "+attrName+" in "+objectClassDefinition);
+			}
 			PropertyLimitations limitations = attrDef.getLimitations(LayerType.MODEL);
 			if (limitations == null) {
 				continue;

@@ -138,6 +138,11 @@ public class RefinedResourceSchema extends ResourceSchema implements DebugDumpab
 	}
 	
 	public CompositeRefinedObjectClassDefinition determineCompositeObjectClassDefinition(PrismObject<ShadowType> shadow) throws SchemaException {
+		return determineCompositeObjectClassDefinition(shadow, null);
+	}
+	
+	public CompositeRefinedObjectClassDefinition determineCompositeObjectClassDefinition(PrismObject<ShadowType> shadow,
+			Collection<QName> additionalAuxiliaryObjectClassQNames) throws SchemaException {
 		ShadowType shadowType = shadow.asObjectable();
 		
 		RefinedObjectClassDefinition structuralObjectClassDefinition = null;
@@ -161,6 +166,9 @@ public class RefinedResourceSchema extends ResourceSchema implements DebugDumpab
 			return null;			
 		}
 		List<QName> auxiliaryObjectClassQNames = shadowType.getAuxiliaryObjectClass();
+		if (additionalAuxiliaryObjectClassQNames != null) {
+			auxiliaryObjectClassQNames.addAll(additionalAuxiliaryObjectClassQNames);
+		}
 		Collection<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions = new ArrayList<>(auxiliaryObjectClassQNames.size());
 		for (QName auxiliaryObjectClassQName: auxiliaryObjectClassQNames) {
 			RefinedObjectClassDefinition auxiliaryObjectClassDef = getRefinedDefinition(auxiliaryObjectClassQName);

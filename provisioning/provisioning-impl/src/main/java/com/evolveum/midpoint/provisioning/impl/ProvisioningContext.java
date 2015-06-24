@@ -48,6 +48,7 @@ public class ProvisioningContext {
 	private String resourceOid;
 	private PrismObject<ShadowType> originalShadow;
 	private ResourceShadowDiscriminator shadowCoordinates;
+	private Collection<QName> additionalAuxiliaryObjectClassQNames;
 	
 	private RefinedObjectClassDefinition objectClassDefinition;
 	private Task task;
@@ -89,6 +90,14 @@ public class ProvisioningContext {
 	public void setOriginalShadow(PrismObject<ShadowType> originalShadow) {
 		this.originalShadow = originalShadow;
 	}
+	
+	public Collection<QName> getAdditionalAuxiliaryObjectClassQNames() {
+		return additionalAuxiliaryObjectClassQNames;
+	}
+
+	public void setAdditionalAuxiliaryObjectClassQNames(Collection<QName> additionalAuxiliaryObjectClassQNames) {
+		this.additionalAuxiliaryObjectClassQNames = additionalAuxiliaryObjectClassQNames;
+	}
 
 	public ResourceType getResource() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		if (resource == null) {
@@ -110,7 +119,7 @@ public class ProvisioningContext {
 	public RefinedObjectClassDefinition getObjectClassDefinition() throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
 		if (objectClassDefinition == null) {
 			if (originalShadow != null) {
-				objectClassDefinition = getRefinedSchema().determineCompositeObjectClassDefinition(originalShadow);
+				objectClassDefinition = getRefinedSchema().determineCompositeObjectClassDefinition(originalShadow, additionalAuxiliaryObjectClassQNames);
 			} else if (shadowCoordinates != null && !shadowCoordinates.isWildcard()) {
 				objectClassDefinition = getRefinedSchema().determineCompositeObjectClassDefinition(shadowCoordinates);
 			}

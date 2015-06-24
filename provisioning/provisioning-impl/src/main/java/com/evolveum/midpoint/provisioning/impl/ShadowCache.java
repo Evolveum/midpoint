@@ -408,14 +408,25 @@ public abstract class ShadowCache {
 			LOGGER.trace("Modifying resource shadow:\n{}", shadow.debugDump());
 		}
 		
-		ProvisioningContext ctx = ctxFactory.create(shadow, task, parentResult);
+		Collection<QName> additionalAuxiliaryObjectClassQNames = new ArrayList<>();
+		ItemPath auxPath = new ItemPath(ShadowType.F_AUXILIARY_OBJECT_CLASS);
+		for (ItemDelta modification: modifications) {
+			if (auxPath.equals(modification.getPath())) {
+				PropertyDelta<QName> auxDelta = (PropertyDelta<QName>)modification;
+				for (PrismPropertyValue<QName> pval: auxDelta.getValues(QName.class)) {
+					additionalAuxiliaryObjectClassQNames.add(pval.getValue());
+				}
+			}
+		}
+		
+		ProvisioningContext ctx = ctxFactory.create(shadow, additionalAuxiliaryObjectClassQNames, task, parentResult);
 		Collection<PropertyModificationOperation> sideEffectChanges;
 		try {
 			ctx.assertDefinition();
 						
-			RefinedObjectClassDefinition objectClassDefinition =  applyAttributesDefinition(ctx, shadow);
+			applyAttributesDefinition(ctx, shadow);
 			
-			accessChecker.checkModify(ctx.getResource(), shadow, modifications, objectClassDefinition, parentResult);
+			accessChecker.checkModify(ctx.getResource(), shadow, modifications, ctx.getObjectClassDefinition(), parentResult);
 	
 			preprocessEntitlements(ctx, modifications, "delta for shadow "+oid, parentResult);
 	

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,20 +22,20 @@ import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
  * @author Radovan Semancik
  *
  */
-public final class PropertyModificationOperation extends Operation {
+public final class PropertyModificationOperation<T> extends Operation {
 	
-	private PropertyDelta propertyDelta;
+	private PropertyDelta<T> propertyDelta;
 	
-	public PropertyModificationOperation(PropertyDelta propertyDelta) {
+	public PropertyModificationOperation(PropertyDelta<T> propertyDelta) {
 		super();
 		this.propertyDelta = propertyDelta;
 	}
 	
-	public PropertyDelta getPropertyDelta() {
+	public PropertyDelta<T> getPropertyDelta() {
 		return propertyDelta;
 	}
 
-	public void setPropertyDelta(PropertyDelta propertyDelta) {
+	public void setPropertyDelta(PropertyDelta<T> propertyDelta) {
 		this.propertyDelta = propertyDelta;
 	}
 
