@@ -18,6 +18,8 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -29,9 +31,12 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -64,6 +69,7 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
@@ -83,7 +89,9 @@ import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.*;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.xml.namespace.QName;
 import java.util.*;
 
 /**
@@ -103,6 +111,7 @@ public class PageDebugList extends PageAdminConfiguration {
     private static final String OPERATION_LAXATIVE_DELETE = DOT_CLASS + "laxativeDelete";
 
     private static final String OPERATION_LOAD_RESOURCES = DOT_CLASS + "loadResources";
+    private static final String OPERATION_DELETE_SHADOWS = DOT_CLASS + "deleteShadows";
 
     private static final String ID_CONFIRM_DELETE_POPUP = "confirmDeletePopup";
     private static final String ID_MAIN_FORM = "mainForm";
@@ -928,13 +937,46 @@ public class PageDebugList extends PageAdminConfiguration {
         String resourceOid = dto.getResource().getOid();
 
         LOGGER.debug("Deleting shadows on resource {}", resourceOid);
-        //todo implement async task
 
-        TaskManager taskManager = getTaskManager();
-//        Task task = taskManager.createTaskInstance(OPERATION_INITIAL_OBJECTS_IMPORT);
-//        task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+        OperationResult result = new OperationResult(OPERATION_DELETE_SHADOWS);
+        try {
+            Task task = createSimpleTask(OPERATION_DELETE_SHADOWS);
+            // toto this should be a constant referenced from somewhere
+            task.setHandlerUri("http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/delete/handler-3");
 
-        info(getString("pageDebugList.messsage.deleteAllShadowsStarted", dto.getResource().getName()));
+            RefFilter ref = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class,
+                    getPrismContext(), dto.getResource().getOid());
+            ObjectQuery objectQuery = new ObjectQuery();
+            objectQuery.setFilter(ref);
+            QueryType query = QueryJaxbConvertor.createQueryType(objectQuery, getPrismContext());
+            QName type = ShadowType.COMPLEX_TYPE;
+
+            PrismPropertyDefinition queryDef = new PrismPropertyDefinition(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY,
+                    QueryType.COMPLEX_TYPE, getPrismContext());
+            PrismProperty<QueryType> queryProp = queryDef.instantiate();
+            queryProp.setRealValue(query);
+            task.setExtensionProperty(queryProp);
+
+            PrismPropertyDefinition typeDef = new PrismPropertyDefinition(SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE,
+                    DOMUtil.XSD_QNAME, getPrismContext());
+            PrismProperty<QName> typeProp = typeDef.instantiate();
+            typeProp.setRealValue(type);
+            task.setExtensionProperty(typeProp);
+
+            task.savePendingModifications(result);
+
+            TaskManager taskManager = getTaskManager();
+            taskManager.switchToBackground(task, result);
+
+            info(getString("pageDebugList.messsage.deleteAllShadowsStarted", dto.getResource().getName()));
+        } catch (Exception ex) {
+            result.recomputeStatus();
+            result.recordFatalError("Couldn't delete shadows.", ex);
+
+            LoggingUtils.logException(LOGGER, "Couldn't delete shadows", ex);
+        }
+
+        showResult(result);
         target.add(getFeedbackPanel());
     }
 }
