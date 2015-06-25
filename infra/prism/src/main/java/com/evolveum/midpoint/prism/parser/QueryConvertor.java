@@ -666,10 +666,13 @@ public class QueryConvertor {
 		if (filter instanceof NoneFilter) {
 			return serializeNoneFilter((NoneFilter) filter, xnodeSerializer);
 		}
-		
 	
 		if (filter instanceof AllFilter) {
 			return serializeAllFilter((AllFilter) filter, xnodeSerializer);
+		}
+
+		if (filter instanceof InOidFilter) {
+			return serializeInOidFilter((InOidFilter) filter, xnodeSerializer);
 		}
 
 		throw new UnsupportedOperationException("Unsupported filter type: " + filter);
@@ -703,8 +706,22 @@ public class QueryConvertor {
 		return map;
 	}
 
-	private static <T> MapXNode serializeEqualsFilter(EqualFilter<T> filter, XNodeSerializer xnodeSerializer) throws SchemaException{
+	private static MapXNode serializeInOidFilter(InOidFilter filter, XNodeSerializer xnodeSerializer) throws SchemaException {
+		MapXNode map = new MapXNode();
 
+		ListXNode valuesNode = new ListXNode();
+		for (String oid : filter.getOids()) {
+			XNode val = createPrimitiveXNode(oid, DOMUtil.XSD_STRING);
+			valuesNode.add(val);
+		}
+		map.put(KEY_FILTER_IN_OID, valuesNode);
+
+		//todo expression???
+
+		return map;
+	}
+
+	private static <T> MapXNode serializeEqualsFilter(EqualFilter<T> filter, XNodeSerializer xnodeSerializer) throws SchemaException{
 		MapXNode map = new MapXNode();
 		map.put(KEY_FILTER_EQUAL, serializeValueFilter(filter, xnodeSerializer));
 		return map;
