@@ -37,6 +37,9 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -204,36 +207,7 @@ public class PageDebugList extends PageAdminConfiguration {
             public void yesPerformed(AjaxRequestTarget target) {
                 close(target);
 
-                Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<>();
-                GetOperationOptions opt = GetOperationOptions.createRaw();
-                options.add(SelectorOptions.create(ItemPath.EMPTY_PATH, opt));
-
-                Task task = createSimpleTask(OPERATION_LAXATIVE_DELETE);
-                OperationResult result = new OperationResult(OPERATION_LAXATIVE_DELETE);
-
-                objectsDeleted = 0;
-                DeleteAllDto dto = getModel().getObject();
-
-                if(dto.getDeleteUsers()){
-                    deleteAllUsers(task, result, options);
-                }
-                if(dto.getDeleteOrgs()){
-                    deleteAllOrgUnits(task, result, options);
-                }
-                if(dto.getDeleteAccountShadow()){
-                    deleteAllAccountShadows(task, result, options, true);
-                }
-                if(dto.getDeleteNonAccountShadow()){
-                    deleteAllAccountShadows(task, result, options, false);
-                }
-
-                LOGGER.info("Deleted {} out of {} objects.", objectsDeleted, getObjectsToDelete());
-
-                target.add(getListTable());
-                target.add(getFeedbackPanel());
-
-                result.recomputeStatus();
-                showResult(result);
+                deleteAllIdentitiesConfirmed(target, getModel().getObject());
             }
         };
         add(deleteAllDialog);
@@ -689,6 +663,38 @@ public class PageDebugList extends PageAdminConfiguration {
         };
     }
 
+    private void deleteAllIdentitiesConfirmed(AjaxRequestTarget target,DeleteAllDto dto) {
+        Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<>();
+        GetOperationOptions opt = GetOperationOptions.createRaw();
+        options.add(SelectorOptions.create(ItemPath.EMPTY_PATH, opt));
+
+        Task task = createSimpleTask(OPERATION_LAXATIVE_DELETE);
+        OperationResult result = new OperationResult(OPERATION_LAXATIVE_DELETE);
+
+        objectsDeleted = 0;
+
+        if(dto.getDeleteUsers()){
+            deleteAllUsers(task, result, options);
+        }
+        if(dto.getDeleteOrgs()){
+            deleteAllOrgUnits(task, result, options);
+        }
+        if(dto.getDeleteAccountShadow()){
+            deleteAllAccountShadows(task, result, options, true);
+        }
+        if(dto.getDeleteNonAccountShadow()){
+            deleteAllAccountShadows(task, result, options, false);
+        }
+
+        LOGGER.info("Deleted {} out of {} objects.", objectsDeleted, getObjectsToDelete());
+
+        target.add(getListTable());
+        target.add(getFeedbackPanel());
+
+        result.recomputeStatus();
+        showResult(result);
+    }
+
     private void deleteAllUsers(Task task, final OperationResult result, Collection<SelectorOptions<GetOperationOptions>> options){
         ResultHandler<UserType> userHandler = new ResultHandler<UserType>() {
 
@@ -726,34 +732,8 @@ public class PageDebugList extends PageAdminConfiguration {
     }
 
     private void deleteAllOrgUnits(Task task, final OperationResult result, Collection<SelectorOptions<GetOperationOptions>> options){
-        ResultHandler<OrgType> userHandler = new ResultHandler<OrgType>() {
-
-            @Override
-            public boolean handle(PrismObject object, OperationResult parentResult) {
-             ObjectDelta delta = ObjectDelta.createDeleteDelta(OrgType.class, object.asObjectable().getOid(), getPrismContext());
-                Task task = createSimpleTask(OPERATION_LAXATIVE_DELETE);
-                OperationResult r = result.createMinorSubresult(OPERATION_LAXATIVE_DELETE);
-
-                try {
-                    getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), ModelExecuteOptions.createRaw(), task, r);
-                    objectsDeleted++;
-
-                    if (objectsDeleted % DELETE_LOG_INTERVAL == 0)
-                        LOGGER.info("Deleted {} out of {} objects.", objectsDeleted, getObjectsToDelete());
-
-                    r.recordSuccess();
-                } catch (Exception ex) {
-                    r.computeStatus(getString("pageDebugList.message.singleOrgDeleteProblem"));
-                    LoggingUtils.logException(LOGGER, getString("pageDebugList.message.singleOrgDeleteProblem"), ex);
-                }
-                parentResult.addSubresult(r);
-
-                return true;
-            }
-        };
-
         try {
-            getModelService().searchObjectsIterative(OrgType.class, null, userHandler, options, task, result);
+            deleteObjectsAsync(OrgType.COMPLEX_TYPE, null, result);
         } catch (Exception ex) {
             result.computeStatus(getString("pageDebugList.message.laxativeProblem"));
             LoggingUtils.logException(LOGGER, getString("pageDebugList.message.laxativeProblem"), ex);
@@ -879,7 +859,6 @@ public class PageDebugList extends PageAdminConfiguration {
 
     private void deleteAllIdentities(AjaxRequestTarget target) {
         DeleteAllDialog dialog = (DeleteAllDialog) get(ID_DELETE_ALL_DIALOG);
-//        dialog.getModel().setObject(dialog.createMessage());
         dialog.show(target);
     }
 
@@ -940,33 +919,14 @@ public class PageDebugList extends PageAdminConfiguration {
 
         OperationResult result = new OperationResult(OPERATION_DELETE_SHADOWS);
         try {
-            Task task = createSimpleTask(OPERATION_DELETE_SHADOWS);
-            // toto this should be a constant referenced from somewhere
-            task.setHandlerUri("http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/delete/handler-3");
-
             RefFilter ref = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class,
                     getPrismContext(), dto.getResource().getOid());
             ObjectQuery objectQuery = new ObjectQuery();
             objectQuery.setFilter(ref);
-            QueryType query = QueryJaxbConvertor.createQueryType(objectQuery, getPrismContext());
+
             QName type = ShadowType.COMPLEX_TYPE;
 
-            PrismPropertyDefinition queryDef = new PrismPropertyDefinition(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY,
-                    QueryType.COMPLEX_TYPE, getPrismContext());
-            PrismProperty<QueryType> queryProp = queryDef.instantiate();
-            queryProp.setRealValue(query);
-            task.setExtensionProperty(queryProp);
-
-            PrismPropertyDefinition typeDef = new PrismPropertyDefinition(SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE,
-                    DOMUtil.XSD_QNAME, getPrismContext());
-            PrismProperty<QName> typeProp = typeDef.instantiate();
-            typeProp.setRealValue(type);
-            task.setExtensionProperty(typeProp);
-
-            task.savePendingModifications(result);
-
-            TaskManager taskManager = getTaskManager();
-            taskManager.switchToBackground(task, result);
+            deleteObjectsAsync(type, objectQuery, result);
 
             info(getString("pageDebugList.messsage.deleteAllShadowsStarted", dto.getResource().getName()));
         } catch (Exception ex) {
@@ -978,5 +938,36 @@ public class PageDebugList extends PageAdminConfiguration {
 
         showResult(result);
         target.add(getFeedbackPanel());
+    }
+
+    private void deleteObjectsAsync(QName type, ObjectQuery objectQuery, OperationResult result)
+            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+
+        Task task = createSimpleTask(result.getOperation());
+        // toto this should be a constant referenced from somewhere
+        task.setHandlerUri("http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/delete/handler-3");
+
+        if (objectQuery == null) {
+            objectQuery = new ObjectQuery();
+        }
+
+        QueryType query = QueryJaxbConvertor.createQueryType(objectQuery, getPrismContext());;
+
+        PrismPropertyDefinition queryDef = new PrismPropertyDefinition(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY,
+                QueryType.COMPLEX_TYPE, getPrismContext());
+        PrismProperty<QueryType> queryProp = queryDef.instantiate();
+        queryProp.setRealValue(query);
+        task.setExtensionProperty(queryProp);
+
+        PrismPropertyDefinition typeDef = new PrismPropertyDefinition(SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE,
+                DOMUtil.XSD_QNAME, getPrismContext());
+        PrismProperty<QName> typeProp = typeDef.instantiate();
+        typeProp.setRealValue(type);
+        task.setExtensionProperty(typeProp);
+
+        task.savePendingModifications(result);
+
+        TaskManager taskManager = getTaskManager();
+        taskManager.switchToBackground(task, result);
     }
 }
