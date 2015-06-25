@@ -6319,6 +6319,21 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element ref="tns:cachingMetadata" minOccurs="0">
+                    	<xsd:annotation>
+                    		<xsd:documentation>
+                    			The shadow is essentially a bunch of metadata and cached data
+                    			about the actual resource object. This caching metadata structure
+                    			describes when the cached data were retrieved - therefore how fresh
+                    			they are.
+                    			For now the cachingMetadata are not stored in the repository.
+                    			This is now a "virtual" and "transient" property filled in
+                    			when the full shadow is retrieved from the resource.
+                    			Later on this can get a more proper meaning when we implement
+                    			full attribute caching.
+                    		</xsd:documentation>
+                    	</xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

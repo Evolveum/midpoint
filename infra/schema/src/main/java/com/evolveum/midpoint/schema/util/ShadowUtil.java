@@ -446,5 +446,13 @@ public class ShadowUtil {
 		}
 		return getHumanReadableName(shadowType.asPrismObject());
 	}
+
+	public static boolean isFullShadow(PrismObject<ShadowType> shadow) {
+		ShadowType shadowType = shadow.asObjectable();
+		if (shadowType.getCachingMetadata() == null) {
+			return false;
+		}
+		return shadowType.getCachingMetadata().getRetrievalTimestamp() != null;
+	}
 	
 }
