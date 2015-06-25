@@ -22,6 +22,7 @@ import static com.evolveum.midpoint.prism.util.PrismTestUtil.displayQuery;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.displayTestTitle;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getFilterCondition;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 
@@ -30,6 +31,7 @@ import java.io.IOException;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
@@ -62,6 +64,7 @@ public class TestQueryConvertors {
 	private static final File FILTER_USER_NAME_FILE = new File(TEST_DIR, "filter-user-name.xml");
 	private static final File FILTER_USER_AND_FILE = new File(TEST_DIR, "filter-user-and.xml");
 	private static final File FILTER_TYPE_USER_NONE = new File(TEST_DIR, "filter-type-user-none.xml");
+	private static final File FILTER_NOT_IN_OID = new File(TEST_DIR, "filter-not-in-oid.xml");
 
 	@BeforeSuite
 	public void setupDebug() throws SchemaException, SAXException, IOException {
@@ -194,7 +197,40 @@ public class TestQueryConvertors {
 		
 	}
 
-	
+	@Test
+	public void testFilterNotInOid() throws Exception {
+		displayTestTitle("testFilterNotInOid");
+
+		SearchFilterType filterType = PrismTestUtil.parseAnyValue(FILTER_NOT_IN_OID);
+
+		ObjectQuery query = toObjectQuery(UserType.class, filterType);
+		displayQuery(query);
+
+		assertNotNull(query);
+
+		ObjectFilter filter = query.getFilter();
+		assertTrue("Filter is not of NOT type", filter instanceof NotFilter);
+
+		ObjectFilter subFilter = ((NotFilter) filter).getFilter();
+		assertTrue("Subfilter is not of IN_OID type", subFilter instanceof InOidFilter);
+
+		QueryType convertedQueryType = toQueryType(query);
+		System.out.println("Re-converted query type");
+		System.out.println(convertedQueryType.debugDump());
+
+		Element filterClauseElement = convertedQueryType.getFilter().getFilterClauseAsElement();
+		LOGGER.info(convertedQueryType.getFilter().getFilterClauseXNode().debugDump());
+
+		System.out.println("Serialized filter (JAXB->DOM)");
+		String filterAsString = DOMUtil.serializeDOMToString(filterClauseElement);
+		System.out.println(filterAsString);
+		LOGGER.info(filterAsString);
+
+		DomAsserts.assertElementQName(filterClauseElement, new QName(PrismConstants.NS_QUERY, "not"));
+		assertEquals("wrong # of inOid subfilters", 1, filterClauseElement.getElementsByTagNameNS(PrismConstants.NS_QUERY, "inOid").getLength());
+		assertEquals("wrong # of value subfilters", 4, filterClauseElement.getElementsByTagNameNS(PrismConstants.NS_QUERY, "value").getLength());
+	}
+
 	private ObjectQuery toObjectQuery(Class type, QueryType queryType) throws Exception {
 		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(type, queryType,
 				getPrismContext());

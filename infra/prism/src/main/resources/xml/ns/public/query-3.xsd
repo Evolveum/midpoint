@@ -275,6 +275,32 @@
         </xsd:complexContent>
     </xsd:complexType>
 
+    <xsd:complexType name="ValuesFilterClauseType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:FilterClauseType">
+                <xsd:sequence>
+                    <xsd:choice>
+                        <xsd:element name="value" type="xsd:anyType" minOccurs="0" maxOccurs="unbounded">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    Values of queried properties.
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:any namespace="##other" processContents="strict">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    Extensibility point for various expression languages and other
+                                    "value derivation" mechanisms.
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:any>
+                    </xsd:choice>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
     <xsd:complexType name="PropertyNoValueFilterClauseType">
         <xsd:complexContent>
             <xsd:extension base="tns:FilterClauseType">
@@ -285,11 +311,10 @@
         </xsd:complexContent>
     </xsd:complexType>
     
-   
-
     <xsd:element name="equal" substitutionGroup="tns:filterClause" type="tns:PropertyComplexValueFilterClauseType"/>
     <xsd:element name="greaterOrEqual" substitutionGroup="tns:filterClause" type="tns:PropertySimpleValueFilterClauseType"/>
     <xsd:element name="lessOrEqual" substitutionGroup="tns:filterClause" type="tns:PropertySimpleValueFilterClauseType"/>
+    <xsd:element name="inOid" substitutionGroup="tns:filterClause" type="tns:ValuesFilterClauseType"/>
 
     <!-- Following element should be constrained a bit more, because their value 
 		is always string respectively. But we don't know how to constrain it now 

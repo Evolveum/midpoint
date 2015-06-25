@@ -97,7 +97,7 @@ public class QueryConvertor {
 	
 	private static final QName KEY_FILTER_EQUAL_PATH = new QName(NS_QUERY, "path");
 	private static final QName KEY_FILTER_EQUAL_MATCHING = new QName(NS_QUERY, "matching");
-	private static final QName KEY_FILTER_EQUAL_VALUE = new QName(NS_QUERY, "value");
+	private static final QName KEY_FILTER_VALUE = new QName(NS_QUERY, "value");
 
 	public static final QName KEY_FILTER_SUBSTRING_ANCHOR_START = new QName(NS_QUERY, "anchorStart");
 	public static final QName KEY_FILTER_SUBSTRING_ANCHOR_END = new QName(NS_QUERY, "anchorEnd");
@@ -315,7 +315,7 @@ public class QueryConvertor {
 		}
 		QName itemName = ItemPath.getName(itemPath.last());
 		
-		XNode valueXnode = xmap.get(KEY_FILTER_EQUAL_VALUE);
+		XNode valueXnode = xmap.get(KEY_FILTER_VALUE);
 		
 		ItemDefinition itemDefinition = locateItemDefinition(valueXnode, itemPath, pcd, prismContext);
 		if (itemDefinition != null){
@@ -334,7 +334,7 @@ public class QueryConvertor {
 		} else {
             
 			Entry<QName,XNode> expressionEntry = xmap.getSingleEntryThatDoesNotMatch(
-					KEY_FILTER_EQUAL_VALUE, KEY_FILTER_EQUAL_MATCHING, KEY_FILTER_EQUAL_PATH);
+					KEY_FILTER_VALUE, KEY_FILTER_EQUAL_MATCHING, KEY_FILTER_EQUAL_PATH);
 			if (expressionEntry != null) {
                 PrismPropertyValue expressionPropertyValue = prismContext.getXnodeProcessor().parsePrismPropertyFromGlobalXNodeValue(expressionEntry);
                 if (preliminaryParsingOnly) {
@@ -358,10 +358,36 @@ public class QueryConvertor {
 	private static InOidFilter parseInOidFilter(XNode xnode, PrismContainerDefinition pcd, boolean preliminaryParsingOnly, PrismContext prismContext) throws SchemaException{
 	
 		MapXNode xmap = toMap(xnode);
-		ExpressionWrapper expression = parseExpression(xmap, prismContext);
-		InOidFilter inOidFilter = InOidFilter.createInOid(expression);
-		
-		return inOidFilter;
+
+		XNode valueXnode = xmap.get(KEY_FILTER_VALUE);
+		if (valueXnode != null) {
+			List<String> oids = new ArrayList<>();
+			if (valueXnode instanceof ListXNode) {
+				for (XNode subnode : (ListXNode) valueXnode) {
+					if (subnode instanceof PrimitiveXNode) {
+						oids.add(((PrimitiveXNode<String>) subnode).getParsedValue(DOMUtil.XSD_STRING));
+					} else {
+						throw new SchemaException("The OID was expected to be present as primitive XNode, instead it is: " + subnode);
+					}
+				}
+			} else if (valueXnode instanceof PrimitiveXNode) {
+				oids.add(((PrimitiveXNode<String>) valueXnode).getParsedValue(DOMUtil.XSD_STRING));
+			} else {
+				throw new SchemaException("The OID was expected to be present as primitive or list XNode, instead it is: " + valueXnode);
+			}
+			InOidFilter inOidFilter = InOidFilter.createInOid(oids);
+			return inOidFilter;
+
+		} else {
+
+			ExpressionWrapper expression = parseExpression(xmap, prismContext);
+			if (expression != null) {
+				InOidFilter inOidFilter = InOidFilter.createInOid(expression);
+				return inOidFilter;
+			} else {
+				throw new SchemaException("InOid filter with no values nor expression");
+			}
+		}
 	}
 	
 	private static TypeFilter parseTypeFilter(XNode xnode, PrismContainerDefinition pcd, boolean preliminaryParsingOnly, PrismContext prismContext) throws SchemaException{
@@ -410,7 +436,7 @@ public class QueryConvertor {
 		}
 
 		
-		XNode valueXnode = xmap.get(KEY_FILTER_EQUAL_VALUE);
+		XNode valueXnode = xmap.get(KEY_FILTER_VALUE);
 		if (valueXnode != null){
 		
 			Item<?,?> item = prismContext.getXnodeProcessor().parseItem(valueXnode, itemName, itemDefinition);
@@ -434,7 +460,7 @@ public class QueryConvertor {
 			ExpressionWrapper expressionWrapper = parseExpression(xmap, prismContext);
 //			Entry<QName, XNode> expressionEntry = xmap.getSingleEntryThatDoesNotMatch(
 //
-//			KEY_FILTER_EQUAL_VALUE, KEY_FILTER_EQUAL_MATCHING, KEY_FILTER_EQUAL_PATH);
+//			KEY_FILTER_VALUE, KEY_FILTER_EQUAL_MATCHING, KEY_FILTER_EQUAL_PATH);
 			if (expressionWrapper != null) {
 //				PrismPropertyValue expressionPropertyValue = prismContext.getXnodeProcessor()
 //						.parsePrismPropertyFromGlobalXNodeValue(expressionEntry);
@@ -462,7 +488,7 @@ public class QueryConvertor {
 	private static ExpressionWrapper parseExpression(MapXNode xmap, PrismContext prismContext) throws SchemaException {
 		Entry<QName, XNode> expressionEntry = xmap.getSingleEntryThatDoesNotMatch(
 
-		KEY_FILTER_EQUAL_VALUE, KEY_FILTER_EQUAL_MATCHING, KEY_FILTER_EQUAL_PATH);
+				KEY_FILTER_VALUE, KEY_FILTER_EQUAL_MATCHING, KEY_FILTER_EQUAL_PATH);
 		if (expressionEntry != null) {
 			PrismPropertyValue expressionPropertyValue = prismContext.getXnodeProcessor()
 					.parsePrismPropertyFromGlobalXNodeValue(expressionEntry);
@@ -492,7 +518,7 @@ public class QueryConvertor {
 		QName itemName = ItemPath.getName(itemPath.last());
 		
 		
-		XNode valueXnode = xmap.get(KEY_FILTER_EQUAL_VALUE);
+		XNode valueXnode = xmap.get(KEY_FILTER_VALUE);
 		
 		ItemDefinition itemDefinition = locateItemDefinition(valueXnode, itemPath, pcd, prismContext);
 		
@@ -707,18 +733,25 @@ public class QueryConvertor {
 	}
 
 	private static MapXNode serializeInOidFilter(InOidFilter filter, XNodeSerializer xnodeSerializer) throws SchemaException {
-		MapXNode map = new MapXNode();
+		MapXNode filterMap = new MapXNode();
 
-		ListXNode valuesNode = new ListXNode();
-		for (String oid : filter.getOids()) {
-			XNode val = createPrimitiveXNode(oid, DOMUtil.XSD_STRING);
-			valuesNode.add(val);
+		MapXNode contentsMap = new MapXNode();
+
+		if (filter.getOids() != null && !filter.getOids().isEmpty()) {
+			ListXNode valuesNode = new ListXNode();
+			for (String oid : filter.getOids()) {
+				XNode val = createPrimitiveXNode(oid, DOMUtil.XSD_STRING);
+				valuesNode.add(val);
+			}
+			contentsMap.put(KEY_FILTER_VALUE, valuesNode);
+		} else if (filter.getExpression() != null) {
+			// TODO serialize expression
+		} else {
+			throw new SchemaException("InOid filter with no values nor expression");
 		}
-		map.put(KEY_FILTER_IN_OID, valuesNode);
 
-		//todo expression???
-
-		return map;
+		filterMap.put(KEY_FILTER_IN_OID, contentsMap);
+		return filterMap;
 	}
 
 	private static <T> MapXNode serializeEqualsFilter(EqualFilter<T> filter, XNodeSerializer xnodeSerializer) throws SchemaException{
@@ -748,7 +781,7 @@ public class QueryConvertor {
 				valuesNode.add(valNode);
 			}
 			
-			map.put(KEY_FILTER_EQUAL_VALUE, valuesNode);
+			map.put(KEY_FILTER_VALUE, valuesNode);
 		}
 		
 		ExpressionWrapper xexpression = filter.getExpression();
