@@ -454,7 +454,7 @@ public class TestLdap extends AbstractModelIntegrationTest {
         // THEN
         TestUtil.displayThen(TEST_NAME);
         
-        waitForTaskFinish(TASK_DELETE_OPENDJ_SHADOWS_OID, true, 20000 + NUM_LDAP_ENTRIES*1500);
+        waitForTaskFinish(TASK_DELETE_OPENDJ_SHADOWS_OID, true, 20000 + NUM_LDAP_ENTRIES*2000);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
