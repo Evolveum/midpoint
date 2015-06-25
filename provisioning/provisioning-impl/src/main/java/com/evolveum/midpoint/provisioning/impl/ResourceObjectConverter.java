@@ -41,6 +41,7 @@ import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -102,6 +103,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
@@ -143,6 +145,9 @@ public class ResourceObjectConverter {
 	
 	@Autowired(required=true)
 	private ResourceObjectReferenceResolver resourceObjectReferenceResolver;
+	
+	@Autowired(required=true)
+	private Clock clock;
 
 	@Autowired(required=true)
 	private PrismContext prismContext;
@@ -488,7 +493,7 @@ public class ResourceObjectConverter {
 		}
 
         // Execute entitlement modification on other objects (if needed)
-		executeEntitlementChangesModify(ctx, shadowBefore, shadowAfter, scripts, itemDeltas, parentResult);
+        shadowAfter = executeEntitlementChangesModify(ctx, shadowBefore, shadowAfter, scripts, itemDeltas, parentResult);
 		
 		parentResult.recordSuccess();
 		return sideEffectChanges;
@@ -872,18 +877,19 @@ public class ResourceObjectConverter {
 				return deltas;
 		}
 	
-	private void executeEntitlementChangesAdd(ProvisioningContext ctx, PrismObject<ShadowType> shadow, OperationProvisioningScriptsType scripts,
+	private PrismObject<ShadowType> executeEntitlementChangesAdd(ProvisioningContext ctx, PrismObject<ShadowType> shadow, OperationProvisioningScriptsType scripts,
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException {
 		
 		Map<ResourceObjectDiscriminator, ResourceObjectOperations> roMap = new HashMap<>();
 		
-		entitlementConverter.collectEntitlementsAsObjectOperationInShadowAdd(ctx, roMap, shadow, parentResult);
+		shadow = entitlementConverter.collectEntitlementsAsObjectOperationInShadowAdd(ctx, roMap, shadow, parentResult);
 		
 		executeEntitlements(ctx, roMap, parentResult);
 		
+		return shadow;
 	}
 	
-	private void executeEntitlementChangesModify(ProvisioningContext ctx, PrismObject<ShadowType> subjectShadowBefore,
+	private PrismObject<ShadowType> executeEntitlementChangesModify(ProvisioningContext ctx, PrismObject<ShadowType> subjectShadowBefore,
 			PrismObject<ShadowType> subjectShadowAfter,
             OperationProvisioningScriptsType scripts, Collection<? extends ItemDelta> objectDeltas, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException {
 		
@@ -892,7 +898,7 @@ public class ResourceObjectConverter {
 		for (ItemDelta itemDelta : objectDeltas) {
 			if (new ItemPath(ShadowType.F_ASSOCIATION).equivalent(itemDelta.getPath())) {
 				ContainerDelta<ShadowAssociationType> containerDelta = (ContainerDelta<ShadowAssociationType>)itemDelta;				
-				entitlementConverter.collectEntitlementsAsObjectOperation(ctx, roMap, containerDelta,
+				subjectShadowAfter = entitlementConverter.collectEntitlementsAsObjectOperation(ctx, roMap, containerDelta,
                         subjectShadowBefore, subjectShadowAfter, parentResult);
 				
 			} else if (isRename(itemDelta)) {
@@ -931,10 +937,9 @@ public class ResourceObjectConverter {
 			}
 		}
 		
-		
-		
 		executeEntitlements(ctx, roMap, parentResult);
 		
+		return subjectShadowAfter;
 	}
 	
 	private void executeEntitlementChangesDelete(ProvisioningContext ctx, PrismObject<ShadowType> shadow, 
@@ -1517,6 +1522,7 @@ public class ResourceObjectConverter {
 		ConnectorInstance connector = ctx.getConnector(parentResult);
 		
 		ShadowType resourceObjectType = resourceObject.asObjectable();
+		setCachingMetadata(ctx, resourceObject);
 		setProtectedFlag(ctx, resourceObject);
 		
 		// Simulated Activation
@@ -1547,6 +1553,12 @@ public class ResourceObjectConverter {
 		if (isProtectedShadow(ctx.getObjectClassDefinition(), resourceObject)) {
 			resourceObject.asObjectable().setProtectedObject(true);
 		}
+	}
+
+	public void setCachingMetadata(ProvisioningContext ctx, PrismObject<ShadowType> resourceObject) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+		CachingMetadataType cachingMetadata = new CachingMetadataType();
+		cachingMetadata.setRetrievalTimestamp(clock.currentTimeXMLGregorianCalendar());
+		resourceObject.asObjectable().setCachingMetadata(cachingMetadata);
 	}
 
 	/**

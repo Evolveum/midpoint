@@ -127,6 +127,7 @@ public class TestUnix extends AbstractStoryTest {
 	private static final String USER_LARGO_USERNAME = "largo";
 	private static final String USER_LARGO_FIST_NAME = "Largo";
 	private static final String USER_LARGO_LAST_NAME = "LaGrande";
+	private static final int USER_LARGO_UID_NUMBER = 1002;
 
 	
 	private static final File STRUCT_LDIF_FILE = new File(TEST_DIR, "struct.ldif");
@@ -331,7 +332,7 @@ public class TestUnix extends AbstractStoryTest {
         
         PrismObject<ShadowType> shadow = getShadowModel(accountMancombOid);
         display("Shadow (model)", shadow);
-        accountMancombDn = assertPosixAccount(shadow);
+        accountMancombDn = assertPosixAccount(shadow, 1001);
 	}
 	
 	@Test
@@ -367,7 +368,7 @@ public class TestUnix extends AbstractStoryTest {
         Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        PrismObject<UserType> user = createUser(USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME, 1002, null);
+        PrismObject<UserType> user = createUser(USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME, USER_LARGO_UID_NUMBER, null);
         
         // WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -439,7 +440,7 @@ public class TestUnix extends AbstractStoryTest {
         
         PrismObject<ShadowType> shadow = getShadowModel(accountOid);
         display("Shadow (model)", shadow);
-        assertPosixAccount(shadow);
+        assertPosixAccount(shadow, USER_LARGO_UID_NUMBER);
 	}
 	
 	@Test
@@ -473,7 +474,7 @@ public class TestUnix extends AbstractStoryTest {
 	
 	@Test
     public void test128UnAssignUserLargoBasic() throws Exception {
-		final String TEST_NAME = "test122AssignUserLargoBasic";
+		final String TEST_NAME = "test128UnAssignUserLargoBasic";
         TestUtil.displayTestTile(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -586,6 +587,65 @@ public class TestUnix extends AbstractStoryTest {
         groupVillainsDn = assertUnixGroup(shadow, ROLE_VILLAINS_GID);
 	}
 	
+	@Test
+    public void test211AssignUserLargoUnix() throws Exception {
+		final String TEST_NAME = "test211AssignUserLargoUnix";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+        assignRole(userBefore.getOid(), ROLE_UNIX_OID);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
+        assertNotNull("No user after", userAfter);
+        display("User after", userAfter);
+        assertUser(userAfter, USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME);
+        
+        String accountOid = getSingleLinkOid(userAfter);
+        
+        PrismObject<ShadowType> shadow = getShadowModel(accountOid);
+        display("Shadow (model)", shadow);
+        assertPosixAccount(shadow, USER_LARGO_UID_NUMBER);
+	}
+	
+	@Test
+    public void test212AssignUserLargoVillains() throws Exception {
+		final String TEST_NAME = "test212AssignUserLargoVillains";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> user = findUserByUsername(USER_LARGO_USERNAME);
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+        assignRole(user.getOid(), roleVillainsOid);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
+        assertNotNull("No user", userAfter);
+        display("User after", userAfter);
+        assertUser(userAfter, USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME);
+        String accountOid = getSingleLinkOid(userAfter);
+        
+        PrismObject<ShadowType> shadow = getShadowModel(accountOid);
+        display("Shadow (model)", shadow);
+        String accountLArgoDn = assertPosixAccount(shadow, USER_LARGO_UID_NUMBER);
+        SearchResultEntry groupVillains = openDJController.fetchEntry(groupVillainsDn);
+        openDJController.assertAttribute(groupVillains, "memberUid", Integer.toString(USER_LARGO_UID_NUMBER));
+	}
+	
 	private PrismObject<UserType> createUser(String username, String givenName, String familyName, Integer uidNumber, String roleOid) throws SchemaException {
 		PrismObject<UserType> user = createUser(username, givenName, familyName, true);
 		if (roleOid != null) {
@@ -636,7 +696,7 @@ public class TestUnix extends AbstractStoryTest {
 		return entry.getDN().toString();
 	}
 	
-	private String assertPosixAccount(PrismObject<ShadowType> shadow) throws DirectoryException {
+	private String assertPosixAccount(PrismObject<ShadowType> shadow, int expectedUid) throws DirectoryException {
 		ShadowType shadowType = shadow.asObjectable();
 		assertEquals("Wrong objectclass in "+shadow, OPENDJ_ACCOUNT_STRUCTURAL_OBJECTCLASS_NAME, shadowType.getObjectClass());
 		PrismAsserts.assertEqualsCollectionUnordered("Wrong auxiliary objectclasses in "+shadow, 
@@ -648,6 +708,8 @@ public class TestUnix extends AbstractStoryTest {
 		display("Posix account entry", entry);
 		openDJController.assertObjectClass(entry, OPENDJ_ACCOUNT_STRUCTURAL_OBJECTCLASS_NAME.getLocalPart());
 		openDJController.assertObjectClass(entry, OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME.getLocalPart());
+		openDJController.assertAttribute(entry, "uidNumber", Integer.toString(expectedUid));
+		openDJController.assertAttribute(entry, "gidNumber", Integer.toString(expectedUid));
 		
 		return entry.getDN().toString();
 	}

@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.xml.bind.JAXBException;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -1108,6 +1109,8 @@ public class TestDummy extends AbstractDummyTest {
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ "." + TEST_NAME);
 		rememberShadowFetchOperationCount();
+		
+		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
 		// WHEN
 		ShadowType shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, 
@@ -1118,6 +1121,8 @@ public class TestDummy extends AbstractDummyTest {
 		display("getObject result", result);
 		TestUtil.assertSuccess(result);
 		assertShadowFetchOperationCountIncrement(1);
+		
+		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
 
 		display("Retrieved account shadow", shadow);
 
@@ -1129,7 +1134,21 @@ public class TestDummy extends AbstractDummyTest {
 
 		checkConsistency(shadow.asPrismObject());
 		
+		checkCachingMetadata(shadow, startTs, endTs);
+		assertNoCachingMetadata(shadowRepo);
+		
 		assertSteadyResource();
+	}
+
+	private void assertNoCachingMetadata(PrismObject<ShadowType> shadowRepo) {
+		assertNull("Unexpected caching metadata in "+shadowRepo, shadowRepo.asObjectable().getCachingMetadata());
+	}
+
+	private void checkCachingMetadata(ShadowType shadow, XMLGregorianCalendar startTs,
+			XMLGregorianCalendar endTs) {
+		CachingMetadataType cachingMetadata = shadow.getCachingMetadata();
+		assertNotNull("No caching metadata in "+shadow, cachingMetadata);
+		TestUtil.assertBetween("Wrong retrievalTimestamp in caching metadata in "+shadow, startTs, endTs, cachingMetadata.getRetrievalTimestamp());
 	}
 
 	protected void checkAccountWill(ShadowType shadow, OperationResult result) throws SchemaException, EncryptionException {

@@ -631,6 +631,8 @@ public class ShadowManager {
 		}
 		
 		normalizeAttributes(repoShadow, ctx.getObjectClassDefinition());
+		
+		repoShadowType.setCachingMetadata(null);
 	
 		return repoShadow;
 	}

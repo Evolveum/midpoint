@@ -1609,6 +1609,8 @@ public abstract class ShadowCache {
 			}
 		}
 		
+		resultShadowType.setCachingMetadata(resourceShadowType.getCachingMetadata());
+		
 		// Sanity asserts to catch some exotic bugs
 		PolyStringType resultName = resultShadow.asObjectable().getName();
 		assert resultName != null : "No name generated in "+resultShadow;
