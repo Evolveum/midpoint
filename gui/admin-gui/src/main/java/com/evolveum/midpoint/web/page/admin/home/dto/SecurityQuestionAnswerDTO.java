@@ -22,7 +22,6 @@ public class SecurityQuestionAnswerDTO implements Serializable {
 		this.passwAnswer = passAnswer;
 	}
 	public SecurityQuestionAnswerDTO(String passwQuestion, String passAnswer,String questionitself){
-		System.out.println(passwQuestion +passAnswer+questionitself);
 		this.passwQuestionIdentifier = passwQuestion;
 		this.passwAnswer = passAnswer;
 		this.questionItself=questionitself;

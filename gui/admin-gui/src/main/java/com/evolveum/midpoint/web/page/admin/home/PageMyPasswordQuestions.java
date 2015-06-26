@@ -160,8 +160,8 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 
 		}
 		catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't load accounts", ex);
-			result.recordFatalError("Couldn't load accounts", ex);
+			LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't get user Questions, Probably not set yet", ex);
+	
 		} finally {
 			result.recomputeStatus();
 		}
@@ -234,7 +234,7 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 			
 			}catch(Exception ex){
 				ex.printStackTrace();
-				LOGGER.info("\n\nAccess");			
+						
 			/*	List<SecurityQuestionAnswerDTO> userQuestionList= model.getObject().getSecurityAnswers();
 				int panelNumber=0;
 				PrismObject<UserType> user = null;
@@ -386,7 +386,7 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 					
 				if(userQuestionList.get(i).getPwdQuestion().trim().compareTo(securityQuestionDefinitionType.getIdentifier().trim())==0)
 				{
-					LOGGER.debug("ilke");
+					
 					SecurityQuestionAnswerDTO a=new SecurityQuestionAnswerDTO(userQuestionList.get(i).getPwdQuestion(),userQuestionList.get(i).getPwdAnswer(),userQuestionList.get(i).getQuestionItself());	
 				
 					a= checkIfQuestionisValidSingle(a, securityQuestionDefinitionType);	  
@@ -398,7 +398,7 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 
 				}
 				else if(userQuestionList.get(i).getPwdQuestion().trim().compareTo(securityQuestionDefinitionType.getIdentifier().trim())!=0){
-					LOGGER.debug("Buraya");	
+				
 					SecurityQuestionAnswerDTO a=new SecurityQuestionAnswerDTO(policyQuestionList.get(panelNumber).getIdentifier(),"",policyQuestionList.get(panelNumber).getQuestionText());
 					a.setQuestionItself(securityQuestionDefinitionType.getQuestionText());
 					userQuestionList.get(i).setPwdQuestion(securityQuestionDefinitionType.getIdentifier().trim());					

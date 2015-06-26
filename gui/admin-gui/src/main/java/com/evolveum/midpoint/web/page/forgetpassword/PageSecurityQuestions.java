@@ -307,12 +307,11 @@ public class PageSecurityQuestions extends PageBase {
 
 		}
 		else{
-			System.out.println(" PageSecurityQuestions User null");
+			
 			getSession().error(getString("pageForgetPassword.message.usernotfound"));
 			getSession().invalidate();
 			SecurityContext securityContext = SecurityContextHolder.getContext();
 			securityContext.setAuthentication(null);
-			System.out.println("Authentication null");
 			throw new RestartResponseException(PageForgetPassword.class);
 
 
@@ -386,7 +385,6 @@ public class PageSecurityQuestions extends PageBase {
 			getSession().invalidate();
 			SecurityContext securityContext = SecurityContextHolder.getContext();
 			setAuthenticationNull();
-			//System.out.println("WrongAnswer");
 			throw new RestartResponseException(PageSecurityQuestions.class);
 		}
 
