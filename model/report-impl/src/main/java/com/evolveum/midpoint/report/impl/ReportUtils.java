@@ -83,12 +83,15 @@ import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -136,8 +139,13 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.xml.XMLConstants;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class ReportUtils {
 
@@ -159,6 +167,9 @@ public class ReportUtils {
 
     private static final Trace LOGGER = TraceManager
             .getTrace(ReportUtils.class);
+
+    @Autowired(required = true)
+    private static ModelService modelService;
 
     //new
 //    public static JasperDesign loadJasperDesign(byte[] template) throws SchemaException{
@@ -1156,7 +1167,7 @@ public class ReportUtils {
         return val;
     }
 
-    private static String printQName(QName qname) {
+    public static String prettyPrintForReport(QName qname) {
         String ret = "";
         if (qname.getLocalPart() != null) {
             ret = qname.getLocalPart();
@@ -1164,61 +1175,179 @@ public class ReportUtils {
         return ret;
     }
 
-    private static String printPrismPropertyValue(PrismPropertyValue ppv) {
+    public static String prettyPrintForReport(PrismProperty pp) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(prettyPrintForReport(pp.getElementName()).toUpperCase());
+        sb.append(": ");
+        List<PrismPropertyValue> ppvList = pp.getValues();
+        for (PrismPropertyValue ppv : ppvList) {
+            sb.append(prettyPrintForReport(ppv));
+            sb.append(", ");
+        }
+        sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter 
+        return sb.toString();
+    }
+
+    public static String prettyPrintForReport(PrismReference pr) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(prettyPrintForReport(pr.getElementName()).toUpperCase());
+        sb.append(": ");
+        List<PrismReferenceValue> prvList = pr.getValues();
+        for (PrismReferenceValue ppv : prvList) {
+            sb.append(prettyPrintForReport(ppv));
+            sb.append(", ");
+        }
+        sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter 
+        return sb.toString();
+    }
+
+    public static String prettyPrintForReport(PrismContainer pc) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(prettyPrintForReport(pc.getElementName()).toUpperCase());
+        sb.append(": ");
+        List<PrismContainerValue> prvList = pc.getValues();
+        for (PrismContainerValue ppv : prvList) {
+            sb.append(prettyPrintForReport(ppv));
+            sb.append(", ");
+        }
+        sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter 
+        return sb.toString();
+    }
+
+    public static String prettyPrintForReport(PrismContainerValue pcv) {
+        StringBuilder sb = new StringBuilder();
+        for (Object it : pcv.getItems()) {
+            sb.append(prettyPrintForReport(it));
+            sb.append(", ");
+        }
+        sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter 
+        return sb.toString();
+    }
+
+    public static String prettyPrintForReport(PrismReferenceValue prv) {
+        Class targetClass = null;
+        if (prv.getTargetType() == null || prv.getTargetType().getLocalPart() == null || prv.getOid() == null) {
+            return "null";
+        }
+
+        try {
+            targetClass = Class.forName("com.evolveum.midpoint.xml.ns._public.common.common_3." + prv.getTargetType().getLocalPart());
+        } catch (ClassNotFoundException ex) {
+            LOGGER.error("Report Object Class not found: {}", ex.getMessage(), ex);
+        }
+
+        if (modelService == null) { //FIXME
+            return prv.toString();
+        }
+
+        try {
+            return prv.getTargetType().getLocalPart() + ": " + prv.getOid() + ", testGetObject: "
+                    + modelService.getObject(targetClass, prv.getOid(), null, null, null);
+        } catch (ObjectNotFoundException ex) {
+            LOGGER.error("Report Object does not exist: {}", ex.getMessage(), ex);
+        } catch (SchemaException | SecurityViolationException | CommunicationException | ConfigurationException ex) {
+            LOGGER.error("Report Object: {}", ex.getMessage(), ex);
+        }
+
+        return "null";
+    }
+
+    public static String prettyPrintForReport(PrismPropertyValue ppv) {
         if (ppv == null) {
             return "null";
         }
         Object value = ppv.getValue();
         if (value instanceof byte[]) {
-            return "<bytes length=" + ((byte[]) value).length + ">"; //Jasper doesnt like byte[]
+            return prettyPrintForReport((byte[]) value);
         } else {
             return value.toString();
         }
     }
 
-    private static String printPrismValueList(Collection<PrismValue> prismValueList) {
+    public static String prettyPrintForReport(byte[] ba) {
+        if (ba == null) {
+            return "null";
+        }
+        return "<bytes length=" + ((byte[]) ba).length + ">"; //Jasper doesnt like byte[] 
+    }
+
+    public static String prettyPrintForReport(Collection<PrismValue> prismValueList) {
         StringBuilder sb = new StringBuilder();
         for (PrismValue pv : prismValueList) {
-            if (pv instanceof PrismPropertyValue) {
-                sb.append(printPrismPropertyValue((PrismPropertyValue) pv));
-            } else {
-                sb.append(PrettyPrinter.prettyPrint(pv));
-            }
+            sb.append(prettyPrintForReport(pv));
             sb.append("#");
         }
-        sb.setLength(Math.max(sb.length() - 1, 0)); // delete last delimiter        
+        sb.setLength(Math.max(sb.length() - 1, 0)); // delete last # delimiter        
         return sb.toString();
     }
 
-    private static String printItemDelta(ItemDelta itemDelta) {
+    /*
+     Multiplexer method for various input classes
+     - Mostly Copied from com.evolveum.midpoint.util.PrettyPrinter, Credit goes to Evolveum        
+     */
+    public static String prettyPrintForReport(Object value) {
+        for (Method method : ReportUtils.class.getMethods()) {
+            if (method.getName().equals("prettyPrintForReport")) {
+                Class<?>[] parameterTypes = method.getParameterTypes();
+                if (parameterTypes.length == 1 && parameterTypes[0].equals(value.getClass())) {
+                    try {
+                        return (String) method.invoke(null, value);
+                    } catch (IllegalArgumentException e) {
+                        return "###INTERNAL#ERROR### Illegal argument: " + e.getMessage() + "; prettyPrintForReport method for value " + value;
+                    } catch (IllegalAccessException e) {
+                        return "###INTERNAL#ERROR### Illegal access: " + e.getMessage() + "; prettyPrintForReport method for value " + value;
+                    } catch (InvocationTargetException e) {
+                        return "###INTERNAL#ERROR### Illegal target: " + e.getMessage() + "; prettyPrintForReport method for value " + value;
+                    } catch (Throwable e) {
+                        return "###INTERNAL#ERROR### " + e.getClass().getName() + ": " + e.getMessage() + "; prettyPrintForReport method for value " + value;
+                    }
+                }
+            }
+        }
+        if (value.getClass().isArray()) {
+            Class<?> cclass = value.getClass().getComponentType();
+            if (cclass.isPrimitive()) {
+                if (cclass == byte.class) {
+                    return prettyPrintForReport((byte[]) value);
+                }
+            }
+        }
+
+        return value.toString();
+    }
+
+    public static String prettyPrintForReport(ItemDelta itemDelta) {
         StringBuilder sb = new StringBuilder();
         if (itemDelta.getValuesToReplace() != null) {
             sb.append("Replace: ");
-            sb.append(printQName(itemDelta.getElementName()).toUpperCase());
+            sb.append(prettyPrintForReport(itemDelta.getElementName()).toUpperCase());
             sb.append("=");
-            sb.append(printPrismValueList(itemDelta.getValuesToReplace()));
+            sb.append(prettyPrintForReport(itemDelta.getValuesToReplace()));
         }
 
         if (itemDelta.getValuesToAdd() != null) {
             sb.append("Add: ");
-            sb.append(printQName(itemDelta.getElementName()).toUpperCase());
+            sb.append(prettyPrintForReport(itemDelta.getElementName()).toUpperCase());
             sb.append("=");
-            sb.append(printPrismValueList(itemDelta.getValuesToAdd()));
+            sb.append(prettyPrintForReport(itemDelta.getValuesToAdd()));
         }
 
         if (itemDelta.getValuesToDelete() != null) {
             sb.append("Delete: ");
-            sb.append(printQName(itemDelta.getElementName()).toUpperCase());
+            sb.append(prettyPrintForReport(itemDelta.getElementName()).toUpperCase());
             sb.append("=");
-            sb.append(printPrismValueList(itemDelta.getValuesToDelete()));
+            sb.append(prettyPrintForReport(itemDelta.getValuesToDelete()));
         }
         return sb.toString();
     }
 
     public static String printDelta(ObjectDelta delta) {
         StringBuilder sb = new StringBuilder();
-        Collection<ItemDelta> itemDeltas = delta.getModifications();
-        for (ItemDelta itemDelta : itemDeltas) {
+        Collection<ItemDelta> modificationDeltas = delta.getModifications();
+        if (modificationDeltas != null && !modificationDeltas.isEmpty()) {
+            sb.append("Modifications:\n");
+        }
+        for (ItemDelta itemDelta : modificationDeltas) {
             try {
                 ItemPathSegment firstSegment = itemDelta.getParentPath().first();
                 if (firstSegment instanceof NameItemPathSegment) {
@@ -1229,15 +1358,14 @@ public class ReportUtils {
             } catch (NullPointerException npe) {
                 // silence exception as delta doesnt have parent
             }
-            sb.append(printItemDelta(itemDelta));
-            sb.append("|"); // TODO: user JASPER for inner table (list)?
+            sb.append(prettyPrintForReport(itemDelta));
+            sb.append("\n"); // IMPROVE_ME: use JASPER for inner table (list)?
         }
         sb.setLength(Math.max(sb.length() - 1, 0)); // delete last delimiter
-        //((ObjectDeltaOperation)deltas.get(0)).getObjectDelta().getModifications()
 
         PrismObject objectToAdd = delta.getObjectToAdd();
         if (objectToAdd != null) {
-            sb.append("---Add Object: "); //TODO: Add Attributes
+            sb.append("Add Object: "); //TODO: Show nonMeta Attributes of added object
             sb.append(objectToAdd);
         }
 
