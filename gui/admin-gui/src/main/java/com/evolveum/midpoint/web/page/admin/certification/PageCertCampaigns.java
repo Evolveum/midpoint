@@ -105,12 +105,11 @@ public class PageCertCampaigns extends PageAdminCertification {
 	public static final String OP_CLOSE_STAGE = "PageCertCampaigns.button.closeStage";
 	public static final String OP_OPEN_NEXT_STAGE = "PageCertCampaigns.button.openNextStage";
 	public static final String OP_START_REMEDIATION = "PageCertCampaigns.button.startRemediation";
-	private static final String DIALOG_CONFIRM_MULTIPLE_CLOSESTAGE = "confirmMultipleCloseStagePopup";
-	private static final String DIALOG_CONFIRM_MULTIPLE_DELETECAMPAIGNS = "confirmMultipleDeleteCampaignsPopup";
 	private static final String DIALOG_CONFIRM_CLOSESTAGE = "confirmCloseStagePopup";
-	private static final String DIALOG_CONFIRM_DELETECAMPAIGNS = "confirmDeleteCampaigns";
-	// private static final String DIALOG_CONFIRM_DELETECAMPAIGN =
-	// "confirmDeleteCampaignPopup";
+	private static final String DIALOG_CONFIRM_DELETECAMPAIGNS = "confirmDeleteCampaignsPopup";
+    private static final String DIALOG_CONFIRM_DELETECAMPAIGN ="confirmDeleteCampaignPopup";
+    private static final String DIALOG_CONFIRM_CLOSECAMPAIGN="confirmCloseCampaignPopup";
+    private static final String DIALOG_CONFIRM_CLOSECAMPAIGNS="confirmCloseCampaignsPopup";
 
 	private AccessCertificationCampaignType campaign;
 	private List<CertCampaignListItemDto> itemsToDelete;
@@ -196,7 +195,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 		Form mainForm = new Form(ID_MAIN_FORM);
 		add(mainForm);
 
-		add(new ConfirmationDialog(
+		/*add(new ConfirmationDialog(
 				DIALOG_CONFIRM_MULTIPLE_CLOSESTAGE,
 				createStringResource("PageCertCampaigns.dialog.title.confirmCloseStage"),
 				createCloseMultipleStageConfirmString()) {
@@ -206,7 +205,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 				close(target);
 				closeSelectedCampaignsPerformed(target);
 			}
-		});
+		});*/
 
 		add(new ConfirmationDialog(
 				DIALOG_CONFIRM_CLOSESTAGE,
@@ -215,31 +214,41 @@ public class PageCertCampaigns extends PageAdminCertification {
 
 			@Override
 			public void yesPerformed(AjaxRequestTarget target) {
-				OperationResult result = new OperationResult(
-						OPERATION_ADVANCE_LIFECYCLE);
-
-				try {
-					Task task;
-					task = createSimpleTask(OPERATION_CLOSE_STAGE);
-					int currentStage = campaign.getCurrentStageNumber();
-					CertificationManager cm = getCertificationManager();
-					close(target);
-					cm.closeCurrentStage(campaign.getOid(), currentStage, task,
-							result);
-				} catch (Exception ex) {
-					result.recordFatalError(ex);
-				} finally {
-					result.computeStatusIfUnknown();
-				}
-
-				showResult(result);
-				target.add(getCampaignsTable());
-				target.add(getFeedbackPanel());
+				close(target);
+					closeStage(target, campaign);			
 			}
 		});
 
+		
+		
 		add(new ConfirmationDialog(
-				DIALOG_CONFIRM_MULTIPLE_DELETECAMPAIGNS,
+				DIALOG_CONFIRM_CLOSECAMPAIGN,
+				createStringResource("PageCertCampaigns.title.confirmCloseCampaign"),
+				createCloseCampaignConfirmString()) {
+
+			@Override
+			public void yesPerformed(AjaxRequestTarget target) {
+				close(target);
+					closeCampaign(target, campaign);
+			
+			}
+		});
+		
+		add(new ConfirmationDialog(
+				DIALOG_CONFIRM_CLOSECAMPAIGNS,
+				createStringResource("PageCertCampaigns.dialog.title.confirmCloseCampaign"),
+				createCloseMultipleCampaignsConfirmString()) {
+
+			@Override
+			public void yesPerformed(AjaxRequestTarget target) {
+				close(target);
+				closeSelectedCampaignsPerformed(target);
+			}
+		});
+			
+		
+		add(new ConfirmationDialog(
+				DIALOG_CONFIRM_DELETECAMPAIGN,
 				createStringResource("PageCertCampaigns.title.confirmDeleteCampaign"),
 				createDeleteCampaignConfirmString()) {
 
@@ -282,6 +291,34 @@ public class PageCertCampaigns extends PageAdminCertification {
 			}
 		};
 	}
+	
+	
+	private IModel<String> createCloseCampaignConfirmString() {
+		return new AbstractReadOnlyModel<String>() {
+
+			@Override
+			public String getObject() {
+
+				return createStringResource(
+						"PageCertCampaigns.message.closeCampaignConfirmSingle",
+						campaign.getName()).getString();
+			}
+		};
+	}
+	
+	private IModel<String> createCloseMultipleCampaignsConfirmString() {
+		return new AbstractReadOnlyModel<String>() {
+
+			@Override
+			public String getObject() {
+
+				return createStringResource(
+						"PageCertCampaigns.message.closeCampaignConfirmMultiple",
+						WebMiscUtil.getSelectedData(getTable()).size())
+						.getString();
+			}
+		};
+	}
 
 	private IModel<String> createCloseMultipleStageConfirmString() {
 		return new AbstractReadOnlyModel<String>() {
@@ -307,7 +344,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 							"PageCertCampaigns.message.deleteCampaignConfirmMultiple",
 							WebMiscUtil.getSelectedData(getTable()).size())
 							.getString();
-				} else if (itemsToDelete.size() == 1) {
+				} else if (itemsToDelete.size() <= 1) {
 					return createStringResource(
 							"PageCertCampaigns.message.deleteCampaignConfirmSingle",
 							itemsToDelete.get(0).getName()).getString();
@@ -468,7 +505,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 					@Override
 					public void onClick(AjaxRequestTarget target) {
 						// closeSelectedCampaignsPerformed(target);
-						closeMultipleStageConfirmation(target);
+						closeMultipleCampaignsConfirmation(target);
 					}
 				}));
 		items.add(new InlineMenuItem(
@@ -491,9 +528,10 @@ public class PageCertCampaigns extends PageAdminCertification {
 						createStringResource("PageCertCampaigns.menu.close"),
 						new ColumnMenuAction<CertCampaignListItemDto>() {
 							@Override
-							public void onClick(AjaxRequestTarget target) {
-								executeCampaignStateOperation(target,
-										dto.getCampaign());
+							public void onClick(AjaxRequestTarget target) {								
+								campaign = dto.getCampaign();
+									closeCampaignConfirmation(target);
+								
 							}
 						}) {
 					@Override
@@ -513,7 +551,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 
 							@Override
 							public void onClick(AjaxRequestTarget target) {
-								deleteMultipleCampaignsConfirmation(
+								deleteCampaignConfirmation(
 										target,
 										Arrays.asList(getRowModel().getObject()));
 
@@ -574,9 +612,9 @@ public class PageCertCampaigns extends PageAdminCertification {
 		return button;
 	}
 
-	private void closeMultipleStageConfirmation(AjaxRequestTarget target) {
+	private void closeMultipleCampaignsConfirmation(AjaxRequestTarget target) {
 
-		ModalWindow dialog = (ModalWindow) get(DIALOG_CONFIRM_MULTIPLE_CLOSESTAGE);
+		ModalWindow dialog = (ModalWindow) get(DIALOG_CONFIRM_CLOSECAMPAIGNS);
 		dialog.show(target);
 	}
 
@@ -585,12 +623,18 @@ public class PageCertCampaigns extends PageAdminCertification {
 		ModalWindow dialog = (ModalWindow) get(DIALOG_CONFIRM_CLOSESTAGE);
 		dialog.show(target);
 	}
+	
+	private void closeCampaignConfirmation(AjaxRequestTarget target) {
 
-	private void deleteMultipleCampaignsConfirmation(AjaxRequestTarget target,
+		ModalWindow dialog = (ModalWindow) get(DIALOG_CONFIRM_CLOSECAMPAIGN); 
+		dialog.show(target);
+	}
+
+	private void deleteCampaignConfirmation(AjaxRequestTarget target,
 			List<CertCampaignListItemDto> itemsToDelete) {
 
 		this.itemsToDelete = itemsToDelete;
-		ModalWindow dialog = (ModalWindow) get(DIALOG_CONFIRM_MULTIPLE_DELETECAMPAIGNS);
+		ModalWindow dialog = (ModalWindow) get(DIALOG_CONFIRM_DELETECAMPAIGN);
 		dialog.show(target);
 	}
 
@@ -620,11 +664,12 @@ public class PageCertCampaigns extends PageAdminCertification {
 						result);
 				break;
 			case OP_CLOSE_STAGE:
+				this.campaign = campaign;
 				task = createSimpleTask(OPERATION_CLOSE_STAGE);
 				closeStageConfirmation(target);
-				this.campaign = campaign;
-				// xcm.closeCurrentStage(campaign.getOid(), currentStage, task,
-				// result);
+				//set campaign
+				
+				// xcm.closeCurrentStage(campaign.getOid(), currentStage, task,result);
 				break;
 			case OP_START_REMEDIATION:
 				task = createSimpleTask(OPERATION_START_REMEDIATION);
@@ -632,7 +677,10 @@ public class PageCertCampaigns extends PageAdminCertification {
 				break;
 			case OP_CLOSE_CAMPAIGN: // not used
 				task = createSimpleTask(OPERATION_CLOSE_CAMPAIGN);
-				cm.closeCampaign(campaign.getOid(), task, result);
+				//set campaign
+				this.campaign = campaign;
+				closeCampaignConfirmation(target);
+				//xcm.closeCampaign(campaign.getOid(), task, result);
 				break;
 			default:
 				throw new IllegalStateException("Unknown action: " + action);
@@ -648,6 +696,8 @@ public class PageCertCampaigns extends PageAdminCertification {
 		target.add(getFeedbackPanel());
 	}
 
+	
+	
 	private void closeCampaign(AjaxRequestTarget target,
 			AccessCertificationCampaignType campaign) {
 		LOGGER.debug("Close certification campaign performed for {}",
@@ -659,6 +709,27 @@ public class PageCertCampaigns extends PageAdminCertification {
 			Task task = createSimpleTask(OPERATION_CLOSE_CAMPAIGN);
 			cm.closeCampaign(campaign.getOid(), task, result);
 		} catch (Exception ex) {
+			result.recordFatalError(ex);
+		} finally {
+			result.computeStatusIfUnknown();
+		}
+
+		showResult(result);
+		target.add(getCampaignsTable());
+		target.add(getFeedbackPanel());
+	}
+	
+	private void closeStage(AjaxRequestTarget target,
+			AccessCertificationCampaignType campaign) {
+		LOGGER.debug("Close certification stage performed for {}",
+				campaign.asPrismObject());
+
+		OperationResult result = new OperationResult(OPERATION_CLOSE_STAGE);
+		try {
+			CertificationManager cm = getCertificationManager();
+			Task task = createSimpleTask(OPERATION_CLOSE_STAGE);
+			cm.closeCurrentStage(campaign.getOid(), campaign.getCurrentStageNumber(), task, result);
+		}catch (Exception ex) {
 			result.recordFatalError(ex);
 		} finally {
 			result.computeStatusIfUnknown();
