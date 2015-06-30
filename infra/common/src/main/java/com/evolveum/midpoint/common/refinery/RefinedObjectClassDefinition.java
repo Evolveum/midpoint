@@ -73,6 +73,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	private Collection<RefinedAssociationDefinition> associations = new ArrayList<RefinedAssociationDefinition>();
 	private Collection<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions;
 	private ResourceObjectReferenceType baseContext; 
+	private RefinedAttributeDefinition<?> displayNameAttributeDefinition;
 	
     /**
      * Refined object definition. The "any" parts are replaced with appropriate schema (e.g. resource schema)
@@ -168,7 +169,14 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 
 	@Override
     public RefinedAttributeDefinition<?> getDisplayNameAttribute() {
-        return substituteRefinedAttributeDefinition(objectClassDefinition.getDisplayNameAttribute());
+		if (displayNameAttributeDefinition == null) {
+			ResourceAttributeDefinition<?> displayNameAttribute = objectClassDefinition.getDisplayNameAttribute();
+			if (displayNameAttribute == null) {
+				return null;
+			}
+			displayNameAttributeDefinition = substituteRefinedAttributeDefinition(displayNameAttribute);
+		}
+		return displayNameAttributeDefinition;
     }
 
     @Override
@@ -677,6 +685,10 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
             	}
             }
             add(rAttrDef);
+            
+            if (rAttrDef.isDisplayNameAttribute()) {
+            	displayNameAttributeDefinition = rAttrDef;
+            }
 
         }
 

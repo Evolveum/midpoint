@@ -82,7 +82,7 @@
 					<xsd:appinfo>
 						<r:resourceObject />
 						<r:identifier ref="icfs:uid" />
-						<r:displayName ref="icfs:name" />
+						<r:displayNameAttribute ref="icfs:name" />
 						<r:namingAttribute ref="icfs:name" />
 						<r:nativeObjectClass>__GROUP__</r:nativeObjectClass>
 					</xsd:appinfo>
@@ -107,7 +107,7 @@
 						<r:account />
 						<r:resourceObject />
 						<r:identifier ref="icfs:uid" />
-						<r:displayName ref="icfs:name" />
+						<r:displayNameAttribute ref="ri:uid" />
 						<r:namingAttribute ref="icfs:name" />
 						<r:nativeObjectClass>__ACCOUNT__</r:nativeObjectClass>
 						<r:default/>

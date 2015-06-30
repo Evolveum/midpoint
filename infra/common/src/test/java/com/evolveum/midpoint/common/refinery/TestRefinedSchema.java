@@ -150,6 +150,7 @@ public class TestRefinedSchema {
     private void assertRefinedSchema(ResourceType resourceType, RefinedResourceSchema rSchema, 
     		LayerType sourceLayer, LayerType validationLayer, boolean assertEntitlements) {
         assertFalse("No account definitions", rSchema.getRefinedDefinitions(ShadowKindType.ACCOUNT).isEmpty());
+        
         RefinedObjectClassDefinition rAccountDef = rSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, (String)null);
         
         RefinedObjectClassDefinition accountDefByNullObjectclass = rSchema.findRefinedDefinitionByObjectClassQName(ShadowKindType.ACCOUNT, null);
@@ -174,6 +175,10 @@ public class TestRefinedSchema {
         assertNotNull("No ds-pwp-account-disabled attribute", disabledAttribute);
         assertTrue("ds-pwp-account-disabled not ignored", disabledAttribute.isIgnored());
         
+        RefinedAttributeDefinition<?> displayNameAttributeDef = rAccountDef.getDisplayNameAttribute();
+        assertNotNull("No account displayNameAttribute", displayNameAttributeDef);
+        assertEquals("Wrong account displayNameAttribute", new QName(resourceType.getNamespace(), "uid"), displayNameAttributeDef.getName());
+        
         // This is compatibility with PrismContainerDefinition, it should work well
         Collection<? extends ItemDefinition> propertyDefinitions = rAccountDef.getDefinitions();
         assertNotNull("Null propertyDefinitions", propertyDefinitions);
@@ -194,6 +199,10 @@ public class TestRefinedSchema {
 	        assertFalse("Empty attributeDefinitions", entAttrDefs.isEmpty());
 	        assertEquals("Unexpected number of attributeDefinitions", 11, entAttrDefs.size());
 	        // TODO
+	        
+	        RefinedAttributeDefinition<?> entDisplayNameAttributeDef = rEntDef.getDisplayNameAttribute();
+	        assertNotNull("No entitlement displayNameAttribute", entDisplayNameAttributeDef);
+	        assertEquals("Wrong entitlement displayNameAttribute", new QName(resourceType.getNamespace(), "cn"), entDisplayNameAttributeDef.getName());
 	        
 	        assertEquals("Unexpected number of entitlement associations", 1, rAccountDef.getEntitlementAssociations().size());
         }

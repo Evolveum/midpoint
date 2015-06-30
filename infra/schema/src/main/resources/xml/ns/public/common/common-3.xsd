@@ -3800,6 +3800,14 @@
 	            		</xsd:documentation>
 	            	</xsd:annotation>
 				</xsd:element>
+				<xsd:element name="displayNameAttribute" type="xsd:boolean" minOccurs="0">
+	            <xsd:annotation>
+	            		<xsd:documentation>
+	            			Indicated if the content of this attribute should be used as a human-readable name when
+	            			displaying resource objects of this type.
+	            		</xsd:documentation>
+	            	</xsd:annotation>
+				</xsd:element>
 	    		
 	            <xsd:element name="tolerantValuePattern" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
 	            	<xsd:annotation>

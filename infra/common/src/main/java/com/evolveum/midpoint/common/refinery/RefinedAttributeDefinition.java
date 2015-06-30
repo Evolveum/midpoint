@@ -52,6 +52,7 @@ public class RefinedAttributeDefinition<T> extends ResourceAttributeDefinition<T
     private boolean tolerant = true;
     private boolean isExclusiveStrong = false;
 	protected boolean secondaryIdentifier = false;
+	private boolean isDisplayNameAttribute = false;
     private List<String> intolerantValuePattern;
     private List<String> tolerantValuePattern;
     private ResourceAttributeDefinition<T> attributeDefinition;
@@ -399,6 +400,10 @@ public class RefinedAttributeDefinition<T> extends ResourceAttributeDefinition<T
             rAttrDef.setModificationPriority(schemaHandlingAttrDefType.getModificationPriority());
 
             rAttrDef.setReadReplaceMode(schemaHandlingAttrDefType.isReadReplaceMode());            // may be null at this point
+            
+            if (schemaHandlingAttrDefType.isDisplayNameAttribute() != null && schemaHandlingAttrDefType.isDisplayNameAttribute()) {
+            	rAttrDef.isDisplayNameAttribute = true;
+            }
         }
 
         PropertyLimitations previousLimitations = null;
@@ -578,4 +583,8 @@ public class RefinedAttributeDefinition<T> extends ResourceAttributeDefinition<T
     public void setReadReplaceMode(Boolean readReplaceMode) {
         this.readReplaceMode = readReplaceMode;
     }
+
+	public boolean isDisplayNameAttribute() {
+		return isDisplayNameAttribute;
+	}
 }
