@@ -130,6 +130,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportFieldConfigurationType;
@@ -1159,7 +1160,11 @@ public class ReportUtils {
     }
 
     public static String getPropertyString(String key) {
-        String val = key;
+        return getPropertyString(key, null);
+    }
+
+    public static String getPropertyString(String key, String defaultValue) {
+        String val = (defaultValue == null) ? key : defaultValue;
         ResourceBundle bundle = ResourceBundle.getBundle("com.evolveum.midpoint.web.security.MidPointApplication");
         if (bundle != null && bundle.containsKey(key)) {
             val = bundle.getString(key);
@@ -1236,7 +1241,7 @@ public class ReportUtils {
             LOGGER.error("Report Object Class not found: {}", ex.getMessage(), ex);
         }
 
-        if (modelService == null) { //FIXME
+        if (modelService == null) { //FIXME            
             return prv.toString();
         }
 
@@ -1256,12 +1261,24 @@ public class ReportUtils {
         if (ppv == null) {
             return "null";
         }
-        Object value = ppv.getValue();
-        if (value instanceof byte[]) {
-            return prettyPrintForReport((byte[]) value);
-        } else {
-            return value.toString();
+        return prettyPrintForReport(ppv.getValue());
+
+    }
+
+    public static String prettyPrintForReport(OperationResultType ort) {
+        StringBuilder sb = new StringBuilder();
+        if (ort.getOperation() != null) {
+            sb.append(ort.getOperation());
+            sb.append(" ");
         }
+        //sb.append(ort.getParams()); //IMPROVE_ME: implement prettyPrint for List<EntryType>
+        //sb.append(" ");
+        if (ort.getMessage() != null) {
+            sb.append(ort.getMessage());
+            sb.append(" ");
+        }
+        sb.append(ort.getStatus());
+        return sb.toString();
     }
 
     public static String prettyPrintForReport(byte[] ba) {
@@ -1366,7 +1383,7 @@ public class ReportUtils {
         PrismObject objectToAdd = delta.getObjectToAdd();
         if (objectToAdd != null) {
             sb.append("Add Object: "); //TODO: Show nonMeta Attributes of added object
-            sb.append(objectToAdd);
+            sb.append(objectToAdd.getBusinessDisplayName());
         }
 
         return sb.toString();
