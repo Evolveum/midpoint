@@ -270,7 +270,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	}
 
 	protected String getGroupsLdapSuffix() {
-		return "ou=people,"+getLdapSuffix();
+		return "ou=groups,"+getLdapSuffix();
 	}
 	
 	protected abstract String getLdapGroupObjectClass();

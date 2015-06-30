@@ -38,21 +38,23 @@
 			</q:and>
 		</filter>
 	</connectorRef>
+	
 	<connectorConfiguration 
-			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
 			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
 			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector">
 		<icfc:configurationProperties>
 			<icfcldap:port>2389</icfcldap:port>
 			<icfcldap:host>localhost</icfcldap:host>
 			<icfcldap:baseContext>dc=example,dc=com</icfcldap:baseContext>
-			<icfcldap:bindDn>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:bindDn>
+			<icfcldap:bindDn>cn=idm,ou=Special Users,dc=example,dc=comm</icfcldap:bindDn>
 			<icfcldap:bindPassword><t:clearValue>secret</t:clearValue></icfcldap:bindPassword>
-			<icfcldap:uidAttribute>dn</icfcldap:uidAttribute>
+			<icfcldap:uidAttribute>nsUniqueId</icfcldap:uidAttribute>
 			<icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
 			<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
+			<icfcldap:vlvSortOrderingRule>2.5.13.3</icfcldap:vlvSortOrderingRule>
 			<icfcldap:operationalAttributes>memberOf</icfcldap:operationalAttributes>
 			<icfcldap:operationalAttributes>createTimestamp</icfcldap:operationalAttributes>
+			<icfcldap:operationalAttributes>nsAccountLock</icfcldap:operationalAttributes>
 		</icfc:configurationProperties>
 		<icfc:resultsHandlerConfiguration>
 			<icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
@@ -60,7 +62,7 @@
 			<icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
 		</icfc:resultsHandlerConfiguration>
 	</connectorConfiguration>
-	
+
 	<schemaHandling>
 		<objectType>
 			<intent>default</intent>
@@ -68,7 +70,7 @@
 			<default>true</default>
 			<objectClass>ri:inetOrgPerson</objectClass>
 			<attribute>
-				<ref>icfs:name</ref>
+				<ref>ri:dn</ref>
 				<displayName>Distinguished Name</displayName>
 				<matchingRule>mr:stringIgnoreCase</matchingRule>
 				<outbound>
@@ -85,8 +87,8 @@
 				</outbound>
 			</attribute>
 			<attribute>
-				<ref>icfs:uid</ref>
-				<displayName>Entry DN</displayName>
+				<ref>ri:nsUniqueId</ref>
+				<displayName>Entry ID</displayName>
 				<matchingRule>mr:stringIgnoreCase</matchingRule>
 			</attribute>
 			<attribute>
@@ -163,10 +165,6 @@
 				<fetchStrategy>explicit</fetchStrategy>
 			</attribute>
 			
-			<iteration>
-				<maxIterations>5</maxIterations>
-			</iteration>
-			
 			 <association>
             	<ref>ri:group</ref>
             	<displayName>LDAP Group Membership</displayName>
@@ -174,14 +172,24 @@
             	<intent>ldapGroup</intent>
             	<direction>objectToSubject</direction>
             	<associationAttribute>ri:uniqueMember</associationAttribute>
-            	<valueAttribute>icfs:name</valueAttribute>
+            	<valueAttribute>ri:dn</valueAttribute>
             	<shortcutAssociationAttribute>ri:memberOf</shortcutAssociationAttribute>
-            	<shortcutValueAttribute>icfs:name</shortcutValueAttribute>
+            	<shortcutValueAttribute>ri:dn</shortcutValueAttribute>
             	<explicitReferentialIntegrity>true</explicitReferentialIntegrity>
             </association>
+            
+            <iteration>
+				<maxIterations>5</maxIterations>
+			</iteration>
 			
 			<protected>
-				<icfs:name>uid=idm,ou=Administrators,dc=example,dc=com</icfs:name>
+       			<filter>
+	       			<q:equal>
+	       				<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#stringIgnoreCase</q:matching>
+		            	<q:path>attributes/ri:dn</q:path>
+		                <q:value>cn=idm,ou=Special Users,dc=example,dc=com</q:value>
+		            </q:equal>
+	            </filter>
 			</protected>
 			
 			<activation>
@@ -198,7 +206,7 @@
             <displayName>LDAP Group</displayName>
             <objectClass>ri:groupOfUniqueNames</objectClass>
             <attribute>
-				<ref>icfs:name</ref>
+				<ref>ri:dn</ref>
 				<matchingRule>mr:stringIgnoreCase</matchingRule>
 				<outbound>
 					<!-- Name cannot be weak. Changes in name trigger object rename. -->
