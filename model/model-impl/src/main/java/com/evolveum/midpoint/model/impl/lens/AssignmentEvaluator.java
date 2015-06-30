@@ -527,7 +527,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 			evaluateAssignment(assignment, roleAssignmentPathSegment, evaluateOld, mode, roleType, subSourceDescription, assignmentPath, task, result);
 		}
 		for(AuthorizationType authorizationType: roleType.getAuthorization()) {
-			Authorization authorization = createAuthorization(authorizationType);
+			Authorization authorization = createAuthorization(authorizationType, roleType.toString());
 			assignment.addAuthorization(authorization);
 		}
 		
@@ -574,8 +574,9 @@ public class AssignmentEvaluator<F extends FocusType> {
 	}
 
 
-	private Authorization createAuthorization(AuthorizationType authorizationType) {
+	private Authorization createAuthorization(AuthorizationType authorizationType, String sourceDesc) {
 		Authorization authorization = new Authorization(authorizationType);
+		authorization.setSourceDescription(sourceDesc);
 		return authorization;
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OwnedObjectSpecifica
  */
 public class Authorization implements GrantedAuthority, DebugDumpable {
 	
-	AuthorizationType authorizationType;
+	private AuthorizationType authorizationType;
+	private String sourceDescription;
 
 	public Authorization(AuthorizationType authorizationType) {
 		super();
@@ -54,6 +55,14 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
 
 	public String getDescription() {
 		return authorizationType.getDescription();
+	}
+
+	public String getSourceDescription() {
+		return sourceDescription;
+	}
+
+	public void setSourceDescription(String sourceDescription) {
+		this.sourceDescription = sourceDescription;
 	}
 
 	public AuthorizationDecisionType getDecision() {
@@ -84,6 +93,20 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
 		return authorizationType.getTarget();
 	}
 
+	public String getHumanReadableDesc() {
+		StringBuilder sb = new StringBuilder();
+		if (authorizationType.getName() != null) {
+			sb.append("authorization '").append(authorizationType.getName()).append("'");
+		} else {
+			sb.append("unnamed authorization");
+		}
+		if (sourceDescription != null) {
+			sb.append(" in ");
+			sb.append(sourceDescription);
+		}
+		return sb.toString();
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.util.DebugDumpable#debugDump()
 	 */
