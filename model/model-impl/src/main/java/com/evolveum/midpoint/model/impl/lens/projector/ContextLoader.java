@@ -40,11 +40,14 @@ import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.controller.ModelUtils;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensObjectDeltaOperation;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.SynchronizationIntent;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -139,6 +142,8 @@ public class ContextLoader {
 	    			projectionContext.setFresh(true);
 	    		}
     		}
+	    	
+	    	setPrimaryDeltaOldValue(focusContext);
 	    	
     	} else {
     		// Projection contexts are not rotten in this case. There is no focus so there is no way to refresh them.
@@ -354,6 +359,15 @@ public class ContextLoader {
         focusContext.setLoadedObject(object);
         focusContext.setFresh(true);
     }
+	
+	private <O extends ObjectType> void setPrimaryDeltaOldValue(LensElementContext<O> ctx) throws SchemaException, ObjectNotFoundException {
+		if (ctx.getPrimaryDelta() != null && ctx.getObjectOld() != null && ctx.isModify()) {
+			PrismObject<O> objectOld = ctx.getObjectOld();
+			for (ItemDelta<?,?> itemDelta: ctx.getPrimaryDelta().getModifications()) {
+				LensUtil.setDeltaOldValue(ctx, itemDelta);
+			}
+		}
+	}
 	
 	private <F extends ObjectType> void loadFromSystemConfig(LensContext<F> context, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ConfigurationException {
@@ -1023,6 +1037,8 @@ public class ContextLoader {
 				}
 			}
 		}
+		
+		setPrimaryDeltaOldValue(projContext);
 	}
 	
 	private <F extends ObjectType> boolean needToReload(LensContext<F> context,

@@ -16,13 +16,18 @@
 package com.evolveum.midpoint.prism.util;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.parser.DomParser;
 import com.evolveum.midpoint.prism.parser.PrismBeanConverter;
 import com.evolveum.midpoint.prism.parser.XNodeProcessor;
@@ -39,6 +44,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -189,6 +195,22 @@ public class PrismUtil {
 				targetProp.add(new PrismPropertyValue<X>(convertedRealValue));
 			}
 			return targetProp;
+		}
+	}
+	
+	public static <O extends Objectable> void setDeltaOldValue(PrismObject<O> oldObject, ItemDelta<?,?> itemDelta) {
+		if (oldObject == null) {
+			return;
+		}
+		Item<PrismValue, ItemDefinition> itemOld = oldObject.findItem(itemDelta.getPath());
+		if (itemOld != null) {
+			itemDelta.setEstimatedOldValues((Collection) PrismValue.cloneCollection(itemOld.getValues()));
+		}
+	}
+	
+	public static <O extends Objectable> void setDeltaOldValue(PrismObject<O> oldObject, Collection<? extends ItemDelta> itemDeltas) {
+		for(ItemDelta itemDelta: itemDeltas) {
+			setDeltaOldValue(oldObject, itemDelta);
 		}
 	}
 	

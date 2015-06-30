@@ -19,7 +19,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 
@@ -55,6 +57,7 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 	protected Collection<V> valuesToReplace = null;
 	protected Collection<V> valuesToAdd = null;
 	protected Collection<V> valuesToDelete = null;
+	protected Collection<V> estimatedOldValues = null;
 
     transient private PrismContext prismContext;
 
@@ -604,6 +607,52 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 	private boolean hasAnyValue(Collection<V> set) {
 		return (set != null && !set.isEmpty());
 	}
+	
+	/**
+	 * Returns estimated state of the old value before the delta is applied.
+	 * This information is not entirely reliable. The state might change
+	 * between the value is read and the delta is applied. This is property
+	 * is optional and even if provided it is only for for informational
+	 * purposes.
+	 * 
+	 * If this method returns null then it should be interpreted as "I do not know".
+	 * In that case the delta has no information about the old values.
+	 * If this method returns empty collection then it should be interpreted that
+	 * we know that there were no values in this item before the delta was applied.
+	 * 
+	 * @return estimated state of the old value before the delta is applied (may be null).
+	 */
+	public Collection<V> getEstimatedOldValues() {
+		return estimatedOldValues;
+	}
+
+	public void setEstimatedOldValues(Collection<V> estimatedOldValues) {
+		this.estimatedOldValues = estimatedOldValues;
+	}
+	
+	public void addEstimatedOldValues(Collection<V> newValues) {
+		for (V val : newValues) {
+			addEstimatedOldValue(val);
+		}
+	}
+	
+	public void addEstimatedOldValues(V... newValues) {
+		for (V val : newValues) {
+			addEstimatedOldValue(val);
+		}
+	}
+
+	public void addEstimatedOldValue(V newValue) {
+		if (estimatedOldValues == null) {
+			estimatedOldValues = newValueCollection();
+		}
+		if (PrismValue.containsRealValue(estimatedOldValues,newValue)) {
+			return;
+		}
+		estimatedOldValues.add(newValue);
+		newValue.setParent(this);
+		newValue.recompute();
+	}
 
 	public void normalize() {
 		normalize(valuesToAdd);
@@ -790,8 +839,20 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 	}
 	
 	public static void checkConsistence(Collection<? extends ItemDelta> deltas, boolean requireDefinition, boolean prohibitRaw, ConsistencyCheckScope scope) {
+		Map<ItemPath,ItemDelta<?,?>> pathMap = new HashMap<>(); 
 		for (ItemDelta<?,?> delta : deltas) {
 			delta.checkConsistence(requireDefinition, prohibitRaw, scope);
+			int matches = 0;
+			for (ItemDelta<?,?> other : deltas) {
+				if (other == delta) {
+					matches++;
+				} else if (other.equals(delta)) {
+					throw new IllegalStateException("Duplicate item delta: "+delta+" and "+other);
+				}
+			}
+			if (matches > 1) {
+				throw new IllegalStateException("The delta "+delta+" appears multiple times in the modification list");
+			}
 		}
 	}
 
@@ -1138,6 +1199,7 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 		clone.valuesToAdd = cloneSet(clone, this.valuesToAdd);
 		clone.valuesToDelete = cloneSet(clone, this.valuesToDelete);
 		clone.valuesToReplace = cloneSet(clone, this.valuesToReplace);
+		clone.estimatedOldValues = cloneSet(clone, this.estimatedOldValues);
 	}
 
 	private Collection<V> cloneSet(ItemDelta clone, Collection<V> thisSet) {
@@ -1365,6 +1427,8 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 			return false;
 		if (!equalsSetRealValue(this.valuesToReplace, other.valuesToReplace))
 			return false;
+		if (!equalsSetRealValue(this.estimatedOldValues, other.estimatedOldValues))
+			return false;
 		return true;
 	}
 
@@ -1437,6 +1501,11 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 			sb.append("\n");
 			dumpValues(sb, "DELETE", valuesToDelete, indent + 1);
 		}
+		
+		if (estimatedOldValues != null) {
+			sb.append("\n");
+			dumpValues(sb, "OLD", estimatedOldValues, indent + 1);
+		}
 
 		return sb.toString();
 
@@ -1464,6 +1533,28 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 				}
 			}
 		}
+	}
+
+	public static void addAll(Collection<? extends ItemDelta> modifications, Collection<? extends ItemDelta> deltasToAdd) {
+		if (deltasToAdd == null) {
+			return;
+		}
+		for (ItemDelta deltaToAdd: deltasToAdd) {
+			if (!modifications.contains(deltaToAdd)) {
+				((Collection)modifications).add(deltaToAdd);
+			}
+		}
+		
+	}
+	
+	public static void merge(Collection<? extends ItemDelta> modifications, ItemDelta delta) {
+		for (ItemDelta modification: modifications) {
+			if (modification.getPath().equals(delta.getPath())) {
+				modification.merge(delta);
+				return;
+			}
+		}
+		((Collection)modifications).add(delta);
 	}
 
 }

@@ -716,7 +716,7 @@ public class PrismAsserts {
 		assertValues(setName+" set in "+inMessage, actualPValues, expectedValues);
 	}
 	
-	public static <T> void assertValues(String message, Collection<PrismPropertyValue<T>> actualPValues, T[] expectedValues) {
+	public static <T> void assertValues(String message, Collection<PrismPropertyValue<T>> actualPValues, T... expectedValues) {
 		assertNotNull("Null set in " + message, actualPValues);
 		assertEquals("Wrong number of values in " + message, expectedValues.length, actualPValues.size());
 		for (PrismPropertyValue<?> actualPValue: actualPValues) {

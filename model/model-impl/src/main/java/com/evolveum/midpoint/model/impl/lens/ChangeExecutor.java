@@ -644,9 +644,6 @@ public class ChangeExecutor {
     			}
 	    		LensObjectDeltaOperation<T> objectDeltaOp = new LensObjectDeltaOperation<T>(objectDelta.clone());
 		        objectDeltaOp.setExecutionResult(result);
-		        if (objectContext.getObjectOld() != null) {
-		        	objectDeltaOp.setEstimatedOldObject(objectContext.getObjectOld().clone());
-		        }
 		        objectContext.addToExecutedDeltas(objectDeltaOp);
     		}
         

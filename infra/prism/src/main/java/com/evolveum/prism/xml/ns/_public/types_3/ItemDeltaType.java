@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -118,9 +118,14 @@ public class ItemDeltaType implements Serializable, Cloneable {
     protected ModificationTypeType modificationType;
 //    @XmlAnyElement
     protected ItemPathType path;
+
     @XmlElement(required = true)
     @Raw
     protected List<Object> value;           // Object is here to show as xsd:anyType in WSDL
+    
+    @XmlElement(required = true)
+    @Raw
+    protected List<Object> estimatedOldValue;           // Object is here to show as xsd:anyType in WSDL
 
     /**
      * Gets the value of the modificationType property.
@@ -205,6 +210,13 @@ public class ItemDeltaType implements Serializable, Cloneable {
 //        this.value = value;
 //    }
 
+    
+    public List<RawType> getEstimatedOldValue() {
+    	if (estimatedOldValue == null){
+    		estimatedOldValue = new ArrayList<>();
+    	}
+        return (List<RawType>) (List) estimatedOldValue;        // brutal hack
+    }
 
     /**
      * <p>Java class for anonymous complex type.
@@ -307,13 +319,13 @@ public class ItemDeltaType implements Serializable, Cloneable {
 
     @Override
     public ItemDeltaType clone() {
-        ItemDeltaType delta = new ItemDeltaType();
-        delta.setModificationType(getModificationType());
-        delta.setPath(getPath());  //TODO clone path
-        delta.getValue().addAll(getValue());
+        ItemDeltaType clone = new ItemDeltaType();
+        clone.setModificationType(getModificationType());
+        clone.setPath(getPath());  //TODO clone path
+        clone.getValue().addAll(getValue());
 //        delta.setValue(value != null ? value.clone() : null);
-
-        return delta;
+        clone.getEstimatedOldValue().addAll(getEstimatedOldValue());
+        return clone;
     }
 
     /**
@@ -584,13 +596,18 @@ public class ItemDeltaType implements Serializable, Cloneable {
 				return false;
 		} else if (!MiscUtil.unorderedCollectionEquals(value, other.value))
 			return false;
+		if (estimatedOldValue == null) {
+			if (other.estimatedOldValue != null)
+				return false;
+		} else if (!MiscUtil.unorderedCollectionEquals(estimatedOldValue, other.estimatedOldValue))
+			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
 		return "ItemDeltaType(modificationType=" + modificationType
-				+ ", path=" + path + ", value=" + value + ")";
+				+ ", path=" + path + ", value=" + value + ", estimatedOldValue=" + estimatedOldValue + ")";
 	}
     
 }

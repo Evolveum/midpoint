@@ -2359,9 +2359,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         dummyAuditService.assertOldValue(ChangeType.MODIFY, UserType.class,
         		UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Jack Sparrow"));
-        display("Audit: old shadow", dummyAuditService.getEstimatedOldObject(ChangeType.MODIFY, ShadowType.class));
-        dummyAuditService.assertOldValue(ChangeType.MODIFY, ShadowType.class, 
-        		new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), "jack");
         // This is not reconciliation. We are not reading old value.
 //        dummyAuditService.assertOldValue(ChangeType.MODIFY, ShadowType.class, 
 //        		dummyResourceCtl.getAttributeFullnamePath(), "Jack Sparrow");
@@ -2804,7 +2801,19 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(2);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
-        dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
+        ObjectDeltaOperation<ShadowType> auditShadowDelta = dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
+        
+        assertEquals("Unexpected number of modifications in shadow audit delta: "+auditShadowDelta.debugDump(), 4, auditShadowDelta.getObjectDelta().getModifications().size());
+        
+        dummyAuditService.assertOldValue(ChangeType.MODIFY, UserType.class,
+        		UserType.F_NAME, PrismTestUtil.createPolyString("morgan"));
+        dummyAuditService.assertOldValue(ChangeType.MODIFY, ShadowType.class, 
+        		new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), "morgan");
+        dummyAuditService.assertOldValue(ChangeType.MODIFY, ShadowType.class, 
+        		new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_UID), "morgan");
+        dummyAuditService.assertOldValue(ChangeType.MODIFY, ShadowType.class, 
+        		new ItemPath(ShadowType.F_NAME), PrismTestUtil.createPolyString("morgan"));
+        
         dummyAuditService.assertTarget(USER_MORGAN_OID);
         dummyAuditService.assertExecutionSuccess();
 

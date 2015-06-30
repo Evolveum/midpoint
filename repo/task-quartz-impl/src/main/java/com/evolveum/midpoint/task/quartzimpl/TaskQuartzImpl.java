@@ -287,7 +287,7 @@ public class TaskQuartzImpl implements Task {
 		if (pendingModifications == null) {
 			pendingModifications = new ArrayList<>();
         }
-		pendingModifications.add(delta);
+		ItemDelta.merge(pendingModifications, delta);
 	}
 
 	@Override
@@ -718,7 +718,7 @@ public class TaskQuartzImpl implements Task {
         for (ItemDelta itemDelta : extensionDeltas) {
             Collection<ItemDeltaType> deltaTypes = null;
             try {
-                deltaTypes = DeltaConvertor.toPropertyModificationTypes(itemDelta);
+                deltaTypes = DeltaConvertor.toItemDeltaTypes(itemDelta);
             } catch (SchemaException e) {
                 throw new SystemException("Unexpected SchemaException when converting extension ItemDelta to ItemDeltaType", e);
             }

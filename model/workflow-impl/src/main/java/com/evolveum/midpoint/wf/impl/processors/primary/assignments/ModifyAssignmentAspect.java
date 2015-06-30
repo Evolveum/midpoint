@@ -165,7 +165,7 @@ public abstract class ModifyAssignmentAspect<T extends ObjectType, F extends Foc
             deltas = new ArrayList<>();
             deltasById.put(id, deltas);
         }
-        Collection<ItemDeltaType> itemDeltaTypes = DeltaConvertor.toPropertyModificationTypes(delta);
+        Collection<ItemDeltaType> itemDeltaTypes = DeltaConvertor.toItemDeltaTypes(delta);
         deltas.addAll(itemDeltaTypes);
     }
 

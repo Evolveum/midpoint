@@ -180,7 +180,7 @@ public class DeltaConvertor {
         for (ItemDelta<?,?> propDelta : delta.getModifications()) {
             Collection<ItemDeltaType> propPropModTypes;
             try {
-                propPropModTypes = toPropertyModificationTypes(propDelta);
+                propPropModTypes = toItemDeltaTypes(propDelta);
             } catch (SchemaException e) {
                 throw new SchemaException(e.getMessage() + " in " + delta.toString(), e);
             }
@@ -224,7 +224,7 @@ public class DeltaConvertor {
 		    for (ItemDelta<?,?> propDelta : objectDelta.getModifications()) {
 		        Collection<ItemDeltaType> propPropModTypes;
 		        try {
-		            propPropModTypes = toPropertyModificationTypes(propDelta);
+		            propPropModTypes = toItemDeltaTypes(propDelta);
 		        } catch (SchemaException e) {
 		            throw new SchemaException(e.getMessage() + " in " + objectDelta.toString(), e);
 		        }
@@ -315,6 +315,11 @@ public class DeltaConvertor {
         } else if (propMod.getModificationType() == ModificationTypeType.REPLACE) {
         	itemDelta.setValuesToReplace(PrismValue.resetParentCollection(PrismValue.cloneCollection(item.getValues())));
         }
+        
+        if (!propMod.getEstimatedOldValue().isEmpty()) {
+        	Item oldItem = RawTypeUtil.getParsedItem(containingPcd, propMod.getEstimatedOldValue(), elementName, containerDef);
+        	itemDelta.addEstimatedOldValues(PrismValue.resetParentCollection(PrismValue.cloneCollection(oldItem.getValues())));
+        }
 
         return itemDelta;
 
@@ -328,7 +333,7 @@ public class DeltaConvertor {
     /**
      * Converts this delta to PropertyModificationType (XML).
      */
-    public static Collection<ItemDeltaType> toPropertyModificationTypes(ItemDelta delta) throws SchemaException {
+    public static Collection<ItemDeltaType> toItemDeltaTypes(ItemDelta delta) throws SchemaException {
     	delta.checkConsistence();
         if (!delta.isEmpty() && delta.getPrismContext() == null) {
             throw new IllegalStateException("Non-empty ItemDelta with no prismContext cannot be converted to ItemDeltaType.");
@@ -344,6 +349,7 @@ public class DeltaConvertor {
             } catch (SchemaException e) {
                 throw new SchemaException(e.getMessage() + " while converting property " + delta.getElementName(), e);
             }
+            addOldValues(delta, mod, delta.getEstimatedOldValues());
             mods.add(mod);
         }
         if (delta.getValuesToAdd() != null) {
@@ -355,6 +361,7 @@ public class DeltaConvertor {
             } catch (SchemaException e) {
                 throw new SchemaException(e.getMessage() + " while converting property " + delta.getElementName(), e);
             }
+            addOldValues(delta, mod, delta.getEstimatedOldValues());
             mods.add(mod);
         }
         if (delta.getValuesToDelete() != null) {
@@ -366,6 +373,7 @@ public class DeltaConvertor {
             } catch (SchemaException e) {
                 throw new SchemaException(e.getMessage() + " while converting property " + delta.getElementName(), e);
             }
+            addOldValues(delta, mod, delta.getEstimatedOldValues());
             mods.add(mod);
         }
         return mods;
@@ -381,6 +389,19 @@ public class DeltaConvertor {
 	        	XNode xnode = toXNode(delta, value);
 	        	RawType modValue = new RawType(xnode, value.getPrismContext());
                 mod.getValue().add(modValue);
+	        }
+        }
+    }
+    
+    private static void addOldValues(ItemDelta delta, ItemDeltaType mod, Collection<PrismValue> values) throws SchemaException {
+        if (values == null || values.isEmpty()) {
+            RawType modValue = new RawType(delta.getPrismContext());
+            mod.getEstimatedOldValue().add(modValue);
+        } else {
+	        for (PrismValue value : values) {
+	        	XNode xnode = toXNode(delta, value);
+	        	RawType modValue = new RawType(xnode, delta.getPrismContext());
+                mod.getEstimatedOldValue().add(modValue);
 	        }
         }
     }

@@ -34,6 +34,7 @@ import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -499,6 +500,9 @@ public class ConsolidationProcessor {
         	} else {
         		itemDelta.validate();            		
         	}
+        	
+        	LensUtil.setDeltaOldValue(projCtx, itemDelta);
+        	
         	return itemDelta;
         }
 		

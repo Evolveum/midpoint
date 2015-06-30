@@ -377,7 +377,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	deltaBefore.setValueToReplace(new PrismPropertyValue<String>("foo"));
     	
 		// WHEN
-    	Collection<ItemDeltaType> itemDeltaTypes = DeltaConvertor.toPropertyModificationTypes(deltaBefore);
+    	Collection<ItemDeltaType> itemDeltaTypes = DeltaConvertor.toItemDeltaTypes(deltaBefore);
     	
     	// THEN
     	System.out.println("Serialized");
@@ -391,6 +391,38 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	System.out.println(deltaAfter.debugDump());
 
     	assertEquals("Deltas do not match", deltaBefore, deltaAfter);
+    	
+    	assertNull(deltaAfter.getEstimatedOldValues());
+    }
+
+    @Test
+    public void testItemDeltaReplaceOldValue() throws Exception {
+    	System.out.println("===[ testItemDeltaReplaceOldValue ]====");
+
+    	// GIVEN
+    	PrismObjectDefinition<UserType> userDef = getUserDefinition();
+    	PropertyDelta<String> deltaBefore = PropertyDelta.createReplaceEmptyDelta(userDef, UserType.F_COST_CENTER);
+    	deltaBefore.setValueToReplace(new PrismPropertyValue<String>("foo"));
+    	deltaBefore.addEstimatedOldValue(new PrismPropertyValue<String>("BAR"));
+    	
+		// WHEN
+    	Collection<ItemDeltaType> itemDeltaTypes = DeltaConvertor.toItemDeltaTypes(deltaBefore);
+    	
+    	// THEN
+    	System.out.println("Serialized");
+    	System.out.println(itemDeltaTypes);
+    	
+    	// WHEN
+    	ItemDelta<?,?> deltaAfter = DeltaConvertor.createItemDelta(itemDeltaTypes.iterator().next(), userDef);
+    	
+    	// THEN
+    	System.out.println("Parsed");
+    	System.out.println(deltaAfter.debugDump());
+
+    	assertEquals("Deltas do not match", deltaBefore, deltaAfter);
+
+    	PropertyDelta<String> propDeltaAfter = (PropertyDelta<String>)deltaAfter;
+    	PrismAsserts.assertValues("Wrong old value", propDeltaAfter.getEstimatedOldValues(), "BAR");
     }
 
     @Test
@@ -403,7 +435,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
 //    	deltaBefore.setValueToReplace(new PrismPropertyValue<String>(""));
     	
 		// WHEN
-    	Collection<ItemDeltaType> itemDeltaTypes = DeltaConvertor.toPropertyModificationTypes(deltaBefore);
+    	Collection<ItemDeltaType> itemDeltaTypes = DeltaConvertor.toItemDeltaTypes(deltaBefore);
     	
     	// THEN
     	System.out.println("Serialized");
@@ -429,7 +461,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	// The delta remains empty
     	
 		// WHEN
-    	Collection<ItemDeltaType> itemDeltaTypes = DeltaConvertor.toPropertyModificationTypes(deltaBefore);
+    	Collection<ItemDeltaType> itemDeltaTypes = DeltaConvertor.toItemDeltaTypes(deltaBefore);
     	
     	// THEN
     	System.out.println("Serialized");

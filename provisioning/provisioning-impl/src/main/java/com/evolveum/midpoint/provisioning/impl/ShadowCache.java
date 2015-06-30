@@ -65,6 +65,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
@@ -455,18 +456,11 @@ public abstract class ShadowCache {
 			return shadow.getOid();
 		}
 
-		Collection<PropertyDelta<PrismPropertyValue>> sideEffectDelta = convertToPropertyDelta(sideEffectChanges);
-		if (!sideEffectDelta.isEmpty()) {
-//			try {
-				shadowManager.normalizeDeltas(sideEffectDelta, ctx.getObjectClassDefinition());
-				modifications.addAll((Collection) sideEffectDelta);
-//				repositoryService.modifyObject(shadow.getCompileTimeClass(), oid, sideEffectDelta, parentResult);
-				
-//			} catch (ObjectAlreadyExistsException ex) {
-//				parentResult.recordFatalError("Side effect changes could not be applied", ex);
-//				LOGGER.error("Side effect changes could not be applied. " + ex.getMessage(), ex);
-//				throw new SystemException("Side effect changes could not be applied. " + ex.getMessage(), ex);
-//			}
+		Collection<PropertyDelta<PrismPropertyValue>> sideEffectDeltas = convertToPropertyDelta(sideEffectChanges);
+		if (!sideEffectDeltas.isEmpty()) {
+			shadowManager.normalizeDeltas(sideEffectDeltas, ctx.getObjectClassDefinition());
+			PrismUtil.setDeltaOldValue(shadow, sideEffectDeltas);
+			ItemDelta.addAll(modifications, (Collection) sideEffectDeltas);
 		}
 		
 		afterModifyOnResource(shadow, modifications, parentResult);

@@ -58,6 +58,7 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -193,8 +194,9 @@ public class LensUtil {
      *
      * filterExistingValues: if true, then values that already exist in the item are not added (and those that don't exist are not removed)
 	 */
-	public static <V extends PrismValue, D extends ItemDefinition, I extends ItemValueWithOrigin<V,D>> ItemDelta<V,D> consolidateTripleToDelta(ItemPath itemPath, 
-    		DeltaSetTriple<I> triple, D itemDefinition, 
+	public static <V extends PrismValue, D extends ItemDefinition, I extends ItemValueWithOrigin<V,D>> 
+		ItemDelta<V,D> consolidateTripleToDelta(
+			ItemPath itemPath, DeltaSetTriple<I> triple, D itemDefinition, 
     		ItemDelta<V,D> aprioriItemDelta, PrismContainer<?> itemContainer, ValueMatcher<?> valueMatcher, Comparator<V> comparator,
     		boolean addUnchangedValues, boolean filterExistingValues, boolean isExclusiveStrong, 
     		String contextDescription, boolean applyWeak) throws ExpressionEvaluationException, PolicyViolationException, SchemaException {
@@ -1316,4 +1318,11 @@ public class LensUtil {
     	}
     	return null;
     }
+	
+	public static <O extends ObjectType> void setDeltaOldValue(LensElementContext<O> ctx, ItemDelta<?,?> itemDelta) {
+		if (itemDelta.getEstimatedOldValues() != null) {
+			return;
+		}
+		PrismUtil.setDeltaOldValue(ctx.getObjectOld(), itemDelta);
+	}
 }
