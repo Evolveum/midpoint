@@ -56,13 +56,28 @@ public class TestPolyString {
 	}
 	
 	@Test
-	public void testSimpleNormalization() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testSimpleNormalization ]===");
-		
-		// GIVEN
-		String orig = " Gul\u00F4\u010Dka  v jam\u00F4\u010Dke le\u017E\u00ED, Per\u00FAn ju  bleskom usma\u017E\u00ED. Hrom do toho!  ";
-		String norm = "gulocka v jamocke lezi perun ju bleskom usmazi hrom do toho";
-		
+	public void testSimpleNormalization() {
+		testNormalization("testSimpleNormalization",
+				" Gul\u00F4\u010Dka  v jam\u00F4\u010Dke le\u017E\u00ED, Per\u00FAn ju  bleskom usma\u017E\u00ED. Hrom do toho!  ",
+				"gulocka v jamocke lezi perun ju bleskom usmazi hrom do toho");
+	}
+
+	@Test
+	public void testNormalizationNonLatinAll() {
+		testNormalization("testSimpleNormalization",
+				"\u0421\u043E\u044E\u0301\u0437 \u0421\u043E\u0432\u0435\u0301\u0442\u0441\u043A\u0438\u0445 \u0421\u043E\u0446\u0438\u0430\u043B\u0438\u0441\u0442\u0438\u0301\u0447\u0435\u0441\u043A\u0438\u0445 \u0420\u0435\u0441\u043F\u0443\u0301\u0431\u043B\u0438\u043A",
+				"");
+	}
+	
+	@Test
+	public void testNormalizationNonLatinSome() {
+		testNormalization("testSimpleNormalization",
+				"In \u0421\u043E\u044E\u0301\u0437 \u0421\u043E\u0432\u0435\u0301\u0442\u0441\u043A\u0438\u0445 \u0421\u043E\u0446\u0438\u0430\u043B\u0438\u0441\u0442\u0438\u0301\u0447\u0435\u0441\u043A\u0438\u0445 \u0420\u0435\u0441\u043F\u0443\u0301\u0431\u043B\u0438\u043A the TV watches YOU!!",
+				"in the tv watches you");
+	}
+
+	private void testNormalization(final String TEST_NAME, String orig, String expectedNorm) {
+		System.out.println("===[ "+TEST_NAME+" ]===");
 		PolyString polyString = new PolyString(orig);
 		
 		PolyStringNormalizer normalizer = new PrismDefaultPolyStringNormalizer();
@@ -72,7 +87,7 @@ public class TestPolyString {
 		
 		// THEN
 		assertEquals("orig have changed", orig, polyString.getOrig());
-		assertEquals("wrong norm", norm, polyString.getNorm());
+		assertEquals("wrong norm", expectedNorm, polyString.getNorm());
 		assertEquals("wrong toString", orig, polyString.toString());
 	}
 	

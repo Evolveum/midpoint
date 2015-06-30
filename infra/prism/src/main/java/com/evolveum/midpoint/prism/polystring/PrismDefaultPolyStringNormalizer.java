@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,14 +30,16 @@ public class PrismDefaultPolyStringNormalizer implements PolyStringNormalizer {
 	 */
 	@Override
 	public String normalize(String orig) {
-		// TODO Auto-generated method stub
 		if (orig == null) {
 			return null;
 		}
 		String s = StringUtils.trim(orig);
 		s = Normalizer.normalize(s, Normalizer.Form.NFKD);
-		s = s.replaceAll("\\s+", " ");
 		s = s.replaceAll("[^\\w\\s\\d]", "");
+		s = s.replaceAll("\\s+", " ");
+		if (StringUtils.isBlank(s)) {
+			s = "";
+		}
 		return StringUtils.lowerCase(s);
 	}
 
