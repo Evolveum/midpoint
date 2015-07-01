@@ -94,6 +94,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
@@ -1208,6 +1209,9 @@ public class ReportUtils {
 
     public static String prettyPrintForReport(PrismContainer pc) {
         StringBuilder sb = new StringBuilder();
+        if ("metadata".equalsIgnoreCase(pc.getElementName().getLocalPart())) { // skip metadata
+            return "";
+        }
         sb.append(prettyPrintForReport(pc.getElementName()).toUpperCase());
         sb.append(": ");
         List<PrismContainerValue> prvList = pc.getValues();
@@ -1230,6 +1234,7 @@ public class ReportUtils {
     }
 
     public static String prettyPrintForReport(PrismReferenceValue prv) {
+        // UNDER CONSTRUCTION
         Class targetClass = null;
         if (prv.getTargetType() == null || prv.getTargetType().getLocalPart() == null || prv.getOid() == null) {
             return "null";
@@ -1299,7 +1304,7 @@ public class ReportUtils {
     }
 
     /*
-     Multiplexer method for various input classes
+     Multiplexer method for various input classes, using Reflection
      - Mostly Copied from com.evolveum.midpoint.util.PrettyPrinter, Credit goes to Evolveum        
      */
     public static String prettyPrintForReport(Object value) {
@@ -1360,30 +1365,48 @@ public class ReportUtils {
 
     public static String printDelta(ObjectDelta delta) {
         StringBuilder sb = new StringBuilder();
-        Collection<ItemDelta> modificationDeltas = delta.getModifications();
-        if (modificationDeltas != null && !modificationDeltas.isEmpty()) {
-            sb.append("Modifications:\n");
-        }
-        for (ItemDelta itemDelta : modificationDeltas) {
-            try {
-                ItemPathSegment firstSegment = itemDelta.getParentPath().first();
-                if (firstSegment instanceof NameItemPathSegment) {
-                    if ("metadata".equals(((NameItemPathSegment) firstSegment).getName().getLocalPart())) {
-                        continue; //do not report metadata in jasper
-                    }
-                }
-            } catch (NullPointerException npe) {
-                // silence exception as delta doesnt have parent
-            }
-            sb.append(prettyPrintForReport(itemDelta));
-            sb.append("\n"); // IMPROVE_ME: use JASPER for inner table (list)?
-        }
-        sb.setLength(Math.max(sb.length() - 1, 0)); // delete last delimiter
 
-        PrismObject objectToAdd = delta.getObjectToAdd();
-        if (objectToAdd != null) {
-            sb.append("Add Object: "); //TODO: Show nonMeta Attributes of added object
-            sb.append(objectToAdd.getBusinessDisplayName());
+        switch (delta.getChangeType()) {
+            case MODIFY:
+                Collection<ItemDelta> modificationDeltas = delta.getModifications();
+                if (modificationDeltas != null && !modificationDeltas.isEmpty()) {
+                    sb.append("Modifications:\n");
+                }
+                for (ItemDelta itemDelta : modificationDeltas) {
+                    try {
+                        ItemPathSegment firstSegment = itemDelta.getParentPath().first();
+                        if (firstSegment instanceof NameItemPathSegment) {
+                            if ("metadata".equals(((NameItemPathSegment) firstSegment).getName().getLocalPart())) {
+                                continue; //do not report metadata in jasper
+                            }
+                        }
+                    } catch (NullPointerException npe) {
+                        // silence exception as delta doesnt have parent
+                    }
+                    sb.append(prettyPrintForReport(itemDelta));
+                    sb.append("\n");
+                }
+                sb.setLength(Math.max(sb.length() - 1, 0));
+                break;
+
+            case ADD:
+                PrismObject objectToAdd = delta.getObjectToAdd();
+                if (objectToAdd != null) {
+                    sb.append("Add Object: ");
+                    sb.append(prettyPrintForReport(objectToAdd.getElementName()));
+                    sb.append(": ");
+                    sb.append(objectToAdd.getBusinessDisplayName());
+                    sb.append("(");
+                    sb.append(prettyPrintForReport(objectToAdd.getValue()));
+                    sb.append(")"); // IMPROVE_ME: Use {} or [] to mark : start&end EVERYWHERE
+                }
+                break;
+
+            case DELETE:
+                sb.append(delta.getObjectTypeClass().getSimpleName());
+                sb.append(": ");
+                sb.append(delta.getOid());
+                break;
         }
 
         return sb.toString();
