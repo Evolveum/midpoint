@@ -235,7 +235,7 @@ public class ReportFunctions {
 				resultSet.put(p.getKey(), p.getValue());
 			}
 		}
-		return auditService.listRecords(query, params);
+		return auditService.listRecords(query, resultSet);
 	}
 
 	

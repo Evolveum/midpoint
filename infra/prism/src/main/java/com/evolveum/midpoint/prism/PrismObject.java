@@ -392,6 +392,13 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 		sb.append(")");
 		return sb.toString();
 	}
+        
+        /**
+	 * Return display name intended for business users of midPoint
+	 */        
+        public String getBusinessDisplayName() {
+            return getNamePropertyStringValue();
+        }
 
 //	public Node serializeToDom() throws SchemaException {
 //		Node doc = DOMUtil.getDocument();
