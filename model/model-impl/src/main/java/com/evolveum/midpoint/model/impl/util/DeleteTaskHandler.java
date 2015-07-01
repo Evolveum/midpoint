@@ -66,6 +66,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -202,6 +203,14 @@ public class DeleteTaskHandler implements TaskHandler {
 	            objects = modelService.searchObjects(objectType, query, searchOptions, task, opResult);
 	            
 	            for(PrismObject<O> object: objects) {
+	            	
+	            	if (!optionRaw && ShadowType.class.isAssignableFrom(objectType) 
+	            			&& Boolean.TRUE == ((ShadowType)(object.asObjectable())).isProtectedObject()) {
+	            		LOGGER.debug("Skipping delete of protected object {}", object);
+	            		progress++;
+	            		continue;
+	            	}
+	            	
 	            	ObjectDelta<?> delta = ObjectDelta.createDeleteDelta(objectType, object.getOid(), prismContext);
 					modelService.executeChanges(MiscSchemaUtil.createCollection(delta), execOptions, task, opResult);
 					progress++;
