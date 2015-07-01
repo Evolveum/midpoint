@@ -128,10 +128,6 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	
 	private final String EXISTING_GOSSIP = "Black spot!"; 
 	
-	public TestRbac() throws JAXBException {
-		super();
-	}
-	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult)
 			throws Exception {

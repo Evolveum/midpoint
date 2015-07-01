@@ -15,11 +15,16 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.evolveum.midpoint.model.api.context.EvaluatedAbstractRole;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 
 /**
  * @author semancik
@@ -66,6 +71,27 @@ public class EvaluatedAbstractRoleImpl implements EvaluatedAbstractRole {
 
 	public void setAssignment(AssignmentType assignment) {
 		this.assignment = assignment;
+	}
+	
+	public String getOid() {
+		return role.getOid();
+	}
+
+	public PolicyConstraintsType getPolicyConstraints() {
+		AbstractRoleType roleType = role.asObjectable();
+		PolicyConstraintsType constraints = roleType.getPolicyConstraints();
+		if (roleType.getExclusion().isEmpty()) {
+			return constraints;
+		}
+		if (constraints == null) {
+			constraints = new PolicyConstraintsType();
+			roleType.setPolicyConstraints(constraints);
+		}
+		for (ExclusionPolicyConstraintType exclusion: roleType.getExclusion()) {
+			constraints.getExclusion().add(exclusion.clone());
+		}
+		roleType.getExclusion().clear();
+		return constraints;
 	}
 
 	@Override
