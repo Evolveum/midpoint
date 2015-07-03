@@ -1178,32 +1178,42 @@ public class ReportUtils {
         if (qname.getLocalPart() != null) {
             ret = qname.getLocalPart();
         }
-        return ret;
+        return ret.toUpperCase();
     }
 
     public static String prettyPrintForReport(PrismProperty pp) {
         StringBuilder sb = new StringBuilder();
-        sb.append(prettyPrintForReport(pp.getElementName()).toUpperCase());
-        sb.append(": ");
+        sb.append(prettyPrintForReport(pp.getElementName()));
+        sb.append("=");
+        sb.append("{");
         List<PrismPropertyValue> ppvList = pp.getValues();
         for (PrismPropertyValue ppv : ppvList) {
-            sb.append(prettyPrintForReport(ppv));
-            sb.append(", ");
+            String ps = prettyPrintForReport(ppv);
+            if (!ps.isEmpty()) {
+                sb.append(ps);
+                sb.append(", ");
+            }
         }
         sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter 
+        sb.append("}");
         return sb.toString();
     }
 
     public static String prettyPrintForReport(PrismReference pr) {
         StringBuilder sb = new StringBuilder();
-        sb.append(prettyPrintForReport(pr.getElementName()).toUpperCase());
-        sb.append(": ");
+        sb.append(prettyPrintForReport(pr.getElementName()));
+        sb.append("=");
+        sb.append("{");
         List<PrismReferenceValue> prvList = pr.getValues();
         for (PrismReferenceValue ppv : prvList) {
-            sb.append(prettyPrintForReport(ppv));
-            sb.append(", ");
+            String ps = prettyPrintForReport(ppv);
+            if (!ps.isEmpty()) {
+                sb.append(ps);
+                sb.append(", ");
+            }
         }
         sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter 
+        sb.append("}");
         return sb.toString();
     }
 
@@ -1212,22 +1222,30 @@ public class ReportUtils {
         if ("metadata".equalsIgnoreCase(pc.getElementName().getLocalPart())) { // skip metadata
             return "";
         }
-        sb.append(prettyPrintForReport(pc.getElementName()).toUpperCase());
-        sb.append(": ");
+        sb.append(prettyPrintForReport(pc.getElementName()));
+        sb.append("=");
+        sb.append("{");
         List<PrismContainerValue> prvList = pc.getValues();
         for (PrismContainerValue ppv : prvList) {
-            sb.append(prettyPrintForReport(ppv));
-            sb.append(", ");
+            String ps = prettyPrintForReport(ppv);
+            if (!ps.isEmpty()) {
+                sb.append(ps);
+                sb.append(", ");
+            }
         }
         sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter 
+        sb.append("}");
         return sb.toString();
     }
 
     public static String prettyPrintForReport(PrismContainerValue pcv) {
         StringBuilder sb = new StringBuilder();
         for (Object it : pcv.getItems()) {
-            sb.append(prettyPrintForReport(it));
-            sb.append(", ");
+            String ps = prettyPrintForReport(it);
+            if (!ps.isEmpty()) {
+                sb.append(ps);
+                sb.append(", ");
+            }
         }
         sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter 
         return sb.toString();
@@ -1251,8 +1269,8 @@ public class ReportUtils {
         }
 
         try {
-            return prv.getTargetType().getLocalPart() + ": " + prv.getOid() + ", testGetObject: "
-                    + modelService.getObject(targetClass, prv.getOid(), null, null, null);
+            return prv.getTargetType().getLocalPart()
+                    + " " + modelService.getObject(targetClass, prv.getOid(), null, null, null); // test
         } catch (ObjectNotFoundException ex) {
             LOGGER.error("Report Object does not exist: {}", ex.getMessage(), ex);
         } catch (SchemaException | SecurityViolationException | CommunicationException | ConfigurationException ex) {
@@ -1290,14 +1308,17 @@ public class ReportUtils {
         if (ba == null) {
             return "null";
         }
-        return "<bytes length=" + ((byte[]) ba).length + ">"; //Jasper doesnt like byte[] 
+        return "[bytes length=" + ((byte[]) ba).length + "]"; //Jasper doesnt like byte[] 
     }
 
     public static String prettyPrintForReport(Collection<PrismValue> prismValueList) {
         StringBuilder sb = new StringBuilder();
         for (PrismValue pv : prismValueList) {
-            sb.append(prettyPrintForReport(pv));
-            sb.append("#");
+            String ps = prettyPrintForReport(pv);
+            if (!ps.isEmpty()) {
+                sb.append(ps);
+                sb.append("#");
+            }
         }
         sb.setLength(Math.max(sb.length() - 1, 0)); // delete last # delimiter        
         return sb.toString();
@@ -1342,23 +1363,29 @@ public class ReportUtils {
         StringBuilder sb = new StringBuilder();
         if (itemDelta.getValuesToReplace() != null) {
             sb.append("Replace: ");
-            sb.append(prettyPrintForReport(itemDelta.getElementName()).toUpperCase());
+            sb.append(prettyPrintForReport(itemDelta.getElementName()));
             sb.append("=");
+            sb.append("{");
             sb.append(prettyPrintForReport(itemDelta.getValuesToReplace()));
+            sb.append("}");
         }
 
         if (itemDelta.getValuesToAdd() != null) {
             sb.append("Add: ");
-            sb.append(prettyPrintForReport(itemDelta.getElementName()).toUpperCase());
+            sb.append(prettyPrintForReport(itemDelta.getElementName()));
             sb.append("=");
+            sb.append("{");
             sb.append(prettyPrintForReport(itemDelta.getValuesToAdd()));
+            sb.append("}");
         }
 
         if (itemDelta.getValuesToDelete() != null) {
             sb.append("Delete: ");
-            sb.append(prettyPrintForReport(itemDelta.getElementName()).toUpperCase());
+            sb.append(prettyPrintForReport(itemDelta.getElementName()));
             sb.append("=");
+            sb.append("{");
             sb.append(prettyPrintForReport(itemDelta.getValuesToDelete()));
+            sb.append("}");
         }
         return sb.toString();
     }
@@ -1392,17 +1419,18 @@ public class ReportUtils {
             case ADD:
                 PrismObject objectToAdd = delta.getObjectToAdd();
                 if (objectToAdd != null) {
-                    sb.append("Add Object: ");
+                    sb.append("Add Object:\n");
                     sb.append(prettyPrintForReport(objectToAdd.getElementName()));
-                    sb.append(": ");
+                    sb.append("=");
                     sb.append(objectToAdd.getBusinessDisplayName());
-                    sb.append("(");
+                    sb.append(" {");
                     sb.append(prettyPrintForReport(objectToAdd.getValue()));
-                    sb.append(")"); // IMPROVE_ME: Use {} or [] to mark : start&end EVERYWHERE
+                    sb.append("}");
                 }
                 break;
 
             case DELETE:
+                sb.append("Delete Object:\n");
                 sb.append(delta.getObjectTypeClass().getSimpleName());
                 sb.append(": ");
                 sb.append(delta.getOid());
