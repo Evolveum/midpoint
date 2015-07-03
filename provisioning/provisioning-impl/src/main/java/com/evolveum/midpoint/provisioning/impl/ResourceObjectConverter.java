@@ -982,7 +982,7 @@ public class ResourceObjectConverter {
 			Collection<Operation> operations = entry.getValue().getOperations();
 			
 			// TODO: better handling of result, partial failures, etc.
-			executeModify(entitlementCtx, null, identifiers, operations, parentResult);
+			executeModify(entitlementCtx, entry.getValue().getCurrentShadow(), identifiers, operations, parentResult);
 			
 		}
 	}

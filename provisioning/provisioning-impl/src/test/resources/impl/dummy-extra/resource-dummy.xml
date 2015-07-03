@@ -40,6 +40,12 @@
 			<icfi:supportValidity>true</icfi:supportValidity>
 			<icfi:readablePassword>true</icfi:readablePassword>
 		</icfc:configurationProperties>
+		
+		<icfc:resultsHandlerConfiguration>
+			<icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
+			<icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+			<icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
+		</icfc:resultsHandlerConfiguration>
 
 	</connectorConfiguration>
 	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd</namespace>
@@ -192,6 +198,10 @@
         	<intent>group</intent>
         	<default>true</default>
         	<objectClass>ri:GroupObjectClass</objectClass>
+        	<attribute>
+				<ref>ri:members</ref>
+				<fetchStrategy>minimal</fetchStrategy>
+			</attribute>
         </objectType>
         <objectType>
         	<kind>entitlement</kind>
@@ -200,7 +210,4 @@
         	<objectClass>ri:CustomprivilegeObjectClass</objectClass>
         </objectType>
 	</schemaHandling>
-	<consistency>
-		<avoidDuplicateValues>true</avoidDuplicateValues>
-	</consistency>
 </resource>
