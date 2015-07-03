@@ -194,7 +194,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		assertContainerDefinition(configurationContainer, "configuration", ConnectorConfigurationType.COMPLEX_TYPE, 1, 1);
 		PrismContainerValue<?> configContainerValue = configurationContainer.getValue();
 		List<Item<?,?>> configItems = configContainerValue.getItems();
-		assertEquals("Wrong number of config items", 1, configItems.size());
+		assertEquals("Wrong number of config items", 2, configItems.size());
 		
 		PrismContainer<?> dummyConfigPropertiesContainer = configurationContainer.findContainer(
 				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
