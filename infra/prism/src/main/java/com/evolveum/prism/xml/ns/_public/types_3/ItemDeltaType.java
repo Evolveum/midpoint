@@ -106,7 +106,8 @@ import com.evolveum.midpoint.util.MiscUtil;
 @XmlType(name = "ItemDeltaType", propOrder = {
     "modificationType",
     "path",
-    "value"
+    "value",
+    "estimatedOldValue"
 })
 public class ItemDeltaType implements Serializable, Cloneable {
 
