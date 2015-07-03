@@ -1183,7 +1183,7 @@ public class ReportUtils {
 
     public static String prettyPrintForReport(PrismProperty pp) {
         StringBuilder sb = new StringBuilder();
-        sb.append(prettyPrintForReport(pp.getElementName()));
+        sb.append(pp.getPath());
         sb.append("=");
         sb.append("{");
         List<PrismPropertyValue> ppvList = pp.getValues();
@@ -1201,7 +1201,7 @@ public class ReportUtils {
 
     public static String prettyPrintForReport(PrismReference pr) {
         StringBuilder sb = new StringBuilder();
-        sb.append(prettyPrintForReport(pr.getElementName()));
+        sb.append(pr.getPath());
         sb.append("=");
         sb.append("{");
         List<PrismReferenceValue> prvList = pr.getValues();
@@ -1222,7 +1222,7 @@ public class ReportUtils {
         if ("metadata".equalsIgnoreCase(pc.getElementName().getLocalPart())) { // skip metadata
             return "";
         }
-        sb.append(prettyPrintForReport(pc.getElementName()));
+        sb.append(pc.getPath());
         sb.append("=");
         sb.append("{");
         List<PrismContainerValue> prvList = pc.getValues();
@@ -1253,31 +1253,8 @@ public class ReportUtils {
 
     public static String prettyPrintForReport(PrismReferenceValue prv) {
         // UNDER CONSTRUCTION
-        Class targetClass = null;
-        if (prv.getTargetType() == null || prv.getTargetType().getLocalPart() == null || prv.getOid() == null) {
-            return "null";
-        }
-
-        try {
-            targetClass = Class.forName("com.evolveum.midpoint.xml.ns._public.common.common_3." + prv.getTargetType().getLocalPart());
-        } catch (ClassNotFoundException ex) {
-            LOGGER.error("Report Object Class not found: {}", ex.getMessage(), ex);
-        }
-
-        if (modelService == null) { //FIXME            
-            return prv.toString();
-        }
-
-        try {
-            return prv.getTargetType().getLocalPart()
-                    + " " + modelService.getObject(targetClass, prv.getOid(), null, null, null); // test
-        } catch (ObjectNotFoundException ex) {
-            LOGGER.error("Report Object does not exist: {}", ex.getMessage(), ex);
-        } catch (SchemaException | SecurityViolationException | CommunicationException | ConfigurationException ex) {
-            LOGGER.error("Report Object: {}", ex.getMessage(), ex);
-        }
-
-        return "null";
+        // Complete in 3.3 when PRV has business name stored in DB audit event
+        return prv.toString();
     }
 
     public static String prettyPrintForReport(PrismPropertyValue ppv) {
@@ -1308,7 +1285,7 @@ public class ReportUtils {
         if (ba == null) {
             return "null";
         }
-        return "[bytes length=" + ((byte[]) ba).length + "]"; //Jasper doesnt like byte[] 
+        return "[" + ((byte[]) ba).length + " bytes]"; //Jasper doesnt like byte[] 
     }
 
     public static String prettyPrintForReport(Collection<PrismValue> prismValueList) {
@@ -1326,7 +1303,8 @@ public class ReportUtils {
 
     /*
      Multiplexer method for various input classes, using Reflection
-     - Mostly Copied from com.evolveum.midpoint.util.PrettyPrinter, Credit goes to Evolveum        
+     - Mostly Copied from com.evolveum.midpoint.util.PrettyPrinter
+     - Credit goes to Evolveum        
      */
     public static String prettyPrintForReport(Object value) {
         for (Method method : ReportUtils.class.getMethods()) {
@@ -1363,16 +1341,21 @@ public class ReportUtils {
         StringBuilder sb = new StringBuilder();
         if (itemDelta.getValuesToReplace() != null) {
             sb.append("Replace: ");
-            sb.append(prettyPrintForReport(itemDelta.getElementName()));
+            sb.append(itemDelta.getPath());
             sb.append("=");
             sb.append("{");
+            if (itemDelta.getEstimatedOldValues() != null && !itemDelta.getEstimatedOldValues().isEmpty()) {
+                sb.append("OLD: ");
+                sb.append(prettyPrintForReport(itemDelta.getEstimatedOldValues()));
+                sb.append(", NEW: ");
+            }
             sb.append(prettyPrintForReport(itemDelta.getValuesToReplace()));
             sb.append("}");
         }
 
         if (itemDelta.getValuesToAdd() != null) {
             sb.append("Add: ");
-            sb.append(prettyPrintForReport(itemDelta.getElementName()));
+            sb.append(itemDelta.getPath());
             sb.append("=");
             sb.append("{");
             sb.append(prettyPrintForReport(itemDelta.getValuesToAdd()));
@@ -1381,7 +1364,7 @@ public class ReportUtils {
 
         if (itemDelta.getValuesToDelete() != null) {
             sb.append("Delete: ");
-            sb.append(prettyPrintForReport(itemDelta.getElementName()));
+            sb.append(itemDelta.getPath());
             sb.append("=");
             sb.append("{");
             sb.append(prettyPrintForReport(itemDelta.getValuesToDelete()));
