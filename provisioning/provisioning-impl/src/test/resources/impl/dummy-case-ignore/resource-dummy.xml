@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2014 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -42,10 +42,10 @@
 		</icfc:configurationProperties>
 		 
 		<icfc:resultsHandlerConfiguration>
-<!-- 			<icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>  -->
- 			<icfc:enableFilteredResultsHandler>true</icfc:enableFilteredResultsHandler>  
- 			<icfc:enableCaseInsensitiveFilter>true</icfc:enableCaseInsensitiveFilter> 
-		</icfc:resultsHandlerConfiguration> 
+			<icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
+			<icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+			<icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
+		</icfc:resultsHandlerConfiguration>
 
 	</connectorConfiguration>
 	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd</namespace>
@@ -143,6 +143,7 @@
 			<attribute>
 				<ref>ri:members</ref>
 				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<fetchStrategy>minimal</fetchStrategy>
 			</attribute>
         </objectType>
         <objectType>

@@ -64,6 +64,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.ConnectorManager;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
 import com.evolveum.midpoint.provisioning.test.mock.SynchornizationServiceMock;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
@@ -106,6 +107,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	public static final File RESOURCE_DUMMY_FILE = new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "resource-dummy.xml");
 	public static final String RESOURCE_DUMMY_OID = "ef2bc95b-76e0-59e2-86d6-9999dddddddd";
 	public static final String RESOURCE_DUMMY_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd";
+	public static final String RESOURCE_DUMMY_INTENT_GROUP = "group";
 	
 	protected static final String RESOURCE_DUMMY_NONEXISTENT_OID = "ef2bc95b-000-000-000-009900dddddd";
 
@@ -177,6 +179,9 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	
 	@Autowired(required = true)
 	protected MatchingRuleRegistry matchingRuleRegistry;
+	
+	@Autowired(required = true)
+	protected ProvisioningContextFactory provisioningContextFactory;
 	
 	// Values used to check if something is unchanged or changed properly
 	private Long lastResourceVersion = null;

@@ -91,9 +91,12 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.test.ucf.TestUcfDummy;
+import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
+import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -203,6 +206,10 @@ public class TestDummy extends AbstractDummyTest {
 	
 	protected String getDrakeRepoIcfName() {
 		return DRAKE_USERNAME;
+	}
+	
+	protected boolean isAvoidDuplicateValues() {
+		return false;
 	}
 	
 	@Override
@@ -947,6 +954,35 @@ public class TestDummy extends AbstractDummyTest {
 	// The account must exist to test this with modify delta. So we postpone the
 	// test when the account actually exists
 
+	@Test
+	public void test080TestAttributesToReturn() throws Exception {
+		final String TEST_NAME = "test080TestAttributesToReturn";
+		TestUtil.displayTestTile(TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance();
+		OperationResult result = task.getResult();
+		
+		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ENTITLEMENT, RESOURCE_DUMMY_INTENT_GROUP);
+		ProvisioningContext ctx = provisioningContextFactory.create(coords, task, result);
+		
+		// WHEN
+		AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(ctx);
+
+		// THEN
+		display("attributesToReturn", attributesToReturn);
+		assertFalse("wrong isReturnDefaultAttributes", attributesToReturn.isReturnDefaultAttributes());
+		Collection<String> attrs = new ArrayList<>();
+		for (ResourceAttributeDefinition attributeToReturnDef: attributesToReturn.getAttributesToReturn()) {
+			attrs.add(attributeToReturnDef.getName().getLocalPart());
+		}
+		// No "memebers" attribute here
+		PrismAsserts.assertSets("Wrong attribute to return", attrs, "uid", "name", "description", "cc");
+
+		assertSteadyResource();
+	}
+
+	
 	@Test
 	public void test100AddAccount() throws Exception {
 		final String TEST_NAME = "test100AddAccount";
@@ -2603,6 +2639,8 @@ public class TestDummy extends AbstractDummyTest {
 
 		PrismObject<ShadowType> group = prismContext.parseObject(new File(GROUP_PIRATES_FILENAME));
 		group.checkConsistence();
+		
+		rememberDummyResourceGroupMembersReadCount(null);
 
 		display("Adding group", group);
 
@@ -2616,6 +2654,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertEquals(GROUP_PIRATES_OID, addedObjectOid);
 
 		group.checkConsistence();
+		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
 		ShadowType groupRepoType = repositoryService.getObject(ShadowType.class, GROUP_PIRATES_OID, null, result)
 				.asObjectable();
@@ -2624,12 +2663,15 @@ public class TestDummy extends AbstractDummyTest {
 		assertEquals("Wrong kind (repo)", ShadowKindType.ENTITLEMENT, groupRepoType.getKind());
 		
 		syncServiceMock.assertNotifySuccessOnly();
+		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
 		ShadowType groupProvisioningType = provisioningService.getObject(ShadowType.class,
 				GROUP_PIRATES_OID, null, task, result).asObjectable();
 		display("group from provisioning", groupProvisioningType);
 		checkGroupPirates(groupProvisioningType, result);
 		piratesIcfUid = getIcfUid(groupRepoType);
+		
+		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
 		// Check if the group was created in the dummy resource
 
@@ -2646,8 +2688,9 @@ public class TestDummy extends AbstractDummyTest {
 
 		ProvisioningTestUtil.checkRepoEntitlementShadow(shadowFromRepo);
 
+		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 		checkConsistency(group);
-		
+		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 		assertSteadyResource();
 	}
 
@@ -2659,6 +2702,8 @@ public class TestDummy extends AbstractDummyTest {
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ "." + TEST_NAME);
 
+		rememberDummyResourceGroupMembersReadCount(null);
+		
 		// WHEN
 		ShadowType shadow = provisioningService.getObject(ShadowType.class, GROUP_PIRATES_OID, null, null, 
 				result).asObjectable();
@@ -2671,6 +2716,8 @@ public class TestDummy extends AbstractDummyTest {
 		display("Retrieved group shadow", shadow);
 
 		assertNotNull("No dummy group", shadow);
+		
+		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
 		checkGroupPirates(shadow, result);
 
@@ -2703,6 +2750,8 @@ public class TestDummy extends AbstractDummyTest {
 		rootOptions.setNoFetch(true);
 		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOptions);
 
+		rememberDummyResourceGroupMembersReadCount(null);
+		
 		// WHEN
 		ShadowType shadow = provisioningService.getObject(ShadowType.class, GROUP_PIRATES_OID, options, null, 
 				result).asObjectable();
@@ -2715,6 +2764,8 @@ public class TestDummy extends AbstractDummyTest {
 		display("Retrieved group shadow", shadow);
 
 		assertNotNull("No dummy group", shadow);
+		
+		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
 		checkGroupShadow(shadow, result, false);
 
@@ -2732,6 +2783,7 @@ public class TestDummy extends AbstractDummyTest {
 				+ "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		
+		rememberDummyResourceGroupMembersReadCount(null);
 		syncServiceMock.reset();
 
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class, 
@@ -2753,6 +2805,12 @@ public class TestDummy extends AbstractDummyTest {
 		delta.checkConsistence();
 		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
 		assertDummyAttributeValues(group, DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION, "Bloodthirsty pirates");
+
+		if (isAvoidDuplicateValues()) {
+			assertDummyResourceGroupMembersReadCountIncrement(null, 1);
+		} else {
+			assertDummyResourceGroupMembersReadCountIncrement(null, 0);
+		}
 		
 		syncServiceMock.assertNotifySuccessOnly();
 		assertSteadyResource();
@@ -2865,6 +2923,8 @@ public class TestDummy extends AbstractDummyTest {
 
         PrismObject<ShadowType> priv = prismContext.parseObject(new File(PRIVILEGE_BARGAIN_FILENAME));
         priv.checkConsistence();
+        
+        rememberDummyResourceGroupMembersReadCount(null);
 
         display("Adding priv", priv);
 
@@ -2878,6 +2938,7 @@ public class TestDummy extends AbstractDummyTest {
         assertEquals(PRIVILEGE_BARGAIN_OID, addedObjectOid);
 
         priv.checkConsistence();
+        assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
         ShadowType groupRepoType = repositoryService.getObject(ShadowType.class, PRIVILEGE_BARGAIN_OID, null, result)
                 .asObjectable();
@@ -2885,12 +2946,15 @@ public class TestDummy extends AbstractDummyTest {
         assertEquals("Wrong kind (repo)", ShadowKindType.ENTITLEMENT, groupRepoType.getKind());
 
         syncServiceMock.assertNotifySuccessOnly();
+        assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
         ShadowType privProvisioningType = provisioningService.getObject(ShadowType.class,
                 PRIVILEGE_BARGAIN_OID, null, task, result).asObjectable();
         display("priv from provisioning", privProvisioningType);
         checkPrivBargain(privProvisioningType, result);
         bargainIcfUid = getIcfUid(privProvisioningType);
+        
+        assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
         // Check if the group was created in the dummy resource
 
@@ -2906,6 +2970,7 @@ public class TestDummy extends AbstractDummyTest {
         ProvisioningTestUtil.checkRepoEntitlementShadow(shadowFromRepo);
 
         checkConsistency(priv);
+        assertDummyResourceGroupMembersReadCountIncrement(null, 0);
         assertSteadyResource();
     }
 
@@ -2930,6 +2995,7 @@ public class TestDummy extends AbstractDummyTest {
 				+ "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		
+		rememberDummyResourceGroupMembersReadCount(null);
 		syncServiceMock.reset();
 
 		ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_WILL_OID, 
@@ -2950,11 +3016,17 @@ public class TestDummy extends AbstractDummyTest {
 		TestUtil.assertSuccess(result);
 		
 		delta.checkConsistence();
+		if (isAvoidDuplicateValues()) {
+			assertDummyResourceGroupMembersReadCountIncrement(null, 1);
+		} else {
+			assertDummyResourceGroupMembersReadCountIncrement(null, 0);
+		}
+		
 		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
 		assertMember(group, transformNameFromResource(getWillRepoIcfName()));
 		
 		syncServiceMock.assertNotifySuccessOnly();
-		
+		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 		assertSteadyResource();
 	}
 	
@@ -2970,6 +3042,7 @@ public class TestDummy extends AbstractDummyTest {
 				+ "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		
+		rememberDummyResourceGroupMembersReadCount(null);
 		syncServiceMock.reset();
 
 		// WHEN
@@ -2982,12 +3055,14 @@ public class TestDummy extends AbstractDummyTest {
 		display(result);
 		TestUtil.assertSuccess(result);
 		
+		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 		assertEntitlementGroup(account, GROUP_PIRATES_OID);
 		
 		// Just make sure nothing has changed
 		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
 		assertMember(group, transformNameFromResource(getWillRepoIcfName()));
 		
+		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 		assertSteadyResource();
 	}
 	
@@ -3000,6 +3075,7 @@ public class TestDummy extends AbstractDummyTest {
 				+ "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		
+		rememberDummyResourceGroupMembersReadCount(null);
 		syncServiceMock.reset();
 
 		ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_WILL_OID, 
@@ -3017,23 +3093,28 @@ public class TestDummy extends AbstractDummyTest {
 		display("modifyObject result", result);
 		TestUtil.assertSuccess(result);
 		
+		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
+		
 		DummyAccount dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
 		assertNotNull("Account will is gone!", dummyAccount);
 		Set<String> accountProvileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
 		PrismAsserts.assertSets("account privileges", accountProvileges, PRIVILEGE_PILLAGE_NAME);
+		
+		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 		
 		// Make sure that privilege object is still there
 		DummyPrivilege priv = getDummyPrivilegeAssert(PRIVILEGE_PILLAGE_NAME, pillageIcfUid);
 		assertNotNull("Privilege object is gone!", priv);
 		
 		delta.checkConsistence();
+		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 		
 		// Make sure that the groups is still there and will is a member
 		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
 		assertMember(group, transformNameFromResource(getWillRepoIcfName()));
 		
 		syncServiceMock.assertNotifySuccessOnly();
-		
+		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 		assertSteadyResource();
 	}
 
@@ -3097,6 +3178,7 @@ public class TestDummy extends AbstractDummyTest {
 				+ "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		
+		rememberDummyResourceGroupMembersReadCount(null);
 		syncServiceMock.reset();
 
 		// WHEN
@@ -3113,11 +3195,15 @@ public class TestDummy extends AbstractDummyTest {
 		assertEntitlementPriv(account, PRIVILEGE_PILLAGE_OID);
         assertEntitlementPriv(account, PRIVILEGE_BARGAIN_OID);
 
+        assertDummyResourceGroupMembersReadCountIncrement(null, 0);
+        
 		// Just make sure nothing has changed
 		DummyAccount dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
 		assertNotNull("Account will is gone!", dummyAccount);
 		Set<String> accountProvileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
 		PrismAsserts.assertSets("Wrong account privileges", accountProvileges, PRIVILEGE_PILLAGE_NAME, PRIVILEGE_BARGAIN_NAME);
+		
+		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 		
 		// Make sure that privilege object is still there
 		DummyPrivilege priv = getDummyPrivilegeAssert(PRIVILEGE_PILLAGE_NAME, pillageIcfUid);
@@ -3128,6 +3214,7 @@ public class TestDummy extends AbstractDummyTest {
 		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
 		assertMember(group, transformNameFromResource(getWillRepoIcfName()));
 		
+		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 		assertSteadyResource();
 	}
 	
@@ -3151,6 +3238,7 @@ public class TestDummy extends AbstractDummyTest {
 		groupFools.addMember(transformNameFromResource(ACCOUNT_WILL_USERNAME));
 		
 		syncServiceMock.reset();
+		rememberDummyResourceGroupMembersReadCount(null);
 		rememberConnectorOperationCount();
 
 		// WHEN
@@ -3164,13 +3252,19 @@ public class TestDummy extends AbstractDummyTest {
 		TestUtil.assertSuccess(result);
 		assertConnectorOperationIncrement(2);
 		
+		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
+		
 		PrismObject<ShadowType> foolsShadow = findShadowByName(new QName(RESOURCE_DUMMY_NS, OBJECTCLAS_GROUP_LOCAL_NAME), "fools", resource, result);
 		assertNotNull("No shadow for group fools", foolsShadow);
+		
+		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 		
 		assertEntitlementGroup(account, GROUP_PIRATES_OID);
 		assertEntitlementGroup(account, foolsShadow.getOid());
 		assertEntitlementPriv(account, PRIVILEGE_PILLAGE_OID);
         assertEntitlementPriv(account, PRIVILEGE_BARGAIN_OID);
+        
+        assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
 		// Just make sure nothing has changed
 		DummyAccount dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
@@ -3184,6 +3278,8 @@ public class TestDummy extends AbstractDummyTest {
         DummyPrivilege priv2 = getDummyPrivilegeAssert(PRIVILEGE_BARGAIN_NAME, bargainIcfUid);
         assertNotNull("Privilege object (bargain) is gone!", priv2);
 
+        assertDummyResourceGroupMembersReadCountIncrement(null, 0);
+        
 		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
 		assertMember(group, transformNameFromResource(getWillRepoIcfName()));
 		
@@ -3191,6 +3287,7 @@ public class TestDummy extends AbstractDummyTest {
 		groupFools = getDummyGroupAssert("fools", foolsIcfUid);
 		assertMember(group, transformNameFromResource(getWillRepoIcfName()));
 		
+		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 		assertSteadyResource();
 	}
 		
@@ -3203,6 +3300,7 @@ public class TestDummy extends AbstractDummyTest {
 				+ "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		
+		rememberDummyResourceGroupMembersReadCount(null);
 		syncServiceMock.reset();
 
 		ObjectDelta<ShadowType> delta = IntegrationTestTools.createDetitleDelta(ACCOUNT_WILL_OID,
@@ -3221,6 +3319,12 @@ public class TestDummy extends AbstractDummyTest {
 		TestUtil.assertSuccess(result);
 		
 		delta.checkConsistence();
+		if (isAvoidDuplicateValues()) {
+			assertDummyResourceGroupMembersReadCountIncrement(null, 1);
+		} else {
+			assertDummyResourceGroupMembersReadCountIncrement(null, 0);
+		}
+		
 		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
 		assertNoMember(group, getWillRepoIcfName());
 		
@@ -3230,12 +3334,15 @@ public class TestDummy extends AbstractDummyTest {
 		Set<String> accountProvileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
 		PrismAsserts.assertSets("Wrong account privileges", accountProvileges, PRIVILEGE_PILLAGE_NAME, PRIVILEGE_BARGAIN_NAME);
 		
+		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
+		
 		// Make sure that privilege object is still there
 		DummyPrivilege priv = getDummyPrivilegeAssert(PRIVILEGE_PILLAGE_NAME, pillageIcfUid);
 		assertNotNull("Privilege object is gone!", priv);
         DummyPrivilege priv2 = getDummyPrivilegeAssert(PRIVILEGE_BARGAIN_NAME, bargainIcfUid);
         assertNotNull("Privilege object (bargain) is gone!", priv2);
 
+        assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 		syncServiceMock.assertNotifySuccessOnly();
 		assertSteadyResource();
 	}

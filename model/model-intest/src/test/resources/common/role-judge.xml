@@ -47,7 +47,11 @@
     	<exclusion>
 	    	<description>A judge cannot be a pirate at the same time. At least not openly.</description>
 	    	<enforcement>enforce</enforcement>
-	    	<targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/>
+	    	<targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/> <!-- Pirate -->
+    	</exclusion>
+    	<exclusion>
+	    	<enforcement>enforce</enforcement>
+	    	<targetRef oid="b189fcb8-1ff9-11e5-8912-001e8c717e5b" type="RoleType"/> <!-- Thief -->
     	</exclusion>
     </policyConstraints>
 </role>

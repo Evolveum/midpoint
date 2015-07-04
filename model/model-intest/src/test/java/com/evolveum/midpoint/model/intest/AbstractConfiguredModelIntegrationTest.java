@@ -181,6 +181,12 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String ROLE_JUDGE_TITLE = "Honorable Justice";
 	protected static final String ROLE_JUDGE_DRINK = "tea";
 
+	protected static final File ROLE_JUDGE_DEPRECATED_FILE = new File(COMMON_DIR, "role-judge-deprecated.xml");
+	protected static final String ROLE_JUDGE_DEPRECATED_OID = "12345111-1111-2222-1111-d21212111111";
+	
+	protected static final File ROLE_THIEF_FILE = new File(COMMON_DIR, "role-thief.xml");
+	protected static final String ROLE_THIEF_OID = "b189fcb8-1ff9-11e5-8912-001e8c717e5b";
+	
 	protected static final File ROLE_EMPTY_FILE = new File(COMMON_DIR, "role-empty.xml");
 	protected static final String ROLE_EMPTY_OID = "12345111-1111-2222-1111-121212111112";
 	

@@ -50,6 +50,7 @@ import com.evolveum.midpoint.model.impl.lens.AssignmentPath;
 import com.evolveum.midpoint.model.impl.lens.AssignmentPathSegment;
 import com.evolveum.midpoint.model.impl.lens.Construction;
 import com.evolveum.midpoint.model.impl.lens.ConstructionPack;
+import com.evolveum.midpoint.model.impl.lens.EvaluatedAbstractRoleImpl;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.ItemValueWithOrigin;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -479,7 +480,7 @@ public class AssignmentProcessor {
         
         // PROCESSING POLICIES
         
-        // Checking for assignment exclusions. This means mostly role exclusions (SoD) 
+        // Checking for assignment exclusions. This means mostly role exclusions (SoD)
         checkExclusions(context, evaluatedAssignmentTriple.getZeroSet(), evaluatedAssignmentTriple.getPlusSet());
         checkExclusions(context, evaluatedAssignmentTriple.getPlusSet(), evaluatedAssignmentTriple.getPlusSet());
         checkAssigneeConstraints(context, evaluatedAssignmentTriple, result);
@@ -1366,34 +1367,19 @@ public class AssignmentProcessor {
 			// Same thing, this cannot exclude itself
 			return;
 		}
-		for(Construction<F> constructionA: assignmentA.getConstructions().getNonNegativeValues()) {
-			for(Construction<F> constructionB: assignmentB.getConstructions().getNonNegativeValues()) {
-				checkExclusion(constructionA, assignmentA, constructionB, assignmentB);
+		for (EvaluatedAbstractRoleImpl eRoleA: assignmentA.getRoles().getAllValues()) {
+			for (EvaluatedAbstractRoleImpl eRoleB: assignmentB.getRoles().getAllValues()) {
+				checkExclusion(eRoleA, eRoleB);
 			}
 		}
 	}
 
-	private <F extends FocusType> void checkExclusion(Construction<F> constructionA, EvaluatedAssignment<F> assignmentA,
-			Construction<F> constructionB, EvaluatedAssignment<F> assignmentB) throws PolicyViolationException {
-		AssignmentPath pathA = constructionA.getAssignmentPath();
-		AssignmentPath pathB = constructionB.getAssignmentPath();
-		for (AssignmentPathSegment segmentA: pathA.getSegments()) {
-			if (segmentA.getTarget() != null && segmentA.getTarget() instanceof AbstractRoleType) {
-				for (AssignmentPathSegment segmentB: pathB.getSegments()) {
-					if (segmentB.getTarget() != null && segmentB.getTarget() instanceof AbstractRoleType) {
-						checkExclusion((AbstractRoleType)segmentA.getTarget(), (AbstractRoleType)segmentB.getTarget());
-					}
-				}
-			}
-		}
-	}
-
-	private void checkExclusion(AbstractRoleType roleA, AbstractRoleType roleB) throws PolicyViolationException {
+	private void checkExclusion(EvaluatedAbstractRoleImpl roleA, EvaluatedAbstractRoleImpl roleB) throws PolicyViolationException {
 		checkExclusionOneWay(roleA, roleB);
 		checkExclusionOneWay(roleB, roleA);
 	}
 
-	private void checkExclusionOneWay(AbstractRoleType roleA, AbstractRoleType roleB) throws PolicyViolationException {
+	private void checkExclusionOneWay(EvaluatedAbstractRoleImpl roleA, EvaluatedAbstractRoleImpl roleB) throws PolicyViolationException {
 		PolicyConstraintsType policyConstraints = roleA.getPolicyConstraints();
 		if (policyConstraints != null) {
 			for (ExclusionPolicyConstraintType exclusionA : policyConstraints.getExclusion()) {
@@ -1407,16 +1393,7 @@ public class AssignmentProcessor {
 					}
 				}
 			}
-		}
-		
-		// Deprecated
-		for (ExclusionPolicyConstraintType exclusionA : roleA.getExclusion()) {
-			ObjectReferenceType targetRef = exclusionA.getTargetRef();
-			if (roleB.getOid().equals(targetRef.getOid())) {
-				throw new PolicyViolationException("Violation of SoD policy: "+roleA+" excludes "+roleB+
-						", they cannot be assigned at the same time");
-			}
-		}
+		}		
 	}
 	
 	private <F extends FocusType> void checkAssigneeConstraints(LensContext<F> context,

@@ -297,13 +297,25 @@ public class ProvisioningUtil {
 		
 		boolean apply = false;
 		AttributesToReturn attributesToReturn = new AttributesToReturn();
-		attributesToReturn.setReturnDefaultAttributes(true);
 
 		// Attributes
+		
+		boolean hasMinimal = false;
+		for (RefinedAttributeDefinition attributeDefinition : objectClassDefinition.getAttributeDefinitions()) {
+			if (attributeDefinition.getFetchStrategy() == AttributeFetchStrategyType.MINIMAL) {
+				hasMinimal = true;
+				break;
+			}
+		}
+		
+		attributesToReturn.setReturnDefaultAttributes(!hasMinimal);
+		
 		Collection<ResourceAttributeDefinition> explicit = new ArrayList<ResourceAttributeDefinition>();
 		for (RefinedAttributeDefinition attributeDefinition : objectClassDefinition.getAttributeDefinitions()) {
 			AttributeFetchStrategyType fetchStrategy = attributeDefinition.getFetchStrategy();
 			if (fetchStrategy != null && fetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
+				explicit.add(attributeDefinition);
+			} else if (hasMinimal && fetchStrategy != AttributeFetchStrategyType.MINIMAL) {
 				explicit.add(attributeDefinition);
 			}
 		}

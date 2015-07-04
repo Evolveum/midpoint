@@ -96,6 +96,11 @@ public class TestDummyCaseIgnore extends TestDummy {
 		return uidMatchingRule;
 	}
 
+	@Override
+	protected boolean isAvoidDuplicateValues() {
+		return true;
+	}
+
 	@Test
 	public void test175SearchUidCase() throws Exception {
 		final String TEST_NAME = "test175SearchUidCase";

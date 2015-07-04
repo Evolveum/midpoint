@@ -1544,7 +1544,6 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 				((Collection)modifications).add(deltaToAdd);
 			}
 		}
-		
 	}
 	
 	public static void merge(Collection<? extends ItemDelta> modifications, ItemDelta delta) {
@@ -1556,5 +1555,14 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 		}
 		((Collection)modifications).add(delta);
 	}
-
+	
+	public static void mergeAll(Collection<? extends ItemDelta> modifications, Collection<? extends ItemDelta> deltasToMerge) {
+		if (deltasToMerge == null) {
+			return;
+		}
+		for (ItemDelta deltaToMerge: deltasToMerge) {
+			merge(modifications, deltaToMerge);
+		}
+	}
+	
 }

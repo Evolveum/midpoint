@@ -4024,6 +4024,20 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="minimal">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Fetch the attribute only if absolutely necessary.
+                		MidPoint expects that the attribute might be implicitly returned by the connector.
+                		Therefore it will try to avoid fetching this value (if possible).
+                		This option can be used for values that cause performance overhead (e.g. list of members
+                		of large groups).
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MINIMAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
 

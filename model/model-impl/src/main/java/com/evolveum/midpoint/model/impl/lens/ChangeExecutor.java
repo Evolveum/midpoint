@@ -1057,7 +1057,7 @@ public class ChangeExecutor {
 
     	PrismObjectDefinition<T> def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(objectTypeClass);
 
-    	((Collection) change.getModifications()).addAll(LensUtil.createModifyMetadataDeltas(context, new ItemPath(ObjectType.F_METADATA), def, clock.currentTimeXMLGregorianCalendar(), task));
+    	ItemDelta.mergeAll(change.getModifications(), LensUtil.createModifyMetadataDeltas(context, new ItemPath(ObjectType.F_METADATA), def, clock.currentTimeXMLGregorianCalendar(), task));
     	
         List<PrismReferenceValue> approverReferenceValues = new ArrayList<PrismReferenceValue>();
 
