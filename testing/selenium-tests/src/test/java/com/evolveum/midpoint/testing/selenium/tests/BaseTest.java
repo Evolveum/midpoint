@@ -1,20 +1,4 @@
-/*
- * Copyright (c) 2010-2013 Evolveum
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-package com.evolveum.midpoint.selenium;
+package com.evolveum.midpoint.testing.selenium.tests;
 
 
 import com.evolveum.midpoint.util.logging.Trace;
@@ -30,7 +14,6 @@ import org.testng.annotations.BeforeClass;
 
 import java.util.concurrent.TimeUnit;
 
-import static org.testng.AssertJUnit.fail;
 
 /**
  * @author lazyman
@@ -41,9 +24,13 @@ public class BaseTest {
     private static final String PARAM_TIMEOUT_PAGE = "timeout.page";
     private static final String PARAM_TIMEOUT_WAIT = "timeout.wait";
     private static final String PARAM_TIMEOUT_SCRIPT = "timeout.script";
+    private static final String PARAM_USER_LOGIN = "user.login";
+    private static final String PARAM_USER_PASSWORD = "user.password";
 
     private static final Trace LOGGER = TraceManager.getTrace(BaseTest.class);
     private String siteUrl;
+    protected String userLogin;
+    protected String userPassword;
     protected WebDriver driver;
 
     public String getSiteUrl() {
@@ -53,6 +40,8 @@ public class BaseTest {
     @BeforeClass(alwaysRun = true)
     public void beforeClass(ITestContext context) {
         siteUrl = context.getCurrentXmlTest().getParameter(PARAM_SITE_URL);
+        userLogin = context.getCurrentXmlTest().getParameter(PARAM_USER_LOGIN);
+        userPassword = context.getCurrentXmlTest().getParameter(PARAM_USER_PASSWORD);
 
         int wait = getTimeoutParameter(context, PARAM_TIMEOUT_WAIT, 1);
         int page = getTimeoutParameter(context, PARAM_TIMEOUT_PAGE, 1);
@@ -61,6 +50,7 @@ public class BaseTest {
                 new Object[]{siteUrl, wait, page, script});
 
         driver = new FirefoxDriver();
+
         WebDriver.Timeouts timeouts = driver.manage().timeouts();
         timeouts.implicitlyWait(wait, TimeUnit.SECONDS);
         timeouts.pageLoadTimeout(page, TimeUnit.SECONDS);
@@ -82,24 +72,22 @@ public class BaseTest {
     }
 
     protected void performLogin(WebDriver driver) {
-        performLogin(driver, "administrator", "5ecr3t");
+        performLogin(driver, userLogin, userPassword);
     }
 
     protected void performLogin(WebDriver driver, String username, String password) {
         driver.get(siteUrl + "/login");
 
-        driver.findElement(By.id("userName")).sendKeys(username);
-        driver.findElement(By.id("userPass")).sendKeys(password);
+        driver.findElement(By.name("username")).clear();
+        driver.findElement(By.name("username")).sendKeys(username);
+        driver.findElement(By.name("password")).clear();
+        driver.findElement(By.name("password")).sendKeys(password);
 
-        driver.findElement(By.cssSelector("input.button")).click();
+        driver.findElement(By.xpath("//input[@value='Sign in']")).click();
     }
 
     protected void performLogout(WebDriver driver) {
-        WebElement logout = driver.findElement(By.xpath("//div[@id=\"login-box\"]/a[1]"));
-        if (logout == null) {
-            fail("Couldn't find logout link.");
-        }
-        logout.click();
+//todo
     }
 
     protected void logTestMethodStart(Trace LOGGER, String method) {
