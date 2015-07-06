@@ -253,7 +253,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
     @Test
     public void test100ModifyUserAddAccount() throws Exception {
-        TestUtil.displayTestTile(this, "test100ModifyUserAddAccount");
+    	final String TEST_NAME = "test100ModifyUserAddAccount";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test100ModifyUserAddAccount");
@@ -263,9 +264,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         
 		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
         modifyUserAddAccount(USER_JACK_OID, ACCOUNT_JACK_DUMMY_FILE, task, result);
 		
 		// THEN
+        TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
