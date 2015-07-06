@@ -139,6 +139,7 @@
 			<attribute>
 				<ref>ri:uniqueMember</ref>
 				<matchingRule>mr:distinguishedName</matchingRule>
+				<fetchStrategy>minimal</fetchStrategy>
 			</attribute>
         </objectType>
                 

@@ -153,7 +153,7 @@ import com.sun.mail.imap.protocol.UID;
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
 public class TestOpenDJ extends AbstractOpenDJTest {
-	
+
 	private static Trace LOGGER = TraceManager.getTrace(TestOpenDJ.class);
 
 	@Autowired
@@ -1328,21 +1328,26 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		IntegrationTestTools.display("Adding object", object);
 
 		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
 		
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
 		assertEquals(GROUP_SWASHBUCKLERS_OID, addedObjectOid);
 
 		ShadowType shadowType =  repositoryService.getObject(ShadowType.class, GROUP_SWASHBUCKLERS_OID,
 				null, result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Wrong ICF name (repo)", GROUP_SWASHBUCKLERS_DN, shadowType.getName());
 
-		ShadowType provisioningShadowType = provisioningService.getObject(ShadowType.class, GROUP_SWASHBUCKLERS_OID,
-				null, taskManager.createTaskInstance(), result).asObjectable();
+		PrismObject<ShadowType> provisioningShadow = provisioningService.getObject(ShadowType.class, GROUP_SWASHBUCKLERS_OID,
+				null, taskManager.createTaskInstance(), result);
+		ShadowType provisioningShadowType = provisioningShadow.asObjectable();
 		PrismAsserts.assertEqualsPolyString("Wrong ICF name (provisioning)", GROUP_SWASHBUCKLERS_DN, provisioningShadowType.getName());
 		
 		String uid = ShadowUtil.getSingleStringAttributeValue(shadowType, getPrimaryIdentifierQName());		
 		assertNotNull(uid);
+		ResourceAttribute<Object> memberAttr = ShadowUtil.getAttribute(provisioningShadow, new QName(RESOURCE_OPENDJ_NS, GROUP_MEMBER_ATTR_NAME));
+		assertNull("Member attribute sneaked in", memberAttr);
 		
 		SearchResultEntry ldapEntry = openDJController.searchAndAssertByEntryUuid(uid);
 		display("LDAP group", ldapEntry);
@@ -1394,6 +1399,36 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		display("LDAP group", groupEntry);
 		assertNotNull("No LDAP group entry");
 		openDJController.assertUniqueMember(groupEntry, accountDn);
+	}
+	
+	@Test
+	public void test195GetGroupSwashbucklers() throws Exception {
+		final String TEST_NAME = "test195GetGroupSwashbucklers";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+				+ "." + TEST_NAME);
+		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		PrismObject<ShadowType> provisioningShadow = provisioningService.getObject(ShadowType.class, GROUP_SWASHBUCKLERS_OID,
+				null, taskManager.createTaskInstance(), result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		ShadowType provisioningShadowType = provisioningShadow.asObjectable();
+		PrismAsserts.assertEqualsPolyString("Wrong ICF name (provisioning)", GROUP_SWASHBUCKLERS_DN, provisioningShadowType.getName());
+		
+		String uid = ShadowUtil.getSingleStringAttributeValue(provisioningShadowType, getPrimaryIdentifierQName());		
+		assertNotNull(uid);
+		ResourceAttribute<Object> memberAttr = ShadowUtil.getAttribute(provisioningShadow, new QName(RESOURCE_OPENDJ_NS, GROUP_MEMBER_ATTR_NAME));
+		assertNull("Member attribute sneaked in", memberAttr);
+		
+		SearchResultEntry ldapEntry = openDJController.searchAndAssertByEntryUuid(uid);
+		display("LDAP group", ldapEntry);
+		assertNotNull("No LDAP group entry");
+		String groupDn = ldapEntry.getDN().toString();
+		assertEquals("Wrong group DN", GROUP_SWASHBUCKLERS_DN, groupDn);
 	}
 
 	/**
