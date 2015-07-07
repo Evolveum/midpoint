@@ -1146,7 +1146,74 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         assertReconAuditModifications(0, TASK_RECONCILE_DUMMY_AZURE_OID);
 	}
-	
+
+	@Test
+    public void test320ReconcileDummyAzureDeleteOtis() throws Exception {
+		final String TEST_NAME = "test320ReconcileDummyAzureDeleteOtis";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        dummyResource.setBreakMode(BreakMode.NONE);
+        dummyResourceAzure.setBreakMode(BreakMode.NONE);
+        
+        assertShadows(15);
+        
+        PrismObject<ShadowType> otisShadow = findShadowByName(ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, ACCOUNT_OTIS_NAME, resourceDummyAzure, result);
+        
+        // Create some illegal account
+        dummyResourceAzure.deleteAccountByName(ACCOUNT_OTIS_NAME);
+        
+        dummyResourceAzure.purgeScriptHistory();
+        dummyAuditService.clear();
+        reconciliationTaskResultListener.clear();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        restartTask(TASK_RECONCILE_DUMMY_AZURE_OID);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        
+        waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE_OID, false);
+        
+        TestUtil.displayThen(TEST_NAME);
+        
+        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
+        display("Users after reconcile", users);
+        
+        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_AZURE_OID, 0, 0, 0, 1);
+        
+        assertImportedUserByOid(USER_ADMINISTRATOR_OID);
+        assertImportedUserByOid(USER_JACK_OID);
+        assertImportedUserByOid(USER_BARBOSSA_OID);        
+        assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_LIME_OID);
+        assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME);
+        assertImportedUserByUsername(ACCOUNT_HTM_NAME, RESOURCE_DUMMY_OID);
+        
+        // Otis
+        assertNoImporterUserByUsername(ACCOUNT_OTIS_NAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_AZURE_NAME, ACCOUNT_OTIS_NAME);
+        
+        // These are protected accounts, they should not be imported
+        assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
+        assertNoImporterUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
+        // Calypso is protected account. Reconciliation should not touch it
+        assertDummyAccountAttribute(null, ACCOUNT_CALYPSO_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, 
+        		"Calypso");
+        
+        assertNoObject(ShadowType.class, otisShadow.getOid(), task, result);
+        assertShadows(14);
+        
+        assertEquals("Unexpected number of users", 11, users.size());
+        
+        display("Dummy resource (azure)", dummyResourceAzure.debugDump());
+        
+        assertReconAuditModifications(0, TASK_RECONCILE_DUMMY_AZURE_OID);
+	}
+
 	@Test
     public void test400ReconcileDummyLimeAddAccount() throws Exception {
 		final String TEST_NAME = "test400ReconcileDummyLimeAddAccount";
@@ -1186,8 +1253,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_LIME_OID);
         assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME);
         assertImportedUserByUsername(ACCOUNT_HTM_NAME, RESOURCE_DUMMY_OID);
-        assertNoImporterUserByUsername(ACCOUNT_OTIS_NAME);
-        assertDummyAccount(RESOURCE_DUMMY_AZURE_NAME, ACCOUNT_OTIS_NAME, ACCOUNT_OTIS_FULLNAME, false);
         
         // Kate Capsize: user should be created
         assertImportedUserByUsername(ACCOUNT_CAPSIZE_NAME, RESOURCE_DUMMY_LIME_OID);
@@ -1239,8 +1304,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_LIME_OID);
         assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME);
         assertImportedUserByUsername(ACCOUNT_HTM_NAME, RESOURCE_DUMMY_OID);
-        assertNoImporterUserByUsername(ACCOUNT_OTIS_NAME);
-        assertDummyAccount(RESOURCE_DUMMY_AZURE_NAME, ACCOUNT_OTIS_NAME, ACCOUNT_OTIS_FULLNAME, false);
         
         // Kate Capsize: user should be gone
         assertNoImporterUserByUsername(ACCOUNT_CAPSIZE_NAME);
