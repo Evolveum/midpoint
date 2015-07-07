@@ -1011,5 +1011,16 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		}
 	}
 
+	protected void assertShadows(int expected) throws SchemaException {
+		OperationResult result = new OperationResult("assertShadows");
+		assertShadows(expected, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+	}
+	
+	protected void assertShadows(int expected, OperationResult result) throws SchemaException {
+		int actual = repositoryService.countObjects(ShadowType.class, null, result);
+		assertEquals("Unexpected number of (repository) shadows", expected, actual);
+	}
 
 }

@@ -579,14 +579,17 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		} catch (ObjectNotFoundException e) {
 			// Account is gone
 			reactShadowGone(shadow, resource, task, opResult);
+			if (opResult.isUnknown()) {
+				opResult.setStatus(OperationResultStatus.HANDLED_ERROR);
+			}
 		} catch (CommunicationException e) {
-			processShadowReconErrror(e, shadow, opResult);
+			processShadowReconError(e, shadow, opResult);
 		} catch (SchemaException e) {
-			processShadowReconErrror(e, shadow, opResult);
+			processShadowReconError(e, shadow, opResult);
 		} catch (ConfigurationException e) {
-			processShadowReconErrror(e, shadow, opResult);
+			processShadowReconError(e, shadow, opResult);
 		} catch (SecurityViolationException e) {
-			processShadowReconErrror(e, shadow, opResult);
+			processShadowReconError(e, shadow, opResult);
 		}
 	}
 
@@ -606,17 +609,17 @@ public class ReconciliationTaskHandler implements TaskHandler {
             Utils.clearRequestee(task);
 			changeNotificationDispatcher.notifyChange(change, task, result);
 		} catch (SchemaException e) {
-			processShadowReconErrror(e, shadow, result);
+			processShadowReconError(e, shadow, result);
 		} catch (ObjectNotFoundException e) {
-			processShadowReconErrror(e, shadow, result);
+			processShadowReconError(e, shadow, result);
 		} catch (CommunicationException e) {
-			processShadowReconErrror(e, shadow, result);
+			processShadowReconError(e, shadow, result);
 		} catch (ConfigurationException e) {
-			processShadowReconErrror(e, shadow, result);
+			processShadowReconError(e, shadow, result);
 		}
 	}
 
-	private void processShadowReconErrror(Exception e, PrismObject<ShadowType> shadow, OperationResult opResult) {
+	private void processShadowReconError(Exception e, PrismObject<ShadowType> shadow, OperationResult opResult) {
 		LOGGER.error("Error reconciling shadow {}: {}", new Object[]{shadow, e.getMessage(), e});
 		opResult.recordFatalError(e);
 		// TODO: store error in the shadow?

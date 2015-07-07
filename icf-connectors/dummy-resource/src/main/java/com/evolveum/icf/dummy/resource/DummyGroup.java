@@ -53,7 +53,11 @@ public class DummyGroup extends DummyObject {
 	}
 
 	public boolean containsMember(String member) {
-		return getMembers().contains(member);			// TODO ok? what about case ignoring scenarios?
+		Collection<String> members = getMembers();
+		if (members == null) {
+			return false;
+		}
+		return members.contains(member);			// TODO ok? what about case ignoring scenarios?
 	}
 
 	public void removeMember(String newMember) throws SchemaViolationException, ConnectException, FileNotFoundException {

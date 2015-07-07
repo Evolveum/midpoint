@@ -162,6 +162,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	private static final String ACCOUNT_CRUFF_OID = "22220000-2200-0000-0000-444400004468";
 	private static final String ACCOUNT_CRUFF_NAME = "cruff";
 	private static final String ACCOUNT_CRUFF_FULLNAME = "Cruff";
+	
+	private static final String ACCOUNT_HTM_NAME = "htm";
+	private static final String ACCOUNT_HTM_FULL_NAME = "Horatio Torquemada Marley";
 
 	protected static final File RESOURCE_DUMMY_AZURE_FILE = new File(TEST_DIR, "resource-dummy-azure.xml");
 	protected static final File RESOURCE_DUMMY_AZURE_DEPRECATED_FILE = new File(TEST_DIR, "resource-dummy-azure-deprecated.xml");
@@ -900,7 +903,101 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         display("Recon task result", reconTaskResult);
         TestUtil.assertSuccess(reconTaskResult);
 	}
-	
+
+	@Test
+    public void test230ReconcileDummyRename() throws Exception {
+		final String TEST_NAME = "test230ReconcileDummyRename";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+
+        dummyResource.setBreakMode(BreakMode.NONE);
+        dummyResource.getAccountByUsername(ACCOUNT_GUYBRUSH_DUMMY_USERNAME).setModifyBreakMode(BreakMode.NONE);
+        
+        PrismObject<UserType> userHerman = findUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME);
+        String hermanShadowOid = getSingleLinkOid(userHerman);
+        
+        assertShadows(14);
+
+        dummyResource.renameAccount(ACCOUNT_HERMAN_DUMMY_USERNAME, ACCOUNT_HERMAN_DUMMY_USERNAME, ACCOUNT_HTM_NAME);
+        DummyAccount dummyAccountHtm = getDummyAccount(null, ACCOUNT_HTM_NAME);
+        dummyAccountHtm.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, ACCOUNT_HTM_FULL_NAME);
+        
+        dummyResource.purgeScriptHistory();
+        dummyAuditService.clear();
+        rememberShadowFetchOperationCount();
+        reconciliationTaskResultListener.clear();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        restartTask(TASK_RECONCILE_DUMMY_OID);
+        waitForTaskFinish(TASK_RECONCILE_DUMMY_OID, false, DEFAULT_TASK_WAIT_TIMEOUT, true);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        // First fetch: searchIterative
+        // Second fetch: "fetchback" of modified account (htm)
+        assertShadowFetchOperationCountIncrement(2);
+        
+        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 1);
+        
+        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
+        display("Users after import", users);
+        
+        assertImportedUserByUsername(ACCOUNT_HTM_NAME, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME); // not deleted. reaction=unlink
+        
+        assertNoObject(ShadowType.class, hermanShadowOid, task, result);
+        
+        assertImportedUserByOid(USER_ADMINISTRATOR_OID);
+        assertImportedUserByOid(USER_JACK_OID);
+        assertImportedUserByOid(USER_BARBOSSA_OID);
+        assertImportedUserByOid(USER_GUYBRUSH_OID, RESOURCE_DUMMY_OID);
+        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, 
+        		"Dubrish Freepweed");
+        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, 
+        		"Melee Island");
+        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, 
+        		"Feather duster");
+        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, 
+        		"rum");
+        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, 
+        		"Arr!", "I want to be a pirate!");
+        
+        assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_LIME_OID);
+        assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
+        assertNoImporterUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
+        assertDummyAccountAttribute(null, ACCOUNT_CALYPSO_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, 
+        		"Calypso");
+        
+        assertEquals("Unexpected number of users", 11, users.size());
+        
+        display("Dummy resource", dummyResource.debugDump());
+        
+        display("Script history", dummyResource.getScriptHistory());
+        
+        ArrayList<ProvisioningScriptSpec> scripts = new ArrayList<ProvisioningScriptSpec>();
+        addReconScripts(scripts, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", false);
+        addReconScripts(scripts, ACCOUNT_STAN_NAME, ACCOUNT_STAN_FULLNAME, false);
+        addReconScripts(scripts, USER_RAPP_USERNAME, "Rapp Scallion", false);
+        addReconScripts(scripts, ACCOUNT_HTM_NAME, ACCOUNT_HTM_FULL_NAME, true);
+        addReconScripts(scripts, ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", false);
+        IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
+        
+        assertReconAuditModifications(2, TASK_RECONCILE_DUMMY_OID); // the second modification is unlink
+        
+        assertShadows(14);
+        
+        // Task result
+        PrismObject<TaskType> reconTaskAfter = getTask(TASK_RECONCILE_DUMMY_OID);
+        OperationResultType reconTaskResult = reconTaskAfter.asObjectable().getResult();
+        display("Recon task result", reconTaskResult);
+        TestUtil.assertSuccess(reconTaskResult);
+	}
+
 	private void addReconScripts(Collection<ProvisioningScriptSpec> scripts, String username, String fullName, boolean modified) {
 		addReconScripts(scripts, username, fullName, modified, true);
 	}
@@ -968,7 +1065,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertImportedUserByOid(USER_JACK_OID);
         assertImportedUserByOid(USER_BARBOSSA_OID);        
         assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_LIME_OID);
-        assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME);
+        assertImportedUserByUsername(ACCOUNT_HTM_NAME, RESOURCE_DUMMY_OID);
         
         // Otis
         assertNoImporterUserByUsername(ACCOUNT_OTIS_NAME);
@@ -982,7 +1080,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         		"Calypso");
         
         
-        assertEquals("Unexpected number of users", 10, users.size());
+        assertEquals("Unexpected number of users", 11, users.size());
         
         display("Dummy resource (azure)", dummyResourceAzure.debugDump());
         
@@ -1027,7 +1125,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertImportedUserByOid(USER_JACK_OID);
         assertImportedUserByOid(USER_BARBOSSA_OID);        
         assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_LIME_OID);
-        assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME);
+        assertImportedUserByUsername(ACCOUNT_HTM_NAME, RESOURCE_DUMMY_OID);
+
         
         // Otis
         assertNoImporterUserByUsername(ACCOUNT_OTIS_NAME);
@@ -1040,7 +1140,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(null, ACCOUNT_CALYPSO_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, 
         		"Calypso");
         
-        assertEquals("Unexpected number of users", 10, users.size());
+        assertEquals("Unexpected number of users", 11, users.size());
         
         display("Dummy resource (azure)", dummyResourceAzure.debugDump());
         
@@ -1084,14 +1184,15 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertImportedUserByOid(USER_JACK_OID);
         assertImportedUserByOid(USER_BARBOSSA_OID);        
         assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_LIME_OID);
-        assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME);
+        assertImportedUserByUsername(ACCOUNT_HTM_NAME, RESOURCE_DUMMY_OID);
         assertNoImporterUserByUsername(ACCOUNT_OTIS_NAME);
         assertDummyAccount(RESOURCE_DUMMY_AZURE_NAME, ACCOUNT_OTIS_NAME, ACCOUNT_OTIS_FULLNAME, false);
         
         // Kate Capsize: user should be created
         assertImportedUserByUsername(ACCOUNT_CAPSIZE_NAME, RESOURCE_DUMMY_LIME_OID);
         
-        assertEquals("Unexpected number of users", 11, users.size());
+        assertEquals("Unexpected number of users", 12, users.size());
         
         display("Dummy resource (lime)", dummyResourceLime.debugDump());
         
@@ -1136,14 +1237,15 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertImportedUserByOid(USER_JACK_OID);
         assertImportedUserByOid(USER_BARBOSSA_OID);        
         assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_LIME_OID);
-        assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME);
+        assertImportedUserByUsername(ACCOUNT_HTM_NAME, RESOURCE_DUMMY_OID);
         assertNoImporterUserByUsername(ACCOUNT_OTIS_NAME);
         assertDummyAccount(RESOURCE_DUMMY_AZURE_NAME, ACCOUNT_OTIS_NAME, ACCOUNT_OTIS_FULLNAME, false);
         
         // Kate Capsize: user should be gone
         assertNoImporterUserByUsername(ACCOUNT_CAPSIZE_NAME);
         
-        assertEquals("Unexpected number of users", 10, users.size());
+        assertEquals("Unexpected number of users", 11, users.size());
         
         display("Dummy resource (lime)", dummyResourceLime.debugDump());
         
@@ -1168,7 +1270,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 		provisioningService.addObject(accountStan, null, null, task, result);
         
         // Preconditions
-        assertUsers(10);
+        assertUsers(11);
         dummyAuditService.clear();
         rememberShadowFetchOperationCount();
         
@@ -1200,7 +1302,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
         assertNoImporterUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
         
-        assertUsers(11);
+        assertUsers(12);
         
         assertShadowKindIntent(ACCOUNT_TAUGUSTUS_OID, ShadowKindType.ACCOUNT, INTENT_TEST);
         
@@ -1226,7 +1328,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 		provisioningService.addObject(account, null, null, task, result);
         
         // Preconditions
-        assertUsers(11);
+        assertUsers(12);
         dummyAuditService.clear();
         rememberShadowFetchOperationCount();
         
@@ -1255,7 +1357,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
         assertNoImporterUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
         
-        assertUsers(11);
+        assertUsers(12);
         
         assertShadowKindIntent(ACCOUNT_AUGUSTUS_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
         assertShadowKindIntent(ACCOUNT_TAUGUSTUS_OID, ShadowKindType.ACCOUNT, INTENT_TEST);
@@ -1303,7 +1405,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 		provisioningService.addObject(account, null, null, task, result);
 		
         // Preconditions
-		assertUsers(11);
+		assertUsers(12);
         dummyAuditService.clear();
         rememberShadowFetchOperationCount();
         
@@ -1337,7 +1439,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertImportedUserByOid(USER_BARBOSSA_OID);
         assertImportedUserByOid(USER_GUYBRUSH_OID, RESOURCE_DUMMY_OID);
         assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_LIME_OID);
-        assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME);
+        assertImportedUserByUsername(ACCOUNT_HTM_NAME, RESOURCE_DUMMY_OID);
         assertImportedUserByUsername(ACCOUNT_STAN_NAME, RESOURCE_DUMMY_OID);
         assertImportedUserByUsername(USER_AUGUSTUS_NAME, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_OID);
         assertImportedUserByUsername(ACCOUNT_KENNY_NAME, RESOURCE_DUMMY_OID);
@@ -1351,7 +1454,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
         assertNoImporterUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
         
-        assertUsers(17);
+        assertUsers(18);
         
         assertShadowKindIntent(ACCOUNT_AUGUSTUS_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
         assertShadowKindIntent(ACCOUNT_TAUGUSTUS_OID, ShadowKindType.ACCOUNT, INTENT_TEST);
@@ -1367,7 +1470,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
         // Preconditions
-		assertUsers(17);
+		assertUsers(18);
         dummyAuditService.clear();
         rememberShadowFetchOperationCount();
         
@@ -1397,7 +1500,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong exec operation count", 17, opExecResult.getCount());
         assertTrue("Too many subresults: "+deleteTaskResult.getSubresults().size(), deleteTaskResult.getSubresults().size() < 10);
         
-        assertUsers(17);
+        assertUsers(18);
         
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, 
         		new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), prismContext);
