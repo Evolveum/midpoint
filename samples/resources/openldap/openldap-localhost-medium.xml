@@ -326,6 +326,12 @@ It also contains inbound mappings and definition to enable synchronization.
 			<intent>ldapGroup</intent>
 			<displayName>LDAP Group</displayName>
 			<objectClass>ri:groupOfNames</objectClass>
+			<attribute><!-- MID-2419 -->
+				<ref>ri:member</ref>
+				<matchingRule>mr:distinguishedName</matchingRule>
+				<fetchStrategy>minimal</fetchStrategy>
+			</attribute>
+
 			<attribute>
 				<ref>ri:dn</ref>
 				<matchingRule>mr:stringIgnoreCase</matchingRule>

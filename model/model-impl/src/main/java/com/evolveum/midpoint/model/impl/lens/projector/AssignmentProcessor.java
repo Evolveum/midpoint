@@ -1386,10 +1386,10 @@ public class AssignmentProcessor {
 				ObjectReferenceType targetRef = exclusionA.getTargetRef();
 				if (roleB.getOid().equals(targetRef.getOid())) {
 					if (exclusionA.getEnforcement() == null || exclusionA.getEnforcement() == PolicyConstraintEnforcementType.ENFORCE) {
-						throw new PolicyViolationException("Violation of SoD policy: "+roleA+" excludes "+roleB+
+						throw new PolicyViolationException("Violation of SoD policy: "+roleA.getRole()+" excludes "+roleB.getRole()+
 								", they cannot be assigned at the same time");
 					} else {
-						// TODO
+						// TODO: other enforcement modes
 					}
 				}
 			}

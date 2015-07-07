@@ -1073,12 +1073,21 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
         cob.setObjectClass(co.getObjectClass());
         Set<Attribute> attrs = new HashSet<Attribute>(co.getAttributes().size());
         for (Attribute attr : co.getAttributes()) {
-            if (attributesToGet.contains(attr.getName())) {
+            if (containsAttribute(attributesToGet,attr.getName())) {
             	cob.addAttribute(attr);
             }
         }
         cob.addAttributes(attrs);
         return cob.build();
+	}
+
+	private boolean containsAttribute(Collection<String> attrs, String attrName) {
+		for (String attr: attrs) {
+			if (StringUtils.equalsIgnoreCase(attr, attrName)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
