@@ -1070,7 +1070,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
         PrismObject<ShadowType> accountNew = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, taskManager.createTaskInstance(), result);
     }
 
-	private void assertShadows(int expectedCount) throws SchemaException {
+	protected void assertShadows(int expectedCount) throws SchemaException {
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + ".assertShadows");
 		int actualCount = repositoryService.countObjects(ShadowType.class, null, result);
 		if (actualCount != expectedCount) {
