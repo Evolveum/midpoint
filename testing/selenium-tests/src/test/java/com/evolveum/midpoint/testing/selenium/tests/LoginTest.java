@@ -18,7 +18,7 @@ public class LoginTest extends BaseTest {
      * Logging in to midpoint administrator module with credentials administrator/5ecr3t
      */
     @Test
-    public void login() {
+    public void loginTest() {
         logTestMethodStart(LOGGER, "login");
 
         performLogin(driver);
@@ -33,7 +33,7 @@ public class LoginTest extends BaseTest {
      * password value
      */
     @Test
-    public void loginWithIncorrectPassword() {
+    public void loginWithIncorrectPasswordTest() {
         logTestMethodStart(LOGGER, "loginWithIncorrectPassword");
 
         performLogin(driver, userLogin, "incorrectPassword");
@@ -48,7 +48,7 @@ public class LoginTest extends BaseTest {
      * password value
      */
     @Test
-    public void loginWithIncorrectUsername() {
+    public void loginWithIncorrectUsernameTest() {
         logTestMethodStart(LOGGER, "loginWithIncorrectUsername");
 
         performLogin(driver, "incorrectUsername", userPassword);

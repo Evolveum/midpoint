@@ -18,7 +18,7 @@ public class CreateUserTest extends BaseTest {
      * Creating new user in the midPoint administrator module
      */
     @Test
-    public void addNewUser(){
+    public void addNewUserTest(){
         //log in to system asadministrator
         performLogin(driver, userLogin, userPassword);
 
@@ -44,7 +44,7 @@ public class CreateUserTest extends BaseTest {
      * Attemp to create user without mandatory field Name
      */
     @Test
-    public void createUserWithoutName() {
+    public void createUserWithoutNameTest() {
         //click Users menu item in the top vertical menu
         driver.findElement(By.cssSelector("html.no-js body div.navbar.navbar-default.navbar-fixed-top div div.navbar-collapse.collapse ul.nav.navbar-nav li.dropdown a.dropdown-toggle")).click();
 

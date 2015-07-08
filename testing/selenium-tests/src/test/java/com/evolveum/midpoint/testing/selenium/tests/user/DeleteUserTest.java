@@ -11,7 +11,7 @@ import org.testng.annotations.Test;
 public class DeleteUserTest extends BaseTest{
 
     @Test
-    public void testDeleteUser() throws Exception {
+    public void deleteUserTest() throws Exception {
         //log in to system as administrator
         performLogin(driver, userLogin, userPassword);
 
