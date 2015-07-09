@@ -27,6 +27,7 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -95,8 +96,10 @@ public class DummyResource implements DebugDumpable {
 	private BreakMode addBreakMode = BreakMode.NONE;
 	private BreakMode modifyBreakMode = BreakMode.NONE;
 	private BreakMode deleteBreakMode = BreakMode.NONE;
-	
-	
+
+	private boolean generateAccountDescriptionOnCreate = false;		   // simulates volatile behavior (on create)
+	private boolean generateAccountDescriptionOnUpdate = false;        // simulates volatile behavior (on update)
+
 	// Following two properties are just copied from the connector
 	// configuration and can be checked later. They are otherwise
 	// completely useless.
@@ -274,7 +277,23 @@ public class DummyResource implements DebugDumpable {
 	public void setCaseIgnoreValues(boolean caseIgnoreValues) {
 		this.caseIgnoreValues = caseIgnoreValues;
 	}
-	
+
+	public boolean isGenerateAccountDescriptionOnCreate() {
+		return generateAccountDescriptionOnCreate;
+	}
+
+	public void setGenerateAccountDescriptionOnCreate(boolean generateAccountDescriptionOnCreate) {
+		this.generateAccountDescriptionOnCreate = generateAccountDescriptionOnCreate;
+	}
+
+	public boolean isGenerateAccountDescriptionOnUpdate() {
+		return generateAccountDescriptionOnUpdate;
+	}
+
+	public void setGenerateAccountDescriptionOnUpdate(boolean generateAccountDescriptionOnUpdate) {
+		this.generateAccountDescriptionOnUpdate = generateAccountDescriptionOnUpdate;
+	}
+
 	public int getConnectionCount() {
 		return connectionCount;
 	}
@@ -676,9 +695,15 @@ public class DummyResource implements DebugDumpable {
 			existingObject = (T) allObjects.get(id);
 		}
 		existingObject.setName(newName);
+		if (existingObject instanceof DummyAccount) {
+			changeDescriptionIfNeeded((DummyAccount) existingObject);
+		}
 	}
 	
 	public String addAccount(DummyAccount newAccount) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException {
+		if (generateAccountDescriptionOnCreate && newAccount.getAttributeValue(DummyAccount.ATTR_DESCRIPTION_NAME) == null) {
+			newAccount.addAttributeValue(DummyAccount.ATTR_DESCRIPTION_NAME, "Description of " + newAccount.getName());
+		}
 		return addObject(accounts, newAccount);
 	}
 	
@@ -695,7 +720,17 @@ public class DummyResource implements DebugDumpable {
 			}
 		}
 	}
-	
+
+	public void changeDescriptionIfNeeded(DummyAccount account) {
+		if (generateAccountDescriptionOnCreate) {
+			try {
+				account.replaceAttributeValue(DummyAccount.ATTR_DESCRIPTION_NAME, "Updated description of " + account.getName());
+			} catch (SchemaViolationException|ConnectException|FileNotFoundException e) {
+				throw new SystemException("Couldn't replace the 'description' attribute value", e);
+			}
+		}
+	}
+
 	public String addGroup(DummyGroup newGroup) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException {
 		return addObject(groups, newGroup);
 	}

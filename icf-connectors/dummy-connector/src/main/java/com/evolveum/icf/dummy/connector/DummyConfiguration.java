@@ -51,6 +51,8 @@ public class DummyConfiguration extends AbstractConfiguration {
 	private boolean referentialIntegrity = false; 
     private String uselessString;
     private GuardedString uselessGuardedString;
+	private boolean generateAccountDescriptionOnCreate = false;		   // simulates volatile behavior (on create)
+	private boolean generateAccountDescriptionOnUpdate = false;        // simulates volatile behavior (on update)
 
     /**
      * Defines name of the dummy resource instance. There may be several dummy resource running in
@@ -260,6 +262,26 @@ public class DummyConfiguration extends AbstractConfiguration {
 
 	public void setReferentialIntegrity(boolean referentialIntegrity) {
 		this.referentialIntegrity = referentialIntegrity;
+	}
+
+	@ConfigurationProperty(displayMessageKey = "UI_GENERATE_ACCOUNT_DESCRIPTION_ON_CREATE",
+			helpMessageKey = "UI_GENERATE_ACCOUNT_DESCRIPTION_ON_CREATE_HELP")
+	public boolean getGenerateAccountDescriptionOnCreate() {
+		return generateAccountDescriptionOnCreate;
+	}
+
+	public void setGenerateAccountDescriptionOnCreate(boolean generateAccountDescriptionOnCreate) {
+		this.generateAccountDescriptionOnCreate = generateAccountDescriptionOnCreate;
+	}
+
+	@ConfigurationProperty(displayMessageKey = "UI_GENERATE_ACCOUNT_DESCRIPTION_ON_UPDATE",
+			helpMessageKey = "UI_GENERATE_ACCOUNT_DESCRIPTION_ON_UPDATE_HELP")
+	public boolean getGenerateAccountDescriptionOnUpdate() {
+		return generateAccountDescriptionOnUpdate;
+	}
+
+	public void setGenerateAccountDescriptionOnUpdate(boolean generateAccountDescriptionOnUpdate) {
+		this.generateAccountDescriptionOnUpdate = generateAccountDescriptionOnUpdate;
 	}
 
 	/**

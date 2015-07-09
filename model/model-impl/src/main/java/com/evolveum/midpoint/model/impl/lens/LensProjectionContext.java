@@ -500,8 +500,11 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.BROKEN) {
 			return null;
 		}
-		ResourceObjectTypeDefinitionType def = ResourceTypeUtil.getResourceObjectTypeDefinitionType(
-        		resource, getResourceShadowDiscriminator().getKind(), resourceShadowDiscriminator.getIntent());
+		ResourceShadowDiscriminator discr = getResourceShadowDiscriminator();
+		if (discr == null) {
+			return null;			// maybe when an account is deleted
+		}
+		ResourceObjectTypeDefinitionType def = ResourceTypeUtil.getResourceObjectTypeDefinitionType(resource, discr.getKind(), discr.getIntent());
         return def;
     }
 	

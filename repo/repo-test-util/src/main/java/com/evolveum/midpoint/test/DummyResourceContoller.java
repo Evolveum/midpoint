@@ -26,6 +26,7 @@ import java.net.ConnectException;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
@@ -67,8 +68,11 @@ public class DummyResourceContoller extends AbstractResourceController {
 	public static final String DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME = "quote";
     public static final String DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME = "gossip";
     public static final String DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME = "water";
-    
-    public static final String DUMMY_ACCOUNT_ATTRIBUTE_AD_GIVEN_NAME_NAME = "givenName";
+
+	public static final QName DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME = new QName(MidPointConstants.NS_RI, DummyAccount.ATTR_FULLNAME_NAME);
+	public static final QName DUMMY_ACCOUNT_ATTRIBUTE_DESCRIPTION_QNAME = new QName(MidPointConstants.NS_RI, DummyAccount.ATTR_DESCRIPTION_NAME);
+
+	public static final String DUMMY_ACCOUNT_ATTRIBUTE_AD_GIVEN_NAME_NAME = "givenName";
     public static final String DUMMY_ACCOUNT_ATTRIBUTE_AD_SN_NAME = "sn";
     public static final String DUMMY_ACCOUNT_ATTRIBUTE_AD_SAM_ACCOUNT_NAME_NAME = "sAMAccountName";
     public static final String DUMMY_ACCOUNT_ATTRIBUTE_AD_USER_PRINCIPAL_NAME_NAME = "userPrincipalName";
@@ -97,7 +101,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 	public static final String CONNECTOR_DUMMY_NS = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector";
 	public static final String CONNECTOR_DUMMY_USELESS_STRING_NAME = "uselessString";
 	public static final QName CONNECTOR_DUMMY_USELESS_STRING_QNAME = new QName(CONNECTOR_DUMMY_NS, CONNECTOR_DUMMY_USELESS_STRING_NAME);
-	
+
 	private DummyResource dummyResource;
 	private boolean isExtendedSchema = false;
 	private String instanceName;
