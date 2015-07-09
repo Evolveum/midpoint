@@ -84,7 +84,7 @@ switch ( objectClass ) {
     break
 
     case "Group":
-    sql.eachRow("SELECT * FROM Groups" + where, {result.add([__UID__:it.id, __NAME__:it.name, ,description:it.description])} );
+    sql.eachRow("SELECT * FROM Groups" + where, {result.add([__UID__:it.id, __NAME__:it.name, description:it.description])} );
     break
 
     case "Organization":
