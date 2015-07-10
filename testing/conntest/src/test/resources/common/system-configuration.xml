@@ -69,7 +69,7 @@
       	</classLogger>
         <classLogger>
 	        <level>TRACE</level>
-	        <package>com.evolveum.midpoint.provisioning.impl</package>
+	        <package>com.evolveum.midpoint.provisioning</package>
       	</classLogger>
       	<classLogger>
 	        <level>INFO</level>

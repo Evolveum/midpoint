@@ -2520,7 +2520,7 @@ public class TestDummy extends AbstractDummyTest {
 		}
 		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 		ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(SchemaTestConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
-		ResourceAttributeDefinition attrDef = objectClassDef.findAttributeDefinition(attrQName);
+		ResourceAttributeDefinition<T> attrDef = objectClassDef.findAttributeDefinition(attrQName);
 		ObjectFilter filter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, attrDef.getName()), attrDef, attrPVal);
 		
 		testSeachIterative(TEST_NAME, filter, rootOptions, fullShadow, true, false, expectedAccountNames);
@@ -2539,9 +2539,9 @@ public class TestDummy extends AbstractDummyTest {
         }
         ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
         ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(SchemaTestConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
-        ResourceAttributeDefinition attr1Def = objectClassDef.findAttributeDefinition(attr1QName);
+        ResourceAttributeDefinition<T> attr1Def = objectClassDef.findAttributeDefinition(attr1QName);
         ObjectFilter filter1 = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, attr1Def.getName()), attr1Def, attr1PVal);
-        ResourceAttributeDefinition attr2Def = objectClassDef.findAttributeDefinition(attr2QName);
+        ResourceAttributeDefinition<T> attr2Def = objectClassDef.findAttributeDefinition(attr2QName);
         ObjectFilter filter2 = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, attr2Def.getName()), attr2Def, attr2PVal);
 
         testSeachIterative(TEST_NAME, OrFilter.createOr(filter1, filter2), rootOptions, fullShadow, false, true, expectedAccountNames);

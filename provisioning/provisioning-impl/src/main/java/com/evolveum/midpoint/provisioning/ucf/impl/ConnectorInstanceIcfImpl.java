@@ -642,7 +642,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		for (ObjectClassInfo objectClassInfo : objectClassInfoSet) {
 
 			// "Flat" ICF object class names needs to be mapped to QNames
-			QName objectClassXsdName = icfNameMapper.objectClassToQname(objectClassInfo.getType(), getSchemaNamespace(), legacySchema);
+			QName objectClassXsdName = icfNameMapper.objectClassToQname(new ObjectClass(objectClassInfo.getType()), getSchemaNamespace(), legacySchema);
 
 			if (!shouldBeGenerated(generateObjectClasses, objectClassXsdName)){
 				continue;
@@ -1388,7 +1388,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			throw new GenericFrameworkException("ICF did not returned UID after create");
 		}
 
-		ResourceAttributeDefinition uidDefinition = IcfUtil.getUidDefinition(attributesContainer.getDefinition());
+		ResourceAttributeDefinition uidDefinition = IcfUtil.getUidDefinition(attributesContainer.getDefinition().getComplexTypeDefinition());
 		if (uidDefinition == null) {
 			throw new IllegalArgumentException("No definition for ICF UID attribute found in definition "
 					+ attributesContainer.getDefinition());
@@ -2528,7 +2528,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			throws SchemaException, GenericFrameworkException {
 		List<Change<T>> changeList = new ArrayList<Change<T>>();
 
-		QName objectClass = icfNameMapper.objectClassToQname(icfObjClass.getObjectClassValue(), getSchemaNamespace(), legacySchema);
+		QName objectClass = icfNameMapper.objectClassToQname(icfObjClass, getSchemaNamespace(), legacySchema);
 		ObjectClassComplexTypeDefinition objClassDefinition = null;
 		if (objectClass != null) {
 			objClassDefinition = (ObjectClassComplexTypeDefinition) schema.findComplexTypeDefinition(objectClass);
@@ -2542,11 +2542,17 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			ObjectClassComplexTypeDefinition deltaObjClassDefinition = objClassDefinition;
 			if (objectClass == null) {
 				deltaIcfObjClass = icfDelta.getObjectClass();
-				deltaObjectClass = icfNameMapper.objectClassToQname(deltaIcfObjClass.getObjectClassValue(), getSchemaNamespace(), legacySchema);
-				deltaObjClassDefinition = (ObjectClassComplexTypeDefinition) schema.findComplexTypeDefinition(deltaObjectClass);
+				deltaObjectClass = icfNameMapper.objectClassToQname(deltaIcfObjClass, getSchemaNamespace(), legacySchema);
+				if (deltaIcfObjClass != null) {
+					deltaObjClassDefinition = (ObjectClassComplexTypeDefinition) schema.findComplexTypeDefinition(deltaObjectClass);
+				}
 			}
 			if (deltaObjClassDefinition == null) {
-				throw new SchemaException("Got delta with object class "+deltaObjectClass+" ("+deltaIcfObjClass+") that has no definition in resource schema");
+				if (icfDelta.getDeltaType() == SyncDeltaType.DELETE) {
+					// tolerate this. E.g. LDAP changelogs do not have objectclass in delete deltas.
+				} else {
+					throw new SchemaException("Got delta with object class "+deltaObjectClass+" ("+deltaIcfObjClass+") that has no definition in resource schema");
+				}
 			}
 			
 			SyncDeltaType icfDeltaType = icfDelta.getDeltaType();
@@ -2556,8 +2562,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 						ShadowType.class, ChangeType.DELETE, prismContext);
 				ResourceAttribute<String> uidAttribute = IcfUtil.createUidAttribute(
 						icfDelta.getUid(),
-						IcfUtil.getUidDefinition(deltaObjClassDefinition
-								.toResourceAttributeContainerDefinition(ShadowType.F_ATTRIBUTES)));
+						IcfUtil.getUidDefinition(deltaObjClassDefinition, resourceSchema));
 				Collection<ResourceAttribute<?>> identifiers = new ArrayList<ResourceAttribute<?>>(1);
 				identifiers.add(uidAttribute);
 				Change change = new Change(identifiers, objectDelta, getToken(icfDelta.getToken()));
@@ -2606,7 +2611,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				Change change = new Change(identifiers, currentShadow, getToken(icfDelta.getToken()));
 				change.setObjectClassDefinition(deltaObjClassDefinition);
 				changeList.add(change);
-				LOGGER.trace("END creating delta of type {}", icfDeltaType);
+				LOGGER.trace("END creating delta of type {}:\n{}", icfDeltaType, change.debugDump());
 				
 			} else {
 				throw new GenericFrameworkException("Unexpected sync delta type " + icfDeltaType);
