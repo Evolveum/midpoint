@@ -190,14 +190,12 @@ public class InboundProcessor {
         PrismObject<ShadowType> accountNew = accContext.getObjectNew();
         for (QName accountAttributeName : accountDefinition.getNamesOfAttributesWithInboundExpressions()) {
             PropertyDelta<?> accountAttributeDelta = null;
-            if (aPrioriDelta != null) {
+            if (aPrioriDelta != null && !accContext.isFullShadow()) {
                 accountAttributeDelta = aPrioriDelta.findPropertyDelta(new ItemPath(SchemaConstants.C_ATTRIBUTES), accountAttributeName);
                 if (accountAttributeDelta == null) {
-                	if (!accContext.isFullShadow()){
-                    LOGGER.trace("Skipping inbound for {} in {}: Account a priori delta exists, but doesn't have change for processed property.",
-                    		accountAttributeName, accContext.getResourceShadowDiscriminator());
-                	}
-                    continue;
+					LOGGER.trace("Skipping inbound for {} in {}: Not a full shadow and account a priori delta exists, but doesn't have change for processed property.",
+							accountAttributeName, accContext.getResourceShadowDiscriminator());
+					continue;
                 }
             }
 
@@ -238,14 +236,17 @@ public class InboundProcessor {
 	            	//
 	            	//  * if we do NOT have a delta then we will proceed in absolute mode. In that mode we will apply the
 	            	//    mappings to the absolute projection state that we got from provisioning. This is a kind of "inbound reconciliation".
-	            	
-	            	PrismObject<F> focus;
+					//
+					// TODO what if there is a priori delta for a given attribute (e.g. ADD one) and
+					// we want to reconcile also the existing attribute value? This probably would not work.
+
+					PrismObject<F> focus;
 	            	if (context.getFocusContext().getObjectCurrent() != null){
 	            		focus = context.getFocusContext().getObjectCurrent();
 	            	} else {
 	            		focus = context.getFocusContext().getObjectNew();
 	            	}
-	            	
+
 	                PropertyDelta<?> userPropertyDelta = null;
 	                if (aPrioriDelta != null && accountAttributeDelta != null) {
 	                    LOGGER.trace("Processing inbound from a priori delta.");
@@ -278,7 +279,7 @@ public class InboundProcessor {
                                 return;
                             }
                         }
-	                    LOGGER.trace("Processing inbound from account sync absolute state (oldAccount).");
+	                    LOGGER.trace("Processing inbound from account sync absolute state (currentAccount).");
 	                    PrismProperty<?> oldAccountProperty = accountCurrent.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, accountAttributeName));
 	                    userPropertyDelta = evaluateInboundMapping(context, inboundMappingType, accountAttributeName, oldAccountProperty, null, 
 	                    		focus, accountNew, accContext.getResource(), task, result);
@@ -471,7 +472,13 @@ public class InboundProcessor {
 	        }
 	        
     	} else { // triple == null
-    		
+
+			// TODO this is perhaps not always right. If the reason for triple == null is that the inbound was not applied
+			// because of condition being false, we perhaps should not reset the user's property.
+			// See TestImportRecon.test200ReconcileDummy, where user c0c010c0-d34d-b33f-f00d-11111111c008 has
+			// organizationalUnit being zeroed, even if the inbound was not applied because of condition==false.
+			// See MID-2441.
+
    			if (accountAttributeDelta == null && LensUtil.isSyncChannel(context.getChannel())){
     			// This is the case of "inbound reconciliation" which is quite special. The triple returned null
     			// which means that there was nothing in the input and (unsurprisingly) no change. If the input was empty

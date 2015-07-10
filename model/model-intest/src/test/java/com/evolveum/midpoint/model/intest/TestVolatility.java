@@ -20,8 +20,11 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -32,6 +35,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
@@ -41,8 +45,11 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Collection;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.getAttributeValue;
@@ -70,11 +77,14 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
     protected static final String RESOURCE_DUMMY_VOLATILE_NAME = "volatile";
 
     protected static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
+    protected static final String ACCOUNT_GUYBRUSH_DUMMY_USERNAME = "guybrush";     //Guybrush Threepwood
+    protected static final String ACCOUNT_LARGO_DUMMY_USERNAME = "largo";
 
     protected static final String TASK_LIVE_SYNC_DUMMY_HR_FILENAME = TEST_DIR + "/task-dummy-hr-livesync.xml";
     protected static final String TASK_LIVE_SYNC_DUMMY_HR_OID = "10000000-0000-0000-5555-55550000f004";
 
-    protected static final String USER_TEMPLATE_FILE = TEST_DIR + "/user-template-import-hr.xml";
+    protected static final File USER_TEMPLATE_FILE = new File(TEST_DIR, "user-template-import-hr.xml");
+    protected static final File USER_LARGO_WITH_ASSIGNMENT_FILE = new File(TEST_DIR, "user-largo-with-assignment.xml");
 
     protected PrismObject<ResourceType> resourceDummyHr;
     protected DummyResourceContoller dummyResourceCtlHr;
@@ -188,8 +198,8 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
     }
 
     @Test
-    public void test300UpdateDummyHrAccountMancomb() throws Exception {
-        final String TEST_NAME = "test300UpdateDummyHrAccountMancomb";
+    public void test120UpdateDummyHrAccountMancomb() throws Exception {
+        final String TEST_NAME = "test120UpdateDummyHrAccountMancomb";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -216,7 +226,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
                 accountMancombHr.asObjectable().getResourceRef().getOid());
         assertEquals("Wrong name in mancomb HR account", "Sir Mancomb Seepgood",
                 getAttributeValue(accountMancombHr.asObjectable(),
-                    DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME));
+                        DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME));
         assertShadowOperationalData(accountMancombHr, SynchronizationSituationType.LINKED, null);
 
         PrismObject<ShadowType> accountMancombVolatileTarget = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyVolatile);
@@ -246,6 +256,109 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
 
         assertEquals("Wrong description on resource account", expectedDescription, descriptionOnResource);
         assertEquals("Wrong description in user record", expectedDescription, descriptionOfUser);
+
+        // notifications
+        notificationManager.setDisabled(true);
+    }
+
+    @Test
+    public void test200ModifyGuybrushAssignAccount() throws Exception {
+        final String TEST_NAME = "test200ModifyGuybrushAssignAccount";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestVolatility.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // Preconditions
+        //assertUsers(5);
+
+        TestUtil.displayWhen(TEST_NAME);
+
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_GUYBRUSH_OID, RESOURCE_DUMMY_VOLATILE_OID, null, true);
+        deltas.add(accountAssignmentUserDelta);
+
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+
+        PrismObject<UserType> userGuybrush = findUserByUsername(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        display("User guybrush", userGuybrush);
+        assertNotNull("User guybrush is not there", userGuybrush);
+        assertLinks(userGuybrush, 1);
+
+        PrismObject<ShadowType> accountGuybrushVolatileTarget = findAccountByUsername(ACCOUNT_GUYBRUSH_DUMMY_USERNAME, resourceDummyVolatile);
+        display("Account guybrush on target", accountGuybrushVolatileTarget);
+        assertNotNull("No guybrush target account shadow", accountGuybrushVolatileTarget);
+        assertEquals("Wrong resourceRef in guybrush target account", RESOURCE_DUMMY_VOLATILE_OID,
+                accountGuybrushVolatileTarget.asObjectable().getResourceRef().getOid());
+        assertShadowOperationalData(accountGuybrushVolatileTarget, SynchronizationSituationType.LINKED, null);
+
+        assertLinked(userGuybrush, accountGuybrushVolatileTarget);
+
+        String descriptionOnResource = getAttributeValue(accountGuybrushVolatileTarget.asObjectable(),
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DESCRIPTION_QNAME);
+        String descriptionOfUser = userGuybrush.asObjectable().getDescription();
+        String expectedDescription = "Description of " + ACCOUNT_GUYBRUSH_DUMMY_USERNAME;
+
+        assertEquals("Wrong description on resource account", expectedDescription, descriptionOnResource);
+        assertEquals("Wrong description in user record", expectedDescription, descriptionOfUser);
+
+//        assertUsers(6);
+
+        // notifications
+        notificationManager.setDisabled(true);
+    }
+
+    @Test
+    public void test300AddLargo() throws Exception {
+        final String TEST_NAME = "test300AddLargo";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestVolatility.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // Preconditions
+        //assertUsers(5);
+
+        TestUtil.displayWhen(TEST_NAME);
+        PrismObject<UserType> user = PrismTestUtil.parseObject(USER_LARGO_WITH_ASSIGNMENT_FILE);
+        ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+
+        PrismObject<UserType> userLargo = findUserByUsername(ACCOUNT_LARGO_DUMMY_USERNAME);
+        display("User largo", userLargo);
+        assertNotNull("User largo is not there", userLargo);
+        assertLinks(userLargo, 1);
+
+        PrismObject<ShadowType> accountLargoVolatileTarget = findAccountByUsername(ACCOUNT_LARGO_DUMMY_USERNAME, resourceDummyVolatile);
+        display("Account largo on target", accountLargoVolatileTarget);
+        assertNotNull("No largo target account shadow", accountLargoVolatileTarget);
+        assertEquals("Wrong resourceRef in largo target account", RESOURCE_DUMMY_VOLATILE_OID,
+                accountLargoVolatileTarget.asObjectable().getResourceRef().getOid());
+        assertShadowOperationalData(accountLargoVolatileTarget, SynchronizationSituationType.LINKED, null);
+
+        assertLinked(userLargo, accountLargoVolatileTarget);
+
+        String descriptionOnResource = getAttributeValue(accountLargoVolatileTarget.asObjectable(),
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DESCRIPTION_QNAME);
+        String descriptionOfUser = userLargo.asObjectable().getDescription();
+        String expectedDescription = "Description of " + ACCOUNT_LARGO_DUMMY_USERNAME;
+
+        assertEquals("Wrong description on resource account", expectedDescription, descriptionOnResource);
+        assertEquals("Wrong description in user record", expectedDescription, descriptionOfUser);
+
+//        assertUsers(6);
 
         // notifications
         notificationManager.setDisabled(true);
