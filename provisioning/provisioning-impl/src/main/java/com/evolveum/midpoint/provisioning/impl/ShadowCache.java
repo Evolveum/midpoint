@@ -1063,6 +1063,13 @@ public abstract class ShadowCache {
 			int processedChanges = 0;
 			
 			for (Change<ShadowType> change: changes) {	
+				
+				if (change.isTokenOnly()) {
+					LOGGER.trace("Found token-only change: {}", change);
+					task.setExtensionProperty(change.getToken());
+					continue;
+				}
+				
 				ObjectClassComplexTypeDefinition changeObjectClassDefinition = change.getObjectClassDefinition();
 				
 				ProvisioningContext shadowCtx;

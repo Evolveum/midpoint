@@ -114,6 +114,11 @@ public final class Change<T extends ShadowType> implements DebugDumpable {
 	public void setCurrentShadow(PrismObject<T> currentShadow) {
 		this.currentShadow = currentShadow;
 	}
+	
+	public boolean isTokenOnly() {
+		return identifiers == null && objectDelta == null && currentShadow == null && token != null;
+	}
+
 
 	@Override
 	public String toString() {

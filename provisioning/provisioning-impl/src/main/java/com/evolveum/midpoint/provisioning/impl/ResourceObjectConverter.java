@@ -1456,7 +1456,9 @@ public class ResourceObjectConverter {
 		while (iterator.hasNext()) {
 			Change<ShadowType> change = iterator.next();
 			LOGGER.trace("Original change:\n{}", change.debugDump());
-			
+			if (change.isTokenOnly()) {
+				continue;
+			}
 			ProvisioningContext shadowCtx = ctx;
 			AttributesToReturn shadowAttrsToReturn = attrsToReturn;
 			PrismObject<ShadowType> currentShadow = change.getCurrentShadow();

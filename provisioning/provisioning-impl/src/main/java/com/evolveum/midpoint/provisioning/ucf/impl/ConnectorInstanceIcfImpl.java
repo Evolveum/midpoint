@@ -90,6 +90,7 @@ import org.identityconnectors.framework.common.objects.SyncResultsHandler;
 import org.identityconnectors.framework.common.objects.SyncToken;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.Filter;
+import org.identityconnectors.framework.spi.SyncTokenResultsHandler;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -2007,12 +2008,19 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 		OperationOptions options = optionsBuilder.build();
 		
-		SyncResultsHandler syncHandler = new SyncResultsHandler() {
+		final SyncToken[] lastReceivedTokenArray = new SyncToken[1];
+		SyncTokenResultsHandler syncHandler = new SyncTokenResultsHandler() {
 
 			@Override
 			public boolean handle(SyncDelta delta) {
 				LOGGER.trace("Detected sync delta: {}", delta);
 				return syncDeltas.add(delta);
+			}
+
+			@Override
+			public void handleResult(SyncToken token) {
+				LOGGER.trace("Detected result token: {}", token);
+				lastReceivedTokenArray[0] = token;
 			}
 		};
 
@@ -2048,12 +2056,18 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			}
 		}
 		// convert changes from icf to midpoint Change
-		List<Change<T>> changeList = null;
+		List<Change<T>> changeList;
 		try {
 			changeList = getChangesFromSyncDeltas(icfObjectClass, syncDeltas, resourceSchema, result);
 		} catch (SchemaException ex) {
 			result.recordFatalError(ex.getMessage(), ex);
 			throw new SchemaException(ex.getMessage(), ex);
+		}
+		
+		if (lastReceivedTokenArray[0] != null) {
+			Change<T> lastChange = new Change((ObjectDelta)null, getToken(lastReceivedTokenArray[0]));
+			LOGGER.trace("Adding last change: {}", lastChange);
+			changeList.add(lastChange);
 		}
 
 		result.recordSuccess();
