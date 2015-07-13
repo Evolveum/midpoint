@@ -2008,19 +2008,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 		OperationOptions options = optionsBuilder.build();
 		
-		final SyncToken[] lastReceivedTokenArray = new SyncToken[1];
-		SyncTokenResultsHandler syncHandler = new SyncTokenResultsHandler() {
-
+		SyncResultsHandler syncHandler = new SyncResultsHandler() {
 			@Override
 			public boolean handle(SyncDelta delta) {
 				LOGGER.trace("Detected sync delta: {}", delta);
 				return syncDeltas.add(delta);
-			}
-
-			@Override
-			public void handleResult(SyncToken token) {
-				LOGGER.trace("Detected result token: {}", token);
-				lastReceivedTokenArray[0] = token;
 			}
 		};
 
@@ -2030,9 +2022,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		icfResult.addArbitraryObjectAsParam("syncToken", syncToken);
 		icfResult.addArbitraryObjectAsParam("syncHandler", syncHandler);
 
+		SyncToken lastReceivedToken;
 		try {
 			InternalMonitor.recordConnectorOperation("sync");
-			icfConnectorFacade.sync(icfObjectClass, syncToken, syncHandler,
+			lastReceivedToken = icfConnectorFacade.sync(icfObjectClass, syncToken, syncHandler,
 					options);
 			icfResult.recordSuccess();
 			icfResult.addReturn(OperationResult.RETURN_COUNT, syncDeltas.size());
@@ -2064,8 +2057,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			throw new SchemaException(ex.getMessage(), ex);
 		}
 		
-		if (lastReceivedTokenArray[0] != null) {
-			Change<T> lastChange = new Change((ObjectDelta)null, getToken(lastReceivedTokenArray[0]));
+		if (lastReceivedToken != null) {
+			Change<T> lastChange = new Change((ObjectDelta)null, getToken(lastReceivedToken));
 			LOGGER.trace("Adding last change: {}", lastChange);
 			changeList.add(lastChange);
 		}
