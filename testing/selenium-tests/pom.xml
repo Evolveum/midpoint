@@ -75,5 +75,10 @@
             <artifactId>testng</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.codeborne</groupId>
+            <artifactId>selenide</artifactId>
+            <version>2.19</version>
+        </dependency>
     </dependencies>
 </project>

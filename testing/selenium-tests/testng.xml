@@ -23,7 +23,7 @@
     <parameter name="timeout.page" value="10"/>
     <parameter name="user.login" value="administrator"/>
     <parameter name="user.password" value="5ecr3t"/>
-
+    <parameter name="midpoint.samples.folder.path" value="D:\development\Evolveum\midpoint\samples" />
     <!--<test name="Log in Tests" parallel="false" preserve-order="true" verbose="10">-->
         <!--<classes>-->
             <!--<class name="com.evolveum.midpoint.testing.selenium.tests.LoginTest"/>-->
