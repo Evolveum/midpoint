@@ -299,7 +299,7 @@ public class QueryConvertor {
         }
 	}
 	
-	private static <T,C extends Containerable> EqualFilter<PrismPropertyDefinition<T>> parseEqualFilter(XNode xnode, PrismContainerDefinition<C> pcd, boolean preliminaryParsingOnly, PrismContext prismContext) throws SchemaException{
+	private static <T,C extends Containerable> EqualFilter<T> parseEqualFilter(XNode xnode, PrismContainerDefinition<C> pcd, boolean preliminaryParsingOnly, PrismContext prismContext) throws SchemaException{
 		LOGGER.trace("Start to parse EQUALS filter");
 		MapXNode xmap = toMap(xnode);
 		ItemPath itemPath = getPath(xmap, prismContext);
@@ -342,13 +342,13 @@ public class QueryConvertor {
                 } else {
                     ExpressionWrapper expressionWrapper = new ExpressionWrapper();
                     expressionWrapper.setExpression(expressionPropertyValue.getValue());
-                    return EqualFilter.createEqual(itemPath, (PrismPropertyDefinition) itemDefinition, matchingRule, expressionWrapper);
+                    return EqualFilter.createEqual(itemPath, (PrismPropertyDefinition<T>) itemDefinition, matchingRule, expressionWrapper);
                 }
 			} else {
                 if (preliminaryParsingOnly) {
                     return null;
                 } else {
-                    return EqualFilter.createNullEqual(itemPath, (PrismPropertyDefinition) itemDefinition, matchingRule);
+                    return EqualFilter.createNullEqual(itemPath, (PrismPropertyDefinition<T>) itemDefinition, matchingRule);
                 }
             }
 		}

@@ -756,8 +756,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         Validate.notNull(objectType, "Null object");
         Validate.notNull(propertyPath, "Null property path");
         Validate.notNull(propertyValue, "Null property value");
-        PrismPropertyDefinition<?> propertyDefinition = objectType.asPrismObject().getDefinition().findPropertyDefinition(propertyPath);
-        EqualFilter filter = EqualFilter.createEqual(propertyPath, propertyDefinition, matchingRule, propertyValue);
+        PrismPropertyDefinition<T> propertyDefinition = objectType.asPrismObject().getDefinition().findPropertyDefinition(propertyPath);
+        EqualFilter<T> filter = EqualFilter.createEqual(propertyPath, propertyDefinition, matchingRule, propertyValue);
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Determining uniqueness of property {} using query:\n{}", propertyPath, query.debugDump());

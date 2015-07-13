@@ -1,54 +1,23 @@
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-
-import org.apache.cxf.aegis.type.XMLTypeCreator;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.datetime.markup.html.form.DateTextField;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
-
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.report.api.ReportConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.EditablePropertyColumn;
 import com.evolveum.midpoint.web.component.input.DatePanel;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.component.util.XmlGregorianCalendarModel;
 import com.evolveum.midpoint.web.page.admin.reports.dto.JasperReportParameterDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -56,87 +25,104 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+import org.apache.wicket.Component;
+import org.apache.wicket.MarkupContainer;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.List;
+
 public class RunReportPopupPanel extends SimplePanel<ReportDto> {
-    
+
     private static final String ID_MAIN_FORM = "mainForm";
-    
+
     private static final String ID_NAME_LABEL = "label";
     private static final String ID_RUN = "runReport";
-    
+
     private static final String ID_LABEL_SIZE = "col-md-4";
     private static final String ID_INPUT_SIZE = "col-md-8";
-    
+
     private static final String ID_PARAMETERS_TABLE = "paramTable";
-    
+
     private IModel<ReportDto> reportModel;
     private ReportType reportType;
-    
+
     public void setReportType(ReportType reportType) {
         this.reportType = reportType;
-        
+
         if (getParametersTable() != null) {
             replace(createTablePanel());
         }
     }
-    
+
     public RunReportPopupPanel(String id) {
         super(id);
     }
-    
+
     @Override
     protected void initLayout() {
-        
+
         TablePanel table = createTablePanel();
         add(table);
-        
+
         AjaxButton addButton = new AjaxButton(ID_RUN,
                 createStringResource("runReportPopupContent.button.run")) {
-                    
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        runConfirmPerformed(target, reportModel, getParameters());
-                    }
-                };
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                runConfirmPerformed(target, reportModel, getParameters());
+            }
+        };
         add(addButton);
-        
+
     }
-    
+
     private TablePanel createTablePanel() {
-        reportModel = new LoadableModel<ReportDto>() {
+        reportModel = new LoadableModel<ReportDto>(false) {
+
             @Override
             protected ReportDto load() {
                 return new ReportDto(reportType, true);
             }
         };
-        
-        ISortableDataProvider<JasperReportParameterDto, String> provider = new ListDataProvider<JasperReportParameterDto>(this,
+
+        ISortableDataProvider<JasperReportParameterDto, String> provider = new ListDataProvider<>(this,
                 new PropertyModel<List<JasperReportParameterDto>>(reportModel, "jasperReportDto.parameters"));
         TablePanel table = new TablePanel<>(ID_PARAMETERS_TABLE, provider, initParameterColumns());
         table.setOutputMarkupId(true);
         table.setShowPaging(true);
         return table;
     }
-    
+
     private TablePanel getParametersTable() {
         return (TablePanel) get(ID_PARAMETERS_TABLE);
     }
-    
+
     private List<JasperReportParameterDto> getParameters() {
         TablePanel table = getParametersTable();
         List<JasperReportParameterDto> params = ((ListDataProvider) table.getDataTable().getDataProvider()).getAvailableData();
         return params;
     }
-    
+
     private List<IColumn<JasperReportParameterDto, String>> initParameterColumns() {
         List<IColumn<JasperReportParameterDto, String>> columns = new ArrayList<>();
 
         //parameter name column
         columns.add(new AbstractColumn(createStringResource("runReportPopupContent.param.name")) {
-            
+
             @Override
             public void populateItem(Item item, String componentId, IModel model) {
                 String paramValue = new PropertyModel<String>(model, "name").getObject();
@@ -147,41 +133,41 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
 
         //parameter class column
         columns.add(new AbstractColumn(createStringResource("runReportPopupContent.param.class")) {
-            
+
             @Override
             public void populateItem(Item item, String componentId, IModel model) {
                 //Do not show whole parameter class name as this is not very user friendly
                 String paramClass = new PropertyModel<String>(model, "typeAsString").getObject();
-                paramClass = (paramClass == null) ? "" : paramClass.substring(paramClass.lastIndexOf(".")+1);
+                paramClass = (paramClass == null) ? "" : paramClass.substring(paramClass.lastIndexOf(".") + 1);
                 item.add(new Label(componentId, paramClass));
             }
         });
 
         //parameter value editing column
         columns.add(new EditablePropertyColumn<JasperReportParameterDto>(createStringResource("runReportPopupContent.param.value"), "value") {
-            
+
             @Override
             public void populateItem(Item<ICellPopulator<JasperReportParameterDto>> cellItem, String componentId,
-                    final IModel<JasperReportParameterDto> rowModel) {
+                                     final IModel<JasperReportParameterDto> rowModel) {
                 Component component = createTypedInputPanel(componentId, rowModel, getPropertyExpression());
                 cellItem.add(component);
 //                    cellItem.setOutputMarkupId(true);
             }
-            
+
         });
-        
+
         return columns;
     }
-    
-    private Component createTypedInputPanel(String componentId, final IModel<JasperReportParameterDto> model, String expression) {
+
+    private Component createTypedInputPanel(String componentId, IModel<JasperReportParameterDto> model, String expression) {
         JasperReportParameterDto param = model.getObject();
         param.setEditing(true);
-        
+
         IModel label = new PropertyModel<String>(model, "name");
         PropertyModel value = new PropertyModel<String>(model, expression);
         String tooltipKey = model.getObject().getTypeAsString();
         Class type = null;
-        
+
         try {
             type = param.getType();
         } catch (ClassNotFoundException e) {
@@ -191,30 +177,34 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
         InputPanel panel = null;
         if (type.isEnum()) {
             panel = WebMiscUtil.createEnumPanel(type, componentId, new PropertyModel(model, expression), this);
-        } else if (XMLGregorianCalendar.class.isAssignableFrom(type)) {          
+        } else if (XMLGregorianCalendar.class.isAssignableFrom(type)) {
             panel = new DatePanel(componentId, new PropertyModel<XMLGregorianCalendar>(model, expression));
         } else {
             panel = new TextPanel<String>(componentId, new PropertyModel<String>(model, expression));
         }
         List<FormComponent> components = panel.getFormComponents();
         for (FormComponent component : components) {
-            Component c = component.get("date");
-            if (c != null) {
-                c.add(new AjaxFormComponentUpdatingBehavior("change") {
-                    
-                    @Override
-                    protected void onUpdate(AjaxRequestTarget target) {
-                        model.getObject().setValue(MiscUtil.asXMLGregorianCalendar((Date) getFormComponent().getConvertedInput()));
-                        int i = 0;
-                    }
-                });
+            if (component instanceof DateInput) {
+                addFormUpdatingBehavior(component, "date", model);
+                addFormUpdatingBehavior(component, "hours", model);
+                addFormUpdatingBehavior(component, "minutes", model);
+                addFormUpdatingBehavior(component, "amOrPmChoice", model);
+            } else {
+                component.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
             }
-            component.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         }
         return panel;
-        
+
     }
-    
+
+    private void addFormUpdatingBehavior(FormComponent parent, String id, final IModel<JasperReportParameterDto> model) {
+        Component c = parent.get(id);
+        if (c == null) {
+            return;
+        }
+        c.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+    }
+
     private void runConfirmPerformed(AjaxRequestTarget target, IModel<ReportDto> model, List<JasperReportParameterDto> params) {
         ReportDto reportDto = model.getObject();
 
@@ -222,7 +212,7 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
         PrismContainerDefinition<ReportParameterType> paramContainterDef = getPrismContext().getSchemaRegistry().findContainerDefinitionByElementName(ReportConstants.REPORT_PARAMS_PROPERTY_NAME);
         PrismContainer<ReportParameterType> paramContainer = paramContainterDef.instantiate();
         try {
-            
+
             ReportParameterType reportParam = new ReportParameterType();
             PrismContainerValue<ReportParameterType> reportParamValue = reportParam.asPrismContainerValue();
             reportParamValue.revive(getPrismContext());
@@ -237,7 +227,7 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
                 if (XmlTypeConverter.canConvert(paramClass)) {
                     typeName = XsdTypeMapper.toXsdType(paramClass);
                 } else {
-                    
+
                     if (AuditEventType.class.isAssignableFrom(paramClass)) {
                         paramClass = AuditEventTypeType.class;
                         realValue = AuditEventType.fromAuditEventType((AuditEventType) realValue);
@@ -261,28 +251,33 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
             getPageBase().showResult(result);
             return;
         }
-        
+
         runConfirmPerformed(target, reportDto.getObject().asObjectable(), paramContainer);
-        
+
     }
-    
+
     private PrismContext getPrismContext() {
         return getPageBase().getPrismContext();
     }
-    
+
     protected void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType2,
-            PrismContainer<ReportParameterType> reportParam) {
+                                       PrismContainer<ReportParameterType> reportParam) {
     }
-    
+
     private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {
-        
+
         public EmptyOnBlurAjaxFormUpdatingBehaviour() {
             super("change");
         }
-        
+
         @Override
         protected void onUpdate(AjaxRequestTarget target) {
+            MarkupContainer parent = getFormComponent().getParent();
+            if (parent instanceof DateInput) {
+                DateInput i = (DateInput) parent;
+                i.updateDateTimeModel();
+            }
         }
     }
-    
+
 }

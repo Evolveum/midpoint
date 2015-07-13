@@ -109,6 +109,11 @@ public class TestOpenLdap extends AbstractLdapConnTest {
 	protected String getSyncTaskOid() {
 		return "cd1e0ff2-0099-11e5-9e22-001e8c717e5b";
 	}
+	
+	@Override
+	protected boolean syncCanDetectDelete() {
+		return false;
+	}
 
 	@Override
 	protected void assertStepSyncToken(String syncTaskOid, int step, long tsStart, long tsEnd)

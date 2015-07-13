@@ -196,7 +196,7 @@ public class ResourceObjectConverter {
 			} else if (secondaryIdentifierDefs.isEmpty()) {
 				throw new SchemaException("No secondary identifier defined, cannot search");
 			}
-			RefinedAttributeDefinition secondaryIdentifierDef = secondaryIdentifierDefs.iterator().next();
+			RefinedAttributeDefinition<String> secondaryIdentifierDef = secondaryIdentifierDefs.iterator().next();
 			ResourceAttribute<?> secondaryIdentifier = null;
 			for (ResourceAttribute<?> identifier: identifiers) {
 				if (identifier.getElementName().equals(secondaryIdentifierDef.getName())) {
@@ -209,8 +209,8 @@ public class ResourceObjectConverter {
 			
 			final ResourceAttribute<?> finalSecondaryIdentifier = secondaryIdentifier;
 
-            List<PrismPropertyValue> secondaryIdentifierValues = (List) secondaryIdentifier.getValues();
-            PrismPropertyValue secondaryIdentifierValue;
+            List<PrismPropertyValue<String>> secondaryIdentifierValues = (List) secondaryIdentifier.getValues();
+            PrismPropertyValue<String> secondaryIdentifierValue;
             if (secondaryIdentifierValues.size() > 1) {
                 throw new IllegalStateException("Secondary identifier has more than one value: " + secondaryIdentifier.getValues());
             } else if (secondaryIdentifierValues.size() == 1) {
@@ -1455,14 +1455,23 @@ public class ResourceObjectConverter {
 		Iterator<Change<ShadowType>> iterator = changes.iterator();
 		while (iterator.hasNext()) {
 			Change<ShadowType> change = iterator.next();
-			
+			LOGGER.trace("Original change:\n{}", change.debugDump());
+			if (change.isTokenOnly()) {
+				continue;
+			}
 			ProvisioningContext shadowCtx = ctx;
 			AttributesToReturn shadowAttrsToReturn = attrsToReturn;
 			PrismObject<ShadowType> currentShadow = change.getCurrentShadow();
-			if (ctx.isWildcard()) {
-				shadowCtx = ctx.spawn(change.getObjectClassDefinition().getTypeName());
+			ObjectClassComplexTypeDefinition changeObjectClassDefinition = change.getObjectClassDefinition();
+			if (changeObjectClassDefinition == null) {
+				if (!ctx.isWildcard() || change.getObjectDelta() == null || !change.getObjectDelta().isDelete()) {
+					throw new SchemaException("No object class definition in change "+change);
+				}
+			}
+			if (ctx.isWildcard() && changeObjectClassDefinition != null) {
+				shadowCtx = ctx.spawn(changeObjectClassDefinition.getTypeName());
 				if (shadowCtx.isWildcard()) {
-					String message = "Unkown object class "+change.getObjectClassDefinition().getTypeName()+" found in synchronization delta";
+					String message = "Unkown object class "+changeObjectClassDefinition.getTypeName()+" found in synchronization delta";
 					parentResult.recordFatalError(message);
 					throw new SchemaException(message);
 				}
@@ -1471,12 +1480,12 @@ public class ResourceObjectConverter {
 				shadowAttrsToReturn = ProvisioningUtil.createAttributesToReturn(shadowCtx);
 			}
 			
-			if (currentShadow == null) {
-				// There is no current shadow in a change. Add it by fetching it explicitly.
-				if (change.getObjectDelta() == null || !change.getObjectDelta().isDelete()) {						
-					// but not if it is a delete event
+			if (change.getObjectDelta() == null || !change.getObjectDelta().isDelete()) {
+				if (currentShadow == null) {
+					// There is no current shadow in a change. Add it by fetching it explicitly.
 					try {
 						
+						LOGGER.trace("Re-fetching object {} because it is not in the change", change.getIdentifiers());
 						currentShadow = fetchResourceObject(shadowCtx, 
 								change.getIdentifiers(), shadowAttrsToReturn, true, parentResult);	// todo consider whether it is always necessary to fetch the entitlements
 						change.setCurrentShadow(currentShadow);
@@ -1490,21 +1499,23 @@ public class ResourceObjectConverter {
 						iterator.remove();
 						continue;
 					}
-				}
-			} else {
-				if (ctx.isWildcard()) {
-					if (!MiscUtil.equals(shadowAttrsToReturn, attrsToReturn)) {
-						// re-fetch the shadow if necessary (if attributesToGet does not match)
-						ResourceObjectIdentification identification = new ResourceObjectIdentification(shadowCtx.getObjectClassDefinition(), change.getIdentifiers());
-						currentShadow = connector.fetchObject(ShadowType.class, identification, shadowAttrsToReturn, parentResult);
-					}
-					
-				}
+				} else {
+					if (ctx.isWildcard()) {
+						if (!MiscUtil.equals(shadowAttrsToReturn, attrsToReturn)) {
+							// re-fetch the shadow if necessary (if attributesToGet does not match)
+							ResourceObjectIdentification identification = new ResourceObjectIdentification(shadowCtx.getObjectClassDefinition(), change.getIdentifiers());
+							LOGGER.trace("Re-fetching object {} because of attrsToReturn", identification);
+							currentShadow = connector.fetchObject(ShadowType.class, identification, shadowAttrsToReturn, parentResult);
+						}
 						
-				PrismObject<ShadowType> processedCurrentShadow = postProcessResourceObjectRead(shadowCtx,
-						currentShadow, true, parentResult);
-				change.setCurrentShadow(processedCurrentShadow);
+					}
+							
+					PrismObject<ShadowType> processedCurrentShadow = postProcessResourceObjectRead(shadowCtx,
+							currentShadow, true, parentResult);
+					change.setCurrentShadow(processedCurrentShadow);
+				}
 			}
+			LOGGER.trace("Processed change\n:{}", change.debugDump());
 		}
 
 		parentResult.recordSuccess();
