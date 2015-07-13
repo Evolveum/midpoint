@@ -37,6 +37,7 @@
             <class name="com.evolveum.midpoint.model.intest.TestResources"/>
             <class name="com.evolveum.midpoint.model.intest.TestMapping"/>
             <class name="com.evolveum.midpoint.model.intest.TestMappingInbound"/>
+            <class name="com.evolveum.midpoint.model.intest.TestVolatility"/>
             <class name="com.evolveum.midpoint.model.intest.TestSecurity"/>
             <class name="com.evolveum.midpoint.model.intest.TestTriggerTask"/>
             <class name="com.evolveum.midpoint.model.intest.TestIteration"/>

@@ -812,8 +812,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_LARGO_OID, null, task, result);
 		display("Largo after", userAfter);
         assertUser(userAfter, USER_LARGO_OID, "largo", "Largo LaGrande", "Largo", "LaGrande");
-        
-        PrismAsserts.assertPropertyValue(userAfter, UserType.F_DESCRIPTION, "Imported user");
+
+        // locality is null; the description comes from inbound mapping on dummy resource
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_DESCRIPTION, "Came from null");
         assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
         assertAssignedRole(userAfter, ROLE_PIRATE_OID);
         assertAssignments(userAfter, 2);

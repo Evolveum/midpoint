@@ -3401,6 +3401,22 @@
             <xsd:element name="dependency" type="tns:ResourceObjectTypeDependencyType" minOccurs="0" maxOccurs="unbounded"/>
          	<xsd:element name="association" type="tns:ResourceObjectAssociationType" minOccurs="0" maxOccurs="unbounded"/>
          	<xsd:element name="assignmentPolicyEnforcement" type="tns:AssignmentPolicyEnforcementType" minOccurs="0"/>
+            <xsd:element name="volatility" type="tns:ResourceObjectVolatilityType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specifies volatility of this type of resource objects, i.e. whether it can change when midPoint
+                        is not looking. (Meaning if it is possible that midPoint creates or updates the object, providing
+                        some attributes, but after subsequent read, some of the relevant attributes would have values
+                        other than provided.) An example of volatile object is Exchange mailbox, where its PrimarySmtpAddress
+                        (or EmailAddresses) can be created based on system policies. Therefore, in order to fill-in
+                        $user/emailAddress based on PrimarySmtpAddress, one has to fetch a newly created object before
+                        applying inbound mappings.
+
+                        Set this property only if you really need to execute inbounds on volatile attributes;
+                        otherwise you'll get performance penalty with no benefits in return.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="iteration" type="tns:IterationSpecificationType" minOccurs="0"/>
             <xsd:element name="protected" type="tns:ResourceObjectPatternType" minOccurs="0" maxOccurs="unbounded">
             	<xsd:annotation>
@@ -3546,6 +3562,43 @@
                 </xsd:annotation>
             </xsd:enumeration>
              </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="ResourceObjectVolatilityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies volatility of resource objects or their attributes, i.e. whether they can change without
+                explicitly requested by midPoint.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="none">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NONE"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        The object is behaving very seriously. What you put there, stays there. No unexpected changes.
+                        (At least for the attributes you are interested in.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="unpredictable">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="UNPREDICTABLE"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        The object can change at any time. Currently this means that midPoint reads the current state
+                        after any create or modify operation on that object. In the future we will introduce finer
+                        scale, e.g. "can change when created", "can change when updated", etc.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
     </xsd:simpleType>
     
     <xsd:complexType name="ShadowDiscriminatorType">
@@ -8389,10 +8442,10 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="enableExperimentalCode" type="xsd:boolean" minOccurs="0" default="false">
+                    <xsd:element name="internals" type="tns:InternalsConfigurationType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Whether experimental parts of midPoint code should be enabled.
+                                Various internals configuration.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -8402,9 +8455,34 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="systemConfiguration" type="tns:SystemConfigurationType"/>
-   
 
-	<xsd:complexType name="ObjectPolicyConfigurationType">
+    <xsd:complexType name="InternalsConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Various internals configuration elements.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="enableExperimentalCode" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Whether experimental parts of midPoint code should be enabled.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="maxModelClicks" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How many clicks are allowed for the clockwork to make in one operation.
+                        (Default: 200.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+
+    <xsd:complexType name="ObjectPolicyConfigurationType">
 		<xsd:annotation>
 			<xsd:documentation>
 				Definition of policy for a specific object type. It defines object template

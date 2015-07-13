@@ -37,6 +37,7 @@ import javax.naming.ldap.Rdn;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -368,7 +369,7 @@ public class TestExchangeConnectorLow extends AbstractTestForExchangeConnector {
         ShadowType leibniz = checkAccount(LEIBNIZ_GIVEN_NAME, LEIBNIZ_SN, dn(LEIBNIZ_GIVEN_NAME, LEIBNIZ_SN), getContainer());
         Map<String,Object> attrs = getAttributesAsMap(leibniz);
         assertAttributeEquals(attrs, "RecipientType", "UserMailbox");
-        assertAttributeExists(attrs, "homeMDB");
+        assertAttributeExists(attrs, "Database");
         assertAttributeEquals(attrs, "PrimarySmtpAddress", mail);
         assertAttributeEquals(attrs, "mail", mail);
         assertAttributeEquals(attrs, "Alias", LEIBNIZ_SN.toLowerCase());
@@ -380,16 +381,46 @@ public class TestExchangeConnectorLow extends AbstractTestForExchangeConnector {
     }
 
     @Test
+    public void test124ModifyLeibnizAddOabAndAbp() throws Exception {
+        Map<String,Object> values = new HashMap<>();
+        values.put("attributes/OfflineAddressBook", "Scientists Offline Address Book Updated");
+        values.put("attributes/AddressBookPolicy", "Scientists Address Book Policy Updated");
+        modifyObject(ShadowType.class, leibnizOid, ModificationTypeType.REPLACE, values, null, true);
+    }
+
+    @Test
+    public void test126GetLeibnizAgain() throws Exception {
+        String mail = mail(LEIBNIZ_GIVEN_NAME, LEIBNIZ_SN);
+        ShadowType leibniz = checkAccount(LEIBNIZ_GIVEN_NAME, LEIBNIZ_SN, dn(LEIBNIZ_GIVEN_NAME, LEIBNIZ_SN), getContainer());
+        Map<String,Object> attrs = getAttributesAsMap(leibniz);
+        assertAttributeEquals(attrs, "RecipientType", "UserMailbox");
+        assertAttributeExists(attrs, "Database");
+        assertAttributeEquals(attrs, "PrimarySmtpAddress", mail);
+        assertAttributeEquals(attrs, "mail", mail);
+        assertAttributeEquals(attrs, "Alias", LEIBNIZ_SN.toLowerCase());
+        assertAttributeContains(attrs, "EmailAddresses", "SMTP:" + mail);               // FIXME
+        assertAttributeEquals(attrs, "EmailAddressPolicyEnabled", "true");
+        assertAttributeEquals(attrs, "msExchRecipientDisplayType", "1073741824");
+        assertAttributeEquals(attrs, "msExchRecipientTypeDetails", "1");
+        assertAttributeEquals(attrs, "displayName", LEIBNIZ_GIVEN_NAME + " " + LEIBNIZ_SN);
+        assertAttributeEquals(attrs, "OfflineAddressBook", "Scientists Offline Address Book Updated");
+        assertAttributeEquals(attrs, "AddressBookPolicy", "Scientists Address Book Policy Updated");
+    }
+
+    @Test
     public void test130CreatePascal() throws Exception {
         System.out.println("Creating account for Pascal...");
-        pascalOid = createAccount(PASCAL_GIVEN_NAME, PASCAL_SN, dn(PASCAL_GIVEN_NAME, PASCAL_SN), "UserMailbox", null);
+        Map<String,Object> values = new HashMap<>();
+        values.put("OfflineAddressBook", "Scientists Offline Address Book Updated");
+        values.put("AddressBookPolicy", "Scientists Address Book Policy Updated");
+        pascalOid = createAccount(PASCAL_GIVEN_NAME, PASCAL_SN, dn(PASCAL_GIVEN_NAME, PASCAL_SN), "UserMailbox", null, null, null, values, true);
         System.out.println("Done; OID = " + pascalOid);
 
         String mail = mail(PASCAL_GIVEN_NAME, PASCAL_SN);
         ShadowType pascal = checkAccount(PASCAL_GIVEN_NAME, PASCAL_SN, dn(PASCAL_GIVEN_NAME, PASCAL_SN), getContainer());
         Map<String,Object> attrs = getAttributesAsMap(pascal);
         assertAttributeEquals(attrs, "RecipientType", "UserMailbox");
-        assertAttributeExists(attrs, "homeMDB");
+        assertAttributeExists(attrs, "Database");
         assertAttributeEquals(attrs, "PrimarySmtpAddress", mail);
         assertAttributeEquals(attrs, "mail", mail);
         assertAttributeEquals(attrs, "Alias", PASCAL_SN.toLowerCase());
@@ -398,6 +429,8 @@ public class TestExchangeConnectorLow extends AbstractTestForExchangeConnector {
         assertAttributeEquals(attrs, "msExchRecipientDisplayType", "1073741824");
         assertAttributeEquals(attrs, "msExchRecipientTypeDetails", "1");
         assertAttributeEquals(attrs, "displayName", PASCAL_GIVEN_NAME + " " + PASCAL_SN);
+        assertAttributeEquals(attrs, "OfflineAddressBook", "Scientists Offline Address Book Updated");
+        assertAttributeEquals(attrs, "AddressBookPolicy", "Scientists Address Book Policy Updated");
     }
 
     @Test

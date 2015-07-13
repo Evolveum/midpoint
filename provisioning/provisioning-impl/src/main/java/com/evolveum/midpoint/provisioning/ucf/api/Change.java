@@ -20,6 +20,8 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import java.util.Collection;
@@ -29,7 +31,7 @@ import java.util.Set;
  * @author Radovan Semancik
  *
  */
-public final class Change<T extends ShadowType> {
+public final class Change<T extends ShadowType> implements DebugDumpable {
 	
     private Collection<ResourceAttribute<?>> identifiers;
     private ObjectClassComplexTypeDefinition objectClassDefinition;
@@ -112,11 +114,40 @@ public final class Change<T extends ShadowType> {
 	public void setCurrentShadow(PrismObject<T> currentShadow) {
 		this.currentShadow = currentShadow;
 	}
+	
+	public boolean isTokenOnly() {
+		return identifiers == null && objectDelta == null && currentShadow == null && token != null;
+	}
+
 
 	@Override
 	public String toString() {
 		return "Change(identifiers=" + identifiers + ", objectDelta=" + objectDelta + ", token=" + token
 				+ ", oldShadow=" + oldShadow + ", currentShadow=" + currentShadow + ")";
+	}
+
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, 0);
+		sb.append("Change\n");
+		DebugUtil.debugDumpWithLabel(sb, "identifiers", identifiers, indent + 1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "objectDelta", objectDelta, indent + 1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "objectClassDefinition", objectClassDefinition, indent + 1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "token", token, indent + 1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "oldShadow", oldShadow, indent + 1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "currentShadow", currentShadow, indent + 1);
+		return sb.toString();
 	}
 	
 }

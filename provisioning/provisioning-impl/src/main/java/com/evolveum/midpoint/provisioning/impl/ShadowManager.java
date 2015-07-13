@@ -383,7 +383,75 @@ public class ShadowManager {
 			
 			
 		}
-		
+
+		return newShadow;
+	}
+	
+	public PrismObject<ShadowType> findOrCreateShadowFromChangeGlobalContext(ProvisioningContext globalCtx, Change<ShadowType> change,
+			OperationResult parentResult) throws SchemaException, CommunicationException,
+			ConfigurationException, SecurityViolationException, ObjectNotFoundException {
+
+		// Try to locate existing shadow in the repository
+		List<PrismObject<ShadowType>> accountList = searchShadowByIdenifiers(globalCtx, change, parentResult);
+
+		if (accountList.size() > 1) {
+			String message = "Found more than one shadow with the identifier " + change.getIdentifiers() + ".";
+			LOGGER.error(message);
+			parentResult.recordFatalError(message);
+			throw new IllegalArgumentException(message);
+		}
+
+		PrismObject<ShadowType> newShadow = null;
+
+		if (accountList.isEmpty()) {
+			// account was not found in the repository, create it now
+
+			if (change.getObjectDelta() == null || change.getObjectDelta().getChangeType() != ChangeType.DELETE) {
+				newShadow = createNewAccountFromChange(globalCtx, change, parentResult);
+
+				try {
+					ConstraintsChecker.onShadowAddOperation(newShadow.asObjectable());
+					String oid = repositoryService.addObject(newShadow, null, parentResult);
+					newShadow.setOid(oid);
+					if (change.getObjectDelta() != null && change.getObjectDelta().getOid() == null) {
+						change.getObjectDelta().setOid(oid);
+					}
+				} catch (ObjectAlreadyExistsException e) {
+					parentResult.recordFatalError("Can't add " + SchemaDebugUtil.prettyPrint(newShadow)
+							+ " to the repository. Reason: " + e.getMessage(), e);
+					throw new IllegalStateException(e.getMessage(), e);
+				}
+				LOGGER.trace("Created shadow object: {}", newShadow);
+			}
+
+		} else {
+			// Account was found in repository
+			newShadow = accountList.get(0);
+			
+            if (change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE) {
+					Collection<? extends ItemDelta> deadDeltas = PropertyDelta
+							.createModificationReplacePropertyCollection(ShadowType.F_DEAD,
+									newShadow.getDefinition(), true);
+					try {
+						ConstraintsChecker.onShadowModifyOperation(deadDeltas);
+						repositoryService.modifyObject(ShadowType.class, newShadow.getOid(), deadDeltas,
+								parentResult);
+					} catch (ObjectAlreadyExistsException e) {
+						parentResult.recordFatalError(
+								"Can't add " + SchemaDebugUtil.prettyPrint(newShadow)
+										+ " to the repository. Reason: " + e.getMessage(), e);
+						throw new IllegalStateException(e.getMessage(), e);
+					} catch (ObjectNotFoundException e) {
+						parentResult.recordWarning("Shadow " + SchemaDebugUtil.prettyPrint(newShadow)
+								+ " was probably deleted from the repository in the meantime. Exception: "
+								+ e.getMessage(), e);
+						return null;
+					}
+				} 
+				
+			
+			
+		}
 
 		return newShadow;
 	}
@@ -441,13 +509,23 @@ public class ShadowManager {
 	private ObjectQuery createSearchShadowQuery(ProvisioningContext ctx, Collection<ResourceAttribute<?>> identifiers,
 			PrismContext prismContext, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
 		List<ObjectFilter> conditions = new ArrayList<ObjectFilter>();
+		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
 		for (PrismProperty<?> identifier : identifiers) {
+			RefinedAttributeDefinition rAttrDef;
 			PrismPropertyValue<?> identifierValue = identifier.getValue();
-			RefinedAttributeDefinition rAttrDef = ctx.getObjectClassDefinition().findAttributeDefinition(identifier.getElementName());
-			Object normalizedIdentifierValue = getNormalizedAttributeValue(identifierValue, rAttrDef);
+			if (objectClassDefinition == null) {
+				// If there is no specific object class definition then the identifier definition 
+				// must be the same in all object classes and that means that we can use
+				// definition from any of them.
+				RefinedObjectClassDefinition anyDefinition = ctx.getRefinedSchema().getRefinedDefinitions().iterator().next();
+				rAttrDef = anyDefinition.findAttributeDefinition(identifier.getElementName());
+			} else {
+				rAttrDef = objectClassDefinition.findAttributeDefinition(identifier.getElementName());
+			}
+			String normalizedIdentifierValue = (String) getNormalizedAttributeValue(identifierValue, rAttrDef);
 			//new ItemPath(ShadowType.F_ATTRIBUTES)
-			PrismPropertyDefinition def = identifier.getDefinition();
-			EqualFilter filter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, def.getName()), def, new PrismPropertyValue(normalizedIdentifierValue));
+			PrismPropertyDefinition<String> def = (PrismPropertyDefinition<String>) identifier.getDefinition();
+			EqualFilter<String> filter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, def.getName()), def, new PrismPropertyValue<String>(normalizedIdentifierValue));
 			conditions.add(filter);
 		}
 
@@ -457,6 +535,11 @@ public class ShadowManager {
 		
 		RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, ctx.getResource());
 		conditions.add(resourceRefFilter);
+		
+		if (objectClassDefinition != null) {
+			EqualFilter<QName> objectClassFilter = EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext,  objectClassDefinition.getTypeName());
+			conditions.add(objectClassFilter);
+		}
 
 		ObjectFilter filter = null;
 		if (conditions.size() > 1) {

@@ -163,6 +163,8 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
         resource.setEnforceUniqueName(this.configuration.isEnforceUniqueName());
         resource.setTolerateDuplicateValues(this.configuration.getTolerateDuplicateValues());
         resource.setGenerateDefaultValues(this.configuration.isGenerateDefaultValues());
+		resource.setGenerateAccountDescriptionOnCreate(this.configuration.getGenerateAccountDescriptionOnCreate());
+		resource.setGenerateAccountDescriptionOnUpdate(this.configuration.getGenerateAccountDescriptionOnUpdate());
 
         resource.setUselessString(this.configuration.getUselessString());
         GuardedString uselessGuardedString = this.configuration.getUselessGuardedString();
@@ -295,6 +297,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		        if (account == null) {
 		        	throw new UnknownUidException("Account with UID "+uid+" does not exist on resource");
 		        }
+
+				// we do this before setting attribute values, in case when description itself would be changed
+				resource.changeDescriptionIfNeeded(account);
 		        
 		        for (Attribute attr : replaceAttributes) {
 		        	if (attr.is(Name.NAME)) {
@@ -314,19 +319,19 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 						}
 		        	} else if (attr.is(OperationalAttributes.PASSWORD_NAME)) {
 		        		changePassword(account,attr);
-		        	
+
 		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
 		        		account.setEnabled(getBoolean(attr));
-		        		
+
 		        	} else if (attr.is(OperationalAttributes.ENABLE_DATE_NAME)) {
 		        		account.setValidFrom(getDate(attr));
-	
+
 		        	} else if (attr.is(OperationalAttributes.DISABLE_DATE_NAME)) {
 		        		account.setValidTo(getDate(attr));
-		        		
+
 		        	} else if (attr.is(OperationalAttributes.LOCK_OUT_NAME)) {
 		        		account.setLockout(getBoolean(attr));
-	
+
 		        	} else {
 			        	String name = attr.getName();
 			        	try {
@@ -470,6 +475,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		        if (account == null) {
 		        	throw new UnknownUidException("Account with UID "+uid+" does not exist on resource");
 		        }
+
+				// we could change the description here, but don't do that not to collide with ADD operation
+				// TODO add the functionality if needed
 		        
 		        for (Attribute attr : valuesToAdd) {
 		        	
@@ -611,8 +619,11 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		        if (account == null) {
 		        	throw new UnknownUidException("Account with UID "+uid+" does not exist on resource");
 		        }
-		        
-		        for (Attribute attr : valuesToRemove) {
+
+				// we could change the description here, but don't do that not to collide with REMOVE operation
+				// TODO add the functionality if needed
+
+				for (Attribute attr : valuesToRemove) {
 		        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
 		        		throw new UnsupportedOperationException("Removing password value is not supported");
 		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {

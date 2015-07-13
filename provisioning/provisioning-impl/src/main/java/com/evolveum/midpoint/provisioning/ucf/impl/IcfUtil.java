@@ -58,9 +58,11 @@ import org.identityconnectors.framework.common.objects.filter.Filter;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -456,7 +458,24 @@ class IcfUtil {
 		}
 	}
 	
-	public static ResourceAttributeDefinition<String> getUidDefinition(ResourceAttributeContainerDefinition def) {
+	public static ResourceAttributeDefinition<String> getUidDefinition(ObjectClassComplexTypeDefinition def, ResourceSchema schema) {
+		if (def == null) {
+			// Return definition from any structural object class. If there is no specific object class definition then
+			// the UID definition must be the same in all structural object classes and that means that we can use
+			// definition from any structural object class.
+			for (ObjectClassComplexTypeDefinition objectClassDefinition: schema.getObjectClassDefinitions()) {
+				if (!objectClassDefinition.isAuxiliary()) {
+					return getUidDefinition(objectClassDefinition);
+				}
+			}
+			return null;
+		} else {
+			return getUidDefinition(def);
+		}
+	}
+	
+	
+	public static ResourceAttributeDefinition<String> getUidDefinition(ObjectClassComplexTypeDefinition def) {
 		Collection<? extends ResourceAttributeDefinition> identifiers = def.getIdentifiers();
 		if (identifiers.size() > 1) {
 			throw new UnsupportedOperationException("Multiple primary identifiers are not supported");

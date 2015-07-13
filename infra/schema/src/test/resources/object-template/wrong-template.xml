@@ -25,7 +25,7 @@
     <mapping>
         <authoritative>true</authoritative>
         <source>
-            <path>$user/extension/ext:orgPath</path>
+            <path>$user/extension/orgPath</path>
         </source>
         <expression>
         <script>

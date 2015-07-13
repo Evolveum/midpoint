@@ -136,7 +136,7 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
 		ShadowType shadowType = shadow.asObjectable();
 		
 		LOGGER.trace("Start to precess change: {}", change.toString());
-		shadowCache.processChange(ctx, change, parentResult);
+		shadowCache.processChange(ctx, change, null, parentResult);
 		
 		LOGGER.trace("Change after processing {} . Start synchronizing.", change.toString());
 		shadowCache.processSynchronization(ctx, change, parentResult);

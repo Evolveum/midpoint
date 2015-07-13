@@ -127,8 +127,9 @@ public class AbstractTestForExchangeConnector {
     protected List<OrgType> orgs = new ArrayList<>();
 
     protected ModelPortType modelPort;
+    protected ObjectDeltaOperationType lastOdo;     // a hack to see last result
 
-//    private String dn(String givenName, String sn) {
+    //    private String dn(String givenName, String sn) {
 //        return "CN=" + givenName + " " + sn + "," + getContainer();
 //    }
 //
@@ -338,7 +339,7 @@ public class AbstractTestForExchangeConnector {
         ShadowAttributesType attributes = new ShadowAttributesType();
         attributes.getAny().add(ModelClientUtil.createTextElement(new QName(NS_ICFS, "name"), name, doc));
         attributes.getAny().add(ModelClientUtil.createTextElement(new QName(NS_RI, "AddressLists"), addressList, doc));
-        attributes.getAny().add(ModelClientUtil.createTextElement(new QName(NS_RI, "_TenantName"), tenantName, doc));
+        //attributes.getAny().add(ModelClientUtil.createTextElement(new QName(NS_RI, "_TenantName"), tenantName, doc));
         shadow.setAttributes(attributes);
 
         return createShadow(shadow);
@@ -420,7 +421,8 @@ public class AbstractTestForExchangeConnector {
     }
 
     protected Collection<String> distributionGroupMembers(String name) {
-        return Arrays.asList("Mail-" + name + "@AllUsers");
+        //return Arrays.asList("Mail-" + name + "@AllUsers");
+        return new ArrayList<>();
     }
 
     protected String distributionGroupDisplayName(String name) {
@@ -575,6 +577,33 @@ public class AbstractTestForExchangeConnector {
                 itemDelta.getValue().add(value);
             } else {
                 itemDelta.getValue().addAll((Collection) value);
+            }
+            deltaType.getItemDelta().add(itemDelta);
+        }
+
+        ObjectDeltaListType deltaListType = new ObjectDeltaListType();
+        deltaListType.getDelta().add(deltaType);
+        ObjectDeltaOperationListType odolist = modelPort.executeChanges(deltaListType, optionsType);
+        return assertExecuteChangesSuccess(odolist, deltaType, assertSuccess);
+    }
+
+    // values: path -> value or collection of values
+    protected ObjectDeltaOperationType modifyObject(Class objectType, String oid, ModificationTypeType modType, Map<String,Object> values, ModelExecuteOptionsType optionsType, boolean assertSuccess) throws Exception {
+        System.out.println("Modifying " + objectType.getSimpleName() + " " + oid + " (values: " + values + ")");
+
+        ObjectDeltaType deltaType = new ObjectDeltaType();
+        deltaType.setObjectType(ModelClientUtil.getTypeQName(objectType));
+        deltaType.setChangeType(ChangeTypeType.MODIFY);
+        deltaType.setOid(oid);
+
+        for (Map.Entry<String,Object> entry : values.entrySet()) {
+            ItemDeltaType itemDelta = new ItemDeltaType();
+            itemDelta.setModificationType(modType);
+            itemDelta.setPath(createNonDefaultItemPathType(entry.getKey()));
+            if (!(entry.getValue() instanceof Collection)) {
+                itemDelta.getValue().add(entry.getValue());
+            } else {
+                itemDelta.getValue().addAll((Collection) (entry.getValue()));
             }
             deltaType.getItemDelta().add(itemDelta);
         }
@@ -741,7 +770,7 @@ public class AbstractTestForExchangeConnector {
 		SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
 		
 		modelPort.getObject(ModelClientUtil.getTypeQName(SystemConfigurationType.class), SystemObjectsType.SYSTEM_CONFIGURATION.value(), options,
-				objectHolder, resultHolder);
+                objectHolder, resultHolder);
 		
 		return (SystemConfigurationType) objectHolder.value;
 	}
@@ -869,13 +898,23 @@ public class AbstractTestForExchangeConnector {
     }
 
 
+    protected String createAccount(String givenName, String sn, String name, String recipientType, String overrideMail, String samAccountName, String upn, Map<String,Object> additionalAttributes, boolean assertSuccess) throws FaultMessage {
+        ShadowType user = prepareShadowType(givenName, sn, name, recipientType, overrideMail, samAccountName, upn, additionalAttributes);
+        return createObject(ShadowType.class, user, null, assertSuccess);
+    }
+
+    protected String createAccount(String givenName, String sn, String name, String recipientType, String overrideMail, String samAccountName, String upn, boolean assertSuccess) throws FaultMessage {
+        ShadowType user = prepareShadowType(givenName, sn, name, recipientType, overrideMail, samAccountName, upn, null);
+        return createObject(ShadowType.class, user, null, assertSuccess);
+    }
+
     protected String createAccount(String givenName, String sn, String name, String recipientType, String overrideMail) throws FaultMessage {
-        ShadowType user = prepareShadowType(givenName, sn, name, recipientType, overrideMail);
+        ShadowType user = prepareShadowType(givenName, sn, name, recipientType, overrideMail, null, null, null);
         return createShadow(user);
     }
 
     protected ObjectDeltaOperationType createAccountOdo(String givenName, String sn, String name, String recipientType, String overrideMail) throws FaultMessage {
-        ShadowType shadowType = prepareShadowType(givenName, sn, name, recipientType, overrideMail);
+        ShadowType shadowType = prepareShadowType(givenName, sn, name, recipientType, overrideMail, null, null, null);
 
         ObjectDeltaType deltaType = new ObjectDeltaType();
         deltaType.setObjectType(ModelClientUtil.getTypeQName(ShadowType.class));
@@ -888,9 +927,12 @@ public class AbstractTestForExchangeConnector {
         return ModelClientUtil.findInDeltaOperationList(operationListType, deltaType);
     }
 
-    private ShadowType prepareShadowType(String givenName, String sn, String name, String recipientType, String overrideMail) {
-        String samAccountName = sn.toLowerCase();
-
+    // additionalAttributes: e.g. "OfflineAddressBook" -> "OAB123"
+    private ShadowType prepareShadowType(String givenName, String sn, String name, String recipientType, String overrideMail, String samAccountName,
+                                         String upn, Map<String, Object> additionalAttributes) {
+        if (samAccountName == null) {
+            samAccountName = sn.toLowerCase();
+        }
         Document doc = ModelClientUtil.getDocumnent();
 
         ShadowType user = new ShadowType();
@@ -909,8 +951,28 @@ public class AbstractTestForExchangeConnector {
             attributes.getAny().add(ModelClientUtil.createTextElement(new QName(NS_RI, "EmailAddressPolicyEnabled"), "true", doc));
             attributes.getAny().add(ModelClientUtil.createTextElement(new QName(NS_RI, "EmailAddresses"), overrideMail, doc));
         }
+        if (upn != null) {
+            attributes.getAny().add(ModelClientUtil.createTextElement(new QName(NS_RI, "userPrincipalName"), upn, doc));
+        }
+        if (additionalAttributes != null) {
+            for (Map.Entry<String,Object> entry : additionalAttributes.entrySet()) {
+                if (entry.getValue() instanceof Collection) {
+                    for (Object value : (Collection) entry.getValue()) {
+                        addAttribute(attributes, entry.getKey(), value, doc);
+                    }
+                } else {
+                    addAttribute(attributes, entry.getKey(), entry.getValue(), doc);
+                }
+            }
+        }
         user.setAttributes(attributes);
         return user;
+    }
+
+    private void addAttribute(ShadowAttributesType attributes, String name, Object value, Document doc) {
+        if (value != null) {
+            attributes.getAny().add(ModelClientUtil.createTextElement(new QName(NS_RI, name), value.toString(), doc));
+        }
     }
 
 
@@ -1030,7 +1092,12 @@ public class AbstractTestForExchangeConnector {
     protected String createShadow(ShadowType shadowType, ModelExecuteOptionsType options) throws FaultMessage {
         return createObject(ShadowType.class, shadowType, options);
     }
+
     protected String createObject(Class clazz, ObjectType objectType, ModelExecuteOptionsType options) throws FaultMessage {
+        return createObject(clazz, objectType, options, true);
+    }
+
+    protected String createObject(Class clazz, ObjectType objectType, ModelExecuteOptionsType options, boolean assertSuccess) throws FaultMessage {
 
         ObjectDeltaType deltaType = new ObjectDeltaType();
         deltaType.setObjectType(ModelClientUtil.getTypeQName(clazz));
@@ -1040,7 +1107,7 @@ public class AbstractTestForExchangeConnector {
         ObjectDeltaListType deltaListType = new ObjectDeltaListType();
         deltaListType.getDelta().add(deltaType);
         ObjectDeltaOperationListType operationListType = modelPort.executeChanges(deltaListType, options);
-        assertExecuteChangesSuccess(operationListType, null, true);
+        lastOdo = assertExecuteChangesSuccess(operationListType, null, assertSuccess);
 //        Holder<OperationResultType> holder = new Holder<>();
 //        String oid = getOidFromDeltaOperationList(operationListType, deltaType, holder);
 //        AssertJUnit.assertNotNull("No operation result from create shadow operation", holder.value);
@@ -1287,7 +1354,7 @@ public class AbstractTestForExchangeConnector {
 		System.out.println("Endpoint URL: "+endpointUrl);
 
         // uncomment this if you want to use Fiddler or any other proxy
-        //ProxySelector.setDefault(new MyProxySelector("127.0.0.1", 8888));
+//        ProxySelector.setDefault(new MyProxySelector("127.0.0.1", 8888));
 		
 		ModelService modelService = new ModelService();
 		ModelPortType modelPort = modelService.getModelPort();

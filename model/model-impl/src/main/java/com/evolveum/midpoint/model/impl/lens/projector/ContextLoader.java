@@ -23,9 +23,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.StringUtils;
@@ -46,8 +44,6 @@ import com.evolveum.midpoint.model.impl.lens.LensObjectDeltaOperation;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.SynchronizationIntent;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -919,7 +915,14 @@ public class ContextLoader {
 		if (projContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
 			return;
 		}
-		
+
+		// MID-2436 (volatile objects) - as a quick but effective hack, we set reconciliation:=TRUE for volatile accounts
+		ResourceObjectTypeDefinitionType objectDefinition = projContext.getResourceObjectTypeDefinitionType();
+		if (objectDefinition != null && objectDefinition.getVolatility() == ResourceObjectVolatilityType.UNPREDICTABLE && !projContext.isDoReconciliation()) {
+			LOGGER.trace("Resource object volatility is UNPREDICTABLE => setting doReconciliation to TRUE for {}", projContext.getResourceShadowDiscriminator());
+			projContext.setDoReconciliation(true);
+		}
+
 		// Remember OID before the object could be wiped
 		String projectionObjectOid = projContext.getOid();
 		if (projContext.isDoReconciliation() && !projContext.isFullShadow()) {

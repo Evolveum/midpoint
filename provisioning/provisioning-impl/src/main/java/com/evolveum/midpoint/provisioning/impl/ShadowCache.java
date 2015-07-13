@@ -1064,9 +1064,35 @@ public abstract class ShadowCache {
 			
 			for (Change<ShadowType> change: changes) {	
 				
-				ProvisioningContext shadowCtx = ctx.spawn(change.getObjectClassDefinition().getTypeName());
+				if (change.isTokenOnly()) {
+					LOGGER.trace("Found token-only change: {}", change);
+					task.setExtensionProperty(change.getToken());
+					continue;
+				}
 				
-				processChange(shadowCtx, change, parentResult);
+				ObjectClassComplexTypeDefinition changeObjectClassDefinition = change.getObjectClassDefinition();
+				
+				ProvisioningContext shadowCtx;
+				PrismObject<ShadowType> oldShadow = null;
+				if (changeObjectClassDefinition == null) {
+					if (change.getObjectDelta() != null && change.getObjectDelta().isDelete()) {				
+						oldShadow = change.getOldShadow();
+						if (oldShadow == null) {
+							oldShadow = shadowManager.findOrCreateShadowFromChangeGlobalContext(ctx, change, parentResult);
+						}
+						if (oldShadow == null) {
+							LOGGER.debug("No old shadow for delete synchronization event {}, we probably did not know about that object anyway, so well be ignoring this event", change);
+							continue;
+						}
+						shadowCtx = ctx.spawn(oldShadow);
+					} else {
+						throw new SchemaException("No object class definition in change " + change);
+					}
+				} else {
+					shadowCtx = ctx.spawn(changeObjectClassDefinition.getTypeName());
+				}
+				
+				processChange(shadowCtx, change, oldShadow, parentResult);
 				
 				// this is the case,when we want to skip processing of change,
 				// because the shadow was not created or found to the resource
@@ -1276,13 +1302,13 @@ public abstract class ShadowCache {
 
 
 	
-	void processChange(ProvisioningContext ctx, Change<ShadowType> change, OperationResult parentResult) 
+	void processChange(ProvisioningContext ctx, Change<ShadowType> change, PrismObject<ShadowType> oldShadow, OperationResult parentResult) 
 					throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectNotFoundException, GenericConnectorException, ObjectAlreadyExistsException{
 				
-		PrismObject<ShadowType> oldShadow = change.getOldShadow();
-		if (oldShadow == null){
+		if (oldShadow == null) {
 			oldShadow = shadowManager.findOrCreateShadowFromChange(ctx, change, parentResult);
 		}
+		
 		if (oldShadow != null) {
 			applyAttributesDefinition(ctx, oldShadow);
 			ShadowType oldShadowType = oldShadow.asObjectable();

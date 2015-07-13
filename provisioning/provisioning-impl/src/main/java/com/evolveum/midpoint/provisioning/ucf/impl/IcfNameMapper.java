@@ -203,23 +203,26 @@ public class IcfNameMapper {
 	 * <p/>
 	 * TODO: mind the special characters in the ICF objectclass names.
 	 */
-	public QName objectClassToQname(String icfObjectClassString, String schemaNamespace, boolean legacySchema) {
-		if (ObjectClass.ALL_NAME.equals(icfObjectClassString)) {
+	public QName objectClassToQname(ObjectClass icfObjectClass, String schemaNamespace, boolean legacySchema) {
+		if (icfObjectClass == null) {
+			return null;
+		}
+		if (icfObjectClass.is(ObjectClass.ALL_NAME)) {
 			return null;
 		}
 		if (legacySchema) {
-			if (ObjectClass.ACCOUNT_NAME.equals(icfObjectClassString)) {
+			if (icfObjectClass.is(ObjectClass.ACCOUNT_NAME)) {
 				return new QName(schemaNamespace, ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME,
 						ConnectorFactoryIcfImpl.NS_ICF_SCHEMA_PREFIX);
-			} else if (ObjectClass.GROUP_NAME.equals(icfObjectClassString)) {
+			} else if (icfObjectClass.is(ObjectClass.GROUP_NAME)) {
 				return new QName(schemaNamespace, ConnectorFactoryIcfImpl.GROUP_OBJECT_CLASS_LOCAL_NAME,
 						ConnectorFactoryIcfImpl.NS_ICF_SCHEMA_PREFIX);
 			} else {
-				return new QName(schemaNamespace, CUSTOM_OBJECTCLASS_PREFIX + icfObjectClassString
+				return new QName(schemaNamespace, CUSTOM_OBJECTCLASS_PREFIX + icfObjectClass.getObjectClassValue()
 						+ CUSTOM_OBJECTCLASS_SUFFIX, ConnectorFactoryIcfImpl.NS_ICF_RESOURCE_INSTANCE_PREFIX);
 			}
 		} else {
-			return new QName(schemaNamespace, icfObjectClassString);
+			return new QName(schemaNamespace, icfObjectClass.getObjectClassValue());
 		}
 	}
 

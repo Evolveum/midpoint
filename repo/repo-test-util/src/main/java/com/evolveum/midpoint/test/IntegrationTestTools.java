@@ -664,11 +664,10 @@ public class IntegrationTestTools {
 		}
 
 		ObjectFilter filter;
-		PrismPropertyDefinition identifierDef = identifier.getDefinition();
-		PrismReferenceDefinition itemDef = resourceShadow.asPrismObject().getDefinition().findReferenceDefinition(ShadowType.F_RESOURCE_REF);
+		PrismPropertyDefinition<String> identifierDef = identifier.getDefinition();
 		filter = AndFilter.createAnd(
 					RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, prismContext, ShadowUtil.getResourceOid(resourceShadow)),
-					EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifierDef, new PrismPropertyValue(identifierValue)));
+					EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifierDef, new PrismPropertyValue<String>(identifierValue)));
 			
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
