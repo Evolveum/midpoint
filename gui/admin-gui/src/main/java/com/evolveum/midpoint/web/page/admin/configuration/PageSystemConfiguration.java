@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -374,7 +375,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 
             s.setGlobalAccountSynchronizationSettings(projectionPolicy);
             s.setCleanupPolicy(cleanupPolicies);
-            s.setEnableExperimentalCode(dto.getEnableExperimentalCode());
+            SystemConfigurationTypeUtil.setEnableExperimentalCode(s, dto.getEnableExperimentalCode());
 
             PrismObject<SystemConfigurationType> oldObject = getModelService().getObject(SystemConfigurationType.class,
                     oid, null, task, result);

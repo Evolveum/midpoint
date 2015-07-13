@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
 import com.evolveum.midpoint.common.SystemConfigurationHolder;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -94,10 +95,7 @@ public class SystemConfigurationDto implements Serializable {
             notificationConfig = new NotificationConfigurationDto();
         }
 
-        enableExperimentalCode = config.isEnableExperimentalCode();
-        if (enableExperimentalCode == null) {
-            enableExperimentalCode = SystemConfigurationHolder.EXPERIMENTAL_CODE_ENABLED_BY_DEFAULT;        // to show the real state
-        }
+        enableExperimentalCode = SystemConfigurationTypeUtil.isExperimentalCodeEnabled(config);
     }
 
     private ObjectViewDto<ValuePolicyType> loadPasswordPolicy(SystemConfigurationType config){

@@ -60,6 +60,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.security.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
@@ -168,7 +169,7 @@ public class Clockwork {
 		this.debugListener = debugListener;
 	}
 
-	private static final int MAX_CLICKS = 1000;
+	private static final int DEFAULT_MAX_CLICKS = 200;
 
 	public <F extends ObjectType> HookOperationMode run(LensContext<F> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (InternalsConfig.consistencyChecks) {
@@ -183,8 +184,9 @@ public class Clockwork {
 			while (context.getState() != ModelState.FINAL) {
 
 				// TODO implement in model context (as transient or even non-transient attribute) to allow for checking in more complex scenarios
-				if (clicked >= MAX_CLICKS) {
-					throw new IllegalStateException("Model operation took too many clicks (limit is " + MAX_CLICKS + "). Is there a cycle?");
+				int maxClicks = getMaxClicks(context, result);
+				if (clicked >= maxClicks) {
+					throw new IllegalStateException("Model operation took too many clicks (limit is " + maxClicks + "). Is there a cycle?");
 				}
 				clicked++;
 
@@ -204,7 +206,17 @@ public class Clockwork {
 			provisioningService.exitConstraintsCheckerCache();
 		}
 	}
-	
+
+	private <F extends ObjectType> int getMaxClicks(LensContext<F> context, OperationResult result) throws SchemaException, ObjectNotFoundException {
+		PrismObject<SystemConfigurationType> sysconfigObject = LensUtil.getSystemConfiguration(context, repositoryService, result);
+		Integer maxClicks = SystemConfigurationTypeUtil.getMaxModelClicks(sysconfigObject);
+		if (maxClicks == null) {
+			return DEFAULT_MAX_CLICKS;
+		} else {
+			return maxClicks;
+		}
+	}
+
 	public <F extends ObjectType> HookOperationMode click(LensContext<F> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		
 		// DO NOT CHECK CONSISTENCY of the context here. The context may not be fresh and consistent yet. Project will fix

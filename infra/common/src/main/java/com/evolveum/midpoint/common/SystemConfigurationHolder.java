@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.common;
 
+import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**
@@ -30,8 +31,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
  */
 public class SystemConfigurationHolder {
 
-    public static boolean EXPERIMENTAL_CODE_ENABLED_BY_DEFAULT = true;                 // TODO change to false just before release
-
     private static SystemConfigurationType currentConfiguration;
 
     public static void setCurrentConfiguration(SystemConfigurationType currentConfiguration) {
@@ -39,10 +38,6 @@ public class SystemConfigurationHolder {
     }
 
     public static boolean isExperimentalCodeEnabled() {
-        if (currentConfiguration == null || currentConfiguration.isEnableExperimentalCode() == null) {
-            return EXPERIMENTAL_CODE_ENABLED_BY_DEFAULT;
-        } else {
-            return currentConfiguration.isEnableExperimentalCode();
-        }
+        return SystemConfigurationTypeUtil.isExperimentalCodeEnabled(currentConfiguration);
     }
 }

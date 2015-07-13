@@ -8442,10 +8442,10 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="enableExperimentalCode" type="xsd:boolean" minOccurs="0" default="false">
+                    <xsd:element name="internals" type="tns:InternalsConfigurationType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Whether experimental parts of midPoint code should be enabled.
+                                Various internals configuration.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -8455,9 +8455,34 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="systemConfiguration" type="tns:SystemConfigurationType"/>
-   
 
-	<xsd:complexType name="ObjectPolicyConfigurationType">
+    <xsd:complexType name="InternalsConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Various internals configuration elements.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="enableExperimentalCode" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Whether experimental parts of midPoint code should be enabled.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="maxModelClicks" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How many clicks are allowed for the clockwork to make in one operation.
+                        (Default: 200.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+
+    <xsd:complexType name="ObjectPolicyConfigurationType">
 		<xsd:annotation>
 			<xsd:documentation>
 				Definition of policy for a specific object type. It defines object template
