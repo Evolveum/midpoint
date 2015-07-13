@@ -91,6 +91,7 @@ public class OpenDJController extends AbstractResourceController {
 	private String LDAP_SUFFIX = "dc=example,dc=com";
 	
 	public static final String DEFAULT_TEMPLATE_NAME = "opendj.template";
+	public static final String RI_TEMPLATE_NAME = "opendj.template.ri";
 
 	protected File serverRoot = new File(SERVER_ROOT);
 	protected File configFile = null;
@@ -326,6 +327,15 @@ public class OpenDJController extends AbstractResourceController {
 	public InternalClientConnection startCleanServer() throws IOException, URISyntaxException {
 		return startCleanServer(DEFAULT_TEMPLATE_NAME);
 	}
+
+	/**
+	 * Start the embedded OpenDJ directory server using files copied from the
+	 * template with referential integrity plugin turned on.
+	 */
+	public InternalClientConnection startCleanServerRI() throws IOException, URISyntaxException {
+		return startCleanServer(RI_TEMPLATE_NAME);
+	}
+
 
 	/**
 	 * Start the embedded OpenDJ directory server using files copied from the specified

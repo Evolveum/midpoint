@@ -23,7 +23,6 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 
 import org.apache.commons.lang.StringUtils;
@@ -40,7 +39,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
@@ -63,9 +61,9 @@ public class MidPointAsserts {
 		AssertJUnit.fail(user + " does not have assigned "+refType.getLocalPart()+" "+targetOid);
 	}
 	
-	public static void assertAssigned(PrismObject<UserType> user, String targetOid, QName refType, QName relation) {
-		UserType userType = user.asObjectable();
-		for (AssignmentType assignmentType: userType.getAssignment()) {
+	public static void assertAssigned(PrismObject<? extends FocusType> focus, String targetOid, QName refType, QName relation) {
+		FocusType focusType = focus.asObjectable();
+		for (AssignmentType assignmentType: focusType.getAssignment()) {
 			ObjectReferenceType targetRef = assignmentType.getTargetRef();
 			if (targetRef != null) {
 				if (refType.equals(targetRef.getType())) {
@@ -76,7 +74,7 @@ public class MidPointAsserts {
 				}
 			}
 		}
-		AssertJUnit.fail(user + " does not have assigned "+refType.getLocalPart()+" "+targetOid+ ", relation "+relation);
+		AssertJUnit.fail(focus + " does not have assigned "+refType.getLocalPart()+" "+targetOid+ ", relation "+relation);
 	}
 	
 	public static <F extends FocusType> void assertNotAssigned(PrismObject<F> user, String targetOid, QName refType) {
@@ -176,12 +174,12 @@ public class MidPointAsserts {
         }
     }
 	
-	public static void assertAssignedOrg(PrismObject<UserType> user, String orgOid) {
-		assertAssigned(user, orgOid, OrgType.COMPLEX_TYPE);
+	public static void assertAssignedOrg(PrismObject<? extends FocusType> focus, String orgOid) {
+		assertAssigned(focus, orgOid, OrgType.COMPLEX_TYPE);
 	}
 	
-	public static void assertAssignedOrg(PrismObject<UserType> user, String orgOid, QName relation) {
-		assertAssigned(user, orgOid, OrgType.COMPLEX_TYPE, relation);
+	public static void assertAssignedOrg(PrismObject<? extends FocusType> focus, String orgOid, QName relation) {
+		assertAssigned(focus, orgOid, OrgType.COMPLEX_TYPE, relation);
 	}
 	
 	public static <O extends ObjectType> void assertHasOrg(PrismObject<O> object, String orgOid) {
