@@ -200,6 +200,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	protected static final File ROLE_CONDITIONAL_FILE = new File(TEST_DIR, "role-conditional.xml");
 	protected static final String ROLE_CONDITIONAL_OID = "00000000-0000-0000-0000-00000000aac1";
 	
+	protected static final File ROLE_META_NONSENSE_FILE = new File(TEST_DIR, "role-meta-nonsense.xml");
+	protected static final String ROLE_META_NONSENSE_OID = "602f72b8-2a11-11e5-8dd9-001e8c717e5b";
+	
 	protected static final File ROLE_BASIC_FILE = new File(TEST_DIR, "role-basic.xml");
 	protected static final String ROLE_BASIC_OID = "00000000-0000-0000-0000-00000000aad1";
 
@@ -240,6 +243,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_BUSINESS_1_FILE, RoleType.class, initResult);
 		
 		repoAddObjectFromFile(ROLE_CONDITIONAL_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_META_NONSENSE_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_BASIC_FILE, RoleType.class, initResult);
 		
 		repoAddObjectFromFile(ROLE_END_USER_FILE, RoleType.class, initResult);
@@ -391,6 +395,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         
         assertNotAuthorized(principal, AUTZ_LOOT_URL);
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
+        assertNotAuthorized(principal, AUTZ_SUPERSPECIAL_URL);
+        assertNotAuthorized(principal, AUTZ_NONSENSE_URL);
 	}
 	
 	@Test
@@ -401,23 +407,26 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_EMPLOYEE_TYPE, task, result, "looser");
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_EMPLOYEE_TYPE, task, result, "special");
 
         // WHEN
+        TestUtil.displayWhen(TEST_NAME);
         MidPointPrincipal principal = userProfileService.getPrincipal(USER_GUYBRUSH_USERNAME);
         
         // THEN
+        TestUtil.displayThen(TEST_NAME);
         display("Principal guybrush", principal);
         assertEquals("wrong username", USER_GUYBRUSH_USERNAME, principal.getUsername());
         assertEquals("wrong oid", USER_GUYBRUSH_OID, principal.getOid());
-        assertTrue("Unexpected authorizations", principal.getAuthorities().isEmpty());
         display("User in principal guybrush", principal.getUser().asPrismObject());
         
         principal.getUser().asPrismObject().checkConsistence(true, true);
         
+        assertAuthorized(principal, AUTZ_SUPERSPECIAL_URL);
         assertNotAuthorized(principal, AUTZ_LOOT_URL);
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
         assertNotAuthorized(principal, AUTZ_CAPSIZE_URL);
+        assertNotAuthorized(principal, AUTZ_NONSENSE_URL);
 	}
 	
 	@Test
