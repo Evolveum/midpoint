@@ -138,33 +138,5 @@ public class TestOpenLdap extends AbstractLdapConnTest {
 		TestUtil.assertBetween("Wrong time in sync token: "+syncToken, roundTsDown(tsStart), roundTsUp(tsEnd), syncTokenGt.getCalendar().getTimeInMillis());
 		
 	}
-
-	@Override
-	public void test818DeleteAccountHtm() throws Exception {
-		final String TEST_NAME = "test818DeleteAccountHtm";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        
-		// The original test is not applicable for modifyTimestamp sync.
-		// Therefore just delete the user so we have consistent state
-        
-        // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
-        
-        PrismObject<UserType> user = findUserByUsername("htm");
-        
-        // WHEN
-		deleteObject(UserType.class, user.getOid(), task, result);
-		
-		// THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
-        
-        assertNull("User "+"htm"+" still exist", findUserByUsername("htm"));
-        assertNull("User "+ACCOUNT_HT_UID+" still exist", findUserByUsername(ACCOUNT_HT_UID));
-	}
-	
-	
 	
 }

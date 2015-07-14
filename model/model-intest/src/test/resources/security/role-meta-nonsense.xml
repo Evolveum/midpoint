@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2015 Evolveum
+  ~ Copyright (c) 2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,26 +13,13 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<role oid="00000000-0000-0000-0000-00000000aac1"
+<role oid="602f72b8-2a11-11e5-8dd9-001e8c717e5b"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
-    <name>Conditional</name>
-    <assignment> <!-- ASSIGNMENT, not inducement. This should NOT work for authorizations. -->
-    	<targetRef oid="602f72b8-2a11-11e5-8dd9-001e8c717e5b" type="RoleType"/>
-    </assignment>
+    <name>Nonsense Metarole</name>    
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/test/authorization#superspecial</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/test/authorization#nonsense</action>
     </authorization>
-    <condition>
-    	<source>
-    		<path>$user/employeeType</path>
-    	</source>
-    	<expression>
-    		<script>
-    			<code>employeeType == 'special'</code>
-    		</script>
-    	</expression>
-    </condition>
 </role>

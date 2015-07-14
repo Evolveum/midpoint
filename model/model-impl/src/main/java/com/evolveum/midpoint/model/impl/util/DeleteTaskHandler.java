@@ -198,16 +198,21 @@ public class DeleteTaskHandler implements TaskHandler {
             }
 
             SearchResultList<PrismObject<O>> objects;
-            do {
+            while (true) {
             	
 	            objects = modelService.searchObjects(objectType, query, searchOptions, task, opResult);
 	            
+	            if (objects.isEmpty()) {
+	            	break;
+	            }
+	            
+	            int skipped = 0;
 	            for(PrismObject<O> object: objects) {
 	            	
 	            	if (!optionRaw && ShadowType.class.isAssignableFrom(objectType) 
 	            			&& Boolean.TRUE == ((ShadowType)(object.asObjectable())).isProtectedObject()) {
 	            		LOGGER.debug("Skipping delete of protected object {}", object);
-	            		progress++;
+	            		skipped++;
 	            		continue;
 	            	}
 	            	
@@ -222,7 +227,11 @@ public class DeleteTaskHandler implements TaskHandler {
 	            	LOGGER.trace("Deleted {} objects, result:\n{}", progress, opResult.debugDump());
 	            }
 	            
-            } while (!objects.isEmpty());
+	            if (objects.size() == skipped) {
+	            	break;
+	            }
+	            
+            }
 
         } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
 				| ExpressionEvaluationException | ConfigurationException

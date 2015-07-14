@@ -47,7 +47,7 @@ public class QNameUtil {
     // Whether we want to tolerate undeclared XML prefixes in QNames
     // This is here only for backward compatibility with versions 3.0-3.1.
     // Will be set to false starting with 3.2 (MID-2191)
-    private static boolean tolerateUndeclaredPrefixes = true;
+    private static boolean tolerateUndeclaredPrefixes = false;
 
     // ThreadLocal "safe mode" override for the above value (MID-2218)
     // This can be set to true for raw reads, allowing to manually fix broken objects

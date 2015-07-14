@@ -81,7 +81,7 @@ public class Test389DsLocalhost extends AbstractLdapConnTest {
 	
 	@Override
 	protected int getSearchSizeLimit() {
-		return 500;
+		return 2000;
 	}
 	
 	@Override
@@ -97,6 +97,21 @@ public class Test389DsLocalhost extends AbstractLdapConnTest {
 	@Override
 	protected String getSyncTaskOid() {
 		return "cd1e0ff2-0099-11e5-9e22-001e8c717e5b";
+	}
+
+	@Override
+	protected boolean isIdmAdminInteOrgPerson() {
+		return false;
+	}
+	
+	@Override
+	public String getAttributeEntryIdName() {
+		return "nsUniqueId";
+	}
+	
+	@Override
+	protected boolean syncCanDetectDelete() {
+		return false;
 	}
 
 	@Override

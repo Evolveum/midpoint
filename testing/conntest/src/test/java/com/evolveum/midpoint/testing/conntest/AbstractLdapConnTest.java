@@ -157,8 +157,6 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	private static final String LDAP_ACCOUNT_OBJECTCLASS = "inetOrgPerson";
 	
 	private static final String LDAP_GROUP_PIRATES_DN = "cn=Pirates,ou=groups,dc=example,dc=com";
-
-	private static final String ATTRIBUTE_ENTRY_UUID = "entryUuid";
 	
 	protected static final String ACCOUNT_IDM_DN = "uid=idm,ou=Administrators,dc=example,dc=com";
 	protected static final String ACCOUNT_0_UID = "u00000000";
@@ -205,6 +203,10 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
     		TestUtil.execSystemCommand(command);
     	}
     	stopCommand = getStopSystemCommand();
+    }
+    
+    public String getAttributeEntryIdName() {
+    	return "entryUuid";
     }
 
     public abstract String getStartSystemCommand();
@@ -769,7 +771,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         String accountBarbossaIcfUid = (String) identifiers.iterator().next().getRealValue();
         assertNotNull("No identifier in "+shadow, accountBarbossaIcfUid);
         
-        assertEquals("Wrong ICFS UID", entry.get(ATTRIBUTE_ENTRY_UUID).getString(), accountBarbossaIcfUid);
+        assertEquals("Wrong ICFS UID", entry.get(getAttributeEntryIdName()).getString(), accountBarbossaIcfUid);
         
         ResourceAttribute<Long> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimestamp"));
         assertNotNull("No createTimestamp in "+shadow, createTimestampAttribute);
@@ -1041,6 +1043,8 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
+        PrismObject<UserType> user = findUserByUsername("htm");
+        
         long tsStart = System.currentTimeMillis();
         
         // WHEN
@@ -1056,8 +1060,13 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         
         long tsEnd = System.currentTimeMillis();
         
-        assertNull("User "+"htm"+" still exist", findUserByUsername("htm"));
-        assertNull("User "+ACCOUNT_HT_UID+" still exist", findUserByUsername(ACCOUNT_HT_UID));
+        if (syncCanDetectDelete()) {
+	        assertNull("User "+"htm"+" still exist", findUserByUsername("htm"));
+	        assertNull("User "+ACCOUNT_HT_UID+" still exist", findUserByUsername(ACCOUNT_HT_UID));
+        } else {
+    		// Just delete the user so we have consistent state for subsequent tests
+        	deleteObject(UserType.class, user.getOid(), task, result);
+        }
 
         assertStepSyncToken(getSyncTaskOid(), 5, tsStart, tsEnd);
 	}
@@ -1237,6 +1246,8 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
+        PrismObject<UserType> user = findUserByUsername("htm");
+        
         long tsStart = System.currentTimeMillis();
         
         // WHEN
@@ -1255,6 +1266,9 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         if (syncCanDetectDelete()) {
 	        assertNull("User "+"htm"+" still exist", findUserByUsername("htm"));
 	        assertNull("User "+ACCOUNT_HT_UID+" still exist", findUserByUsername(ACCOUNT_HT_UID));
+        } else {
+    		// Just delete the user so we have consistent state for subsequent tests
+        	deleteObject(UserType.class, user.getOid(), task, result);
         }
 
         assertStepSyncToken(getSyncTaskOid(), 9, tsStart, tsEnd);
@@ -1321,7 +1335,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	}
 	
 	protected List<Entry> ldapSearch(LdapNetworkConnection connection, String filter) throws LdapException, CursorException {
-		return ldapSearch(connection, getLdapSuffix(), filter, SearchScope.SUBTREE, "*", ATTRIBUTE_ENTRY_UUID);
+		return ldapSearch(connection, getLdapSuffix(), filter, SearchScope.SUBTREE, "*", getAttributeEntryIdName());
 	}
 	
 	protected List<Entry> ldapSearch(LdapNetworkConnection connection, String baseDn, String filter, SearchScope scope, String... attributes) throws LdapException, CursorException {
