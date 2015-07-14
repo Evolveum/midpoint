@@ -46,12 +46,11 @@
 			<icfcldap:port>2389</icfcldap:port>
 			<icfcldap:host>localhost</icfcldap:host>
 			<icfcldap:baseContext>dc=example,dc=com</icfcldap:baseContext>
-			<icfcldap:bindDn>cn=idm,ou=Special Users,dc=example,dc=comm</icfcldap:bindDn>
-			<icfcldap:bindPassword><t:clearValue>secret</t:clearValue></icfcldap:bindPassword>
+			<icfcldap:bindDn>cn=idm,ou=Special Users,dc=example,dc=com</icfcldap:bindDn>
+			<icfcldap:bindPassword><t:clearValue>secret123</t:clearValue></icfcldap:bindPassword>
 			<icfcldap:uidAttribute>nsUniqueId</icfcldap:uidAttribute>
 			<icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
 			<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
-			<icfcldap:vlvSortOrderingRule>2.5.13.3</icfcldap:vlvSortOrderingRule>
 			<icfcldap:operationalAttributes>memberOf</icfcldap:operationalAttributes>
 			<icfcldap:operationalAttributes>createTimestamp</icfcldap:operationalAttributes>
 			<icfcldap:operationalAttributes>nsAccountLock</icfcldap:operationalAttributes>
@@ -240,6 +239,11 @@
 						<path>$focus/name</path>
 					</source>
 				</outbound>
+				<inbound>
+					<target>
+						<path>name</path>
+					</target>
+				</inbound>
 			</attribute>
 			<attribute>
 				<ref>ri:description</ref>
@@ -248,6 +252,11 @@
 						<path>description</path>
 					</source>
 				</outbound>
+				<inbound>
+					<target>
+						<path>description</path>
+					</target>
+				</inbound>
 			</attribute>
         </objectType>
 		
@@ -259,6 +268,11 @@
 	
 	<synchronization>
 		<objectSynchronization>
+			<name>Account sync</name>
+			<objectClass>ri:inetOrgPerson</objectClass>
+			<kind>account</kind>
+			<intent>default</intent>
+			<focusType>UserType</focusType>
 			<enabled>true</enabled>
 			<correlation>
 				<q:and>
@@ -266,7 +280,7 @@
 						<q:path>c:employeeNumber</q:path>
 						<expression>
 						<path>declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003";
-                            $account/attributes/ri:employeeNumber</path>
+                            $shadow/attributes/ri:employeeNumber</path>
 						</expression>
 					</q:equal>
 					<q:not>
@@ -280,19 +294,54 @@
 			
 			<reaction>
 	            <situation>linked</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser"/>
+	            <synchronize>true</synchronize>
 	        </reaction>
 	        <reaction>
 	            <situation>deleted</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus"/>
 	        </reaction>
 	        <reaction>
 	            <situation>unlinked</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#link"/>
 	        </reaction>
 	        <reaction>
 	            <situation>unmatched</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus"/>
+	        </reaction>
+
+		</objectSynchronization>
+		
+		<objectSynchronization>
+			<name>Group sync</name>
+			<objectClass>ri:groupOfUniqueNames</objectClass>
+			<kind>entitlement</kind>
+			<intent>ldapGroup</intent>
+			<focusType>RoleType</focusType>
+			<enabled>true</enabled>
+			<correlation>
+				<q:equal>
+					<q:path>c:name</q:path>
+					<expression>
+					<path>$shadow/attributes/cn</path>
+					</expression>
+				</q:equal>
+			</correlation>
+			
+			<reaction>
+	            <situation>linked</situation>
+	            <synchronize>true</synchronize>
+	        </reaction>
+	        <reaction>
+	            <situation>deleted</situation>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus"/>
+	        </reaction>
+	        <reaction>
+	            <situation>unlinked</situation>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#link"/>
+	        </reaction>
+	        <reaction>
+	            <situation>unmatched</situation>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus"/>
 	        </reaction>
 
 		</objectSynchronization>
