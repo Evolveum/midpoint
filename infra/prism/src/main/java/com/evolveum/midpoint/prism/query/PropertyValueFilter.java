@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
@@ -196,6 +197,21 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 
 	public void setExpression(ExpressionWrapper expression) {
 		this.expression = expression;
+	}
+	
+	@Override
+	public void checkConsistence() {
+		if (values == null) {
+			return; // this is OK, searching for item with no value
+		}
+		for (T value: values) {
+			if (value == null) {
+				throw new IllegalArgumentException("Null value in "+this);
+			}
+			if (value.isEmpty() && !value.isRaw()) {
+				throw new IllegalArgumentException("Empty value in "+this);
+			}
+		}
 	}
 
 	@Override

@@ -2251,7 +2251,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			} else if (midpointEx instanceof Error) {
 				throw (Error) midpointEx;
 			} else {
-				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
+				throw new SystemException("Got unexpected exception: " + ex.getClass().getName() + ": "+ex.getMessage(), ex);
 			}
 		}
 		

@@ -1053,6 +1053,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			query.setFilter(filter);
 		}
 		
+		if (InternalsConfig.consistencyChecks) {
+			filter.checkConsistence();
+		}
+		
 		if (filter != null && filter instanceof NoneFilter) {
 			result.recordSuccessIfUnknown();
 			result.cleanupResult();

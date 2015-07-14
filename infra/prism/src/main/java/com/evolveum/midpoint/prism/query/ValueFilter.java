@@ -155,6 +155,16 @@ public abstract class ValueFilter<T extends PrismValue> extends ObjectFilter {
 	}
 	
 	public abstract boolean isRaw();
+	
+	@Override
+	public void checkConsistence() {
+		if (fullPath == null) {
+			throw new IllegalArgumentException("Null path in "+this);
+		}
+		if (definition == null) {
+			throw new IllegalArgumentException("Null definition in "+this);
+		}
+	}
 
 	@Override
 	public int hashCode() {
