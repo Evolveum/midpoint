@@ -508,7 +508,7 @@ public class TestLdap extends AbstractModelIntegrationTest {
         // THEN
         TestUtil.displayThen(TEST_NAME);
         
-        assertShadowFetchOperationCountIncrement(2*NUM_LDAP_ENTRIES);
+        assertShadowFetchOperationCountIncrement((2*NUM_LDAP_ENTRIES)/100+2);
         
         
         PrismObject<TaskType> deleteTask = getTask(TASK_DELETE_OPENDJ_SHADOWS_OID);
