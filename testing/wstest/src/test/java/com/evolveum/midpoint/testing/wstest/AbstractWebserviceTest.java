@@ -153,7 +153,7 @@ public abstract class AbstractWebserviceTest {
 	public static final File RESOURCE_OPENDJ_FILE = new File(COMMON_DIR, "resource-opendj.xml");
 	public static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 	
-	public static final String CONNECTOR_LDAP_TYPE = "org.identityconnectors.ldap.LdapConnector";
+	public static final String CONNECTOR_LDAP_TYPE = "com.evolveum.polygon.connector.ldap.LdapConnector";
  	
 	protected static final Pattern PATTERN_AUDIT_EVENT_ID = Pattern.compile(".*\\seid=([^,]+),\\s.*");
 	protected static final Pattern PATTERN_AUDIT_SESSION_ID = Pattern.compile(".*\\ssid=([^,]+),\\s.*");
