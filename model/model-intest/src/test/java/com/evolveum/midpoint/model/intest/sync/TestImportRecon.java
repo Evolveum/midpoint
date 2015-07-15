@@ -196,7 +196,10 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	
 	protected static final File TASK_DELETE_DUMMY_SHADOWS_FILE = new File(TEST_DIR, "task-delete-dummy-shadows.xml");
     protected static final String TASK_DELETE_DUMMY_SHADOWS_OID = "abaab842-18be-11e5-9416-001e8c717e5b";
-	
+
+	protected static final File TASK_DELETE_DUMMY_ACCOUNTS_FILE = new File(TEST_DIR, "task-delete-dummy-accounts.xml");
+    protected static final String TASK_DELETE_DUMMY_ACCOUNTS_OID = "ab28a334-2aca-11e5-afe7-001e8c717e5b";
+
 	protected DummyResource dummyResourceAzure;
 	protected DummyResourceContoller dummyResourceCtlAzure;
 	protected ResourceType resourceDummyAzureType;
@@ -1630,7 +1633,58 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         assertUsers(18);
         
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, 
+        assertDummyAccountShadows(0, true, task, result);
+        assertDummyAccountShadows(17, false, task, result);   
+	}
+	
+	@Test
+    public void test910DeleteDummyAccounts() throws Exception {
+		final String TEST_NAME = "test910DeleteDummyAccounts";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // Preconditions
+		assertUsers(18);
+        dummyAuditService.clear();
+        rememberShadowFetchOperationCount();
+        
+     // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        importObjectFromFile(TASK_DELETE_DUMMY_ACCOUNTS_FILE);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        
+        waitForTaskFinish(TASK_DELETE_DUMMY_ACCOUNTS_OID, true, 20000);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        assertShadowFetchOperationCountIncrement(2);
+        
+        PrismObject<TaskType> deleteTask = getTask(TASK_DELETE_DUMMY_ACCOUNTS_OID);
+        OperationResultType deleteTaskResultType = deleteTask.asObjectable().getResult();
+        display("Final delete task result", deleteTaskResultType);
+        TestUtil.assertSuccess(deleteTaskResultType);
+        OperationResult deleteTaskResult = OperationResult.createOperationResult(deleteTaskResultType);
+        TestUtil.assertSuccess(deleteTaskResult);
+        List<OperationResult> opExecResults = deleteTaskResult.findSubresults(ModelService.EXECUTE_CHANGES);
+        assertEquals(1, opExecResults.size());
+        OperationResult opExecResult = opExecResults.get(0);
+        TestUtil.assertSuccess(opExecResult);
+        assertEquals("Wrong exec operation count", 15, opExecResult.getCount());
+        assertTrue("Too many subresults: "+deleteTaskResult.getSubresults().size(), deleteTaskResult.getSubresults().size() < 10);
+        
+        assertUsers(18);
+        
+        assertDummyAccountShadows(2, true, task, result); // two protected accounts
+        assertDummyAccountShadows(2, false, task, result);        
+	}
+	
+	private void assertDummyAccountShadows(int expected, boolean raw, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    	ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, 
         		new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), prismContext);
         
         final MutableInt count = new MutableInt(0);
@@ -1641,11 +1695,13 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 				display("Found",shadow);
 				return true;
 			}
-		};		
-		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
+		};
+		Collection<SelectorOptions<GetOperationOptions>> options = null;
+		if (raw) {
+			options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
+		}
 		modelService.searchObjectsIterative(ShadowType.class, query, handler, options, task, result);
-        assertEquals("Unexpected number of search results", 0, count.getValue());
-        
+        assertEquals("Unexpected number of search results (raw="+raw+")", expected, count.getValue());
 	}
 
 	private void assertImportAuditModifications(int expectedModifications) {

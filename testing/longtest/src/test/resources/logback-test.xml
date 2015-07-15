@@ -31,7 +31,7 @@
 	<logger name="com.evolveum.midpoint" level="INFO" />
 	<logger name="com.evolveum.midpoint.model" level="INFO" />
 	
-	<logger name="org.identityconnectors.ldap" level="INFO" />
+	<logger name="com.evolveum.polygon.connector.ldap" level="INFO" />
     
 	<!-- Expression trace -->
 	<logger name="com.evolveum.midpoint.common.expression" level="TRACE" />
