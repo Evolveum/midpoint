@@ -1053,7 +1053,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			query.setFilter(filter);
 		}
 		
-		if (InternalsConfig.consistencyChecks) {
+		if (InternalsConfig.consistencyChecks && filter != null) {
 			filter.checkConsistence();
 		}
 		
