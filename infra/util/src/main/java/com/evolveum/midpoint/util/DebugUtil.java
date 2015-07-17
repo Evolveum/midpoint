@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.util;
 
+import java.io.BufferedReader;
+import java.io.StringReader;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -76,7 +78,7 @@ public class DebugUtil {
 	}
 
 	public static String debugDump(Collection<?> dumpables) {
-		return debugDump(dumpables,0);
+		return debugDump(dumpables, 0);
 	}
 
 	public static String debugDump(Collection<?> dumpables, int indent) {
@@ -374,4 +376,28 @@ public class DebugUtil {
 		}
 		return input.substring(0, maxChars)+"...";
 	}
+
+	public static String fixIndentInMultiline(int indent, String indentString, String s) {
+		int cr = s.indexOf('\r');
+		int lf = s.indexOf('\n');
+		String searchFor;
+		if (cr < 0 && lf < 0) {
+			return s;
+		} else if (cr >= 0 && lf >= 0) {
+			searchFor = "\r\n";
+		} else if (cr >= 0 && lf < 0) {
+			searchFor = "\r";
+		} else {
+			searchFor = "\n";
+		}
+
+		StringBuilder indentation = new StringBuilder();
+		for(int i = 0; i < indent; i++) {
+			indentation.append(indentString);
+		}
+		String indentationString = indentation.toString();
+
+		return s.replace(searchFor, System.lineSeparator() + indentationString);
+	}
+
 }
