@@ -46,6 +46,11 @@ public class NoneFilter extends ObjectFilter {
 	}
 	
 	@Override
+	public void checkConsistence() {
+		// nothing to do
+	}
+	
+	@Override
 	public String debugDump() {
 		return debugDump(0);
 	}

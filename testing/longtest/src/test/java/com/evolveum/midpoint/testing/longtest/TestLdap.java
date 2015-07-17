@@ -521,12 +521,12 @@ public class TestLdap extends AbstractModelIntegrationTest {
         assertEquals(1, opExecResults.size());
         OperationResult opExecResult = opExecResults.get(0);
         TestUtil.assertSuccess(opExecResult);
-        assertEquals("Wrong exec operation count", 17, opExecResult.getCount());
+        assertEquals("Wrong exec operation count", 2*NUM_LDAP_ENTRIES + 8, opExecResult.getCount());
         assertTrue("Too many subresults: "+deleteTaskResult.getSubresults().size(), deleteTaskResult.getSubresults().size() < 10);
         
-        assertOpenDjAccountShadows(0, true, task, result);
+        assertOpenDjAccountShadows(1, true, task, result);
         assertUsers(2*NUM_LDAP_ENTRIES + 8);
-        assertOpenDjAccountShadows(0, false, task, result);
+        assertOpenDjAccountShadows(1, false, task, result);
     }
     
     private void assertOpenDjAccountShadows(int expected, boolean raw, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Evolveum
+ * Copyright (c) 2014-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,12 @@ public class AllFilter extends ObjectFilter {
 	public AllFilter clone() {
 		return new AllFilter();
 	}
-	
+
+	@Override
+	public void checkConsistence() {
+		// nothing to do
+	}
+
 	@Override
 	public String debugDump() {
 		return debugDump(0);
@@ -68,4 +73,5 @@ public class AllFilter extends ObjectFilter {
 	public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
 		return true;
 	}
+
 }

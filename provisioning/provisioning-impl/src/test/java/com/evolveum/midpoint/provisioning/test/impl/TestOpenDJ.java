@@ -1633,7 +1633,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertSuccess(result);
 		display("Search resutls", searchResults);
 		
-		assertSearchResults(searchResults, "drake", "hbarbossa", "idm", "jbeckett");
+		assertSearchResults(searchResults, "cook", "drake", "hbarbossa", "idm");
 		
 		assertConnectorOperationIncrement(1);
 		assertConnectorSimulatedPagingSearchIncrement(0);

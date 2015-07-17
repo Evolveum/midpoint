@@ -92,8 +92,17 @@ public class OrgFilter extends ObjectFilter {
             return new OrgFilter(getOrgRef(), getScope());
         }
     }
+    
+    
 
     @Override
+	public void checkConsistence() {
+		if (baseOrgRef == null) {
+			throw new IllegalArgumentException("Null baseOrgRef in "+this);
+		}
+	}
+
+	@Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
