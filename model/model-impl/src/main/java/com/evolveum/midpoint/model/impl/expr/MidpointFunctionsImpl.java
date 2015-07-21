@@ -20,7 +20,6 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.prism.*;
@@ -35,7 +34,6 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -44,7 +42,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -522,18 +519,33 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     	if (focusContext == null) {
     		throw new IllegalStateException("No focus in lens context");
     	}
+
+        ScriptExpressionEvaluationContext scriptContext = ScriptExpressionEvaluationContext.getThreadLocal();
+
     	ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, ShadowKindType.ACCOUNT, null);
 		LensProjectionContext projectionContext = ctx.findProjectionContext(rat);
 		if (projectionContext == null) {
-			return false;
+			// but check if it is not among list of deleted contexts
+            if (scriptContext == null || scriptContext.isEvaluateNew()) {
+                return false;
+            }
+            // evaluating old state
+            for (ResourceShadowDiscriminator deletedOne: ctx.getHistoricResourceObjects()) {
+                if (resourceOid.equals(deletedOne.getResourceOid()) && deletedOne.getKind() == ShadowKindType.ACCOUNT
+                        && deletedOne.getIntent() == null || "default".equals(deletedOne.getIntent())) {        // TODO implement this seriously
+                    LOGGER.trace("Found deleted one: {}", deletedOne);  // TODO remove
+                    return true;
+                }
+            }
+            return false;
 		}
+
 		if (projectionContext.isThombstone()) {
 			return false;
 		}
 		
 		SynchronizationPolicyDecision synchronizationPolicyDecision = projectionContext.getSynchronizationPolicyDecision();
 		SynchronizationIntent synchronizationIntent = projectionContext.getSynchronizationIntent();
-		ScriptExpressionEvaluationContext scriptContext = ScriptExpressionEvaluationContext.getThreadLocal();
 		if (scriptContext == null) {
 			if (synchronizationPolicyDecision == null) {
 				if (synchronizationIntent == SynchronizationIntent.DELETE || synchronizationIntent == SynchronizationIntent.UNLINK) {

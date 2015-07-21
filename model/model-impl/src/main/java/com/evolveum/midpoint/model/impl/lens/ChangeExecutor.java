@@ -220,6 +220,12 @@ public class ChangeExecutor {
         	if (!accCtx.isCanProject()){
         		continue;
         	}
+
+			// we should not get here, but just to be sure
+			if (accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
+				LOGGER.trace("Skipping ignored projection context {}", accCtx.toHumanReadableString());
+				continue;
+			}
         	
         	OperationResult subResult = result.createSubresult(OPERATION_EXECUTE_PROJECTION+"."+accCtx.getObjectTypeClass().getSimpleName());
         	subResult.addContext("discriminator", accCtx.getResourceShadowDiscriminator());

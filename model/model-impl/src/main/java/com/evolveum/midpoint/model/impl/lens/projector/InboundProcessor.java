@@ -30,6 +30,7 @@ import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
+import com.evolveum.midpoint.model.impl.lens.LensObjectDeltaOperation;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -190,9 +191,9 @@ public class InboundProcessor {
         PrismObject<ShadowType> accountNew = accContext.getObjectNew();
         for (QName accountAttributeName : accountDefinition.getNamesOfAttributesWithInboundExpressions()) {
             PropertyDelta<?> accountAttributeDelta = null;
-            if (aPrioriDelta != null && !accContext.isFullShadow()) {
+            if (aPrioriDelta != null) {
                 accountAttributeDelta = aPrioriDelta.findPropertyDelta(new ItemPath(SchemaConstants.C_ATTRIBUTES), accountAttributeName);
-                if (accountAttributeDelta == null) {
+                if (accountAttributeDelta == null && !accContext.isFullShadow()) {
 					LOGGER.trace("Skipping inbound for {} in {}: Not a full shadow and account a priori delta exists, but doesn't have change for processed property.",
 							accountAttributeName, accContext.getResourceShadowDiscriminator());
 					continue;
@@ -323,7 +324,11 @@ public class InboundProcessor {
 		}
 		if (wave == accountContext.getWave() + 1) {
 			// If this resource was processed in a previous wave ....
-			return accountContext.getDelta();
+			//return accountContext.getDelta();
+			List<LensObjectDeltaOperation<ShadowType>> executed = accountContext.getExecutedDeltas();
+			if (executed != null && !executed.isEmpty()) {
+				return executed.get(executed.size()-1).getObjectDelta();
+			}
 		}
 		return null;
 	}

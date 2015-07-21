@@ -772,12 +772,12 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
-        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertRecords(3);
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(0, 2);
+        dummyAuditService.assertExecutionDeltas(0, 1);
         dummyAuditService.assertHasDelta(0, ChangeType.MODIFY, ShadowType.class);
-//        dummyAuditService.assertExecutionDeltas(1, 1);
-        dummyAuditService.assertHasDelta(0, ChangeType.MODIFY, RoleType.class);
+        dummyAuditService.assertExecutionDeltas(1, 1);
+        dummyAuditService.assertHasDelta(1, ChangeType.MODIFY, RoleType.class);
         dummyAuditService.assertTarget(ROLE_PIRATE_OID);
         dummyAuditService.assertExecutionSuccess();
     }

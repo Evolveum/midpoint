@@ -187,8 +187,16 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * Resource that hosts this projection.
      */
     transient private ResourceType resource;
-    
-    LensProjectionContext(LensContext<? extends ObjectType> lensContext, ResourceShadowDiscriminator resourceAccountType) {
+
+	/**
+	 * EXPERIMENTAL. A flag that this projection context has to be put into 'history archive'.
+	 * Necessary to evaluate old state of hasLinkedAccount.
+	 *
+	 * TODO implement as non-transient.
+	 */
+	transient private boolean toBeArchived;
+
+	LensProjectionContext(LensContext<? extends ObjectType> lensContext, ResourceShadowDiscriminator resourceAccountType) {
     	super(ShadowType.class, lensContext);
         this.resourceShadowDiscriminator = resourceAccountType;
         this.isAssigned = false;
@@ -270,11 +278,11 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		} else if (!rsd.getIntent().equals(resourceShadowDiscriminator.getIntent())) {
 			return false;
 		}
-    	
+
     	if (compareOrder && rsd.getOrder() != resourceShadowDiscriminator.getOrder()) {
     		return false;
     	}
-		
+
 		return true;
 	}
     
@@ -857,7 +865,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	@Override
 	public void cleanup() {
 		super.cleanup();
-		synchronizationPolicyDecision = null;
+		resetSynchronizationPolicyDecision();
 //		isLegal = null;
 //		isLegalOld = null;
 		isAssigned = false;
@@ -881,12 +889,21 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		isAssigned = false;
         isAssignedOld = false;
 		isActive = false;
-		synchronizationPolicyDecision = null;
+		resetSynchronizationPolicyDecision();
 		constructionDeltaSetTriple = null;
 		outboundConstruction = null;
 		dependencies = null;
 		squeezedAttributes = null;
 		accountPasswordPolicy = null;
+	}
+
+	protected void resetSynchronizationPolicyDecision() {
+		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.DELETE || synchronizationPolicyDecision == SynchronizationPolicyDecision.UNLINK) {
+			toBeArchived = true;
+		} else if (synchronizationPolicyDecision != null) {
+			toBeArchived = false;
+		}
+		synchronizationPolicyDecision = null;
 	}
 
 	@Override
@@ -1256,4 +1273,11 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         }
     }
 
+	public boolean isToBeArchived() {
+		return toBeArchived;
+	}
+
+	public void setToBeArchived(boolean toBeArchived) {
+		this.toBeArchived = toBeArchived;
+	}
 }

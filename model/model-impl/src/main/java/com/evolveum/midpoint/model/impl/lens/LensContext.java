@@ -64,6 +64,14 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	private LensFocusContext<F> focusContext;
 	private Collection<LensProjectionContext> projectionContexts = new ArrayList<LensProjectionContext>();
 
+	/**
+	 * EXPERIMENTAL. A trace of resource objects that once existed but were rotten and removed afterwards.
+	 * Necessary to evaluate old state of hasLinkedAccount.
+	 *
+	 * TODO implement as non-transient.
+ 	 */
+	transient private Collection<ResourceShadowDiscriminator> historicResourceObjects;
+
 	private Class<F> focusClass;
 	
 	private boolean lazyAuditRequest = false;
@@ -805,12 +813,16 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
         if (projectionContexts.isEmpty()) {
             sb.append(" none");
         } else {
-        	sb.append(" (").append(projectionContexts.size()).append(")");
+        	sb.append(" (").append(projectionContexts.size()).append("):");
             for (LensProjectionContext projCtx : projectionContexts) {
-            	sb.append(":\n");
+				sb.append("\n");
             	sb.append(projCtx.debugDump(indent + 2, showTriples));
             }
         }
+		if (historicResourceObjects != null && !historicResourceObjects.isEmpty()) {
+			sb.append("\n");
+			DebugUtil.debugDumpWithLabel(sb, "Deleted/unlinked resource objects", historicResourceObjects.toString(), indent + 1);	// temporary impl
+		}
 
         return sb.toString();
     }
@@ -874,11 +886,11 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
             lensContext.addProjectionContext(LensProjectionContext.fromLensProjectionContextType(lensProjectionContextType, lensContext, result));
         }
         lensContext.setDoReconciliationForAllProjections(lensContextType.isDoReconciliationForAllProjections() != null ?
-            lensContextType.isDoReconciliationForAllProjections() : false);
+				lensContextType.isDoReconciliationForAllProjections() : false);
         lensContext.setProjectionWave(lensContextType.getProjectionWave() != null ?
-                lensContextType.getProjectionWave() : 0);
+				lensContextType.getProjectionWave() : 0);
         lensContext.setExecutionWave(lensContextType.getExecutionWave() != null ?
-            lensContextType.getExecutionWave() : 0);
+				lensContextType.getExecutionWave() : 0);
         lensContext.setOptions(ModelExecuteOptions.fromModelExecutionOptionsType(lensContextType.getOptions()));
         if (lensContextType.isLazyAuditRequest() != null) {
         	lensContext.setLazyAuditRequest(lensContextType.isLazyAuditRequest());
@@ -954,4 +966,11 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
         }
         return false;
     }
+
+	public Collection<ResourceShadowDiscriminator> getHistoricResourceObjects() {
+		if (historicResourceObjects == null) {
+			historicResourceObjects = new ArrayList<>();
+		}
+		return historicResourceObjects;
+	}
 }
