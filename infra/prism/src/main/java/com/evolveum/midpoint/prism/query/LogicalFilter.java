@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,6 +66,22 @@ public abstract class LogicalFilter extends ObjectFilter {
 		return conditions == null || conditions.isEmpty();
 	}
 
+	@Override
+	public void checkConsistence() {
+		if (conditions == null) {
+			throw new IllegalArgumentException("Null conditions in "+this);
+		}
+		if (conditions.isEmpty()) {
+			throw new IllegalArgumentException("Empty conditions in "+this);
+		}
+		for (ObjectFilter condition: conditions) {
+			if (condition == null) {
+				throw new IllegalArgumentException("Null subfilter in "+this);
+			}
+			condition.checkConsistence();
+		}
+	}
+	
 	@Override
 	public void accept(Visitor visitor) {
 		super.accept(visitor);

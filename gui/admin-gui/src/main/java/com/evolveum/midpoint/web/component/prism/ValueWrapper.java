@@ -18,8 +18,10 @@ package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.commons.lang.Validate;
 
 import java.io.Serializable;
@@ -56,6 +58,10 @@ public class ValueWrapper<T> implements Serializable {
                 PolyString poly = (PolyString)val;
                 this.value = new PrismPropertyValue(new PolyString(poly.getOrig(), poly.getNorm()),
                         value.getOriginType(), value.getOriginObject());
+            } else if (val instanceof ProtectedStringType) {
+                this.value = value.clone();
+                // prevents "Attempt to encrypt protected data that are already encrypted" when applying resulting delta
+                ((ProtectedStringType) (this.value.getValue())).setEncryptedData(null);
             } else {
                 this.value = value.clone();
             }
@@ -67,7 +73,7 @@ public class ValueWrapper<T> implements Serializable {
                 PolyString poly = (PolyString)val;
                 val = (T) new PolyString(poly.getOrig(), poly.getNorm());
             }
-            oldValue = new PrismPropertyValue<T>(val, this.value.getOriginType(), this.value.getOriginObject());
+            oldValue = new PrismPropertyValue<T>(CloneUtil.clone(val), this.value.getOriginType(), this.value.getOriginObject());
         }
         this.oldValue = oldValue;
     }

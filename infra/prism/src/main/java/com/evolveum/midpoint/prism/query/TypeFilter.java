@@ -66,6 +66,17 @@ public class TypeFilter extends ObjectFilter {
     public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
         return false;
     }
+    
+    @Override
+	public void checkConsistence() {
+		if (type == null) {
+			throw new IllegalArgumentException("Null type in "+this);
+		}
+		if (filter == null) {
+			throw new IllegalArgumentException("Null subfilter in "+this);
+		}
+		filter.checkConsistence();
+	}
 
     @Override
     public String debugDump() {

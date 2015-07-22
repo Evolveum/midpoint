@@ -15,12 +15,15 @@
  */
 package com.evolveum.midpoint.schema.result;
 
+import java.io.BufferedReader;
 import java.io.Serializable;
+import java.io.StringReader;
 import java.util.*;
 import java.util.Map.Entry;
 
 import com.evolveum.midpoint.prism.util.CloneUtil;
 
+import com.evolveum.midpoint.util.DebugUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
@@ -1324,7 +1327,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 			sb.append("[p]");
 			sb.append(entry.getKey());
 			sb.append("=");
-			sb.append(dumpEntry(entry.getValue()));
+			sb.append(dumpEntry(indent+2, entry.getValue()));
 			sb.append("\n");
 		}
 
@@ -1335,7 +1338,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 			sb.append("[c]");
 			sb.append(entry.getKey());
 			sb.append("=");
-			sb.append(dumpEntry(entry.getValue()));
+			sb.append(dumpEntry(indent+2, entry.getValue()));
 			sb.append("\n");
 		}
 		
@@ -1346,7 +1349,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 			sb.append("[r]");
 			sb.append(entry.getKey());
 			sb.append("=");
-			sb.append(dumpEntry(entry.getValue()));
+			sb.append(dumpEntry(indent+2, entry.getValue()));
 			sb.append("\n");
 		}
 
@@ -1379,7 +1382,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		}
 	}
 
-	private String dumpEntry(Serializable value) {
+	private String dumpEntry(int indent, Serializable value) {
 		if (value instanceof Element) {
 			Element element = (Element)value;
 			if (SchemaConstants.C_VALUE.equals(DOMUtil.getQName(element))) {
@@ -1392,13 +1395,13 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 					} else {
 						cvalue = SchemaDebugUtil.prettyPrint(value);
 					}
-					return cvalue;
+					return DebugUtil.fixIndentInMultiline(indent, INDENT_STRING, cvalue);
 				} catch (Exception e) {
-					return "value: "+element.getTextContent();
+					return DebugUtil.fixIndentInMultiline(indent, INDENT_STRING, "value: " + element.getTextContent());
 				}
 			}
 		}
-		return SchemaDebugUtil.prettyPrint(value);
+		return DebugUtil.fixIndentInMultiline(indent, INDENT_STRING, SchemaDebugUtil.prettyPrint(value));
 	}
 
 	private void dumpInnerCauses(StringBuilder sb, Throwable innerCause, int indent) {

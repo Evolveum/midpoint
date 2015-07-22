@@ -131,6 +131,9 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Account
     }
 
     private ObjectQuery getObjectQuery() throws SchemaException {
+    	if (objectClass.getObject() == null) {
+        	throw new SchemaException("No default account definition in resource "+resourceOid.getObject());
+        }
         ObjectQuery baseQuery = ObjectQueryUtil.createResourceAndObjectClassQuery(resourceOid.getObject(),
                 objectClass.getObject(), getPage().getPrismContext());
         ObjectQuery query = getQuery();

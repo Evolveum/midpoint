@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import java.util.Collection;
 import java.util.Iterator;
 
 import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Objectable;
@@ -72,6 +74,20 @@ public class InOidFilter extends ObjectFilter {
 		this.expression = expression;
 	}
 	
+	
+	
+	@Override
+	public void checkConsistence() {
+		if (oids == null) {
+			throw new IllegalArgumentException("Null oids in "+this);
+		}
+		for (String oid: oids) {
+			if (StringUtils.isBlank(oid)) {
+				throw new IllegalArgumentException("Empty oid in "+this);
+			}
+		}
+	}
+
 	@Override
 	public String debugDump() {
 		return debugDump(0);

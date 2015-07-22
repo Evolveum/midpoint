@@ -42,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -1000,6 +1001,10 @@ public class ResourceObjectConverter {
 			RefinedObjectClassDefinition baseContextObjectClassDefinition = ctx.getRefinedSchema().determineCompositeObjectClassDefinition(baseContextShadow);
 			ResourceObjectIdentification baseContextIdentification = new ResourceObjectIdentification(baseContextObjectClassDefinition, ShadowUtil.getIdentifiers(baseContextShadow));
 			searchHierarchyConstraints = new SearchHierarchyConstraints(baseContextIdentification, null);
+		}
+		
+		if (InternalsConfig.consistencyChecks && query != null && query.getFilter() != null) {
+			query.getFilter().checkConsistence();
 		}
 
 		ResultHandler<ShadowType> innerResultHandler = new ResultHandler<ShadowType>() {

@@ -529,9 +529,11 @@ public class AssignmentEvaluator<F extends FocusType> {
 			evaluateAssignment(assignment, roleAssignmentPathSegment, evaluateOld, mode, roleType, subSourceDescription, assignmentPath, task, result);
 		}
 		
-		for(AuthorizationType authorizationType: roleType.getAuthorization()) {
-			Authorization authorization = createAuthorization(authorizationType, roleType.toString());
-			assignment.addAuthorization(authorization);
+		if (evaluationOrder == 1) {
+			for(AuthorizationType authorizationType: roleType.getAuthorization()) {
+				Authorization authorization = createAuthorization(authorizationType, roleType.toString());
+				assignment.addAuthorization(authorization);
+			}
 		}
 		
 		return mode != PlusMinusZero.MINUS;

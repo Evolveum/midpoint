@@ -624,17 +624,9 @@ public class PageContentAccounts extends PageAdminResources {
     private ObjectClassComplexTypeDefinition getAccountDefinition() throws SchemaException {
         MidPointApplication application = (MidPointApplication) getApplication();
         PrismObject<ResourceType> resource = resourceModel.getObject();
-        ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, application.getPrismContext());
-        Collection<ObjectClassComplexTypeDefinition> list = resourceSchema.getObjectClassDefinitions();
-        if (list != null) {
-            for (ObjectClassComplexTypeDefinition def : list) {
-                if (def.isDefaultInAKind()) {
-                    return def;
-                }
-            }
-        }
-
-        return null;
+        RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, application.getPrismContext());
+        ObjectClassComplexTypeDefinition def = refinedSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
+        return def;
     }
 
     private boolean isUseObjectCounting() throws SchemaException {

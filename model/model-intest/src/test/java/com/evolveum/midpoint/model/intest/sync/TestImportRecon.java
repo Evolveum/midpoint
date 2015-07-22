@@ -52,14 +52,20 @@ import com.evolveum.midpoint.model.impl.util.DebugReconciliationTaskResultListen
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -68,6 +74,7 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ProvisioningScriptSpec;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -189,7 +196,10 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	
 	protected static final File TASK_DELETE_DUMMY_SHADOWS_FILE = new File(TEST_DIR, "task-delete-dummy-shadows.xml");
     protected static final String TASK_DELETE_DUMMY_SHADOWS_OID = "abaab842-18be-11e5-9416-001e8c717e5b";
-	
+
+	protected static final File TASK_DELETE_DUMMY_ACCOUNTS_FILE = new File(TEST_DIR, "task-delete-dummy-accounts.xml");
+    protected static final String TASK_DELETE_DUMMY_ACCOUNTS_OID = "ab28a334-2aca-11e5-afe7-001e8c717e5b";
+
 	protected DummyResource dummyResourceAzure;
 	protected DummyResourceContoller dummyResourceCtlAzure;
 	protected ResourceType resourceDummyAzureType;
@@ -1525,6 +1535,63 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Test
+    public void test600SearchAllDummyAccounts() throws Exception {
+		final String TEST_NAME = "test600SearchAllDummyAccounts";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, 
+        		new QName(RESOURCE_DUMMY_NAMESPACE,"AccountObjectClass"), prismContext);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+		SearchResultList<PrismObject<ShadowType>> objects = modelService.searchObjects(ShadowType.class, query, null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        display("Found", objects);
+        
+        assertEquals("Wrong number of objects found", 17, objects.size());
+	}
+	
+	@Test
+    public void test610SearchDummyAccountsNameSubstring() throws Exception {
+		final String TEST_NAME = "test610SearchDummyAccountsNameSubstring";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+         ObjectFilter ocFilter = ObjectQueryUtil.createResourceAndObjectClassFilter(RESOURCE_DUMMY_OID, 
+        		new QName(RESOURCE_DUMMY_NAMESPACE,"AccountObjectClass"), prismContext);
+         SubstringFilter<String> subStringFilter = SubstringFilter.createSubstring(
+        		 new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), 
+        		 new ResourceAttributeDefinition(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING, prismContext), "s");
+         AndFilter andFilter = AndFilter.createAnd(ocFilter, subStringFilter);
+         ObjectQuery query = ObjectQuery.createObjectQuery(andFilter);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+		SearchResultList<PrismObject<ShadowType>> objects = modelService.searchObjects(ShadowType.class, query, null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        display("Found", objects);
+        
+        assertEquals("Wrong number of objects found", 6, objects.size());
+	}
+	
+	@Test
     public void test900DeleteDummyShadows() throws Exception {
 		final String TEST_NAME = "test900DeleteDummyShadows";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -1566,7 +1633,58 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         assertUsers(18);
         
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, 
+        assertDummyAccountShadows(0, true, task, result);
+        assertDummyAccountShadows(17, false, task, result);   
+	}
+	
+	@Test
+    public void test910DeleteDummyAccounts() throws Exception {
+		final String TEST_NAME = "test910DeleteDummyAccounts";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // Preconditions
+		assertUsers(18);
+        dummyAuditService.clear();
+        rememberShadowFetchOperationCount();
+        
+     // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        importObjectFromFile(TASK_DELETE_DUMMY_ACCOUNTS_FILE);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        
+        waitForTaskFinish(TASK_DELETE_DUMMY_ACCOUNTS_OID, true, 20000);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        assertShadowFetchOperationCountIncrement(2);
+        
+        PrismObject<TaskType> deleteTask = getTask(TASK_DELETE_DUMMY_ACCOUNTS_OID);
+        OperationResultType deleteTaskResultType = deleteTask.asObjectable().getResult();
+        display("Final delete task result", deleteTaskResultType);
+        TestUtil.assertSuccess(deleteTaskResultType);
+        OperationResult deleteTaskResult = OperationResult.createOperationResult(deleteTaskResultType);
+        TestUtil.assertSuccess(deleteTaskResult);
+        List<OperationResult> opExecResults = deleteTaskResult.findSubresults(ModelService.EXECUTE_CHANGES);
+        assertEquals(1, opExecResults.size());
+        OperationResult opExecResult = opExecResults.get(0);
+        TestUtil.assertSuccess(opExecResult);
+        assertEquals("Wrong exec operation count", 15, opExecResult.getCount());
+        assertTrue("Too many subresults: "+deleteTaskResult.getSubresults().size(), deleteTaskResult.getSubresults().size() < 10);
+        
+        assertUsers(18);
+        
+        assertDummyAccountShadows(2, true, task, result); // two protected accounts
+        assertDummyAccountShadows(2, false, task, result);        
+	}
+	
+	private void assertDummyAccountShadows(int expected, boolean raw, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    	ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, 
         		new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), prismContext);
         
         final MutableInt count = new MutableInt(0);
@@ -1577,11 +1695,13 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 				display("Found",shadow);
 				return true;
 			}
-		};		
-		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
+		};
+		Collection<SelectorOptions<GetOperationOptions>> options = null;
+		if (raw) {
+			options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
+		}
 		modelService.searchObjectsIterative(ShadowType.class, query, handler, options, task, result);
-        assertEquals("Unexpected number of search results", 0, count.getValue());
-        
+        assertEquals("Unexpected number of search results (raw="+raw+")", expected, count.getValue());
 	}
 
 	private void assertImportAuditModifications(int expectedModifications) {

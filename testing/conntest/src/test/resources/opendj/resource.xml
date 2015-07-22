@@ -28,6 +28,7 @@
 	xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
 	xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">
 	<name>Localhost OpenDJ</name>
+	
 	<connectorRef type="ConnectorType">
 	    <filter>
 			<q:and>
@@ -38,8 +39,8 @@
 			</q:and>
 		</filter>
 	</connectorRef>
-	<connectorConfiguration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector">
-					   
+	
+	<connectorConfiguration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector">				   
 		<icfc:configurationProperties>
 			<icfcldap:port>10389</icfcldap:port>
 			<icfcldap:host>localhost</icfcldap:host>
@@ -59,7 +60,6 @@
 		</icfc:resultsHandlerConfiguration>
 	</connectorConfiguration>
 	
-	
 	<schemaHandling>
 		<objectType>
 			<intent>default</intent>
@@ -69,7 +69,7 @@
 			<attribute>
 				<ref>ri:dn</ref>
 				<displayName>Distinguished Name</displayName>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<matchingRule>mr:distinguishedName</matchingRule>
 				<outbound>
 				    <source>
 				    	<path>$user/name</path>
@@ -158,7 +158,7 @@
 			</attribute>
 			<attribute>
 				<ref>ri:isMemberOf</ref>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<matchingRule>mr:distinguishedName</matchingRule>
 				<fetchStrategy>explicit</fetchStrategy>
 			</attribute>
 			
@@ -182,7 +182,7 @@
 			<protected>
        			<filter>
 	       			<q:equal>
-	       				<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#stringIgnoreCase</q:matching>
+	       				<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#distinguishedName</q:matching>
 		            	<q:path>attributes/ri:dn</q:path>
 		                <q:value>uid=idm,ou=Administrators,dc=example,dc=com</q:value>
 		            </q:equal>
@@ -204,7 +204,7 @@
             <objectClass>ri:groupOfUniqueNames</objectClass>
             <attribute>
 				<ref>ri:dn</ref>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<matchingRule>mr:distinguishedName</matchingRule>
 				<outbound>
 					<!-- Name cannot be weak. Changes in name trigger object rename. -->
 					<source>
@@ -226,7 +226,7 @@
 			</attribute>
 			<attribute>
 				<ref>ri:uniqueMember</ref>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<matchingRule>mr:distinguishedName</matchingRule>
 			</attribute>
 			<attribute>
 				<ref>ri:cn</ref>

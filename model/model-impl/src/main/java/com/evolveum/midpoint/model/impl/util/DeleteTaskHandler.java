@@ -166,6 +166,7 @@ public class DeleteTaskHandler implements TaskHandler {
 		Integer maxSize = 100;
 		ObjectPaging paging = ObjectPaging.createPaging(0, maxSize);
 		query.setPaging(paging);
+		query.setAllowPartialResults(true);
 		
 		Collection<SelectorOptions<GetOperationOptions>> searchOptions = null;
 		ModelExecuteOptions execOptions = null;
@@ -224,7 +225,8 @@ public class DeleteTaskHandler implements TaskHandler {
 	            opResult.summarize();
 	            task.setProgress(progress);
 	            if (LOGGER.isTraceEnabled()) {
-	            	LOGGER.trace("Deleted {} objects, result:\n{}", progress, opResult.debugDump());
+	            	LOGGER.trace("Search returned {} objects, {} skipped, progress: {}, result:\n{}", 
+		            		new Object[]{objects.size(), skipped, progress, opResult.debugDump()});
 	            }
 	            
 	            if (objects.size() == skipped) {

@@ -138,18 +138,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelPortType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.lang.StringUtils;
-import org.eclipse.jetty.util.log.Log;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.access.SecurityConfig;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.authentication.encoding.LdapShaPasswordEncoder;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
@@ -1260,12 +1256,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertAssignedOrg(user, orgOid);
 	}
 	
-	protected void assertAssignedOrg(PrismObject<UserType> user, String orgOid, QName relation) {
-		MidPointAsserts.assertAssignedOrg(user, orgOid, relation);
+	protected void assertAssignedOrg(PrismObject<? extends FocusType> focus, String orgOid, QName relation) {
+		MidPointAsserts.assertAssignedOrg(focus, orgOid, relation);
 	}
 	
-	protected void assertAssignedOrg(PrismObject<UserType> user, String orgOid) {
-		MidPointAsserts.assertAssignedOrg(user, orgOid);
+	protected void assertAssignedOrg(PrismObject<? extends FocusType> focus, String orgOid) {
+		MidPointAsserts.assertAssignedOrg(focus, orgOid);
 	}
 
 	protected void assertAssignedOrg(PrismObject<UserType> user, PrismObject<OrgType> org) {

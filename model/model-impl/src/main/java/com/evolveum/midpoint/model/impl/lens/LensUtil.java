@@ -158,8 +158,8 @@ public class LensUtil {
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		ShadowType equivalentAccountType = equivalentAccount.asObjectable();
 		ShadowKindType kind = ShadowUtil.getKind(equivalentAccountType);
-		return getProjectionContext(context, ShadowUtil.getResourceOid(equivalentAccountType), 
-				kind, equivalentAccountType.getIntent(), provisioningService, 
+		return getProjectionContext(context, ShadowUtil.getResourceOid(equivalentAccountType),
+				kind, equivalentAccountType.getIntent(), provisioningService,
 				prismContext, result);
 	}
 	
@@ -239,6 +239,7 @@ public class LensUtil {
         	// Check what to do with the value using the usual "triple routine". It means that if a value is
         	// in zero set than we need no delta, plus set means add delta and minus set means delete delta.
         	// The first set that the value is present determines the result.
+			// TODO shouldn't we use valueMatcher here? [med]
             Collection<ItemValueWithOrigin<V,D>> zeroPvwos =
                     collectPvwosFromSet(value, triple.getZeroSet());
             Collection<ItemValueWithOrigin<V,D>> plusPvwos =
@@ -270,7 +271,7 @@ public class LensUtil {
                 LOGGER.trace("Value {} unchanged, doing nothing", value);
                 continue;
             }
-            
+
             PrismValueDeltaSetTripleProducer<V, D> exclusiveMapping = null;
             Collection<ItemValueWithOrigin<V,D>> pvwosToAdd = null;
             if (addUnchangedValues) {

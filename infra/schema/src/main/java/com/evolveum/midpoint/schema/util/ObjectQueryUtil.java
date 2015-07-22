@@ -91,13 +91,17 @@ public class ObjectQueryUtil {
 	}
 	
 	public static ObjectQuery createResourceAndObjectClassQuery(String resourceOid, QName objectClass, PrismContext prismContext) throws SchemaException {
+		return ObjectQuery.createObjectQuery(createResourceAndObjectClassFilter(resourceOid, objectClass, prismContext));
+	}
+	
+	public static ObjectFilter createResourceAndObjectClassFilter(String resourceOid, QName objectClass, PrismContext prismContext) throws SchemaException {
 		Validate.notNull(resourceOid, "Resource where to search must not be null.");
 		Validate.notNull(objectClass, "Object class to search must not be null.");
 		Validate.notNull(prismContext, "Prism context must not be null.");
 		AndFilter and = AndFilter.createAnd(
 				createResourceFilter(resourceOid, prismContext), 
 				createObjectClassFilter(objectClass, prismContext));
-		return ObjectQuery.createObjectQuery(and);
+		return and;
 	}
 
     public static ObjectQuery createResourceQuery(String resourceOid, PrismContext prismContext) throws SchemaException {

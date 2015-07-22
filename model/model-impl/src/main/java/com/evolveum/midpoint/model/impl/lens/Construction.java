@@ -603,11 +603,21 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		DebugUtil.debugDumpLabel(sb, "Construction", indent);
 		if (refinedObjectClassDefinition == null) {
 			sb.append(" (no object class definition)");
+			if (constructionType != null && constructionType.getResourceRef() != null) {		// should be always the case
+				sb.append("\n");
+				DebugUtil.debugDumpLabel(sb, "resourceRef / kind / intent", indent + 1);
+				sb.append(" ");
+				sb.append(ObjectTypeUtil.toShortString(constructionType.getResourceRef()));
+				sb.append(" / ");
+				sb.append(constructionType.getKind());
+				sb.append(" / ");
+				sb.append(constructionType.getIntent());
+			}
 		} else {
 			sb.append(refinedObjectClassDefinition.getShadowDiscriminator());
 		}
 		sb.append("\n");
-		DebugUtil.debugDumpLabel(sb, "auxiliary object classes", indent+1);
+		DebugUtil.debugDumpLabel(sb, "auxiliary object classes", indent + 1);
 		if (auxiliaryObjectClassDefinitions == null) {
 			sb.append(" (null)");
 		} else if (auxiliaryObjectClassDefinitions.isEmpty()) {
@@ -619,6 +629,11 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 				DebugUtil.indentDebugDump(sb, indent+2);
 				sb.append(auxiliaryObjectClassDefinition.getTypeName());
 			}
+		}
+		if (constructionType != null && constructionType.getDescription() != null) {
+			sb.append("\n");
+			DebugUtil.debugDumpLabel(sb, "description", indent+1);
+			sb.append(" ").append(constructionType.getDescription());
 		}
 		if (attributeMappings != null && !attributeMappings.isEmpty()) {
 			sb.append("\n");

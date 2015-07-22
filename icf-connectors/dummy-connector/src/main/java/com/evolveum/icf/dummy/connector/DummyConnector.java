@@ -1166,6 +1166,13 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		        		}
 		        		ConnectorObject cobject = convertToConnectorObject(group, attributesToGet);
 						deltaBuilder.setObject(cobject);
+					} else if (deltaObjectClass == DummyPrivilege.class) {
+						DummyPrivilege privilege = resource.getPrivilegeById(delta.getObjectId());
+						if (privilege == null) {
+							throw new IllegalStateException("We have privilege for group '"+delta.getObjectId()+"' but such privilege does not exist");
+						}
+						ConnectorObject cobject = convertToConnectorObject(privilege, attributesToGet);
+						deltaBuilder.setObject(cobject);
 	        		} else {
 	        			throw new IllegalArgumentException("Unknown delta objectClass "+deltaObjectClass);
 	        		}

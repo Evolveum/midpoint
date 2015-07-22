@@ -28,6 +28,7 @@ import org.identityconnectors.framework.spi.operations.CreateOp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
+import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -787,16 +788,12 @@ public abstract class ShadowCache {
 
         if (filter instanceof AndFilter){
             List<? extends ObjectFilter> conditions = ((AndFilter) filter).getConditions();
-            attributeFilter = getAttributeQuery(conditions);
+            attributeFilter = createAttributeQueryInternal(conditions);
             if (attributeFilter.size() > 1){
                 attributeQuery = ObjectQuery.createObjectQuery(AndFilter.createAnd(attributeFilter));
-            }
-
-            if (attributeFilter.size() < 1){
+            } else if (attributeFilter.size() < 1){
                 LOGGER.trace("No attribute filter defined in the query.");
-            }
-
-            if (attributeFilter.size() == 1){
+            } else if (attributeFilter.size() == 1) {
                 attributeQuery = ObjectQuery.createObjectQuery(attributeFilter.iterator().next());
             }
 
@@ -814,8 +811,51 @@ public abstract class ShadowCache {
             }
         	attributeQuery.setAllowPartialResults(true);
         }
+        
+        if (InternalsConfig.consistencyChecks && attributeQuery != null && attributeQuery.getFilter() != null) {
+        	attributeQuery.getFilter().checkConsistence();
+        }
         return attributeQuery;
     }
+    
+    private List<ObjectFilter> createAttributeQueryInternal(List<? extends ObjectFilter> conditions) throws SchemaException{
+		List<ObjectFilter> attributeFilter = new ArrayList<>();
+		ItemPath objectClassPath = new ItemPath(ShadowType.F_OBJECT_CLASS);
+		ItemPath resourceRefPath = new ItemPath(ShadowType.F_RESOURCE_REF);
+		for (ObjectFilter f : conditions){
+			if (f instanceof EqualFilter){
+				if (objectClassPath.equivalent(((EqualFilter) f).getFullPath())){
+					continue;
+				}
+				if (resourceRefPath.equivalent(((EqualFilter) f).getFullPath())){
+					continue;
+				}
+				
+				attributeFilter.add(f);
+			} else if (f instanceof NaryLogicalFilter){
+				List<ObjectFilter> subFilters = createAttributeQueryInternal(((NaryLogicalFilter) f).getConditions());
+	            if (subFilters.size() > 1){
+	            	if (f instanceof OrFilter){
+						attributeFilter.add(OrFilter.createOr(subFilters));
+					} else if (f instanceof AndFilter){
+						attributeFilter.add(AndFilter.createAnd(subFilters));
+					} else {
+						throw new IllegalArgumentException("Could not translate query filter. Unknow type: " + f);
+					}
+	            } else if (subFilters.size() < 1){
+	                continue;
+	            } else if (subFilters.size() == 1) {
+	            	attributeFilter.add(subFilters.iterator().next());
+	            }
+				
+			} else if (f instanceof SubstringFilter){
+				attributeFilter.add(f);
+			}
+			
+		}
+		
+		return attributeFilter;	
+	}
 
     private SearchResultMetadata searchObjectsIterativeRepository(
     		final ProvisioningContext ctx, ObjectQuery query,
@@ -900,38 +940,6 @@ public abstract class ShadowCache {
 		}
 
 		return repoShadow;
-	}
-
-	private List<ObjectFilter> getAttributeQuery(List<? extends ObjectFilter> conditions) throws SchemaException{
-		
-		List<ObjectFilter> attributeFilter = new ArrayList<>();
-		ItemPath objectClassPath = new ItemPath(ShadowType.F_OBJECT_CLASS);
-		ItemPath resourceRefPath = new ItemPath(ShadowType.F_RESOURCE_REF);
-		for (ObjectFilter f : conditions){
-			if (f instanceof EqualFilter){
-				if (objectClassPath.equivalent(((EqualFilter) f).getFullPath())){
-					continue;
-				}
-				if (resourceRefPath.equivalent(((EqualFilter) f).getFullPath())){
-					continue;
-				}
-				
-				attributeFilter.add(f);
-			} else if (f instanceof NaryLogicalFilter){
-				List<ObjectFilter> filters = getAttributeQuery(((NaryLogicalFilter) f).getConditions());
-				if (f instanceof OrFilter){
-					attributeFilter.add(OrFilter.createOr(filters));
-				} else if (f instanceof AndFilter){
-					attributeFilter.add(AndFilter.createAnd(filters));
-				} else 
-					throw new IllegalArgumentException("Could not translate query filter. Unknow type: " + f);
-			} else if (f instanceof SubstringFilter){
-				attributeFilter.add(f);
-			}
-			
-		}
-		
-		return attributeFilter;	
 	}
 	
 	public Integer countObjects(ObjectQuery query, final OperationResult result) throws SchemaException,
