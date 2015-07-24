@@ -141,6 +141,7 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ResourceBundle;
@@ -1253,8 +1254,12 @@ public class ReportUtils {
 
     public static String prettyPrintForReport(PrismReferenceValue prv) {
         // UNDER CONSTRUCTION
-        // Complete in 3.3 when PRV has business name stored in DB audit event
+        // TODO: Complete in 3.3 when PRV has business name stored in DB audit event
         return prv.toString();
+    }
+
+    public static String prettyPrintForReport(ProtectedStringType pst) {
+        return "*****";
     }
 
     public static String prettyPrintForReport(PrismPropertyValue ppv) {
@@ -1375,6 +1380,7 @@ public class ReportUtils {
 
     public static String printDelta(ObjectDelta delta) {
         StringBuilder sb = new StringBuilder();
+        Boolean isMeta;
 
         switch (delta.getChangeType()) {
             case MODIFY:
@@ -1383,12 +1389,18 @@ public class ReportUtils {
                     sb.append("Modifications:\n");
                 }
                 for (ItemDelta itemDelta : modificationDeltas) {
-                    try {
-                        ItemPathSegment firstSegment = itemDelta.getParentPath().first();
-                        if (firstSegment instanceof NameItemPathSegment) {
-                            if ("metadata".equals(((NameItemPathSegment) firstSegment).getName().getLocalPart())) {
-                                continue; //do not report metadata in jasper
+                    isMeta = false;
+                    try {                      
+                        for (ItemPathSegment seg : itemDelta.getParentPath().getSegments()) {
+                            if (seg instanceof NameItemPathSegment) {
+                                if ("metadata".equals(((NameItemPathSegment) seg).getName().getLocalPart())) {
+                                    isMeta = true;
+                                    break;
+                                }
                             }
+                        }
+                        if (isMeta) {
+                            continue; //do not report metadata
                         }
                     } catch (NullPointerException npe) {
                         // silence exception as delta doesnt have parent
