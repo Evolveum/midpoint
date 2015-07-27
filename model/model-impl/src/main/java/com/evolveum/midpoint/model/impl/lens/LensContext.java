@@ -65,20 +65,26 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	private Collection<LensProjectionContext> projectionContexts = new ArrayList<LensProjectionContext>();
 
 	/**
-	 * EXPERIMENTAL. A trace of resource objects that once existed but were rotten and removed afterwards.
+	 * EXPERIMENTAL. A trace of resource objects that once existed but were unlinked or deleted,
+	 * and the corresponding contexts were rotten and removed afterwards.
+	 *
 	 * Necessary to evaluate old state of hasLinkedAccount.
 	 *
 	 * TODO implement as non-transient.
+	 * TODO consider storing whole projection contexts here.
  	 */
 	transient private Collection<ResourceShadowDiscriminator> historicResourceObjects;
 
 	private Class<F> focusClass;
 	
-	private boolean lazyAuditRequest = false;
-	private boolean requestAudited = false;
-	private boolean executionAudited = false;
+	private boolean lazyAuditRequest = false;		// should be the request audited just before the execution is audited?
+	private boolean requestAudited = false;			// was the request audited?
+	private boolean executionAudited = false;		// was the execution audited?
 	private LensContextStatsType stats = new LensContextStatsType();
-	
+
+	/*
+	 *  Executed deltas from rotten contexts.
+	 */
 	private List<LensObjectDeltaOperation<?>> rottenExecutedDeltas = new ArrayList<LensObjectDeltaOperation<?>>();
 
 	transient private ObjectTemplateType focusTemplate;
@@ -109,6 +115,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	
 	private String triggeredResourceOid;
 
+	/**
+	 * At this level, isFresh == false means that deeper recomputation has to be carried out.
+	 */
 	transient private boolean isFresh = false;
 	transient private boolean isRequestAuthorized = false;
 	
@@ -368,26 +377,26 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		}
 	}
 	
-	/**
-	 * Make the context as clean as new. Except for the executed deltas and other "traces" of
-	 * what was already done and cannot be undone. Also the configuration items that were loaded may remain.
-	 * This is used to restart the context computation but keep the trace of what was already done.
-	 */
-	public void reset() {
-		state = ModelState.INITIAL;
-		evaluatedAssignmentTriple = null;
-		projectionWave = 0;
-		executionWave = 0;
-		isFresh = false;
-		if (focusContext != null) {
-			focusContext.reset();
-		}
-		if (projectionContexts != null) {
-			for (LensProjectionContext projectionContext: projectionContexts) {
-				projectionContext.reset();
-			}
-		}
-	}
+//	/**
+//	 * Make the context as clean as new. Except for the executed deltas and other "traces" of
+//	 * what was already done and cannot be undone. Also the configuration items that were loaded may remain.
+//	 * This is used to restart the context computation but keep the trace of what was already done.
+//	 */
+//	public void reset() {
+//		state = ModelState.INITIAL;
+//		evaluatedAssignmentTriple = null;
+//		projectionWave = 0;
+//		executionWave = 0;
+//		isFresh = false;
+//		if (focusContext != null) {
+//			focusContext.reset();
+//		}
+//		if (projectionContexts != null) {
+//			for (LensProjectionContext projectionContext: projectionContexts) {
+//				projectionContext.reset();
+//			}
+//		}
+//	}
 
 	public String getChannel() {
         return channel;
@@ -666,9 +675,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
     }
     
 	/**
-	 * Cleans up the contexts by removing secondary deltas and other working state. The context after cleanup
-	 * should be the same as originally requested.
-	 * However, the current wave number is retained. Otherwise it ends up in endless loop. 
+	 * Cleans up the contexts by removing some of the working state.
+	 * The current wave number is retained. Otherwise it ends up in endless loop.
 	 */
 	public void cleanup() throws SchemaException {
 		if (focusContext != null) {

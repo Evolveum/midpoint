@@ -252,7 +252,6 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     
     @Override
 	public void cleanup() {
-		super.cleanup();
 		// Clean up only delta in current wave. The deltas in previous waves are already done.
 		// FIXME: this somehow breaks things. don't know why. but don't really care. the waves will be gone soon anyway
 //		if (secondaryDeltas.get(getWave()) != null) {
@@ -268,11 +267,11 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 		}
 	}
 	
-	@Override
-	public void reset() {
-		super.reset();
-		secondaryDeltas = new ObjectDeltaWaves<O>();
-	}
+//	@Override
+//	public void reset() {
+//		super.reset();
+//		secondaryDeltas = new ObjectDeltaWaves<O>();
+//	}
 
 	@Override
 	public void adopt(PrismContext prismContext) throws SchemaException {

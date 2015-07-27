@@ -245,11 +245,15 @@ public class Clockwork {
 				audit(context, AuditEventStage.REQUEST, task, result);
 			}
 
-			boolean recompute = !context.isFresh();
-			if (context.getExecutionWave() > context.getProjectionWave()) {
+			boolean recompute = false;
+			if (!context.isFresh()) {
+				LOGGER.trace("Context is not fresh -- forcing cleanup and recomputation");
+				recompute = true;
+			} else if (context.getExecutionWave() > context.getProjectionWave()) {		// should not occur
 				LOGGER.warn("Execution wave is greater than projection wave -- forcing cleanup and recomputation");
 				recompute = true;
 			}
+
 			if (recompute) {
 				context.cleanup();
 				projector.project(context, "PROJECTOR ("+state+")", task, result);
@@ -481,6 +485,10 @@ public class Clockwork {
     			LOGGER.trace("Context rot: projection {} NOT rotten because of wrong wave number", projectionContext);
         		continue;
 			}
+//			if (!projectionContext.isDoReconciliation()) {	// meaning volatility is NONE
+//				LOGGER.trace("Context rot: projection {} NOT rotten because the resource is non-volatile", projectionContext);
+//				continue;
+//			}
     		ObjectDelta<ShadowType> execDelta = projectionContext.getExecutableDelta();
     		if (isSignificant(execDelta)) {
     			
@@ -493,8 +501,7 @@ public class Clockwork {
        				relCtx.setFresh(false);
        				relCtx.setFullShadow(false);
       			}
-    			
-    			
+
 	        } else {
 	        	LOGGER.trace("Context rot: projection {} NOT rotten because no delta", projectionContext);
 	        }

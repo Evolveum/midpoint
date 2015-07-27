@@ -168,6 +168,54 @@ public class TestMappingInbound extends AbstractInitializedModelIntegrationTest 
     }
 
     @Test
+    public void test150UserReconcile() throws Exception {
+        final String TEST_NAME = "test150UserReconcile";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestMappingInbound.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+
+        // Preconditions
+        //assertUsers(5);
+
+        /// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+
+        PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        assertNotNull("User mancomb has disappeared", userMancomb);
+
+        reconcileUser(userMancomb.getOid(), task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+
+        PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyTeaGreen);
+        display("Account mancomb", accountMancomb);
+        assertNotNull("No mancomb account shadow", accountMancomb);
+        assertEquals("Wrong resourceRef in mancomb account", RESOURCE_DUMMY_TEA_GREEN_OID,
+                accountMancomb.asObjectable().getResourceRef().getOid());
+        assertShadowOperationalData(accountMancomb, SynchronizationSituationType.LINKED, null);
+
+        userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        display("User mancomb", userMancomb);
+
+        assertLinks(userMancomb, 1);
+        assertAdministrativeStatusEnabled(userMancomb);
+
+        assertLinked(userMancomb, accountMancomb);
+
+//        assertUsers(6);
+
+        // notifications
+        notificationManager.setDisabled(true);
+
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+    }
+
+    @Test
     public void test300DeleteDummyTeaGreenAccountMancomb() throws Exception {
         final String TEST_NAME = "test300DeleteDummyTeaGreenAccountMancomb";
         TestUtil.displayTestTile(this, TEST_NAME);
