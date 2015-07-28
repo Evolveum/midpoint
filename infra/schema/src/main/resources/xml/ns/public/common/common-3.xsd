@@ -8614,7 +8614,16 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="legalize" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>   
+            <xsd:element name="legalize" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			If set to true then the illegal resource objects (e.g. accounts) will be made legal.
+            			Illegal resource object is a linked resource object for which there is no assignment.
+            			If this option is set to true then it will automatically add a (direct) assignment for
+            			this object.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>   
         </xsd:sequence>
     </xsd:complexType>
 
