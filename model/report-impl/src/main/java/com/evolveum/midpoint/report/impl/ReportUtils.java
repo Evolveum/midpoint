@@ -1179,7 +1179,7 @@ public class ReportUtils {
         if (qname.getLocalPart() != null) {
             ret = qname.getLocalPart();
         }
-        return ret.toUpperCase();
+        return ret;
     }
 
     public static String prettyPrintForReport(PrismProperty pp) {
@@ -1220,7 +1220,7 @@ public class ReportUtils {
 
     public static String prettyPrintForReport(PrismContainer pc) {
         StringBuilder sb = new StringBuilder();
-        if ("metadata".equalsIgnoreCase(pc.getElementName().getLocalPart())) { // skip metadata
+        if ("metadata".equalsIgnoreCase(pc.getElementName().getLocalPart())) { // skip metadata, still needed?
             return "";
         }
         sb.append(pc.getPath());
@@ -1254,7 +1254,7 @@ public class ReportUtils {
 
     public static String prettyPrintForReport(PrismReferenceValue prv) {
         // UNDER CONSTRUCTION
-        // TODO: Complete in 3.3 when PRV has business name stored in DB audit event
+        // TODO: Complete in 3.3 when PRV has business name stored in DB audit event. MID-2431
         return prv.toString();
     }
 
@@ -1344,37 +1344,68 @@ public class ReportUtils {
 
     public static String prettyPrintForReport(ItemDelta itemDelta) {
         StringBuilder sb = new StringBuilder();
-        if (itemDelta.getValuesToReplace() != null) {
-            sb.append("Replace: ");
-            sb.append(itemDelta.getPath());
-            sb.append("=");
+        boolean displayNA = false;
+
+        sb.append(">>> ");
+        sb.append(itemDelta.getPath());
+        sb.append("=");
+        sb.append("{");
+        if (itemDelta.getEstimatedOldValues() != null && !itemDelta.getEstimatedOldValues().isEmpty()) {
+            sb.append("Old: ");
             sb.append("{");
-            if (itemDelta.getEstimatedOldValues() != null && !itemDelta.getEstimatedOldValues().isEmpty()) {
-                sb.append("OLD: ");
-                sb.append(prettyPrintForReport(itemDelta.getEstimatedOldValues()));
-                sb.append(", NEW: ");
-            }
-            sb.append(prettyPrintForReport(itemDelta.getValuesToReplace()));
+            sb.append(prettyPrintForReport(itemDelta.getEstimatedOldValues()));
             sb.append("}");
+            sb.append(", ");
+            displayNA = true;
         }
 
-        if (itemDelta.getValuesToAdd() != null) {
-            sb.append("Add: ");
-            sb.append(itemDelta.getPath());
-            sb.append("=");
+        if (itemDelta.getValuesToReplace() != null) {
+            sb.append("Replace: ");
             sb.append("{");
-            sb.append(prettyPrintForReport(itemDelta.getValuesToAdd()));
+            sb.append(prettyPrintForReport(itemDelta.getValuesToReplace()));
             sb.append("}");
+            sb.append(", ");
+            displayNA = false;
         }
 
         if (itemDelta.getValuesToDelete() != null) {
             sb.append("Delete: ");
-            sb.append(itemDelta.getPath());
-            sb.append("=");
             sb.append("{");
             sb.append(prettyPrintForReport(itemDelta.getValuesToDelete()));
             sb.append("}");
+            sb.append(", ");
+            displayNA = false;
         }
+
+        if (itemDelta.getValuesToAdd() != null) {
+            sb.append("Add: ");
+            sb.append("{");
+            sb.append(prettyPrintForReport(itemDelta.getValuesToAdd()));
+            sb.append("}");
+            sb.append(", ");
+            displayNA = false;
+        }
+
+        if (displayNA) {
+            sb.append("N/A"); // this is rare case when oldValue is present but replace, delete and add lists are all null
+        } else {
+            sb.setLength(Math.max(sb.length() - 2, 0));
+        }
+
+        sb.append("}");
+        return sb.toString();
+    }
+
+    private static String printChangeType(ObjectDelta delta, String opName) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(opName);
+        sb.append(" ");
+        sb.append(delta.getObjectTypeClass().getSimpleName());
+        if (delta.getOid() != null) {
+            sb.append(": ");
+            sb.append(delta.getOid());
+        }
+        sb.append("\n");
         return sb.toString();
     }
 
@@ -1386,11 +1417,11 @@ public class ReportUtils {
             case MODIFY:
                 Collection<ItemDelta> modificationDeltas = delta.getModifications();
                 if (modificationDeltas != null && !modificationDeltas.isEmpty()) {
-                    sb.append("Modifications:\n");
+                    sb.append(printChangeType(delta, "Modify"));
                 }
                 for (ItemDelta itemDelta : modificationDeltas) {
                     isMeta = false;
-                    try {                      
+                    try {
                         for (ItemPathSegment seg : itemDelta.getParentPath().getSegments()) {
                             if (seg instanceof NameItemPathSegment) {
                                 if ("metadata".equals(((NameItemPathSegment) seg).getName().getLocalPart())) {
@@ -1414,7 +1445,7 @@ public class ReportUtils {
             case ADD:
                 PrismObject objectToAdd = delta.getObjectToAdd();
                 if (objectToAdd != null) {
-                    sb.append("Add Object:\n");
+                    sb.append(printChangeType(delta, "Add"));
                     sb.append(prettyPrintForReport(objectToAdd.getElementName()));
                     sb.append("=");
                     sb.append(objectToAdd.getBusinessDisplayName());
@@ -1425,10 +1456,7 @@ public class ReportUtils {
                 break;
 
             case DELETE:
-                sb.append("Delete Object:\n");
-                sb.append(delta.getObjectTypeClass().getSimpleName());
-                sb.append(": ");
-                sb.append(delta.getOid());
+                sb.append(printChangeType(delta, "Delete"));
                 break;
         }
 
