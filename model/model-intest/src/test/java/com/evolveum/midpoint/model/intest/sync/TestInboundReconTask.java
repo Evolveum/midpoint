@@ -22,6 +22,7 @@ import static org.testng.AssertJUnit.assertNull;
 import java.io.FileNotFoundException;
 import java.util.Date;
 
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -35,6 +36,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.testng.annotations.Test;
 
 /**
  * @author semancik
@@ -71,7 +73,50 @@ public class TestInboundReconTask extends AbstractInboundSyncTest {
 			throw new IllegalArgumentException("Unknown resource "+resource);
 		}
 	}
-	
+
+	@Override
+	public void test180NoChange() throws Exception {
+		final String TEST_NAME = "test180NoChange";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		dummyAuditService.clear();
+		rememberTimeBeforeSync();
+		prepareNotifications();
+
+		// Preconditions
+		assertUsers(6);
+
+		/// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+
+		waitForSyncTaskNextRun(resourceDummyEmerald);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+
+		PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyEmerald);
+		display("Account mancomb", accountMancomb);
+		assertNotNull("Account shadow mancomb gone", accountMancomb);
+
+		PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+		display("User mancomb", userMancomb);
+		assertNotNull("User mancomb is gone", userMancomb);
+		assertLinks(userMancomb, 1);
+		assertValidFrom(userMancomb, ACCOUNT_MANCOMB_VALID_FROM_DATE);
+		assertValidTo(userMancomb, ACCOUNT_MANCOMB_VALID_TO_DATE);
+
+		assertUsers(6);
+
+		// notifications
+		notificationManager.setDisabled(true);
+
+		display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(2);			// reconciliation request + execution
+	}
+
 	@Override
 	public void test199DeleteDummyEmeraldAccountMancomb() throws Exception {
 		final String TEST_NAME = "test199DeleteDummyEmeraldAccountMancomb";

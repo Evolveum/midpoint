@@ -1157,7 +1157,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         
         // Check audit
         display("Audit", dummyAuditService);
-        dummyAuditService.assertRecords(3);
+        dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(3);
@@ -1527,7 +1527,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
                 
         // Check audit
         display("Audit", dummyAuditService);
-        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertRecords(3);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(3);

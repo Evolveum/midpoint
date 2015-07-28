@@ -244,12 +244,24 @@ public class Clockwork {
 				// there will be secondary changes that are not part of the request.
 				audit(context, AuditEventStage.REQUEST, task, result);
 			}
-			
+
+			boolean recompute = false;
 			if (!context.isFresh()) {
+				LOGGER.trace("Context is not fresh -- forcing cleanup and recomputation");
+				recompute = true;
+			} else if (context.getExecutionWave() > context.getProjectionWave()) {		// should not occur
+				LOGGER.warn("Execution wave is greater than projection wave -- forcing cleanup and recomputation");
+				recompute = true;
+			}
+
+			if (recompute) {
 				context.cleanup();
 				projector.project(context, "PROJECTOR ("+state+")", task, result);
+			} else if (context.getExecutionWave() == context.getProjectionWave()) {
+				LOGGER.trace("Running projector for current execution wave");
+				projector.resume(context, "PROJECTOR ("+state+")", task, result);
 			} else {
-				LOGGER.trace("Skipping projection because the context is fresh");
+				LOGGER.trace("Skipping projection because the context is fresh and projection for current wave has already run");
 			}
 			
 			if (!context.isRequestAuthorized()) {
@@ -473,20 +485,14 @@ public class Clockwork {
     			LOGGER.trace("Context rot: projection {} NOT rotten because of wrong wave number", projectionContext);
         		continue;
 			}
+//			if (!projectionContext.isDoReconciliation()) {	// meaning volatility is NONE
+//				LOGGER.trace("Context rot: projection {} NOT rotten because the resource is non-volatile", projectionContext);
+//				continue;
+//			}
     		ObjectDelta<ShadowType> execDelta = projectionContext.getExecutableDelta();
     		if (isSignificant(execDelta)) {
     			
-				// in this case we do not want to rot projection context. in the
-				// case the projection is rotten we can lost some information
-				// needed for inbound processing
-//    			if (execDelta.isAdd() && !LensUtil.hasDependentContext(context, projectionContext)){
-//    				projectionContext.setObjectOld(projectionContext.getObjectNew());
-//    				projectionContext.setObjectCurrent(projectionContext.getObjectNew());
-//    				projectionContext.setFullShadow(true);
-//    				LOGGER.trace("Context rot: projection {} NOT rotten because of ADD delta and no dependent context.", projectionContext);
-//    				continue;
-//    			}
-    			LOGGER.trace("Context rot: projection {} rotten because of delta {} and dependent context exists for this projection", projectionContext, execDelta);
+    			LOGGER.trace("Context rot: projection {} rotten because of delta {}", projectionContext, execDelta);
    				projectionContext.setFresh(false);
       			projectionContext.setFullShadow(false);
        			rot = true;
@@ -495,8 +501,7 @@ public class Clockwork {
        				relCtx.setFresh(false);
        				relCtx.setFullShadow(false);
       			}
-    			
-    			
+
 	        } else {
 	        	LOGGER.trace("Context rot: projection {} NOT rotten because no delta", projectionContext);
 	        }
@@ -512,7 +517,7 @@ public class Clockwork {
 	    		focusContext.setFresh(false);
     		}
     		//remove secondary deltas from other than execution wave - we need to recompute them..
-    		cleanUpSecondaryDeltas(context);
+//    		cleanUpSecondaryDeltas(context);
     		
     		
     	}
@@ -521,15 +526,14 @@ public class Clockwork {
     	}
 	}
 
-	private <F extends ObjectType> void cleanUpSecondaryDeltas(LensContext<F> context){
-		LensFocusContext focusContext = context.getFocusContext();
-		ObjectDelta executionWaveDelta = focusContext.getSecondaryDeltas().get(context.getExecutionWave());
-		if (context.getExecutionWave() == 0 && !LensUtil.isSyncChannel(context.getChannel()) && focusContext.getSecondaryDeltas().size() > 1) {
-			focusContext.getSecondaryDeltas().retainAll(MiscUtil.createCollection(executionWaveDelta, focusContext.getSecondaryDeltas().get(1)));
-		} else {
-			focusContext.getSecondaryDeltas().retainAll(MiscUtil.createCollection(executionWaveDelta));
-		}
-	}
+//	// TODO this is quite unclear. Originally here was keeping the delta from the current wave (plus delta from wave #1).
+//	// The reason was not clear.
+//	// Let us erase everything.
+//	private <F extends ObjectType> void cleanUpSecondaryDeltas(LensContext<F> context){
+//		LensFocusContext focusContext = context.getFocusContext();
+//		ObjectDeltaWaves<F> executionWaveDeltaList = focusContext.getSecondaryDeltas();
+//		executionWaveDeltaList.clear();
+//	}
 	
 	private <P extends ObjectType> boolean isSignificant(ObjectDelta<P> delta) {
 		if (delta == null || delta.isEmpty()) {

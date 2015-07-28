@@ -457,6 +457,15 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         	assertTrue("Empty deltas in execution audit record "+executionRecord, executionRecord.getDeltas() != null && ! executionRecord.getDeltas().isEmpty());
         	modifications++;
 
+            while (i+2 < auditRecords.size()) {
+                AuditEventRecord nextRecord = auditRecords.get(i+2);
+                if (nextRecord.getEventStage() == AuditEventStage.EXECUTION && nextRecord.getEventType() == requestRecord.getEventType()) {
+                    // this is an additional EXECUTION record due to changes in clockwork
+                    i++;
+                } else {
+                    break;
+                }
+            }
         }
         assertEquals("Unexpected number of audit modifications", expectedModifications, modifications);
 

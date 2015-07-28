@@ -192,6 +192,11 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         notificationManager.setDisabled(true);
 	}
 
+	@Test
+	public void test180NoChange() throws Exception {
+		// default = no op
+		// (method is here to be executed before test199)
+	}
 
 	@Test
     public abstract void test199DeleteDummyEmeraldAccountMancomb() throws Exception;

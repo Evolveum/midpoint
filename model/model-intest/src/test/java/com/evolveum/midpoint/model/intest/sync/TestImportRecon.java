@@ -361,7 +361,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 //        assertShadowFetchOperationCountIncrement(8);
         
         // WHY????
-        assertShadowFetchOperationCountIncrement(3);
+        assertShadowFetchOperationCountIncrement(2);
         
         users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", users);
@@ -716,16 +716,16 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertImportedUserByOid(USER_JACK_OID);
         assertImportedUserByOid(USER_BARBOSSA_OID);
         assertImportedUserByOid(USER_GUYBRUSH_OID, RESOURCE_DUMMY_OID);
-        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, 
-        		"Dubrish Freepweed");
-        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, 
-        		"Melee Island");
-        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, 
-        		"Feather duster");
-        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, 
-        		"rum");
-        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, 
-        		"Arr!", "I want to be a pirate!");
+        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME,
+				"Dubrish Freepweed");
+        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME,
+				"Melee Island");
+        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME,
+				"Feather duster");
+        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
+				"rum");
+        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME,
+				"Arr!", "I want to be a pirate!");
         
         assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_LIME_OID);
         assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME, RESOURCE_DUMMY_OID);
@@ -889,8 +889,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME, RESOURCE_DUMMY_OID);
         assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
         assertNoImporterUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
-        assertDummyAccountAttribute(null, ACCOUNT_CALYPSO_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, 
-        		"Calypso");
+        assertDummyAccountAttribute(null, ACCOUNT_CALYPSO_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME,
+				"Calypso");
         
         assertEquals("Unexpected number of users", 10, users.size());
         
@@ -1148,8 +1148,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
         assertNoImporterUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
         // Calypso is protected account. Reconciliation should not touch it
-        assertDummyAccountAttribute(null, ACCOUNT_CALYPSO_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, 
-        		"Calypso");
+        assertDummyAccountAttribute(null, ACCOUNT_CALYPSO_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME,
+				"Calypso");
         
         assertEquals("Unexpected number of users", 11, users.size());
         
@@ -1543,8 +1543,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, 
-        		new QName(RESOURCE_DUMMY_NAMESPACE,"AccountObjectClass"), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID,
+				new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), prismContext);
         
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -1788,9 +1788,18 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         	assertNotNull("No execution audit record (" + i + ")", executionRecord);
         	assertEquals("Got this instead of execution audit record (" + i + "): " + executionRecord, AuditEventStage.EXECUTION, executionRecord.getEventStage());
         	
-        	assertTrue("Empty deltas in execution audit record "+executionRecord, executionRecord.getDeltas() != null && ! executionRecord.getDeltas().isEmpty());
+        	assertTrue("Empty deltas in execution audit record " + executionRecord, executionRecord.getDeltas() != null && !executionRecord.getDeltas().isEmpty());
         	modifications++;
 
+			while (i+2 < auditRecords.size()) {
+				AuditEventRecord nextRecord = auditRecords.get(i+2);
+				if (nextRecord.getEventStage() == AuditEventStage.EXECUTION && nextRecord.getEventType() == requestRecord.getEventType()) {
+					// this is an additional EXECUTION record due to changes in clockwork
+					i++;
+				} else {
+					break;
+				}
+			}
         }
         assertEquals("Unexpected number of audit modifications", expectedModifications, modifications);
 

@@ -145,7 +145,7 @@
 						<q:matching>stringIgnoreCase</q:matching>
 						<q:path>
 							declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
-							attributes/icfs:name
+							attributes/ri:dn
 						</q:path>
 						<q:value>ou=Administrators,dc=example,dc=com</q:value>
 						<q:anchorEnd>true</q:anchorEnd>
@@ -173,7 +173,7 @@
             <displayName>LDAP Group</displayName>
             <objectClass>ri:groupOfUniqueNames</objectClass>
             <attribute>
-                <ref>icfs:name</ref>
+                <ref>ri:dn</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
                     <!-- Name cannot be weak. Changes in name trigger object rename. -->

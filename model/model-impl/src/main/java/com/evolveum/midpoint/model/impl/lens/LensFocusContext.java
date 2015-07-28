@@ -211,15 +211,29 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     public ObjectDelta<O> getWaveDelta(int wave) throws SchemaException {
     	if (wave == 0) {
     		// Primary delta is executed only in the first wave (wave 0)
-    		if (LensUtil.isSyncChannel(getLensContext().getChannel())){
-    			return ObjectDelta.union(getFixedPrimaryDelta(), getWaveSecondaryDelta(wave));
-    		} else {
-    			return ObjectDelta.union(getFixedPrimaryDelta(), getWaveSecondaryDelta(wave), getWaveSecondaryDelta(1));
-    		}
+    		return ObjectDelta.union(getFixedPrimaryDelta(), getWaveSecondaryDelta(wave));
     	} else {
     		return getWaveSecondaryDelta(wave);
     	}
     }
+
+	// HIGHLY EXPERIMENTAL
+	public ObjectDelta<O> getAggregatedWaveDelta(int wave) throws SchemaException {
+		ObjectDelta<O> result = null;
+		for (int w = 0; w <= wave; w++) {
+			ObjectDelta<O> delta = getWaveDelta(w);
+			if (delta == null) {
+				continue;
+			}
+			if (result == null) {
+				result = delta.clone();
+			} else {
+				result.merge(delta);
+			}
+		}
+		LOGGER.trace ("Aggregated wave delta for wave {} = {}", wave, result != null ? result.debugDump() : "(null)");
+		return result;
+	}
     
     public ObjectDelta<O> getWaveExecutableDelta(int wave) throws SchemaException {
     	if (wave == 0){
@@ -238,7 +252,6 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     
     @Override
 	public void cleanup() {
-		super.cleanup();
 		// Clean up only delta in current wave. The deltas in previous waves are already done.
 		// FIXME: this somehow breaks things. don't know why. but don't really care. the waves will be gone soon anyway
 //		if (secondaryDeltas.get(getWave()) != null) {
@@ -254,11 +267,11 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 		}
 	}
 	
-	@Override
-	public void reset() {
-		super.reset();
-		secondaryDeltas = new ObjectDeltaWaves<O>();
-	}
+//	@Override
+//	public void reset() {
+//		super.reset();
+//		secondaryDeltas = new ObjectDeltaWaves<O>();
+//	}
 
 	@Override
 	public void adopt(PrismContext prismContext) throws SchemaException {
