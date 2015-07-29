@@ -48,6 +48,7 @@
 		<icfc:configurationProperties>
 			<icfi:instanceId>lime</icfi:instanceId> <!-- Default instance. -->
 			<icfi:supportValidity>true</icfi:supportValidity>
+			<icfi:readablePassword>true</icfi:readablePassword>
 		</icfc:configurationProperties>
 
 	</connectorConfiguration>
@@ -222,10 +223,10 @@
 			
 			<credentials>
                 <password>
+                	<fetchStrategy>explicit</fetchStrategy>
                     <inbound>
-                    	<strength>weak</strength>
                         <expression>
-                            <generate/>
+                            <asIs/>
                         </expression>
                     </inbound>
                 </password>

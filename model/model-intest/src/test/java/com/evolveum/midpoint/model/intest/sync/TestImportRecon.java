@@ -1238,7 +1238,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
         // Create some illegal account
-        dummyResourceCtlLime.addAccount(ACCOUNT_CAPSIZE_NAME, ACCOUNT_CAPSIZE_FULLNAME);
+        DummyAccount accountKate = dummyResourceCtlLime.addAccount(ACCOUNT_CAPSIZE_NAME, ACCOUNT_CAPSIZE_FULLNAME);
+        accountKate.setPassword("is0m3tr1c mud01d");
         
         dummyResourceLime.purgeScriptHistory();
         dummyAuditService.clear();
@@ -1269,6 +1270,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         // Kate Capsize: user should be created
         assertImportedUserByUsername(ACCOUNT_CAPSIZE_NAME, RESOURCE_DUMMY_LIME_OID);
+        PrismObject<UserType> userAfter = findUserByUsername(ACCOUNT_CAPSIZE_NAME);
+        assertPassword(userAfter, "is0m3tr1c mud01d");
         
         assertEquals("Unexpected number of users", 12, users.size());
         
@@ -1318,6 +1321,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
+        PrismAsserts.assertModifications(dummyAuditService.getExecutionDelta(0).getObjectDelta(), 4);
         dummyAuditService.assertTarget(userBefore.getOid());
         dummyAuditService.assertExecutionSuccess();
         
@@ -1366,6 +1370,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
+        PrismAsserts.assertModifications(dummyAuditService.getExecutionDelta(0).getObjectDelta(), 4);
         dummyAuditService.assertTarget(userBefore.getOid());
         dummyAuditService.assertExecutionSuccess();
         
@@ -1414,6 +1419,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
+        PrismAsserts.assertModifications(dummyAuditService.getExecutionDelta(0).getObjectDelta(), 4);
         dummyAuditService.assertTarget(userBefore.getOid());
         dummyAuditService.assertExecutionSuccess();
         
@@ -1459,6 +1465,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
+        PrismAsserts.assertModifications(dummyAuditService.getExecutionDelta(0).getObjectDelta(), 4);
         dummyAuditService.assertTarget(userBefore.getOid());
         dummyAuditService.assertExecutionSuccess();
         
@@ -1506,6 +1513,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
+        PrismAsserts.assertModifications(dummyAuditService.getExecutionDelta(0).getObjectDelta(), 4);
         dummyAuditService.assertTarget(userBefore.getOid());
         dummyAuditService.assertExecutionSuccess();
         
@@ -1558,8 +1566,56 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Test
-    public void test410ReconcileDummyLimeDeleteLinkedAccount() throws Exception {
-		final String TEST_NAME = "test410ReconcileDummyLimeDeleteLinkedAccount";
+    public void test410ReconcileDummyLimeKatePassword() throws Exception {
+		final String TEST_NAME = "test410ReconcileDummyLimeKatePassword";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+        DummyAccount accountKate = dummyResourceLime.getAccountByUsername(ACCOUNT_CAPSIZE_NAME);
+        accountKate.setPassword("d0d3c4h3dr0n");
+        
+        PrismObject<UserType> userBefore = findUserByUsername(ACCOUNT_CAPSIZE_NAME);
+        
+        dummyResourceLime.purgeScriptHistory();
+        dummyAuditService.clear();
+        reconciliationTaskResultListener.clear();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        reconcileUser(userBefore.getOid(), task, result);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = findUserByUsername(ACCOUNT_CAPSIZE_NAME);
+        display("User after reconcile", userAfter);
+        
+        assertPassword(userAfter, "d0d3c4h3dr0n");
+        
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
+        PrismAsserts.assertModifications(dummyAuditService.getExecutionDelta(0).getObjectDelta(), 7);
+        dummyAuditService.assertTarget(userBefore.getOid());
+        dummyAuditService.assertExecutionSuccess();
+        
+        assertUsers(12);
+        
+        display("Dummy resource (lime)", dummyResourceLime.debugDump());        
+	}
+	
+	@Test
+    public void test420ReconcileDummyLimeDeleteLinkedAccount() throws Exception {
+		final String TEST_NAME = "test420ReconcileDummyLimeDeleteLinkedAccount";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN

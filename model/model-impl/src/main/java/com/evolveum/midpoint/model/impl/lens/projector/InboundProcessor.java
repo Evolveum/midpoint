@@ -43,6 +43,8 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.OriginType;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -65,6 +67,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.commons.lang.mutable.MutableBoolean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,14 +95,21 @@ public class InboundProcessor {
 
     @Autowired(required = true)
     private PrismContext prismContext;
+    
     @Autowired(required = true)
     private FilterManager<Filter> filterManager;
+    
     @Autowired(required = true)
     private MappingFactory mappingFactory;
+    
     @Autowired
     private ProvisioningService provisioningService;
+    
     @Autowired(required = true)
     private MappingEvaluationHelper mappingEvaluatorHelper;
+    
+    @Autowired(required = true)
+    private Protector protector;
 
     <O extends ObjectType> void processInbound(LensContext<O> context, XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException {
     	LensFocusContext<O> focusContext = context.getFocusContext();
@@ -138,7 +148,7 @@ public class InboundProcessor {
         try {
             for (LensProjectionContext accountContext : context.getProjectionContexts()) {
             	if (!accountContext.isCanProject()){
-            		LOGGER.trace("Skipping processing of inbound expressions for account {}: there is a limit to propagate changes only from resource {}",
+            		LOGGER.trace("Skipping processing of inbound expressions for projection {}: there is a limit to propagate changes only from resource {}",
 							accountContext.getResourceShadowDiscriminator(), context.getTriggeredResourceOid());
             		continue;
             	}
@@ -147,7 +157,7 @@ public class InboundProcessor {
             	ObjectDelta<ShadowType> aPrioriDelta = getAPrioriDelta(context, accountContext);
             	
             	if (!accountContext.isDoReconciliation() && aPrioriDelta == null && !LensUtil.hasDependentContext(context, accountContext) && !accountContext.isFullShadow()) {
-            		LOGGER.trace("Skipping processing of inbound expressions for account {}: no reconciliation and no a priori delta and no dependent context", rat);
+            		LOGGER.trace("Skipping processing of inbound expressions for projection {}: no reconciliation and no a priori delta and no dependent context", rat);
             		continue;
             	}
 
@@ -159,7 +169,7 @@ public class InboundProcessor {
                             + " not found in the context, but it should be there");
                 }
 
-                processInboundExpressionsForAccount(context, accountContext, accountDefinition, aPrioriDelta, task, now, result);
+                processInboundExpressionsForProjection(context, accountContext, accountDefinition, aPrioriDelta, task, now, result);
             }
 
         } finally {
@@ -178,7 +188,7 @@ public class InboundProcessor {
         return false;
     }
 
-    private <F extends FocusType> void processInboundExpressionsForAccount(LensContext<F> context,
+    private <F extends FocusType> void processInboundExpressionsForProjection(LensContext<F> context,
     		LensProjectionContext accContext,
             RefinedObjectClassDefinition accountDefinition, ObjectDelta<ShadowType> aPrioriDelta, Task task, XMLGregorianCalendar now, OperationResult result)
     		throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException {
@@ -676,7 +686,25 @@ public class InboundProcessor {
 		    	result.addAll(PrismValue.cloneCollection(outputTriple.getNonNegativeValues()));
 		        
 		    	PrismProperty targetPropertyNew = newUser.findOrCreateProperty(sourcePath);
-		        PropertyDelta<?> delta = targetPropertyNew.diff(result);
+		    	PropertyDelta<?> delta;
+		    	if (ProtectedStringType.COMPLEX_TYPE.equals(targetPropertyNew.getDefinition().getTypeName())) {
+		    		// We have to compare this in a special way. The cipherdata may be different due to a different
+		    		// IV, but the value may still be the same
+		    		ProtectedStringType resultValue = (ProtectedStringType) result.getRealValue();
+		    		ProtectedStringType targetPropertyNewValue = (ProtectedStringType) targetPropertyNew.getRealValue();
+		    		try {
+						if (protector.compare(resultValue, targetPropertyNewValue)) {
+							delta = null;
+						} else {
+							delta = targetPropertyNew.diff(result);
+						}
+					} catch (EncryptionException e) {
+						throw new SystemException(e.getMessage(), e);
+					}
+		    	} else {
+		    		delta = targetPropertyNew.diff(result);
+		    	}
+		        LOGGER.trace("targetPropertyNew:\n{}\ndelta:\n{}", targetPropertyNew.debugDump(1), delta==null?"null":delta.debugDump(1));
 		        if (delta != null && !delta.isEmpty()) {
 		        	delta.setParentPath(sourcePath.allExceptLast());
 		        	if (!context.getFocusContext().alreadyHasDelta(delta)){
