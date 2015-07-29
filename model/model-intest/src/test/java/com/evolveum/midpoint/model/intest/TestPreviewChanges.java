@@ -24,11 +24,15 @@ import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -87,13 +91,33 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest {
 	
-	public static final File TEST_DIR = new File("src/test/resources/contract");
+	public static final File TEST_DIR = new File("src/test/resources/preview");
+
+	// YELLOW dummy resource has a STRICT dependency on default dummy resource
+	protected static final File RESOURCE_DUMMY_YELLOW_FILE = new File(TEST_DIR, "resource-dummy-yellow.xml");
+	protected static final String RESOURCE_DUMMY_YELLOW_OID = "10000000-0000-0000-0000-000000000504";
+	protected static final String RESOURCE_DUMMY_YELLOW_NAME = "yellow";
+	protected static final String RESOURCE_DUMMY_YELLOW_NAMESPACE = MidPointConstants.NS_RI;
 
 	private static final String USER_MORGAN_OID = "c0c010c0-d34d-b33f-f00d-171171117777";
 	private static final String USER_BLACKBEARD_OID = "c0c010c0-d34d-b33f-f00d-161161116666";
+
+	static final File USER_ROGERS_FILE = new File(TEST_DIR, "user-rogers.xml");
 	
 	private static String accountOid;
-	
+
+	@Override
+	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+		super.initSystem(initTask, initResult);
+
+		dummyResourceCtlYellow = DummyResourceContoller.create(RESOURCE_DUMMY_YELLOW_NAME, resourceDummyYellow);
+		dummyResourceCtlYellow.extendSchemaPirate();
+		dummyResourceYellow = dummyResourceCtlYellow.getDummyResource();
+		resourceDummyYellow = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_YELLOW_FILE, RESOURCE_DUMMY_YELLOW_OID, initTask, initResult);
+		resourceDummyYellowType = resourceDummyYellow.asObjectable();
+		dummyResourceCtlYellow.setResource(resourceDummyYellow);
+	}
+
 	@Test
     public void test100ModifyUserAddAccountBundle() throws Exception {
 		final String TEST_NAME = "test100ModifyUserAddAccountBundle";
@@ -830,8 +854,8 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
         ObjectDelta<ShadowType> accountDelta = createModifyAccountShadowEmptyDelta(ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_OID);
-        PropertyDelta<String> fullnameDelta = createAttributeAddDelta(resourceDummyBlue, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elaine Threepwood");
+        PropertyDelta<String> fullnameDelta = createAttributeAddDelta(resourceDummyBlue,
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elaine Threepwood");
         fullnameDelta.addValueToDelete(new PrismPropertyValue<String>("Elaine Marley"));
         accountDelta.addModification(fullnameDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
@@ -866,10 +890,10 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		ObjectDelta<ShadowType> accountPrimaryDelta = accContext.getPrimaryDelta();
 		assertNotNull("No account primary delta", accountPrimaryDelta);
 		PrismAsserts.assertModifications(accountPrimaryDelta, 1);
-		PrismAsserts.assertPropertyAdd(accountPrimaryDelta, 
+		PrismAsserts.assertPropertyAdd(accountPrimaryDelta,
 				getAttributePath(resourceDummyBlue, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME),
 				"Elaine Threepwood");
-		PrismAsserts.assertPropertyDelete(accountPrimaryDelta, 
+		PrismAsserts.assertPropertyDelete(accountPrimaryDelta,
 				getAttributePath(resourceDummyBlue, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME),
 				"Elaine Marley");
 		
@@ -985,8 +1009,8 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ObjectDelta<UserType> userDelta = createModifyUserReplaceDelta(USER_ELAINE_OID, UserType.F_FULL_NAME, 
         		PrismTestUtil.createPolyString("Elaine Threepwood"));
         ObjectDelta<ShadowType> accountDelta = createModifyAccountShadowReplaceAttributeDelta(
-        		ACCOUNT_SHADOW_ELAINE_DUMMY_OID, resourceDummy, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elaine LeChuck");
+				ACCOUNT_SHADOW_ELAINE_DUMMY_OID, resourceDummy,
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elaine LeChuck");
         // Cannot change the attribute on RED resource. It would conflict with the strong mapping and therefore fail.
 //        ObjectDelta<ResourceObjectShadowType> accountDeltaRed = createModifyAccountShadowReplaceAttributeDelta(
 //        		ACCOUNT_SHADOW_ELAINE_DUMMY_RED_OID, resourceDummyRed, 
@@ -994,7 +1018,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ObjectDelta<ShadowType> accountDeltaBlue = createModifyAccountShadowReplaceAttributeDelta(
         		ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_OID, resourceDummyBlue, 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elaine LeChuck");
-		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta, 
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta,
 				accountDeltaBlue);
 		display("Input deltas: ", deltas);
                 
@@ -1031,7 +1055,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		ObjectDelta<ShadowType> accountPrimaryDelta = accContext.getPrimaryDelta();
 		assertNotNull("No account primary delta (default)", accountPrimaryDelta);
 		PrismAsserts.assertModifications(accountPrimaryDelta, 1);
-		PrismAsserts.assertPropertyReplace(accountPrimaryDelta, 
+		PrismAsserts.assertPropertyReplace(accountPrimaryDelta,
 				getAttributePath(resourceDummy, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME),
 				"Elaine LeChuck");
 		
@@ -1098,7 +1122,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
 		assertNotNull("Null model focus context", focusContext);
 		ObjectDelta<UserType> userPrimaryDelta = focusContext.getPrimaryDelta();
-		assertNotNull("No focus primary delta: "+userPrimaryDelta, userPrimaryDelta);
+		assertNotNull("No focus primary delta: " + userPrimaryDelta, userPrimaryDelta);
 		PrismAsserts.assertIsAdd(userPrimaryDelta);
 		
 		ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
@@ -1121,7 +1145,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNotNull("No account secondary delta (default)", accountSecondaryDelta);
 		PrismAsserts.assertModifications(accountSecondaryDelta, 8);
-		PrismAsserts.assertNoItemDelta(accountSecondaryDelta, 
+		PrismAsserts.assertNoItemDelta(accountSecondaryDelta,
 				getAttributePath(resourceDummy, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME));
 		
 		// RED dummy resource: strong mappings
@@ -1154,9 +1178,101 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNotNull("No account secondary delta (default)", accountSecondaryDelta);
 		PrismAsserts.assertModifications(accountSecondaryDelta, 7);
-		PrismAsserts.assertNoItemDelta(accountSecondaryDelta, 
+		PrismAsserts.assertNoItemDelta(accountSecondaryDelta,
 				getAttributePath(resourceDummyBlue, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME));
 		
+	}
+
+	// testing multiple resources with dependencies (dummy -> dummy yellow)
+
+	@Test
+	public void test630AddUserRogers() throws Exception {
+		final String TEST_NAME = "test630AddUserRogers";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+
+		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_ROGERS_FILE);
+		ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+
+		// WHEN
+		ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
+
+		// THEN
+		display("Preview context", modelContext);
+		assertNotNull("Null model context", modelContext);
+
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
+		assertNotNull("Null model focus context", focusContext);
+		ObjectDelta<UserType> userPrimaryDelta = focusContext.getPrimaryDelta();
+		assertNotNull("No focus primary delta: "+userPrimaryDelta, userPrimaryDelta);
+		PrismAsserts.assertIsAdd(userPrimaryDelta);
+
+		ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
+		// inbound from ship (explicitly specified) to organizationalUnit (dummy resource)
+		// inbound from gossip (computed via outbound) to description (yellow resource)
+		assertEffectualDeltas(userSecondaryDelta, "focus secondary delta", ActivationStatusType.ENABLED, 2);
+
+		PrismObject<UserType> finalUser = user.clone();
+		userSecondaryDelta.applyTo(finalUser);
+		PrismAsserts.assertOrigEqualsPolyStringCollectionUnordered("Wrong organizationalUnit attribute",
+				finalUser.asObjectable().getOrganizationalUnit(), "The crew of The Sea Monkey");
+		assertEquals("Wrong description attribute", "Rum Rogers Sr. must be the best pirate the  has ever seen", finalUser.asObjectable().getDescription());
+
+		Collection<? extends ModelProjectionContext> projectionContexts = modelContext.getProjectionContexts();
+		assertNotNull("Null model projection context list", projectionContexts);
+		assertEquals("Unexpected number of projection contexts", 2, projectionContexts.size());
+
+		// DEFAULT dummy resource: normal mappings
+		ModelProjectionContext accContext = modelContext.findProjectionContext(
+				new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null));
+		assertNotNull("Null model projection context (default)", accContext);
+
+		assertEquals("Wrong policy decision (default)", SynchronizationPolicyDecision.ADD, accContext.getSynchronizationPolicyDecision());
+		ObjectDelta<ShadowType> accountPrimaryDelta = accContext.getPrimaryDelta();
+		assertNotNull("No account primary delta (default)", accountPrimaryDelta);
+		PrismAsserts.assertIsAdd(accountPrimaryDelta);
+
+		ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
+		assertNotNull("No account secondary delta (default)", accountSecondaryDelta);
+		// administrativeStatus (ENABLED), enableTimestamp, name, drink, quote, iteration, iterationToken, password/value
+		PrismAsserts.assertModifications(accountSecondaryDelta, 8);
+		PrismAsserts.assertNoItemDelta(accountSecondaryDelta,
+				getAttributePath(resourceDummy, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME));
+
+		// YELLOW dummy resource
+		accContext = modelContext.findProjectionContext(
+				new ResourceShadowDiscriminator(RESOURCE_DUMMY_YELLOW_OID, ShadowKindType.ACCOUNT, null));
+		assertNotNull("Null model projection context (yellow)", accContext);
+
+		assertEquals("Wrong policy decision", SynchronizationPolicyDecision.ADD, accContext.getSynchronizationPolicyDecision());
+		accountPrimaryDelta = accContext.getPrimaryDelta();
+		assertNotNull("No account primary delta (default)", accountPrimaryDelta);
+		PrismAsserts.assertIsAdd(accountPrimaryDelta);
+
+		accountSecondaryDelta = accContext.getSecondaryDelta();
+		assertNotNull("No account secondary delta (yellow)", accountSecondaryDelta);
+		// administrativeStatus (ENABLED), enableTimestamp, ship (from organizationalUnit), name, gossip, water, iteration, iterationToken, password/value
+		PrismAsserts.assertModifications(accountSecondaryDelta, 9);
+		PrismAsserts.assertPropertyReplace(accountSecondaryDelta,
+				getAttributePath(resourceDummyYellow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
+				"The crew of The Sea Monkey");
+		PrismAsserts.assertPropertyReplace(accountSecondaryDelta,
+				new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME),
+				"rogers");
+		PrismAsserts.assertPropertyAdd(accountSecondaryDelta,
+				getAttributePath(resourceDummyYellow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME),
+				"Rum Rogers Sr. must be the best pirate the  has ever seen");
+		PrismAsserts.assertPropertyReplace(accountSecondaryDelta,
+				getAttributePath(resourceDummyYellow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME),
+				"pirate Rum Rogers Sr. drinks only rum!");
 	}
 	
 	// The 7xx tests try to do various non-common cases

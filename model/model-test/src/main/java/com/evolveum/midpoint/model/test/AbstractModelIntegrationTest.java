@@ -2018,12 +2018,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 		assertEquals("Unexpected modifications in " + desc + ": " + focusDelta, expectedModifications, focusDelta.getModifications().size());
 	}
-	
+
 	protected <F extends FocusType> void assertSideEffectiveDeltasOnly(ObjectDelta<F> focusDelta, String desc, ActivationStatusType expectedEfficientActivation) {
+		assertEffectualDeltas(focusDelta, desc, expectedEfficientActivation, 0);
+	}
+	
+	protected <F extends FocusType> void assertEffectualDeltas(ObjectDelta<F> focusDelta, String desc, ActivationStatusType expectedEfficientActivation, int expectedEffectualModifications) {
 		if (focusDelta == null) {
 			return;
 		}
-		int expectedModifications = 0;
+		int expectedModifications = expectedEffectualModifications;
 		// There may be metadata modification, we tolerate that
 		for (ItemDelta<?,?> modification: focusDelta.getModifications()) {
 			if (modification.getPath().containsName(ObjectType.F_METADATA)) {
