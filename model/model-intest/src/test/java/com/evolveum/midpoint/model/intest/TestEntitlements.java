@@ -498,6 +498,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION, 
         		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertNoGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
+        
+        assertNoDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
 	}
     
     @Test
@@ -525,11 +528,14 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION, 
         		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
+        
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Swashbuckler");
 	}
     
     @Test
-    public void test620UnAssignSwashbucklerPirateFromJack() throws Exception {
-		final String TEST_NAME = "test620UnAssignSwashbucklerPirateFromJack";
+    public void test620UnAssignSwashbucklerFromJack() throws Exception {
+		final String TEST_NAME = "test620UnAssignSwashbucklerFromJack";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
@@ -552,6 +558,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION, 
         		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertNoGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
+        
+        assertNoDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
 	}
     
     /**
@@ -592,6 +601,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION, 
         		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertNoGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
+        
+        assertNoDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
 	}
     
     @Test
@@ -621,6 +633,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION, 
         		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
+        
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Swashbuckler");
 	}
     
     @Test
@@ -648,6 +663,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION, 
         		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
+        
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Swashbuckler");
 	}
     
     @Test
@@ -677,5 +695,8 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION, 
         		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertNoGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
+        
+        assertNoDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
 	}
 }
