@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,12 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -49,7 +51,8 @@ import java.util.Arrays;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class ModifyUser extends BaseSQLRepoTest {
 
-    private String userOid;
+    private static final String USER_FULLNAME = "Guybrush Threepwood";
+	private String userOid;
     private String userBigOid;
     private String shadowOid;
 
@@ -74,13 +77,83 @@ public class ModifyUser extends BaseSQLRepoTest {
 
     @Test
     public void test020ModifyUser() throws Exception {
+    	final String TEST_NAME = "test020ModifyUser";
+    	TestUtil.displayTestTile(TEST_NAME);
+    	
+    	OperationResult result = new OperationResult(TEST_NAME);
+    	
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
                 new File(FOLDER_BASIC, "t002.xml"), ObjectModificationType.COMPLEX_TYPE);
 
         ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, UserType.class, prismContext);
         delta.setOid(userOid);
 
-        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), new OperationResult("asdf"));
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = repositoryService.getObject(UserType.class, userOid, null, result);
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_FULL_NAME, PrismTestUtil.createPolyString(USER_FULLNAME));
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_EMPLOYEE_NUMBER, "en1234");
+    }
+    
+    @Test
+    public void test021ModifyUserNoEmpNum() throws Exception {
+    	final String TEST_NAME = "test021ModifyUserNoEmpNum";
+    	TestUtil.displayTestTile(TEST_NAME);
+    	
+    	OperationResult result = new OperationResult(TEST_NAME);
+    	
+        ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
+                new File(FOLDER_BASIC, "t002a.xml"), ObjectModificationType.COMPLEX_TYPE);
+
+        ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, UserType.class, prismContext);
+        delta.setOid(userOid);
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = repositoryService.getObject(UserType.class, userOid, null, result);
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_FULL_NAME, PrismTestUtil.createPolyString(USER_FULLNAME));
+        PrismAsserts.assertNoItem(userAfter, UserType.F_EMPLOYEE_NUMBER);
+    }
+    
+    @Test
+    public void test022ModifyUserEmptyEmpNum() throws Exception {
+    	final String TEST_NAME = "test022ModifyUserEmptyEmpNum";
+    	TestUtil.displayTestTile(TEST_NAME);
+    	
+    	OperationResult result = new OperationResult(TEST_NAME);
+    	
+        ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
+                new File(FOLDER_BASIC, "t002b.xml"), ObjectModificationType.COMPLEX_TYPE);
+
+        ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, UserType.class, prismContext);
+        delta.setOid(userOid);
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = repositoryService.getObject(UserType.class, userOid, null, result);
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_FULL_NAME, PrismTestUtil.createPolyString(USER_FULLNAME));
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_EMPLOYEE_NUMBER, "");
     }
 
     @Test
