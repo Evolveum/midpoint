@@ -298,7 +298,7 @@ public class ReconciliationProcessor {
 					// changed directly on the projection resource object
 					continue;
 				}
-				Object shouldBeRealValue = shouldBePvwo.getPropertyValue().getValue();
+				Object shouldBeRealValue = shouldBePvwo.getItemValue().getValue();
 				if (!isInValues(valueMatcher, shouldBeRealValue, arePValues)) {
 					if (attributeDefinition.isSingleValue()) {
 						if (hasValue) {
@@ -429,6 +429,9 @@ public class ReconciliationProcessor {
 					if (shouldBeMapping.getStrength() == MappingStrengthType.WEAK) {
 						sb.append(" WEAK");
 					}
+					if (!shouldBeCValue.isValid()) {
+						sb.append(" INVALID");
+					}
 				}
 				sb.append("\n  Is:");
 				for (PrismContainerValue<ShadowAssociationType> isCVal : areCValues) {
@@ -507,7 +510,7 @@ public class ReconciliationProcessor {
                     continue;
                 }
                 ShadowAssociationType shouldBeRealValue = shouldBeCvwo.getItemValue().getValue();
-                if (!isInAssociationValues(associationValueMatcher, shouldBeRealValue, areCValues)) {
+                if (shouldBeCvwo.isValid() && !isInAssociationValues(associationValueMatcher, shouldBeRealValue, areCValues)) {
                     recordAssociationDelta(associationValueMatcher, projCtx, associationDefinition, ModificationType.ADD, shouldBeRealValue,
                             shouldBeCvwo.getConstruction().getSource());
                 }
@@ -517,7 +520,7 @@ public class ReconciliationProcessor {
         }
     }
 
-    private void decideIfTolerate(LensProjectionContext accCtx,
+	private void decideIfTolerate(LensProjectionContext accCtx,
 			RefinedAttributeDefinition attributeDefinition,
 			Collection<PrismPropertyValue<Object>> arePValues,
 			Collection<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>> shouldBePValues,
@@ -735,6 +738,9 @@ public class ReconciliationProcessor {
         }
 
         for (ItemValueWithOrigin<? extends PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> shouldBeCvwo : shouldBeCvwos) {
+        	if (!shouldBeCvwo.isValid()) {
+        		continue;
+        	}
             PrismContainerValue<ShadowAssociationType> shouldBePCValue = shouldBeCvwo.getItemValue();
             ShadowAssociationType shouldBeValue = shouldBePCValue.getValue();
             if (valueMatcher.match(value, shouldBeValue)) {

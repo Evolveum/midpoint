@@ -68,6 +68,10 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
 		return construction;
 	}
 
+	public boolean isValid() {
+		return construction.isValid();
+	}
+	
 	public boolean equalsRealValue(V pvalue) {
 		if (itemValue == null) {
 			return false;

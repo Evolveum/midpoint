@@ -232,6 +232,7 @@
             
             <association>
             	<ref>ri:group</ref>
+            	<tolerant>false</tolerant>
             	<kind>entitlement</kind>
             	<intent>group</intent>
             	<direction>objectToSubject</direction>

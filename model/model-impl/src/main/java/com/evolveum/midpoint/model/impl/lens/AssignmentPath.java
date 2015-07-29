@@ -147,6 +147,5 @@ public class AssignmentPath implements DebugDumpable {
 		}
 		return sb.toString();
 	}	
-	
 
 }
