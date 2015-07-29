@@ -183,6 +183,13 @@
 				<ref>ri:drink</ref>
 				<displayName>Drink</displayName>
 				<tolerant>false</tolerant>
+				<inbound>
+					<authoritative>true</authoritative>
+					<strength>strong</strength>
+					<target>
+						<path>costCenter</path>
+					</target>
+				</inbound>
 			</attribute>
 			<attribute>
 				<ref>ri:quote</ref>

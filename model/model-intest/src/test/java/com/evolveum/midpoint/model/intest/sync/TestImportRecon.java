@@ -52,11 +52,13 @@ import com.evolveum.midpoint.model.impl.util.DebugReconciliationTaskResultListen
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -1274,6 +1276,285 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         // Audit record structure is somehow complex here.
 //        assertReconAuditModifications(4, TASK_RECONCILE_DUMMY_LIME_OID);
+	}
+	
+	@Test
+    public void test401ReconcileDummyLimeKateOnlyEmpty() throws Exception {
+		final String TEST_NAME = "test401ReconcileDummyLimeKateOnlyEmpty";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+        DummyAccount accountKate = dummyResourceLime.getAccountByUsername(ACCOUNT_CAPSIZE_NAME);
+        accountKate.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "");
+        
+        PrismObject<UserType> userBefore = findUserByUsername(ACCOUNT_CAPSIZE_NAME);
+        PrismAsserts.assertNoItem(userBefore, UserType.F_COST_CENTER);
+        
+        dummyResourceLime.purgeScriptHistory();
+        dummyAuditService.clear();
+        reconciliationTaskResultListener.clear();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        reconcileUser(userBefore.getOid(), task, result);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = findUserByUsername(ACCOUNT_CAPSIZE_NAME);
+        display("User after reconcile", userAfter);
+        
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_COST_CENTER, "");
+        
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertTarget(userBefore.getOid());
+        dummyAuditService.assertExecutionSuccess();
+        
+        assertUsers(12);
+        
+        display("Dummy resource (lime)", dummyResourceLime.debugDump());        
+	}
+	
+	
+	@Test
+    public void test402ReconcileDummyLimeKateOnlyGrog() throws Exception {
+		final String TEST_NAME = "test402ReconcileDummyLimeKateOnlyGrog";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+        DummyAccount accountKate = dummyResourceLime.getAccountByUsername(ACCOUNT_CAPSIZE_NAME);
+        accountKate.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "grog");
+        
+        PrismObject<UserType> userBefore = findUserByUsername(ACCOUNT_CAPSIZE_NAME);
+        
+        dummyResourceLime.purgeScriptHistory();
+        dummyAuditService.clear();
+        reconciliationTaskResultListener.clear();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        reconcileUser(userBefore.getOid(), task, result);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = findUserByUsername(ACCOUNT_CAPSIZE_NAME);
+        display("User after reconcile", userAfter);
+        
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_COST_CENTER, "grog");
+        
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertTarget(userBefore.getOid());
+        dummyAuditService.assertExecutionSuccess();
+        
+        assertUsers(12);
+        
+        display("Dummy resource (lime)", dummyResourceLime.debugDump());        
+	}
+	
+	@Test
+    public void test403ReconcileDummyLimeKateOnlyNoValue() throws Exception {
+		final String TEST_NAME = "test403ReconcileDummyLimeKateOnlyNoValue";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+        DummyAccount accountKate = dummyResourceLime.getAccountByUsername(ACCOUNT_CAPSIZE_NAME);
+        accountKate.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME);
+        display("Dummy resource (lime)", dummyResourceLime.debugDump());        
+        
+        PrismObject<UserType> userBefore = findUserByUsername(ACCOUNT_CAPSIZE_NAME);
+        
+        dummyResourceLime.purgeScriptHistory();
+        dummyAuditService.clear();
+        reconciliationTaskResultListener.clear();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        reconcileUser(userBefore.getOid(), task, result);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = findUserByUsername(ACCOUNT_CAPSIZE_NAME);
+        display("User after reconcile", userAfter);
+        
+        PrismAsserts.assertNoItem(userAfter, UserType.F_COST_CENTER);
+        
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertTarget(userBefore.getOid());
+        dummyAuditService.assertExecutionSuccess();
+        
+        assertUsers(12);
+	}
+	
+	@Test
+    public void test404ReconcileDummyLimeKateOnlyRum() throws Exception {
+		final String TEST_NAME = "test404ReconcileDummyLimeKateOnlyRum";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+        DummyAccount accountKate = dummyResourceLime.getAccountByUsername(ACCOUNT_CAPSIZE_NAME);
+        accountKate.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
+        
+        PrismObject<UserType> userBefore = findUserByUsername(ACCOUNT_CAPSIZE_NAME);
+        
+        dummyResourceLime.purgeScriptHistory();
+        dummyAuditService.clear();
+        reconciliationTaskResultListener.clear();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        reconcileUser(userBefore.getOid(), task, result);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = findUserByUsername(ACCOUNT_CAPSIZE_NAME);
+        display("User after reconcile", userAfter);
+        
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_COST_CENTER, "rum");
+        
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertTarget(userBefore.getOid());
+        dummyAuditService.assertExecutionSuccess();
+        
+        assertUsers(12);
+        
+        display("Dummy resource (lime)", dummyResourceLime.debugDump());        
+	}
+	
+	@Test
+    public void test405ReconcileDummyLimeKateOnlyEmpty() throws Exception {
+		final String TEST_NAME = "test405ReconcileDummyLimeKateOnlyEmpty";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+        DummyAccount accountKate = dummyResourceLime.getAccountByUsername(ACCOUNT_CAPSIZE_NAME);
+        accountKate.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "");
+        
+        PrismObject<UserType> userBefore = findUserByUsername(ACCOUNT_CAPSIZE_NAME);
+        
+        dummyResourceLime.purgeScriptHistory();
+        dummyAuditService.clear();
+        reconciliationTaskResultListener.clear();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        reconcileUser(userBefore.getOid(), task, result);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = findUserByUsername(ACCOUNT_CAPSIZE_NAME);
+        display("User after reconcile", userAfter);
+        
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_COST_CENTER, "");
+        
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertTarget(userBefore.getOid());
+        dummyAuditService.assertExecutionSuccess();
+        
+        assertUsers(12);
+        
+        display("Dummy resource (lime)", dummyResourceLime.debugDump());        
+	}
+	
+	@Test
+    public void test406ReconcileDummyLimeKateOnlyEmptyAgain() throws Exception {
+		final String TEST_NAME = "test406ReconcileDummyLimeKateOnlyEmptyAgain";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+        PrismObject<UserType> userBefore = findUserByUsername(ACCOUNT_CAPSIZE_NAME);
+        
+        dummyResourceLime.purgeScriptHistory();
+        dummyAuditService.clear();
+        reconciliationTaskResultListener.clear();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        reconcileUser(userBefore.getOid(), task, result);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = findUserByUsername(ACCOUNT_CAPSIZE_NAME);
+        display("User after reconcile", userAfter);
+        
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_COST_CENTER, "");
+        
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(0);
+        dummyAuditService.assertTarget(userBefore.getOid());
+        dummyAuditService.assertExecutionSuccess();
+        
+        assertUsers(12);
+        
+        display("Dummy resource (lime)", dummyResourceLime.debugDump());        
 	}
 	
 	@Test

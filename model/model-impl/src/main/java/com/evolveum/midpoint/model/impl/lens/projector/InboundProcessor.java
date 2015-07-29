@@ -22,6 +22,7 @@ import com.evolveum.midpoint.common.refinery.PropertyLimitations;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.model.common.expression.Source;
@@ -484,7 +485,7 @@ public class InboundProcessor {
 			// organizationalUnit being zeroed, even if the inbound was not applied because of condition==false.
 			// See MID-2441.
 
-   			if (accountAttributeDelta == null && LensUtil.isSyncChannel(context.getChannel())){
+   			if (accountAttributeDelta == null && (LensUtil.isSyncChannel(context.getChannel()) || ModelExecuteOptions.isReconcile(context.getOptions()))){
     			// This is the case of "inbound reconciliation" which is quite special. The triple returned null
     			// which means that there was nothing in the input and (unsurprisingly) no change. If the input was empty
     			// then we need to make sure that the output (focus property) is also empty. Otherwise we miss the

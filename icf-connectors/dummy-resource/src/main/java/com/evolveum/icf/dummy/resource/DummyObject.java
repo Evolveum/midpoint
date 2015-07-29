@@ -172,7 +172,10 @@ public abstract class DummyObject implements DebugDumpable {
 		}
 		List<Object> valuesList = Arrays.asList(values);
 		currentValues.addAll(valuesList);
-		checkSchema(name, valuesList, "relace");
+		checkSchema(name, valuesList, "replace");
+		if (valuesList.isEmpty()) {
+			attributes.remove(name);
+		}
 		recordModify();
 	}
 	
