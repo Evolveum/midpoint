@@ -95,11 +95,14 @@ public class Projector {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(Projector.class);
 
+	/**
+	 * Runs one projection wave, starting at current execution wave.
+	 */
 	public <F extends ObjectType> void project(LensContext<F> context, String activityDescription,
 											   Task task, OperationResult parentResult)
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
 			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
-		projectInternal(context, activityDescription, true, task, parentResult);
+		projectInternal(context, activityDescription, true, false, task, parentResult);
 	}
 
 	/**
@@ -118,11 +121,22 @@ public class Projector {
 			throw new IllegalStateException("Projector.resume called on non-fresh context");
 		}
 
-		projectInternal(context, activityDescription, false, task, parentResult);
+		projectInternal(context, activityDescription, false, false, task, parentResult);
 	}
-	
+
+	/**
+	 * Executes projector from current execution wave to the last computed wave.
+	 * Useful for change preview.
+	 */
+	public <F extends ObjectType> void projectAllWaves(LensContext<F> context, String activityDescription,
+												  Task task, OperationResult parentResult)
+			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
+			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+		projectInternal(context, activityDescription, true, true, task, parentResult);
+	}
+
 	private <F extends ObjectType> void projectInternal(LensContext<F> context, String activityDescription,
-            boolean fromStart, Task task, OperationResult parentResult)
+            boolean fromStart, boolean allWaves, Task task, OperationResult parentResult)
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
 			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -167,19 +181,18 @@ public class Projector {
 			}
 	        // For now let's pretend to do just one wave. The maxWaves number will be corrected in the
 			// first wave when dependencies are sorted out for the first time.
-	        int maxWaves = 1;
+	        int maxWaves = context.getExecutionWave() + 1;
 	                
 	        // Start the waves ....
 	        LOGGER.trace("WAVE: Starting the waves.");
 
 			boolean firstWave = true;
 
-			// TODO go to maxWaves if "preview" option is set
-	        //while (context.getProjectionWave() < maxWaves) {
-			while (context.getProjectionWave() <= context.getExecutionWave()) {
+			while ((allWaves && context.getProjectionWave() < maxWaves) ||
+					(!allWaves && context.getProjectionWave() <= context.getExecutionWave())) {
 
 				boolean inFirstWave = firstWave;
-				firstWave = false;					// in order to not forgetting it ;)
+				firstWave = false;					// in order to not forget to reset it ;)
 	        	
                 context.checkAbortRequested();
 

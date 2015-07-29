@@ -837,7 +837,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			}
 		
 			
-			projector.project(context, "preview", task, result);
+			projector.projectAllWaves(context, "preview", task, result);
 			context.distributeResource();
 			
 		} catch (ConfigurationException e) {

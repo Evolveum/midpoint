@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -194,7 +195,7 @@ public class PrismAsserts {
 		assertNotNull("No definition", objDef);
 		assertEquals("Wrong elementName for "+objDef, elementName, objDef.getName());
 		assertEquals("Wrong typeName for "+objDef, typeName, objDef.getTypeName());
-		assertEquals("Wrong compileTimeClass for "+objDef, compileTimeClass, objDef.getCompileTimeClass());
+		assertEquals("Wrong compileTimeClass for " + objDef, compileTimeClass, objDef.getCompileTimeClass());
 	}
 	
 	public static void assertDefinition(Item item, QName type, int minOccurs, int maxOccurs) {
@@ -366,7 +367,7 @@ public class PrismAsserts {
 	public static <T> void assertPropertyReplace(ObjectDelta<?> userDelta, ItemPath propertyPath, T... expectedValues) {
 		PropertyDelta<T> propertyDelta = userDelta.findPropertyDelta(propertyPath);
 		assertNotNull("Property delta for "+propertyPath+" not found",propertyDelta);
-		assertSet("delta "+propertyDelta+" for "+propertyPath.last(), "replace", propertyDelta.getValuesToReplace(), expectedValues);
+		assertSet("delta " + propertyDelta + " for " + propertyPath.last(), "replace", propertyDelta.getValuesToReplace(), expectedValues);
 	}
 
 	public static void assertPropertyAdd(ObjectDelta<?> userDelta, ItemPath propertyPath, Object... expectedValues) {
@@ -713,7 +714,7 @@ public class PrismAsserts {
 	}
 
 	private static <T> void assertSet(String inMessage, String setName, Collection<PrismPropertyValue<T>> actualPValues, T[] expectedValues) {
-		assertValues(setName+" set in "+inMessage, actualPValues, expectedValues);
+		assertValues(setName + " set in " + inMessage, actualPValues, expectedValues);
 	}
 	
 	public static <T> void assertValues(String message, Collection<PrismPropertyValue<T>> actualPValues, T... expectedValues) {
@@ -944,6 +945,23 @@ public class PrismAsserts {
 		List<T> expectedCollection = Arrays.asList(expectedValues);
 		assert MiscUtil.unorderedCollectionEquals(actualCollection, expectedCollection) : message + ": expected "+expectedCollection+
 			"; was "+actualCollection;
+	}
+
+	public static void assertOrigEqualsPolyStringCollectionUnordered(String message, Collection<PolyStringType> actualCollection, String... expectedValues) {
+		List<PolyStringType> expectedCollection = new ArrayList<>();
+		for (String expectedValue : expectedValues) {
+			expectedCollection.add(new PolyStringType(expectedValue));
+		}
+		Comparator<PolyStringType> comparator = new Comparator<PolyStringType>() {
+			@Override
+			public int compare(PolyStringType o1, PolyStringType o2) {
+				String s1 = o1 != null && o1.getOrig() != null ? o1.getOrig() : "";
+				String s2 = o2 != null && o2.getOrig() != null ? o2.getOrig() : "";
+				return s1.compareTo(s2);
+			}
+		};
+		assert MiscUtil.unorderedCollectionEquals(actualCollection, expectedCollection, comparator) : message + ": expected "+expectedCollection+
+				"; was "+actualCollection;
 	}
 
 	public static void assertAssignableFrom(Class<?> expected, Class<?> actual) {

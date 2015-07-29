@@ -325,10 +325,17 @@ public class InboundProcessor {
 		}
 		if (wave == accountContext.getWave() + 1) {
 			// If this resource was processed in a previous wave ....
-			//return accountContext.getDelta();
+			// Normally, we take executed delta. However, there are situations (like preview changes - i.e. projector without execution),
+			// when there is no executed delta. In that case we take standard primary + secondary delta.
+			// TODO is this really correct? Think if the following can happen:
+			// - NOT previewing
+			// - no executed deltas but
+			// - existing primary/secondary delta.
 			List<LensObjectDeltaOperation<ShadowType>> executed = accountContext.getExecutedDeltas();
 			if (executed != null && !executed.isEmpty()) {
 				return executed.get(executed.size()-1).getObjectDelta();
+			} else {
+				return accountContext.getDelta();
 			}
 		}
 		return null;
