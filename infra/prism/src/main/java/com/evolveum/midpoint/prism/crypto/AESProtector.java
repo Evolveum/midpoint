@@ -428,5 +428,18 @@ public class AESProtector extends BaseProtector {
 
         throw new EncryptionException("Key '" + digest + "' is not in keystore.");
     }
+
+	@Override
+	public boolean compare(ProtectedStringType a, ProtectedStringType b) throws EncryptionException {
+		if (a == null && b == null) {
+			return true;
+		}
+		if (a == null || b == null) {
+			return false;
+		}
+		String aClear = decryptString(a);
+		String bClear = decryptString(b);
+		return aClear.equals(bClear);
+	}
     	
 }
