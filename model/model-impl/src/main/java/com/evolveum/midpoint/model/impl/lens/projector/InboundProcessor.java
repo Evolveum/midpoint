@@ -431,7 +431,7 @@ public class InboundProcessor {
         
     	if (triple != null) {
     		
-	        if (triple.getPlusSet() != null) {
+	        if (triple.hasPlusSet()) {
 
 				boolean alreadyReplaced = false;
 
@@ -457,7 +457,8 @@ public class InboundProcessor {
 	                }
 	            }
 	        }
-	        if (triple.getMinusSet() != null) {
+
+	        if (triple.hasMinusSet()) {
 	            LOGGER.trace("Checking account sync property delta values to delete");
 	            for (PrismPropertyValue<U> value : triple.getMinusSet()) {
 	

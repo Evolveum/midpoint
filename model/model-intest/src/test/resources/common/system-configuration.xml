@@ -139,4 +139,7 @@
             <redirectToFile>target/mail-notifications.log</redirectToFile>
         </mail>
     </notificationConfiguration>
+    <internals>
+        <maxModelClicks>30</maxModelClicks>     <!-- especially for TestIteration.test235 to prevent long test run in case of failure -->
+    </internals>
 </systemConfiguration>

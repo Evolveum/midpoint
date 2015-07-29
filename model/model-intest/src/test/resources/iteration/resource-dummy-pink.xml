@@ -45,12 +45,13 @@
 	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 					   
 		<icfc:configurationProperties>
-			<icfi:instanceId>pink</icfi:instanceId> <!-- Default instance. -->
+			<icfi:instanceId>pink</icfi:instanceId>
 			<icfi:requireExplicitEnable>true</icfi:requireExplicitEnable>
 			<icfi:caseIgnoreId>true</icfi:caseIgnoreId>
 			<icfi:uselessGuardedString>
 				<clearValue>whatever</clearValue>
 			</icfi:uselessGuardedString>
+			<icfi:forbiddenNames>hacker</icfi:forbiddenNames>
 		</icfc:configurationProperties>
 
 	</connectorConfiguration>

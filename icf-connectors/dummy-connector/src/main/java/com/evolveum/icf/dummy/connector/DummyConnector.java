@@ -165,6 +165,11 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
         resource.setGenerateDefaultValues(this.configuration.isGenerateDefaultValues());
 		resource.setGenerateAccountDescriptionOnCreate(this.configuration.getGenerateAccountDescriptionOnCreate());
 		resource.setGenerateAccountDescriptionOnUpdate(this.configuration.getGenerateAccountDescriptionOnUpdate());
+		if (this.configuration.getForbiddenNames().length > 0) {
+			resource.setForbiddenNames(Arrays.asList(((DummyConfiguration) configuration).getForbiddenNames()));
+		} else {
+			resource.setForbiddenNames(null);
+		}
 
         resource.setUselessString(this.configuration.getUselessString());
         GuardedString uselessGuardedString = this.configuration.getUselessGuardedString();
