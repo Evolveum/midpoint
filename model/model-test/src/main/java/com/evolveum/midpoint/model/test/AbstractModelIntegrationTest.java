@@ -2298,7 +2298,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			return;
 		}
 		assertNotNull("No values for attribute "+attributeName+" of "+dummyInstanceName+" dummy account "+username, values);
-		assertEquals("Unexpected number of values for attribute " + attributeName + " of dummy account " + username + ": " + values, expectedAttributeValues.length, values.size());
+		assertEquals("Unexpected number of values for attribute " + attributeName + " of dummy account " + username + 
+				". Expected: " + Arrays.toString(expectedAttributeValues) + ", was: " + values, 
+				expectedAttributeValues.length, values.size());
 		for (Object expectedValue: expectedAttributeValues) {
 			if (!values.contains(expectedValue)) {
 				AssertJUnit.fail("Value '"+expectedValue+"' expected in attribute "+attributeName+" of dummy account "+username+

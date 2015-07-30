@@ -114,6 +114,10 @@
 				</inbound>
 			</attribute>
 			<attribute>
+				<ref>ri:title</ref>
+				<tolerant>false</tolerant>
+			</attribute>
+			<attribute>
 				<ref>ri:location</ref>
 				<displayName>Location</displayName>
 				<outbound>

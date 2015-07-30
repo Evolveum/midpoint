@@ -499,8 +499,8 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertNoGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
         
-        assertNoDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Bloody Pirate");
 	}
     
     @Test
@@ -530,7 +530,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
         
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Swashbuckler");
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Bloody Pirate", "Swashbuckler");
 	}
     
     @Test
@@ -559,8 +559,8 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertNoGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
         
-        assertNoDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Bloody Pirate");
 	}
     
     /**
@@ -602,8 +602,8 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertNoGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
         
-        assertNoDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Bloody Pirate");
 	}
     
     @Test
@@ -635,7 +635,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
         
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Swashbuckler");
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Bloody Pirate", "Swashbuckler");
 	}
     
     @Test
@@ -665,7 +665,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
         
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Swashbuckler");
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Bloody Pirate", "Swashbuckler");
 	}
     
     @Test
@@ -696,7 +696,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertNoGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
         
-        assertNoDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Bloody Pirate");
 	}
 }

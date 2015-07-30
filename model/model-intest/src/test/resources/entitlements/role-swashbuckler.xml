@@ -28,6 +28,7 @@
     		<attribute>
                 <ref>ri:title</ref>
                 <outbound>
+                	<strength>strong</strength>
                 	<expression>
 						<value>Swashbuckler</value>
 					</expression>
