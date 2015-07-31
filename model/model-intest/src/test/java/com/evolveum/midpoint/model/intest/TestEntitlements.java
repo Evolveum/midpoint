@@ -500,6 +500,10 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertNoGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
         
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
+
+        
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Bloody Pirate");
 	}
     
@@ -530,6 +534,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
         
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum", "grog");
+        
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Bloody Pirate", "Swashbuckler");
 	}
     
@@ -558,6 +565,10 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION, 
         		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertNoGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
+        
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
+
         
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Bloody Pirate");
@@ -601,6 +612,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION, 
         		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertNoGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
+
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
         
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Bloody Pirate");
@@ -635,6 +649,10 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
         
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum", "grog");
+
+        
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Bloody Pirate", "Swashbuckler");
 	}
     
@@ -663,6 +681,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION, 
         		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
+
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum", "grog");
         
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Bloody Pirate", "Swashbuckler");
@@ -696,7 +717,12 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertNoGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
         
+        // Drink is non-tolerant. Reconcile will remove the value.
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Bloody Pirate");
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
+        
+        // Title is tolerant. Reconcile will not remove the value.
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Bloody Pirate", "Swashbuckler");
 	}
 }

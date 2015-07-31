@@ -27,27 +27,27 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author semancik
  *
  */
-public class Test389DsLocalhost extends Abstract389DsTest {
+public class Test389DsBacchus extends Abstract389DsTest {
 
 	
 	@Override
 	protected File getResourceFile() {
-		return new File(getBaseDir(), "resource-localhost.xml");
+		return new File(getBaseDir(), "resource-bacchus.xml");
 	}
 
 	@Override
 	public String getStartSystemCommand() {
-		return null;
+		return getScriptDirectoryName()+"/389ds-bacchus-start";
 	}
 
 	@Override
 	public String getStopSystemCommand() {
-		return null;
+		return getScriptDirectoryName()+"/389ds-bacchus-stop";
 	}
 	
 	@Override
 	protected String getLdapServerHost() {
-		return "localhost";
+		return "bacchus.lab.evolveum.com";
 	}
 
 }
