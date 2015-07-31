@@ -107,7 +107,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 	private PrismContext prismContext;
 	private PrismContainerDefinition<ShadowAssociationType> associationContainerDefinition;
 	private PrismObject<SystemConfigurationType> systemConfiguration;		// only to provide $configuration variable (MID-2372)
-	private boolean isValid;
+	private boolean isValid = true;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(Construction.class);
 	
