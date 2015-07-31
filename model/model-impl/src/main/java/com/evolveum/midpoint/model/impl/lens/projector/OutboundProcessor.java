@@ -119,7 +119,6 @@ public class OutboundProcessor {
         ObjectDeltaObject<ShadowType> projectionOdo = projCtx.getObjectDeltaObject();
         
         Construction<F> outboundConstruction = new Construction<>(null, projCtx.getResource());
-        outboundConstruction.setValid(true);
         outboundConstruction.setRefinedObjectClassDefinition(rOcDef);
         
         Collection<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions = rOcDef.getAuxiliaryObjectClassDefinitions();
