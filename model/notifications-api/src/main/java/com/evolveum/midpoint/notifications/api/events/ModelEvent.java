@@ -162,7 +162,7 @@ public class ModelEvent extends BaseEvent {
     }
 
     public boolean hasFocusOfType(Class<? extends FocusType> clazz) {
-        return clazz.isAssignableFrom(getFocusContext().getObjectTypeClass());
+        return getFocusContext() != null && clazz.isAssignableFrom(getFocusContext().getObjectTypeClass());
     }
 
     public boolean hasFocusOfType(QName focusType) {
