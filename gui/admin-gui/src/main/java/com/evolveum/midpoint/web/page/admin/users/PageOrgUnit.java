@@ -582,7 +582,9 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 
         //We are creating new OrgUnit
         if(parentOrgList == null){
-            if(parentOrgUnitsModel != null && parentOrgUnitsModel.getObject() != null){
+            if(parentOrgUnitsModel != null && parentOrgUnitsModel.getObject() != null){       // this should be always the case
+                // parentOrgRef in org is not relevant anymore, so delete it
+                org.asObjectable().getParentOrgRef().clear();
                 for (OrgType parent : parentOrgUnitsModel.getObject()) {
                     if (parent != null && WebMiscUtil.getName(parent) != null && !WebMiscUtil.getName(parent).isEmpty()) {
                         ObjectReferenceType ref = new ObjectReferenceType();

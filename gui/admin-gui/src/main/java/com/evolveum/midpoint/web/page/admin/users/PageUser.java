@@ -1206,10 +1206,11 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         PrismContainerDefinition assignmentDef = userDef.findContainerDefinition(UserType.F_ASSIGNMENT);
 
         // handle added assignments
+        // existing user assignments are not relevant -> delete them
+        userType.getAssignment().clear();
         List<AssignmentEditorDto> assignments = assignmentsModel.getObject();
         for (AssignmentEditorDto assDto : assignments) {
-            if (!UserDtoStatus.ADD.equals(assDto.getStatus())) {
-                warn(getString("pageUser.message.illegalAssignmentState", assDto.getStatus()));
+            if (UserDtoStatus.DELETE.equals(assDto.getStatus())) {
                 continue;
             }
 
