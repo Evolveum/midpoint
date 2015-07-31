@@ -304,7 +304,7 @@ public class Projector {
 	        
 	        if (consistencyChecks) context.checkConsistence();
 	        
-	        recordSuccess(now, result);
+	        computeResultStatus(now, result);
 	        
 		} catch (SchemaException e) {
 			recordFatalError(e, now, result);
@@ -378,17 +378,17 @@ public class Projector {
 		if (LOGGER.isDebugEnabled()) {
 			long projectoStartTimestamp = XmlTypeConverter.toMillis(projectoStartTimestampCal);
 	    	long projectorEndTimestamp = clock.currentTimeMillis();
-			LOGGER.debug("Projector failed: {}, etime: {} ms", e.getMessage(), (projectorEndTimestamp - projectoStartTimestamp));
+			LOGGER.debug("Projector failed: {}. Etime: {} ms", e.getMessage(), (projectorEndTimestamp - projectoStartTimestamp));
 		}
 	}
 	
-	private void recordSuccess(XMLGregorianCalendar projectoStartTimestampCal, OperationResult result) {
-        result.recordSuccess();
+	private void computeResultStatus(XMLGregorianCalendar projectoStartTimestampCal, OperationResult result) {
+        result.computeStatus();
         result.cleanupResult();
         if (LOGGER.isDebugEnabled()) {
         	long projectoStartTimestamp = XmlTypeConverter.toMillis(projectoStartTimestampCal);
         	long projectorEndTimestamp = clock.currentTimeMillis();
-        	LOGGER.trace("Projector successful, etime: {} ms", (projectorEndTimestamp - projectoStartTimestamp));
+        	LOGGER.trace("Projector finished ({}). Etime: {} ms", result.getStatus(), (projectorEndTimestamp - projectoStartTimestamp));
         }
 	}
 

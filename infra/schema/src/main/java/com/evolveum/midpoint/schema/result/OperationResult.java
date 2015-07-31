@@ -766,6 +766,10 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		return message;
 	}
 
+	public void setMessage(String message) {
+		this.message = message;
+	}
+
 	/**
 	 * @return Method returns message key for translation, can be null.
 	 */

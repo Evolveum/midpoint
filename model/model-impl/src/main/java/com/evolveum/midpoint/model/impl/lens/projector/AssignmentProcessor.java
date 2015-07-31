@@ -88,6 +88,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -166,7 +167,7 @@ public class AssignmentProcessor {
      * Generic method for all projection types (theoretically). 
      */
     public <O extends ObjectType> void processAssignmentsProjections(LensContext<O> context, XMLGregorianCalendar now,
-            Task task, OperationResult result) throws SchemaException,
+            Task task, OperationResult parentResult) throws SchemaException,
             ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	LensFocusContext<O> focusContext = context.getFocusContext();
     	if (focusContext == null) {
@@ -180,7 +181,33 @@ public class AssignmentProcessor {
 //    		//do not execute assignment if the execution was triggered by compensation mechanism and limitPropagation is set
 //    		return;
 //    	}
-    	processAssignmentsProjectionsWithFocus((LensContext<? extends FocusType>)context, now, task, result);
+    	
+    	OperationResult result = parentResult.createSubresult(AssignmentProcessor.class.getName() + ".processAssignmentsProjections");
+    	
+    	try {
+    		processAssignmentsProjectionsWithFocus((LensContext<? extends FocusType>)context, now, task, result);
+    	} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | PolicyViolationException | 
+    			CommunicationException | ConfigurationException | SecurityViolationException e) {
+    		result.recordFatalError(e);
+    		throw e;
+    	}
+    	
+    	OperationResultStatus finalStatus = OperationResultStatus.SUCCESS;
+    	String message = null;
+    	int errors = 0;
+    	for (OperationResult subresult: result.getSubresults()) {
+    		if (subresult.isError()) {
+    			errors++;
+    			if (message == null) {
+    				message = subresult.getMessage();
+    			} else {
+    				message = errors + " errors";
+    			}
+    			finalStatus = OperationResultStatus.PARTIAL_ERROR;
+    		}
+    	}
+		result.setStatus(finalStatus);
+		result.setMessage(message);
     }
     
     /**
@@ -980,23 +1007,27 @@ public class AssignmentProcessor {
 	
 	private <F extends FocusType> EvaluatedAssignmentImpl<F> evaluateAssignment(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
 			boolean evaluateOld, LensContext<F> context, ObjectType source, AssignmentEvaluator<F> assignmentEvaluator, 
-			String assignmentPlacementDesc, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
+			String assignmentPlacementDesc, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
+		OperationResult result = parentResult.createSubresult(AssignmentProcessor.class+".evaluateAssignment");
+		result.addParam("assignmentDescription", assignmentPlacementDesc);
         try{
         	// Evaluate assignment. This follows to the assignment targets, follows to the inducements, 
         	// evaluates all the expressions, etc. 
         	EvaluatedAssignmentImpl<F> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, evaluateOld, source, assignmentPlacementDesc, task, result);
         	context.rememberResources(evaluatedAssignment.getResources(result));
+        	result.recordSuccess();
         	return evaluatedAssignment;
-        } catch (ObjectNotFoundException ex){
+        } catch (ObjectNotFoundException ex) {
         	if (LOGGER.isTraceEnabled()) {
             	LOGGER.trace("Processing of assignment resulted in error {}: {}", ex, SchemaDebugUtil.prettyPrint(LensUtil.getAssignmentType(assignmentIdi, evaluateOld)));
             }
-        	if (ModelExecuteOptions.isForce(context.getOptions())){
+        	if (ModelExecuteOptions.isForce(context.getOptions())) {
+        		result.recordHandledError(ex);
         		return null;
-        	} 
+        	}
         	ModelUtils.recordFatalError(result, ex);
         	return null;
-        } catch (SchemaException ex){
+        } catch (SchemaException ex) {
         	AssignmentType assignmentType = LensUtil.getAssignmentType(assignmentIdi, evaluateOld);
         	if (LOGGER.isTraceEnabled()) {
             	LOGGER.trace("Processing of assignment resulted in error {}: {}", ex, SchemaDebugUtil.prettyPrint(assignmentType));
@@ -1014,6 +1045,9 @@ public class AssignmentProcessor {
 				accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
 			}
         	return null;
+        } catch (ExpressionEvaluationException | PolicyViolationException e) {
+        	result.recordFatalError(e);
+        	throw e;
         }
 	}
 
