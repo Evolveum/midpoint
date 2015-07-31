@@ -589,7 +589,7 @@ public class TestProjector extends AbstractLensTest {
         assertNotNull("No account secondary delta", accountSecondaryDelta);
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
         // There is a lot of changes caused by the reconciliation. But we are only interested in the new one
-        assertEquals("Unexpected number of account secondary changes", 4, accountSecondaryDelta.getModifications().size());
+        assertEquals("Unexpected number of account secondary changes", 3, accountSecondaryDelta.getModifications().size());
         PrismAsserts.assertPropertyAdd(accountSecondaryDelta, 
         		dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME),
         		"Pirate of Caribbean");
