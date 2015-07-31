@@ -616,9 +616,9 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         display(result);
         if (expectAccount) {
-        	TestUtil.assertResultStatus(result, OperationResultStatus.HANDLED_ERROR);
+        	TestUtil.assertResultStatus(result, OperationResultStatus.PARTIAL_ERROR);
         } else {
-        	TestUtil.assertStatus(result, OperationResultStatus.HANDLED_ERROR);
+        	TestUtil.assertStatus(result, OperationResultStatus.PARTIAL_ERROR);
 //        	TestUtil.assertPartialError(result);
         }
         
@@ -654,9 +654,13 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         result.computeStatus();
+        display(result);
 		// there is a failure while reading dummy account - it was not created
 		// because of unavailability of the resource..but it is OK..
-        TestUtil.assertSuccess(result, 2);
+        OperationResultStatus status = result.getStatus();
+        if (status != OperationResultStatus.SUCCESS && status != OperationResultStatus.PARTIAL_ERROR) {
+        	AssertJUnit.fail("Expected result success or partial error status, but was "+status);
+        }
         
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertAssignedNoRole(user);
@@ -1567,7 +1571,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         // Inner errors are expected
-        TestUtil.assertSuccess(result);
+        TestUtil.assertPartialError(result);
         
         PrismObject<UserType> userAfter = getUser(userBefore.getOid());
 		display("User after fight", userAfter);
@@ -1689,7 +1693,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertExecutionDeltas(2,2);
         dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertHasDelta(1,ChangeType.DELETE, ShadowType.class);
-        dummyAuditService.assertExecutionSuccess();        
+        dummyAuditService.assertExecutionOutcome(OperationResultStatus.PARTIAL_ERROR);
 	}
     
     @Test
@@ -1727,7 +1731,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         // Inner errors are expected
-        TestUtil.assertSuccess(result);
+        TestUtil.assertPartialError(result);
         
         PrismObject<UserType> userAfter = getUser(userBefore.getOid());
 		display("User after fight", userAfter);

@@ -115,7 +115,7 @@
 			</attribute>
 			<attribute>
 				<ref>ri:title</ref>
-				<tolerant>false</tolerant>
+				<tolerant>true</tolerant>
 			</attribute>
 			<attribute>
 				<ref>ri:location</ref>
