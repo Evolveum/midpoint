@@ -33,6 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -187,4 +188,8 @@ public class ModelEvent extends BaseEvent {
         return containsItem(getFocusDeltas(), itemPath);
     }
 
+    @Override
+    public boolean isUserRelated() {
+        return hasFocusOfType(UserType.class);
+    }
 }
