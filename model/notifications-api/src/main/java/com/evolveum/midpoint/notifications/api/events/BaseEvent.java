@@ -86,7 +86,7 @@ public abstract class BaseEvent implements Event {
     }
 
     public boolean isUserRelated() {
-        return isCategoryType(EventCategoryType.MODEL_EVENT);
+        return false;             // overriden in ModelEvent
     }
 
     public boolean isWorkItemRelated() {
