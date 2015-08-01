@@ -200,7 +200,7 @@ public class ReconciliationProcessor {
 				.getValue().getPropertyNames());
 
 		for (QName attrName : attributeNames) {
-			// LOGGER.trace("Attribute reconciliation processing attribute {}",attrName);
+//			LOGGER.trace("Attribute reconciliation processing attribute {}",attrName);
 			RefinedAttributeDefinition attributeDefinition = projCtx.findAttributeDefinition(attrName);
 			if (attributeDefinition == null) {
 				throw new SchemaException("No definition for attribute " + attrName + " in "
@@ -261,15 +261,18 @@ public class ReconciliationProcessor {
 //				StringBuilder sb = new StringBuilder();
 //				sb.append("Reconciliation\nATTR: ").append(PrettyPrinter.prettyPrint(attrName));
 //				sb.append("\n  Should be:");
-//				for (ItemValueWithOrigin<? extends PrismPropertyValue<?>> shouldBePValue : shouldBePValues) {
+//				for (ItemValueWithOrigin<?,?> shouldBePValue : shouldBePValues) {
 //					sb.append("\n    ");
-//					sb.append(shouldBePValue.getPropertyValue());
-//					Mapping<?> shouldBeMapping = shouldBePValue.getMapping();
+//					sb.append(shouldBePValue.getItemValue());
+//					PrismValueDeltaSetTripleProducer<?, ?> shouldBeMapping = shouldBePValue.getMapping();
 //					if (shouldBeMapping.getStrength() == MappingStrengthType.STRONG) {
 //						sb.append(" STRONG");
 //					}
 //					if (shouldBeMapping.getStrength() == MappingStrengthType.WEAK) {
 //						sb.append(" WEAK");
+//					}
+//					if (!shouldBePValue.isValid()) {
+//						sb.append(" INVALID");
 //					}
 //				}
 //				sb.append("\n  Is:");
@@ -280,7 +283,6 @@ public class ReconciliationProcessor {
 //				LOGGER.trace("{}", sb.toString());	
 //			}
 			 
-
 			ValueMatcher<?> valueMatcher = ValueMatcher.createMatcher(attributeDefinition,
 					matchingRuleRegistry);
 
@@ -298,7 +300,7 @@ public class ReconciliationProcessor {
 					// changed directly on the projection resource object
 					continue;
 				}
-				Object shouldBeRealValue = shouldBePvwo.getPropertyValue().getValue();
+				Object shouldBeRealValue = shouldBePvwo.getItemValue().getValue();
 				if (!isInValues(valueMatcher, shouldBeRealValue, arePValues)) {
 					if (attributeDefinition.isSingleValue()) {
 						if (hasValue) {
@@ -415,28 +417,31 @@ public class ReconciliationProcessor {
             }
 
             // todo comment this logging code out eventually
-			if (LOGGER.isTraceEnabled()) {
-				StringBuilder sb = new StringBuilder();
-				sb.append("Reconciliation\nASSOCIATION: ").append(PrettyPrinter.prettyPrint(assocName));
-				sb.append("\n  Should be:");
-				for (ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> shouldBeCValue : shouldBeCValues) {
-					sb.append("\n    ");
-					sb.append(shouldBeCValue.getItemValue());
-					PrismValueDeltaSetTripleProducer<?,?> shouldBeMapping = shouldBeCValue.getMapping();
-					if (shouldBeMapping.getStrength() == MappingStrengthType.STRONG) {
-						sb.append(" STRONG");
-					}
-					if (shouldBeMapping.getStrength() == MappingStrengthType.WEAK) {
-						sb.append(" WEAK");
-					}
-				}
-				sb.append("\n  Is:");
-				for (PrismContainerValue<ShadowAssociationType> isCVal : areCValues) {
-					sb.append("\n    ");
-					sb.append(isCVal);
-				}
-				LOGGER.trace("{}", sb.toString());
-			}
+//			if (LOGGER.isTraceEnabled()) {
+//				StringBuilder sb = new StringBuilder();
+//				sb.append("Reconciliation\nASSOCIATION: ").append(PrettyPrinter.prettyPrint(assocName));
+//				sb.append("\n  Should be:");
+//				for (ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> shouldBeCValue : shouldBeCValues) {
+//					sb.append("\n    ");
+//					sb.append(shouldBeCValue.getItemValue());
+//					PrismValueDeltaSetTripleProducer<?,?> shouldBeMapping = shouldBeCValue.getMapping();
+//					if (shouldBeMapping.getStrength() == MappingStrengthType.STRONG) {
+//						sb.append(" STRONG");
+//					}
+//					if (shouldBeMapping.getStrength() == MappingStrengthType.WEAK) {
+//						sb.append(" WEAK");
+//					}
+//					if (!shouldBeCValue.isValid()) {
+//						sb.append(" INVALID");
+//					}
+//				}
+//				sb.append("\n  Is:");
+//				for (PrismContainerValue<ShadowAssociationType> isCVal : areCValues) {
+//					sb.append("\n    ");
+//					sb.append(isCVal);
+//				}
+//				LOGGER.trace("{}", sb.toString());
+//			}
 
             ValueMatcher associationValueMatcher = new ValueMatcher(null) {
                 // todo is this correct? [med]
@@ -507,7 +512,7 @@ public class ReconciliationProcessor {
                     continue;
                 }
                 ShadowAssociationType shouldBeRealValue = shouldBeCvwo.getItemValue().getValue();
-                if (!isInAssociationValues(associationValueMatcher, shouldBeRealValue, areCValues)) {
+                if (shouldBeCvwo.isValid() && !isInAssociationValues(associationValueMatcher, shouldBeRealValue, areCValues)) {
                     recordAssociationDelta(associationValueMatcher, projCtx, associationDefinition, ModificationType.ADD, shouldBeRealValue,
                             shouldBeCvwo.getConstruction().getSource());
                 }
@@ -517,7 +522,7 @@ public class ReconciliationProcessor {
         }
     }
 
-    private void decideIfTolerate(LensProjectionContext accCtx,
+	private void decideIfTolerate(LensProjectionContext accCtx,
 			RefinedAttributeDefinition attributeDefinition,
 			Collection<PrismPropertyValue<Object>> arePValues,
 			Collection<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>> shouldBePValues,
@@ -715,14 +720,14 @@ public class ReconciliationProcessor {
 		}
 
 		for (ItemValueWithOrigin<? extends PrismPropertyValue<?>,PrismPropertyDefinition<?>> shouldBePvwo : shouldBePvwos) {
+			if (!shouldBePvwo.isValid()) {
+        		continue;
+        	}
 			PrismPropertyValue<?> shouldBePPValue = shouldBePvwo.getPropertyValue();
 			Object shouldBeValue = shouldBePPValue.getValue();
 			if (valueMatcher.match(value, shouldBeValue)) {
 				return true;
 			}
-			// if (shouldBeValue.equals(value)) {
-			// return true;
-			// }
 		}
 		return false;
 	}
@@ -735,6 +740,9 @@ public class ReconciliationProcessor {
         }
 
         for (ItemValueWithOrigin<? extends PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> shouldBeCvwo : shouldBeCvwos) {
+        	if (!shouldBeCvwo.isValid()) {
+        		continue;
+        	}
             PrismContainerValue<ShadowAssociationType> shouldBePCValue = shouldBeCvwo.getItemValue();
             ShadowAssociationType shouldBeValue = shouldBePCValue.getValue();
             if (valueMatcher.match(value, shouldBeValue)) {

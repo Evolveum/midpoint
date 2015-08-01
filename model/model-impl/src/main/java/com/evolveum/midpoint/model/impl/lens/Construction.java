@@ -107,6 +107,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 	private PrismContext prismContext;
 	private PrismContainerDefinition<ShadowAssociationType> associationContainerDefinition;
 	private PrismObject<SystemConfigurationType> systemConfiguration;		// only to provide $configuration variable (MID-2372)
+	private boolean isValid = true;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(Construction.class);
 	
@@ -231,6 +232,14 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		return constructionType.getDescription();
 	}
 	
+	public boolean isValid() {
+		return isValid;
+	}
+
+	public void setValid(boolean isValid) {
+		this.isValid = isValid;
+	}
+
 	public Collection<Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>>> getAttributeMappings() {
 		if (attributeMappings == null) {
 			attributeMappings = new ArrayList<>();
@@ -616,6 +625,8 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		} else {
 			sb.append(refinedObjectClassDefinition.getShadowDiscriminator());
 		}
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "isValid", isValid, indent + 1);
 		sb.append("\n");
 		DebugUtil.debugDumpLabel(sb, "auxiliary object classes", indent + 1);
 		if (auxiliaryObjectClassDefinitions == null) {

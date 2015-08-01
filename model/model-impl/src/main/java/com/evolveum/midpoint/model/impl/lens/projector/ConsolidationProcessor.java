@@ -828,10 +828,10 @@ public class ConsolidationProcessor {
 
 	private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> void convertSqueezeSet(Collection<V> fromSet,
 			Collection<ItemValueWithOrigin<V,D>> toSet,
-			PrismValueDeltaSetTripleProducer<V, D> valueConstruction, Construction<F> accountConstruction) {
+			PrismValueDeltaSetTripleProducer<V, D> mapping, Construction<F> construction) {
 		if (fromSet != null) {
 			for (V from: fromSet) {
-				ItemValueWithOrigin<V,D> pvwo = new ItemValueWithOrigin<V,D>(from, valueConstruction, accountConstruction);
+				ItemValueWithOrigin<V,D> pvwo = new ItemValueWithOrigin<V,D>(from, mapping, construction);
 				toSet.add(pvwo);
 			}
 		}

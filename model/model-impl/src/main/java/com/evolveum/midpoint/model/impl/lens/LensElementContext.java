@@ -59,7 +59,6 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     private transient PrismObject<O> objectCurrent;
 	private PrismObject<O> objectNew;
 	private ObjectDelta<O> primaryDelta;
-	private ObjectDelta<O> secondaryDelta;
 	private List<LensObjectDeltaOperation<O>> executedDeltas = new ArrayList<LensObjectDeltaOperation<O>>();
 	private Class<O> objectTypeClass;
 	private String oid = null;
@@ -226,24 +225,6 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         }
     }
 	
-	@Override
-	public ObjectDelta<O> getSecondaryDelta() {
-		return secondaryDelta;
-	}
-
-	@Override
-	public void setSecondaryDelta(ObjectDelta<O> secondaryDelta) {
-		this.secondaryDelta = secondaryDelta;
-	}
-	
-	public void addSecondaryDelta(ObjectDelta<O> delta) throws SchemaException {
-        if (secondaryDelta == null) {
-        	secondaryDelta = delta;
-        } else {
-        	secondaryDelta.merge(delta);
-        }
-    }
-	
 	public void swallowToPrimaryDelta(ItemDelta<?,?> itemDelta) throws SchemaException {
         if (primaryDelta == null) {
         	primaryDelta = new ObjectDelta<O>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());
@@ -252,14 +233,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         primaryDelta.swallow(itemDelta);
     }
 	
-	public void swallowToSecondaryDelta(ItemDelta<?,?> itemDelta) throws SchemaException {
-        if (secondaryDelta == null) {
-            secondaryDelta = new ObjectDelta<O>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());
-            secondaryDelta.setOid(oid);
-        }
-        secondaryDelta.swallow(itemDelta);
-    }
-	
+	public abstract void swallowToSecondaryDelta(ItemDelta<?,?> itemDelta) throws SchemaException;
+
 	public boolean isAdd() {
 		if (ObjectDelta.isAdd(getPrimaryDelta())) {
 			return true;
@@ -369,9 +344,6 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         if (primaryDelta != null) {
             primaryDelta.setOid(oid);
         }
-        if (secondaryDelta != null) {
-            secondaryDelta.setOid(oid);
-        }
         if (objectNew != null) {
         	objectNew.setOid(oid);
         }
@@ -414,15 +386,15 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         objectNew = delta.computeChangedObject(base);
     }
 	
-	/**
-	 * Make the context as clean as new. Except for the executed deltas and other "traces" of
-	 * what was already done and cannot be undone. Also the configuration items that were loaded may remain.
-	 * This is used to restart the context computation but keep the trace of what was already done.
-	 */
-	public void reset() {
-		secondaryDelta = null;
-		isFresh = false;
-	}
+//	/**
+//	 * Make the context as clean as new. Except for the executed deltas and other "traces" of
+//	 * what was already done and cannot be undone. Also the configuration items that were loaded may remain.
+//	 * This is used to restart the context computation but keep the trace of what was already done.
+//	 */
+//	public void reset() {
+//		secondaryDelta = null;
+//		isFresh = false;
+//	}
 
     public void checkConsistence() {
     	checkConsistence(null);
@@ -438,17 +410,12 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     	if (primaryDelta != null) {
     		checkConsistence(primaryDelta, false, getElementDesc()+" primary delta in "+this + (contextDesc == null ? "" : " in " +contextDesc));
     	}
-    	if (secondaryDelta != null) {
-    		boolean requireOid = isRequireSecondardyDeltaOid();
-    		// Secondary delta may not have OID yet (as it may relate to ADD primary delta that doesn't have OID yet)
-    		checkConsistence(secondaryDelta, requireOid, getElementDesc()+" secondary delta in "+this + (contextDesc == null ? "" : " in " +contextDesc));
-    	}
     	if (getObjectNew() != null) {
     		checkConsistence(getObjectNew(), "new "+getElementDesc(), contextDesc);
     	}
 	}
 	
-	private void checkConsistence(ObjectDelta<O> delta, boolean requireOid, String contextDesc) {
+	protected void checkConsistence(ObjectDelta<O> delta, boolean requireOid, String contextDesc) {
 		try {
 			delta.checkConsistence(requireOid, true, true, ConsistencyCheckScope.THOROUGH);
 		} catch (IllegalArgumentException e) {
@@ -484,13 +451,10 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     }
 	
 	/**
-	 * Cleans up the contexts by removing secondary deltas and other working state. The context after cleanup
-	 * should be the same as originally requested.
+	 * Cleans up the contexts by removing some of the working state.
 	 */
-	public void cleanup() {
-		secondaryDelta = null;
-	}
-	
+	public abstract void cleanup();
+
 	public void normalize() {
 		if (objectNew != null) {
 			objectNew.normalize();
@@ -503,9 +467,6 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		}
 		if (primaryDelta != null) {
 			primaryDelta.normalize();
-		}
-		if (secondaryDelta != null) {
-			secondaryDelta.normalize();
 		}
 	}
 	
@@ -522,9 +483,6 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		if (primaryDelta != null) {
 			prismContext.adopt(primaryDelta);
 		}
-		if (secondaryDelta != null) {
-			prismContext.adopt(secondaryDelta);
-		}
 		// TODO: object definition?
 	}
 	
@@ -540,13 +498,12 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		clone.objectTypeClass = this.objectTypeClass;
 		clone.oid = this.oid;
 		clone.primaryDelta = cloneDelta(this.primaryDelta);
-		clone.secondaryDelta = cloneDelta(this.secondaryDelta);
 		clone.isFresh = this.isFresh;
 		clone.iteration = this.iteration;
 		clone.iterationToken = this.iterationToken;
 	}
 	
-	private ObjectDelta<O> cloneDelta(ObjectDelta<O> thisDelta) {
+	protected ObjectDelta<O> cloneDelta(ObjectDelta<O> thisDelta) {
 		if (thisDelta == null) {
 			return null;
 		}
@@ -564,7 +521,6 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         lensElementContextType.setObjectOld(objectOld != null ? objectOld.asObjectable() : null);
         lensElementContextType.setObjectNew(objectNew != null ? objectNew.asObjectable() : null);
         lensElementContextType.setPrimaryDelta(primaryDelta != null ? DeltaConvertor.toObjectDeltaType(primaryDelta) : null);
-        lensElementContextType.setSecondaryDelta(secondaryDelta != null ? DeltaConvertor.toObjectDeltaType(secondaryDelta) : null);
         for (LensObjectDeltaOperation executedDelta : executedDeltas) {
             lensElementContextType.getExecutedDeltas().add(executedDelta.toLensObjectDeltaOperationType());
         }
@@ -590,10 +546,6 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         ObjectDeltaType primaryDeltaType = lensElementContextType.getPrimaryDelta();
         this.primaryDelta = primaryDeltaType != null ? (ObjectDelta) DeltaConvertor.createObjectDelta(primaryDeltaType, lensContext.getPrismContext()) : null;
         fixProvisioningTypeInDelta(this.primaryDelta, object, result);
-
-        ObjectDeltaType secondaryDeltaType = lensElementContextType.getSecondaryDelta();
-        this.secondaryDelta = secondaryDeltaType != null ? (ObjectDelta) DeltaConvertor.createObjectDelta(secondaryDeltaType, lensContext.getPrismContext()) : null;
-        fixProvisioningTypeInDelta(this.secondaryDelta, object, result);
 
         for (LensObjectDeltaOperationType eDeltaOperationType : lensElementContextType.getExecutedDeltas()) {
             LensObjectDeltaOperation objectDeltaOperation = LensObjectDeltaOperation.fromLensObjectDeltaOperationType(eDeltaOperationType, lensContext.getPrismContext());
@@ -636,9 +588,6 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		}
 		if (primaryDelta != null) {
 			CryptoUtil.checkEncrypted(primaryDelta);
-		}
-		if (secondaryDelta != null) {
-			CryptoUtil.checkEncrypted(secondaryDelta);
 		}
 	}
     

@@ -45,7 +45,7 @@
             <association>
                 <c:ref>ri:group</c:ref>
                 <outbound>
-                    <strength>strong</strength>
+                    <strength>normal</strength>
                     <expression>
                         <associationFromLink>
                             <projectionDiscriminator>

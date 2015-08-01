@@ -168,10 +168,10 @@ public class PageAdmin extends PageBase {
     }
 
     private MenuBarItem createReportsItems() {
-        MenuBarItem reports = new MenuBarItem(createStringResource("PageAdmin.menu.top.reports"), null);
-        reports.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.reports.new"), PageNewReport.class));
+        MenuBarItem reports = new MenuBarItem(createStringResource("PageAdmin.menu.top.reports"), null);        
         reports.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.reports.list"), PageReports.class));
         reports.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.reports.created"), PageCreatedReports.class));
+        reports.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.reports.new"), PageNewReport.class));
 
         return reports;
     }

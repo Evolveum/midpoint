@@ -366,12 +366,13 @@ public class ProjectionValuesProcessor {
 													conflictingAccountContext.setDoReconciliation(true);
 													conflictingAccountContext.getDependencies().clear();
 													conflictingAccountContext.getDependencies().addAll(projContext.getDependencies());
+													conflictingAccountContext.setWave(projContext.getWave());
 													conflictingAccountContexts.add(conflictingAccountContext);
 												}
 												
 												projContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
-												result.recordFatalError("Could not add account " + projContext.getObjectNew() + ", because the account with the same idenfitier already exists on the resource. ");
-												LOGGER.error("Could not add account {}, because the account with the same idenfitier already exists on the resource. ", projContext.getObjectNew());
+												result.recordFatalError("Could not add account " + projContext.getObjectNew() + ", because the account with the same identifier already exists on the resource. ");
+												LOGGER.error("Could not add account {}, because the account with the same identifier already exists on the resource. ", projContext.getObjectNew());
 												
 												skipUniquenessCheck = true; // to avoid endless loop
 							        			continue;

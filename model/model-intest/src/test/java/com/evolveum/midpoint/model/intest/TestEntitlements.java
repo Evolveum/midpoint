@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,6 +62,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -214,6 +215,34 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         display("User jack", user);
+        
+        assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
+        assertNotNull("No group on dummy resource", dummyGroup);
+        display("Group", dummyGroup);
+        assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION, 
+        		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
+        assertGroupMember(dummyGroup, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        assertGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
+	}
+    
+    @Test
+    public void test209UnAssignRoleSwashbucklerFromJack() throws Exception {
+		final String TEST_NAME = "test209UnAssignRoleSwashbucklerFromJack";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        unassignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
+        
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        display("User jack", user);
         // TODO: assert role assignment
         
         DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
@@ -222,7 +251,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION, 
         		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertGroupMember(dummyGroup, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
-        assertGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
+        
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
     
     /**
@@ -440,5 +471,258 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertNoGroupMember(dummyGroupAtOrange, USER_LARGO_USERNAME);
         // Orange resource has explicit referential integrity switched off 
         assertGroupMember(dummyGroupAtOrange, "newLargo");
+	}
+    
+    @Test
+    public void test600AssignRolePirateToJack() throws Exception {
+		final String TEST_NAME = "test600AssignRolePirateToJack";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        display("User jack", user);
+        
+        assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
+        assertNotNull("No group on dummy resource", dummyGroup);
+        display("Group", dummyGroup);
+        assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION, 
+        		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
+        assertNoGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
+        
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
+
+        
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Bloody Pirate");
+	}
+    
+    @Test
+    public void test610AssignRoleSwashbucklerToJack() throws Exception {
+		final String TEST_NAME = "test610AssignRoleSwashbucklerToJack";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        assignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
+        
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        display("User jack", user);
+        
+        assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
+        assertNotNull("No group on dummy resource", dummyGroup);
+        display("Group", dummyGroup);
+        assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION, 
+        		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
+        assertGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
+        
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum", "grog");
+        
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Bloody Pirate", "Swashbuckler");
+	}
+    
+    @Test
+    public void test620UnAssignSwashbucklerFromJack() throws Exception {
+		final String TEST_NAME = "test620UnAssignSwashbucklerFromJack";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        unassignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
+        
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        display("User jack", user);
+        
+        assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
+        assertNotNull("No group on dummy resource", dummyGroup);
+        display("Group", dummyGroup);
+        assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION, 
+        		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
+        assertNoGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
+        
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
+
+        
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Bloody Pirate");
+	}
+    
+    /**
+     * Assign role with entitlement. The assignment is not yet valid.
+     */
+    @Test
+    public void test630AssignRoleSwashbucklerToJackValidity() throws Exception {
+		final String TEST_NAME = "test630AssignRoleSwashbucklerToJackValidity";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ActivationType activationType = new ActivationType();
+        
+        XMLGregorianCalendar validFrom = clock.currentTimeXMLGregorianCalendar();
+        validFrom.add(XmlTypeConverter.createDuration(60*60*1000)); // one hour ahead
+        activationType.setValidFrom(validFrom);
+        
+        XMLGregorianCalendar validTo = clock.currentTimeXMLGregorianCalendar();
+        validTo.add(XmlTypeConverter.createDuration(3*60*60*1000)); // three hours ahead
+        activationType.setValidTo(validTo);
+        
+		// WHEN
+        assignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, activationType, task, result);
+        
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        display("User jack", user);
+        
+        assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
+        assertNotNull("No group on dummy resource", dummyGroup);
+        display("Group", dummyGroup);
+        assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION, 
+        		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
+        assertNoGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
+
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
+        
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Bloody Pirate");
+	}
+    
+    @Test
+    public void test640JackRoleSwashbucklerBecomesValid() throws Exception {
+		final String TEST_NAME = "test640JackRoleSwashbucklerBecomesValid";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        clock.overrideDuration("PT2H");
+        
+		// WHEN
+        recomputeUser(USER_JACK_OID, task, result);
+        
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        display("User jack", user);
+        
+        assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
+        assertNotNull("No group on dummy resource", dummyGroup);
+        display("Group", dummyGroup);
+        assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION, 
+        		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
+        assertGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
+        
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum", "grog");
+
+        
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Bloody Pirate", "Swashbuckler");
+	}
+    
+    @Test
+    public void test645JackRoleSwashbucklerIsValid() throws Exception {
+		final String TEST_NAME = "test645JackRoleSwashbucklerIsValid";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        recomputeUser(USER_JACK_OID, task, result);
+        
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        display("User jack", user);
+        
+        assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
+        assertNotNull("No group on dummy resource", dummyGroup);
+        display("Group", dummyGroup);
+        assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION, 
+        		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
+        assertGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
+
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum", "grog");
+        
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Bloody Pirate", "Swashbuckler");
+	}
+    
+    @Test
+    public void test650JackRoleSwashbucklerBecomesInvalid() throws Exception {
+		final String TEST_NAME = "test650JackRoleSwashbucklerBecomesInvalid";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        clock.overrideDuration("PT2H");
+        
+		// WHEN
+        recomputeUser(USER_JACK_OID, task, result);
+        
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        display("User jack", user);
+        
+        assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
+        assertNotNull("No group on dummy resource", dummyGroup);
+        display("Group", dummyGroup);
+        assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION, 
+        		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
+        assertNoGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
+        
+        // Drink is non-tolerant. Reconcile will remove the value.
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
+        
+        // Title is tolerant. Reconcile will not remove the value.
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Bloody Pirate", "Swashbuckler");
 	}
 }

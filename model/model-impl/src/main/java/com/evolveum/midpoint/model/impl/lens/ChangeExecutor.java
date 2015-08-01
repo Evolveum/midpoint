@@ -34,6 +34,7 @@ import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.impl.lens.projector.FocusConstraintsChecker;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -71,6 +72,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -220,6 +222,12 @@ public class ChangeExecutor {
         	if (!accCtx.isCanProject()){
         		continue;
         	}
+
+			// we should not get here, but just to be sure
+			if (accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
+				LOGGER.trace("Skipping ignored projection context {}", accCtx.toHumanReadableString());
+				continue;
+			}
         	
         	OperationResult subResult = result.createSubresult(OPERATION_EXECUTE_PROJECTION+"."+accCtx.getObjectTypeClass().getSimpleName());
         	subResult.addContext("discriminator", accCtx.getResourceShadowDiscriminator());
@@ -299,6 +307,15 @@ public class ChangeExecutor {
 				recordProjectionExecutionException(e, accCtx, subResult, SynchronizationPolicyDecision.BROKEN);
 				continue;
 			} catch (ObjectAlreadyExistsException e) {
+
+				// check if this is a repeated attempt - OAEE was not handled correctly, e.g. if creating "Users" user in AD, whereas
+				// "Users" is SAM Account Name which is used by a built-in group - in such case, mark the context as broken
+
+				if (isRepeatedAlreadyExistsException(accCtx)) {
+					recordProjectionExecutionException(e, accCtx, subResult, SynchronizationPolicyDecision.BROKEN);
+					continue;
+				}
+
 				// in his case we do not need to set account context as
 				// broken, instead we need to restart projector for this
 				// context to recompute new account or find out if the
@@ -337,6 +354,42 @@ public class ChangeExecutor {
 		return restartRequested;
 
     }
+
+	private <O extends ObjectType> boolean isRepeatedAlreadyExistsException(LensProjectionContext projContext) {
+		int deltas = projContext.getExecutedDeltas().size();
+		if (deltas < 2) {
+			return false;
+		}
+		LensObjectDeltaOperation<ShadowType> lastDeltaOp = projContext.getExecutedDeltas().get(deltas-1);
+		LensObjectDeltaOperation<ShadowType> previousDeltaOp = projContext.getExecutedDeltas().get(deltas-2);
+		// TODO check also previous execution result to see if it's AlreadyExistException?
+		ObjectDelta<ShadowType> lastDelta = lastDeltaOp.getObjectDelta();
+		ObjectDelta<ShadowType> previousDelta = previousDeltaOp.getObjectDelta();
+		if (lastDelta.isAdd() && previousDelta.isAdd()) {
+			return isEquivalentAddDelta(lastDelta.getObjectToAdd(), previousDelta.getObjectToAdd());
+		} else if (lastDelta.isModify() && previousDelta.isModify()) {
+			return isEquivalentModifyDelta(lastDelta.getModifications(), previousDelta.getModifications());
+		} else {
+			return false;
+		}
+	}
+
+	private boolean isEquivalentModifyDelta(Collection<? extends ItemDelta<?, ?>> modifications1, Collection<? extends ItemDelta<?, ?>> modifications2) {
+		Collection<? extends ItemDelta<?,?>> attrDeltas1 = ItemDelta.findItemDeltasSubPath(modifications1, new ItemPath(ShadowType.F_ATTRIBUTES));
+		Collection<? extends ItemDelta<?,?>> attrDeltas2 = ItemDelta.findItemDeltasSubPath(modifications2, new ItemPath(ShadowType.F_ATTRIBUTES));
+		return MiscUtil.unorderedCollectionEquals(attrDeltas1, attrDeltas2);
+	}
+
+	private boolean isEquivalentAddDelta(PrismObject<ShadowType> object1, PrismObject<ShadowType> object2) {
+		PrismContainer attributes1 = object1.findContainer(ShadowType.F_ATTRIBUTES);
+		PrismContainer attributes2 = object2.findContainer(ShadowType.F_ATTRIBUTES);
+		if (attributes1 == null || attributes2 == null || attributes1.size() != 1 || attributes2.size() != 1) {    // suspicious cases
+			return false;
+		}
+		return attributes1.getValue().equivalent(attributes2.getValue());
+	}
+
+
 
 	private <O extends ObjectType> void applyObjectPolicy(LensFocusContext<O> focusContext, ObjectDelta<O> focusDelta, 
 			ObjectPolicyConfigurationType objectPolicyConfigurationType) {

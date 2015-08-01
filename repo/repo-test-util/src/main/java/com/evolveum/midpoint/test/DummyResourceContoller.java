@@ -315,11 +315,12 @@ public class DummyResourceContoller extends AbstractResourceController {
 		
 	}
 
-	public void addAccount(String userId, String fullName) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException {
+	public DummyAccount addAccount(String userId, String fullName) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException {
 		DummyAccount account = new DummyAccount(userId);
 		account.setEnabled(true);
 		account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, fullName);
 		dummyResource.addAccount(account);
+		return account;
 	}
 
 	public void addAccount(String userId, String fullName, String location) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException {

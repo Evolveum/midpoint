@@ -114,6 +114,10 @@
 				</inbound>
 			</attribute>
 			<attribute>
+				<ref>ri:title</ref>
+				<tolerant>true</tolerant>
+			</attribute>
+			<attribute>
 				<ref>ri:location</ref>
 				<displayName>Location</displayName>
 				<outbound>
@@ -232,6 +236,7 @@
             
             <association>
             	<ref>ri:group</ref>
+            	<tolerant>false</tolerant>
             	<kind>entitlement</kind>
             	<intent>group</intent>
             	<direction>objectToSubject</direction>

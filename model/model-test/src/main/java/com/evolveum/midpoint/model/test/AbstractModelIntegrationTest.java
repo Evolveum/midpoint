@@ -1805,7 +1805,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				assert false : "Timeout ("+timeout+") while waiting for "+task+" to finish. Last result "+result;
 			}
 		};
-		IntegrationTestTools.waitFor("Waiting for "+task+" finish", checker , timeout, sleepTime);
+		IntegrationTestTools.waitFor("Waiting for " + task + " finish", checker, timeout, sleepTime);
 	}
 	
 	protected void waitForTaskFinish(String taskOid, boolean checkSubresult) throws Exception {
@@ -1851,7 +1851,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				}
 			}
 		};
-		IntegrationTestTools.waitFor("Waiting for task "+taskOid+" finish", checker , timeout, DEFAULT_TASK_SLEEP_TIME);
+		IntegrationTestTools.waitFor("Waiting for task " + taskOid + " finish", checker, timeout, DEFAULT_TASK_SLEEP_TIME);
 	}
 	
 	protected void waitForTaskStart(String taskOid, boolean checkSubresult) throws Exception {
@@ -1886,7 +1886,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				}
 			}
 		};
-		IntegrationTestTools.waitFor("Waiting for task "+taskOid+" start", checker , timeout, DEFAULT_TASK_SLEEP_TIME);
+		IntegrationTestTools.waitFor("Waiting for task " + taskOid + " start", checker, timeout, DEFAULT_TASK_SLEEP_TIME);
 	}
 	
 	protected void waitForTaskNextRun(String taskOid, boolean checkSubresult) throws Exception {
@@ -1936,7 +1936,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				}
 			}
 		};
-		IntegrationTestTools.waitFor("Waiting for task "+taskOid+" next run", checker , timeout, DEFAULT_TASK_SLEEP_TIME);
+		IntegrationTestTools.waitFor("Waiting for task " + taskOid + " next run", checker, timeout, DEFAULT_TASK_SLEEP_TIME);
 	}
 	
 	private String longTimeToString(Long longTime) {
@@ -1981,10 +1981,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Task task = taskManager.createTaskInstance("get administrator");
         PrismObject<UserType> object = modelService.getObject(UserType.class, userOid, null, task, task.getResult());
 
-        assertNotNull("User "+userOid+" is null", object.asObjectable());
+        assertNotNull("User " + userOid + " is null", object.asObjectable());
         SecurityContextHolder.getContext().setAuthentication(
-        		new UsernamePasswordAuthenticationToken(
-        				new MidPointPrincipal(object.asObjectable()), null));
+				new UsernamePasswordAuthenticationToken(
+						new MidPointPrincipal(object.asObjectable()), null));
 	}
 	
 	protected <F extends FocusType> void assertSideEffectiveDeltasOnly(String desc, ObjectDelta<F> focusDelta) {
@@ -2016,14 +2016,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ITERATION_TOKEN)) != null) {
 			expectedModifications++;
 		}
-		assertEquals("Unexpected modifications in "+desc+": "+focusDelta, expectedModifications, focusDelta.getModifications().size());		
+		assertEquals("Unexpected modifications in " + desc + ": " + focusDelta, expectedModifications, focusDelta.getModifications().size());
+	}
+
+	protected <F extends FocusType> void assertSideEffectiveDeltasOnly(ObjectDelta<F> focusDelta, String desc, ActivationStatusType expectedEfficientActivation) {
+		assertEffectualDeltas(focusDelta, desc, expectedEfficientActivation, 0);
 	}
 	
-	protected <F extends FocusType> void assertSideEffectiveDeltasOnly(ObjectDelta<F> focusDelta, String desc, ActivationStatusType expectedEfficientActivation) {
+	protected <F extends FocusType> void assertEffectualDeltas(ObjectDelta<F> focusDelta, String desc, ActivationStatusType expectedEfficientActivation, int expectedEffectualModifications) {
 		if (focusDelta == null) {
 			return;
 		}
-		int expectedModifications = 0;
+		int expectedModifications = expectedEffectualModifications;
 		// There may be metadata modification, we tolerate that
 		for (ItemDelta<?,?> modification: focusDelta.getModifications()) {
 			if (modification.getPath().containsName(ObjectType.F_METADATA)) {
@@ -2073,7 +2077,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		} else {
 			throw new IllegalArgumentException("Cannot get activation from "+obj);
 		}
-		assertNotNull("No activation in "+obj, activation);
+		assertNotNull("No activation in " + obj, activation);
 		return activation;
 	}
 
@@ -2150,7 +2154,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				return;
 			}
 		}
-		AssertJUnit.fail("Expected that "+object+" will have a trigger but it has not");
+		AssertJUnit.fail("Expected that " + object + " will have a trigger but it has not");
 	}
 	
 	protected <O extends ObjectType> void assertTrigger(PrismObject<O> object, String handlerUri, XMLGregorianCalendar mid, long tolerance) throws ObjectNotFoundException, SchemaException {
@@ -2248,13 +2252,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
 		assertNotNull("No dummy("+dummyInstanceName+") account for username "+username, account);
 		assertEquals("Wrong fullname for dummy("+dummyInstanceName+") account "+username, fullname, account.getAttributeValue("fullname"));
-		assertEquals("Wrong activation for dummy("+dummyInstanceName+") account "+username, active, account.isEnabled());
+		assertEquals("Wrong activation for dummy(" + dummyInstanceName + ") account " + username, active, account.isEnabled());
 		return account;
 	}
 	
 	protected void assertDummyAccount(String dummyInstanceName, String username) {
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
-		assertNotNull("No dummy("+dummyInstanceName+") account for username "+username, account);
+		assertNotNull("No dummy(" + dummyInstanceName + ") account for username " + username, account);
 	}
 	
 	protected void assertDummyAccountById(String dummyInstanceName, String id) {
@@ -2264,13 +2268,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected void assertNoDummyAccountById(String dummyInstanceName, String id) {
 		DummyAccount account = getDummyAccountById(dummyInstanceName, id);
-		assertNull("Dummy("+dummyInstanceName+") account for id "+id+" exists while not expecting it", account);
+		assertNull("Dummy(" + dummyInstanceName + ") account for id " + id + " exists while not expecting it", account);
 	}
 	
 	protected void assertDummyAccountActivation(String dummyInstanceName, String username, boolean active) {
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
 		assertNotNull("No dummy("+dummyInstanceName+") account for username "+username, account);
-		assertEquals("Wrong activation for dummy("+dummyInstanceName+") account "+username, active, account.isEnabled());
+		assertEquals("Wrong activation for dummy(" + dummyInstanceName + ") account " + username, active, account.isEnabled());
 	}
 
 	protected void assertNoDummyAccount(String username) {
@@ -2279,7 +2283,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected void assertNoDummyAccount(String dummyInstanceName, String username) {
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
-		assertNull("Dummy account for username "+username+" exists while not expecting it ("+dummyInstanceName+")", account);
+		assertNull("Dummy account for username " + username + " exists while not expecting it (" + dummyInstanceName + ")", account);
 	}
 	
 	protected void assertDefaultDummyAccountAttribute(String username, String attributeName, Object... expectedAttributeValues) {
@@ -2294,7 +2298,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			return;
 		}
 		assertNotNull("No values for attribute "+attributeName+" of "+dummyInstanceName+" dummy account "+username, values);
-		assertEquals("Unexpected number of values for attribute "+attributeName+" of dummy account "+username+": "+values, expectedAttributeValues.length, values.size());
+		assertEquals("Unexpected number of values for attribute " + attributeName + " of dummy account " + username + 
+				". Expected: " + Arrays.toString(expectedAttributeValues) + ", was: " + values, 
+				expectedAttributeValues.length, values.size());
 		for (Object expectedValue: expectedAttributeValues) {
 			if (!values.contains(expectedValue)) {
 				AssertJUnit.fail("Value '"+expectedValue+"' expected in attribute "+attributeName+" of dummy account "+username+
@@ -2310,8 +2316,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		if (values == null || values.isEmpty()) {
 			return;
 		}
-		AssertJUnit.fail("Expected no value in attribute "+attributeName+" of dummy account "+username+
-						". Values found: "+values);
+		AssertJUnit.fail("Expected no value in attribute " + attributeName + " of dummy account " + username +
+				". Values found: " + values);
 	}
 
 	protected void assertDummyAccountAttributeGenerated(String dummyInstanceName, String username) {
@@ -2345,7 +2351,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void assertDummyGroup(String dummyInstanceName, String groupname, String description, Boolean active) {
 		DummyGroup group = getDummyGroup(dummyInstanceName, groupname);
 		assertNotNull("No dummy("+dummyInstanceName+") group for name "+groupname, group);
-		assertEquals("Wrong fullname for dummy("+dummyInstanceName+") group "+groupname, description, 
+		assertEquals("Wrong fullname for dummy(" + dummyInstanceName + ") group " + groupname, description,
 				group.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
 		if (active != null) {
 			assertEquals("Wrong activation for dummy("+dummyInstanceName+") group "+groupname, (boolean)active, group.isEnabled());
@@ -2358,7 +2364,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected void assertNoDummyGroup(String dummyInstanceName, String groupname) {
 		DummyGroup group = getDummyGroup(dummyInstanceName, groupname);
-		assertNull("Dummy group '"+groupname+"' exists while not expecting it ("+dummyInstanceName+")", group);
+		assertNull("Dummy group '" + groupname + "' exists while not expecting it (" + dummyInstanceName + ")", group);
     }
 
     protected void assertDummyGroupAttribute(String dummyInstanceName, String groupname, String attributeName, Object... expectedAttributeValues) {
@@ -2369,7 +2375,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             return;
         }
         assertNotNull("No values for attribute "+attributeName+" of "+dummyInstanceName+" dummy group "+groupname, values);
-        assertEquals("Unexpected number of values for attribute "+attributeName+" of dummy group "+groupname+": "+values, expectedAttributeValues.length, values.size());
+        assertEquals("Unexpected number of values for attribute " + attributeName + " of dummy group " + groupname + ": " + values, expectedAttributeValues.length, values.size());
         for (Object expectedValue: expectedAttributeValues) {
             if (!values.contains(expectedValue)) {
                 AssertJUnit.fail("Value '"+expectedValue+"' expected in attribute "+attributeName+" of dummy group "+groupname+
@@ -2402,7 +2408,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
 		assertNotNull("No dummy account for username "+username, account);
 		Set<Object> values = account.getAttributeValues(attributeName, Object.class);
-		assertTrue("Unexpected values for attribute "+attributeName+" of dummy account "+username+": "+values, values == null || values.isEmpty());
+		assertTrue("Unexpected values for attribute " + attributeName + " of dummy account " + username + ": " + values, values == null || values.isEmpty());
 	}
     
 	protected String assertOpenDjAccount(String uid, String cn, Boolean active) throws DirectoryException {
@@ -2417,7 +2423,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected void assertNoOpenDjAccount(String uid) throws DirectoryException {
 		SearchResultEntry entry = openDJController.searchByUid(uid);
-		assertNull("Expected that OpenDJ account with uid "+uid+" will be gone, but it is still there", entry);
+		assertNull("Expected that OpenDJ account with uid " + uid + " will be gone, but it is still there", entry);
 	}
 	
 	protected void assertIteration(PrismObject<ShadowType> shadow, Integer expectedIteration, String expectedIterationToken) {
@@ -2470,7 +2476,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected void assertDisableReasonShadow(PrismObject<? extends ShadowType> shadow, String expectedReason) {
 		String disableReason = shadow.asObjectable().getActivation().getDisableReason();
-		assertEquals("Wrong shadow disableReason in "+shadow, expectedReason, disableReason);
+		assertEquals("Wrong shadow disableReason in " + shadow, expectedReason, disableReason);
 	}
 	
 	protected void assertPassword(PrismObject<UserType> user, String expectedPassword) throws EncryptionException {
@@ -2505,7 +2511,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected <O extends ObjectType> void assertLdapPassword(ProtectedStringType protectedStringType, String expectedPassword, PrismObject<O> source) throws EncryptionException {
 		assertNotNull("No password value in "+source, protectedStringType);
 		String decryptedUserPassword = protector.decryptString(protectedStringType);
-		assertNotNull("Null password in "+source, decryptedUserPassword);
+		assertNotNull("Null password in " + source, decryptedUserPassword);
 		if (decryptedUserPassword.startsWith("{") || decryptedUserPassword.contains("}")) {
 			assertTrue("Wrong password hash in "+source+": "+decryptedUserPassword+", expected "+expectedPassword, ldapShaPasswordEncoder.isPasswordValid(decryptedUserPassword, expectedPassword, null));
 		} else {
@@ -2598,7 +2604,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected void displayAllUsers() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName()+".displayAllUsers");
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".displayAllUsers");
 		OperationResult result = task.getResult();
 		ResultHandler<UserType> handler = new ResultHandler<UserType>() {
 			@Override
@@ -2660,8 +2666,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected void assertShadowKindIntent(PrismObject<ShadowType> shadow, ShadowKindType expectedKind,
 			String expectedIntent) {
-		assertEquals("Wrong kind in "+shadow, expectedKind, shadow.asObjectable().getKind());
-		assertEquals("Wrong intent in "+shadow, expectedIntent, shadow.asObjectable().getIntent());
+		assertEquals("Wrong kind in " + shadow, expectedKind, shadow.asObjectable().getKind());
+		assertEquals("Wrong intent in " + shadow, expectedIntent, shadow.asObjectable().getIntent());
 	}
 	
 	protected Task createTask(String operationName) {
@@ -2747,8 +2753,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         
 		AssignmentType inducement = new AssignmentType();
 		inducement.setId(inducementId);
-        ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, roleOid, 
-        		RoleType.F_INDUCEMENT, prismContext, inducement);
+        ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, roleOid,
+				RoleType.F_INDUCEMENT, prismContext, inducement);
         ModelExecuteOptions options = new ModelExecuteOptions();
         options.setReconcileAffected(reconcileAffected);
         modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), options, task, result);
@@ -2805,7 +2811,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		createSecurityContext(principal);
 		boolean isAuthorized = securityEnforcer.isAuthorized(action, phase, null, null, null, null);
 		SecurityContextHolder.setContext(origContext);
-		assertFalse("AuthorizationEvaluator.isAuthorized: Principal "+principal+" IS authorized for action "+action+" ("+phase+") but he should not be", isAuthorized);
+		assertFalse("AuthorizationEvaluator.isAuthorized: Principal " + principal + " IS authorized for action " + action + " (" + phase + ") but he should not be", isAuthorized);
 	}
 
 	protected void createSecurityContext(MidPointPrincipal principal) {
@@ -2890,5 +2896,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			TestUtil.assertBetween("Wrong password modify timestamp in password metadata in "+user, start, end, metadataType.getModifyTimestamp());
 			assertEquals("Wrong modification channel", channel, metadataType.getModifyChannel());
 		}
+	}
+
+	protected void reconcileUser(String oid, Task task, OperationResult result) throws CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+		ObjectDelta<UserType> emptyDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, oid, prismContext);
+		modelService.executeChanges(MiscSchemaUtil.createCollection(emptyDelta), ModelExecuteOptions.createReconcile(), task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
 	}
 }

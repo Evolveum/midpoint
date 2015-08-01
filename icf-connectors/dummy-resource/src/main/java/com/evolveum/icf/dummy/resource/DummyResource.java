@@ -90,7 +90,8 @@ public class DummyResource implements DebugDumpable {
 	private boolean caseIgnoreValues = false;
 	private int connectionCount = 0;
 	private int groupMembersReadCount = 0;
-	
+	private Collection<String> forbiddenNames;
+
 	private BreakMode schemaBreakMode = BreakMode.NONE;
 	private BreakMode getBreakMode = BreakMode.NONE;
 	private BreakMode addBreakMode = BreakMode.NONE;
@@ -292,6 +293,14 @@ public class DummyResource implements DebugDumpable {
 
 	public void setGenerateAccountDescriptionOnUpdate(boolean generateAccountDescriptionOnUpdate) {
 		this.generateAccountDescriptionOnUpdate = generateAccountDescriptionOnUpdate;
+	}
+
+	public Collection<String> getForbiddenNames() {
+		return forbiddenNames;
+	}
+
+	public void setForbiddenNames(Collection<String> forbiddenNames) {
+		this.forbiddenNames = forbiddenNames;
 	}
 
 	public int getConnectionCount() {
@@ -514,6 +523,10 @@ public class DummyResource implements DebugDumpable {
 		
 		Class<? extends DummyObject> type = newObject.getClass();
 		String normalName = normalize(newObject.getName());
+		if (normalName != null && forbiddenNames != null && forbiddenNames.contains(normalName)) {
+			throw new ObjectAlreadyExistsException(normalName + " is forbidden to use as an object name");
+		}
+
 		String newId = UUID.randomUUID().toString();
 		newObject.setId(newId);
 		if (allObjects.containsKey(newId)) {

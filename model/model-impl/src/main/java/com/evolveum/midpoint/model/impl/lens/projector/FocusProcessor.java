@@ -438,11 +438,11 @@ public class FocusProcessor {
 		}
 		
 		TimeIntervalStatusType validityStatusNew = null;
-		TimeIntervalStatusType validityStatusOld = null;
+		TimeIntervalStatusType validityStatusCurrent = null;
 		XMLGregorianCalendar validityChangeTimestamp = null;
 		
 		ActivationType activationNew = null;
-		ActivationType activationOld = null;
+		ActivationType activationCurrent = null;
 		
 		PrismObject<F> focusNew = focusContext.getObjectNew();
 		if (focusNew != null) {
@@ -453,47 +453,47 @@ public class FocusProcessor {
 			}
 		}
 		
-		PrismObject<F> focusOld = focusContext.getObjectOld();
-		if (focusOld != null) {
-			activationOld = focusOld.asObjectable().getActivation();
-			if (activationOld != null) {
-				validityStatusOld = activationComputer.getValidityStatus(activationOld, validityChangeTimestamp);
+		PrismObject<F> focusCurrent = focusContext.getObjectCurrent();
+		if (focusCurrent != null) {
+			activationCurrent = focusCurrent.asObjectable().getActivation();
+			if (activationCurrent != null) {
+				validityStatusCurrent = activationComputer.getValidityStatus(activationCurrent, validityChangeTimestamp);
 			}
 		}
 		
-		if (validityStatusOld == validityStatusNew) {
+		if (validityStatusCurrent == validityStatusNew) {
 			// No change, (almost) no work
 			if (validityStatusNew != null && activationNew.getValidityStatus() == null) {
 				// There was no validity change. But the status is not recorded. So let's record it so it can be used in searches. 
 				recordValidityDelta(focusContext, validityStatusNew, now);
 			} else {
-				LOGGER.trace("Skipping validity processing because there was no change ({} -> {})", validityStatusOld, validityStatusNew);
+				LOGGER.trace("Skipping validity processing because there was no change ({} -> {})", validityStatusCurrent, validityStatusNew);
 			}
 		} else {
-			LOGGER.trace("Validity change {} -> {}", validityStatusOld, validityStatusNew);
+			LOGGER.trace("Validity change {} -> {}", validityStatusCurrent, validityStatusNew);
 			recordValidityDelta(focusContext, validityStatusNew, now);
 		}
 		
 		ActivationStatusType effectiveStatusNew = activationComputer.getEffectiveStatus(activationNew, validityStatusNew, ActivationStatusType.DISABLED);
-		ActivationStatusType effectiveStatusOld = activationComputer.getEffectiveStatus(activationOld, validityStatusOld, ActivationStatusType.DISABLED);
+		ActivationStatusType effectiveStatusCurrent = activationComputer.getEffectiveStatus(activationCurrent, validityStatusCurrent, ActivationStatusType.DISABLED);
 		
-		if (effectiveStatusOld == effectiveStatusNew) {
+		if (effectiveStatusCurrent == effectiveStatusNew) {
 			// No change, (almost) no work
 			if (effectiveStatusNew != null && (activationNew == null || activationNew.getEffectiveStatus() == null)) {
 				// There was no effective status change. But the status is not recorded. So let's record it so it can be used in searches. 
 				recordEffectiveStatusDelta(focusContext, effectiveStatusNew, now);
 			} else {
 				if (focusContext.getPrimaryDelta() != null && focusContext.getPrimaryDelta().hasItemDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS)) {
-					LOGGER.trace("Forcing effective status delta even though there was no change ({} -> {}) because there is explicit administrativeStatus delta", effectiveStatusOld, effectiveStatusNew);
+					LOGGER.trace("Forcing effective status delta even though there was no change ({} -> {}) because there is explicit administrativeStatus delta", effectiveStatusCurrent, effectiveStatusNew);
 					// We need this to force the change down to the projections later in the activation processor
 					// some of the mappings will use effectiveStatus as a source, therefore there has to be a delta for the mapping to work correctly
 					recordEffectiveStatusDelta(focusContext, effectiveStatusNew, now);
 				} else {
-					LOGGER.trace("Skipping effective status processing because there was no change ({} -> {})", effectiveStatusOld, effectiveStatusNew);
+					LOGGER.trace("Skipping effective status processing because there was no change ({} -> {})", effectiveStatusCurrent, effectiveStatusNew);
 				}
 			}
 		} else {
-			LOGGER.trace("Effective status change {} -> {}", effectiveStatusOld, effectiveStatusNew);
+			LOGGER.trace("Effective status change {} -> {}", effectiveStatusCurrent, effectiveStatusNew);
 			recordEffectiveStatusDelta(focusContext, effectiveStatusNew, now);
 		}
 	}

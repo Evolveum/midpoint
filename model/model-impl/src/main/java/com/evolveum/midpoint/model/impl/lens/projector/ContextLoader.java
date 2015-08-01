@@ -21,8 +21,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -199,6 +197,11 @@ public class ContextLoader {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Removing rotten context {}", projectionContext.getHumanReadableName());
 				}
+
+				if (projectionContext.isToBeArchived()) {
+					context.getHistoricResourceObjects().add(projectionContext.getResourceShadowDiscriminator());
+				}
+
 				List<LensObjectDeltaOperation<ShadowType>> executedDeltas = projectionContext.getExecutedDeltas();
 				context.getRottenExecutedDeltas().addAll(executedDeltas);
 				projectionIterator.remove();

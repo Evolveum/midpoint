@@ -48,6 +48,7 @@
 		<icfc:configurationProperties>
 			<icfi:instanceId>lime</icfi:instanceId> <!-- Default instance. -->
 			<icfi:supportValidity>true</icfi:supportValidity>
+			<icfi:readablePassword>true</icfi:readablePassword>
 		</icfc:configurationProperties>
 
 	</connectorConfiguration>
@@ -183,6 +184,13 @@
 				<ref>ri:drink</ref>
 				<displayName>Drink</displayName>
 				<tolerant>false</tolerant>
+				<inbound>
+					<authoritative>true</authoritative>
+					<strength>strong</strength>
+					<target>
+						<path>costCenter</path>
+					</target>
+				</inbound>
 			</attribute>
 			<attribute>
 				<ref>ri:quote</ref>
@@ -215,10 +223,10 @@
 			
 			<credentials>
                 <password>
+                	<fetchStrategy>explicit</fetchStrategy>
                     <inbound>
-                    	<strength>weak</strength>
                         <expression>
-                            <generate/>
+                            <asIs/>
                         </expression>
                     </inbound>
                 </password>

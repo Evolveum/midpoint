@@ -26,4 +26,7 @@ public interface EvaluatedAssignment<F extends FocusType> extends DebugDumpable 
 
 	boolean isValid();
 
+	boolean isPresentInCurrentObject();
+
+	boolean isPresentInOldObject();
 }

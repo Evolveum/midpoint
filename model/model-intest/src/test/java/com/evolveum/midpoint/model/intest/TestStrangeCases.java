@@ -109,11 +109,14 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	private static final String ROLE_RECURSION_OID = "12345678-d34d-b33f-f00d-555555550003";
 
 	private static final String NON_EXISTENT_ACCOUNT_OID = "f000f000-f000-f000-f000-f000f000f000";
+	
+	private static final String RESOURCE_NONEXISTENT_OID = "00000000-f000-f000-f000-f000f000f000";;
 
 	private static final XMLGregorianCalendar USER_DEGHOULASH_FUNERAL_TIMESTAMP = 
 								XmlTypeConverter.createXMLGregorianCalendar(1771, 1, 2, 11, 22, 33);
 	
 	private static final File TREASURE_ISLAND_FILE = new File(TEST_DIR, "treasure-island.txt");
+
 	private static String treasureIsland;
 	
 	private String accountGuybrushDummyRedOid;
@@ -351,7 +354,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(2);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
-        dummyAuditService.assertExecutionSuccess();
+        dummyAuditService.assertExecutionOutcome(OperationResultStatus.HANDLED_ERROR);
 	}
 	
 	// Lets test various extension magic and border cases now. This is maybe quite hight in the architecture for
@@ -581,6 +584,58 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userDeGhoulash);
 		assertUser(userDeGhoulash, USER_DEGHOULASH_OID, "deghoulash", "Charles DeGhoulash", "Charles", "DeGhoulash");
 		assertAssignedNoRole(userDeGhoulash);                
+	}
+	
+	@Test
+    public void test340AssignDeGhoulashConstructionNonExistentResource() throws Exception {
+		final String TEST_NAME = "test340AssignDeGhoulashConstructionNonExistentResource";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        dummyAuditService.clear();
+            
+        // WHEN
+        // We have loose referential consistency. Even if the target resource is not present
+        // the assignment should be added. The error is indicated in the result.
+    	assignAccount(USER_DEGHOULASH_OID, RESOURCE_NONEXISTENT_OID, null, task, result);
+		
+		// THEN
+		result.computeStatus();
+		display("Result", result);
+        TestUtil.assertFailure(result);
+        
+		PrismObject<UserType> userDeGhoulash = getUser(USER_DEGHOULASH_OID);
+		display("User after change execution", userDeGhoulash);
+		assertUser(userDeGhoulash, USER_DEGHOULASH_OID, "deghoulash", "Charles DeGhoulash", "Charles", "DeGhoulash");
+		assertAssignments(userDeGhoulash, 1);
+	}
+	
+	@Test
+    public void test349UnAssignDeGhoulashConstructionNonExistentResource() throws Exception {
+		final String TEST_NAME = "test349UnAssignDeGhoulashConstructionNonExistentResource";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        dummyAuditService.clear();
+            
+        // WHEN
+    	unassignAccount(USER_DEGHOULASH_OID, RESOURCE_NONEXISTENT_OID, null, task, result);
+		
+		// THEN
+		result.computeStatus();
+		display("Result", result);
+        TestUtil.assertFailure(result);
+        
+		PrismObject<UserType> userDeGhoulash = getUser(USER_DEGHOULASH_OID);
+		display("User after change execution", userDeGhoulash);
+		assertUser(userDeGhoulash, USER_DEGHOULASH_OID, "deghoulash", "Charles DeGhoulash", "Charles", "DeGhoulash");
+		assertAssignments(userDeGhoulash, 0);
 	}
 
     @Test

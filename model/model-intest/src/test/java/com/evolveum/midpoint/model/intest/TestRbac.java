@@ -822,10 +822,13 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
 		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_INDIAN_OCEAN_PIRATE_OID, task, result);
         
         // THEN
+        TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
+        display("Result", result);
         TestUtil.assertSuccess(result);
         
         assertAssignedRole(USER_JACK_OID, ROLE_INDIAN_OCEAN_PIRATE_OID, task, result);

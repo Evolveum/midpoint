@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <!--
   ~ Copyright (c) 2010-2015 Evolveum
   ~
@@ -6,7 +7,7 @@
   ~ you may not use this file except in compliance with the License.
   ~ You may obtain a copy of the License at
   ~
-  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~     http://www.apache.org/licenses/LICENSE-2.0
   ~
   ~ Unless required by applicable law or agreed to in writing, software
   ~ distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,20 +16,14 @@
   ~ limitations under the License.
   -->
 
-<html xmlns="http://www.w3.org/1999/xhtml"
-	xmlns:wicket="http://wicket.apache.org">
-<body>
-	<wicket:extend>
-
-		<div wicket:id="confirmCloseStagePopup" />
-		<div wicket:id="confirmDeleteMultipleCampaignsPopup" />
-		<div wicket:id="confirmDeleteCampaignPopup" />
-		<div wicket:id="confirmCloseCampaignPopup" />
-		<div wicket:id="confirmCloseMultipleCampaignsPopup" />
-		<form wicket:id="mainForm" class="clearfix form-horizontal">
-			<div wicket:id="campaignsTable" />
-		</form>
-
-	</wicket:extend>
-</body>
-</html>
+<objectModification
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'
+        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <oid>00000000-8888-6666-0000-100000000005</oid>
+    <itemDelta>
+        <t:modificationType>replace</t:modificationType>
+        <t:path>c:employeeNumber</t:path>
+        <t:value></t:value>
+    </itemDelta>
+</objectModification>

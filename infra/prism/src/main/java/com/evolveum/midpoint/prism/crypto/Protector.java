@@ -101,6 +101,6 @@ public interface Protector {
 	 */
 	boolean isEncrypted(ProtectedStringType ps);
 
-	
+	boolean compare(ProtectedStringType a, ProtectedStringType b) throws EncryptionException;
 
 }

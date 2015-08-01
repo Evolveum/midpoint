@@ -174,12 +174,8 @@
 				<associationAttribute>ri:uniqueMember</associationAttribute>
 				<valueAttribute>ri:dn</valueAttribute>
 				<explicitReferentialIntegrity>false</explicitReferentialIntegrity>
-				<tolerant>false</tolerant>
+				<tolerant>true</tolerant>
 			</association>
-			<!-- This object can change at any time, because of referential integrity -->
-			<!-- (Actually I'm not quite sure, because we are not interested in the object
-			     itself, only in the membership information that is obtained by search operation.) -->
-			<volatility>unpredictable</volatility>
 		</objectType>
 	</schemaHandling>
 	<capabilities>

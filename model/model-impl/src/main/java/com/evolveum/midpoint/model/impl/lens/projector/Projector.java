@@ -19,9 +19,6 @@ import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
 import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.PROJECTOR;
 import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -35,14 +32,10 @@ import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
-import com.evolveum.midpoint.model.impl.lens.LensObjectDeltaOperation;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -53,11 +46,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDependencyStrictnessType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDependencyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Projector recomputes the context. It takes the context with a few basic data as input. It uses all the policies 
@@ -105,9 +94,49 @@ public class Projector {
     private Clock clock;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(Projector.class);
-	
+
+	/**
+	 * Runs one projection wave, starting at current execution wave.
+	 */
 	public <F extends ObjectType> void project(LensContext<F> context, String activityDescription,
-            Task task, OperationResult parentResult)
+											   Task task, OperationResult parentResult)
+			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
+			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+		projectInternal(context, activityDescription, true, false, task, parentResult);
+	}
+
+	/**
+	 * Resumes projection at current projection wave.
+	 */
+	public <F extends ObjectType> void resume(LensContext<F> context, String activityDescription,
+											   Task task, OperationResult parentResult)
+			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
+			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+
+		if (context.getProjectionWave() != context.getExecutionWave()) {
+			throw new IllegalStateException("Projector.resume called in illegal wave state: execution wave = " + context.getExecutionWave() +
+					", projection wave = " + context.getProjectionWave());
+		}
+		if (!context.isFresh()) {
+			throw new IllegalStateException("Projector.resume called on non-fresh context");
+		}
+
+		projectInternal(context, activityDescription, false, false, task, parentResult);
+	}
+
+	/**
+	 * Executes projector from current execution wave to the last computed wave.
+	 * Useful for change preview.
+	 */
+	public <F extends ObjectType> void projectAllWaves(LensContext<F> context, String activityDescription,
+												  Task task, OperationResult parentResult)
+			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
+			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+		projectInternal(context, activityDescription, true, true, task, parentResult);
+	}
+
+	private <F extends ObjectType> void projectInternal(LensContext<F> context, String activityDescription,
+            boolean fromStart, boolean allWaves, Task task, OperationResult parentResult)
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
 			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -121,15 +150,20 @@ public class Projector {
 		// this provides nicer unified timestamp that can be used in equality checks in tests and also for
 		// troubleshooting
 		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-		
-		LensUtil.traceContext(LOGGER, activityDescription, "projector start", false, context, false);
-		
+
+		String traceTitle = fromStart ? "projector start" : "projector resume";
+		LensUtil.traceContext(LOGGER, activityDescription, traceTitle, false, context, false);
+
 		if (consistencyChecks) context.checkConsistence();
-		
-		context.normalize();
-		context.resetProjectionWave();
+
+		if (fromStart) {
+			context.normalize();
+			context.resetProjectionWave();
+		}
 		
 		OperationResult result = parentResult.createSubresult(Projector.class.getName() + ".project");
+		result.addParam("fromStart", fromStart);
+		result.addContext("projectionWave", context.getProjectionWave());
 		result.addContext("executionWave", context.getExecutionWave());
 		
 		// Projector is using a set of "processors" to do parts of its work. The processors will be called in sequence
@@ -139,19 +173,26 @@ public class Projector {
 
             context.reportProgress(new ProgressInformation(PROJECTOR, ENTERING));
 
-            contextLoader.load(context, activityDescription, task, result);
-			// Set the "fresh" mark now so following consistency check will be stricter
-			context.setFresh(true);
-			if (consistencyChecks) context.checkConsistence();
-			
+			if (fromStart) {
+				contextLoader.load(context, activityDescription, task, result);
+				// Set the "fresh" mark now so following consistency check will be stricter
+				context.setFresh(true);
+				if (consistencyChecks) context.checkConsistence();
+			}
 	        // For now let's pretend to do just one wave. The maxWaves number will be corrected in the
 			// first wave when dependencies are sorted out for the first time.
-	        int maxWaves = 1;
+	        int maxWaves = context.getExecutionWave() + 1;
 	                
 	        // Start the waves ....
 	        LOGGER.trace("WAVE: Starting the waves.");
-	        context.setProjectionWave(0);
-	        while (context.getProjectionWave() < maxWaves) {
+
+			boolean firstWave = true;
+
+			while ((allWaves && context.getProjectionWave() < maxWaves) ||
+					(!allWaves && context.getProjectionWave() <= context.getExecutionWave())) {
+
+				boolean inFirstWave = firstWave;
+				firstWave = false;					// in order to not forget to reset it ;)
 	        	
                 context.checkAbortRequested();
 
@@ -170,7 +211,7 @@ public class Projector {
 		        // Process activation of all resources, regardless of the waves. This is needed to properly
 		        // sort projections to waves as deprovisioning will reverse the dependencies. And we know whether
 		        // a projection is provisioned or deprovisioned only after the activation is processed.
-		        if (context.getProjectionWave() == 0) {
+		        if (fromStart && inFirstWave) {
 		        	LOGGER.trace("Processing activation for all contexts");
 			        for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
 			        	if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN ||
@@ -180,6 +221,7 @@ public class Projector {
 			        	activationProcessor.processActivation(context, projectionContext, now, task, result);
 			        	projectionContext.recompute();
 			        }
+					assignmentProcessor.removeIgnoredContexts(context);		// TODO move implementation of this method elsewhere; but it has to be invoked here, as activationProcessor sets the IGNORE flag
 		        }
 		        LensUtil.traceContext(LOGGER, activityDescription, "projection activation of all resources", true, context, true);
 		
@@ -262,7 +304,7 @@ public class Projector {
 	        
 	        if (consistencyChecks) context.checkConsistence();
 	        
-	        recordSuccess(now, result);
+	        computeResultStatus(now, result);
 	        
 		} catch (SchemaException e) {
 			recordFatalError(e, now, result);
@@ -321,6 +363,7 @@ public class Projector {
 		List<LensProjectionContext> conflictingContexts = projectionValuesProcessor.getConflictingContexts();
 		if (conflictingContexts != null || !conflictingContexts.isEmpty()){
 			for (LensProjectionContext conflictingContext : conflictingContexts){
+				LOGGER.trace("Adding conflicting projection context {}", conflictingContext.getHumanReadableName());
 				context.addProjectionContext(conflictingContext);
 			}
 		
@@ -335,17 +378,17 @@ public class Projector {
 		if (LOGGER.isDebugEnabled()) {
 			long projectoStartTimestamp = XmlTypeConverter.toMillis(projectoStartTimestampCal);
 	    	long projectorEndTimestamp = clock.currentTimeMillis();
-			LOGGER.debug("Projector failed: {}, etime: {} ms", e.getMessage(), (projectorEndTimestamp - projectoStartTimestamp));
+			LOGGER.debug("Projector failed: {}. Etime: {} ms", e.getMessage(), (projectorEndTimestamp - projectoStartTimestamp));
 		}
 	}
 	
-	private void recordSuccess(XMLGregorianCalendar projectoStartTimestampCal, OperationResult result) {
-        result.recordSuccess();
+	private void computeResultStatus(XMLGregorianCalendar projectoStartTimestampCal, OperationResult result) {
+        result.computeStatus();
         result.cleanupResult();
         if (LOGGER.isDebugEnabled()) {
         	long projectoStartTimestamp = XmlTypeConverter.toMillis(projectoStartTimestampCal);
         	long projectorEndTimestamp = clock.currentTimeMillis();
-        	LOGGER.trace("Projector successful, etime: {} ms", (projectorEndTimestamp - projectoStartTimestamp));
+        	LOGGER.trace("Projector finished ({}). Etime: {} ms", result.getStatus(), (projectorEndTimestamp - projectoStartTimestamp));
         }
 	}
 

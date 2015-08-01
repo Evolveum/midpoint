@@ -22,6 +22,7 @@ import com.evolveum.midpoint.common.refinery.PropertyLimitations;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.model.common.expression.Source;
@@ -30,6 +31,7 @@ import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
+import com.evolveum.midpoint.model.impl.lens.LensObjectDeltaOperation;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -41,6 +43,8 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.OriginType;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -63,6 +67,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.commons.lang.mutable.MutableBoolean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,14 +95,21 @@ public class InboundProcessor {
 
     @Autowired(required = true)
     private PrismContext prismContext;
+    
     @Autowired(required = true)
     private FilterManager<Filter> filterManager;
+    
     @Autowired(required = true)
     private MappingFactory mappingFactory;
+    
     @Autowired
     private ProvisioningService provisioningService;
+    
     @Autowired(required = true)
     private MappingEvaluationHelper mappingEvaluatorHelper;
+    
+    @Autowired(required = true)
+    private Protector protector;
 
     <O extends ObjectType> void processInbound(LensContext<O> context, XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException {
     	LensFocusContext<O> focusContext = context.getFocusContext();
@@ -136,7 +148,7 @@ public class InboundProcessor {
         try {
             for (LensProjectionContext accountContext : context.getProjectionContexts()) {
             	if (!accountContext.isCanProject()){
-            		LOGGER.trace("Skipping processing of inbound expressions for account {}: there is a limit to propagate changes only from resource {}",
+            		LOGGER.trace("Skipping processing of inbound expressions for projection {}: there is a limit to propagate changes only from resource {}",
 							accountContext.getResourceShadowDiscriminator(), context.getTriggeredResourceOid());
             		continue;
             	}
@@ -145,7 +157,7 @@ public class InboundProcessor {
             	ObjectDelta<ShadowType> aPrioriDelta = getAPrioriDelta(context, accountContext);
             	
             	if (!accountContext.isDoReconciliation() && aPrioriDelta == null && !LensUtil.hasDependentContext(context, accountContext) && !accountContext.isFullShadow()) {
-            		LOGGER.trace("Skipping processing of inbound expressions for account {}: no reconciliation and no a priori delta and no dependent context", rat);
+            		LOGGER.trace("Skipping processing of inbound expressions for projection {}: no reconciliation and no a priori delta and no dependent context", rat);
             		continue;
             	}
 
@@ -157,7 +169,7 @@ public class InboundProcessor {
                             + " not found in the context, but it should be there");
                 }
 
-                processInboundExpressionsForAccount(context, accountContext, accountDefinition, aPrioriDelta, task, now, result);
+                processInboundExpressionsForProjection(context, accountContext, accountDefinition, aPrioriDelta, task, now, result);
             }
 
         } finally {
@@ -176,7 +188,7 @@ public class InboundProcessor {
         return false;
     }
 
-    private <F extends FocusType> void processInboundExpressionsForAccount(LensContext<F> context,
+    private <F extends FocusType> void processInboundExpressionsForProjection(LensContext<F> context,
     		LensProjectionContext accContext,
             RefinedObjectClassDefinition accountDefinition, ObjectDelta<ShadowType> aPrioriDelta, Task task, XMLGregorianCalendar now, OperationResult result)
     		throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException {
@@ -190,9 +202,9 @@ public class InboundProcessor {
         PrismObject<ShadowType> accountNew = accContext.getObjectNew();
         for (QName accountAttributeName : accountDefinition.getNamesOfAttributesWithInboundExpressions()) {
             PropertyDelta<?> accountAttributeDelta = null;
-            if (aPrioriDelta != null && !accContext.isFullShadow()) {
+            if (aPrioriDelta != null) {
                 accountAttributeDelta = aPrioriDelta.findPropertyDelta(new ItemPath(SchemaConstants.C_ATTRIBUTES), accountAttributeName);
-                if (accountAttributeDelta == null) {
+                if (accountAttributeDelta == null && !accContext.isFullShadow()) {
 					LOGGER.trace("Skipping inbound for {} in {}: Not a full shadow and account a priori delta exists, but doesn't have change for processed property.",
 							accountAttributeName, accContext.getResourceShadowDiscriminator());
 					continue;
@@ -323,7 +335,18 @@ public class InboundProcessor {
 		}
 		if (wave == accountContext.getWave() + 1) {
 			// If this resource was processed in a previous wave ....
-			return accountContext.getDelta();
+			// Normally, we take executed delta. However, there are situations (like preview changes - i.e. projector without execution),
+			// when there is no executed delta. In that case we take standard primary + secondary delta.
+			// TODO is this really correct? Think if the following can happen:
+			// - NOT previewing
+			// - no executed deltas but
+			// - existing primary/secondary delta.
+			List<LensObjectDeltaOperation<ShadowType>> executed = accountContext.getExecutedDeltas();
+			if (executed != null && !executed.isEmpty()) {
+				return executed.get(executed.size()-1).getObjectDelta();
+			} else {
+				return accountContext.getDelta();
+			}
 		}
 		return null;
 	}
@@ -408,7 +431,7 @@ public class InboundProcessor {
         
     	if (triple != null) {
     		
-	        if (triple.getPlusSet() != null) {
+	        if (triple.hasPlusSet()) {
 
 				boolean alreadyReplaced = false;
 
@@ -434,7 +457,8 @@ public class InboundProcessor {
 	                }
 	            }
 	        }
-	        if (triple.getMinusSet() != null) {
+
+	        if (triple.hasMinusSet()) {
 	            LOGGER.trace("Checking account sync property delta values to delete");
 	            for (PrismPropertyValue<U> value : triple.getMinusSet()) {
 	
@@ -479,7 +503,7 @@ public class InboundProcessor {
 			// organizationalUnit being zeroed, even if the inbound was not applied because of condition==false.
 			// See MID-2441.
 
-   			if (accountAttributeDelta == null && LensUtil.isSyncChannel(context.getChannel())){
+   			if (accountAttributeDelta == null && (LensUtil.isSyncChannel(context.getChannel()) || ModelExecuteOptions.isReconcile(context.getOptions()))){
     			// This is the case of "inbound reconciliation" which is quite special. The triple returned null
     			// which means that there was nothing in the input and (unsurprisingly) no change. If the input was empty
     			// then we need to make sure that the output (focus property) is also empty. Otherwise we miss the
@@ -670,7 +694,25 @@ public class InboundProcessor {
 		    	result.addAll(PrismValue.cloneCollection(outputTriple.getNonNegativeValues()));
 		        
 		    	PrismProperty targetPropertyNew = newUser.findOrCreateProperty(sourcePath);
-		        PropertyDelta<?> delta = targetPropertyNew.diff(result);
+		    	PropertyDelta<?> delta;
+		    	if (ProtectedStringType.COMPLEX_TYPE.equals(targetPropertyNew.getDefinition().getTypeName())) {
+		    		// We have to compare this in a special way. The cipherdata may be different due to a different
+		    		// IV, but the value may still be the same
+		    		ProtectedStringType resultValue = (ProtectedStringType) result.getRealValue();
+		    		ProtectedStringType targetPropertyNewValue = (ProtectedStringType) targetPropertyNew.getRealValue();
+		    		try {
+						if (protector.compare(resultValue, targetPropertyNewValue)) {
+							delta = null;
+						} else {
+							delta = targetPropertyNew.diff(result);
+						}
+					} catch (EncryptionException e) {
+						throw new SystemException(e.getMessage(), e);
+					}
+		    	} else {
+		    		delta = targetPropertyNew.diff(result);
+		    	}
+		        LOGGER.trace("targetPropertyNew:\n{}\ndelta:\n{}", targetPropertyNew.debugDump(1), delta==null?"null":delta.debugDump(1));
 		        if (delta != null && !delta.isEmpty()) {
 		        	delta.setParentPath(sourcePath.allExceptLast());
 		        	if (!context.getFocusContext().alreadyHasDelta(delta)){

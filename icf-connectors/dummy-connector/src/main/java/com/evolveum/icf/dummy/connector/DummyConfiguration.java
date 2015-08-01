@@ -53,8 +53,9 @@ public class DummyConfiguration extends AbstractConfiguration {
     private GuardedString uselessGuardedString;
 	private boolean generateAccountDescriptionOnCreate = false;		   // simulates volatile behavior (on create)
 	private boolean generateAccountDescriptionOnUpdate = false;        // simulates volatile behavior (on update)
+	private String[] forbiddenNames = new String[0];
 
-    /**
+	/**
      * Defines name of the dummy resource instance. There may be several dummy resource running in
      * parallel. This ID selects one of them. If not set a default instance will be selected.
      */
@@ -282,6 +283,16 @@ public class DummyConfiguration extends AbstractConfiguration {
 
 	public void setGenerateAccountDescriptionOnUpdate(boolean generateAccountDescriptionOnUpdate) {
 		this.generateAccountDescriptionOnUpdate = generateAccountDescriptionOnUpdate;
+	}
+
+	@ConfigurationProperty(displayMessageKey = "UI_FORBIDDEN_NAMES",
+			helpMessageKey = "UI_FORBIDDEN_NAMES_HELP")
+	public String[] getForbiddenNames() {
+		return forbiddenNames.clone();
+	}
+
+	public void setForbiddenNames(String[] forbiddenNames) {
+		this.forbiddenNames = forbiddenNames.clone();
 	}
 
 	/**

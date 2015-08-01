@@ -28,14 +28,25 @@
     		<attribute>
                 <ref>ri:title</ref>
                 <outbound>
+                	<strength>strong</strength>
                 	<expression>
 						<value>Swashbuckler</value>
+					</expression>
+				</outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:drink</ref>
+                <outbound>
+                	<strength>strong</strength>
+                	<expression>
+						<value>grog</value>
 					</expression>
 				</outbound>
             </attribute>
             <association>
             	<ref>ri:group</ref>
             	<outbound>
+            		<strength>strong</strength>
             		<expression>
             			<value>
                             <shadowRef oid="20000000-0000-0000-3333-000000000001" type="ShadowType"/>

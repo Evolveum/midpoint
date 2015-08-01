@@ -88,6 +88,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -166,7 +167,7 @@ public class AssignmentProcessor {
      * Generic method for all projection types (theoretically). 
      */
     public <O extends ObjectType> void processAssignmentsProjections(LensContext<O> context, XMLGregorianCalendar now,
-            Task task, OperationResult result) throws SchemaException,
+            Task task, OperationResult parentResult) throws SchemaException,
             ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	LensFocusContext<O> focusContext = context.getFocusContext();
     	if (focusContext == null) {
@@ -180,7 +181,33 @@ public class AssignmentProcessor {
 //    		//do not execute assignment if the execution was triggered by compensation mechanism and limitPropagation is set
 //    		return;
 //    	}
-    	processAssignmentsProjectionsWithFocus((LensContext<? extends FocusType>)context, now, task, result);
+    	
+    	OperationResult result = parentResult.createSubresult(AssignmentProcessor.class.getName() + ".processAssignmentsProjections");
+    	
+    	try {
+    		processAssignmentsProjectionsWithFocus((LensContext<? extends FocusType>)context, now, task, result);
+    	} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | PolicyViolationException | 
+    			CommunicationException | ConfigurationException | SecurityViolationException e) {
+    		result.recordFatalError(e);
+    		throw e;
+    	}
+    	
+    	OperationResultStatus finalStatus = OperationResultStatus.SUCCESS;
+    	String message = null;
+    	int errors = 0;
+    	for (OperationResult subresult: result.getSubresults()) {
+    		if (subresult.isError()) {
+    			errors++;
+    			if (message == null) {
+    				message = subresult.getMessage();
+    			} else {
+    				message = errors + " errors";
+    			}
+    			finalStatus = OperationResultStatus.PARTIAL_ERROR;
+    		}
+    	}
+		result.setStatus(finalStatus);
+		result.setMessage(message);
     }
     
     /**
@@ -203,14 +230,12 @@ public class AssignmentProcessor {
         // Normal processing. The enforcement policy requires that assigned accounts should be added, so we need to figure out
         // which assignments were added. Do a complete recompute for all the enforcement modes. We can do that because this does
         // not create deltas, it just creates the triples. So we can decide what to do later when we convert triples to deltas.
-        
-        Collection<PrismContainerValue<AssignmentType>> assignmentsCurrent = new ArrayList<PrismContainerValue<AssignmentType>>();
-        if (focusContext.getObjectCurrent() != null) {
-            PrismContainer<AssignmentType> assignmentContainer = focusContext.getObjectCurrent().findContainer(FocusType.F_ASSIGNMENT);
-            if (assignmentContainer != null) {
-            	assignmentsCurrent.addAll(assignmentContainer.getValues());
-            }
-        }
+
+		// This information is used for various reasons. We specifically distinguish between assignments in objectCurrent and objectOld
+		// to be able to reliably detect phantom adds: a phantom add is an assignment that is both in OLD and CURRENT objects. This is
+		// important in waves greater than 0, where objectCurrent is already updated with existing assignments. (See MID-2422.)
+		Collection<PrismContainerValue<AssignmentType>> assignmentsCurrent = getAssignmentsFromObject(focusContext.getObjectCurrent());
+		Collection<PrismContainerValue<AssignmentType>> assignmentsOld = getAssignmentsFromObject(focusContext.getObjectOld());
 
         ContainerDelta<AssignmentType> assignmentDelta = getExecutionWaveAssignmentDelta(focusContext);
         assignmentDelta.expand(focusContext.getObjectCurrent());
@@ -283,7 +308,10 @@ public class AssignmentProcessor {
             PrismContainerValue<AssignmentType> assignmentCValNew = assignmentCVal;
             ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
             assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
-            
+
+			boolean presentInCurrent = containsRealValue(assignmentsCurrent, assignmentCVal);
+			boolean presentInOld = containsRealValue(assignmentsOld, assignmentCVal);
+
             boolean forceRecon = false;
             // This really means whether the WHOLE assignment was changed (e.g. added/delted/replaced). It tells nothing
             // about "micro-changes" inside assignment, these will be processed later.
@@ -329,7 +357,9 @@ public class AssignmentProcessor {
                 if (evaluatedAssignment == null) {
                 	continue;
                 }
-                collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
+				evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
+				evaluatedAssignment.setPresentInOldObject(presentInOld);
+				collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
                 
             } else {
             	if (assignmentDelta.isReplace()) {
@@ -343,7 +373,7 @@ public class AssignmentProcessor {
             		// (remain after replace). As account delete and add are costly operations (and potentially dangerous)
             		// we optimize here are consider the assignments that were there before replace and still are there
             		// after it as unchanged.
-            		boolean hadValue = containsRealValue(assignmentsCurrent, assignmentCVal);
+            		boolean hadValue = presentInCurrent;
             		boolean willHaveValue = assignmentDelta.isValueToReplace(assignmentCVal, true);
             		if (hadValue && willHaveValue) {
             			// No change
@@ -351,13 +381,17 @@ public class AssignmentProcessor {
                         if (evaluatedAssignment == null) {
                         	continue;
                         }
-    	                collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
+						evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
+						evaluatedAssignment.setPresentInOldObject(presentInOld);
+						collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
             		} else if (willHaveValue) {
             			// add
             			EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
                         if (evaluatedAssignment == null) {
                         	continue;
                         }
+						evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
+						evaluatedAssignment.setPresentInOldObject(presentInOld);
 	                    collectToPlus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
             		} else if (hadValue) {
             			// delete
@@ -365,6 +399,8 @@ public class AssignmentProcessor {
                         if (evaluatedAssignment == null) {
                         	continue;
                         }
+						evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
+						evaluatedAssignment.setPresentInOldObject(presentInOld);
 	                    collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
             		} else {
             			throw new SystemException("Whoops. Unexpected things happen. Assignment is not old nor new (replace delta)");
@@ -382,7 +418,7 @@ public class AssignmentProcessor {
 		            	boolean isDelete = assignmentDelta.isValueToDelete(assignmentCVal, true);
 		                if (isAdd & !isDelete) {
 		                	// Entirely new assignment is added
-		                	if (containsRealValue(assignmentsCurrent, assignmentCVal)) {
+		                	if (presentInCurrent && presentInOld) {
 		                		// Phantom add: adding assignment that is already there
 		                		if (LOGGER.isTraceEnabled()) {
 				            		LOGGER.trace("Processing changed assignment, phantom add: {}", SchemaDebugUtil.prettyPrint(assignmentCVal));
@@ -391,7 +427,9 @@ public class AssignmentProcessor {
 		                        if (evaluatedAssignment == null) {
 		                        	continue;
 		                        }
-		                        collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
+								evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
+								evaluatedAssignment.setPresentInOldObject(presentInOld);
+								collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
 		                	} else {
 		                		if (LOGGER.isTraceEnabled()) {
 				            		LOGGER.trace("Processing changed assignment, add: {}", SchemaDebugUtil.prettyPrint(assignmentCVal));
@@ -400,6 +438,8 @@ public class AssignmentProcessor {
 		                        if (evaluatedAssignment == null) {
 		                        	continue;
 		                        }
+								evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
+								evaluatedAssignment.setPresentInOldObject(presentInOld);
 			                    collectToPlus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
 		                	}
 
@@ -412,6 +452,8 @@ public class AssignmentProcessor {
 		                    if (evaluatedAssignment == null) {
 		                    	continue;
 		                    }
+							evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
+							evaluatedAssignment.setPresentInOldObject(presentInOld);
 		                    collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
 		                    
 		                } else {
@@ -432,6 +474,8 @@ public class AssignmentProcessor {
 		                        if (evaluatedAssignment == null) {
 		                        	continue;
 		                        }
+								evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
+								evaluatedAssignment.setPresentInOldObject(presentInOld);
 				                collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, true);
 		                	} else if (isValid) {
 		                		// Assignment became valid. We need to place it in plus set to initiate provisioning
@@ -443,6 +487,8 @@ public class AssignmentProcessor {
 		                        if (evaluatedAssignment == null) {
 		                        	continue;
 		                        }
+								evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
+								evaluatedAssignment.setPresentInOldObject(presentInOld);
 			                    collectToPlus(evaluatedAssignmentTriple, evaluatedAssignment, true);
 		                	} else {
 		                		// Assignment became invalid. We need to place is in minus set to initiate deprovisioning
@@ -454,6 +500,8 @@ public class AssignmentProcessor {
 		                        if (evaluatedAssignment == null) {
 		                        	continue;
 		                        }
+								evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
+								evaluatedAssignment.setPresentInOldObject(presentInOld);
 		                        collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, true);
 		                	}
 		                }
@@ -468,6 +516,8 @@ public class AssignmentProcessor {
 		                if (evaluatedAssignment == null) {
 		                	continue;
 		                }
+						evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
+						evaluatedAssignment.setPresentInOldObject(presentInOld);
 		                collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
 		            }
             	}
@@ -737,7 +787,18 @@ public class AssignmentProcessor {
         
     }
 
-    /**
+	private <F extends FocusType> Collection<PrismContainerValue<AssignmentType>> getAssignmentsFromObject(PrismObject<F> object) {
+		Collection<PrismContainerValue<AssignmentType>> assignments = new ArrayList<PrismContainerValue<AssignmentType>>();
+		if (object != null) {
+            PrismContainer<AssignmentType> assignmentContainer = object.findContainer(FocusType.F_ASSIGNMENT);
+            if (assignmentContainer != null) {
+                assignments.addAll(assignmentContainer.getValues());
+            }
+        }
+		return assignments;
+	}
+
+	/**
      * Checks if we do not try to modify assignment.targetRef or assignment.construction.kind or intent.
      *
      * @param context
@@ -946,23 +1007,27 @@ public class AssignmentProcessor {
 	
 	private <F extends FocusType> EvaluatedAssignmentImpl<F> evaluateAssignment(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
 			boolean evaluateOld, LensContext<F> context, ObjectType source, AssignmentEvaluator<F> assignmentEvaluator, 
-			String assignmentPlacementDesc, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
+			String assignmentPlacementDesc, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
+		OperationResult result = parentResult.createSubresult(AssignmentProcessor.class+".evaluateAssignment");
+		result.addParam("assignmentDescription", assignmentPlacementDesc);
         try{
         	// Evaluate assignment. This follows to the assignment targets, follows to the inducements, 
         	// evaluates all the expressions, etc. 
         	EvaluatedAssignmentImpl<F> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, evaluateOld, source, assignmentPlacementDesc, task, result);
         	context.rememberResources(evaluatedAssignment.getResources(result));
+        	result.recordSuccess();
         	return evaluatedAssignment;
-        } catch (ObjectNotFoundException ex){
+        } catch (ObjectNotFoundException ex) {
         	if (LOGGER.isTraceEnabled()) {
             	LOGGER.trace("Processing of assignment resulted in error {}: {}", ex, SchemaDebugUtil.prettyPrint(LensUtil.getAssignmentType(assignmentIdi, evaluateOld)));
             }
-        	if (ModelExecuteOptions.isForce(context.getOptions())){
+        	if (ModelExecuteOptions.isForce(context.getOptions())) {
+        		result.recordHandledError(ex);
         		return null;
-        	} 
+        	}
         	ModelUtils.recordFatalError(result, ex);
         	return null;
-        } catch (SchemaException ex){
+        } catch (SchemaException ex) {
         	AssignmentType assignmentType = LensUtil.getAssignmentType(assignmentIdi, evaluateOld);
         	if (LOGGER.isTraceEnabled()) {
             	LOGGER.trace("Processing of assignment resulted in error {}: {}", ex, SchemaDebugUtil.prettyPrint(assignmentType));
@@ -980,6 +1045,9 @@ public class AssignmentProcessor {
 				accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
 			}
         	return null;
+        } catch (ExpressionEvaluationException | PolicyViolationException e) {
+        	result.recordFatalError(e);
+        	throw e;
         }
 	}
 
@@ -1125,8 +1193,8 @@ public class AssignmentProcessor {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Finishing legal decision for {}, thombstone {}, enforcement mode {}, legalize {}: {} -> {}",
 						new Object[]{projectionContext.toHumanReadableString(), projectionContext.isThombstone(),
-						projectionContext.getAssignmentPolicyEnforcementType(),
-						projectionContext.isLegalize(), projectionContext.isLegalOld(), projectionContext.isLegal()});
+								projectionContext.getAssignmentPolicyEnforcementType(),
+								projectionContext.isLegalize(), projectionContext.isLegalOld(), projectionContext.isLegal()});
 			}
 			
 			propagateLegalDecisionToHigherOrders(context, projectionContext);
@@ -1401,12 +1469,16 @@ public class AssignmentProcessor {
 			OperationResult result) throws PolicyViolationException, SchemaException {
 		for (EvaluatedAssignmentImpl<F> assignment: evaluatedAssignmentTriple.union()) {
 			if (evaluatedAssignmentTriple.presentInPlusSet(assignment)) {
-				checkAssigneeConstraints(context, assignment, PlusMinusZero.PLUS, result);
+				if (!assignment.isPresentInCurrentObject()) {
+					checkAssigneeConstraints(context, assignment, PlusMinusZero.PLUS, result);		// only really new assignments
+				}
 			} else if (evaluatedAssignmentTriple.presentInZeroSet(assignment)) {
 				// No need to check anything here. Maintain status quo.
 //				checkAssigneeConstraints(context, assignment, PlusMinusZero.ZERO, result);
 			} else {
-				checkAssigneeConstraints(context, assignment, PlusMinusZero.MINUS, result);
+				if (assignment.isPresentInCurrentObject()) {
+					checkAssigneeConstraints(context, assignment, PlusMinusZero.MINUS, result);		// only assignments that are really deleted
+				}
 			}
 		}
 	}
@@ -1473,10 +1545,11 @@ public class AssignmentProcessor {
      * Returns delta of user assignments, both primary and secondary (merged together).
      * The returned object is (kind of) immutable. Changing it may do strange things (but most likely the changes will be lost).
      *
-     * This is relative to execution wave to avoid re-processing of already executed assignments.
+     * Originally we took only the delta related to current execution wave, to avoid re-processing of already executed assignments.
+	 * But MID-2422 shows that we need to take deltas from waves 0..N (N=current execution wave) [that effectively means all the secondary deltas]
      */
 	private <F extends FocusType> ContainerDelta<AssignmentType> getExecutionWaveAssignmentDelta(LensFocusContext<F> focusContext) throws SchemaException {
-        ObjectDelta<? extends FocusType> focusDelta = (ObjectDelta<? extends FocusType>) focusContext.getWaveDelta(focusContext.getLensContext().getExecutionWave());
+        ObjectDelta<? extends FocusType> focusDelta = (ObjectDelta<? extends FocusType>) focusContext.getAggregatedWaveDelta(focusContext.getLensContext().getExecutionWave());
         if (focusDelta == null) {
             return createEmptyAssignmentDelta(focusContext);
         }

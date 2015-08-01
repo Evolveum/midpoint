@@ -424,21 +424,22 @@ public class PageCertCampaign extends PageAdminCertification {
 		});
 		mainForm.add(startRemediationButton);
 
-		AjaxButton closeCampaignButton = new AjaxButton(ID_CLOSE_CAMPAIGN_BUTTON,
-				createStringResource("PageCertCampaign.button.closeCampaign")) {
-
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				executeCampaignStateOperation(target, OP_CLOSE_CAMPAIGN);
-			}
-		};
-		closeCampaignButton.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return campaignModel.getObject().getState() != AccessCertificationCampaignStateType.CLOSED;
-			}
-		});
-		mainForm.add(closeCampaignButton);
+		// TODO reenable when confirmation window is implemented
+//		AjaxButton closeCampaignButton = new AjaxButton(ID_CLOSE_CAMPAIGN_BUTTON,
+//				createStringResource("PageCertCampaign.button.closeCampaign")) {
+//
+//			@Override
+//			public void onClick(AjaxRequestTarget target) {
+//				executeCampaignStateOperation(target, OP_CLOSE_CAMPAIGN);
+//			}
+//		};
+//		closeCampaignButton.add(new VisibleEnableBehaviour() {
+//			@Override
+//			public boolean isVisible() {
+//				return campaignModel.getObject().getState() != AccessCertificationCampaignStateType.CLOSED;
+//			}
+//		});
+//		mainForm.add(closeCampaignButton);
 	}
 
 	private void executeCampaignStateOperation(AjaxRequestTarget target, String action) {
