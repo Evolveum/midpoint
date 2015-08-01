@@ -533,6 +533,14 @@ public final class WebMiscUtil {
         return result.isSuccess() || result.isHandledError();
     }
 
+    public static boolean isSuccessOrHandledErrorOrWarning(OperationResult result) {
+        if (result == null) {
+            return false;
+        }
+
+        return result.isSuccess() || result.isHandledError() || result.isWarning();
+    }
+
     public static boolean isSuccessOrHandledErrorOrInProgress(OperationResult result) {
         if (result == null) {
             return false;
