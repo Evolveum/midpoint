@@ -161,7 +161,7 @@ public class PageDebugView extends PageAdminConfiguration {
             showResult(result);
         }
 
-        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
+        if (!WebMiscUtil.isSuccessOrHandledErrorOrWarning(result)) {
             showResultInSession(result);
             throw new RestartResponseException(PageDebugList.class);
         }

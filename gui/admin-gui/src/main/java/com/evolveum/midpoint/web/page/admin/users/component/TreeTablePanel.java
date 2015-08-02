@@ -313,13 +313,6 @@ public class TreeTablePanel extends SimplePanel<String> {
         WebMarkupContainer childOrgUnitContainer = new WebMarkupContainer(ID_CONTAINER_CHILD_ORGS);
         childOrgUnitContainer.setOutputMarkupId(true);
         childOrgUnitContainer.setOutputMarkupPlaceholderTag(true);
-        childOrgUnitContainer.add(new VisibleEnableBehaviour(){
-
-            @Override
-            public boolean isVisible() {
-                return childTableProvider.size() != 0;
-            }
-        });
         form.add(childOrgUnitContainer);
 
         List<IColumn<OrgTableDto, String>> childTableColumns = createChildTableColumns();
@@ -353,13 +346,6 @@ public class TreeTablePanel extends SimplePanel<String> {
         WebMarkupContainer managerContainer = new WebMarkupContainer(ID_CONTAINER_MANAGER);
         managerContainer.setOutputMarkupId(true);
         managerContainer.setOutputMarkupPlaceholderTag(true);
-        managerContainer.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return managerTableProvider.size() != 0;
-            }
-        });
         form.add(managerContainer);
 
         List<IColumn<OrgTableDto, String>> managerTableColumns = createUserTableColumns(true);
@@ -393,13 +379,6 @@ public class TreeTablePanel extends SimplePanel<String> {
         WebMarkupContainer memberContainer = new WebMarkupContainer(ID_CONTAINER_MEMBER);
         memberContainer.setOutputMarkupId(true);
         memberContainer.setOutputMarkupPlaceholderTag(true);
-        memberContainer.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return memberTableProvider.size() != 0;
-            }
-        });
         form.add(memberContainer);
 
         List<IColumn<OrgTableDto, String>> memberTableColumns = createUserTableColumns(false);

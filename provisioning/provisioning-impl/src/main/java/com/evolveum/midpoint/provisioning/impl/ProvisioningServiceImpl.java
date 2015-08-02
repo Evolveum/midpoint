@@ -246,7 +246,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 						if (GetOperationOptions.isRaw(rootOptions)) {
 							// This is (almost) OK in raw. We want to get whatever is available, even if it violates
 							// the schema
-							ProvisioningUtil.logWarning(LOGGER, result, "Repository object "+repositoryObject+" violates the schema: " + e.getMessage() + ". Reason: ", e);
+							String m = "Repository object "+repositoryObject+" violates the schema: " + e.getMessage();
+							ProvisioningUtil.logWarning(LOGGER, result, m + ". Reason: ", e);
+							OperationResult last = result.getLastSubresult();
+							if (last != null) {
+								last.recordWarning(m, e);	// MID-2486 - if raw, we want to display this as a warning only
+							}
 						} else {
 							ProvisioningUtil.recordFatalError(LOGGER, result, "Repository object "+repositoryObject+" violates the schema: " + e.getMessage() + ". Reason: ", e);
 							throw e;
