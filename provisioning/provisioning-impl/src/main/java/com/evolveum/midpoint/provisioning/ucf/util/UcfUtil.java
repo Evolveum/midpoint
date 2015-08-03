@@ -75,7 +75,7 @@ public class UcfUtil {
 		} catch (EncryptionException e) {
 //			LOGGER.error("Unable to decrypt value of element {}: {}",
 //					new Object[] { propertyName, e.getMessage(), e });
-			throw new SystemException("Unable to dectypt value of element " + propertyName + ": "
+			throw new SystemException("Unable to decrypt value of element " + propertyName + ": "
 					+ e.getMessage(), e);
 		}
 	}

@@ -70,10 +70,10 @@ public class TestScience  extends AbstractStoryTest {
 	public static final String NS_SCIENCE_EXT = "http://midpoint.evolveum.com/xml/ns/science/user/ext";
 	private static final QName SCIENCE_EXTENSION_UID_QNAME = new QName(NS_SCIENCE_EXT, "aixUserId");
 	
-	private static final File ROLE_STATISTICS_FILE = new File(TEST_DIR, "/role-statistics.xml");
+	private static final File ROLE_STATISTICS_FILE = new File(TEST_DIR, "role-statistics.xml");
 	private static final String ROLE_STATISTICS_OID = "23d90f70-1924-419e-9beb-78a8bde6d261";
 	
-	private static final File ROLE_MATH_FILE = new File(TEST_DIR, "/role-math.xml");
+	private static final File ROLE_MATH_FILE = new File(TEST_DIR, "role-math.xml");
 	private static final String ROLE_MATH_OID = "";
 	
 	private static final File GROUP_STATS_USERS_LDIF_FILE = new File(TEST_DIR, "group-stats.ldif");
@@ -290,9 +290,15 @@ public class TestScience  extends AbstractStoryTest {
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 		openDJController.stop();
 		
-		assignRole(USER_JACK_OID, ROLE_STATISTICS_OID);
+		// WHEN
+		assignRole(USER_JACK_OID, ROLE_STATISTICS_OID, task, result);
 		
-		
+		// THEN
+		result.computeStatus();
+		if (!result.isSuccess() && !result.isPartialError()) {
+			IntegrationTestTools.display(result);
+			AssertJUnit.fail("Expected success or partial error, but got "+result.getStatus());
+		}
 		PrismObject<UserType> userJack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
 		AssertJUnit.assertNotNull("User jack not found", userJack);
 		UserType jackType = userJack.asObjectable();
@@ -322,7 +328,7 @@ public class TestScience  extends AbstractStoryTest {
 	
 	@Test
 	public void test200delteUserJack() throws Exception {
-		final String TEST_NAME = "test100jackAssignRoleStatistics";
+		final String TEST_NAME = "test200delteUserJack";
 		TestUtil.displayTestTile(this, TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestScience.class.getName() + "." + TEST_NAME);
 		
@@ -333,7 +339,10 @@ public class TestScience  extends AbstractStoryTest {
 		result.computeStatus();
 		
 		IntegrationTestTools.display("Result: ", result);
-		AssertJUnit.assertTrue("Unexpected failure", result.isSuccess());
+		if (!result.isSuccess() && !result.isHandledError()) {
+			IntegrationTestTools.display(result);
+			AssertJUnit.fail("Expected success or handled error, but got "+result.getStatus());
+		}
 		
 		try {
 			repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);

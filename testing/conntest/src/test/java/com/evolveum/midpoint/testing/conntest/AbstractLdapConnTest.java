@@ -776,7 +776,8 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         ResourceAttribute<Long> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimestamp"));
         assertNotNull("No createTimestamp in "+shadow, createTimestampAttribute);
         Long createTimestamp = createTimestampAttribute.getRealValue();
-        TestUtil.assertBetween("Wrong createTimestamp in "+shadow, roundTsDown(tsStart), roundTsUp(tsEnd), createTimestamp);
+        // LDAP server may be on a different host. Allow for some clock offset.
+        TestUtil.assertBetween("Wrong createTimestamp in "+shadow, roundTsDown(tsStart)-1000, roundTsUp(tsEnd)+1000, createTimestamp);
 	}
 	
 	@Test
