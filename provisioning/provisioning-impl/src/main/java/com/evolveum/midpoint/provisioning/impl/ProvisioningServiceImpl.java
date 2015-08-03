@@ -1153,7 +1153,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
                     handleResult.computeStatus();
                     handleResult.recordSuccessIfUnknown();
 
-                    if (!handleResult.isSuccess()) {
+                    if (!handleResult.isSuccess() && !handleResult.isHandledError()) {
                         Collection<? extends ItemDelta> shadowModificationType = PropertyDelta
                                 .createModificationReplacePropertyCollection(ShadowType.F_RESULT,
                                         getResourceObjectShadowDefinition(), handleResult.createOperationResultType());
