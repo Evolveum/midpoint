@@ -1178,10 +1178,10 @@ public abstract class ShadowCache {
 				throw new SystemException("Synchronization error: " + ex.getMessage(), ex);
 			}
 
-			notifyChangeResult.computeStatus("Error by notify change operation.");
+			notifyChangeResult.computeStatus("Error in notify change operation.");
 
 			boolean successfull = false;
-			if (notifyChangeResult.isSuccess()) {
+			if (notifyChangeResult.isSuccess() || notifyChangeResult.isHandledError()) {
 				deleteShadowFromRepo(change, result);
 				successfull  = true;
 //				// get updated token from change,

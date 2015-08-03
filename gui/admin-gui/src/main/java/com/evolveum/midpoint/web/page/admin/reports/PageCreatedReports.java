@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.web.page.admin.reports.component.DownloadButtonPanel;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -63,7 +64,6 @@ import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
@@ -419,42 +419,28 @@ public class PageCreatedReports extends PageAdminReports {
         };
         columns.add(column);
 
-        column = new DoubleButtonColumn<SelectableBean<ReportOutputType>>(new Model(), null) {
+        column = new AbstractColumn<SelectableBean<ReportOutputType>, String>(new Model(), null) {
 
             @Override
-            public String getFirstCap() {
-                return createStringResource("pageCreatedReports.button.download").getString();
-            }
+            public void populateItem(Item<ICellPopulator<SelectableBean<ReportOutputType>>> cellItem,
+                                     String componentId, final IModel<SelectableBean<ReportOutputType>> model) {
 
-            @Override
-            public String getSecondCap() {
-                return "";
-            }
+                DownloadButtonPanel panel = new DownloadButtonPanel(componentId) {
 
-            @Override
-            public String getFirstColorCssClass() {
-                return BUTTON_COLOR_CLASS.PRIMARY.toString();
-            }
+                    @Override
+                    protected void deletePerformed(AjaxRequestTarget target) {
+                        deleteSelectedPerformed(target, ReportDeleteDialogDto.Operation.DELETE_SINGLE,
+                                model.getObject().getValue());
+                    }
 
-            @Override
-            public String getSecondColorCssClass() {
-                return BUTTON_COLOR_CLASS.DANGER.toString() + " glyphicon glyphicon-trash";
-            }
-
-            @Override
-            public void firstClicked(AjaxRequestTarget target, IModel<SelectableBean<ReportOutputType>> model) {
-                currentReport = model.getObject().getValue();
-                downloadPerformed(target, model.getObject().getValue(), ajaxDownloadBehavior);
-            }
-
-            @Override
-            public void secondClicked(AjaxRequestTarget target, IModel<SelectableBean<ReportOutputType>> model) {
-                deleteSelectedPerformed(target, ReportDeleteDialogDto.Operation.DELETE_SINGLE, model.getObject().getValue());
-            }
-
-            @Override
-            public String getSecondSizeCssClass() {
-                return BUTTON_SIZE_CLASS.SMALL.toString();
+                    @Override
+                    protected void downloadPerformed(AjaxRequestTarget target) {
+                        currentReport = model.getObject().getValue();
+                        PageCreatedReports.this.
+                                downloadPerformed(target, model.getObject().getValue(), ajaxDownloadBehavior);
+                    }
+                };
+                cellItem.add(panel);
             }
         };
         columns.add(column);
