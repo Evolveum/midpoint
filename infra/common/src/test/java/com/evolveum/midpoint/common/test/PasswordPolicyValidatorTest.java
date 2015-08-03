@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -259,26 +260,48 @@ public class PasswordPolicyValidatorTest {
 	}
 
 	@Test
-	public void passwordValidationTest() throws JAXBException, SchemaException, IOException {
-		String filename = "password-policy-complex.xml";
-		String pathname = BASE_PATH + filename;
-		File file = new File(pathname);
+	public void passwordValidationTestComplex() throws Exception {
+		final String TEST_NAME = "passwordValidationTestComplex";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		ValuePolicyType pp = parsePasswordPolicy("password-policy-complex.xml");
 
-		LOGGER.error("Positive testing: passwordGeneratorComplexTest");
-		ValuePolicyType pp = (ValuePolicyType) PrismTestUtil.parseObject(file).asObjectable();
-
-		// Test on all cases
+		// WHEN, THEN
 		AssertJUnit.assertTrue(pwdValidHelper("582a**A", pp));
 		AssertJUnit.assertFalse(pwdValidHelper("58", pp));
 		AssertJUnit.assertFalse(pwdValidHelper("333a**aGaa", pp));
 		AssertJUnit.assertFalse(pwdValidHelper("AAA4444", pp));
 	}
 
+	@Test
+	public void passwordValidationTestTri() throws Exception {
+		final String TEST_NAME = "passwordValidationTestTri";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		ValuePolicyType pp = parsePasswordPolicy("password-policy-tri.xml");
+
+		// WHEN, THEN
+		AssertJUnit.assertTrue(pwdValidHelper("Password1", pp));
+		AssertJUnit.assertFalse(pwdValidHelper("password1", pp)); // no capital letter
+		AssertJUnit.assertFalse(pwdValidHelper("1PASSWORD", pp)); // no lowecase letter
+		AssertJUnit.assertFalse(pwdValidHelper("Password", pp)); // no numeral
+		AssertJUnit.assertFalse(pwdValidHelper("Pa1", pp)); // too short
+		AssertJUnit.assertFalse(pwdValidHelper("PPPPPPPPPPPPPPPPPPPPPPPaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa11111111111111111111111111111111111111111111111111111111111111111111", pp)); // too long
+	}
+
+	private ValuePolicyType parsePasswordPolicy(String filename) throws SchemaException, IOException {
+		File file = new File(BASE_PATH, filename);
+		return (ValuePolicyType) PrismTestUtil.parseObject(file).asObjectable();
+	}
+
 	private boolean pwdValidHelper(String password, ValuePolicyType pp) {
 		OperationResult op = new OperationResult("Password Validator test with password:" + password);
 		PasswordPolicyUtils.validatePassword(password, pp, op);
 		op.computeStatus();
-		LOGGER.error(op.debugDump());
+		String msg = "-> Policy "+pp.getName()+", password '"+password+"': "+op.getStatus();
+		System.out.println(msg);
+		LOGGER.info(msg);
+		LOGGER.trace(op.debugDump());
 		return (op.isSuccess());
 	}
 

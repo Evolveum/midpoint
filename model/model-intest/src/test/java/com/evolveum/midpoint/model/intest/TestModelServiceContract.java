@@ -2527,7 +2527,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionDeltas(1);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         // raw operation, no target
-        //dummyAuditService.assertTarget(USER_JACK_OID);
+        // dummyAuditService.assertTarget(USER_JACK_OID); // MID-2451
         dummyAuditService.assertExecutionSuccess();
         
         assertScriptCompileIncrement(0);

@@ -411,7 +411,7 @@ public class PageSecurityQuestions extends PageBase {
 		} else {
 
 			setAuthenticationNull();
-			warn(getString("PageSecurityQuestions.message.WrongAnswer"));
+			warn(getString("pageSecurityQuestions.message.WrongAnswer"));
 			target.add(getFeedbackPanel());
 			return;
 		}
