@@ -100,14 +100,13 @@
 					<ref>ri:sn</ref>
 					<displayName>Surname</displayName>
 					<limitations>
-                                                <minOccurs>0</minOccurs>
-                                                <access>
-                                                        <read>true</read>
-                                                        <add>true</add>
-                                                        <modify>true</modify>
-                                                </access>
-                                        </limitations>
-
+                           <minOccurs>0</minOccurs>
+                           <access>
+                                   <read>true</read>
+                                   <add>true</add>
+                                   <modify>true</modify>
+                           </access>
+                   </limitations>
 					<outbound>
 						<source>
 							<path>$user/familyName</path>
@@ -142,12 +141,10 @@
 				<attribute>
 					<ref>icfs:name</ref>
 					<displayName>Distinguished Name</displayName>
-					<matchingRule>mr:stringIgnoreCase</matchingRule>
-
 					<limitations>
 						<minOccurs>0</minOccurs>
-					</limitations>
-
+					</limitations>					
+					<matchingRule>mr:stringIgnoreCase</matchingRule>
 					<outbound>
 						<source>
 							<path>$user/givenName</path>
