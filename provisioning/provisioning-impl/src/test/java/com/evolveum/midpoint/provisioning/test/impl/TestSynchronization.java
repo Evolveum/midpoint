@@ -110,7 +110,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 		// let provisioning discover the connectors
 		provisioningService.postInit(initResult);
 		
-		resourceType = addResourceFromFile(RESOURCE_OPENDJ_FILE, AbstractOpenDJTest.LDAP_CONNECTOR_TYPE, initResult).asObjectable();
+		resourceType = addResourceFromFile(RESOURCE_OPENDJ_FILE, ProvisioningTestUtil.CONNECTOR_LDAP_TYPE, initResult).asObjectable();
 		
 		//it is needed to declare the task owner, so we add the user admin to the reposiotry
 		repoAddObjectFromFile(FILENAME_USER_ADMIN, UserType.class, initResult);

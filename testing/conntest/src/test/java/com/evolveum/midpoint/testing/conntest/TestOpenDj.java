@@ -116,7 +116,7 @@ public class TestOpenDj extends AbstractLdapConnTest {
 	@Override
 	protected void assertStepSyncToken(String syncTaskOid, int step, long tsStart, long tsEnd)
 			throws ObjectNotFoundException, SchemaException {
-		assertSyncToken(syncTaskOid, (Integer)(step+4));
+		assertSyncToken(syncTaskOid, (Integer)(step+5));
 	}
 	
 }

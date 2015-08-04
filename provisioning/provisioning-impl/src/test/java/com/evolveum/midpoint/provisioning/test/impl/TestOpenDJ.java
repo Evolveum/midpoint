@@ -941,17 +941,18 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertNull("Unexpected password before change",passwordBefore);
 		
 		ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(
-                new File("src/test/resources/impl/account-change-password.xml"), ObjectModificationType.COMPLEX_TYPE);
+                new File(TEST_DIR, "account-change-password.xml"), ObjectModificationType.COMPLEX_TYPE);
 		ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, accountType.asPrismObject().getDefinition());
 		display("Object change",delta);
 
 		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(), null, null, taskManager.createTaskInstance(), result);
 
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
 		
 		// Check if object was modified in LDAP
-		
 		SearchResultEntry entryAfter = openDJController.searchAndAssertByEntryUuid(uid);			
 		display("LDAP account after", entryAfter);
 
@@ -959,6 +960,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertNotNull("The password was not changed",passwordAfter);
 		
 		System.out.println("Changed password: "+passwordAfter);
+		
+		openDJController.assertPassword(entryAfter.getDN().toString(), "mehAbigH4X0R");
 
 		assertShadows(3);
 	}
@@ -1006,6 +1009,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertNotNull("The password was not changed",passwordAfter);
 		
 		System.out.println("Account password: "+passwordAfter);
+		
+		openDJController.assertPassword(entryAfter.getDN().toString(), "t4k30v3rTh3W0rld");
 			
 		assertShadows(4);
 	}
@@ -1953,7 +1958,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		OperationResult parentResult = new OperationResult("test401noReadNativeCapability");
 		
-		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "resource-opendj-no-read.xml"), LDAP_CONNECTOR_TYPE, true, parentResult);
+		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "resource-opendj-no-read.xml"), ProvisioningTestUtil.CONNECTOR_LDAP_TYPE, true, parentResult);
 		
 		Task task = taskManager.createTaskInstance();
 		
@@ -1973,7 +1978,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		OperationResult parentResult = new OperationResult("test401noReadNativeCapability");
 		
-		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "/resource-opendj-no-create.xml"), LDAP_CONNECTOR_TYPE, true, parentResult);
+		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "/resource-opendj-no-create.xml"), ProvisioningTestUtil.CONNECTOR_LDAP_TYPE, true, parentResult);
 		
 		Task task = taskManager.createTaskInstance();
 		
@@ -1994,7 +1999,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		OperationResult parentResult = new OperationResult("test401noReadNativeCapability");
 		
-		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "/resource-opendj-no-delete.xml"), LDAP_CONNECTOR_TYPE, true, parentResult);
+		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "/resource-opendj-no-delete.xml"), ProvisioningTestUtil.CONNECTOR_LDAP_TYPE, true, parentResult);
 		
 		Task task = taskManager.createTaskInstance();
 		
@@ -2013,7 +2018,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		OperationResult parentResult = new OperationResult("test401noReadNativeCapability");
 		
-		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "/resource-opendj-no-update.xml"), LDAP_CONNECTOR_TYPE, true, parentResult);
+		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "/resource-opendj-no-update.xml"), ProvisioningTestUtil.CONNECTOR_LDAP_TYPE, true, parentResult);
 		
 		Task task = taskManager.createTaskInstance();
 		
@@ -2038,7 +2043,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 				+ "." + TEST_NAME);
 
 		PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_OPENDJ_BAD_CREDENTIALS_FILE);
-		fillInConnectorRef(resource, LDAP_CONNECTOR_TYPE, result);
+		fillInConnectorRef(resource, ProvisioningTestUtil.CONNECTOR_LDAP_TYPE, result);
 
 		// WHEN
 		String addedObjectOid = provisioningService.addObject(resource, null, null, taskManager.createTaskInstance(), result);
@@ -2076,7 +2081,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 				+ "." + TEST_NAME);
 
 		PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_OPENDJ_BAD_BIND_DN_FILE);
-		fillInConnectorRef(resource, LDAP_CONNECTOR_TYPE, result);
+		fillInConnectorRef(resource, ProvisioningTestUtil.CONNECTOR_LDAP_TYPE, result);
 
 		// WHEN
 		String addedObjectOid = provisioningService.addObject(resource, null, null, taskManager.createTaskInstance(), result);

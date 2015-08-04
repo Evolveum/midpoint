@@ -83,6 +83,9 @@ public class ProvisioningTestUtil {
 	public static final String OBJECT_CLASS_INETORGPERSON_NAME = "inetOrgPerson";
 	public static final String RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME = "entryUUID";
 	public static final String RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME = "dn";
+	
+	public static final String CONNECTOR_LDAP_TYPE = "com.evolveum.polygon.connector.ldap.LdapConnector";
+	public static final String CONNECTOR_LDAP_NS = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector";
 
 	public static void assertConnectorSchemaSanity(ConnectorType conn, PrismContext prismContext) throws SchemaException {
 		XmlSchemaType xmlSchemaType = conn.getSchema();

@@ -198,6 +198,17 @@
 					<inbound/>
 				</administrativeStatus>
 			</activation>
+			
+			<credentials>
+                <password>
+                    <outbound>
+                    	<strength>strong</strength>
+                    	<expression>
+                        	<asIs/>
+                        </expression>
+                    </outbound>
+                </password>
+            </credentials>
 		</objectType>
 		
 		<objectType>
