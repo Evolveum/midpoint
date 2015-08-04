@@ -836,6 +836,8 @@ public class TreeTablePanel extends SimplePanel<String> {
                 ref.setRelation(SchemaConstants.ORG_MANAGER);
             }
 
+            user.getParentOrgRef().add(ref.clone());
+            
             AssignmentType assignment = new AssignmentType();
             assignment.setTargetRef(ref);
 
