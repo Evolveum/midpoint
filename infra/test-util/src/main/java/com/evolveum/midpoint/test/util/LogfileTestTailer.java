@@ -172,18 +172,21 @@ public class LogfileTestTailer {
 		
 		// Match audit
 		matcher = auditPattern.matcher(line);
-		while (matcher.find()) {
-			String level;
-			String message;
-			if (matcher.groupCount() == 2) {
-				level = matcher.group(1);
-				message = matcher.group(2);
-			} else {
-				level = matcher.group(2);
-				message = matcher.group(3);
+		if (!line.contains("Details of event")) {
+			while (matcher.find()) {
+				String level;
+				String message;
+				if (matcher.groupCount() == 2) {
+					level = matcher.group(1);
+					message = matcher.group(2);
+				} else {
+					level = matcher.group(2);
+					message = matcher.group(3);
+				}
+				recordAuditMessage(level,message);
 			}
-			recordAuditMessage(level,message);
 		}
+		
 		if (expectedMessage != null && line.contains(expectedMessage)) {
 			expectedMessageLine = line;
 		}
