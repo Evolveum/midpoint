@@ -394,22 +394,28 @@ public class ModelController implements ModelService, ModelInteractionService, T
 				if (visitable instanceof PrismReferenceValue) {
 					PrismReferenceValue refVal = (PrismReferenceValue) visitable;
 					PrismObject<?> refObject = refVal.getObject();
+					String name = null;
 					if (refObject == null) {
 						try {
 							// TODO what about security here?!
 							// TODO use some minimalistic get options (e.g. retrieve name only)
 							refObject = objectResolver.resolve(refVal, "", rootOptionsNoResolve, task, result);
+							if (refObject == null) {	// will be used with AllowNotFound above
+								name = "(object not found)";
+							}
 						} catch (ObjectNotFoundException e) {
 							// actually, this won't occur if AllowNotFound is set to true above (however, for now, it is not)
 							result.muteError();
 							result.muteLastSubresultError();
+							name = "(object not found)";
+						} catch (RuntimeException e) {
+							result.muteError();
+							result.muteLastSubresultError();
+							name = "(object cannot be retrieved)";
 						}
 					}
-					String name;
 					if (refObject != null) {
 						name = PolyString.getOrig(refObject.asObjectable().getName());
-					} else {
-						name = "(object not found)";
 					}
 					if (StringUtils.isNotEmpty(name)) {
 						refVal.setUserData(XNodeSerializer.USER_DATA_KEY_COMMENT, " " + name + " ");

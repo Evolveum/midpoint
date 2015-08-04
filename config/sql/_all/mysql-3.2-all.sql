@@ -11,15 +11,15 @@
 
 # remove iAncestor and iDescendant index, they are the same as FK for that fields
 
-CREATE TABLE m_acc_cert_definition (
-    name_norm VARCHAR(255),
-    name_orig VARCHAR(255),
-    oid VARCHAR(36) NOT NULL,
-    PRIMARY KEY (oid)
+CREATE TABLE m_abstract_role (
+  approvalProcess VARCHAR(255),
+  requestable     BIT,
+  oid             VARCHAR(36) NOT NULL,
+  PRIMARY KEY (oid)
 )
   DEFAULT CHARACTER SET utf8
   COLLATE utf8_bin
-  ENGINE=InnoDB;
+  ENGINE = InnoDB;
 
 CREATE TABLE m_acc_cert_campaign (
     definitionRef_relation VARCHAR(157),
@@ -34,15 +34,15 @@ CREATE TABLE m_acc_cert_campaign (
   COLLATE utf8_bin
   ENGINE=InnoDB;
 
-CREATE TABLE m_abstract_role (
-  approvalProcess VARCHAR(255),
-  requestable     BIT,
-  oid             VARCHAR(36) NOT NULL,
-  PRIMARY KEY (oid)
+CREATE TABLE m_acc_cert_definition (
+    name_norm VARCHAR(255),
+    name_orig VARCHAR(255),
+    oid VARCHAR(36) NOT NULL,
+    PRIMARY KEY (oid)
 )
   DEFAULT CHARACTER SET utf8
   COLLATE utf8_bin
-  ENGINE = InnoDB;
+  ENGINE=InnoDB;
 
 CREATE TABLE m_assignment (
   id                      INTEGER     NOT NULL,
@@ -767,13 +767,13 @@ CREATE TABLE m_value_policy (
   COLLATE utf8_bin
   ENGINE = InnoDB;
 
-ALTER TABLE m_acc_cert_definition
-    ADD CONSTRAINT uc_acc_cert_definition_name  UNIQUE (name_norm);
+CREATE INDEX iRequestable ON m_abstract_role (requestable);
 
 ALTER TABLE m_acc_cert_campaign
     ADD CONSTRAINT uc_acc_cert_campaign_name  UNIQUE (name_norm);
 
-CREATE INDEX iRequestable ON m_abstract_role (requestable);
+ALTER TABLE m_acc_cert_definition
+    ADD CONSTRAINT uc_acc_cert_definition_name  UNIQUE (name_norm);
 
 CREATE INDEX iAssignmentAdministrative ON m_assignment (administrativeStatus);
 
@@ -903,20 +903,20 @@ CREATE INDEX iLocality ON m_user (locality_orig);
 ALTER TABLE m_value_policy
 ADD CONSTRAINT uc_value_policy_name UNIQUE (name_norm);
 
-ALTER TABLE m_acc_cert_definition
-    ADD CONSTRAINT fk_acc_cert_definition
-    FOREIGN KEY (oid)
-    REFERENCES m_object (oid);
+ALTER TABLE m_abstract_role
+ADD CONSTRAINT fk_abstract_role
+FOREIGN KEY (oid)
+REFERENCES m_focus (oid);
 
 ALTER TABLE m_acc_cert_campaign
     ADD CONSTRAINT fk_acc_cert_campaign
     FOREIGN KEY (oid)
     REFERENCES m_object (oid);
 
-ALTER TABLE m_abstract_role
-ADD CONSTRAINT fk_abstract_role
-FOREIGN KEY (oid)
-REFERENCES m_focus (oid);
+ALTER TABLE m_acc_cert_definition
+    ADD CONSTRAINT fk_acc_cert_definition
+    FOREIGN KEY (oid)
+    REFERENCES m_object (oid);
 
 ALTER TABLE m_assignment
 ADD CONSTRAINT fk_assignment_owner

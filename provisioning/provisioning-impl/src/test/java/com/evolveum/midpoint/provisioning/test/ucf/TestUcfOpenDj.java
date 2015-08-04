@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.provisioning.test.ucf;
 
 import com.evolveum.midpoint.prism.Definition;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -27,12 +28,14 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
+import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -205,7 +208,17 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		final String TEST_NAME = "test010ConnectorSchemaSanity";
 		TestUtil.displayTestTile(TEST_NAME);
 	
-		ProvisioningTestUtil.assertConnectorSchemaSanity(connectorSchema, "LDAP connector");		
+		ProvisioningTestUtil.assertConnectorSchemaSanity(connectorSchema, "LDAP connector");
+		
+		PrismContainerDefinition configurationDefinition = 
+				connectorSchema.findItemDefinition(ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart(), PrismContainerDefinition.class);		
+		PrismContainerDefinition configurationPropertiesDefinition = 
+			configurationDefinition.findContainerDefinition(ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
+		PrismPropertyDefinition<String> propHost = configurationPropertiesDefinition.findPropertyDefinition(new QName(ProvisioningTestUtil.CONNECTOR_LDAP_NS,"host"));
+		assertNotNull("No definition for configuration property 'host' in connector schema", propHost);
+		PrismAsserts.assertDefinition(propHost, new QName(ProvisioningTestUtil.CONNECTOR_LDAP_NS,"host"), DOMUtil.XSD_STRING, 0, 1);
+		assertEquals("Wrong property 'host' display name", "Host", propHost.getDisplayName());
+		assertEquals("Wrong property 'host' help", "The name or IP address of the LDAP server host.", propHost.getHelp());
 	}
 
 	

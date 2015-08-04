@@ -450,7 +450,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 		
-		resource = addResourceFromFile(RESOURCE_OPENDJ_INITIALIZED_FILE, LDAP_CONNECTOR_TYPE, result);
+		resource = addResourceFromFile(RESOURCE_OPENDJ_INITIALIZED_FILE, ProvisioningTestUtil.CONNECTOR_LDAP_TYPE, result);
 
 		result.computeStatus();
 		TestUtil.assertSuccess(result);

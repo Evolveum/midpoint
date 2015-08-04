@@ -46,6 +46,7 @@ import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
+import org.opends.server.core.BindOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -810,6 +811,23 @@ public class OpenDJController extends AbstractResourceController {
 			sb.append("\nuniqueMember: ").append(memberDn);
 		}
 		return executeLdifChange(sb.toString());
+	}
+	
+	public boolean checkPassword(String entryDn, String password) throws DirectoryException {
+		InternalClientConnection conn = new InternalClientConnection(DN.decode(entryDn));
+		BindOperation op = conn.processSimpleBind(entryDn, password);
+		if (op.getResultCode() == ResultCode.SUCCESS) {
+			return true;
+		} else {
+			LOGGER.error("Bind error: {} ({})", op.getAuthFailureReason(), op.getResultCode());
+			return false;
+		}
+	}
+	
+	public void assertPassword(String entryDn, String password) throws DirectoryException {
+		if (!checkPassword(entryDn, password)) {
+			AssertJUnit.fail("Expected that entry "+entryDn+" will have password '"+password+"'. But the check failed.");
+		}
 	}
 
 }

@@ -402,7 +402,7 @@ public class TestWSSecurity extends AbstractWebserviceTest {
         assertAuditLoginLogout(tailer);
         assertAuditIds(tailer);
         assertAuditOperation(tailer, "ADD_OBJECT");
-        tailer.assertAudit(4);
+        tailer.assertAudit(5);
         
         // GET user
         UserType userNobodyAfter = getObject(UserType.class, userNobodyOid);
@@ -796,7 +796,7 @@ public class TestWSSecurity extends AbstractWebserviceTest {
         assertAuditLoginLogout(tailer);
         assertAuditIds(tailer);
         assertAuditOperation(tailer, "MODIFY_OBJECT");
-        tailer.assertAudit(4);     
+        tailer.assertAudit(5);
         
         modelPort = createModelPort();
         UserType user = getObject(UserType.class, USER_DARTHADDER_OID);
@@ -882,7 +882,7 @@ public class TestWSSecurity extends AbstractWebserviceTest {
         assertAuditLoginLogout(tailer);
         assertAuditIds(tailer);
         assertAuditOperation(tailer, "MODIFY_OBJECT");
-        tailer.assertAudit(4);     
+        tailer.assertAudit(5);
         
         modelPort = createModelPort(USER_DARTHADDER_USERNAME, USER_DARTHADDER_PASSWORD, WSConstants.PW_DIGEST);
         UserType user = getObject(UserType.class, USER_DARTHADDER_OID);

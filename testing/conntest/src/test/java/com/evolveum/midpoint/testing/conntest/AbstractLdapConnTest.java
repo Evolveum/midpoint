@@ -110,6 +110,8 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -117,6 +119,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * @author Radovan Semancik
@@ -773,6 +776,8 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         
         assertEquals("Wrong ICFS UID", entry.get(getAttributeEntryIdName()).getString(), accountBarbossaIcfUid);
         
+        assertLdapPassword(USER_BARBOSSA_USERNAME, "deadjacktellnotales");
+        
         ResourceAttribute<Long> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimestamp"));
         assertNotNull("No createTimestamp in "+shadow, createTimestampAttribute);
         Long createTimestamp = createTimestampAttribute.getRealValue();
@@ -807,6 +812,38 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
         assertAttribute(entry, "title", "Captain");
+        
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        String shadowOid = getSingleLinkOid(user);
+        assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
+	}
+	
+	@Test
+    public void test220ModifyUserBarbossaPassword() throws Exception {
+		final String TEST_NAME = "test220ModifyUserBarbossaPassword";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ProtectedStringType userPasswordPs = new ProtectedStringType();
+        userPasswordPs.setClearValue("hereThereBeMonsters");
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_BARBOSSA_OID, 
+        		new ItemPath(UserType.F_CREDENTIALS,  CredentialsType.F_PASSWORD, PasswordType.F_VALUE), 
+        		task, result, userPasswordPs);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        assertAttribute(entry, "title", "Captain");
+        assertLdapPassword(USER_BARBOSSA_USERNAME, "hereThereBeMonsters");
         
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         String shadowOid = getSingleLinkOid(user);
@@ -1348,6 +1385,13 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 		}
 		return entries;
 	}
+	
+	protected void assertLdapPassword(String uid, String password) throws LdapException, IOException, CursorException {
+		Entry entry = getLdapAccountByUid(uid);
+		LdapNetworkConnection conn = ldapConnect(entry.getDn().toString(), password);
+		assertTrue("Not connected", conn.isConnected());
+		assertTrue("Not authenticated", conn.isAuthenticated());
+	}
 
 	protected Entry addLdapAccount(String uid, String cn, String givenName, String sn) throws LdapException, IOException, CursorException {
 		LdapNetworkConnection connection = ldapConnect();
@@ -1402,6 +1446,10 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	}
 	
 	protected LdapNetworkConnection ldapConnect() throws LdapException {
+		return ldapConnect(getLdapBindDn(), getLdapBindPassword());
+	}
+	
+	protected LdapNetworkConnection ldapConnect(String bindDn, String bindPassword) throws LdapException {
 		LdapConnectionConfig config = new LdapConnectionConfig();
 		config.setLdapHost(getLdapServerHost());
 		config.setLdapPort(getLdapServerPort());
@@ -1411,8 +1459,8 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 			AssertJUnit.fail("Cannot connect to LDAP server "+getLdapServerHost()+":"+getLdapServerPort());
 		}
 		BindRequest bindRequest = new BindRequestImpl();
-		bindRequest.setDn(new Dn(getLdapBindDn()));
-		bindRequest.setCredentials(getLdapBindPassword());
+		bindRequest.setDn(new Dn(bindDn));
+		bindRequest.setCredentials(bindPassword);
 		BindResponse bindResponse = connection.bind(bindRequest);
 		return connection;
 	}

@@ -123,7 +123,6 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 	protected static final String RESOURCE_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 	protected static final QName RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS = new QName(RESOURCE_NS,"inetOrgPerson");
 	protected static final QName RESOURCE_OPENDJ_POSIX_ACCOUNT_OBJECTCLASS = new QName(RESOURCE_NS,"posixAccount");
-	protected static final String LDAP_CONNECTOR_TYPE = "com.evolveum.polygon.connector.ldap.LdapConnector";
 	
 	protected static final File QUERY_COMPLEX_FILTER_FILE = new File(TEST_DIR, "query-complex-filter.xml");
 	protected static final File QUERY_ALL_ACCOUNTS_FILE = new File(TEST_DIR, "query-filter-all-accounts.xml");
@@ -155,7 +154,7 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 		// not have a definition here
 		InternalsConfig.encryptionChecks = false;
 		provisioningService.postInit(initResult);
-		resource = addResourceFromFile(RESOURCE_OPENDJ_FILE, LDAP_CONNECTOR_TYPE, initResult);
+		resource = addResourceFromFile(RESOURCE_OPENDJ_FILE, ProvisioningTestUtil.CONNECTOR_LDAP_TYPE, initResult);
 		repoAddShadowFromFile(ACCOUNT_BAD_FILE, initResult);
 	}
 	
