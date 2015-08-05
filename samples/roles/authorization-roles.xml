@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@ xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
  <name>Resource View Administrator</name>
  <description>Role containing authorizations to view resource details.</description>
  <authorization>
-    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#resourceDetails</action> 
-<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#resources</action>
+    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#resourceDetails</action> 
+<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#resources</action>
  </authorization>
 </role>
 <role oid="00000000-d34d-b33f-f00d-100000000002" 
@@ -34,7 +34,7 @@ xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
  <name>Resource Administrator</name>
  <description>Role containing authorizations to manage resources.</description>
  <authorization>
-    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#resourcesAll</action> 
+    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#resourcesAll</action> 
  </authorization>
 </role>
 <role oid="00000000-d34d-b33f-f00d-100000000003" 
@@ -44,7 +44,7 @@ xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
  <name>User Administrator</name>
  <description>Role containing authorizations to manage users.</description>
  <authorization>
-    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#usersAll</action>
+    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#usersAll</action>
  </authorization>
 </role>
 <role oid="00000000-d34d-b33f-f00d-100000000004" 
@@ -54,7 +54,7 @@ xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
  <name>Report Administrator</name>
  <description>Role containing authorizations to run reports.</description>
  <authorization>
-    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#reports</action> 
+    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#reports</action> 
  </authorization>
 </role>
 
