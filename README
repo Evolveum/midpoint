@@ -1,4 +1,4 @@
-midPoint 3.1.1 "Sinan Update 1"
+midPoint 3.2 "Tycho"
 -------------------------------
 
 General informations:
@@ -18,6 +18,7 @@ The most important features of midPoint are:
    - Advanced RBAC support with temporal constraints
    - Identity management process automation (workflow, notifications)
    - Password policies
+   - Password reset
    - Generic synchronization
    - Entitlements
    - Support for ConnId and OpenICF connectors
@@ -29,6 +30,7 @@ The most important features of midPoint are:
    - Notifications
    - Local Java APIs, Remote web service interface (SOAP), REST API
    - High availablity (HA) support
+   - Access certification (technology preview)
 
 For more information please go to:
 

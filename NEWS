@@ -1,20 +1,27 @@
-midPoint 3.1.1 "Sinan Update 1"
+midPoint 3.2 "Tycho"
 -------------------------------
 
-* Python scripting
-* Improved web service auditing and error handling and error responses
-* Extended model client utilities
-* Support for enumerated property values
-* Support for value lookup tables
-* GUI support for role owner and risk level
-* Improved role selection (support for role type)
-* Role assignment constraints: minimum and maxim role assignees
-* Validation plug-in
-* Schema refinement by using object template
+Release 3.2 is a tenth midPoint release code-named Tycho. The Tycho release
+brings new advanced LDAP connector, internal improvements and governance
+technology preview.
+
+Release date: 5th August 2015
+
 * Password recovery (security questions)
-* $actor variable in mappings
-* Resource wizard improvements
-* Web service error handling improvements
-* Improved support for organization managers
-* Improved workflow handlers
-* Various GUI usability improvements
+* Access certification (technology preview)
+* referenceSearch expression to create a generic reference in expressions and mappings
+* Reworked LDAP Connector
+* LifeRay Portal connector
+* Support for native attribute names
+* Support for entitlement shortcut attributes (e.g. memberOf LDAP attribute)
+* Support for auxiliary object classes
+* Matching rule for LDAP distringuished name
+* Support for synchronization of all object classes
+* Asynchronous bulk delete task
+* Improved logging of authorization processing
+* Old values in audit deltas
+* Improved audit log report
+* Support "minimal" fetch strategy to avoid fetching of expensive attributes
+* Support for recomputation of other than user objects
+* GUI enhancements
+* Minor improvements for international environments
