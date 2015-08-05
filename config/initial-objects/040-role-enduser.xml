@@ -19,8 +19,8 @@
     <name>End user</name>
     <description>Role authorizing end users to log in, change their passwords and review assigned accounts.</description>
     <authorization>
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#dashboard</action>
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#myPasswords</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#dashboard</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#myPasswords</action>
     </authorization>
     <authorization>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
