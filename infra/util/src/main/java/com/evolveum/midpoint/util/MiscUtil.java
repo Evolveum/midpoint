@@ -487,4 +487,22 @@ public class MiscUtil {
     	}
     	return out;
     }
+    
+    public static String binaryToHex(byte[] bytes) {
+		StringBuilder sb = new StringBuilder(bytes.length * 2);
+		for (byte b : bytes) {
+			sb.append(String.format("%02x", b & 0xff));
+		}
+		return sb.toString();
+	}
+
+	public static byte[] hexToBinary(String hex) {
+		int l = hex.length();
+		byte[] bytes = new byte[l/2];
+		for (int i = 0; i < l; i += 2) {
+			bytes[i/2] = (byte) ((Character.digit(hex.charAt(i), 16) << 4) 
+					+ Character.digit(hex.charAt(i + 1), 16));
+		}
+		return bytes;
+	}
 }
