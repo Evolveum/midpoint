@@ -38,6 +38,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
@@ -315,7 +316,12 @@ public class AuditEventRecord implements DebugDumpable {
     	auditRecordType.setTimestamp(MiscUtil.asXMLGregorianCalendar(timestamp));
     	for (ObjectDeltaOperation delta : deltas){
     		try {
-				auditRecordType.getDelta().add(DeltaConvertor.toObjectDeltaType(delta.getObjectDelta()));
+    			ObjectDeltaOperationType odo = new ObjectDeltaOperationType();
+    			odo.setObjectDelta(DeltaConvertor.toObjectDeltaType(delta.getObjectDelta()));
+    			if (delta.getExecutionResult() != null){
+    				odo.setExecutionResult(delta.getExecutionResult().createOperationResultType());
+    			}
+				auditRecordType.getDelta().add(odo);
 			} catch (SchemaException e) {
 				continue;
 			}

@@ -1233,15 +1233,24 @@ public class ReportUtils {
     	if (value == null){
     		return "";
     	}
-    	if (value.getClass().isArray()) {
-             Class<?> cclass = value.getClass().getComponentType();
-             if (cclass.isPrimitive()) {
-                 if (cclass == byte.class) {
-                     return prettyPrintForReport((byte[]) value);
-                 }
-             }
-         }
-    	return PrettyPrinter.prettyPrint(value);
+    	
+    	//special handling for byte[], some problems with jasper when printing 
+    	if (byte[].class.equals(value.getClass())){
+    		return prettyPrintForReport((byte[]) value);
+    	}
+//    	if (value.getClass().isArray()) {
+//             Class<?> cclass = value.getClass().getComponentType();
+//             if (cclass.isPrimitive()) {
+//                 if (cclass == byte.class) {
+//                     
+//                 }
+//             }
+//         }
+    	String str = PrettyPrinter.prettyPrint(value);
+    	if (str.length() > 1000){
+    		return str.substring(0, 1000);
+    	}
+    	return str;
 //        for (Method method : ReportUtils.class.getMethods()) {
 //            if (method.getName().equals("prettyPrintForReport")) {
 //                Class<?>[] parameterTypes = method.getParameterTypes();
