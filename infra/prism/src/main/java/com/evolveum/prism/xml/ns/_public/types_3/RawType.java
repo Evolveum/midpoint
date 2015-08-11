@@ -8,6 +8,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Revivable;
 import com.evolveum.midpoint.prism.parser.XNodeProcessor;
 import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -194,6 +195,12 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
         if (prismContext == null) {
             throw new IllegalStateException("prismContext is not set - perhaps a forgotten call to adopt() somewhere?");
         }
+    }
+
+    public static RawType create(String value, PrismContext prismContext) {
+        PrimitiveXNode<String> xnode = new PrimitiveXNode<>(value);
+        RawType rv = new RawType(xnode, prismContext);
+        return rv;
     }
 
 }
