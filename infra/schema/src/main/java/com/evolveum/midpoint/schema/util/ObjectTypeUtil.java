@@ -185,6 +185,23 @@ public class ObjectTypeUtil {
         return ref;
     }
     
+    //FIXME TODO temporary hack 
+    public static <T extends ObjectType> ObjectReferenceType createObjectRef(PrismObject<T> object, boolean nameAsDescription) {
+        if (object == null) {
+            return null;
+        }
+        ObjectReferenceType ref = new ObjectReferenceType();
+        ref.setOid(object.getOid());
+        if (nameAsDescription){
+        	ref.setDescription(object.getBusinessDisplayName());
+        }
+        PrismObjectDefinition<T> definition = object.getDefinition();
+        if (definition != null) {
+            ref.setType(definition.getTypeName());
+        }
+        return ref;
+    }
+    
     public static ObjectReferenceType createObjectRef(String oid, ObjectTypes type) {
         Validate.notEmpty(oid, "Oid must not be null or empty.");
         Validate.notNull(type, "Object type must not be null.");

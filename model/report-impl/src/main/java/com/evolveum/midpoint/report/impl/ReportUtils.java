@@ -16,45 +16,26 @@
 package com.evolveum.midpoint.report.impl;
 
 import java.awt.Color;
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.ResourceBundle;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.parser.DomParser;
-import com.evolveum.midpoint.prism.parser.QueryConvertor;
-import com.evolveum.midpoint.prism.parser.XNodeProcessor;
-import com.evolveum.midpoint.prism.parser.XNodeSerializer;
-
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRExpression;
-import net.sf.jasperreports.engine.JRParameter;
 import net.sf.jasperreports.engine.JRStyle;
-import net.sf.jasperreports.engine.JRTemplate;
-import net.sf.jasperreports.engine.JasperCompileManager;
-import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.base.JRBasePen;
-import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import net.sf.jasperreports.engine.design.JRDesignBand;
 import net.sf.jasperreports.engine.design.JRDesignExpression;
-import net.sf.jasperreports.engine.design.JRDesignField;
 import net.sf.jasperreports.engine.design.JRDesignFrame;
 import net.sf.jasperreports.engine.design.JRDesignImage;
 import net.sf.jasperreports.engine.design.JRDesignLine;
-import net.sf.jasperreports.engine.design.JRDesignParameter;
-import net.sf.jasperreports.engine.design.JRDesignReportTemplate;
-import net.sf.jasperreports.engine.design.JRDesignSection;
 import net.sf.jasperreports.engine.design.JRDesignStaticText;
 import net.sf.jasperreports.engine.design.JRDesignStyle;
 import net.sf.jasperreports.engine.design.JRDesignTextField;
@@ -66,89 +47,26 @@ import net.sf.jasperreports.engine.type.OrientationEnum;
 import net.sf.jasperreports.engine.type.PositionTypeEnum;
 import net.sf.jasperreports.engine.type.SplitTypeEnum;
 import net.sf.jasperreports.engine.type.VerticalAlignEnum;
-import net.sf.jasperreports.engine.type.WhenNoDataTypeEnum;
-import net.sf.jasperreports.engine.util.JRReportUtils;
-import net.sf.jasperreports.engine.xml.JRXmlLoader;
-import net.sf.jasperreports.engine.xml.JRXmlTemplateLoader;
-import net.sf.jasperreports.olap.JRMondrianQueryExecuterFactory;
 
-import org.apache.commons.codec.binary.Base64;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
+import org.apache.commons.lang.StringUtils;
 
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.common.expression.ExpressionSyntaxException;
-import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
-import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
-import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportFieldConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
-import com.evolveum.prism.xml.ns._public.query_3.QueryType;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ResourceBundle;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.xml.XMLConstants;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
+
 
 public class ReportUtils {
 
@@ -171,8 +89,8 @@ public class ReportUtils {
     private static final Trace LOGGER = TraceManager
             .getTrace(ReportUtils.class);
 
-    @Autowired(required = true)
-    private static ModelService modelService;
+//    @Autowired(required = true)
+//    private static ModelService modelService;
 
     //new
 //    public static JasperDesign loadJasperDesign(byte[] template) throws SchemaException{
@@ -218,83 +136,83 @@ public class ReportUtils {
 //		 
 //		 
 //}
-    public static List<PrismObject<? extends ObjectType>> getReportData(PrismContext prismContext, Task task, ReportFunctions reportFunctions, String script, ExpressionVariables variables, ObjectResolver objectResolver) throws ExpressionSyntaxException, ExpressionEvaluationException, ObjectNotFoundException {
-        List<PrismObject<? extends ObjectType>> results = new ArrayList<>();
-        FunctionLibrary functionLib = ExpressionUtil.createBasicFunctionLibrary(prismContext, prismContext.getDefaultProtector());
-        FunctionLibrary midPointLib = new FunctionLibrary();
-        midPointLib.setVariableName("report");
-        midPointLib.setNamespace("http://midpoint.evolveum.com/xml/ns/public/function/report-3");
-//	ReportFunctions reportFunctions = new ReportFunctions(prismContext, model, taskManager, auditService);
-        midPointLib.setGenericFunctions(reportFunctions);
+//    public static List<PrismObject<? extends ObjectType>> getReportData(PrismContext prismContext, Task task, ReportFunctions reportFunctions, String script, ExpressionVariables variables, ObjectResolver objectResolver) throws ExpressionSyntaxException, ExpressionEvaluationException, ObjectNotFoundException {
+//        List<PrismObject<? extends ObjectType>> results = new ArrayList<>();
+//        FunctionLibrary functionLib = ExpressionUtil.createBasicFunctionLibrary(prismContext, prismContext.getDefaultProtector());
+//        FunctionLibrary midPointLib = new FunctionLibrary();
+//        midPointLib.setVariableName("report");
+//        midPointLib.setNamespace("http://midpoint.evolveum.com/xml/ns/public/function/report-3");
+////	ReportFunctions reportFunctions = new ReportFunctions(prismContext, model, taskManager, auditService);
+//        midPointLib.setGenericFunctions(reportFunctions);
+//
+//        Collection<FunctionLibrary> functions = new ArrayList<>();
+//        functions.add(functionLib);
+//
+//        functions.add(midPointLib);
+//        Jsr223ScriptEvaluator scripts = new Jsr223ScriptEvaluator("Groovy", prismContext, prismContext.getDefaultProtector());
+//        Object o = scripts.evaluateReportScript(script, variables, objectResolver, functions, "desc", task.getResult());
+//        if (o != null) {
+//
+//            if (Collection.class.isAssignableFrom(o.getClass())) {
+//                Collection resultSet = (Collection) o;
+//                if (resultSet != null && !resultSet.isEmpty()) {
+//                    if (resultSet.iterator().next() instanceof PrismObject) {
+//                        results.addAll((Collection<? extends PrismObject<? extends ObjectType>>) o);
+//                    } else {
+////					return new JRBeanCollectionDataSource(resultSet);
+//                    }
+//                }
+//
+//            } else {
+//                results.add((PrismObject) o);
+//            }
+//        }
+//
+//        return results;
+//
+//    }
 
-        Collection<FunctionLibrary> functions = new ArrayList<>();
-        functions.add(functionLib);
-
-        functions.add(midPointLib);
-        Jsr223ScriptEvaluator scripts = new Jsr223ScriptEvaluator("Groovy", prismContext, prismContext.getDefaultProtector());
-        Object o = scripts.evaluateReportScript(script, variables, objectResolver, functions, "desc", task.getResult());
-        if (o != null) {
-
-            if (Collection.class.isAssignableFrom(o.getClass())) {
-                Collection resultSet = (Collection) o;
-                if (resultSet != null && !resultSet.isEmpty()) {
-                    if (resultSet.iterator().next() instanceof PrismObject) {
-                        results.addAll((Collection<? extends PrismObject<? extends ObjectType>>) o);
-                    } else {
-//					return new JRBeanCollectionDataSource(resultSet);
-                    }
-                }
-
-            } else {
-                results.add((PrismObject) o);
-            }
-        }
-
-        return results;
-
-    }
-
-    public static List<PrismObject<? extends ObjectType>> getReportData(ModelService model, Class type, ObjectQuery query, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
-        List<PrismObject<? extends ObjectType>> results = new ArrayList<>();
-
-        GetOperationOptions options = GetOperationOptions.createRaw();
-        options.setResolveNames(true);
-        results = model.searchObjects(type, query, SelectorOptions.createCollection(options), task, parentResult);;
-        return results;
-    }
+//    public static List<PrismObject<? extends ObjectType>> getReportData(ModelService model, Class type, ObjectQuery query, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+//        List<PrismObject<? extends ObjectType>> results = new ArrayList<>();
+//
+//        GetOperationOptions options = GetOperationOptions.createRaw();
+//        options.setResolveNames(true);
+//        results = model.searchObjects(type, query, SelectorOptions.createCollection(options), task, parentResult);;
+//        return results;
+//    }
     //end of new
 
-    public static Class<?> getClassType(QName clazz, String namespace) {
-        Class<?> classType = String.class;
-        try {
-            classType = XsdTypeMapper.getXsdToJavaMapping(clazz);
-            if (classType == XMLGregorianCalendar.class) {
-                classType = Timestamp.class;
-            }
-            if (clazz.getNamespaceURI().equals(namespace)) {
-                classType = Integer.class;
-            }
-            classType = (classType == null) ? String.class : classType;
-        } catch (Exception ex) {
-            classType = String.class;
-        }
-        return classType;
+//    public static Class<?> getClassType(QName clazz, String namespace) {
+//        Class<?> classType = String.class;
+//        try {
+//            classType = XsdTypeMapper.getXsdToJavaMapping(clazz);
+//            if (classType == XMLGregorianCalendar.class) {
+//                classType = Timestamp.class;
+//            }
+//            if (clazz.getNamespaceURI().equals(namespace)) {
+//                classType = Integer.class;
+//            }
+//            classType = (classType == null) ? String.class : classType;
+//        } catch (Exception ex) {
+//            classType = String.class;
+//        }
+//        return classType;
+//
+//    }
 
-    }
+//    public static Element getParametersXsdSchema(ReportType reportType) {
+//        XmlSchemaType xmlSchemaType = reportType.getConfigurationSchema();
+//        if (xmlSchemaType == null) {
+//            return null;
+//        }
+//        return ObjectTypeUtil.findXsdElement(xmlSchemaType);
+//    }
 
-    public static Element getParametersXsdSchema(ReportType reportType) {
-        XmlSchemaType xmlSchemaType = reportType.getConfigurationSchema();
-        if (xmlSchemaType == null) {
-            return null;
-        }
-        return ObjectTypeUtil.findXsdElement(xmlSchemaType);
-    }
-
-    public static PrismSchema getParametersSchema(ReportType reportType, PrismContext prismContext) throws SchemaException {
-        Element parametersSchemaElement = getParametersXsdSchema(reportType);
-        if (parametersSchemaElement == null) {
-            return null;
-        }
+//    public static PrismSchema getParametersSchema(ReportType reportType, PrismContext prismContext) throws SchemaException {
+//        Element parametersSchemaElement = getParametersXsdSchema(reportType);
+//        if (parametersSchemaElement == null) {
+//            return null;
+//        }
 
         /*LOGGER.trace("Parameters schema element : {}", parametersSchemaElement.getElementsByTagName("simpleType"));
          LOGGER.trace("Parameters schema attribut : {}", parametersSchemaElement.getAttributeNode("simpleType"));
@@ -325,171 +243,171 @@ public class ReportUtils {
          }
          }
          */
-        PrismSchema parametersSchema = PrismSchema.parse(parametersSchemaElement, true, "schema for " + reportType, prismContext);
-        if (parametersSchema == null) {
-            throw new SchemaException("No parameters schema in " + reportType);
-        }
-        LOGGER.trace("Parameters schema : {}", parametersSchema.debugDump());
+//        PrismSchema parametersSchema = PrismSchema.parse(parametersSchemaElement, true, "schema for " + reportType, prismContext);
+//        if (parametersSchema == null) {
+//            throw new SchemaException("No parameters schema in " + reportType);
+//        }
+//        LOGGER.trace("Parameters schema : {}", parametersSchema.debugDump());
+//
+//        return parametersSchema;
+//    }
 
-        return parametersSchema;
-    }
+//    public static PrismContainer<ReportConfigurationType> getParametersContainer(ReportType reportType, PrismSchema schema)
+//            throws SchemaException, ObjectNotFoundException {
+//
+//        PrismContainer<ReportConfigurationType> configuration = reportType.asPrismObject().findContainer(ReportType.F_CONFIGURATION);
+//        if (configuration == null) {
+//            return null;
+////			throw new SchemaException("No configuration container in " + reportType);
+//        }
+//
+//        LOGGER.trace("Parameters container : {}", configuration.debugDump());
+//        if (schema == null) {
+//            return null;
+//        }
+//
+//        QName configContainerQName = new QName(schema.getNamespace(), ReportType.F_CONFIGURATION.getLocalPart());
+//        PrismContainerDefinition<ReportConfigurationType> configurationContainerDefinition = schema.findContainerDefinitionByElementName(configContainerQName);
+//
+//        if (configurationContainerDefinition == null) {
+//            throw new SchemaException("No configuration container definition in " + reportType);
+//        }
+//
+//        LOGGER.trace("Parameters configuration definition: {}", configurationContainerDefinition.debugDump());
+//        /*for(ItemDefinition item : configurationContainerDefinition.getDefinitions())
+//         {
+//         LOGGER.trace("Item definition: {}", item.dump());
+//         LOGGER.trace("Display Name : {}", item.getDisplayName());
+//         LOGGER.trace("Name : {}", item.getName());
+//         LOGGER.trace("Definition - type class : {}", item.getTypeClass());
+//         LOGGER.trace("Definition - type name: {}", item.getTypeName());
+//	
+//         }
+//		
+//         LOGGER.trace("---------------------------------------------------------------------------------------");
+//         >>>>>>> 48eec5fce88a117d5ce08aa60a36b9d09045780d
+//		
+//         for(PrismPropertyDefinition property : configurationContainerDefinition.getPropertyDefinitions())
+//         {
+//         LOGGER.trace("PrismProperty definition: {}", property.dump());
+//         LOGGER.trace("Display Name : {}", property.getDisplayName());
+//         LOGGER.trace("Name : {}", property.getName());
+//         LOGGER.trace("Definition - type class : {}", property.getTypeClass());
+//         LOGGER.trace("Definition - type name: {}", property.getTypeName());
+//         LOGGER.trace("Values: {}", property.getAllowedValues());
+//         }
+//         LOGGER.trace("---------------------------------------------------------------------------------------");*/
+//        configuration.applyDefinition(configurationContainerDefinition, true);
+//
+//        LOGGER.trace("Parameters container with definitions : {}", configuration.debugDump());
+//
+//        return configuration;
+//    }
 
-    public static PrismContainer<ReportConfigurationType> getParametersContainer(ReportType reportType, PrismSchema schema)
-            throws SchemaException, ObjectNotFoundException {
+//    public static JasperReport getJasperReport(ReportType reportType, PrismContainer<ReportConfigurationType> parameterConfiguration, PrismSchema reportSchema) throws JRException {
+//        JasperDesign jasperDesign;
+//        JasperReport jasperReport;
+//        try {
+//            if (reportType.getTemplate() == null) {
+//                jasperDesign = createJasperDesign(reportType, parameterConfiguration, reportSchema);
+//                LOGGER.trace("create jasper design : {}", jasperDesign);
+//            } else {
+//                byte[] reportTemplatebase64 = reportType.getTemplate();
+//                byte[] reportTemplate = Base64.decodeBase64(reportTemplatebase64);
+//
+//                InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate);
+//                jasperDesign = JRXmlLoader.load(inputStreamJRXML);
+//                LOGGER.trace("load jasper design : {}", jasperDesign);
+//            }
+//
+//            if (reportType.getTemplateStyle() != null) {
+//                JRDesignReportTemplate templateStyle = new JRDesignReportTemplate(new JRDesignExpression("$P{" + PARAMETER_TEMPLATE_STYLES + "}"));
+//                jasperDesign.addTemplate(templateStyle);
+//                JRDesignParameter parameter = new JRDesignParameter();
+//                parameter.setName(PARAMETER_TEMPLATE_STYLES);
+//                parameter.setValueClass(JRTemplate.class);
+//                parameter.setForPrompting(false);
+//                jasperDesign.addParameter(parameter);
+//            }
+//            jasperReport = JasperCompileManager.compileReport(jasperDesign);
+//
+//        } catch (JRException ex) {
+//            LOGGER.error("Couldn't create jasper report design {}", ex.getMessage());
+//            throw ex;
+//        }
+//
+//        return jasperReport;
+//    }
 
-        PrismContainer<ReportConfigurationType> configuration = reportType.asPrismObject().findContainer(ReportType.F_CONFIGURATION);
-        if (configuration == null) {
-            return null;
-//			throw new SchemaException("No configuration container in " + reportType);
-        }
+//    public static Map<String, Object> getReportParameters(ReportType reportType, PrismContainer<Containerable> parameterConfiguration, PrismSchema reportSchema, OperationResult parentResult) {
+//        Map<String, Object> params = new HashMap<String, Object>();
+//        if (reportType.getTemplateStyle() != null) {
+//            byte[] reportTemplateStyleBase64 = reportType.getTemplateStyle();
+//            byte[] reportTemplateStyle = Base64.decodeBase64(reportTemplateStyleBase64);
+//            //TODO must be changed
+//            //without replace strings, without xmlns namespace, with insert into schema special xml element DOCTYPE
+////			int first = reportTemplateStyle.indexOf(">");
+////			int last = reportTemplateStyle.lastIndexOf("<");
+////			reportTemplateStyle = "<jasperTemplate>" + reportTemplateStyle.substring(first+1, last) + "</jasperTemplate>";
+////			StringBuilder templateStyleSb = new StringBuilder(TEMPLATE_STYLE_SCHEMA);
+//            try {
+////				templateStyleSb.append("\n");
+////				templateStyleSb.append(new String(reportTemplateStyle, "utf-8"));
+//                ////			
+//                //			reportTemplateStyle = TEMPLATE_STYLE_SCHEMA + "\n" + reportTemplateStyle;  
+//                LOGGER.trace("Style template string {}", new String(reportTemplateStyle));
+//                InputStream inputStreamJRTX = new ByteArrayInputStream(reportTemplateStyle);
+//                JRTemplate templateStyle = JRXmlTemplateLoader.load(inputStreamJRTX);
+//                params.put(PARAMETER_TEMPLATE_STYLES, templateStyle);
+//                LOGGER.trace("Style template parameter {}", templateStyle);
+//
+//            } catch (Exception ex) {
+//                LOGGER.error("Error create style template parameter {}", ex.getMessage());
+//                throw new SystemException(ex);
+//            }
+//
+//        }
+//        OperationResult subResult = parentResult.createSubresult("get report parameters");
+//        if (parameterConfiguration != null) {
+//            for (PrismProperty<?> parameter : parameterConfiguration.getValue().getProperties()) {
+//                LOGGER.trace("parameter {}, {}, {} ", new Object[]{parameter.getElementName().getLocalPart(), parameter.getRealValue(), parameter.getValues()});
+//
+//                if (parameter.getDefinition().getTypeName().getNamespaceURI().equals(reportSchema.getNamespace())) {
+//                    com.sun.org.apache.xerces.internal.dom.DeferredElementNSImpl ccc = (com.sun.org.apache.xerces.internal.dom.DeferredElementNSImpl) parameter.getRealValue(com.sun.org.apache.xerces.internal.dom.DeferredElementNSImpl.class);
+//                    LOGGER.trace("Parameter simple type, text content : {}, {}", parameter.getDefinition().getTypeName().getLocalPart(), ccc.getTextContent());
+//                    params.put(parameter.getElementName().getLocalPart(), Integer.decode(ccc.getTextContent()));
+//                } else {
+//
+//                    Class<?> classType = ReportUtils.getClassType(parameter.getDefinition().getTypeName(), reportSchema.getNamespace());
+//                    if (classType == java.sql.Timestamp.class) {
+//                        params.put(parameter.getElementName().getLocalPart(), ReportUtils.convertDateTime((XMLGregorianCalendar) parameter.getRealValue(XMLGregorianCalendar.class)));
+//                    } else {
+//                        params.put(parameter.getElementName().getLocalPart(), parameter.getRealValue());
+//                    }
+//                }
+//
+//                //LOGGER.trace("--------------------------------------------------------------------------------");
+//                //}
+//            }
+//        }
+//        // for our special datasource
+//        subResult.computeStatus();
+//
+//        return params;
+//    }
 
-        LOGGER.trace("Parameters container : {}", configuration.debugDump());
-        if (schema == null) {
-            return null;
-        }
-
-        QName configContainerQName = new QName(schema.getNamespace(), ReportType.F_CONFIGURATION.getLocalPart());
-        PrismContainerDefinition<ReportConfigurationType> configurationContainerDefinition = schema.findContainerDefinitionByElementName(configContainerQName);
-
-        if (configurationContainerDefinition == null) {
-            throw new SchemaException("No configuration container definition in " + reportType);
-        }
-
-        LOGGER.trace("Parameters configuration definition: {}", configurationContainerDefinition.debugDump());
-        /*for(ItemDefinition item : configurationContainerDefinition.getDefinitions())
-         {
-         LOGGER.trace("Item definition: {}", item.dump());
-         LOGGER.trace("Display Name : {}", item.getDisplayName());
-         LOGGER.trace("Name : {}", item.getName());
-         LOGGER.trace("Definition - type class : {}", item.getTypeClass());
-         LOGGER.trace("Definition - type name: {}", item.getTypeName());
-	
-         }
-		
-         LOGGER.trace("---------------------------------------------------------------------------------------");
-         >>>>>>> 48eec5fce88a117d5ce08aa60a36b9d09045780d
-		
-         for(PrismPropertyDefinition property : configurationContainerDefinition.getPropertyDefinitions())
-         {
-         LOGGER.trace("PrismProperty definition: {}", property.dump());
-         LOGGER.trace("Display Name : {}", property.getDisplayName());
-         LOGGER.trace("Name : {}", property.getName());
-         LOGGER.trace("Definition - type class : {}", property.getTypeClass());
-         LOGGER.trace("Definition - type name: {}", property.getTypeName());
-         LOGGER.trace("Values: {}", property.getAllowedValues());
-         }
-         LOGGER.trace("---------------------------------------------------------------------------------------");*/
-        configuration.applyDefinition(configurationContainerDefinition, true);
-
-        LOGGER.trace("Parameters container with definitions : {}", configuration.debugDump());
-
-        return configuration;
-    }
-
-    public static JasperReport getJasperReport(ReportType reportType, PrismContainer<ReportConfigurationType> parameterConfiguration, PrismSchema reportSchema) throws JRException {
-        JasperDesign jasperDesign;
-        JasperReport jasperReport;
-        try {
-            if (reportType.getTemplate() == null) {
-                jasperDesign = createJasperDesign(reportType, parameterConfiguration, reportSchema);
-                LOGGER.trace("create jasper design : {}", jasperDesign);
-            } else {
-                byte[] reportTemplatebase64 = reportType.getTemplate();
-                byte[] reportTemplate = Base64.decodeBase64(reportTemplatebase64);
-
-                InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate);
-                jasperDesign = JRXmlLoader.load(inputStreamJRXML);
-                LOGGER.trace("load jasper design : {}", jasperDesign);
-            }
-
-            if (reportType.getTemplateStyle() != null) {
-                JRDesignReportTemplate templateStyle = new JRDesignReportTemplate(new JRDesignExpression("$P{" + PARAMETER_TEMPLATE_STYLES + "}"));
-                jasperDesign.addTemplate(templateStyle);
-                JRDesignParameter parameter = new JRDesignParameter();
-                parameter.setName(PARAMETER_TEMPLATE_STYLES);
-                parameter.setValueClass(JRTemplate.class);
-                parameter.setForPrompting(false);
-                jasperDesign.addParameter(parameter);
-            }
-            jasperReport = JasperCompileManager.compileReport(jasperDesign);
-
-        } catch (JRException ex) {
-            LOGGER.error("Couldn't create jasper report design {}", ex.getMessage());
-            throw ex;
-        }
-
-        return jasperReport;
-    }
-
-    public static Map<String, Object> getReportParameters(ReportType reportType, PrismContainer<Containerable> parameterConfiguration, PrismSchema reportSchema, OperationResult parentResult) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        if (reportType.getTemplateStyle() != null) {
-            byte[] reportTemplateStyleBase64 = reportType.getTemplateStyle();
-            byte[] reportTemplateStyle = Base64.decodeBase64(reportTemplateStyleBase64);
-            //TODO must be changed
-            //without replace strings, without xmlns namespace, with insert into schema special xml element DOCTYPE
-//			int first = reportTemplateStyle.indexOf(">");
-//			int last = reportTemplateStyle.lastIndexOf("<");
-//			reportTemplateStyle = "<jasperTemplate>" + reportTemplateStyle.substring(first+1, last) + "</jasperTemplate>";
-//			StringBuilder templateStyleSb = new StringBuilder(TEMPLATE_STYLE_SCHEMA);
-            try {
-//				templateStyleSb.append("\n");
-//				templateStyleSb.append(new String(reportTemplateStyle, "utf-8"));
-                ////			
-                //			reportTemplateStyle = TEMPLATE_STYLE_SCHEMA + "\n" + reportTemplateStyle;  
-                LOGGER.trace("Style template string {}", new String(reportTemplateStyle));
-                InputStream inputStreamJRTX = new ByteArrayInputStream(reportTemplateStyle);
-                JRTemplate templateStyle = JRXmlTemplateLoader.load(inputStreamJRTX);
-                params.put(PARAMETER_TEMPLATE_STYLES, templateStyle);
-                LOGGER.trace("Style template parameter {}", templateStyle);
-
-            } catch (Exception ex) {
-                LOGGER.error("Error create style template parameter {}", ex.getMessage());
-                throw new SystemException(ex);
-            }
-
-        }
-        OperationResult subResult = parentResult.createSubresult("get report parameters");
-        if (parameterConfiguration != null) {
-            for (PrismProperty<?> parameter : parameterConfiguration.getValue().getProperties()) {
-                LOGGER.trace("parameter {}, {}, {} ", new Object[]{parameter.getElementName().getLocalPart(), parameter.getRealValue(), parameter.getValues()});
-
-                if (parameter.getDefinition().getTypeName().getNamespaceURI().equals(reportSchema.getNamespace())) {
-                    com.sun.org.apache.xerces.internal.dom.DeferredElementNSImpl ccc = (com.sun.org.apache.xerces.internal.dom.DeferredElementNSImpl) parameter.getRealValue(com.sun.org.apache.xerces.internal.dom.DeferredElementNSImpl.class);
-                    LOGGER.trace("Parameter simple type, text content : {}, {}", parameter.getDefinition().getTypeName().getLocalPart(), ccc.getTextContent());
-                    params.put(parameter.getElementName().getLocalPart(), Integer.decode(ccc.getTextContent()));
-                } else {
-
-                    Class<?> classType = ReportUtils.getClassType(parameter.getDefinition().getTypeName(), reportSchema.getNamespace());
-                    if (classType == java.sql.Timestamp.class) {
-                        params.put(parameter.getElementName().getLocalPart(), ReportUtils.convertDateTime((XMLGregorianCalendar) parameter.getRealValue(XMLGregorianCalendar.class)));
-                    } else {
-                        params.put(parameter.getElementName().getLocalPart(), parameter.getRealValue());
-                    }
-                }
-
-                //LOGGER.trace("--------------------------------------------------------------------------------");
-                //}
-            }
-        }
-        // for our special datasource
-        subResult.computeStatus();
-
-        return params;
-    }
-
-    public static String resolveRefName(ObjectReferenceType ref) {
-        if (ref == null) {
-            return null;
-        }
-        PrismReferenceValue refValue = ref.asReferenceValue();
-        Object name = refValue.getUserData(XNodeSerializer.USER_DATA_KEY_COMMENT);
-        if (!(name instanceof String)) {
-            LOGGER.error("Couldn't resolve object name");
-        }
-
-        return (String) name;
-    }
+//    public static String resolveRefName(ObjectReferenceType ref) {
+//        if (ref == null) {
+//            return null;
+//        }
+//        PrismReferenceValue refValue = ref.asReferenceValue();
+//        Object name = refValue.getUserData(XNodeSerializer.USER_DATA_KEY_COMMENT);
+//        if (!(name instanceof String)) {
+//            LOGGER.error("Couldn't resolve object name");
+//        }
+//
+//        return (String) name;
+//    }
 
     /*
      public static Class getObjectTypeClass(PrismContainer<Containerable> parameterConfiguration, String namespace)
@@ -499,46 +417,46 @@ public class ReportUtils {
      return getObjectTypeClass(objectTypeProp.getRealValue());
      }
      */
-    public static Class<?> getObjectTypeClass(Map<?, ?> params) {
+//    public static Class<?> getObjectTypeClass(Map<?, ?> params) {
+//
+//        Object parameterClass = params.get(PARAMETER_OBJECT_TYPE);
+//        return getObjectTypeClass(parameterClass);
+//    }
 
-        Object parameterClass = params.get(PARAMETER_OBJECT_TYPE);
-        return getObjectTypeClass(parameterClass);
-    }
+//    public static Class<?> getObjectTypeClass(Object objectClass) {
+//        Class<?> clazz = ObjectType.class;
+//        try {
+//            QName objectType = (QName) objectClass;
+//            LOGGER.trace("Parameter object type : {}", objectType);
+//            clazz = ObjectTypes.getObjectTypeClass(objectType.getLocalPart());
+//            LOGGER.trace("Parameter class of object type : {}", clazz);
+//        } catch (Exception ex) {
+//            LOGGER.trace("Couldn't load object type parameter : {}", ex.getMessage());
+//        }
+//        return clazz;
+//    }
 
-    public static Class<?> getObjectTypeClass(Object objectClass) {
-        Class<?> clazz = ObjectType.class;
-        try {
-            QName objectType = (QName) objectClass;
-            LOGGER.trace("Parameter object type : {}", objectType);
-            clazz = ObjectTypes.getObjectTypeClass(objectType.getLocalPart());
-            LOGGER.trace("Parameter class of object type : {}", clazz);
-        } catch (Exception ex) {
-            LOGGER.trace("Couldn't load object type parameter : {}", ex.getMessage());
-        }
-        return clazz;
-    }
-
-    public static PrismProperty<?> getParameter(String parameterName, PrismContainer<ReportConfigurationType> parameterConfiguration, String namespace) {
-        if (parameterConfiguration == null) {
-            return null;
-        }
-        PrismProperty<?> property = parameterConfiguration.findProperty(new QName(namespace, parameterName));
-        /*for(PrismProperty parameter : parameterConfiguration.getValue().getProperties())
-         {
-         LOGGER.trace("Parameter : {} ", parameter.debugDump());
-         LOGGER.trace("Display Name : {}", parameter.getDisplayName());
-         LOGGER.trace("Real value : {}", parameter.getRealValue());
-         LOGGER.trace("Element Name : {}", parameter.getElementName());
-         LOGGER.trace("Definition - type name: {}", parameter.getDefinition().getTypeName());
-         LOGGER.trace("--------------------------------------------------------------------------------");
-         }*/
-        return property;
-    }
+//    public static PrismProperty<?> getParameter(String parameterName, PrismContainer<ReportConfigurationType> parameterConfiguration, String namespace) {
+//        if (parameterConfiguration == null) {
+//            return null;
+//        }
+//        PrismProperty<?> property = parameterConfiguration.findProperty(new QName(namespace, parameterName));
+//        /*for(PrismProperty parameter : parameterConfiguration.getValue().getProperties())
+//         {
+//         LOGGER.trace("Parameter : {} ", parameter.debugDump());
+//         LOGGER.trace("Display Name : {}", parameter.getDisplayName());
+//         LOGGER.trace("Real value : {}", parameter.getRealValue());
+//         LOGGER.trace("Element Name : {}", parameter.getElementName());
+//         LOGGER.trace("Definition - type name: {}", parameter.getDefinition().getTypeName());
+//         LOGGER.trace("--------------------------------------------------------------------------------");
+//         }*/
+//        return property;
+//    }
 
     public static Timestamp convertDateTime(XMLGregorianCalendar dateTime) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         try {
-            timestamp = new Timestamp(XmlTypeConverter.toDate(dateTime).getTime());
+            timestamp = new Timestamp(dateTime.toGregorianCalendar().getTimeInMillis());
         } catch (Exception ex) {
             LOGGER.trace("Incorrect date time value {}", dateTime);
         }
@@ -546,13 +464,13 @@ public class ReportUtils {
         return timestamp;
     }
 
-    private static JRDesignParameter createParameter(PrismProperty<?> parameterConfig, PrismSchema reportSchema) {
-        JRDesignParameter parameter = new JRDesignParameter();
-        parameter.setName(parameterConfig.getElementName().getLocalPart());
-        parameter.setValueClass(getClassType(parameterConfig.getDefinition().getTypeName(), reportSchema.getNamespace()));
-        parameter.setForPrompting(false);
-        return parameter;
-    }
+//    private static JRDesignParameter createParameter(PrismProperty<?> parameterConfig, PrismSchema reportSchema) {
+//        JRDesignParameter parameter = new JRDesignParameter();
+//        parameter.setName(parameterConfig.getElementName().getLocalPart());
+//        parameter.setValueClass(getClassType(parameterConfig.getDefinition().getTypeName(), reportSchema.getNamespace()));
+//        parameter.setForPrompting(false);
+//        return parameter;
+//    }
 
     private static JRDesignTextField createField(ReportFieldConfigurationType fieldRepo, int x, int width, int frameWidth) {
         JRDesignTextField textField = new JRDesignTextField();
@@ -745,54 +663,54 @@ public class ReportUtils {
         jasperDesign.addStyle(pageFooterStyle);
     }
 
-    private static JRDesignBand createTitleBand(int height, int reportColumn, int secondColumn, PrismContainer<ReportConfigurationType> parameterConfiguration, PrismSchema reportSchema) {
-        JRDesignBand titleBand = createBand(height);
-        JRDesignFrame frame = createFrame(0, 0, 70, reportColumn, "Title");
-        titleBand.addElement(frame);
-
-        JRDesignStaticText staticText = createStaticText(10, 15, 40, 266, "Title", VerticalAlignEnum.MIDDLE, "DataSource Report");
-        frame.addElement(staticText);
-        if (getParameter(PARAMETER_LOGO, parameterConfiguration, reportSchema.getNamespace()) != null) {
-            JRDesignImage image = createImage(589, 15, 40, 203, "Title", new JRDesignExpression("$P{" + PARAMETER_LOGO + "}"));
-            frame.addElement(image);
-        }
-        staticText = createStaticText(secondColumn, 70, 20, 150, "Page header", VerticalAlignEnum.MIDDLE, "Report generated on:");
-        titleBand.addElement(staticText);
-
-        JRDesignTextField textField = createTextField(secondColumn + 150, 70, 20, 250, "Page header", false, new JRDesignExpression("new java.util.Date()"));
-        titleBand.addElement(textField);
-
-        staticText = createStaticText(secondColumn, 90, 20, 150, "Page header", VerticalAlignEnum.MIDDLE, "Number of records:");
-        titleBand.addElement(staticText);
-
-        textField = createTextField(secondColumn + 150, 90, 20, 250, "Page header", false, EvaluationTimeEnum.REPORT, new JRDesignExpression("$V{REPORT_COUNT}"));
-        titleBand.addElement(textField);
-
-        //remove parameters, which are not special for data
-        if (parameterConfiguration != null) {
-            int y = 70;
-            for (PrismProperty<?> parameter : parameterConfiguration.getValue().getProperties()) {/*
-                 LOGGER.trace("Parameter : {} ", parameter);
-                 LOGGER.trace("Display Name : {}", parameter.getDisplayName());
-                 LOGGER.trace("Real value : {}", parameter.getRealValue());
-                 LOGGER.trace("Element Name : {}", parameter.getElementName());
-                 LOGGER.trace("Definition : {}", parameter.getDefinition());
-                 LOGGER.trace("--------------------------------------------------------------------------------");
-                 */
-
-                if (parameter.getDisplayName() != null) {
-                    staticText = createStaticText(2, y, 20, 150, "Page header", VerticalAlignEnum.MIDDLE, parameter.getDisplayName() + ":");
-                    titleBand.addElement(staticText);
-
-                    textField = createTextField(160, y, 20, 240, "Page header", false, new JRDesignExpression("$P{" + parameter.getElementName().getLocalPart() + "}"));
-                    titleBand.addElement(textField);
-
-                    y = y + 20;
-                }
-            }
-        }
-        return titleBand;
-    }
+//    private static JRDesignBand createTitleBand(int height, int reportColumn, int secondColumn, PrismContainer<ReportConfigurationType> parameterConfiguration, PrismSchema reportSchema) {
+//        JRDesignBand titleBand = createBand(height);
+//        JRDesignFrame frame = createFrame(0, 0, 70, reportColumn, "Title");
+//        titleBand.addElement(frame);
+//
+//        JRDesignStaticText staticText = createStaticText(10, 15, 40, 266, "Title", VerticalAlignEnum.MIDDLE, "DataSource Report");
+//        frame.addElement(staticText);
+//        if (getParameter(PARAMETER_LOGO, parameterConfiguration, reportSchema.getNamespace()) != null) {
+//            JRDesignImage image = createImage(589, 15, 40, 203, "Title", new JRDesignExpression("$P{" + PARAMETER_LOGO + "}"));
+//            frame.addElement(image);
+//        }
+//        staticText = createStaticText(secondColumn, 70, 20, 150, "Page header", VerticalAlignEnum.MIDDLE, "Report generated on:");
+//        titleBand.addElement(staticText);
+//
+//        JRDesignTextField textField = createTextField(secondColumn + 150, 70, 20, 250, "Page header", false, new JRDesignExpression("new java.util.Date()"));
+//        titleBand.addElement(textField);
+//
+//        staticText = createStaticText(secondColumn, 90, 20, 150, "Page header", VerticalAlignEnum.MIDDLE, "Number of records:");
+//        titleBand.addElement(staticText);
+//
+//        textField = createTextField(secondColumn + 150, 90, 20, 250, "Page header", false, EvaluationTimeEnum.REPORT, new JRDesignExpression("$V{REPORT_COUNT}"));
+//        titleBand.addElement(textField);
+//
+//        //remove parameters, which are not special for data
+//        if (parameterConfiguration != null) {
+//            int y = 70;
+//            for (PrismProperty<?> parameter : parameterConfiguration.getValue().getProperties()) {/*
+//                 LOGGER.trace("Parameter : {} ", parameter);
+//                 LOGGER.trace("Display Name : {}", parameter.getDisplayName());
+//                 LOGGER.trace("Real value : {}", parameter.getRealValue());
+//                 LOGGER.trace("Element Name : {}", parameter.getElementName());
+//                 LOGGER.trace("Definition : {}", parameter.getDefinition());
+//                 LOGGER.trace("--------------------------------------------------------------------------------");
+//                 */
+//
+//                if (parameter.getDisplayName() != null) {
+//                    staticText = createStaticText(2, y, 20, 150, "Page header", VerticalAlignEnum.MIDDLE, parameter.getDisplayName() + ":");
+//                    titleBand.addElement(staticText);
+//
+//                    textField = createTextField(160, y, 20, 240, "Page header", false, new JRDesignExpression("$P{" + parameter.getElementName().getLocalPart() + "}"));
+//                    titleBand.addElement(textField);
+//
+//                    y = y + 20;
+//                }
+//            }
+//        }
+//        return titleBand;
+//    }
 
     private static JRDesignBand createColumnHeaderBand(int height, int reportColumn, List<ReportFieldConfigurationType> reportFields) {
         JRDesignBand columnHeaderBand = createBand(height);
@@ -856,90 +774,90 @@ public class ReportUtils {
         return pageFooterBand;
     }
 
-    public static JasperDesign createJasperDesign(ReportType reportType, PrismContainer<ReportConfigurationType> parameterConfiguration, PrismSchema reportSchema) throws JRException {
-
-        //JasperDesign
-        JasperDesign jasperDesign = new JasperDesign();
-        String reportName = reportType.getName().getOrig();
-        jasperDesign.setName(reportName.replace("\\s", ""));
-
-        switch (reportType.getOrientation()) {
-            case LANDSCAPE:
-            default:
-                setOrientation(jasperDesign, OrientationEnum.LANDSCAPE, 842, 595, 802);
-                break;
-            case PORTRAIT:
-                setOrientation(jasperDesign, OrientationEnum.PORTRAIT, 595, 842, 555);
-                break;
-        }
-
-        jasperDesign.setColumnSpacing(0);
-        jasperDesign.setWhenNoDataType(WhenNoDataTypeEnum.ALL_SECTIONS_NO_DETAIL);
-        jasperDesign.setLeftMargin(20);
-        jasperDesign.setRightMargin(20);
-        jasperDesign.setTopMargin(20);
-        jasperDesign.setBottomMargin(20);
-
-        //Parameters
-        if (parameterConfiguration != null) {
-            for (PrismProperty<?> parameterConfig : parameterConfiguration.getValue().getProperties()) {
-                JRDesignParameter parameter = createParameter(parameterConfig, reportSchema);
-                jasperDesign.addParameter(parameter);
-
-            }
-//			jasperDesign.setLanguage(MidPointQueryExecutorFactory.PARAMETER_MIDPOINT_CONNECTION);
-//			jasperDesign.setProperty(MidPointQueryExecutorFactory.PARAMETER_PRISM_CONTEXT, parameterConfiguration.getPrismContext());
-//			jasperDesign.addParameter(parameter);
-//			.PARAMETER_MIDPOINT_CONNECTION, model);
-        }
-        //Template Style or Styles
-        if (getParameter(PARAMETER_TEMPLATE_STYLES, parameterConfiguration, reportSchema.getNamespace()) != null) {
-            JRDesignReportTemplate templateStyle = new JRDesignReportTemplate(new JRDesignExpression("$P{" + PARAMETER_TEMPLATE_STYLES + "}"));
-            jasperDesign.addTemplate(templateStyle);
-        } else {
-            createStyles(jasperDesign);
-        }
-
-        //Fields
-        for (ReportFieldConfigurationType fieldRepo : reportType.getField()) {
-            JRDesignField field = new JRDesignField();
-            field.setName(fieldRepo.getNameReport());
-            field.setValueClass(getClassType(fieldRepo.getClassType(), reportSchema.getNamespace()));
-            jasperDesign.addField(field);
-        }
-
-        //Background
-        JRDesignBand bandBackground = createBand(30);
-        jasperDesign.setBackground(bandBackground);
-
-        //Title
-        //band size depends on the number of parameters
-        int reportColumn = jasperDesign.getColumnWidth() - 2;
-        int secondColumn = Math.round(jasperDesign.getColumnWidth() / 2 - 1);
-        //int height = 70 + Math.max(40, parameters.size()*20);
-        int height = 70 + Math.max(40, 20);
-
-        JRDesignBand titleBand = createTitleBand(height, reportColumn, secondColumn, parameterConfiguration, reportSchema);
-        jasperDesign.setTitle(titleBand);
-
-        //Column header
-        JRDesignBand columnHeaderBand = createColumnHeaderBand(24, reportColumn, reportType.getField());
-        jasperDesign.setColumnHeader(columnHeaderBand);
-
-        //Detail
-        JRDesignBand detailBand = createDetailBand(20, reportColumn, reportType.getField());
-        ((JRDesignSection) jasperDesign.getDetailSection()).addBand(detailBand);
-
-        //Column footer
-        JRDesignBand columnFooterBand = createColumnFooterBand(7, reportColumn);
-        jasperDesign.setColumnFooter(columnFooterBand);
-
-        //Page footer
-        JRDesignBand pageFooterBand = createPageFooterBand(32, reportColumn);
-        jasperDesign.setPageFooter(pageFooterBand);
-
-        return jasperDesign;
-    }
+//    public static JasperDesign createJasperDesign(ReportType reportType, PrismContainer<ReportConfigurationType> parameterConfiguration, PrismSchema reportSchema) throws JRException {
+//
+//        //JasperDesign
+//        JasperDesign jasperDesign = new JasperDesign();
+//        String reportName = reportType.getName().getOrig();
+//        jasperDesign.setName(reportName.replace("\\s", ""));
+//
+//        switch (reportType.getOrientation()) {
+//            case LANDSCAPE:
+//            default:
+//                setOrientation(jasperDesign, OrientationEnum.LANDSCAPE, 842, 595, 802);
+//                break;
+//            case PORTRAIT:
+//                setOrientation(jasperDesign, OrientationEnum.PORTRAIT, 595, 842, 555);
+//                break;
+//        }
+//
+//        jasperDesign.setColumnSpacing(0);
+//        jasperDesign.setWhenNoDataType(WhenNoDataTypeEnum.ALL_SECTIONS_NO_DETAIL);
+//        jasperDesign.setLeftMargin(20);
+//        jasperDesign.setRightMargin(20);
+//        jasperDesign.setTopMargin(20);
+//        jasperDesign.setBottomMargin(20);
+//
+//        //Parameters
+//        if (parameterConfiguration != null) {
+//            for (PrismProperty<?> parameterConfig : parameterConfiguration.getValue().getProperties()) {
+//                JRDesignParameter parameter = createParameter(parameterConfig, reportSchema);
+//                jasperDesign.addParameter(parameter);
+//
+//            }
+////			jasperDesign.setLanguage(MidPointQueryExecutorFactory.PARAMETER_MIDPOINT_CONNECTION);
+////			jasperDesign.setProperty(MidPointQueryExecutorFactory.PARAMETER_PRISM_CONTEXT, parameterConfiguration.getPrismContext());
+////			jasperDesign.addParameter(parameter);
+////			.PARAMETER_MIDPOINT_CONNECTION, model);
+//        }
+//        //Template Style or Styles
+//        if (getParameter(PARAMETER_TEMPLATE_STYLES, parameterConfiguration, reportSchema.getNamespace()) != null) {
+//            JRDesignReportTemplate templateStyle = new JRDesignReportTemplate(new JRDesignExpression("$P{" + PARAMETER_TEMPLATE_STYLES + "}"));
+//            jasperDesign.addTemplate(templateStyle);
+//        } else {
+//            createStyles(jasperDesign);
+//        }
+//
+//        //Fields
+//        for (ReportFieldConfigurationType fieldRepo : reportType.getField()) {
+//            JRDesignField field = new JRDesignField();
+//            field.setName(fieldRepo.getNameReport());
+//            field.setValueClass(getClassType(fieldRepo.getClassType(), reportSchema.getNamespace()));
+//            jasperDesign.addField(field);
+//        }
+//
+//        //Background
+//        JRDesignBand bandBackground = createBand(30);
+//        jasperDesign.setBackground(bandBackground);
+//
+//        //Title
+//        //band size depends on the number of parameters
+//        int reportColumn = jasperDesign.getColumnWidth() - 2;
+//        int secondColumn = Math.round(jasperDesign.getColumnWidth() / 2 - 1);
+//        //int height = 70 + Math.max(40, parameters.size()*20);
+//        int height = 70 + Math.max(40, 20);
+//
+//        JRDesignBand titleBand = createTitleBand(height, reportColumn, secondColumn, parameterConfiguration, reportSchema);
+//        jasperDesign.setTitle(titleBand);
+//
+//        //Column header
+//        JRDesignBand columnHeaderBand = createColumnHeaderBand(24, reportColumn, reportType.getField());
+//        jasperDesign.setColumnHeader(columnHeaderBand);
+//
+//        //Detail
+//        JRDesignBand detailBand = createDetailBand(20, reportColumn, reportType.getField());
+//        ((JRDesignSection) jasperDesign.getDetailSection()).addBand(detailBand);
+//
+//        //Column footer
+//        JRDesignBand columnFooterBand = createColumnFooterBand(7, reportColumn);
+//        jasperDesign.setColumnFooter(columnFooterBand);
+//
+//        //Page footer
+//        JRDesignBand pageFooterBand = createPageFooterBand(32, reportColumn);
+//        jasperDesign.setPageFooter(pageFooterBand);
+//
+//        return jasperDesign;
+//    }
 
     public static String getDateTime() {
         Date createDate = new Date(System.currentTimeMillis());
@@ -1005,47 +923,47 @@ public class ReportUtils {
         return output;
     }
 
-    // TODO is this used? YES :) But it needs re-implementation (I hope, for now this one is quite good)..
-    public static String getDeltaAudit(String delta) {
-        String deltaAudit = "fixed value";
-        try {
-//    		SchemaRegistry schemaRegistry = new SchemaRegistry();
-//    		PrismContext prismContext = PrismContext.createEmptyContext(schemaRegistry);
-//    		ObjectDeltaType xmlDelta = prismContext.getPrismJaxbProcessor().unmarshalObject(delta, ObjectDeltaType.class);
-//    		deltaAudit = xmlDelta.getChangeType().toString() + " - " + xmlDelta.getObjectType().getLocalPart().toString();
-
-            DomParser domParser = new DomParser(null);
-            XNode xnode = domParser.parse(delta);
-
-            MapXNode deltaXnode = null;
-            if (xnode instanceof RootXNode) {
-                RootXNode root = (RootXNode) xnode;
-                if (root.getSubnode() instanceof MapXNode) {
-                    deltaXnode = (MapXNode) root.getSubnode();
-                } else {
-                    throw new IllegalStateException("Error parsing delta for audit report. Expected map after parsing, but was: " + root.getSubnode());
-                }
-            } else if (xnode instanceof MapXNode) {
-                deltaXnode = (MapXNode) xnode;
-            } else {
-                throw new IllegalStateException("Error parsing delta for audit report " + xnode);
-            }
-
-//    		System.out.println("delta xnode : " + xnode.debugDump());
-            QName objectTypeXnode = deltaXnode.getParsedPrimitiveValue(ObjectDeltaType.F_OBJECT_TYPE, DOMUtil.XSD_QNAME);
-            String changeTypeXnode = deltaXnode.getParsedPrimitiveValue(ObjectDeltaType.F_CHANGE_TYPE, DOMUtil.XSD_STRING);
-            StringBuilder sb = new StringBuilder(changeTypeXnode);
-            sb.append("-");
-            sb.append(objectTypeXnode.getLocalPart());
-
-            deltaAudit = sb.toString();
-
-        } catch (Exception ex) {
-            return ex.getMessage();
-        }
-
-        return deltaAudit;
-    }
+//    // TODO is this used? YES :) But it needs re-implementation (I hope, for now this one is quite good)..
+//    public static String getDeltaAudit(String delta) {
+//        String deltaAudit = "fixed value";
+//        try {
+////    		SchemaRegistry schemaRegistry = new SchemaRegistry();
+////    		PrismContext prismContext = PrismContext.createEmptyContext(schemaRegistry);
+////    		ObjectDeltaType xmlDelta = prismContext.getPrismJaxbProcessor().unmarshalObject(delta, ObjectDeltaType.class);
+////    		deltaAudit = xmlDelta.getChangeType().toString() + " - " + xmlDelta.getObjectType().getLocalPart().toString();
+//
+//            DomParser domParser = new DomParser(null);
+//            XNode xnode = domParser.parse(delta);
+//
+//            MapXNode deltaXnode = null;
+//            if (xnode instanceof RootXNode) {
+//                RootXNode root = (RootXNode) xnode;
+//                if (root.getSubnode() instanceof MapXNode) {
+//                    deltaXnode = (MapXNode) root.getSubnode();
+//                } else {
+//                    throw new IllegalStateException("Error parsing delta for audit report. Expected map after parsing, but was: " + root.getSubnode());
+//                }
+//            } else if (xnode instanceof MapXNode) {
+//                deltaXnode = (MapXNode) xnode;
+//            } else {
+//                throw new IllegalStateException("Error parsing delta for audit report " + xnode);
+//            }
+//
+////    		System.out.println("delta xnode : " + xnode.debugDump());
+//            QName objectTypeXnode = deltaXnode.getParsedPrimitiveValue(ObjectDeltaType.F_OBJECT_TYPE, DOMUtil.XSD_QNAME);
+//            String changeTypeXnode = deltaXnode.getParsedPrimitiveValue(ObjectDeltaType.F_CHANGE_TYPE, DOMUtil.XSD_STRING);
+//            StringBuilder sb = new StringBuilder(changeTypeXnode);
+//            sb.append("-");
+//            sb.append(objectTypeXnode.getLocalPart());
+//
+//            deltaAudit = sb.toString();
+//
+//        } catch (Exception ex) {
+//            return ex.getMessage();
+//        }
+//
+//        return deltaAudit;
+//    }
     /* 
      public static ObjectQuery getObjectQuery(PrismContainer<Containerable> parameterConfiguration, String namespace, PrismContext prismContext)
      {/*
@@ -1084,82 +1002,82 @@ public class ReportUtils {
      */
 
 
-    public static ObjectQuery getObjectQuery(Map<?, ?> params, Class<?> clazz, PrismContext prismContext) {
-        ObjectQuery objectQuery = new ObjectQuery();
-        try {
-            // TODO is this ok?
-            SearchFilterType filterType = (SearchFilterType) params.get(PARAMETER_QUERY_FILTER);
-            LOGGER.info("DataSource Query type : {}", filterType);
-            if (filterType != null) {
-                objectQuery.setFilter(QueryConvertor.parseFilter(filterType, (Class) clazz, prismContext));
-            }
-        } catch (Exception ex) {
-            LOGGER.error("Couldn't create object query : {}", ex.getMessage());
-        }
+//    public static ObjectQuery getObjectQuery(Map<?, ?> params, Class<?> clazz, PrismContext prismContext) {
+//        ObjectQuery objectQuery = new ObjectQuery();
+//        try {
+//            // TODO is this ok?
+//            SearchFilterType filterType = (SearchFilterType) params.get(PARAMETER_QUERY_FILTER);
+//            LOGGER.info("DataSource Query type : {}", filterType);
+//            if (filterType != null) {
+//                objectQuery.setFilter(QueryConvertor.parseFilter(filterType, (Class) clazz, prismContext));
+//            }
+//        } catch (Exception ex) {
+//            LOGGER.error("Couldn't create object query : {}", ex.getMessage());
+//        }
+//
+//        return objectQuery;
+//    }
 
-        return objectQuery;
-    }
+//    public static ReportType getReport(String reportOid, OperationResult parentResult, ModelService modelService) throws Exception {
+//        parentResult.addContext("reportOid", reportOid);
+//
+//        if (reportOid == null) {
+//            throw new IllegalArgumentException("Report OID is missing in task extension");
+//        }
+//        ReportType reportType = null;
+//        try {
+//            LOGGER.trace("get report : {}", reportOid);
+//            reportType = modelService.getObject(ReportType.class, reportOid, null, null, parentResult).asObjectable();;
+//        } catch (ObjectNotFoundException ex) {
+//            LOGGER.error("Report does not exist: {}", ex.getMessage(), ex);
+//            parentResult.recordFatalError("Report does not exist: " + ex.getMessage(), ex);
+//            throw ex;
+//        } catch (Exception ex) {
+//            LOGGER.error("Create Report: {}", ex.getMessage(), ex);
+//            parentResult.recordFatalError("Report: " + ex.getMessage(), ex);
+//            throw ex;
+//        }
+//
+//        return reportType;
+//    }
 
-    public static ReportType getReport(String reportOid, OperationResult parentResult, ModelService modelService) throws Exception {
-        parentResult.addContext("reportOid", reportOid);
+//    public static ReportType getReport(Map<?, ?> params, ModelService modelService, PrismContext prismContext) throws Exception {
+//        OperationResult parentResult = getOperationResult(params);
+//        String reportOid = params.get(PARAMETER_REPORT_OID).toString();
+//        parentResult.addContext("reportOid", reportOid);
+//
+//        if (reportOid == null) {
+//            throw new IllegalArgumentException("Report OID is missing in datasource");
+//        }
+//        ReportType reportType = null;
+//        try {
+//            LOGGER.trace("get report : {}", reportOid);
+//            reportType = modelService.getObject(ReportType.class, reportOid, null, null, parentResult).asObjectable();;
+//        } catch (ObjectNotFoundException ex) {
+//            LOGGER.error("Report does not exist: {}", ex.getMessage(), ex);
+//            parentResult.recordFatalError("Report does not exist: " + ex.getMessage(), ex);
+//            throw ex;
+//        } catch (Exception ex) {
+//            LOGGER.error("Create Report: {}", ex.getMessage(), ex);
+//            parentResult.recordFatalError("Report: " + ex.getMessage(), ex);
+//            throw ex;
+//        }
+//
+//        return reportType;
+//    }
 
-        if (reportOid == null) {
-            throw new IllegalArgumentException("Report OID is missing in task extension");
-        }
-        ReportType reportType = null;
-        try {
-            LOGGER.trace("get report : {}", reportOid);
-            reportType = modelService.getObject(ReportType.class, reportOid, null, null, parentResult).asObjectable();;
-        } catch (ObjectNotFoundException ex) {
-            LOGGER.error("Report does not exist: {}", ex.getMessage(), ex);
-            parentResult.recordFatalError("Report does not exist: " + ex.getMessage(), ex);
-            throw ex;
-        } catch (Exception ex) {
-            LOGGER.error("Create Report: {}", ex.getMessage(), ex);
-            parentResult.recordFatalError("Report: " + ex.getMessage(), ex);
-            throw ex;
-        }
-
-        return reportType;
-    }
-
-    public static ReportType getReport(Map<?, ?> params, ModelService modelService, PrismContext prismContext) throws Exception {
-        OperationResult parentResult = getOperationResult(params);
-        String reportOid = params.get(PARAMETER_REPORT_OID).toString();
-        parentResult.addContext("reportOid", reportOid);
-
-        if (reportOid == null) {
-            throw new IllegalArgumentException("Report OID is missing in datasource");
-        }
-        ReportType reportType = null;
-        try {
-            LOGGER.trace("get report : {}", reportOid);
-            reportType = modelService.getObject(ReportType.class, reportOid, null, null, parentResult).asObjectable();;
-        } catch (ObjectNotFoundException ex) {
-            LOGGER.error("Report does not exist: {}", ex.getMessage(), ex);
-            parentResult.recordFatalError("Report does not exist: " + ex.getMessage(), ex);
-            throw ex;
-        } catch (Exception ex) {
-            LOGGER.error("Create Report: {}", ex.getMessage(), ex);
-            parentResult.recordFatalError("Report: " + ex.getMessage(), ex);
-            throw ex;
-        }
-
-        return reportType;
-    }
-
-    public static OperationResult getOperationResult(Map<?, ?> params) {
-        OperationResult result = new OperationResult("DataSource - create");
-        try {
-            result = (OperationResult) params.get(PARAMETER_OPERATION_RESULT);
-            LOGGER.info("Datasource Operation result : {}", result);
-
-        } catch (Exception ex) {
-            LOGGER.error("Couldn't create operation result : {}", ex.getMessage());
-        }
-
-        return result;
-    }
+//    public static OperationResult getOperationResult(Map<?, ?> params) {
+//        OperationResult result = new OperationResult("DataSource - create");
+//        try {
+//            result = (OperationResult) params.get(PARAMETER_OPERATION_RESULT);
+//            LOGGER.info("Datasource Operation result : {}", result);
+//
+//        } catch (Exception ex) {
+//            LOGGER.error("Couldn't create operation result : {}", ex.getMessage());
+//        }
+//
+//        return result;
+//    }
 
     public static String getPropertyString(String key) {
         return getPropertyString(key, null);
@@ -1182,93 +1100,93 @@ public class ReportUtils {
         return ret;
     }
 
-    public static String prettyPrintForReport(PrismProperty pp) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(pp.getPath());
-        sb.append("=");
-        sb.append("{");
-        List<PrismPropertyValue> ppvList = pp.getValues();
-        for (PrismPropertyValue ppv : ppvList) {
-            String ps = prettyPrintForReport(ppv);
-            if (!ps.isEmpty()) {
-                sb.append(ps);
-                sb.append(", ");
-            }
-        }
-        sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter 
-        sb.append("}");
-        return sb.toString();
-    }
-
-    public static String prettyPrintForReport(PrismReference pr) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(pr.getPath());
-        sb.append("=");
-        sb.append("{");
-        List<PrismReferenceValue> prvList = pr.getValues();
-        for (PrismReferenceValue ppv : prvList) {
-            String ps = prettyPrintForReport(ppv);
-            if (!ps.isEmpty()) {
-                sb.append(ps);
-                sb.append(", ");
-            }
-        }
-        sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter 
-        sb.append("}");
-        return sb.toString();
-    }
-
-    public static String prettyPrintForReport(PrismContainer pc) {
-        StringBuilder sb = new StringBuilder();
-        if ("metadata".equalsIgnoreCase(pc.getElementName().getLocalPart())) { // skip metadata, still needed?
-            return "";
-        }
-        sb.append(pc.getPath());
-        sb.append("=");
-        sb.append("{");
-        List<PrismContainerValue> prvList = pc.getValues();
-        for (PrismContainerValue ppv : prvList) {
-            String ps = prettyPrintForReport(ppv);
-            if (!ps.isEmpty()) {
-                sb.append(ps);
-                sb.append(", ");
-            }
-        }
-        sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter 
-        sb.append("}");
-        return sb.toString();
-    }
-
-    public static String prettyPrintForReport(PrismContainerValue pcv) {
-        StringBuilder sb = new StringBuilder();
-        for (Object it : pcv.getItems()) {
-            String ps = prettyPrintForReport(it);
-            if (!ps.isEmpty()) {
-                sb.append(ps);
-                sb.append(", ");
-            }
-        }
-        sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter 
-        return sb.toString();
-    }
-
-    public static String prettyPrintForReport(PrismReferenceValue prv) {
-        // UNDER CONSTRUCTION
-        // TODO: Complete in 3.3 when PRV has business name stored in DB audit event. MID-2431
-        return prv.toString();
-    }
+//    public static String prettyPrintForReport(PrismProperty pp) {
+//        StringBuilder sb = new StringBuilder();
+//        sb.append(pp.getPath());
+//        sb.append("=");
+//        sb.append("{");
+//        List<PrismPropertyValue> ppvList = pp.getValues();
+//        for (PrismPropertyValue ppv : ppvList) {
+//            String ps = prettyPrintForReport(ppv);
+//            if (!ps.isEmpty()) {
+//                sb.append(ps);
+//                sb.append(", ");
+//            }
+//        }
+//        sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter 
+//        sb.append("}");
+//        return sb.toString();
+//    }
+//
+//    public static String prettyPrintForReport(PrismReference pr) {
+//        StringBuilder sb = new StringBuilder();
+//        sb.append(pr.getPath());
+//        sb.append("=");
+//        sb.append("{");
+//        List<PrismReferenceValue> prvList = pr.getValues();
+//        for (PrismReferenceValue ppv : prvList) {
+//            String ps = prettyPrintForReport(ppv);
+//            if (!ps.isEmpty()) {
+//                sb.append(ps);
+//                sb.append(", ");
+//            }
+//        }
+//        sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter 
+//        sb.append("}");
+//        return sb.toString();
+//    }
+//
+//    public static String prettyPrintForReport(PrismContainer pc) {
+//        StringBuilder sb = new StringBuilder();
+//        if ("metadata".equalsIgnoreCase(pc.getElementName().getLocalPart())) { // skip metadata, still needed?
+//            return "";
+//        }
+//        sb.append(pc.getPath());
+//        sb.append("=");
+//        sb.append("{");
+//        List<PrismContainerValue> prvList = pc.getValues();
+//        for (PrismContainerValue ppv : prvList) {
+//            String ps = prettyPrintForReport(ppv);
+//            if (!ps.isEmpty()) {
+//                sb.append(ps);
+//                sb.append(", ");
+//            }
+//        }
+//        sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter 
+//        sb.append("}");
+//        return sb.toString();
+//    }
+//
+//    public static String prettyPrintForReport(PrismContainerValue pcv) {
+//        StringBuilder sb = new StringBuilder();
+//        for (Object it : pcv.getItems()) {
+//            String ps = prettyPrintForReport(it);
+//            if (!ps.isEmpty()) {
+//                sb.append(ps);
+//                sb.append(", ");
+//            }
+//        }
+//        sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter 
+//        return sb.toString();
+//    }
+//
+//    public static String prettyPrintForReport(PrismReferenceValue prv) {
+//        // UNDER CONSTRUCTION
+//        // TODO: Complete in 3.3 when PRV has business name stored in DB audit event. MID-2431
+//        return prv.toString();
+//    }
 
     public static String prettyPrintForReport(ProtectedStringType pst) {
         return "*****";
     }
-
-    public static String prettyPrintForReport(PrismPropertyValue ppv) {
-        if (ppv == null) {
-            return "null";
-        }
-        return prettyPrintForReport(ppv.getValue());
-
-    }
+//
+//    public static String prettyPrintForReport(PrismPropertyValue ppv) {
+//        if (ppv == null) {
+//            return "null";
+//        }
+//        return prettyPrintForReport(ppv.getValue());
+//
+//    }
 
     public static String prettyPrintForReport(OperationResultType ort) {
         StringBuilder sb = new StringBuilder();
@@ -1293,9 +1211,9 @@ public class ReportUtils {
         return "[" + ((byte[]) ba).length + " bytes]"; //Jasper doesnt like byte[] 
     }
 
-    public static String prettyPrintForReport(Collection<PrismValue> prismValueList) {
+    public static String prettyPrintForReport(Collection prismValueList) {
         StringBuilder sb = new StringBuilder();
-        for (PrismValue pv : prismValueList) {
+        for (Object pv : prismValueList) {
             String ps = prettyPrintForReport(pv);
             if (!ps.isEmpty()) {
                 sb.append(ps);
@@ -1312,75 +1230,150 @@ public class ReportUtils {
      - Credit goes to Evolveum        
      */
     public static String prettyPrintForReport(Object value) {
-        for (Method method : ReportUtils.class.getMethods()) {
-            if (method.getName().equals("prettyPrintForReport")) {
-                Class<?>[] parameterTypes = method.getParameterTypes();
-                if (parameterTypes.length == 1 && parameterTypes[0].equals(value.getClass())) {
-                    try {
-                        return (String) method.invoke(null, value);
-                    } catch (IllegalArgumentException e) {
-                        return "###INTERNAL#ERROR### Illegal argument: " + e.getMessage() + "; prettyPrintForReport method for value " + value;
-                    } catch (IllegalAccessException e) {
-                        return "###INTERNAL#ERROR### Illegal access: " + e.getMessage() + "; prettyPrintForReport method for value " + value;
-                    } catch (InvocationTargetException e) {
-                        return "###INTERNAL#ERROR### Illegal target: " + e.getMessage() + "; prettyPrintForReport method for value " + value;
-                    } catch (Throwable e) {
-                        return "###INTERNAL#ERROR### " + e.getClass().getName() + ": " + e.getMessage() + "; prettyPrintForReport method for value " + value;
-                    }
-                }
-            }
-        }
-        if (value.getClass().isArray()) {
-            Class<?> cclass = value.getClass().getComponentType();
-            if (cclass.isPrimitive()) {
-                if (cclass == byte.class) {
-                    return prettyPrintForReport((byte[]) value);
-                }
-            }
-        }
+    	if (value == null){
+    		return "";
+    	}
+    	if (value.getClass().isArray()) {
+             Class<?> cclass = value.getClass().getComponentType();
+             if (cclass.isPrimitive()) {
+                 if (cclass == byte.class) {
+                     return prettyPrintForReport((byte[]) value);
+                 }
+             }
+         }
+    	return PrettyPrinter.prettyPrint(value);
+//        for (Method method : ReportUtils.class.getMethods()) {
+//            if (method.getName().equals("prettyPrintForReport")) {
+//                Class<?>[] parameterTypes = method.getParameterTypes();
+//                if (parameterTypes.length == 1 && parameterTypes[0].equals(value.getClass())) {
+//                    try {
+//                        return (String) method.invoke(null, value);
+//                    } catch (IllegalArgumentException e) {
+//                        return "###INTERNAL#ERROR### Illegal argument: " + e.getMessage() + "; prettyPrintForReport method for value " + value;
+//                    } catch (IllegalAccessException e) {
+//                        return "###INTERNAL#ERROR### Illegal access: " + e.getMessage() + "; prettyPrintForReport method for value " + value;
+//                    } catch (InvocationTargetException e) {
+//                        return "###INTERNAL#ERROR### Illegal target: " + e.getMessage() + "; prettyPrintForReport method for value " + value;
+//                    } catch (Throwable e) {
+//                        return "###INTERNAL#ERROR### " + e.getClass().getName() + ": " + e.getMessage() + "; prettyPrintForReport method for value " + value;
+//                    }
+//                }
+//            }
+//        }
+       
 
-        return value.toString();
+//        return value.toString();
     }
-
-    public static String prettyPrintForReport(ItemDelta itemDelta) {
+    
+    private static String printItemDeltaValues(ItemDeltaType itemDelta){
+    	 List values = itemDelta.getValue();
+    	 StringBuilder sb = new StringBuilder();
+    	for (Object value : values){
+    		String v = printItemDeltaValue(itemDelta.getPath(), value);
+         	if (StringUtils.isNotBlank(v)){
+         		sb.append(v);
+             	sb.append(", ");
+         	}
+         }
+    	sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter 
+    	return sb.toString();
+    }
+    
+    private static String printItemDeltaValue(ItemPathType itemPath, Object value){
+    	if (value instanceof MetadataType){
+     		return "";
+     	} else if (value instanceof RawType){
+     		try {
+     			
+     			if (isMetadata(itemPath)){
+     				return "";
+     			}
+     			return prettyPrintForReport(((RawType) value).getParsedRealValue(null, itemPath.getItemPath()));
+				} catch (SchemaException e) {
+					return "###INTERNAL#ERROR### " + e.getClass().getName() + ": " + e.getMessage() + "; prettyPrintForReport method for value " + value;
+				} catch (RuntimeException e){
+					return "###INTERNAL#ERROR### " + e.getClass().getName() + ": " + e.getMessage() + "; prettyPrintForReport method for value " + value;
+				}
+     	} else {
+     		return prettyPrintForReport(value);
+     	}
+    	
+    }
+    
+    private static String printItemDeltaOldValues(ItemPathType itemPath, List values){
+    	 StringBuilder sb = new StringBuilder();
+    	for (Object value : values){
+    		String v = printItemDeltaValue(itemPath, value);
+         	if (StringUtils.isNotBlank(v)){
+         		sb.append(v);
+             	sb.append(", ");
+         	}
+         }
+    	sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter 
+    	return sb.toString();
+    	
+    }
+    
+    private static boolean isMetadata(ItemDeltaType itemDelta){
+    	List values = itemDelta.getValue();
+    	for (Object v : values){
+    		if (v instanceof MetadataType){
+    			return true;
+    		} else if (v instanceof RawType){
+    			return isMetadata(itemDelta.getPath());
+    		}
+    	}
+    	
+    	return false;
+    }
+    
+    private static boolean isMetadata(ItemPathType itemPath){
+    	return com.evolveum.midpoint.prism.path.ItemPath.getFirstName(itemPath.getItemPath()).getLocalPart().equals("metadata");
+    }
+    
+    public static String prettyPrintForReport(ItemDeltaType itemDelta) {
         StringBuilder sb = new StringBuilder();
         boolean displayNA = false;
+        
+        if (isMetadata(itemDelta)){
+        	return sb.toString();
+        }
 
         sb.append(">>> ");
         sb.append(itemDelta.getPath());
         sb.append("=");
         sb.append("{");
-        if (itemDelta.getEstimatedOldValues() != null && !itemDelta.getEstimatedOldValues().isEmpty()) {
+        if (itemDelta.getEstimatedOldValue() != null && !itemDelta.getEstimatedOldValue().isEmpty()) {
             sb.append("Old: ");
             sb.append("{");
-            sb.append(prettyPrintForReport(itemDelta.getEstimatedOldValues()));
+            sb.append(printItemDeltaOldValues(itemDelta.getPath(), itemDelta.getEstimatedOldValue()));
             sb.append("}");
             sb.append(", ");
             displayNA = true;
         }
-
-        if (itemDelta.getValuesToReplace() != null) {
+   
+        if (itemDelta.getModificationType() == ModificationTypeType.REPLACE){
             sb.append("Replace: ");
             sb.append("{");
-            sb.append(prettyPrintForReport(itemDelta.getValuesToReplace()));
+            sb.append(printItemDeltaValues(itemDelta));
             sb.append("}");
             sb.append(", ");
             displayNA = false;
         }
 
-        if (itemDelta.getValuesToDelete() != null) {
+        if (itemDelta.getModificationType() == ModificationTypeType.DELETE) {
             sb.append("Delete: ");
             sb.append("{");
-            sb.append(prettyPrintForReport(itemDelta.getValuesToDelete()));
+            sb.append(printItemDeltaValues(itemDelta));
             sb.append("}");
             sb.append(", ");
             displayNA = false;
         }
 
-        if (itemDelta.getValuesToAdd() != null) {
+        if (itemDelta.getModificationType() == ModificationTypeType.ADD) {
             sb.append("Add: ");
             sb.append("{");
-            sb.append(prettyPrintForReport(itemDelta.getValuesToAdd()));
+            sb.append(printItemDeltaValues(itemDelta));
             sb.append("}");
             sb.append(", ");
             displayNA = false;
@@ -1396,11 +1389,85 @@ public class ReportUtils {
         return sb.toString();
     }
 
-    private static String printChangeType(ObjectDelta delta, String opName) {
+
+//    public static String prettyPrintForReport(ItemDelta itemDelta) {
+//        StringBuilder sb = new StringBuilder();
+//        boolean displayNA = false;
+//
+//        sb.append(">>> ");
+//        sb.append(itemDelta.getPath());
+//        sb.append("=");
+//        sb.append("{");
+//        if (itemDelta.getEstimatedOldValues() != null && !itemDelta.getEstimatedOldValues().isEmpty()) {
+//            sb.append("Old: ");
+//            sb.append("{");
+//            sb.append(prettyPrintForReport(itemDelta.getEstimatedOldValues()));
+//            sb.append("}");
+//            sb.append(", ");
+//            displayNA = true;
+//            ItemDeltaType idt ;
+//            
+//        }
+//
+//        if (itemDelta.getValuesToReplace() != null) {
+//            sb.append("Replace: ");
+//            sb.append("{");
+//            sb.append(prettyPrintForReport(itemDelta.getValuesToReplace()));
+//            sb.append("}");
+//            sb.append(", ");
+//            displayNA = false;
+//        }
+//
+//        if (itemDelta.getValuesToDelete() != null) {
+//            sb.append("Delete: ");
+//            sb.append("{");
+//            sb.append(prettyPrintForReport(itemDelta.getValuesToDelete()));
+//            sb.append("}");
+//            sb.append(", ");
+//            displayNA = false;
+//        }
+//
+//        if (itemDelta.getValuesToAdd() != null) {
+//            sb.append("Add: ");
+//            sb.append("{");
+//            sb.append(prettyPrintForReport(itemDelta.getValuesToAdd()));
+//            sb.append("}");
+//            sb.append(", ");
+//            displayNA = false;
+//        }
+//
+//        if (displayNA) {
+//            sb.append("N/A"); // this is rare case when oldValue is present but replace, delete and add lists are all null
+//        } else {
+//            sb.setLength(Math.max(sb.length() - 2, 0));
+//        }
+//
+//        sb.append("}");
+//        return sb.toString();
+//    }
+    
+    public static String getBusinessDisplayName(ObjectReferenceType ort){
+    	return ort.getDescription();
+    }
+
+//    private static String printChangeType(ObjectDelta delta, String opName) {
+//        StringBuilder sb = new StringBuilder();
+//        sb.append(opName);
+//        sb.append(" ");
+//        sb.append(delta.getObjectTypeClass().getSimpleName());
+//        if (delta.getOid() != null) {
+//            sb.append(": ");
+//            sb.append(delta.getOid());
+//        }
+//        sb.append("\n");
+//        return sb.toString();
+//    }
+    
+    private static String printChangeType(ObjectDeltaType delta, String opName) {
         StringBuilder sb = new StringBuilder();
         sb.append(opName);
         sb.append(" ");
-        sb.append(delta.getObjectTypeClass().getSimpleName());
+        sb.append(delta.getObjectType().getLocalPart());
         if (delta.getOid() != null) {
             sb.append(": ");
             sb.append(delta.getOid());
@@ -1409,30 +1476,97 @@ public class ReportUtils {
         return sb.toString();
     }
 
-    public static String printDelta(ObjectDelta delta) {
+//    public static String printDelta(ObjectDelta delta) {
+//        StringBuilder sb = new StringBuilder();
+//        Boolean isMeta;
+//
+//        switch (delta.getChangeType()) {
+//            case MODIFY:
+//                Collection<ItemDelta> modificationDeltas = delta.getModifications();
+//                if (modificationDeltas != null && !modificationDeltas.isEmpty()) {
+//                    sb.append(printChangeType(delta, "Modify"));
+//                }
+//                for (ItemDelta itemDelta : modificationDeltas) {
+//                    isMeta = false;
+//                    try {
+//                        for (ItemPathSegment seg : itemDelta.getParentPath().getSegments()) {
+//                            if (seg instanceof NameItemPathSegment) {
+//                                if ("metadata".equals(((NameItemPathSegment) seg).getName().getLocalPart())) {
+//                                    isMeta = true;
+//                                    break;
+//                                }
+//                            }
+//                        }
+//                        if (isMeta) {
+//                            continue; //do not report metadata
+//                        }
+//                    } catch (NullPointerException npe) {
+//                        // silence exception as delta doesnt have parent
+//                    }
+//                    sb.append(prettyPrintForReport(itemDelta));
+//                    sb.append("\n");
+//                }
+//                sb.setLength(Math.max(sb.length() - 1, 0));
+//                break;
+//
+//            case ADD:
+//                PrismObject objectToAdd = delta.getObjectToAdd();
+//                if (objectToAdd != null) {
+//                    sb.append(printChangeType(delta, "Add"));
+//                    sb.append(prettyPrintForReport(objectToAdd.getElementName()));
+//                    sb.append("=");
+//                    sb.append(objectToAdd.getBusinessDisplayName());
+//                    sb.append(" {");
+//                    sb.append(prettyPrintForReport(objectToAdd.getValue()));
+//                    sb.append("}");
+//                }
+//                break;
+//
+//            case DELETE:
+//                sb.append(printChangeType(delta, "Delete"));
+//                break;
+//        }
+//
+//        return sb.toString();
+//    }
+
+    public static String printDelta(List<ObjectDeltaType> delta) {
+    	StringBuilder sb = new StringBuilder();
+    	for (ObjectDeltaType d : delta){
+    		sb.append(printDelta(d));
+    		sb.append("\n");
+    	}
+    	return sb.toString();
+    }
+    
+    public static String printDelta(ObjectDeltaType delta) {
         StringBuilder sb = new StringBuilder();
         Boolean isMeta;
 
         switch (delta.getChangeType()) {
             case MODIFY:
-                Collection<ItemDelta> modificationDeltas = delta.getModifications();
+                Collection<ItemDeltaType> modificationDeltas = delta.getItemDelta();
                 if (modificationDeltas != null && !modificationDeltas.isEmpty()) {
                     sb.append(printChangeType(delta, "Modify"));
                 }
-                for (ItemDelta itemDelta : modificationDeltas) {
+                for (ItemDeltaType itemDelta : modificationDeltas) {
+                
                     isMeta = false;
                     try {
-                        for (ItemPathSegment seg : itemDelta.getParentPath().getSegments()) {
-                            if (seg instanceof NameItemPathSegment) {
-                                if ("metadata".equals(((NameItemPathSegment) seg).getName().getLocalPart())) {
-                                    isMeta = true;
-                                    break;
-                                }
-                            }
-                        }
-                        if (isMeta) {
-                            continue; //do not report metadata
-                        }
+//                    	if (itemDelta.getPath().equivalent(new ItemPathType("metadata"))){
+//                    		continue;
+//                    	}
+//                        for (ItemPath seg : itemDelta.getPath()) {
+//                            if (seg instanceof NameItemPathSegment) {
+//                                if ("metadata".equals(((NameItemPathSegment) seg).getName().getLocalPart())) {
+//                                    isMeta = true;
+//                                    break;
+//                                }
+//                            }
+//                        }
+//                        if (isMeta) {
+//                            continue; //do not report metadata
+//                        }
                     } catch (NullPointerException npe) {
                         // silence exception as delta doesnt have parent
                     }
@@ -1443,14 +1577,14 @@ public class ReportUtils {
                 break;
 
             case ADD:
-                PrismObject objectToAdd = delta.getObjectToAdd();
+                ObjectType objectToAdd = (ObjectType) delta.getObjectToAdd();
                 if (objectToAdd != null) {
                     sb.append(printChangeType(delta, "Add"));
-                    sb.append(prettyPrintForReport(objectToAdd.getElementName()));
+                    sb.append(prettyPrintForReport(objectToAdd.getClass().getSimpleName()));
                     sb.append("=");
-                    sb.append(objectToAdd.getBusinessDisplayName());
+                    sb.append(objectToAdd.getName().toString());
                     sb.append(" {");
-                    sb.append(prettyPrintForReport(objectToAdd.getValue()));
+                    sb.append(prettyPrintForReport(objectToAdd));
                     sb.append("}");
                 }
                 break;

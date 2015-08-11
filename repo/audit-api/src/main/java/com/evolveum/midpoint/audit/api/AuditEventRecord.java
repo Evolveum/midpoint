@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
@@ -300,17 +302,25 @@ public class AuditEventRecord implements DebugDumpable {
     	auditRecordType.setEventStage(AuditEventStage.fromAuditEventStage(eventStage));
     	auditRecordType.setEventType(AuditEventType.fromAuditEventType(eventType));
     	auditRecordType.setHostIdentifier(hostIdentifier);
-    	auditRecordType.setInitiatorRef(ObjectTypeUtil.createObjectRef(initiator));
+    	auditRecordType.setInitiatorRef(ObjectTypeUtil.createObjectRef(initiator, true));
     	auditRecordType.setMessage(message);
     	auditRecordType.setOutcome(OperationResultStatus.createStatusType(outcome));
     	auditRecordType.setParameter(parameter);
     	auditRecordType.setResult(result);
     	auditRecordType.setSessionIdentifier(sessionIdentifier);
-    	auditRecordType.setTargetOwnerRef(ObjectTypeUtil.createObjectRef(targetOwner));
-    	auditRecordType.setTargetRef(ObjectTypeUtil.createObjectRef(target));
+    	auditRecordType.setTargetOwnerRef(ObjectTypeUtil.createObjectRef(targetOwner, true));
+    	auditRecordType.setTargetRef(ObjectTypeUtil.createObjectRef(target, true));
     	auditRecordType.setTaskIdentifier(taskIdentifier);
     	auditRecordType.setTaskOID(taskOID);
     	auditRecordType.setTimestamp(MiscUtil.asXMLGregorianCalendar(timestamp));
+    	for (ObjectDeltaOperation delta : deltas){
+    		try {
+				auditRecordType.getDelta().add(DeltaConvertor.toObjectDeltaType(delta.getObjectDelta()));
+			} catch (SchemaException e) {
+				continue;
+			}
+    	}
+    	
     	return auditRecordType;
 	}
     

@@ -568,7 +568,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         TestUtil.assertSuccess(result);
 		AssertJUnit.assertEquals(REPORT_OID_001, objectDelta.getOid());
 
-		reportType = ReportUtils.getReport(REPORT_OID_001, result, modelService);
+//		reportType = ReportUtils.getReport(REPORT_OID_001, result, modelService);
 
 		// export xml structure of report type
 		//String xmlReportType = prismContext.getPrismDomProcessor().serializeObjectToString(reportType.asPrismObject());
@@ -682,7 +682,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 //		AssertJUnit.assertTrue("Delta must be null", delta.isEmpty());
 		
 		
-		PrismObject<ReportType> reportFromutils = ReportUtils.getReport(TEST_REPORT_OID, result, modelService).asPrismObject();
+//		PrismObject<ReportType> reportFromutils = ReportUtils.getReport(TEST_REPORT_OID, result, modelService).asPrismObject();
 //		LOGGER.info("UTILS: " + reportFromutils.debugDump());
 //		LOGGER.info("report template: " + new String(Base64.decodeBase64(reportFromutils.asObjectable().getTemplate())));
 //		LOGGER.info("report template style: " + new String(Base64.decodeBase64(reportFromutils.asObjectable().getTemplateStyle())));
@@ -712,7 +712,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		Task task = taskManager.createTaskInstance(COPY_REPORT_WITHOUT_DESIGN);
 		OperationResult result = task.getResult();
 
-		ReportType reportType = ReportUtils.getReport(REPORT_OID_001, result, modelService);
+		ReportType reportType = null; //ReportUtils.getReport(REPORT_OID_001, result, modelService);
 
 		reportType = reportType.clone();
 		reportType.setOid(REPORT_OID_002);
@@ -746,7 +746,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         Task task = createTask(RUN_REPORT);
 		OperationResult result = task.getResult();
 		importUsers(1,10);
-		ReportType reportType = ReportUtils.getReport(TEST_REPORT_OID, result, modelService);
+		ReportType reportType = null;//ReportUtils.getReport(TEST_REPORT_OID, result, modelService);
 		LOGGER.info("jasper report: " + new String(Base64.decodeBase64(reportType.getTemplate()), "utf-8"));
 		LOGGER.info("jasper report template: " + new String(Base64.decodeBase64(reportType.getTemplateStyle())));
 		//WHEN 	
@@ -780,7 +780,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         ReportOutputType reportOutputType = searchReportOutput(TEST_REPORT_OID).get(0).asObjectable();
         LOGGER.trace("read report output {}", reportOutputType);
         
-        ReportType reportType = ReportUtils.getReport(TEST_REPORT_OID, result, modelService);
+        ReportType reportType= null;// = ReportUtils.getReport(TEST_REPORT_OID, result, modelService);
         LOGGER.trace("read report {}", reportType);
         
        // String output = ReportUtils.getReportOutputFilePath(reportType);
@@ -887,7 +887,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		TestUtil.displayWhen(TEST_NAME);
 		importObjectFromFile(TEST_REPORT_WITHOUT_DESIGN_FILE);
 		
-		ReportType reportType = ReportUtils.getReport(TEST_WITHOUT_DESIGN_REPORT_OID, result, modelService);
+		ReportType reportType = null; //ReportUtils.getReport(TEST_WITHOUT_DESIGN_REPORT_OID, result, modelService);
 		
 		LOGGER.trace("import report task {}", TASK_REPORT_FILE.getPath());
         importObjectFromFile(TASK_REPORT_FILE);
@@ -1017,7 +1017,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			Task task = taskManager.createTaskInstance(MODIFY_REPORT);
 			OperationResult result = task.getResult();
 
-			ReportType reportType = ReportUtils.getReport(REPORT_OID_001, result, modelService);
+			ReportType reportType = null; //ReportUtils.getReport(REPORT_OID_001, result, modelService);
 
 			reportType.setExport(ExportType.CSV);
 
@@ -1036,7 +1036,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			display(result);
 			TestUtil.assertSuccess(result);	
 			
-			reportType = ReportUtils.getReport(REPORT_OID_001, result, modelService);
+//			reportType = ReportUtils.getReport(REPORT_OID_001, result, modelService);
 			assertEquals("Unexpected export type", ExportType.CSV, reportType.getExport());
 		}
 		
@@ -1061,12 +1061,12 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	        result.computeStatus();
 	        TestUtil.assertSuccess(result);
 			
-			try {
-	        	ReportType report = ReportUtils.getReport(REPORT_OID_001, result, modelService);
-	        	AssertJUnit.fail("Report type was not deleted");
-	        } catch (ObjectNotFoundException e) {
-	        	// This is expected
-	        }	
+//			try {
+//	        	ReportType report = null; //ReportUtils.getReport(REPORT_OID_001, result, modelService);
+//	        	AssertJUnit.fail("Report type was not deleted");
+//	        } catch (ObjectNotFoundException e) {
+//	        	// This is expected
+//	        }	
 			
 		}
 		
@@ -1257,7 +1257,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			display("Result after good import", result);
 			TestUtil.assertSuccess("Import has failed (result)", result);
 			
-			ReportType reportType = ReportUtils.getReport(AUDITLOGS_REPORT_OID, result, modelService);
+			ReportType reportType =null; // ReportUtils.getReport(AUDITLOGS_REPORT_OID, result, modelService);
 			
 			//WHEN 	
 			TestUtil.displayWhen(TEST_NAME);
@@ -1362,7 +1362,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			TestUtil.assertSuccess("Import has failed (result)", result);
 			
 
-			ReportType reportType = ReportUtils.getReport(USERLIST_REPORT_OID, result, modelService);
+			ReportType reportType =null; // ReportUtils.getReport(USERLIST_REPORT_OID, result, modelService);
 			
 			//WHEN 	
 			TestUtil.displayWhen(TEST_NAME);
@@ -1428,7 +1428,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 //			TestUtil.assertSuccess("Import has failed (result)", result);
 			
 
-			ReportType reportType = ReportUtils.getReport(USERLIST_REPORT_OID, result, modelService);
+			ReportType reportType = null; //ReportUtils.getReport(USERLIST_REPORT_OID, result, modelService);
 			
 			//WHEN 	
 			TestUtil.displayWhen(TEST_NAME);
@@ -1467,7 +1467,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			display("Result after good import", result);
 			TestUtil.assertSuccess("Import has failed (result)", result);
 			
-			ReportType reportType = ReportUtils.getReport(RECONCILIATION_REPORT_OID, result, modelService);
+			ReportType reportType =null; // ReportUtils.getReport(RECONCILIATION_REPORT_OID, result, modelService);
 			
 			//WHEN 	
 			TestUtil.displayWhen(TEST_NAME);
@@ -1499,7 +1499,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			//WHEN 	
 			TestUtil.displayWhen(TEST_NAME);
 			
-			ReportType reportType = ReportUtils.getReport(USERLIST_REPORT_OID, result, modelService);			
+			ReportType reportType = null; //ReportUtils.getReport(USERLIST_REPORT_OID, result, modelService);			
 			ReportOutputType reportOutputType = searchReportOutput(reportType.getOid()).get(0).asObjectable();
 			AssertJUnit.assertNotNull(reportOutputType);
 
