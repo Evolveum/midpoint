@@ -20,8 +20,15 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import com.evolveum.midpoint.web.application.AuthorizationAction;
+import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.menu.top.MenuItem;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -50,5 +57,28 @@ public class SecurityUtils {
         }
 
         return (MidPointPrincipal) principal;
+    }
+
+    public static boolean isMenuAuthorized(MenuItem item) {
+        Class clazz = item.getPage();
+        if (clazz == null) {
+            return false;
+        }
+
+        PageDescriptor descriptor = (PageDescriptor) clazz.getAnnotation(PageDescriptor.class);
+        if (descriptor == null ){
+            return false;
+        }
+
+
+        AuthorizationAction[] actions = descriptor.action();
+        List<String> list = new ArrayList<>();
+        if (actions != null) {
+            for (AuthorizationAction action : actions) {
+                list.add(action.actionUri());
+            }
+        }
+
+        return WebMiscUtil.isAuthorized(list.toArray(new String[list.size()]));
     }
 }
