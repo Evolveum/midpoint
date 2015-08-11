@@ -25,6 +25,7 @@ import static org.testng.AssertJUnit.assertTrue;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
+import java.net.URI;
 import java.util.Collection;
 import java.util.List;
 
@@ -86,6 +87,8 @@ public class ProvisioningTestUtil {
 	
 	public static final String CONNECTOR_LDAP_TYPE = "com.evolveum.polygon.connector.ldap.LdapConnector";
 	public static final String CONNECTOR_LDAP_NS = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector";
+	
+	public static final String DOT_JPG_FILENAME = "src/test/resources/dot.jpg";
 
 	public static void assertConnectorSchemaSanity(ConnectorType conn, PrismContext prismContext) throws SchemaException {
 		XmlSchemaType xmlSchemaType = conn.getSchema();

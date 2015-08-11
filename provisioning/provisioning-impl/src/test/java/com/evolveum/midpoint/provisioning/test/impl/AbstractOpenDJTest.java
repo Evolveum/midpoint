@@ -71,6 +71,7 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 	protected static final File ACCOUNT_JACK_FILE = new File(TEST_DIR, "account-jack.xml");
 	protected static final File ACCOUNT_JACK_REPO_FILE = new File(TEST_DIR, "account-jack-repo.xml");
 	protected static final String ACCOUNT_JACK_OID = "c0c010c0-d34d-b44f-f11d-333222444555";
+	protected static final String ACCOUNT_JACK_NAME = "jack";
 	protected static final File ACCOUNT_JACK_CHANGE_FILE = new File(TEST_DIR, "account-jack-change.xml");
 	
 	protected static final File ACCOUNT_MODIFY_PASSWORD_FILE = new File(TEST_DIR_NAME, "account-modify-password.xml");
