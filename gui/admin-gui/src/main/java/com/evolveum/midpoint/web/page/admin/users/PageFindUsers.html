@@ -18,7 +18,83 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
+    <form wicket:id="form" class="clearfix form-horizontal">
+        <div wicket:id="table"/>
 
+        <div class="row">
+            <div class="col-md-offset-1 col-md-10 col-xs-12">
+                <table class="table table-condensed table-striped">
+                    <thead>
+                        <tr>
+                            <th style="width: 30px;"></th>
+                            <th>Property</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td><input type="checkbox"/></td>
+                        <td>
+                            <select class="form-control input-sm">
+                                <option>Name</option>
+                                <option>Given name</option>
+                                <option>Family name</option>
+                                <option>every property</option>
+                            </select>
+                        </td>
+                        <td>
+                            <div class="input-group">
+                                <input type="text" class="form-control input-sm"/>
+                                <div class="input-group-btn">
+                                    <button class="btn btn-sm btn-danger" type="button">
+                                        <i class="fa fa-minus"> </i>
+                                    </button>
+                                    <button class="btn btn-sm btn-success" type="button">
+                                        <i class="fa fa-plus"> </i>
+                                    </button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox"/></td>
+                        <td>
+                            <select class="form-control input-sm">
+                                <option>linkRef</option>
+                            </select>
+                        </td>
+                        <td>
+                            <div class="input-group">
+                                <input type="text" class="form-control input-sm" disabled="true"/>
+                                <div class="input-group-btn">
+                                    <button class="btn btn-sm btn-primary" type="button">
+                                        <i class="fa fa-pencil-square-o"> </i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" type="button">
+                                        <i class="fa fa-minus"> </i>
+                                    </button>
+                                    <button class="btn btn-sm btn-success" type="button">
+                                        <i class="fa fa-plus"> </i>
+                                    </button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td><a class="btn btn-sm btn-success">Add property</a></td>
+                        <td></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="main-button-bar">
+            <a class="btn btn-danger" wicket:id="clear"/>
+            <a class="btn btn-primary" wicket:id="search"/>
+        </div>
+    </form>
 </wicket:extend>
 </body>
 </html>
