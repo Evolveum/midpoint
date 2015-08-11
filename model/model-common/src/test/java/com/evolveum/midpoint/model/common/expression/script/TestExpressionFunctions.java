@@ -44,6 +44,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 
+import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -345,16 +346,16 @@ public class TestExpressionFunctions {
     	
         // GIVEN
     	BasicExpressionFunctions f = createBasicFunctions();
-    	XMLGregorianCalendar xmlCal = XmlTypeConverter.createXMLGregorianCalendar(1975, 5, 30, 21, 30, 0);
+    	XMLGregorianCalendar xmlCal = XmlTypeConverter.createXMLGregorianCalendar(1975, 5, 30, 22, 30, 0, 0, DatatypeConstants.FIELD_UNDEFINED); // don't use GMT (offset 0) because serialized value is then in local time
     	
         // WHEN
-        String resultValue = f.formatDateTime("yyyy MM dd HH:mm:ss.SSS zzzz", xmlCal);
+        String resultValue = f.formatDateTime("yyyy MM dd HH:mm:ss.SSS", xmlCal);		// don't include timezone in the format string, it is hard to check then
 
         // THEN
         assertNotNull("Result value is null", resultValue);
         System.out.println("Resulting value: "+resultValue);
 
-        assertEquals("Wrong result value", "1975 05 30 22:30:00.000 Central European Time", resultValue);
+        assertEquals("Wrong result value", "1975 05 30 22:30:00.000", resultValue);
     }
 
     @Test

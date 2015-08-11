@@ -43,6 +43,9 @@ import java.io.File;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
+
+import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 
 /**
  * @author lazyman
@@ -96,6 +99,7 @@ public class CleanupTest extends AbstractTestNGSpringContextTests {
         // THEN
         List<PrismObject<TaskType>> tasks = repositoryService.searchObjects(TaskType.class, null, null, result);
         AssertJUnit.assertNotNull(tasks);
+        display("tasks", tasks);
         AssertJUnit.assertEquals(1, tasks.size());
 
         PrismObject<TaskType> task = tasks.get(0);
@@ -111,7 +115,7 @@ public class CleanupTest extends AbstractTestNGSpringContextTests {
     }
 
     private Calendar create_2013_07_12_12_00_Calendar() {
-        Calendar calendar = Calendar.getInstance();
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT+2"));
         calendar.set(Calendar.YEAR, 2013);
         calendar.set(Calendar.MONTH, Calendar.MAY);
         calendar.set(Calendar.DAY_OF_MONTH, 7);
