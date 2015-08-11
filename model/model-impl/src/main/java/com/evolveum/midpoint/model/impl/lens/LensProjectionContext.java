@@ -742,7 +742,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
     
 	public void clearIntermediateResults() {
-		constructionDeltaSetTriple = null;
+		//constructionDeltaSetTriple = null;
 		outboundConstruction = null;
 		squeezedAttributes = null;
 	}

@@ -54,6 +54,7 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobKey;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
@@ -100,6 +101,7 @@ import static org.testng.AssertJUnit.*;
         "classpath:ctx-security.xml",
         "classpath:ctx-common.xml",
         "classpath:ctx-configuration-test.xml"})
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTests {
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(TestQuartzTaskManagerContract.class);

@@ -26,10 +26,24 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.icf.dummy.connector.DummyConnector;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -304,7 +318,23 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		repoAddObject(ShadowType.class, createShadow(resourceDummyPink, ACCOUNT_JACK_DUMMY_USERNAME), result);
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-        ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_PINK_OID, null, true);
+
+		// assignment with weapon := 'pistol' (test for
+		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
+		AssignmentType assignmentType = createAssignment(RESOURCE_DUMMY_PINK_OID, ShadowKindType.ACCOUNT, null);
+		ConstructionType constructionType = assignmentType.getConstruction();
+		ResourceAttributeDefinitionType attributeDefinitionType = new ResourceAttributeDefinitionType();
+		attributeDefinitionType.setRef(new ItemPathType(new ItemPath(dummyResourceCtlPink.getAttributeWeaponQName())));
+		MappingType mappingType = new MappingType();
+		mappingType.setStrength(MappingStrengthType.STRONG);
+		ExpressionType expressionType = new ExpressionType();
+		expressionType.getExpressionEvaluator().add(new ObjectFactory().createValue(RawType.create("pistol", prismContext)));
+		mappingType.setExpression(expressionType);
+		attributeDefinitionType.setOutbound(mappingType);
+		constructionType.getAttribute().add(attributeDefinitionType);
+		modifications.add(createAssignmentModification(assignmentType, true));
+		ObjectDelta<UserType> accountAssignmentUserDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
+
         deltas.add(accountAssignmentUserDelta);
                   
 		// WHEN
@@ -332,7 +362,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         // Check account
         PrismObject<ShadowType> accountPinkModel = modelService.getObject(ShadowType.class, accountPinkOid, null, task, result);
         assertAccountShadowModel(accountPinkModel, accountPinkOid, "jack1", resourceDummyPinkType);
-        
+		display("accountPinkModel", accountPinkModel);
+		PrismAsserts.assertPropertyValue(accountPinkModel, dummyResourceCtlPink.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME),
+				"pistol");
+
         // Check account in dummy resource
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
         // The original conflicting account should still remain

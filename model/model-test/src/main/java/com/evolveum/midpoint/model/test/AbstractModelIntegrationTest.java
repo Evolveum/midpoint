@@ -548,7 +548,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			throw new SchemaException("No definition for attribute "+ attributeQName+ " in " + resource);
 		}
 		return PropertyDelta.createModificationReplaceProperty(new ItemPath(ShadowType.F_ATTRIBUTES, attributeQName),
-                attributeDefinition, newRealValue);
+				attributeDefinition, newRealValue);
 	}
 	
 	protected <T> PropertyDelta<T> createAttributeAddDelta(PrismObject<ResourceType> resource, String attributeLocalName, T... newRealValue) throws SchemaException {
@@ -574,7 +574,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			throw new SchemaException("No definition for attribute "+ attributeQName+ " in " + resource);
 		}
 		return PropertyDelta.createModificationDeleteProperty(new ItemPath(ShadowType.F_ATTRIBUTES, attributeQName),
-                attributeDefinition, newRealValue);
+				attributeDefinition, newRealValue);
 	}
 	
 	protected ResourceAttributeDefinition getAttributeDefinition(PrismObject<ResourceType> resource, QName attributeName) throws SchemaException {
@@ -710,7 +710,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void assignRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
 		SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 		PolicyViolationException, SecurityViolationException {
-		assignRole(userOid, roleOid, (ActivationType)null, task, result);
+		assignRole(userOid, roleOid, (ActivationType) null, task, result);
 	}
 	
 	protected void assignRole(String userOid, String roleOid, ActivationType activationType, Task task, OperationResult result) throws ObjectNotFoundException,
@@ -826,7 +826,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			throws ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 			PolicyViolationException, SecurityViolationException {
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceContainer(UserType.class, userOid, 
+		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceContainer(UserType.class, userOid,
 				UserType.F_ASSIGNMENT, prismContext, new PrismContainerValue[0]);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 		modelService.executeChanges(deltas, null, task, result);		
@@ -874,19 +874,22 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected ContainerDelta<AssignmentType> createAssignmentModification(String resourceOid, ShadowKindType kind, 
 			String intent, boolean add) throws SchemaException {
+		AssignmentType assignmentType = createAssignment(resourceOid, kind, intent);
+		return createAssignmentModification(assignmentType, add);
+	}
+
+	protected ContainerDelta<AssignmentType> createAssignmentModification(AssignmentType assignmentType, boolean add) throws SchemaException {
 		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserDefinition());
 
-		AssignmentType assignmentType = createAssignment(resourceOid, kind, intent);
-		
 		if (add) {
 			assignmentDelta.addValueToAdd(assignmentType.asPrismContainerValue());
 		} else {
 			assignmentDelta.addValueToDelete(assignmentType.asPrismContainerValue());
 		}
-		
+
 		PrismContainerDefinition<AssignmentType> assignmentDef = getUserDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
 		assignmentDelta.applyDefinition(assignmentDef);
-		
+
 		return assignmentDelta;
 	}
 	

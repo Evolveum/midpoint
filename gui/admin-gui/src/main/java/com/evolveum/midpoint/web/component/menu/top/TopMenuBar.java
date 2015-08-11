@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.web.component.menu.top;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.security.SecurityUtils;
 import org.apache.wicket.Application;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Page;
@@ -112,7 +113,7 @@ public class TopMenuBar extends Panel {
         });
     }
 
-    private void initMenuItem(ListItem<MenuItem> menuItem) {
+    private void initMenuItem(final ListItem<MenuItem> menuItem) {
         final MenuItem item = menuItem.getModelObject();
         if (item.isMenuHeader()) {
             menuItem.add(new AttributeModifier("class", "dropdown-header"));
@@ -128,5 +129,29 @@ public class TopMenuBar extends Panel {
         }
         menuItemBody.setRenderBodyOnly(true);
         menuItem.add(menuItemBody);
+
+
+        menuItem.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                MenuItem item = menuItem.getModelObject();
+                return SecurityUtils.isMenuAuthorized(item) || areDependentsVisible(item);
+            }
+        });
+    }
+
+    private boolean areDependentsVisible(MenuItem item) {
+        if (item.getDependsOn().isEmpty()) {
+            return false;
+        }
+
+        for (MenuItem dependend : item.getDependsOn()) {
+            if (!SecurityUtils.isMenuAuthorized(dependend)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
