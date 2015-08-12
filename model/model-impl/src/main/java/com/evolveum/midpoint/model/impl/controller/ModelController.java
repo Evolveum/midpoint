@@ -43,12 +43,14 @@ import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.parser.XNodeSerializer;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 
@@ -1665,7 +1667,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 
 		PrismObject<UserType> user = null;
 		
-		LOGGER.trace("Listing account shadow owner for account with oid {}.", new Object[] { accountOid });
+		LOGGER.trace("Listing account shadow owner for account with oid {}.", new Object[]{accountOid});
 
 		OperationResult result = parentResult.createSubresult(LIST_ACCOUNT_SHADOW_OWNER);
 		result.addParams(new String[] { "accountOid" }, accountOid);
@@ -2259,37 +2261,46 @@ public class ModelController implements ModelService, ModelInteractionService, T
     //region Task-related operations
 
     @Override
-    public boolean suspendTasks(Collection<String> taskOids, long waitForStop, OperationResult parentResult) {
+    public boolean suspendTasks(Collection<String> taskOids, long waitForStop, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
+		authorizeTaskCollectionOperation(ModelAuthorizationAction.SUSPEND_TASK, taskOids, parentResult);
         return taskManager.suspendTasks(taskOids, waitForStop, parentResult);
     }
 
-    @Override
-    public void suspendAndDeleteTasks(Collection<String> taskOids, long waitForStop, boolean alsoSubtasks, OperationResult parentResult) {
+	@Override
+    public void suspendAndDeleteTasks(Collection<String> taskOids, long waitForStop, boolean alsoSubtasks, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
+		authorizeTaskCollectionOperation(ModelAuthorizationAction.DELETE, taskOids, parentResult);
         taskManager.suspendAndDeleteTasks(taskOids, waitForStop, alsoSubtasks, parentResult);
     }
 
     @Override
-    public void resumeTasks(Collection<String> taskOids, OperationResult parentResult) {
+    public void resumeTasks(Collection<String> taskOids, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
+		authorizeTaskCollectionOperation(ModelAuthorizationAction.RESUME_TASK, taskOids, parentResult);
         taskManager.resumeTasks(taskOids, parentResult);
     }
 
     @Override
-    public void scheduleTasksNow(Collection<String> taskOids, OperationResult parentResult) {
+    public void scheduleTasksNow(Collection<String> taskOids, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
+		authorizeTaskCollectionOperation(ModelAuthorizationAction.RUN_TASK_IMMEDIATELY, taskOids, parentResult);
         taskManager.scheduleTasksNow(taskOids, parentResult);
     }
 
     @Override
-    public PrismObject<TaskType> getTaskByIdentifier(String identifier, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
-        return taskManager.getTaskTypeByIdentifier(identifier, options, parentResult);
+    public PrismObject<TaskType> getTaskByIdentifier(String identifier, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException {
+        PrismObject<TaskType> task = taskManager.getTaskTypeByIdentifier(identifier, options, parentResult);
+		GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+		applySchemasAndSecurity(task, rootOptions, null, null, parentResult);
+		return task;
     }
 
     @Override
-    public boolean deactivateServiceThreads(long timeToWait, OperationResult parentResult) {
+    public boolean deactivateServiceThreads(long timeToWait, OperationResult parentResult) throws SchemaException, SecurityViolationException {
+		securityEnforcer.authorize(ModelAuthorizationAction.STOP_SERVICE_THREADS.getUrl(), null, null, null, null, null, parentResult);
         return taskManager.deactivateServiceThreads(timeToWait, parentResult);
     }
 
     @Override
-    public void reactivateServiceThreads(OperationResult parentResult) {
+    public void reactivateServiceThreads(OperationResult parentResult) throws SchemaException, SecurityViolationException {
+		securityEnforcer.authorize(ModelAuthorizationAction.START_SERVICE_THREADS.getUrl(), null, null, null, null, null, parentResult);
         taskManager.reactivateServiceThreads(parentResult);
     }
 
@@ -2299,23 +2310,27 @@ public class ModelController implements ModelService, ModelInteractionService, T
     }
 
     @Override
-    public void stopSchedulers(Collection<String> nodeIdentifiers, OperationResult parentResult) {
+    public void stopSchedulers(Collection<String> nodeIdentifiers, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
+		authorizeNodeCollectionOperation(ModelAuthorizationAction.STOP_TASK_SCHEDULER, nodeIdentifiers, parentResult);
         taskManager.stopSchedulers(nodeIdentifiers, parentResult);
     }
 
     @Override
-    public boolean stopSchedulersAndTasks(Collection<String> nodeIdentifiers, long waitTime, OperationResult parentResult) {
+    public boolean stopSchedulersAndTasks(Collection<String> nodeIdentifiers, long waitTime, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
+		authorizeNodeCollectionOperation(ModelAuthorizationAction.STOP_TASK_SCHEDULER, nodeIdentifiers, parentResult);
         return taskManager.stopSchedulersAndTasks(nodeIdentifiers, waitTime, parentResult);
     }
 
     @Override
-    public void startSchedulers(Collection<String> nodeIdentifiers, OperationResult parentResult) {
+    public void startSchedulers(Collection<String> nodeIdentifiers, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
+		authorizeNodeCollectionOperation(ModelAuthorizationAction.START_TASK_SCHEDULER, nodeIdentifiers, parentResult);
         taskManager.startSchedulers(nodeIdentifiers, parentResult);
     }
 
     @Override
-    public void synchronizeTasks(OperationResult parentResult) {
-        taskManager.synchronizeTasks(parentResult);
+    public void synchronizeTasks(OperationResult parentResult) throws SchemaException, SecurityViolationException {
+		securityEnforcer.authorize(ModelAuthorizationAction.SYNCHRONIZE_TASKS.getUrl(), null, null, null, null, null, parentResult);
+		taskManager.synchronizeTasks(parentResult);
     }
 
     @Override
@@ -2327,7 +2342,45 @@ public class ModelController implements ModelService, ModelInteractionService, T
     public String getHandlerUriForCategory(String category) {
         return taskManager.getHandlerUriForCategory(category);
     }
-    //endregion
+
+	private void authorizeTaskCollectionOperation(ModelAuthorizationAction action, Collection<String> oids, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, SecurityViolationException {
+		if (securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null)) {
+			return;
+		}
+		for (String oid : oids) {
+			PrismObject existingObject = null;
+			try {
+				existingObject = cacheRepositoryService.getObject(TaskType.class, oid, null, parentResult);
+			} catch (ObjectNotFoundException|SchemaException e) {
+				throw e;
+			}
+			securityEnforcer.authorize(action.getUrl(), null, existingObject, null, null, null, parentResult);
+		}
+	}
+
+	private void authorizeNodeCollectionOperation(ModelAuthorizationAction action, Collection<String> identifiers, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, SecurityViolationException {
+		if (securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null)) {
+			return;
+		}
+		for (String identifier : identifiers) {
+			PrismObject existingObject = null;
+			try {
+				ObjectQuery q = ObjectQueryUtil.createNameQuery(NodeType.class, prismContext, identifier);
+				List<PrismObject<NodeType>> nodes = cacheRepositoryService.searchObjects(NodeType.class, q, null, parentResult);
+				if (nodes.isEmpty()) {
+					throw new ObjectNotFoundException("Node with identifier '" + identifier + "' couldn't be found.");
+				} else if (nodes.size() > 1) {
+					throw new SystemException("Multiple nodes with identifier '" + identifier + "'");
+				}
+				existingObject = nodes.get(0);
+			} catch (ObjectNotFoundException|SchemaException e) {
+				throw e;
+			}
+			securityEnforcer.authorize(action.getUrl(), null, existingObject, null, null, null, parentResult);
+		}
+	}
+
+	//endregion
 
     //region Workflow-related operations
     @Override

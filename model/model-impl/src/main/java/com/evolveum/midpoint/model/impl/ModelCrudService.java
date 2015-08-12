@@ -106,7 +106,7 @@ public class ModelCrudService {
 	
 	@Autowired(required = true)
 	private ChangeNotificationDispatcher dispatcher;
-	
+
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> clazz, String oid,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -516,31 +516,31 @@ public class ModelCrudService {
 	
 	
 	//TASK AREA
-    public boolean suspendTasks(Collection<String> taskOids, long waitForStop, OperationResult parentResult) {
+    public boolean suspendTasks(Collection<String> taskOids, long waitForStop, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
         return modelController.suspendTasks(taskOids, waitForStop, parentResult);
     }
 
-    public void suspendAndDeleteTasks(Collection<String> taskOids, long waitForStop, boolean alsoSubtasks, OperationResult parentResult) {
+    public void suspendAndDeleteTasks(Collection<String> taskOids, long waitForStop, boolean alsoSubtasks, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
         modelController.suspendAndDeleteTasks(taskOids, waitForStop, alsoSubtasks, parentResult);
     }
 
-    public void resumeTasks(Collection<String> taskOids, OperationResult parentResult) {
+    public void resumeTasks(Collection<String> taskOids, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
         modelController.resumeTasks(taskOids, parentResult);
     }
 
-    public void scheduleTasksNow(Collection<String> taskOids, OperationResult parentResult) {
+    public void scheduleTasksNow(Collection<String> taskOids, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
         modelController.scheduleTasksNow(taskOids, parentResult);
     }
 
-    public PrismObject<TaskType> getTaskByIdentifier(String identifier, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+    public PrismObject<TaskType> getTaskByIdentifier(String identifier, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
         return modelController.getTaskByIdentifier(identifier, options, parentResult);
     }
 
-    public boolean deactivateServiceThreads(long timeToWait, OperationResult parentResult) {
+    public boolean deactivateServiceThreads(long timeToWait, OperationResult parentResult) throws SchemaException, SecurityViolationException {
         return modelController.deactivateServiceThreads(timeToWait, parentResult);
     }
 
-    public void reactivateServiceThreads(OperationResult parentResult) {
+    public void reactivateServiceThreads(OperationResult parentResult) throws SchemaException, SecurityViolationException {
         modelController.reactivateServiceThreads(parentResult);
     }
 
@@ -548,19 +548,19 @@ public class ModelCrudService {
         return modelController.getServiceThreadsActivationState();
     }
 
-    public void stopSchedulers(Collection<String> nodeIdentifiers, OperationResult parentResult) {
+    public void stopSchedulers(Collection<String> nodeIdentifiers, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
         modelController.stopSchedulers(nodeIdentifiers, parentResult);
     }
 
-    public boolean stopSchedulersAndTasks(Collection<String> nodeIdentifiers, long waitTime, OperationResult parentResult) {
+    public boolean stopSchedulersAndTasks(Collection<String> nodeIdentifiers, long waitTime, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
         return modelController.stopSchedulersAndTasks(nodeIdentifiers, waitTime, parentResult);
     }
 
-    public void startSchedulers(Collection<String> nodeIdentifiers, OperationResult parentResult) {
+    public void startSchedulers(Collection<String> nodeIdentifiers, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
         modelController.startSchedulers(nodeIdentifiers, parentResult);
     }
 
-    public void synchronizeTasks(OperationResult parentResult) {
+    public void synchronizeTasks(OperationResult parentResult) throws SchemaException, SecurityViolationException {
     	modelController.synchronizeTasks(parentResult);
     }
 
