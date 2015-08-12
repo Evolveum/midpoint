@@ -24,7 +24,7 @@
     <parent>
         <artifactId>model</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>3.2-SNAPSHOT</version>
+        <version>3.3-SNAPSHOT</version>
     </parent>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
@@ -97,7 +97,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>util</artifactId>
-            <version>2.3-SNAPSHOT</version>
+            <version>2.3</version>
         </dependency>         -->
         <!--  Testing dependecies  -->
         <dependency>
@@ -109,7 +109,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>3.2-SNAPSHOT</version>
+            <version>3.3-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -139,13 +139,13 @@
                                 <artifactItem>
                                     <groupId>com.evolveum.midpoint.infra</groupId>
                                     <artifactId>prism</artifactId>
-                                    <version>3.2-SNAPSHOT</version>
+                                    <version>3.3-SNAPSHOT</version>
                                     <type>jar</type>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>com.evolveum.midpoint.infra</groupId>
                                     <artifactId>schema</artifactId>
-                                    <version>3.2-SNAPSHOT</version>
+                                    <version>3.3-SNAPSHOT</version>
                                     <type>jar</type>
                                 </artifactItem>
                             </artifactItems>
@@ -291,7 +291,7 @@
                     <dependency>
                         <groupId>com.evolveum.midpoint.tools</groupId>
                         <artifactId>xjc-plugin</artifactId>
-                        <version>3.2-SNAPSHOT</version>
+                        <version>3.3-SNAPSHOT</version>
                     </dependency>
                 </dependencies>
             </plugin>

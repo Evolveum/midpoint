@@ -171,7 +171,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="delta" type="t:ObjectDeltaType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="delta" type="c:ObjectDeltaOperationType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="channel" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

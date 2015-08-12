@@ -6,12 +6,12 @@
     <name>Selenium tests</name>
     <groupId>com.evolveum.midpoint.testing</groupId>
     <artifactId>selenium-tests</artifactId>
-    <version>3.2-SNAPSHOT</version>
+    <version>3.3-SNAPSHOT</version>
 
     <parent>
         <artifactId>testing</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>3.2-SNAPSHOT</version>
+        <version>3.3-SNAPSHOT</version>
     </parent>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
@@ -55,7 +55,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>util</artifactId>
-            <version>3.2-SNAPSHOT</version>
+            <version>3.3-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>

@@ -30,7 +30,7 @@
             capabilities of prism annotation to further specify that details regarding resource
             objects, details that are out of the scope of prism objects.
             
-            Version: 3.2-SNAPSHOT
+            Version: 3.2
             Usual prefix: ra
         </xsd:documentation>
     </xsd:annotation>

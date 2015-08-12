@@ -124,10 +124,10 @@ public class EqualFilter<T extends Object> extends PropertyValueFilter<PrismProp
 		return createEqual(parentPath, propertyDef, values);
 	}
 
-	public static <C extends Containerable, T> EqualFilter<T> createEqual(ItemPath parentPath, PrismContainerDefinition<C> containerDef,
+	public static <C extends Containerable, T> EqualFilter<T> createEqual(ItemPath itemPath, PrismContainerDefinition<C> containerDef,
 			T realValues) throws SchemaException {
-		PrismPropertyDefinition<T> propertyDef = (PrismPropertyDefinition) findItemDefinition(parentPath, containerDef);
-		return createEqual(parentPath, propertyDef, realValues);
+		PrismPropertyDefinition<T> propertyDef = (PrismPropertyDefinition) findItemDefinition(itemPath, containerDef);
+		return createEqual(itemPath, propertyDef, realValues);
 	}
 
 	public static <C extends Containerable, T> EqualFilter<T> createEqual(QName propertyName, Class<C> type, PrismContext prismContext, T realValues)

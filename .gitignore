@@ -4,6 +4,7 @@
 .settings
 .idea
 *.iml
+*.versionsBackup
 target
 rebel.xml
 samples/model-client-sample-dotnet/ModelClientSample/ModelClientSample/bin

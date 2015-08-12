@@ -31,7 +31,16 @@ public enum ModelAuthorizationAction implements DisplayableValue<String> {
 	
 	ASSIGN("assign", "Assign", "ASSIGN_HELP"),
 	UNASSIGN("unassign", "Unassign", "UNASSIGN_HELP"),
-    EXECUTE_SCRIPT("executeScript", "Execute script", "EXECUTE_SCRIPT_HELP");
+    EXECUTE_SCRIPT("executeScript", "Execute script", "EXECUTE_SCRIPT_HELP"),
+
+	SUSPEND_TASK("suspendTask", "Suspend task", "SUSPEND_TASK_HELP"),
+	RESUME_TASK("resumeTask", "Resume task", "RESUME_TASK_HELP"),
+	RUN_TASK_IMMEDIATELY("runTaskImmediately", "Run task immediately", "RUN_TASK_IMMEDIATELY_HELP"),
+	STOP_SERVICE_THREADS("stopServiceThreads", "Stop service threads", "STOP_SERVICE_THREADS_HELP"),
+	START_SERVICE_THREADS("startServiceThreads", "Start service threads", "START_SERVICE_THREADS_HELP"),
+	SYNCHRONIZE_TASKS("synchronizeTasks", "Synchronize tasks", "SYNCHRONIZE_TASKS_HELP"),
+	STOP_TASK_SCHEDULER("stopTaskScheduler", "Stop task scheduler", "STOP_TASK_SCHEDULER_HELP"),
+	START_TASK_SCHEDULER("startTaskScheduler", "Start task scheduler", "START_TASK_SCHEDULER_HELP");
 	
 	private String url;
 	private String label;

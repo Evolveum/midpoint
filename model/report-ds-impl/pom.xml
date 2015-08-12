@@ -3,11 +3,11 @@
   <parent>
     <groupId>com.evolveum.midpoint</groupId>
     <artifactId>model</artifactId>
-    <version>3.2-SNAPSHOT</version>
+    <version>3.3-SNAPSHOT</version>
   </parent>
   <groupId>com.evolveum.midpoint.model</groupId>
   <artifactId>report-ds-impl</artifactId>
-  <version>3.2-SNAPSHOT</version>
+  <version>3.3-SNAPSHOT</version>
   <name>midPoint Report DataSource </name>
   <properties>
 		<project.source.version>1.7</project.source.version>
@@ -105,7 +105,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>3.2-SNAPSHOT</version>
+            <version>3.3-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         
@@ -117,12 +117,12 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>prism</artifactId>
-			<version>3.2-SNAPSHOT</version>
+			<version>3.3-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.model</groupId>
 			<artifactId>report-api</artifactId>
-			<version>3.2-SNAPSHOT</version>
+			<version>3.3-SNAPSHOT</version>
 <!-- 			<exclusions> -->
 <!-- 				<exclusion> -->
 <!-- 					<groupId>com.evolveum.midpoint.infra</groupId> -->

@@ -1,12 +1,14 @@
 package com.evolveum.midpoint.web.component.menu.top;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.github.sommeri.less4j.core.ast.Page;
+import org.apache.commons.lang.Validate;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -18,6 +20,8 @@ public class MenuItem implements Serializable {
     private Class<? extends WebPage> page;
     private boolean menuHeader;
     private PageParameters pageParameters;
+
+    private List<MenuItem> dependsOn;
 
     public MenuItem(IModel<String> name) {
         this(name, false, null, null);
@@ -67,5 +71,21 @@ public class MenuItem implements Serializable {
 
     public PageParameters getPageParameters() {
         return pageParameters;
+    }
+
+    public List<MenuItem> getDependsOn() {
+        if (dependsOn == null) {
+            dependsOn = new ArrayList<>();
+        }
+        return dependsOn;
+    }
+
+    public void setDependsOn(List<MenuItem> dependsOn) {
+        this.dependsOn = dependsOn;
+    }
+
+    public void addDependsOn(MenuItem item) {
+        Validate.notNull(item, "Menu item must not be null.");
+        getDependsOn().add(item);
     }
 }

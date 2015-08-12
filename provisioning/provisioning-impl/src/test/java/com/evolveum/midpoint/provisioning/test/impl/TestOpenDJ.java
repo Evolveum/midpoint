@@ -27,7 +27,10 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -59,7 +62,9 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -87,6 +92,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -907,6 +913,60 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		OpenDJController.assertAttribute(response, "sn", "First");
 		
 		assertEquals("First", changedSn);
+		
+		assertShadows(2);
+	}
+	
+	@Test
+	public void test145ModifyAccountJackJpegPhoto() throws Exception {
+		final String TEST_NAME = "test145ModifyAccountJackJpegPhoto";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+				+ "." + TEST_NAME);
+		
+		byte[] bytesIn = Files.readAllBytes(Paths.get(ProvisioningTestUtil.DOT_JPG_FILENAME));
+		display("Bytes in", MiscUtil.binaryToHex(bytesIn));
+		
+		QName jpegPhotoQName = new QName(RESOURCE_OPENDJ_NS, "jpegPhoto");
+		PropertyDelta<byte[]> jpegPhotoDelta = new PropertyDelta<>(new ItemPath(ShadowType.F_ATTRIBUTES, jpegPhotoQName), 
+				null , prismContext);
+		jpegPhotoDelta.setValueToReplace(new PrismPropertyValue<byte[]>(bytesIn));
+		
+		Collection<? extends ItemDelta> modifications = MiscSchemaUtil.createCollection(jpegPhotoDelta);
+		
+		display("Modifications",modifications);
+		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		provisioningService.modifyObject(ShadowType.class, ACCOUNT_JACK_OID,
+				modifications, null, null, taskManager.createTaskInstance(), result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		
+		SearchResultEntry entry = openDJController.searchByUid("rename");
+		display("LDAP Entry", entry);
+		byte[] jpegPhotoLdap = OpenDJController.getAttributeValueBinary(entry, "jpegPhoto");
+		assertNotNull("No jpegPhoto in LDAP entry", jpegPhotoLdap);
+		assertEquals("Byte length changed (LDAP)", bytesIn.length, jpegPhotoLdap.length);
+		assertTrue("Bytes do not match (LDAP)", Arrays.equals(bytesIn, jpegPhotoLdap));
+		
+		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_JACK_OID, null, taskManager.createTaskInstance(), result);
+		
+		display("Object after change",shadow);
+		
+		PrismContainer<?> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+		PrismProperty<byte[]> jpegPhotoAttr = attributesContainer.findProperty(jpegPhotoQName);
+		byte[] bytesOut = jpegPhotoAttr.getValues().get(0).getValue();
+		
+		display("Bytes out", MiscUtil.binaryToHex(bytesOut));
+		
+		assertEquals("Byte length changed (shadow)", bytesIn.length, bytesOut.length);
+		assertTrue("Bytes do not match (shadow)", Arrays.equals(bytesIn, bytesOut));
 		
 		assertShadows(2);
 	}
