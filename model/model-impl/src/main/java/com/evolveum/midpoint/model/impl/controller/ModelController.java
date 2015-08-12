@@ -400,7 +400,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 							// TODO what about security here?!
 							// TODO use some minimalistic get options (e.g. retrieve name only)
 							refObject = objectResolver.resolve(refVal, "", rootOptionsNoResolve, task, result);
-							if (refObject == null) {	// will be used with AllowNotFound above
+							if (refObject == null) {    // will be used with AllowNotFound above
 								name = "(object not found)";
 							}
 						} catch (ObjectNotFoundException e) {
@@ -534,7 +534,19 @@ public class ModelController implements ModelService, ModelInteractionService, T
 				auditService.audit(auditRecord, task);
 				for(ObjectDelta<? extends ObjectType> delta: deltas) {
                     OperationResult result1 = result.createSubresult(EXECUTE_CHANGE);
-                    try {
+
+					// MID-2486
+					if (delta.getObjectTypeClass() == ShadowType.class || delta.getObjectTypeClass() == ResourceType.class) {
+						try {
+							provisioning.applyDefinition(delta, result1);
+						} catch (SchemaException|ObjectNotFoundException|CommunicationException|ConfigurationException|RuntimeException e) {
+							// we can tolerate this - if there's a real problem with definition, repo call below will fail
+							LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't apply definition on shadow/resource raw-mode delta {} -- continuing the operation.", e, delta);
+							result1.muteLastSubresultError();
+						}
+					}
+
+					try {
                         if (delta.isAdd()) {
                             RepoAddOptions repoOptions = new RepoAddOptions();
                             if (ModelExecuteOptions.isNoCrypt(options)) {
