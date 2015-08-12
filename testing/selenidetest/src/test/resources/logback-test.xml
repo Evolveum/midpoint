@@ -15,23 +15,16 @@
   ~ limitations under the License.
   -->
 
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
-<body>
-<wicket:extend>
-	<div wicket:id="deleteResourcesPopup" />
-    <div wicket:id="deleteHostsPopup" />
+<configuration>
+	<appender name="X" class="ch.qos.logback.core.FileAppender">
+		<file>./target/test.log</file>
+		<encoder>
+			<pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
+		</encoder>
+	</appender>
+	<root level="INFO">
+		<appender-ref ref="X" />
+	</root>
+    <logger name="com.evolveum.midpoint" level="INFO" />
+</configuration>
 
-    <form wicket:id="searchForm" class="form-inline pull-right search-form">
-        <div wicket:id="basicSearch" />
-    </form>
-
-    <form wicket:id="mainForm" class="clearfix form-horizontal">
-        <h3><wicket:message key="pageResources.resources"/></h3>
-        <div wicket:id="table"/>
-
-        <h3><wicket:message key="pageResources.connectorHosts"/></h3>
-        <div wicket:id="connectorTable"/>
-    </form>
-</wicket:extend>
-</body>
-</html>
