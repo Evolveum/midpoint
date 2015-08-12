@@ -65,25 +65,25 @@ public class DataSourceReport implements JRDataSource
 		initialize();
 	}
 	
-	private void initialize()
-	{	clazz = ReportUtils.getObjectTypeClass(params);
-		objectQuery = ReportUtils.getObjectQuery(params, clazz, prismContext);
-		result = ReportUtils.getOperationResult(params);
-		try
-		{
-			reportType = ReportUtils.getReport(params, modelService, prismContext);
-		} catch (Exception ex)
-		{
-			LOGGER.error("Report doesn't correct in datasource. {}", ex.getMessage());
-		}
-		subResult = result.createSubresult("Initialize datasource");	
-		paging = ObjectPaging.createPaging(0, 50);
-		objectQuery.setPaging(paging);		
-		rowCount = paging.getMaxSize();
-		rowCounter = rowCount - 1;
-		fieldsPair = getFieldsPair();
-		subResult.computeStatus();
-	}
+	private void initialize(){}
+//	{	clazz = ReportUtils.getObjectTypeClass(params);
+//		objectQuery = ReportUtils.getObjectQuery(params, clazz, prismContext);
+//		result = ReportUtils.getOperationResult(params);
+//		try
+//		{
+//			reportType = ReportUtils.getReport(params, modelService, prismContext);
+//		} catch (Exception ex)
+//		{
+//			LOGGER.error("Report doesn't correct in datasource. {}", ex.getMessage());
+//		}
+//		subResult = result.createSubresult("Initialize datasource");	
+//		paging = ObjectPaging.createPaging(0, 50);
+//		objectQuery.setPaging(paging);		
+//		rowCount = paging.getMaxSize();
+//		rowCounter = rowCount - 1;
+//		fieldsPair = getFieldsPair();
+//		subResult.computeStatus();
+//	}
 	
 	private LinkedHashMap<String, ItemPath> getFieldsPair()
 	{
