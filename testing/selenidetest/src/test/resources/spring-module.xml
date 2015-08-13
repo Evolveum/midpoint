@@ -3,7 +3,14 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
 	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
-    <bean id="baseTest" class="com.evolveum.midpoint.testing.selenide.tests.BaseTest" autowire-candidate="true"/>
+    <bean id="baseTest" class="com.evolveum.midpoint.testing.selenide.tests.BaseTest" autowire-candidate="true">
+    </bean>
+    <bean id="loginTest" class="com.evolveum.midpoint.testing.selenide.tests.LoginTest" autowire-candidate="true"/>
+    <bean id="util" class="com.evolveum.midpoint.testing.selenide.tests.Util" autowire-candidate="true">
+        <property name="siteUrl" value="/midpoint"/>
+        <property name="adminUserLogin" value="administrator"/>
+        <property name="adminUserPassword" value="5ecr3t"/>
+    </bean>
     <bean id="createAccountTest" class="com.evolveum.midpoint.testing.selenide.tests.account.CreateAccountTest"
           autowire-candidate="true"/>
     <bean id="createUserTest" class="com.evolveum.midpoint.testing.selenide.tests.user.CreateUserTest"
@@ -14,10 +21,13 @@
           class="com.evolveum.midpoint.testing.selenide.tests.resource.CheckResourceConnectionTest"
           autowire-candidate="true"/>
     <bean id="userUtil" class="com.evolveum.midpoint.testing.selenide.tests.user.UserUtil" autowire-candidate="true">
-        <property name="testUserName" value="TestUser"/>
+        <property name="simpleTestUserName" value="SimpleTestUser"/>
+        <property name="superUserName" value="SuperUser"/>
     </bean>
     <bean id="resourceUtil" class="com.evolveum.midpoint.testing.selenide.tests.resource.ResourceUtil"
           autowire-candidate="true">
         <property name="testResourceName" value="Localhost OpenDJ (no extension schema)"/>
+        <property name="testResourcePath"
+                  value="../../samples/resources/opendj/opendj-localhost-resource-sync-no-extension-advanced.xml"/>
     </bean>
 </beans>
