@@ -160,6 +160,8 @@
             	<direction>objectToSubject</direction>
             	<associationAttribute>ri:member</associationAttribute>
             	<valueAttribute>ri:dn</valueAttribute>
+            	<shortcutAssociationAttribute>ri:groupMembership</shortcutAssociationAttribute>
+            	<shortcutValueAttribute>ri:dn</shortcutValueAttribute>
             </association>
 				<protected>
 				<filter>

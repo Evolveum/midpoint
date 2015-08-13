@@ -30,6 +30,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -51,6 +52,8 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 import org.apache.commons.lang.mutable.MutableInt;
+import org.apache.directory.api.ldap.codec.api.BinaryAttributeDetector;
+import org.apache.directory.api.ldap.codec.api.DefaultConfigurableBinaryAttributeDetector;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.cursor.EntryCursor;
 import org.apache.directory.api.ldap.model.entry.Attribute;
@@ -59,6 +62,7 @@ import org.apache.directory.api.ldap.model.entry.DefaultModification;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.entry.Modification;
 import org.apache.directory.api.ldap.model.entry.ModificationOperation;
+import org.apache.directory.api.ldap.model.entry.Value;
 import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.api.ldap.model.exception.LdapInvalidAttributeValueException;
 import org.apache.directory.api.ldap.model.message.BindRequest;
@@ -144,6 +148,19 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	
 	protected static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
 	protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
+	
+	protected static final File USER_BARBOSSA_FILE = new File(COMMON_DIR, "user-barbossa.xml");
+	protected static final String USER_BARBOSSA_OID = "c0c010c0-d34d-b33f-f00d-111111111112";
+	protected static final String USER_BARBOSSA_USERNAME = "barbossa";
+	protected static final String USER_BARBOSSA_FULL_NAME = "Hector Barbossa";
+	
+	// Barbossa after rename
+	protected static final String USER_CPTBARBOSSA_USERNAME = "cptbarbossa";
+	
+	protected static final File USER_GUYBRUSH_FILE = new File (COMMON_DIR, "user-guybrush.xml");
+	protected static final String USER_GUYBRUSH_OID = "c0c010c0-d34d-b33f-f00d-111111111116";
+	protected static final String USER_GUYBRUSH_USERNAME = "guybrush";
+	protected static final String USER_GUYBRUSH_FULL_NAME = "Guybrush Threepwood";
 			
 	private static final String LDAP_ACCOUNT_OBJECTCLASS = "inetOrgPerson";
 		
@@ -161,6 +178,8 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	private static String stopCommand;
     
     protected ObjectClassComplexTypeDefinition accountObjectClassDefinition;
+    
+    protected DefaultConfigurableBinaryAttributeDetector binaryAttributeDetector = new DefaultConfigurableBinaryAttributeDetector();
 	
     @Override
     protected void startResources() throws Exception {
@@ -209,6 +228,10 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	
 	protected QName getAccountObjectClass() {
 		return new QName(MidPointConstants.NS_RI, LDAP_ACCOUNT_OBJECTCLASS);
+	}
+	
+	protected QName getGroupObjectClass() {
+		return new QName(MidPointConstants.NS_RI, getLdapGroupObjectClass());
 	}
 	
 	protected abstract String getLdapServerHost();
@@ -415,6 +438,17 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		return entry;
 	}
 	
+	protected Entry getLdapGroupByName(String name) throws LdapException, IOException, CursorException {
+		LdapNetworkConnection connection = ldapConnect();
+		List<Entry> entries = ldapSearch(connection, "(&(cn="+name+")(objectClass="+getLdapGroupObjectClass()+"))");
+		ldapDisconnect(connection);
+
+		assertEquals("Unexpected number of entries for group cn="+name+": "+entries, 1, entries.size());
+		Entry entry = entries.get(0);
+
+		return entry;
+	}
+	
 	protected void assertAttribute(Entry entry, String attrName, String expectedValue) throws LdapInvalidAttributeValueException {
 		String dn = entry.getDn().toString();
 		Attribute ldapAttribute = entry.get(attrName);
@@ -427,6 +461,60 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		} else {
 			assertEquals("Wrong attribute "+attrName+" in "+dn, expectedValue, ldapAttribute.getString());
 		}
+	}
+	
+	protected void assertAttributeContains(Entry entry, String attrName, String expectedValue) throws LdapInvalidAttributeValueException {
+		String dn = entry.getDn().toString();
+		Attribute ldapAttribute = entry.get(attrName);
+		if (ldapAttribute == null) {
+			if (expectedValue == null) {
+				return;
+			} else {
+				AssertJUnit.fail("No attribute "+attrName+" in "+dn+", expected: "+expectedValue);
+			}
+		} else {
+			List<String> vals = new ArrayList<>();
+			Iterator<Value<?>> iterator = ldapAttribute.iterator();
+			while (iterator.hasNext()) {
+				Value<?> value = iterator.next();
+				if (expectedValue.equals(value.getString())) {
+					return;
+				}
+				vals.add(value.getString());
+			}
+			AssertJUnit.fail("Wrong attribute "+attrName+" in "+dn+" expected to contain value " + expectedValue + " but it has values " + vals);
+		}
+	}
+	
+	protected void assertAttributeNotContains(Entry entry, String attrName, String expectedValue) throws LdapInvalidAttributeValueException {
+		String dn = entry.getDn().toString();
+		Attribute ldapAttribute = entry.get(attrName);
+		if (ldapAttribute == null) {
+			return;
+		} else {
+			Iterator<Value<?>> iterator = ldapAttribute.iterator();
+			while (iterator.hasNext()) {
+				Value<?> value = iterator.next();
+				if (expectedValue.equals(value.getString())) {
+					AssertJUnit.fail("Attribute "+attrName+" in "+dn+" contains value " + expectedValue + ", but it should not have it");
+				}
+			}
+		}
+	}
+	
+	protected Entry getLdapEntry(String dn) throws LdapException, IOException, CursorException {
+		LdapNetworkConnection connection = ldapConnect();
+		Entry entry = getLdapEntry(connection, dn);
+		ldapDisconnect(connection);
+		return entry;
+	}
+	
+	protected Entry getLdapEntry(LdapNetworkConnection connection, String dn) throws LdapException, IOException, CursorException {
+		List<Entry> entries = ldapSearch(connection, dn, "(objectclass=*)", SearchScope.OBJECT, "*");
+		if (entries.isEmpty()) {
+			return null;
+		}
+		return entries.get(0);
 	}
 	
 	protected void assertNoLdapAccount(String uid) throws LdapException, IOException, CursorException {
@@ -502,6 +590,19 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		ldapDisconnect(connection);
 	}
 	
+	/**
+	 * Silent delete. Used to clean up after previous test runs.
+	 */
+	protected void cleanupDelete(String dn) throws LdapException, IOException, CursorException {
+		LdapNetworkConnection connection = ldapConnect();
+		Entry entry = getLdapEntry(connection, dn);
+		if (entry != null) {
+			connection.delete(dn);
+			display("Cleaning up LDAP entry: "+dn);
+		}
+		ldapDisconnect(connection);
+	}
+	
 	protected String toDn(String username) {
 		return "uid="+username+","+getPeopleLdapSuffix();
 	}
@@ -535,6 +636,8 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 			};
 			config.setTrustManagers(trustManager);
 		}
+		
+		config.setBinaryAttributeDetector(binaryAttributeDetector);
 		
 		LdapNetworkConnection connection = new LdapNetworkConnection(config);
 		boolean connected = connection.connect();

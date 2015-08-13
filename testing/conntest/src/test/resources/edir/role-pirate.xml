@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2014 Evolveum
+  ~ Copyright (c) 2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -15,23 +15,24 @@
   ~ limitations under the License.
   -->
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
       xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-      oid="23d90f70-1924-419e-9beb-78a8bde6d261"
-      version="7">
-   <name>Stats</name>
-   <inducement id="1">
+      oid="5dd034e8-41d2-11e5-a123-001e8c717e5b">
+   <name>Pirate</name>
+   <inducement>
       <construction>
-         <resourceRef oid="10000000-0000-0000-0000-0000000001ad" type="ResourceType"><!-- Active Directory OpenDJ simulation--></resourceRef>
+         <resourceRef oid="0893372c-3c42-11e5-9179-001e8c717e5b" type="ResourceType"/>
          <association>
-            <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:groups</ref>
-            <tolerant>true</tolerant>
+            <ref>ri:group</ref>
+            <tolerant>false</tolerant>
             <outbound>
                <expression>
                   <associationTargetSearch>
-                     <filter xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+                     <filter>
                         <q:equal>
-                           <q:path>attributes/icfs:name</q:path>
-                           <q:value>CN=StatsUsers,OU=groups,DC=example,DC=com</q:value>
+                           <q:path>attributes/ri:cn</q:path>
+                           <q:value>Pirates</q:value>
                         </q:equal>
                      </filter>
                      <searchOnResource>true</searchOnResource>
@@ -39,16 +40,6 @@
                </expression>
             </outbound>
          </association>
-      </construction>
-   </inducement>
-   <inducement id="2">
-      <construction>
-         <resourceRef oid="10000000-0000-0000-0000-0000000004ax" type="ResourceType"><!-- Resource Dummy Unix --></resourceRef>
-      </construction>
-   </inducement>
-   <inducement id="3">
-      <construction>
-         <resourceRef oid="10000000-0000-0000-0000-0000000005sa" type="ResourceType"><!-- Resource Dummy Stats --></resourceRef>
       </construction>
    </inducement>
 </role>
