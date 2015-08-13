@@ -59,9 +59,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 public abstract class AbstractEDirTest extends AbstractLdapTest {
 	
 	protected static final String ACCOUNT_JACK_UID = "jack";
+	protected static final String ACCOUNT_JACK_PASSWORD = "qwe123";
+	
 	protected static final int NUMBER_OF_ACCOUNTS = 5;
 	protected static final int LOCKOUT_EXPIRATION_SECONDS = 65;
 	
+	protected String jackAccountOid;
 	protected long jackLockoutTimestamp;
 
 	
@@ -125,6 +128,12 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 		return "member";
 	}
 	
+	
+	@Test
+    public void test000Sanity() throws Exception {
+		assertLdapPassword(ACCOUNT_JACK_UID, ACCOUNT_JACK_PASSWORD);
+	}
+	
 	@Test
     public void test100SeachJackByLdapUid() throws Exception {
 		final String TEST_NAME = "test100SeachJackByLdapUid";
@@ -133,8 +142,6 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
-        ResourceAttributeDefinition ldapUidAttrDef = accountObjectClassDefinition.findAttributeDefinition("uid");
         
         ObjectQuery query = createUidQuery(ACCOUNT_JACK_UID);
         
@@ -155,6 +162,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         display("Shadow", shadow);
         assertAccountShadow(shadow, toDn(ACCOUNT_JACK_UID));
         assertLockout(shadow, LockoutStatusType.NORMAL);
+        jackAccountOid = shadow.getOid();
         
         assertConnectorOperationIncrement(2);
         assertConnectorSimulatedPagingSearchIncrement(0);
@@ -163,6 +171,36 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         if (metadata != null) {
         	assertFalse(metadata.isPartialResults());
         }
+	}
+	
+	@Test
+    public void test101GetJack() throws Exception {
+		final String TEST_NAME = "test101GetJack";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectQuery query = createUidQuery(ACCOUNT_JACK_UID);
+        
+		rememberConnectorOperationCount();
+		rememberConnectorSimulatedPagingSearchCount();
+		
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, jackAccountOid, null, task, result);
+        
+		// THEN
+		result.computeStatus();
+		TestUtil.assertSuccess(result);		
+        display("Shadow", shadow);
+        assertAccountShadow(shadow, toDn(ACCOUNT_JACK_UID));
+        assertLockout(shadow, LockoutStatusType.NORMAL);
+        jackAccountOid = shadow.getOid();
+        
+        assertConnectorOperationIncrement(2);
+        assertConnectorSimulatedPagingSearchIncrement(0);        
 	}
 	
 	@Test
@@ -265,8 +303,6 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         }
     }
 	
-	// TODO: Search all locked accounts. Jack should be there.
-	
 	// TODO: test rename
 	
 	// Wait until the lockout of Jack expires, check status
@@ -318,7 +354,82 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         }
 	}
 	
-	// TODO: Search all locked accounts. Jack should not be there.
+	@Test
+    public void test810SeachLockedAccounts() throws Exception {
+		final String TEST_NAME = "test810SeachLockedAccounts";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        ObjectQueryUtil.filterAnd(query.getFilter(), 
+        		EqualFilter.createEqual(new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS), getShadowDefinition(), LockoutStatusType.LOCKED));
+        
+        SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 0, task, result);
+        
+        assertConnectorOperationIncrement(1);
+        assertConnectorSimulatedPagingSearchIncrement(0);        
+    }
+	
+	@Test
+    public void test820JackLockoutAndUnlock() throws Exception {
+		final String TEST_NAME = "test820JackLockoutAndUnlock";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        makeBadLoginAttempt(ACCOUNT_JACK_UID);
+        makeBadLoginAttempt(ACCOUNT_JACK_UID);
+        makeBadLoginAttempt(ACCOUNT_JACK_UID);
+        makeBadLoginAttempt(ACCOUNT_JACK_UID);
+        
+        jackLockoutTimestamp = System.currentTimeMillis();
+        
+        ObjectQuery query = createUidQuery(ACCOUNT_JACK_UID);
+		
+        // precondition
+		SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+        assertEquals("Unexpected search result: "+shadows, 1, shadows.size());
+        PrismObject<ShadowType> shadowLocked = shadows.get(0);
+        display("Locked shadow", shadowLocked);
+        assertAccountShadow(shadowLocked, toDn(ACCOUNT_JACK_UID));
+        assertLockout(shadowLocked, LockoutStatusType.LOCKED);
+		
+        rememberConnectorOperationCount();
+		rememberConnectorSimulatedPagingSearchCount();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyObjectReplaceProperty(ShadowType.class, shadowLocked.getOid(), 
+        		new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS), task, result,
+        		LockoutStatusType.NORMAL);
+        
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+        assertConnectorOperationIncrement(1);
+        assertConnectorSimulatedPagingSearchIncrement(0);
+		
+		PrismObject<ShadowType> shadowAfter = getObject(ShadowType.class, shadowLocked.getOid());
+        display("Shadow after", shadowAfter);
+        assertAccountShadow(shadowAfter, toDn(ACCOUNT_JACK_UID));
+        assertLockout(shadowAfter, LockoutStatusType.NORMAL);
+
+        assertLdapPassword(ACCOUNT_JACK_UID, ACCOUNT_JACK_PASSWORD);
+        
+        SearchResultMetadata metadata = shadows.getMetadata();
+        if (metadata != null) {
+        	assertFalse(metadata.isPartialResults());
+        }
+	}
 	
 	// TODO: lock out jack again, explicitly reset the lock, see that he can login
 

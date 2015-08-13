@@ -126,9 +126,10 @@ public class IcfConvertor {
 		
 		List<ObjectClassComplexTypeDefinition> auxiliaryObjectClassDefinitions = new ArrayList<>();
 
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Resource attribute container definition {}.", attributesContainerDefinition.debugDump());
-		}
+		// too loud
+//		if (LOGGER.isTraceEnabled()) {
+//			LOGGER.trace("Resource attribute container definition {}.", attributesContainerDefinition.debugDump());
+//		}
 
 		// Uid is always there
 		Uid uid = co.getUid();
