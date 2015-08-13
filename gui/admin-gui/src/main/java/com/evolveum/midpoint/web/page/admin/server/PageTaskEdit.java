@@ -39,6 +39,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -1184,8 +1185,8 @@ public class PageTaskEdit extends PageAdminTasks {
                     result.recordWarning("Task suspension has been successfully requested; please check for its completion using task list.");
                 }
             }
-        } catch (RuntimeException e) {
-            result.recordFatalError("Couldn't suspend the task due to an unexpected exception", e);
+        } catch (ObjectNotFoundException|SchemaException|SecurityViolationException|RuntimeException e) {
+            result.recordFatalError("Couldn't suspend the task", e);
         }
 
         showResultInSession(result);
@@ -1202,8 +1203,8 @@ public class PageTaskEdit extends PageAdminTasks {
             if (result.isSuccess()) {
                 result.recordStatus(OperationResultStatus.SUCCESS, "The task has been successfully resumed.");
             }
-        } catch (RuntimeException e) {
-            result.recordFatalError("Couldn't resume the task due to an unexpected exception", e);
+        } catch (ObjectNotFoundException|SchemaException|SecurityViolationException|RuntimeException e) {
+            result.recordFatalError("Couldn't resume the task", e);
         }
 
         showResultInSession(result);
@@ -1220,8 +1221,8 @@ public class PageTaskEdit extends PageAdminTasks {
             if (result.isSuccess()) {
                 result.recordStatus(OperationResultStatus.SUCCESS, "The task has been successfully scheduled to run.");
             }
-        } catch (RuntimeException e) {
-            result.recordFatalError("Couldn't schedule the task due to an unexpected exception", e);
+        } catch (ObjectNotFoundException|SchemaException|SecurityViolationException|RuntimeException e) {
+            result.recordFatalError("Couldn't schedule the task", e);
         }
 
         showResultInSession(result);

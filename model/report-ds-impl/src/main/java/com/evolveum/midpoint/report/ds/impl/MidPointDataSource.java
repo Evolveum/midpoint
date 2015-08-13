@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -73,7 +74,11 @@ public class MidPointDataSource implements JRDataSource{
 	
 		if (i instanceof PrismProperty){
 			if (i.isSingleValue()){
-				return ((PrismProperty) i).getRealValue();
+				return normalize(((PrismProperty) i).getRealValue(), jrField.getValueClass());
+			}
+			List normalized = new ArrayList<>();
+			for (Object real : ((PrismProperty) i).getRealValues()){
+				normalized.add(normalize(real, jrField.getValueClass()));
 			}
 			return ((PrismProperty) i).getRealValues();
 		} else if (i instanceof PrismReference){
@@ -102,6 +107,14 @@ public class MidPointDataSource implements JRDataSource{
 			throw new JRException("Could not get value of the fileld: " + fieldName);
 //		return 
 //		throw new UnsupportedOperationException("dataSource.getFiledValue() not supported");
+	}
+	
+	private Object normalize(Object realValue, Class fieldClass){
+		if (realValue instanceof PolyString && fieldClass.equals(String.class)){
+			return ((PolyString)realValue).getOrig();
+		}
+		
+		return realValue;
 	}
 
 }

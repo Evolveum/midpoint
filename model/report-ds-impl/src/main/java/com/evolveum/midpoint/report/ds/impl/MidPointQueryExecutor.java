@@ -35,6 +35,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter{
@@ -155,8 +156,13 @@ public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter{
 				results = searchObjects(query, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
 			} else {
 				if (script.contains("AuditEventRecord")){
-					Collection<AuditEventRecord> audtiEventRecords = searchAuditRecords(script, getPromptingParameters()); 
-					return new JRBeanCollectionDataSource(audtiEventRecords);
+					Collection<AuditEventRecord> audtiEventRecords = searchAuditRecords(script, getPromptingParameters());
+					Collection<AuditEventRecordType> auditEventRecordsType = new ArrayList<>();
+					for (AuditEventRecord aer : audtiEventRecords){
+						AuditEventRecordType aerType = aer.createAuditEventRecordType();
+						auditEventRecordsType.add(aerType);
+					}
+					return new JRBeanCollectionDataSource(auditEventRecordsType);
 				} else {
 					results = evaluateScript(script, getParameters());
 				}

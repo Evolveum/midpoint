@@ -201,6 +201,7 @@ public class ProjectionValuesProcessor {
 			// people during debugging and unecessarily clutter the debug output.
 			projContext.setOutboundConstruction(null);
 			projContext.setSqueezedAttributes(null);
+			projContext.setSqueezedAssociations(null);
 			
 			LOGGER.trace("Projection values iteration {}, token '{}' for {}", new Object[]{iteration, iterationToken, projContext.getHumanReadableName()});
 			

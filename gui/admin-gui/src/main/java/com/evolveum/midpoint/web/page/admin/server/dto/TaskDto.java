@@ -333,7 +333,6 @@ public class TaskDto extends Selectable {
 
     private void fillInParentTaskAttributes(TaskType taskType, TaskService taskService, TaskDtoProviderOptions options, OperationResult thisOpResult) {
         if (options.isGetTaskParent() && taskType.getParent() != null) {
-            Throwable failReason = null;
             try {
                 //TaskType parentTaskType = taskService.getTaskByIdentifier(taskType.getParent(), GetOperationOptions.createRetrieveNameOnlyOptions(), thisOpResult).asObjectable();
                 TaskType parentTaskType = taskService.getTaskByIdentifier(taskType.getParent(), null, thisOpResult).asObjectable();
@@ -341,13 +340,8 @@ public class TaskDto extends Selectable {
                     parentTaskName = parentTaskType.getName() != null ? parentTaskType.getName().getOrig() : "(unnamed)";       // todo i18n
                     parentTaskOid = parentTaskType.getOid();
                 }
-            } catch (SchemaException e) {
-                failReason = e;
-            } catch (ObjectNotFoundException e) {
-                failReason = e;
-            }
-            if (failReason != null) {
-                LoggingUtils.logException(LOGGER, "Couldn't retrieve parent task for task {}", failReason, taskType.getOid());
+            } catch (SchemaException|ObjectNotFoundException|SecurityViolationException|ConfigurationException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't retrieve parent task for task {}", e, taskType.getOid());
             }
         }
     }

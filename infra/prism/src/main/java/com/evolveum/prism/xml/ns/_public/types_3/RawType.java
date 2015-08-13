@@ -2,21 +2,28 @@ package com.evolveum.prism.xml.ns._public.types_3;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Revivable;
 import com.evolveum.midpoint.prism.parser.XNodeProcessor;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+
 import org.apache.commons.lang.Validate;
 import org.jvnet.jaxb2_commons.lang.Equals;
 import org.jvnet.jaxb2_commons.lang.EqualsStrategy;
 import org.jvnet.jaxb2_commons.locator.ObjectLocator;
 
 import javax.xml.namespace.QName;
+
 import java.beans.Transient;
 import java.io.Serializable;
 
@@ -107,6 +114,27 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
 		    return null;
         }
 	}
+	
+	public <V,ID extends ItemDefinition> V getParsedRealValue(ItemDefinition itemDefinition, ItemPath itemPath) throws SchemaException {
+        if (parsed == null && xnode != null){
+        	QName itemName = ItemPath.getName(itemPath.lastNamed());
+        	getParsedValue(itemDefinition, itemName);
+        } 
+        if (parsed != null){
+        	if (parsed instanceof PrismPropertyValue){
+        		return (V) ((PrismPropertyValue) parsed).getValue();
+        	} else if (parsed instanceof PrismContainerValue){
+        		return (V) ((PrismContainerValue) parsed).asContainerable();
+        	} else if (parsed instanceof PrismReferenceValue){
+        		return (V) ((PrismReferenceValue) parsed).asReferencable();
+        	}
+        }
+        
+        return null;
+        
+	}
+	
+	
 
     public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> getParsedItem(ID itemDefinition) throws SchemaException {
         Validate.notNull(itemDefinition);
@@ -194,6 +222,12 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
         if (prismContext == null) {
             throw new IllegalStateException("prismContext is not set - perhaps a forgotten call to adopt() somewhere?");
         }
+    }
+
+    public static RawType create(String value, PrismContext prismContext) {
+        PrimitiveXNode<String> xnode = new PrimitiveXNode<>(value);
+        RawType rv = new RawType(xnode, prismContext);
+        return rv;
     }
 
 }

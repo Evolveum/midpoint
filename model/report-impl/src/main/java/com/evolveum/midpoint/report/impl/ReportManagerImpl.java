@@ -235,24 +235,28 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
          try {
              ReportType reportType = (ReportType) object.asObjectable();
              JasperDesign jasperDesign = null;
-             if (reportType.getTemplate() == null)
-             {
-            	 PrismSchema reportSchema = null;
-            	 PrismContainer<ReportConfigurationType> parameterConfiguration = null;  
-            	 try
-            	 {
-            		reportSchema = ReportUtils.getParametersSchema(reportType, prismContext);
-            		parameterConfiguration = ReportUtils.getParametersContainer(reportType, reportSchema);
-             		
-            	 } catch (Exception ex){
-            		 String message = "Cannot create parameter configuration: " + ex.getMessage();
-            		 LOGGER.error(message);
-            		 result.recordFatalError(message, ex);
-            	 }
-            	 
-            	 jasperDesign = ReportUtils.createJasperDesign(reportType, parameterConfiguration, reportSchema) ;
-            	 LOGGER.trace("create jasper design : {}", jasperDesign);
+             if (reportType.getTemplate() == null){
+            	 String message = "Report template must not be null";
+            	 LOGGER.error(message);
+                 result.recordFatalError(message, new SystemException());
              }
+//             {
+//            	 PrismSchema reportSchema = null;
+//            	 PrismContainer<ReportConfigurationType> parameterConfiguration = null;  
+//            	 try
+//            	 {
+//            		reportSchema = ReportUtils.getParametersSchema(reportType, prismContext);
+//            		parameterConfiguration = ReportUtils.getParametersContainer(reportType, reportSchema);
+//             		
+//            	 } catch (Exception ex){
+//            		 String message = "Cannot create parameter configuration: " + ex.getMessage();
+//            		 LOGGER.error(message);
+//            		 result.recordFatalError(message, ex);
+//            	 }
+//            	 
+//            	 jasperDesign = ReportUtils.createJasperDesign(reportType, parameterConfiguration, reportSchema) ;
+//            	 LOGGER.trace("create jasper design : {}", jasperDesign);
+//             }
              else
              {
             	 byte[] reportTemplateBase64 = reportType.getTemplate();

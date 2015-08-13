@@ -1023,4 +1023,29 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertEquals("Unexpected number of (repository) shadows", expected, actual);
 	}
 
+	protected void assertActivationAdministrativeStatus(PrismObject<ShadowType> shadow, ActivationStatusType expectedStatus) {
+		ActivationType activationType = shadow.asObjectable().getActivation();
+		if (activationType == null) {
+			if (expectedStatus == null) {
+				return;
+			} else {
+				AssertJUnit.fail("Expected activation administrative status of "+shadow+" to be "+expectedStatus+", but there was no activation administrative status");
+			}
+		} else {
+			assertEquals("Wrong activation administrative status of "+shadow, expectedStatus, activationType.getAdministrativeStatus());
+		}
+	}
+	
+	protected void assertLockout(PrismObject<ShadowType> shadow, LockoutStatusType expectedStatus) {
+		ActivationType activationType = shadow.asObjectable().getActivation();
+		if (activationType == null) {
+			if (expectedStatus == null) {
+				return;
+			} else {
+				AssertJUnit.fail("Expected lockout status of "+shadow+" to be "+expectedStatus+", but there was no lockout status");
+			}
+		} else {
+			assertEquals("Wrong lockout status of "+shadow, expectedStatus, activationType.getLockoutStatus());
+		}
+	}
 }

@@ -385,20 +385,27 @@ public class PrismBeanConverter {
 				// DOM!
 				throw new IllegalArgumentException("DOM not supported in field "+fieldName+" in "+beanClass);
 			}
+			
+			//check for subclasses???
+			if (!storeAsRawType && xsubnode.getTypeQName() != null) {
+				Class explicitParamType = getSchemaRegistry().determineCompileTimeClass(xsubnode.getTypeQName());
+				if (explicitParamType == null){
+					explicitParamType = XsdTypeMapper.toJavaTypeIfKnown(xsubnode.getTypeQName());
+				}
+				
+				if (explicitParamType != null){
+					paramType = explicitParamType; 
+				}
+			}
+
+			
 			if (Object.class.equals(paramType) && !storeAsRawType) {
 				throw new IllegalArgumentException("Object property (without @Raw) not supported in field "+fieldName+" in "+beanClass);
 			}
 
 			String paramNamespace = inspector.determineNamespace(paramType);
 			
-			//check for subclasses???
-			if (!storeAsRawType && xsubnode.getTypeQName() != null) {
-				Class explicitParamType = getSchemaRegistry().determineCompileTimeClass(xsubnode.getTypeQName());
-				if (explicitParamType != null && explicitParamType != null){
-					paramType = explicitParamType; 
-				}
-			}
-
+			
 			boolean problem = false;
 			Object propValue = null;
 			Collection<Object> propValues = null;

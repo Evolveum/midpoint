@@ -17,6 +17,7 @@ package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -57,5 +58,21 @@ public class ActivationUtil {
 		ActivationType activation = objectType.getActivation();
 		return activation != null && activation.getValidTo() != null;
 	}
+	
+	public static boolean hasLockoutStatus(ShadowType objectType) {
+		ActivationType activation = objectType.getActivation();
+		return activation != null && activation.getLockoutStatus() != null;
+	}
+	
+	public static boolean isLockedOut(ShadowType objectType) {
+		return isLockedOut(objectType.getActivation());
+	}
 
+	public static boolean isLockedOut(ActivationType activation) {
+		if (activation == null) {
+			return false;
+		}
+		return activation.getLockoutStatus() == LockoutStatusType.LOCKED;
+	}
+	
 }
