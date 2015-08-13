@@ -20,11 +20,93 @@
 <wicket:extend>
     <div wicket:id="confirmDeletePopup" />
 
-    <div class="clearfix">
+    <div class="clearfix" style="display:none;">
         <form class="form-inline pull-right search-form" wicket:id="searchForm">
             <select multiple="multiple" class="multiselect" wicket:id="searchType"/>
 
             <div wicket:id="basicSearch"/>
+        </form>
+    </div>
+
+    <div class="clearfix">
+        <form class="form-inline pull-right search-form">
+            <div class="form-group">
+                <a class="btn btn-sm btn-default" href="#">
+                    Assignment: All
+                    &nbsp;
+                    <span class="caret"></span>
+                    &nbsp;
+                    <i class="fa fa-times-circle fa-lg text-danger"/>
+                </a>
+                <div class="popover fade bottom in" style="top: 151px; left: 1297px; display: block;">
+                    <div class="arrow"></div>
+                    <div class="popover-content">
+                        <div class="input-group input-group-sm">
+                            <input type="text" class="form-control" disabled="true" value="OpenDJ localhost"
+                                   style="width: auto;" size="20">
+                            <span class="input-group-btn">
+                                <a class="btn btn-default btn-primary" href="#">
+                                    <i class="fa fa-edit"/>
+                                </a>
+                            </span>
+                        </div>
+
+                        <p style="margin: 0px; padding-top: 7px;">
+                            <a class="btn btn-sm btn-success" href="#">
+                                Update
+                            </a>
+                            <a class="btn btn-sm btn-default" href="#">
+                                Close
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <a class="btn btn-sm btn-default" href="#">
+                    Given name: "Viliam"
+                    &nbsp;
+                    <span class="caret"></span>
+                    &nbsp;
+                    <i class="fa fa-times-circle fa-lg text-danger"/>
+                </a>
+            </div>
+            <div class="form-group">
+                <a class="btn btn-sm btn-default" href="#">
+                    Family name: All
+                    &nbsp;
+                    <span class="caret"></span>
+                    &nbsp;
+                    <i class="fa fa-times-circle fa-lg text-danger"/>
+                </a>
+                <div class="popover fade bottom in" style="top: 151px; left: 1627px; display: block;">
+                    <div class="arrow"></div>
+                    <div class="popover-content">
+                        <input type="text" class="form-control input-sm" style="width: auto;" size="25">
+
+                        <p style="margin: 0px; padding-top: 7px;">
+                            <a class="btn btn-sm btn-success" href="#">
+                                Update
+                            </a>
+                            <a class="btn btn-sm btn-default" href="#">
+                                Close
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <a class="btn btn-sm btn-default" href="#">
+                    More...
+                    &nbsp;
+                    <span class="caret"></span>
+                </a>
+            </div>
+            <div class="form-group">
+                <a class="btn btn-sm btn-primary" href="#">
+                    <i class="fa fa-search fa-lg"/>
+                </a>
+            </div>
         </form>
     </div>
 
