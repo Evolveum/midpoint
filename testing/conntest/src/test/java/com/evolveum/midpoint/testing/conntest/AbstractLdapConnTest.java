@@ -130,16 +130,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 public abstract class AbstractLdapConnTest extends AbstractLdapTest {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractLdapConnTest.class);
-				
-	protected static final File USER_BARBOSSA_FILE = new File(COMMON_DIR, "user-barbossa.xml");
-	protected static final String USER_BARBOSSA_OID = "c0c010c0-d34d-b33f-f00d-111111111112";
-	protected static final String USER_BARBOSSA_USERNAME = "barbossa";
-	protected static final String USER_BARBOSSA_FULL_NAME = "Hector Barbossa";
-	
-	protected static final File USER_GUYBRUSH_FILE = new File (COMMON_DIR, "user-guybrush.xml");
-	protected static final String USER_GUYBRUSH_OID = "c0c010c0-d34d-b33f-f00d-111111111116";
-	protected static final String USER_GUYBRUSH_USERNAME = "guybrush";
-	protected static final String USER_GUYBRUSH_FULL_NAME = "Guybrush Threepwood";
 	
 	private static final String USER_LECHUCK_NAME = "lechuck";
 	private static final String ACCOUNT_LECHUCK_NAME = "lechuck";
@@ -628,14 +618,14 @@ public abstract class AbstractLdapConnTest extends AbstractLdapTest {
         
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        modifyUserReplace(USER_BARBOSSA_OID, UserType.F_NAME, task, result, PrismTestUtil.createPolyString("cptbarbossa"));
+        modifyUserReplace(USER_BARBOSSA_OID, UserType.F_NAME, task, result, PrismTestUtil.createPolyString(USER_CPTBARBOSSA_USERNAME));
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        Entry entry = assertLdapAccount("cptbarbossa", USER_BARBOSSA_FULL_NAME);
+        Entry entry = assertLdapAccount(USER_CPTBARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
         assertAttribute(entry, "title", "Captain");
         
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
@@ -662,7 +652,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapTest {
         TestUtil.assertSuccess(result);
 
         assertNoLdapAccount(USER_BARBOSSA_USERNAME);
-        assertNoLdapAccount("cptbarbossa");
+        assertNoLdapAccount(USER_CPTBARBOSSA_USERNAME);
         
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         assertNoLinkedAccount(user);
