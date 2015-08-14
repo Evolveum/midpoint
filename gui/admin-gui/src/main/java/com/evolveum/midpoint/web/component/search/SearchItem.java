@@ -29,6 +29,10 @@ public class SearchItem<T extends Serializable> implements Serializable {
         this.definition = definition;
     }
 
+    public ItemDefinition getDefinition() {
+        return definition;
+    }
+
     public String getName() {
         String name = definition.getDisplayName();
         if (StringUtils.isNotEmpty(name)) {

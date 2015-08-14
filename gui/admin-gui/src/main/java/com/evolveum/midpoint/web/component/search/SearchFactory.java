@@ -26,7 +26,7 @@ public class SearchFactory {
         PrismPropertyDefinition def = objDef.findPropertyDefinition(ObjectType.F_NAME);
 
         SearchItem item = new SearchItem(search, def);
-        search.getItems().add(item);
+        search.add(item);
 
         return search;
     }

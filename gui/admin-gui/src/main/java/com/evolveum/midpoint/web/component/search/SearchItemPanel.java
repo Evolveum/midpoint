@@ -8,7 +8,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
@@ -92,7 +91,7 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
         Search search = item.getSearch();
         search.delete(item);
 
-        Form form = findParent(Form.class);
-        target.add(form);
+        SearchPanel panel = findParent(SearchPanel.class);
+        panel.refreshForm(target);
     }
 }

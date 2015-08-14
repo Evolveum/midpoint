@@ -67,18 +67,18 @@ function initPieChart(chartId) {
 
 function updateHeight(elementId, add, substract) {
     updateHeightReal(elementId, add, substract);
-    $(window).resize(function() {
+    $(window).resize(function () {
         updateHeightReal(elementId, add, substract);
     });
 }
 
 function updateHeightReal(elementId, add, substract) {
-    $('#' + elementId).css("height","0px");
+    $('#' + elementId).css("height", "0px");
 
     var documentHeight = $(document).innerHeight();
     var bodyTopPadding = $(".navbar-fixed-top").outerHeight(false);
     var mainContainerHeight = $('div.mainContainer').outerHeight(true);
-    var elementHeight =  $('#' + elementId).outerHeight(true);
+    var elementHeight = $('#' + elementId).outerHeight(true);
 
     console.log("Document height: " + documentHeight + ", mainContainer: "
         + mainContainerHeight + ", body top-padding: " + bodyTopPadding);
@@ -112,7 +112,7 @@ function updateHeightReal(elementId, add, substract) {
 function updateBodyTopPadding() {
     updateBodyTopPaddingReal();
 
-    $(window).resize(function() {
+    $(window).resize(function () {
         updateBodyTopPaddingReal();
     });
 }
@@ -137,6 +137,24 @@ function initPageSizePopover(buttonId, popoverId) {
 
         var left = position.left - popover.outerWidth();
         var top = position.top + button.outerHeight() / 2 - popover.outerHeight() / 2;
+
+        popover.css("top", top);
+        popover.css("left", left);
+
+        popover.toggle();
+    });
+}
+
+function initSearchMorePopover(buttonId, popoverId) {
+    var button = $('#' + buttonId);
+    button.click(function () {
+        var popover = $('#' + popoverId);
+
+        var position = button.position();
+
+        //27 is bulgarian constant to make popover position :)
+        var left = position.left - (popover.outerWidth() - button.outerWidth()) / 2 - 27;
+        var top = position.top + button.outerHeight();
 
         popover.css("top", top);
         popover.css("left", left);

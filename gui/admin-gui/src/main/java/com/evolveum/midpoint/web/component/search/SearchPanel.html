@@ -22,7 +22,7 @@
         </wicket:container>
 
         <div class="form-group">
-            <a wicket:id="more" class="btn btn-sm btn-default">
+            <a wicket:id="more" href="#" class="btn btn-sm btn-default">
                 <wicket:message key="SearchPanel.more"/>
                 &nbsp;
                 <span class="caret"></span>
@@ -35,4 +35,16 @@
             </a>
         </div>
     </form>
+
+    <div wicket:id="popover" class="popover fade bottom in" style="display: none;">
+        <div class="arrow"></div>
+        <div class="popover-content">
+            <input wicket:id="addText" type="text" class="form-control input-sm" style="width: auto;" size="20">
+
+            <p style="margin: 0px; padding-top: 7px;">
+                <a wicket:id="add" class="btn btn-sm btn-success"/>
+                <a wicket:id="close" class="btn btn-sm btn-default"/>
+            </p>
+        </div>
+    </div>
 </wicket:panel>
