@@ -16,22 +16,7 @@ import static com.codeborne.selenide.Selenide.$;
 @Component
 public class ResourceUtil {
     private String testResourceName;
-
-    /**
-     * searches for resource in the resource list
-     * with the specified name resourceName
-     *
-     * @param resourceName
-     * @param resourceSearchResultPath
-     * @return
-     */
-    public SelenideElement searchForOpendjResource(String resourceName, String resourceSearchResultPath) {
-        //search for OpenDJ resource in resources list
-        $(By.name("basicSearch:searchText")).shouldBe(visible).setValue(resourceName);
-        $(By.linkText("Search")).click();
-        //check if resource is found during the search
-        return $(By.xpath(resourceSearchResultPath)).shouldHave(text(resourceName));
-    }
+    private String testResourcePath;
 
     public String getTestResourceName() {
         return testResourceName;
@@ -41,4 +26,11 @@ public class ResourceUtil {
         this.testResourceName = testResourceName;
     }
 
+    public String getTestResourcePath() {
+        return testResourcePath;
+    }
+
+    public void setTestResourcePath(String testResourcePath) {
+        this.testResourcePath = testResourcePath;
+    }
 }
