@@ -26,25 +26,18 @@
         <i wicket:id="deleteButton" class="fa fa-times-circle fa-lg text-danger"/>
     </a>
 
-    <div wicket:id="popup" class="popover fade bottom in">
+    <div wicket:id="popover" class="popover fade bottom in">
         <div class="arrow"></div>
         <div class="popover-content">
-            <input type="text" class="form-control input-sm" style="width: auto;" size="25">
+            <input wicket:id="text" type="text" class="form-control input-sm" style="width: auto;" size="25">
 
             <p style="margin: 0px; padding-top: 7px;">
-                <a class="btn btn-sm btn-success" href="#">
-                    Update
-                </a>
-                <a class="btn btn-sm btn-default" href="#">
-                    Close
-                </a>
+                <a wicket:id="update" class="btn btn-sm btn-success"/>
+                <a wicket:id="close" class="btn btn-sm btn-default"/>
             </p>
         </div>
     </div>
 </wicket:panel>
 
-<wicket:fragment id="popover">
-
-</wicket:fragment>
 </body>
 </html>

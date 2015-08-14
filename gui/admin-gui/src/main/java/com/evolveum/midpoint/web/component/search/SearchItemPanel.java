@@ -2,14 +2,21 @@ package com.evolveum.midpoint.web.component.search;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.BaseSimplePanel;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -21,7 +28,11 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
     private static final String ID_MAIN_BUTTON = "mainButton";
     private static final String ID_LABEL = "label";
     private static final String ID_DELETE_BUTTON = "deleteButton";
-    private static final String ID_POPUP = "popup";
+    private static final String ID_POPOVER = "popover";
+    private static final String ID_TEXT = "text";
+    private static final String ID_UPDATE = "update";
+    private static final String ID_CLOSE = "close";
+
 
     public SearchItemPanel(String id, IModel<SearchItem> model) {
         super(id, model);
@@ -50,9 +61,47 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
         };
         mainButton.add(deleteButton);
 
-        // todo implement popup
-        WebMarkupContainer popup = new WebMarkupContainer(ID_POPUP);
-        add(popup);
+        initPopover();
+    }
+
+    private void initPopover() {
+        WebMarkupContainer popover = new WebMarkupContainer(ID_POPOVER);
+        popover.setOutputMarkupId(true);
+        add(popover);
+
+        TextField value = new TextField(ID_TEXT, new Model());
+        popover.add(value);
+
+        AjaxSubmitButton add = new AjaxSubmitButton(ID_UPDATE, createStringResource("SearchItemPanel.update")) {
+
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                //todo implement
+            }
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                updateItemPerformed(target);
+            }
+        };
+        popover.add(add);
+
+        AjaxButton close = new AjaxButton(ID_CLOSE, createStringResource("SearchItemPanel.close")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                closeEditPopoverPerformed(target);
+            }
+        };
+        popover.add(close);
+    }
+
+    @Override
+    public void renderHead(IHeaderResponse response) {
+        super.renderHead(response);
+
+        response.render(OnDomReadyHeaderItem.forScript(initButtonJavascript()));
     }
 
     private IModel<String> createLabelModel() {
@@ -78,10 +127,28 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
         };
     }
 
+    private String initButtonJavascript() {
+        StringBuilder sb = new StringBuilder();
+        String moreId = get(ID_MAIN_BUTTON).getMarkupId();
+        String popoverId = get(ID_POPOVER).getMarkupId();
+
+        sb.append("initSearchPopover('").append(moreId);
+        sb.append("','").append(popoverId).append("', 0);");
+
+        return sb.toString();
+    }
+
+    private void updateItemPerformed(AjaxRequestTarget target) {
+        // todo implement
+    }
+
+    private void closeEditPopoverPerformed(AjaxRequestTarget target) {
+        String popoverId = get(ID_POPOVER).getMarkupId();
+        target.appendJavaScript("$('#" + popoverId + "').toggle();");
+    }
+
     private void editPerformed(AjaxRequestTarget target) {
         LOG.debug("Edit performed");
-
-        // todo implement
     }
 
     private void deletePerformed(AjaxRequestTarget target) {

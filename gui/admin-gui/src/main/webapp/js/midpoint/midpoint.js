@@ -145,7 +145,14 @@ function initPageSizePopover(buttonId, popoverId) {
     });
 }
 
-function initSearchMorePopover(buttonId, popoverId) {
+/**
+ * Used in SearchPanel class
+ *
+ * @param buttonId
+ * @param popoverId
+ * @param leftOffset value which will shift popover to the left from center bottom position against button
+ */
+function initSearchPopover(buttonId, popoverId, leftOffset) {
     var button = $('#' + buttonId);
     button.click(function () {
         var popover = $('#' + popoverId);
@@ -153,7 +160,7 @@ function initSearchMorePopover(buttonId, popoverId) {
         var position = button.position();
 
         //27 is bulgarian constant to make popover position :)
-        var left = position.left - (popover.outerWidth() - button.outerWidth()) / 2 - 27;
+        var left = position.left - (popover.outerWidth() - button.outerWidth()) / 2 - leftOffset;
         var top = position.top + button.outerHeight();
 
         popover.css("top", top);

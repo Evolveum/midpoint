@@ -128,8 +128,8 @@ public class SearchPanel extends BaseSimplePanel<Search> {
         String moreId = get(createComponentPath(ID_FORM, ID_MORE)).getMarkupId();
         String popoverId = get(ID_POPOVER).getMarkupId();
 
-        sb.append("initSearchMorePopover('").append(moreId);
-        sb.append("','").append(popoverId).append("');");
+        sb.append("initSearchPopover('").append(moreId);
+        sb.append("','").append(popoverId).append("', 27);");
 
         return sb.toString();
     }
