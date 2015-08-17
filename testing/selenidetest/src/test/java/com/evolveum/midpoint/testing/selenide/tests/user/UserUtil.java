@@ -13,8 +13,6 @@ import static com.codeborne.selenide.Selenide.$;
  */
 @Component
 public class UserUtil {
-    private String simpleTestUserName;
-    private String superUserName;
 
     /**
      * Creates user with userName value
@@ -33,8 +31,6 @@ public class UserUtil {
         //click Save button
         $(By.xpath("/html/body/div[4]/div/form/div[5]/a[2]")).shouldHave(text("Save")).click();
 
-        //check if Success message appears after user saving
-        $(By.xpath("/html/body/div[4]/div/div[2]/div[1]/ul/li/div/div[1]/div[1]/span")).shouldHave(text("Success"));
     }
 
 
@@ -49,19 +45,5 @@ public class UserUtil {
         $(By.cssSelector("html.no-js body div.mp-main-container div.row.mainContainer div.page-header h1")).shouldHave(text("Users in midPoint"));
 
     }
-    public void setSimpleTestUserName(String simpleTestUserName) {
-        this.simpleTestUserName = simpleTestUserName;
-    }
 
-    public String getSimpleTestUserName() {
-        return simpleTestUserName;
-    }
-
-    public String getSuperUserName() {
-        return superUserName;
-    }
-
-    public void setSuperUserName(String superUserName) {
-        this.superUserName = superUserName;
-    }
 }

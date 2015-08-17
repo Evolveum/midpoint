@@ -43,7 +43,7 @@
                     <parallel>classes</parallel>
                     <perCoreThreadCount>false</perCoreThreadCount>
                     <threadCount>1</threadCount>
-                    <runOrder>alphabetical</runOrder>
+                    <runOrder>filesystem</runOrder>
                 </configuration>
             </plugin>
         </plugins>

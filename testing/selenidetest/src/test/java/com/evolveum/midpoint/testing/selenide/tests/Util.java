@@ -39,9 +39,8 @@ public class Util {
         //search for element in search form
         $(By.name("basicSearch:searchText")).shouldBe(visible).setValue(searchText);
         $(By.xpath(searchButtonXpath)).shouldHave(text("Search")).click();
-//        $(By.xpath("/html/body/div[4]/div/form[1]/span/a")).shouldHave(text("Search")).click();
-//        /html/body/div[4]/div/div[4]/form/span/a
     }
+
     public String getSiteUrl() {
         return siteUrl;
     }

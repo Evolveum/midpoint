@@ -9,6 +9,7 @@ import com.evolveum.midpoint.testing.selenide.tests.LoginTest;
 import com.evolveum.midpoint.testing.selenide.tests.Util;
 import com.evolveum.midpoint.testing.selenide.tests.resource.ImportResourceTest;
 import com.evolveum.midpoint.testing.selenide.tests.resource.ResourceUtil;
+import com.evolveum.midpoint.testing.selenide.tests.user.SimpleUserTests;
 import com.evolveum.midpoint.testing.selenide.tests.user.UserUtil;
 import org.openqa.selenium.By;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,9 @@ public class CreateAccountTest extends BaseTest {
 
     @Autowired
     LoginTest loginTest;
+
+    @Autowired
+    SimpleUserTests simpleUserTests;
 
     @Autowired
     UserUtil userUtil;
@@ -45,7 +49,7 @@ public class CreateAccountTest extends BaseTest {
         userUtil.openListUsersPage();
 
         //search for user in users list
-        util.searchForElement(userUtil.getSimpleTestUserName(), "/html/body/div[4]/div/div[4]/form/span/a");
+        util.searchForElement(simpleUserTests.SIMPLE_USER_NAME, "/html/body/div[4]/div/div[4]/form/span/a");
         $(By.xpath("/html/body/div[4]/div/form/div[2]/table/tbody/tr/td[3]/div/a/span"))
                 .shouldBe(visible).click();
 
@@ -78,7 +82,7 @@ public class CreateAccountTest extends BaseTest {
         $(By.xpath("/html/body/div[4]/div/div[2]/div[1]/ul/li/div/div[1]/div[1]/span")).shouldHave(text("Success"));
 
         //search for user in users list
-        util.searchForElement(userUtil.getSimpleTestUserName(), "/html/body/div[4]/div/div[4]/form/span/a");
+        util.searchForElement(simpleUserTests.SIMPLE_USER_NAME, "/html/body/div[4]/div/div[4]/form/span/a");
         $(By.xpath("/html/body/div[4]/div/form/div[2]/table/tbody/tr/td[3]/div/a/span"))
                 .shouldBe(visible).click();
 
