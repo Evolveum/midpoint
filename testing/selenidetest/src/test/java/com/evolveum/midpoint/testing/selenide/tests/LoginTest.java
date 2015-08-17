@@ -3,8 +3,6 @@
 import org.openqa.selenium.By;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 import org.testng.annotations.Test;
 import static com.codeborne.selenide.Selenide.*;
 import static com.codeborne.selenide.Condition.*;
@@ -68,32 +66,27 @@ public class LoginTest extends BaseTest{
 
 
     /**
-     * open browser window with the specified siteUrl
-     */
-    @Test
-    public void loginAndStay(){
-        open(util.getSiteUrl());
-        //perform login
-        login(util.getSiteUrl(), util.getAdminUserLogin(), util.getAdminUserPassword());
-
-        //check if welcome message appears after user logged in
-        $(By.cssSelector("html.no-js body div.mp-main-container div.row.mainContainer div.page-header h1 small")).shouldHave(text("welcome to midPoint"));
-    }
-
-    /**
      * Log in to MidPoint as administrator
      */
-    public void loginAsAdmin(){
+    public void login(){
+        //perform login
         login(util.getSiteUrl(), util.getAdminUserLogin(), util.getAdminUserPassword());
+    }
+
+    public void login(String username, String password){
+        //perform login
+        login(util.getSiteUrl(), username, password);
     }
 
     public void login(String siteUrl, String username, String password) {
+        open(siteUrl);
         //enter login value
         $(By.name("username")).shouldBe(visible).setValue(username);
         //enter password value
         $(By.name("password")).shouldBe(visible).setValue(password);
         //click Sign in button
-        $(By.cssSelector("html.no-js body div.mp-main-container div.row.mainContainer div.row div.col-md-offset-2.col-md-8.col-lg-offset-4.col-lg-4 div.panel.panel-default div.panel-body form#id6.form-horizontal input.btn.btn-primary.pull-right")).shouldBe(enabled).click();
+        $(By.xpath("/html/body/div[4]/div/div[3]/div/div/div/form/input")).shouldBe(enabled).click();
+
     }
 
 }
