@@ -138,18 +138,18 @@ sub header {
   
   if (!$hasLicense) {
     print "$path: $hasLicense ".scalar(@lines)."/".scalar(@linesToKeep)." lines\n";
-  }
   
-  if ($modify) {
-    open($fh, ">$path") or die("Cannot write to $path: $!\n");
-    foreach my $lline (split("\n",$license)) {
-      print $fh $commentChar." ".$lline."\n";
+    if ($modify) {
+      open($fh, ">$path") or die("Cannot write to $path: $!\n");
+      foreach my $lline (split("\n",$license)) {
+        print $fh $commentChar." ".$lline."\n";
+      }
+      print $fh "\n";
+      foreach my $fline (@linesToKeep) {
+        print $fh $fline;
+      }
+      close($fh);
     }
-    print $fh "\n";
-    foreach my $fline (@linesToKeep) {
-      print $fh $fline;
-    }
-    close($fh);
   }
   
 }  
