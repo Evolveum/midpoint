@@ -13,17 +13,16 @@
     </bean>
     <bean id="createAccountTest" class="com.evolveum.midpoint.testing.selenide.tests.account.CreateAccountTest"
           autowire-candidate="true"/>
-    <bean id="createUserTest" class="com.evolveum.midpoint.testing.selenide.tests.user.CreateUserTest"
+    <bean id="createUserTest" class="com.evolveum.midpoint.testing.selenide.tests.user.SuperUserTests"
+          autowire-candidate="true"/>
+    <bean id="simpleUserTests" class="com.evolveum.midpoint.testing.selenide.tests.user.SimpleUserTests"
           autowire-candidate="true"/>
     <bean id="importResourceTest" class="com.evolveum.midpoint.testing.selenide.tests.resource.ImportResourceTest"
           autowire-candidate="true"/>
     <bean id="checkResourceConnectionTest"
           class="com.evolveum.midpoint.testing.selenide.tests.resource.CheckResourceConnectionTest"
           autowire-candidate="true"/>
-    <bean id="userUtil" class="com.evolveum.midpoint.testing.selenide.tests.user.UserUtil" autowire-candidate="true">
-        <property name="simpleTestUserName" value="SimpleTestUser"/>
-        <property name="superUserName" value="SuperUser"/>
-    </bean>
+    <bean id="userUtil" class="com.evolveum.midpoint.testing.selenide.tests.user.UserUtil" autowire-candidate="true" />
     <bean id="resourceUtil" class="com.evolveum.midpoint.testing.selenide.tests.resource.ResourceUtil"
           autowire-candidate="true">
         <property name="testResourceName" value="Localhost OpenDJ (no extension schema)"/>
