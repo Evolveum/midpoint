@@ -24,9 +24,9 @@ public class LoginTest extends BaseTest{
      */
     @Test
     public void loginWithCorrectCredentialsTest(){
-        open(util.getSiteUrl());
+        open(util.SITE_URL);
         //perform login
-        login(util.getSiteUrl(), util.getAdminUserLogin(), util.getAdminUserPassword());
+        login(util.SITE_URL, util.ADMIN_LOGIN, util.ADMIN_PASSWORD);
 
         //check if welcome message appears after user logged in
         $(By.cssSelector("html.no-js body div.mp-main-container div.row.mainContainer div.page-header h1 small")).shouldHave(text("welcome to midPoint"));
@@ -39,9 +39,9 @@ public class LoginTest extends BaseTest{
      */
     @Test
     public void loginWithIncorrectUsernameTest(){
-        open(util.getSiteUrl());
+        open(util.SITE_URL);
         //perform login
-        login(util.getSiteUrl(), "incorrectUserName", util.getAdminUserPassword());
+        login(util.SITE_URL, "incorrectUserName", util.ADMIN_PASSWORD);
 
         //check if error message appears
         $(By.xpath("/html/body/div[4]/div/div[2]/div[1]/ul/li/div/div/div/span")).shouldHave(text("Invalid username and/or password."));
@@ -54,9 +54,9 @@ public class LoginTest extends BaseTest{
      */
     @Test
     public void loginWithIncorrectPasswordTest(){
-        open(util.getSiteUrl());
+        open(util.SITE_URL);
         //perform login
-        login(util.getSiteUrl(), util.getAdminUserLogin(), "incorrectPassword");
+        login(util.SITE_URL, util.ADMIN_LOGIN, "incorrectPassword");
 
         //check if error message appears
         $(By.xpath("/html/body/div[4]/div/div[2]/div[1]/ul/li/div/div/div/span")).shouldHave(text("Invalid username and/or password."));
@@ -70,12 +70,12 @@ public class LoginTest extends BaseTest{
      */
     public void login(){
         //perform login
-        login(util.getSiteUrl(), util.getAdminUserLogin(), util.getAdminUserPassword());
+        login(util.SITE_URL, util.ADMIN_LOGIN, util.ADMIN_PASSWORD);
     }
 
     public void login(String username, String password){
         //perform login
-        login(util.getSiteUrl(), username, password);
+        login(util.SITE_URL, username, password);
     }
 
     public void login(String siteUrl, String username, String password) {
