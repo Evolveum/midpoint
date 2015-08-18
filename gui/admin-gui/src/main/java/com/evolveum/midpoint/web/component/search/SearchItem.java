@@ -4,10 +4,13 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DisplayableValue;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -87,5 +90,17 @@ public class SearchItem<T extends Serializable> implements Serializable {
 
     public Search getSearch() {
         return search;
+    }
+
+    public List<DisplayableValue> getAllowedValues() {
+        List<DisplayableValue> list = new ArrayList();
+        if (!(definition instanceof PrismPropertyDefinition)) {
+            return list;
+        }
+
+        PrismPropertyDefinition def = (PrismPropertyDefinition) definition;
+        list.addAll(def.getAllowedValues());
+
+        return list;
     }
 }

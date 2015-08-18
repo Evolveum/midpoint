@@ -1,9 +1,6 @@
 package com.evolveum.midpoint.web.component.search;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -58,6 +55,8 @@ public class SearchFactory {
     private static List<ItemDefinition> getAvailableDefinitionsForUser(PrismContext ctx) {
         List<ItemDefinition> list = getAvailableDefinitionsForFocus(ctx);
 
+        list.addAll(createExtensionDefinitionList(UserType.class, ctx));
+
         List<ItemDefinition> user = createAvailableDefinitions(UserType.class, ctx,
                 new ItemPath(UserType.F_GIVEN_NAME),
                 new ItemPath(UserType.F_FAMILY_NAME),
@@ -65,6 +64,27 @@ public class SearchFactory {
                 new ItemPath(UserType.F_ADDITIONAL_NAME),
                 new ItemPath(UserType.F_COST_CENTER));
         list.addAll(user);
+
+        return list;
+    }
+
+    private static <T extends ObjectType> List<ItemDefinition> createExtensionDefinitionList(
+            Class<T> type, PrismContext ctx) {
+
+        List<ItemDefinition> list = new ArrayList<>();
+
+        SchemaRegistry registry = ctx.getSchemaRegistry();
+        PrismObjectDefinition objDef = registry.findObjectDefinitionByCompileTimeClass(type);
+
+        PrismContainerDefinition ext = objDef.findContainerDefinition(ObjectType.F_EXTENSION);
+        for (ItemDefinition def : (List<ItemDefinition>) ext.getDefinitions()) {
+            if (!(def instanceof PrismPropertyDefinition)
+                    && !(def instanceof PrismReferenceDefinition)) {
+                continue;
+            }
+
+            list.add(def);
+        }
 
         return list;
     }

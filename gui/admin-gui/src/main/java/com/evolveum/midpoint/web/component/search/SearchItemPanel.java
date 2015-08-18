@@ -1,5 +1,7 @@
 package com.evolveum.midpoint.web.component.search;
 
+import com.evolveum.midpoint.prism.DisplayableValueImpl;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
@@ -15,6 +17,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -119,20 +122,15 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
         IModel value = new PropertyModel(getModel(), SearchItem.F_VALUE);
         IModel<? extends List> choices = null;
 
-//        todo implement
         switch (item.getType()) {
             case BROWSER:
                 fragment = new BrowserFragment(ID_CONTENT, ID_BROWSER, this, value);
                 break;
             case BOOLEAN:
-                //todo create choices model
+                choices = createBooleanChoices();
             case ENUM:
                 if (choices == null) {
-                    //todo create choices model
-                    List l = new ArrayList();
-                    l.add("a");
-                    l.add("b");
-                    choices = new Model((Serializable) l);
+                    choices = new Model((Serializable) item.getAllowedValues());
                 }
                 fragment = new ComboFragment(ID_CONTENT, ID_COMBO, this, value, choices);
                 break;
@@ -142,6 +140,20 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
         }
 
         return fragment;
+    }
+
+    private IModel<List<DisplayableValue>> createBooleanChoices() {
+        return new AbstractReadOnlyModel<List<DisplayableValue>>() {
+
+            @Override
+            public List<DisplayableValue> getObject() {
+                List<DisplayableValue> list = new ArrayList<>();
+                list.add(new DisplayableValueImpl(Boolean.TRUE, getString("Boolean.TRUE"), null));
+                list.add(new DisplayableValueImpl(Boolean.FALSE, getString("Boolean.FALSE"), null));
+
+                return list;
+            }
+        };
     }
 
     @Override
@@ -226,7 +238,23 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
                              IModel<T> value, IModel<List<T>> choices) {
             super(id, markupId, markupProvider);
 
-            DropDownChoice input = new DropDownChoice(ID_COMBO_INPUT, value, choices);
+            DropDownChoice input = new DropDownChoice(ID_COMBO_INPUT, value, choices,
+                    new IChoiceRenderer<DisplayableValue>() {
+
+                        @Override
+                        public Object getDisplayValue(DisplayableValue object) {
+                            if (object == null) {
+                                return null;
+                            }
+
+                            return object.getLabel();
+                        }
+
+                        @Override
+                        public String getIdValue(DisplayableValue object, int index) {
+                            return Integer.toString(index);
+                        }
+                    });
             add(input);
         }
     }
