@@ -1,7 +1,6 @@
 package com.evolveum.midpoint.testing.selenide.tests;
 
 import com.codeborne.selenide.SelenideElement;
-import com.evolveum.midpoint.testing.selenide.tests.resource.ResourceUtil;
 import org.openqa.selenium.By;
 import org.springframework.stereotype.Component;
 import org.testng.annotations.Test;

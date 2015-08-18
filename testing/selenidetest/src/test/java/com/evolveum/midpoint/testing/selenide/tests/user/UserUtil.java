@@ -55,21 +55,21 @@ public class UserUtil {
 
     /**
      * Prerequirement: user's Edit page is to be opened
-     * @param roleName
+     * Assign the specified roleName role to user
+     * @param linkText          the text of the menu item from the Assignments section menu
+     * @param objectName        the name of the object to be assigned
+     * @param searchButtonXpath xpath of the Search button from Search panel
+     * @param checkboxXpath     xpath of the checkbox which is to be selected
      */
-    public void assignRoleToUser(String roleName){
+    public void assignObjectToUser(String linkText, String objectName, String searchButtonXpath, String checkboxXpath){
         //click on the menu icon next to Assignments section
         $(By.xpath("/html/body/div[4]/div/form/div[3]/div[2]/div[2]/div[1]/div[2]/ul/li/a")).shouldBe(visible).click();
-        //click Assign role menu item
-        $(By.linkText("Assign role")).shouldBe(visible).click();
-        //search for role in the opened Select object(s) window
-        util.searchForElement(roleName, "/html/body/div[6]/form/div/div[2]/div/div/div/div[2]/div/div/div/div/div/div[1]/form[2]/span/a");
-        //check if role is found during the search
-        $(By.xpath("/html/body/div[6]/form/div/div[2]/div/div/div/div[2]/div/div/div/div/div/div[2]/div/table/tbody/tr"))
-                .shouldBe(visible).shouldHave(text(roleName));
-        //select checkbox for the Superuser role
-        $(By.xpath("/html/body/div[6]/form/div/div[2]/div/div/div/div[2]/div/div/div/div/div/div[2]/div/table/tbody/tr/td[1]/div/input"))
-                .shouldBe(visible).click();
+        //click Assign menu item with the specified linkText
+        $(By.linkText(linkText)).shouldBe(visible).click();
+        //search for object by objectName in the opened Select object(s) window
+        util.searchForElement(objectName, searchButtonXpath);
+        //select checkbox for the found object
+        $(By.xpath(checkboxXpath)).shouldBe(visible).click();
         //click Assign button
         $(By.xpath("/html/body/div[6]/form/div/div[2]/div/div/div/div[2]/div/div/div/div/div/p/a"))
                 .shouldBe(visible).click();
@@ -79,7 +79,6 @@ public class UserUtil {
 
         //check if Success message appears after user saving
         $(By.xpath("/html/body/div[4]/div/div[2]/div[1]/ul/li/div/div[1]/div[1]/span")).shouldHave(text("Success"));
-
     }
 
     /**

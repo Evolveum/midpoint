@@ -34,7 +34,7 @@
         </classes>
     </test>
 
-    <test name="Account Tests" parallel="false" preserve-order="true" verbose="10">
+    <test name="Resource-User-Account Tests" parallel="false" preserve-order="true" verbose="10">
         <classes>
             <class name="com.evolveum.midpoint.testing.selenide.tests.account.ResourceUserAccountTests"/>
         </classes>

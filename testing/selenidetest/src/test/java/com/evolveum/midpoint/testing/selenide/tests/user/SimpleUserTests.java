@@ -187,7 +187,7 @@ public class SimpleUserTests extends BaseTest {
      * Attempt to create user with all empty fields
      */
     @Test(alwaysRun = true, priority = 4)
-    public void createUserWithEmptyFields() {
+    public void createUserWithEmptyFieldsTest() {
         close();
         loginTest.login();
         //create user with all empty fields
@@ -202,7 +202,7 @@ public class SimpleUserTests extends BaseTest {
      * Attempt to create user with existing name
      */
     @Test(alwaysRun = true, priority = 5)
-    public void createUserWithExistingName() {
+    public void createUserWithExistingNameTest() {
         close();
         loginTest.login();
         //check if welcome message appears after user logged in
@@ -224,7 +224,7 @@ public class SimpleUserTests extends BaseTest {
     }
 
     @Test(alwaysRun = true, priority = 6)
-    public void deleteUser() {
+    public void deleteUserTest() {
         close();
         loginTest.login();
         //check if welcome message appears after user logged in
