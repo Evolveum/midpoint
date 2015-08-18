@@ -1,1 +1,4 @@
-Èeština pro MidPoint 3.1.1.
+Czech language support for MidPoint
+ÄŒeÅ¡tina pro MidPoint
+
+Contributed by AMI Praha
