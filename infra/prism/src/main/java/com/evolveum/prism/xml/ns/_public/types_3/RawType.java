@@ -117,8 +117,12 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
 	
 	public <V,ID extends ItemDefinition> V getParsedRealValue(ItemDefinition itemDefinition, ItemPath itemPath) throws SchemaException {
         if (parsed == null && xnode != null){
-        	QName itemName = ItemPath.getName(itemPath.lastNamed());
-        	getParsedValue(itemDefinition, itemName);
+        	if (itemDefinition == null){
+        		return PrismUtil.getXnodeProcessor(prismContext).parseAnyValue(xnode);
+        	} else {
+	        	QName itemName = ItemPath.getName(itemPath.lastNamed());
+	        	getParsedValue(itemDefinition, itemName);
+        	}
         } 
         if (parsed != null){
         	if (parsed instanceof PrismPropertyValue){

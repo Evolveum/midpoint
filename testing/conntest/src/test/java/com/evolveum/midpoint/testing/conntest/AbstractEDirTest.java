@@ -61,12 +61,17 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
@@ -81,6 +86,9 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	protected static final File ROLE_PIRATES_FILE = new File(TEST_DIR, "role-pirate.xml");
 	protected static final String ROLE_PIRATES_OID = "5dd034e8-41d2-11e5-a123-001e8c717e5b";
 	
+	protected static final File ROLE_META_ORG_FILE = new File(TEST_DIR, "role-meta-org.xml");
+	protected static final String ROLE_META_ORG_OID = "f2ad0ace-45d7-11e5-af54-001e8c717e5b";
+	
 	public static final String ATTRIBUTE_LOCKOUT_LOCKED_NAME = "lockedByIntruder";
 	public static final String ATTRIBUTE_LOCKOUT_RESET_TIME_NAME = "loginIntruderResetTime";
 	public static final String ATTRIBUTE_GROUP_MEMBERSHIP_NAME = "groupMembership";
@@ -91,6 +99,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	protected static final String ACCOUNT_JACK_PASSWORD = "qwe123";
 	
 	private static final String GROUP_PIRATES_NAME = "pirates";
+	private static final String GROUP_MELEE_ISLAND_NAME = "Mêlée Island";
 	
 	protected static final int NUMBER_OF_ACCOUNTS = 4;
 	protected static final int LOCKOUT_EXPIRATION_SECONDS = 65;
@@ -100,7 +109,8 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	protected String groupPiratesOid;
 	protected long jackLockoutTimestamp;
 	private String accountBarbossaOid;
-
+	private String orgMeleeIslandOid;
+	protected String groupMeleeOid;
 	
 	@Override
 	public String getStartSystemCommand() {
@@ -178,6 +188,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 		
 		// Roles
 		repoAddObjectFromFile(ROLE_PIRATES_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_META_ORG_FILE, RoleType.class, initResult);
 		
 	}
 	
@@ -188,6 +199,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 		cleanupDelete(toDn(USER_BARBOSSA_USERNAME));
 		cleanupDelete(toDn(USER_CPTBARBOSSA_USERNAME));
 		cleanupDelete(toDn(USER_GUYBRUSH_USERNAME));
+		cleanupDelete(toGroupDn("Mêlée Island"));
 	}
 
 	@Test
@@ -608,6 +620,73 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	}
 	
 	// TODO: create account with a group membership
+	
+	@Test
+    public void test500AddOrgMeleeIsland() throws Exception {
+		final String TEST_NAME = "test500AddOrgMeleeIsland";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<OrgType> org = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(OrgType.class).instantiate();
+        OrgType orgType = org.asObjectable();
+        orgType.setName(new PolyStringType(GROUP_MELEE_ISLAND_NAME));
+        AssignmentType metaroleAssignment = new AssignmentType();
+        ObjectReferenceType metaroleRef = new ObjectReferenceType();
+        metaroleRef.setOid(ROLE_META_ORG_OID);
+        metaroleRef.setType(RoleType.COMPLEX_TYPE);
+		metaroleAssignment.setTargetRef(metaroleRef);
+		orgType.getAssignment().add(metaroleAssignment);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        addObject(org, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        orgMeleeIslandOid = org.getOid();
+        Entry entry = assertLdapGroup(GROUP_MELEE_ISLAND_NAME);
+        
+        org = getObject(OrgType.class, orgMeleeIslandOid);
+        groupMeleeOid = getSingleLinkOid(org);
+        PrismObject<ShadowType> shadow = getShadowModel(groupMeleeOid);
+        display("Shadow (model)", shadow);
+	}
+	
+	@Test
+    public void test510AssignGuybrushMeleeIsland() throws Exception {
+		final String TEST_NAME = "test510AssignGuybrushMeleeIsland";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignOrg(USER_GUYBRUSH_OID, orgMeleeIslandOid, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        Entry entry = assertLdapAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME);
+        
+        PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
+        String shadowOid = getSingleLinkOid(user);
+        PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
+        display("Shadow (model)", shadow);
+        
+        assertEDirGroupMember(entry, GROUP_PIRATES_NAME);
+
+        IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupMeleeOid);
+	}
 	
 	// Wait until the lockout of Jack expires, check status
 	@Test
