@@ -61,30 +61,10 @@ public class SuperUserTests extends BaseTest {
         $(By.name("userForm:body:containers:7:container:properties:0:property:values:0:value:valueContainer:input:password1"))
                 .shouldBe(visible).setValue(USER_PASSWORD);
 
+        //assign Superuser role to user
+        userUtil.assignRoleToUser(SUPER_ROLE_NAME);
 
-        //click on the menu icon next to Assignments section
-        $(By.xpath("/html/body/div[4]/div/form/div[3]/div[2]/div[2]/div[1]/div[2]/ul/li/a")).shouldBe(visible).click();
-        //click Assign role menu item
-        $(By.linkText("Assign role")).shouldBe(visible).click();
-        //search for Superuser role in the opened Select object(s) window
-        util.searchForElement(SUPER_ROLE_NAME, "/html/body/div[6]/form/div/div[2]/div/div/div/div[2]/div/div/div/div/div/div[1]/form[2]/span/a");
-        //check if Superuser role is found during the search
-        $(By.xpath("/html/body/div[6]/form/div/div[2]/div/div/div/div[2]/div/div/div/div/div/div[2]/div/table/tbody/tr"))
-                .shouldBe(visible).shouldHave(text(SUPER_ROLE_NAME));
-        //select checkbox for the Superuser role
-        $(By.xpath("/html/body/div[6]/form/div/div[2]/div/div/div/div[2]/div/div/div/div/div/div[2]/div/table/tbody/tr/td[1]/div/input"))
-                .shouldBe(visible).click();
-        //click Assign button
-        $(By.xpath("/html/body/div[6]/form/div/div[2]/div/div/div/div[2]/div/div/div/div/div/p/a"))
-                .shouldBe(visible).click();
-
-        //click Save button
-        $(By.xpath("/html/body/div[4]/div/form/div[6]/a[2]")).shouldHave(text("Save")).click();
-
-        //check if Success message appears after user saving
-        $(By.xpath("/html/body/div[4]/div/div[2]/div[1]/ul/li/div/div[1]/div[1]/span")).shouldHave(text("Success"));
-
-        //search for the created user in users list
+        //search for the user in users list
         util.searchForElement(SUPER_USER_NAME, "/html/body/div[4]/div/div[4]/form/span/a");
         //click on the found user link
         $(By.xpath("/html/body/div[4]/div/form/div[2]/table/tbody/tr/td[3]/div/a/span"))
@@ -134,11 +114,8 @@ public class SuperUserTests extends BaseTest {
         $(By.xpath("/html/body/div[4]/div/div[2]/div[1]/ul/li/div/div[1]/div[2]/ul/li/div/span"))
                 .shouldBe(visible).shouldHave(text("Disable users (Gui)"));
 
-        //click administrator menu in the upper right corner of the window
-        $(By.xpath("/html/body/div[3]/div/div[2]/ul[2]/li/a"))
-                .shouldBe(visible).click();
-        //click on Log out menu item
-        $(By.linkText("Log out")).shouldBe(visible).click();
+        //log out
+        util.logout();
 
         //try to log in to the system with disabled super user
         loginTest.login(SUPER_USER_NAME, USER_PASSWORD);
@@ -175,11 +152,8 @@ public class SuperUserTests extends BaseTest {
         $(By.xpath("/html/body/div[4]/div/div[2]/div[1]/ul/li/div/div[1]/div[2]/ul/li/div/span"))
                 .shouldBe(visible).shouldHave(text("Enable users (Gui)"));
 
-        //click administrator menu in the upper right corner of the window
-        $(By.xpath("/html/body/div[3]/div/div[2]/ul[2]/li/a"))
-                .shouldBe(visible).click();
-        //click on Log out menu item
-        $(By.linkText("Log out")).shouldBe(visible).click();
+        //log out
+        util.logout();
 
         //log in to the system after super user was enabled
         loginTest.login(SUPER_USER_NAME, USER_PASSWORD);
