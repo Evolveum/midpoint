@@ -399,7 +399,7 @@ public class PrismBeanConverter {
 			}
 
 			
-			if (Object.class.equals(paramType) && !storeAsRawType) {
+			if (!(xsubnode instanceof ListXNode) && Object.class.equals(paramType) && !storeAsRawType) {
 				throw new IllegalArgumentException("Object property (without @Raw) not supported in field "+fieldName+" in "+beanClass);
 			}
 
