@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -119,10 +119,10 @@ public abstract class ValueFilter<T extends PrismValue> extends ObjectFilter {
 
 	}
 	
-	static ItemDefinition findItemDefinition(ItemPath parentPath, PrismContainerDefinition<? extends Containerable> containerDef) {
-		ItemDefinition itemDef = containerDef.findItemDefinition(parentPath);
+	static ItemDefinition findItemDefinition(ItemPath itemPath, PrismContainerDefinition<? extends Containerable> containerDef) {
+		ItemDefinition itemDef = containerDef.findItemDefinition(itemPath);
 		if (itemDef == null) {
-			throw new IllegalStateException("No definition for item " + parentPath + " in container definition "
+			throw new IllegalStateException("No definition for item " + itemPath + " in container definition "
 					+ containerDef);
 		}
 

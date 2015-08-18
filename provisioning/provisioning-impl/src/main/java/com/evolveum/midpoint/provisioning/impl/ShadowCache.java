@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Item;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.identityconnectors.framework.spi.operations.CreateOp;
@@ -569,7 +570,7 @@ public abstract class ShadowCache {
 				    }
                     shadow = shadowTypeWhenNoOid.asPrismObject();
                 } else {
-				    shadow = repositoryService.getObject(delta.getObjectTypeClass(), shadowOid, null, parentResult);
+				    shadow = repositoryService.getObject(delta.getObjectTypeClass(), shadowOid, null, parentResult);	// TODO consider fetching only when really necessary
                 }
 			}
 		} else {
@@ -1444,16 +1445,57 @@ public abstract class ShadowCache {
 			applyAttributesDefinition(ctx, delta.getObjectToAdd());
 		} else if (delta.isModify()) {
 			for(ItemDelta<?,?> itemDelta: delta.getModifications()) {
-				applyAttributeDefinition(ctx, delta, itemDelta);
+				if (SchemaConstants.PATH_ATTRIBUTES.equivalent(itemDelta.getParentPath())) {
+					applyAttributeDefinition(ctx, delta, itemDelta);
+				} else if (SchemaConstants.PATH_ATTRIBUTES.equivalent(itemDelta.getPath())) {
+					if (itemDelta.isAdd()) {
+						for (PrismValue value : itemDelta.getValuesToAdd()) {
+							applyAttributeDefinition(ctx, value);
+						}
+					}
+					if (itemDelta.isReplace()) {
+						for (PrismValue value : itemDelta.getValuesToReplace()) {
+							applyAttributeDefinition(ctx, value);
+						}
+					}
+				}
 			}
-				
 		}
 	}
-	
+
+	// value should be a value of attributes container
+	private void applyAttributeDefinition(ProvisioningContext ctx, PrismValue value)
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+		if (!(value instanceof PrismContainerValue)) {
+			return;		// should never occur
+		}
+		PrismContainerValue<ShadowAttributesType> pcv = (PrismContainerValue<ShadowAttributesType>) value;
+		for (Item item: pcv.getItems()) {
+			ItemDefinition itemDef = item.getDefinition();
+			if (itemDef == null || !(itemDef instanceof ResourceAttributeDefinition)) {
+				QName attributeName = item.getElementName();
+				ResourceAttributeDefinition attributeDefinition = ctx.getObjectClassDefinition().findAttributeDefinition(attributeName);
+				if (attributeDefinition == null) {
+					throw new SchemaException("No definition for attribute " + attributeName);
+				}
+				if (itemDef != null) {
+					// We are going to rewrite the definition anyway. Let's just do some basic checks first
+					if (!QNameUtil.match(itemDef.getTypeName(), attributeDefinition.getTypeName())) {
+						throw new SchemaException("The value of type " + itemDef.getTypeName() + " cannot be applied to attribute " + attributeName + " which is of type " + attributeDefinition.getTypeName());
+					}
+				}
+				item.applyDefinition(attributeDefinition);
+			}
+		}
+	}
+
 	private <V extends PrismValue, D extends ItemDefinition> void applyAttributeDefinition(ProvisioningContext ctx, 
 			ObjectDelta<ShadowType> delta, ItemDelta<V, D> itemDelta) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+		if (!SchemaConstants.PATH_ATTRIBUTES.equivalent(itemDelta.getParentPath())) {		// just to be sure
+			return;
+		}
 		D itemDef = itemDelta.getDefinition();
-		if ((itemDef == null || !(itemDef instanceof ResourceAttributeDefinition)) && SchemaConstants.PATH_ATTRIBUTES.equivalent(itemDelta.getParentPath())) {
+		if (itemDef == null || !(itemDef instanceof ResourceAttributeDefinition)) {
 			QName attributeName = itemDelta.getElementName();
 			ResourceAttributeDefinition attributeDefinition = ctx.getObjectClassDefinition().findAttributeDefinition(attributeName);
 			if (attributeDefinition == null) {

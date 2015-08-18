@@ -127,8 +127,13 @@ public class TestDummyNoActivation extends TestDummy {
 	}
 	
 	@Override
-	public void test151ActivationStatusUndefinedAccount() throws Exception {
-		final String TEST_NAME = "test151EnableAccount";
+	public void test151SearchDisabledAccounts() throws Exception {
+		// N/A
+	}
+
+	@Override
+	public void test152ActivationStatusUndefinedAccount() throws Exception {
+		final String TEST_NAME = "test152ActivationStatusUndefinedAccount";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 
@@ -171,8 +176,8 @@ public class TestDummyNoActivation extends TestDummy {
 	
 	@Test
 	@Override
-	public void test151EnableAccount() throws Exception {
-		final String TEST_NAME = "test151EnableAccount";
+	public void test154EnableAccount() throws Exception {
+		final String TEST_NAME = "test154EnableAccount";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 
@@ -213,10 +218,15 @@ public class TestDummyNoActivation extends TestDummy {
 		assertSteadyResource();
 	}
 	
+	@Override
+	public void test155SearchDisabledAccounts() throws Exception {
+		// N/A
+	}
+
 	@Test
 	@Override
-	public void test152SetValidFrom() throws Exception {
-		final String TEST_NAME = "test152SetValidFrom";
+	public void test156SetValidFrom() throws Exception {
+		final String TEST_NAME = "test156SetValidFrom";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 
@@ -261,8 +271,8 @@ public class TestDummyNoActivation extends TestDummy {
 	
 	@Test
 	@Override
-	public void test153SetValidTo() throws Exception {
-		final String TEST_NAME = "test153SetValidTo";
+	public void test157SetValidTo() throws Exception {
+		final String TEST_NAME = "test157SetValidTo";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 
@@ -306,8 +316,8 @@ public class TestDummyNoActivation extends TestDummy {
 	}
 	
 	@Override
-	public void test154DeleteValidToValidFrom() throws Exception {
-		final String TEST_NAME = "test153SetValidTo";
+	public void test158DeleteValidToValidFrom() throws Exception {
+		final String TEST_NAME = "test158DeleteValidToValidFrom";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 
@@ -356,14 +366,19 @@ public class TestDummyNoActivation extends TestDummy {
 	
 	@Test
 	@Override
-	public void test155GetLockedoutAccount() throws Exception {
+	public void test159GetLockedoutAccount() throws Exception {
 		// Not relevant
 	}
 	
+	@Override
+	public void test160SearchLockedAccounts() throws Exception {
+		// N/A
+	}
+
 	@Test
 	@Override
-	public void test156UnlockAccount() throws Exception {
-		final String TEST_NAME = "test156UnlockAccount";
+	public void test162UnlockAccount() throws Exception {
+		final String TEST_NAME = "test162UnlockAccount";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 

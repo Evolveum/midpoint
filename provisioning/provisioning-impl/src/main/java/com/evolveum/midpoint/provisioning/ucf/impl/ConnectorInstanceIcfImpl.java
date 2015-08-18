@@ -1308,6 +1308,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				attributes.add(AttributeBuilder.build(OperationalAttributes.DISABLE_DATE_NAME, XmlTypeConverter.toMillis(shadowType.getActivation().getValidTo())));
 			}
 			
+			if (ActivationUtil.hasLockoutStatus(shadowType)){
+				attributes.add(AttributeBuilder.build(OperationalAttributes.LOCK_OUT_NAME, ActivationUtil.isLockedOut(shadowType)));
+			}
+			
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("ICF attributes after conversion:\n{}", IcfUtil.dump(attributes));
 			}

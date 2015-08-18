@@ -5,8 +5,10 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskHandler;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import java.text.ParseException;
@@ -38,7 +40,7 @@ public interface TaskService {
      * @param parentResult
      * @return true if all the tasks were stopped, false if some tasks continue to run or if stopping was not requested (DO_NOT_STOP option)
      */
-    boolean suspendTasks(Collection<String> taskOids, long waitForStop, OperationResult parentResult);
+    boolean suspendTasks(Collection<String> taskOids, long waitForStop, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException;
 
     /**
      * Suspends tasks and deletes them.
@@ -51,7 +53,7 @@ public interface TaskService {
      * @param alsoSubtasks Should also subtasks be deleted?
      * @param parentResult
      */
-    void suspendAndDeleteTasks(Collection<String> taskOids, long waitForStop, boolean alsoSubtasks, OperationResult parentResult);
+    void suspendAndDeleteTasks(Collection<String> taskOids, long waitForStop, boolean alsoSubtasks, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException;
 
     /**
      * Resume suspended tasks.
@@ -60,7 +62,7 @@ public interface TaskService {
      * @throws SchemaException
      * @throws com.evolveum.midpoint.util.exception.ObjectNotFoundException
      */
-    void resumeTasks(Collection<String> taskOids, OperationResult parentResult);
+    void resumeTasks(Collection<String> taskOids, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException;
 
     /**
      * Schedules a RUNNABLE/CLOSED tasks to be run immediately. (If a task will really start immediately,
@@ -69,7 +71,7 @@ public interface TaskService {
      * @param taskOids a collection of OIDs of tasks that have to be scheduled
      * @param parentResult
      */
-    void scheduleTasksNow(Collection<String> taskOids, OperationResult parentResult);
+    void scheduleTasksNow(Collection<String> taskOids, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException;
 
     /**
      * Returns information about task, given its identifier.
@@ -78,7 +80,7 @@ public interface TaskService {
      * @param parentResult
      * @return
      */
-    PrismObject<TaskType> getTaskByIdentifier(String identifier, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
+    PrismObject<TaskType> getTaskByIdentifier(String identifier, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException;
     //endregion
 
     //region Node-level operations
@@ -97,12 +99,12 @@ public interface TaskService {
      *  timeToWait is only for orientation = it may be so that the implementation would wait 2 or 3 times this value
      *  (if it waits separately for several threads completion)
      */
-    boolean deactivateServiceThreads(long timeToWait, OperationResult parentResult);
+    boolean deactivateServiceThreads(long timeToWait, OperationResult parentResult) throws SchemaException, SecurityViolationException;
 
     /**
      * Re-activates the service threads after they have been deactivated.
      */
-    void reactivateServiceThreads(OperationResult parentResult);
+    void reactivateServiceThreads(OperationResult parentResult) throws SchemaException, SecurityViolationException;
 
     /**
      * Returns true if the service threads are running.
@@ -118,7 +120,7 @@ public interface TaskService {
      *
      * @param nodeIdentifiers Nodes on which the schedulers should be stopped.
      */
-    void stopSchedulers(Collection<String> nodeIdentifiers, OperationResult parentResult);
+    void stopSchedulers(Collection<String> nodeIdentifiers, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException;
 
     /**
      * Stops a set of schedulers (on their nodes) and tasks that are executing on these nodes.
@@ -130,7 +132,7 @@ public interface TaskService {
      * @param parentResult
      * @return
      */
-    boolean stopSchedulersAndTasks(Collection<String> nodeIdentifiers, long waitTime, OperationResult parentResult);
+    boolean stopSchedulersAndTasks(Collection<String> nodeIdentifiers, long waitTime, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException;
 
     /**
      * Starts the scheduler on a given nodes. A prerequisite is that nodes are running and their
@@ -139,7 +141,7 @@ public interface TaskService {
      * @param nodeIdentifiers Nodes on which the scheduler should be started.
      * @return true if the operation succeeded; false otherwise.
      */
-    void startSchedulers(Collection<String> nodeIdentifiers, OperationResult result);
+    void startSchedulers(Collection<String> nodeIdentifiers, OperationResult result) throws SecurityViolationException, ObjectNotFoundException, SchemaException;
     //endregion
 
     //region Miscellaneous
@@ -149,7 +151,7 @@ public interface TaskService {
      *
      * @param parentResult
      */
-    void synchronizeTasks(OperationResult parentResult);
+    void synchronizeTasks(OperationResult parentResult) throws SchemaException, SecurityViolationException;
 
     /**
      * Gets a list of all task categories.

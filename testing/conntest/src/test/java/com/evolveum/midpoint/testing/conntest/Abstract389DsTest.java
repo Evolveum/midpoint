@@ -85,7 +85,7 @@ public abstract class Abstract389DsTest extends AbstractLdapConnTest {
 	}
 	
 	@Override
-	public String getAttributeEntryIdName() {
+	public String getPrimaryIdentifierAttributeName() {
 		return "nsUniqueId";
 	}
 	

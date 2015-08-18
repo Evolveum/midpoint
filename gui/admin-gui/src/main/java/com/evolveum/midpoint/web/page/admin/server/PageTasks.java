@@ -23,6 +23,9 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -809,8 +812,8 @@ public class PageTasks extends PageAdminTasks {
                     result.recordWarning("Task(s) suspension has been successfully requested; please check for its completion using task list.");
                 }
             }
-        } catch (RuntimeException e) {
-            result.recordFatalError("Couldn't suspend the task(s) due to an unexpected exception", e);
+        } catch (ObjectNotFoundException|SchemaException|SecurityViolationException|RuntimeException e) {
+            result.recordFatalError("Couldn't suspend the task(s)", e);
         }
         showResult(result);
 
@@ -833,8 +836,8 @@ public class PageTasks extends PageAdminTasks {
             if (result.isSuccess()) {
                 result.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully resumed.");
             }
-        } catch (RuntimeException e) {
-            result.recordFatalError("Couldn't resume the task(s) due to an unexpected exception", e);
+        } catch (ObjectNotFoundException|SchemaException|SecurityViolationException|RuntimeException e) {
+            result.recordFatalError("Couldn't resume the task(s)", e);
         }
         showResult(result);
 
@@ -857,8 +860,8 @@ public class PageTasks extends PageAdminTasks {
             if (result.isSuccess()) {
                 result.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully deleted.");
             }
-        } catch (RuntimeException e) {
-            result.recordFatalError("Couldn't delete the task(s) because of an unexpected exception", e);
+        } catch (ObjectNotFoundException|SchemaException|SecurityViolationException|RuntimeException e) {
+            result.recordFatalError("Couldn't delete the task(s)", e);
         }
         showResult(result);
 
@@ -884,8 +887,8 @@ public class PageTasks extends PageAdminTasks {
             if (result.isSuccess()) {
                 result.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully scheduled.");
             }
-        } catch (RuntimeException e) {
-            result.recordFatalError("Couldn't schedule the task(s) due to an unexpected exception.", e);
+        } catch (ObjectNotFoundException|SchemaException|SecurityViolationException|RuntimeException e) {
+            result.recordFatalError("Couldn't schedule the task(s)", e);
         }
         showResult(result);
 
@@ -918,8 +921,8 @@ public class PageTasks extends PageAdminTasks {
                     result.recordWarning("Selected node scheduler(s) have been successfully paused; however, some of the tasks they were executing are still running on them. Please check their completion using task list.");
                 }
             }
-        } catch (RuntimeException e) {
-            result.recordFatalError("Couldn't stop schedulers due to an unexpected exception.", e);
+        } catch (SecurityViolationException|ObjectNotFoundException|SchemaException|RuntimeException e) {
+            result.recordFatalError("Couldn't stop schedulers due", e);
         }
         showResult(result);
 
@@ -942,8 +945,8 @@ public class PageTasks extends PageAdminTasks {
             if (result.isSuccess()) {
                 result.recordStatus(OperationResultStatus.SUCCESS, "Selected node scheduler(s) have been successfully started.");
             }
-        } catch (RuntimeException e) {
-            result.recordFatalError("Couldn't start the scheduler(s) because of unexpected exception.", e);
+        } catch (SecurityViolationException|ObjectNotFoundException|SchemaException|RuntimeException e) {
+            result.recordFatalError("Couldn't start the scheduler(s)", e);
         }
 
         showResult(result);
@@ -967,8 +970,8 @@ public class PageTasks extends PageAdminTasks {
             if (result.isSuccess()) {
                 result.recordStatus(OperationResultStatus.SUCCESS, "Selected node scheduler(s) have been successfully stopped.");
             }
-        } catch (RuntimeException e) {
-            result.recordFatalError("Couldn't stop the scheduler(s) because of unexpected exception.", e);
+        } catch (SecurityViolationException|ObjectNotFoundException|SchemaException|RuntimeException e) {
+            result.recordFatalError("Couldn't stop the scheduler(s)", e);
         }
         showResult(result);
 
@@ -989,7 +992,7 @@ public class PageTasks extends PageAdminTasks {
         Task task = createSimpleTask(OPERATION_DELETE_NODES);
 
         for (NodeDto nodeDto : nodeDtoList) {
-            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
             deltas.add(ObjectDelta.createDeleteDelta(NodeType.class, nodeDto.getOid(), getPrismContext()));
             try {
                 getModelService().executeChanges(deltas, null, task, result);
@@ -1028,8 +1031,8 @@ public class PageTasks extends PageAdminTasks {
                     result.recordWarning("Deactivation of service threads on local node have been successfully requested; however, some of the tasks are still running. Please check their completion using task list.");
                 }
             }
-        } catch (RuntimeException e) {
-            result.recordFatalError("Couldn't deactivate service threads on this node because of an unexpected exception.", e);
+        } catch (RuntimeException|SchemaException|SecurityViolationException e) {
+            result.recordFatalError("Couldn't deactivate service threads on this node", e);
         }
         showResult(result);
 
@@ -1048,8 +1051,8 @@ public class PageTasks extends PageAdminTasks {
             if (result.isSuccess()) {
                 result.recordStatus(OperationResultStatus.SUCCESS, "Service threads on local node have been successfully reactivated.");
             }
-        } catch (RuntimeException e) {
-            result.recordFatalError("Couldn't reactivate service threads on local node because of an unexpected exception.", e);
+        } catch (RuntimeException|SchemaException|SecurityViolationException e) {
+            result.recordFatalError("Couldn't reactivate service threads on local node", e);
         }
         showResult(result);
 
@@ -1068,8 +1071,8 @@ public class PageTasks extends PageAdminTasks {
             if (result.isSuccess()) {       // brutal hack - the subresult's message contains statistics
                 result.recordStatus(OperationResultStatus.SUCCESS, result.getLastSubresult().getMessage());
             }
-        } catch (RuntimeException e) {
-            result.recordFatalError("Couldn't synchronize tasks because of an unexpected exception.", e);
+        } catch (RuntimeException|SchemaException|SecurityViolationException e) {
+            result.recordFatalError("Couldn't synchronize tasks", e);
         }
         showResult(result);
 
@@ -1122,7 +1125,7 @@ public class PageTasks extends PageAdminTasks {
 
         ObjectQuery query = null;
         try {
-            List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
+            List<ObjectFilter> filters = new ArrayList<>();
             if (status != null) {
                 ObjectFilter filter = status.createFilter(TaskType.class, getPrismContext());
                 if (filter != null) {

@@ -828,6 +828,7 @@
 								</property>
             				</properties>
                             <systemPropertyVariables>
+                            	<javax.net.ssl.trustStore>src/test/resources/truststore.jks</javax.net.ssl.trustStore>
                                 <midpoint.home>target/midpoint-home</midpoint.home>
                                 <java.util.logging.config.file>${project.build.directory}/test-classes/logging.properties</java.util.logging.config.file>
                             </systemPropertyVariables>

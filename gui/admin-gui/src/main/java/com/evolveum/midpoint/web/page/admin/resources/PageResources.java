@@ -104,7 +104,7 @@ public class PageResources extends PageAdminResources {
     private static final String OPERATION_DELETE_HOSTS = DOT_CLASS + "deleteHosts";
     private static final String OPERATION_CONNECTOR_DISCOVERY = DOT_CLASS + "connectorDiscovery";
 
-    private static final String ID_BASIC_SEARCH = "basichSearch";
+    private static final String ID_BASIC_SEARCH = "basicSearch";
     private static final String ID_SEARCH_FORM = "searchForm";
     private static final String ID_DELETE_RESOURCES_POPUP = "deleteResourcesPopup";
     private static final String ID_DELETE_HOSTS_POPUP = "deleteHostsPopup";

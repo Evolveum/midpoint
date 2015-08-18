@@ -535,16 +535,21 @@ public class ModelRestService {
 		
 		Response response;
 		Collection<String> taskOids = MiscUtil.createCollection(taskOid);
-        boolean suspended = model.suspendTasks(taskOids, WAIT_FOR_TASK_STOP, parentResult);
-        
-        parentResult.computeStatus();
-        
-        if (parentResult.isSuccess()){
-        	response = Response.noContent().build();
-        } else {
-        	response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
-        }
-        
+		try {
+			model.suspendTasks(taskOids, WAIT_FOR_TASK_STOP, parentResult);
+			parentResult.computeStatus();
+			if (parentResult.isSuccess()){
+				response = Response.noContent().build();
+			} else {
+				response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
+			}
+		} catch (ObjectNotFoundException e) {
+			response = Response.status(Status.NOT_FOUND).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
+		} catch (SchemaException e) {
+			response = Response.status(Status.CONFLICT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
+		} catch (SecurityViolationException e) {
+			response = Response.status(Status.FORBIDDEN).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
+		}
 		auditLogout(task);
 		return response;
     }
@@ -558,14 +563,22 @@ public class ModelRestService {
 		
 		Response response;
 		Collection<String> taskOids = MiscUtil.createCollection(taskOid);
-        model.suspendAndDeleteTasks(taskOids, WAIT_FOR_TASK_STOP, true, parentResult);
-        
-        parentResult.computeStatus();
-        if (parentResult.isSuccess()){
-        	response = Response.accepted().build();
-        } else {
-        	response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
-        }
+		try {
+			model.suspendAndDeleteTasks(taskOids, WAIT_FOR_TASK_STOP, true, parentResult);
+
+			parentResult.computeStatus();
+			if (parentResult.isSuccess()) {
+				response = Response.accepted().build();
+			} else {
+				response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
+			}
+		} catch (ObjectNotFoundException e) {
+			response = Response.status(Status.NOT_FOUND).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
+		} catch (SchemaException e) {
+			response = Response.status(Status.CONFLICT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
+		} catch (SecurityViolationException e) {
+			response = Response.status(Status.FORBIDDEN).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
+		}
         
 		auditLogout(task);
 		return response;
@@ -581,16 +594,23 @@ public class ModelRestService {
 
 		Response response;
 		Collection<String> taskOids = MiscUtil.createCollection(taskOid);
-        model.resumeTasks(taskOids, parentResult);
-        
-        parentResult.computeStatus();
-        
-        if (parentResult.isSuccess()){
-        	response = Response.accepted().build();
-        } else {
-        	response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
-        }
-        
+		try {
+			model.resumeTasks(taskOids, parentResult);
+
+			parentResult.computeStatus();
+
+			if (parentResult.isSuccess()) {
+				response = Response.accepted().build();
+			} else {
+				response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
+			}
+		} catch (ObjectNotFoundException e) {
+			response = Response.status(Status.NOT_FOUND).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
+		} catch (SchemaException e) {
+			response = Response.status(Status.CONFLICT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
+		} catch (SecurityViolationException e) {
+			response = Response.status(Status.FORBIDDEN).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
+		}
 		auditLogout(task);
 		return response;
     }
@@ -598,70 +618,74 @@ public class ModelRestService {
 
 	@POST
 	@Path("tasks/{oid}/run")
-    public Response scheduleTasksNow(@PathParam("oid") String taskOid) {
-		OperationResult parentResult = new OperationResult("suspend task.");
+    public Response scheduleTasksNow(@PathParam("oid") String taskOid, @Context MessageContext mc) {
+		Task task = taskManager.createTaskInstance("scheduleTasksNow");
+		initRequest(task, mc);
+		OperationResult parentResult = task.getResult();
 		Collection<String> taskOids = MiscUtil.createCollection(taskOid);
-    
-        model.scheduleTasksNow(taskOids, parentResult);
-        
-        parentResult.computeStatus();
-        
-        if (parentResult.isSuccess()){
-        	return Response.accepted().build();
-        } 
-        
-        return Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
-        
-        
+
+		Response response;
+		try {
+			model.scheduleTasksNow(taskOids, parentResult);
+
+			parentResult.computeStatus();
+
+			if (parentResult.isSuccess()) {
+				response = Response.accepted().build();
+			} else {
+				response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
+			}
+		} catch (ObjectNotFoundException e) {
+			response = Response.status(Status.NOT_FOUND).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
+		} catch (SchemaException e) {
+			response = Response.status(Status.CONFLICT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
+		} catch (SecurityViolationException e) {
+			response = Response.status(Status.FORBIDDEN).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
+		}
+
+		auditLogout(task);
+		return response;
     }
 	
 //    @GET
 //    @Path("tasks/{oid}")
-    public Response getTaskByIdentifier(@PathParam("oid") String identifier) throws SchemaException, ObjectNotFoundException {
-    	OperationResult parentResult = new OperationResult("suspend task.");
-        PrismObject<TaskType> task = model.getTaskByIdentifier(identifier, null, parentResult);
-        
-        return Response.ok(task).build();
-    }
+//    public Response getTaskByIdentifier(@PathParam("oid") String identifier) throws SchemaException, ObjectNotFoundException {
+//    	OperationResult parentResult = new OperationResult("getTaskByIdentifier");
+//        PrismObject<TaskType> task = model.getTaskByIdentifier(identifier, null, parentResult);
+//
+//        return Response.ok(task).build();
+//    }
+//
+//
+//    public boolean deactivateServiceThreads(long timeToWait, OperationResult parentResult) {
+//        return model.deactivateServiceThreads(timeToWait, parentResult);
+//    }
+//
+//    public void reactivateServiceThreads(OperationResult parentResult) {
+//        model.reactivateServiceThreads(parentResult);
+//    }
+//
+//    public boolean getServiceThreadsActivationState() {
+//        return model.getServiceThreadsActivationState();
+//    }
+//
+//    public void stopSchedulers(Collection<String> nodeIdentifiers, OperationResult parentResult) {
+//        model.stopSchedulers(nodeIdentifiers, parentResult);
+//    }
+//
+//    public boolean stopSchedulersAndTasks(Collection<String> nodeIdentifiers, long waitTime, OperationResult parentResult) {
+//        return model.stopSchedulersAndTasks(nodeIdentifiers, waitTime, parentResult);
+//    }
+//
+//    public void startSchedulers(Collection<String> nodeIdentifiers, OperationResult parentResult) {
+//        model.startSchedulers(nodeIdentifiers, parentResult);
+//    }
+//
+//    public void synchronizeTasks(OperationResult parentResult) {
+//    	model.synchronizeTasks(parentResult);
+//    }
 
-    
-    public boolean deactivateServiceThreads(long timeToWait, OperationResult parentResult) {
-        return model.deactivateServiceThreads(timeToWait, parentResult);
-    }
 
-    public void reactivateServiceThreads(OperationResult parentResult) {
-        model.reactivateServiceThreads(parentResult);
-    }
-
-    public boolean getServiceThreadsActivationState() {
-        return model.getServiceThreadsActivationState();
-    }
-
-    public void stopSchedulers(Collection<String> nodeIdentifiers, OperationResult parentResult) {
-        model.stopSchedulers(nodeIdentifiers, parentResult);
-    }
-
-    public boolean stopSchedulersAndTasks(Collection<String> nodeIdentifiers, long waitTime, OperationResult parentResult) {
-        return model.stopSchedulersAndTasks(nodeIdentifiers, waitTime, parentResult);
-    }
-
-    public void startSchedulers(Collection<String> nodeIdentifiers, OperationResult parentResult) {
-        model.startSchedulers(nodeIdentifiers, parentResult);
-    }
-
-    public void synchronizeTasks(OperationResult parentResult) {
-    	model.synchronizeTasks(parentResult);
-    }
-
-    public List<String> getAllTaskCategories() {
-        return model.getAllTaskCategories();
-    }
-
-    public String getHandlerUriForCategory(String category) {
-        return model.getHandlerUriForCategory(category);
-    }
-	
-    
     private ModelExecuteOptions getOptions(UriInfo uriInfo){
     	List<String> options = uriInfo.getQueryParameters().get(OPTIONS);
 		return ModelExecuteOptions.fromRestOptions(options);
