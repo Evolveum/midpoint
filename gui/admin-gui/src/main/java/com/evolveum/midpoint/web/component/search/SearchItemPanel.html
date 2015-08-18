@@ -29,7 +29,7 @@
     <div wicket:id="popover" class="popover fade bottom in">
         <div class="arrow"></div>
         <div class="popover-content">
-            <input wicket:id="text" type="text" class="form-control input-sm" style="width: auto;" size="25">
+            <div wicket:id="content"/>
 
             <p style="margin: 0px; padding-top: 7px;">
                 <a wicket:id="update" class="btn btn-sm btn-success"/>
@@ -38,6 +38,26 @@
         </div>
     </div>
 </wicket:panel>
+
+<wicket:fragment wicket:id="text">
+    <input wicket:id="textInput" type="text" class="form-control input-sm" style="width: auto;" size="20">
+</wicket:fragment>
+
+<wicket:fragment wicket:id="combo">
+    <select wicket:id="comboInput" class="form-control input-sm" style="width: auto;"/>
+</wicket:fragment>
+
+<!--<wicket:fragment wicket:id="browser">-->
+    <!--<div class="form-group"></div>-->
+    <!--<div class="input-group input-group-sm">-->
+        <!--<input wicket:id="browserInput" type="text" class="form-control" style="width: auto;" size="20" disabled="true">-->
+            <!--<span class="input-group-btn">-->
+                <!--<a wicket:id="browse" class="btn btn-primary">-->
+                    <!--<i class="fa fa-pencil-square-o"/>-->
+                <!--</a>-->
+            <!--</span>-->
+    <!--</div>-->
+<!--</wicket:fragment>-->
 
 </body>
 </html>

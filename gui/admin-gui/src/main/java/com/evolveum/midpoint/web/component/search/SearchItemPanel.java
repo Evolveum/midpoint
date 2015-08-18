@@ -6,17 +6,25 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.BaseSimplePanel;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -29,10 +37,16 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
     private static final String ID_LABEL = "label";
     private static final String ID_DELETE_BUTTON = "deleteButton";
     private static final String ID_POPOVER = "popover";
-    private static final String ID_TEXT = "text";
     private static final String ID_UPDATE = "update";
     private static final String ID_CLOSE = "close";
-
+    private static final String ID_CONTENT = "content";
+    private static final String ID_TEXT = "text";
+    private static final String ID_TEXT_INPUT = "textInput";
+    private static final String ID_COMBO = "combo";
+    private static final String ID_COMBO_INPUT = "comboInput";
+    private static final String ID_BROWSER = "browser";
+    private static final String ID_BROWSER_INPUT = "browserInput";
+    private static final String ID_BROWSE = "browse";
 
     public SearchItemPanel(String id, IModel<SearchItem> model) {
         super(id, model);
@@ -69,8 +83,9 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
         popover.setOutputMarkupId(true);
         add(popover);
 
-        TextField value = new TextField(ID_TEXT, new Model());
-        popover.add(value);
+        Fragment fragment = createPopoverFragment();
+        fragment.setRenderBodyOnly(true);
+        popover.add(fragment);
 
         AjaxSubmitButton add = new AjaxSubmitButton(ID_UPDATE, createStringResource("SearchItemPanel.update")) {
 
@@ -95,6 +110,38 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
             }
         };
         popover.add(close);
+    }
+
+    private Fragment createPopoverFragment() {
+        Fragment fragment;
+        SearchItem item = getModelObject();
+
+        IModel value = new PropertyModel(getModel(), SearchItem.F_VALUE);
+        IModel<? extends List> choices = null;
+
+//        todo implement
+        switch (item.getType()) {
+            case BROWSER:
+                fragment = new BrowserFragment(ID_CONTENT, ID_BROWSER, this, value);
+                break;
+            case BOOLEAN:
+                //todo create choices model
+            case ENUM:
+                if (choices == null) {
+                    //todo create choices model
+                    List l = new ArrayList();
+                    l.add("a");
+                    l.add("b");
+                    choices = new Model((Serializable) l);
+                }
+                fragment = new ComboFragment(ID_CONTENT, ID_COMBO, this, value, choices);
+                break;
+            case TEXT:
+            default:
+                fragment = new TextFragment(ID_CONTENT, ID_TEXT, this, value);
+        }
+
+        return fragment;
     }
 
     @Override
@@ -160,5 +207,51 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
 
         SearchPanel panel = findParent(SearchPanel.class);
         panel.refreshForm(target);
+    }
+
+    private static class TextFragment<T extends Serializable> extends Fragment {
+
+        public TextFragment(String id, String markupId, MarkupContainer markupProvider,
+                            IModel<T> value) {
+            super(id, markupId, markupProvider);
+
+            TextField input = new TextField(ID_TEXT_INPUT, value);
+            add(input);
+        }
+    }
+
+    private static class ComboFragment<T extends Serializable> extends Fragment {
+
+        public ComboFragment(String id, String markupId, MarkupContainer markupProvider,
+                             IModel<T> value, IModel<List<T>> choices) {
+            super(id, markupId, markupProvider);
+
+            DropDownChoice input = new DropDownChoice(ID_COMBO_INPUT, value, choices);
+            add(input);
+        }
+    }
+
+    private static class BrowserFragment<T extends Serializable> extends Fragment {
+
+        public BrowserFragment(String id, String markupId, MarkupContainer markupProvider,
+                               IModel<T> value) {
+            super(id, markupId, markupProvider);
+
+            TextField input = new TextField(ID_BROWSER_INPUT, value);
+            add(input);
+
+            AjaxLink browse = new AjaxLink(ID_BROWSE) {
+
+                @Override
+                public void onClick(AjaxRequestTarget target) {
+                    browsePerformed(target);
+                }
+            };
+            add(browse);
+        }
+
+        private void browsePerformed(AjaxRequestTarget target) {
+            //todo implement
+        }
     }
 }
