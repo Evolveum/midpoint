@@ -50,6 +50,7 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
     private static final String ID_BROWSER = "browser";
     private static final String ID_BROWSER_INPUT = "browserInput";
     private static final String ID_BROWSE = "browse";
+    private static final String ID_DELETE = "delete";
 
     public SearchItemPanel(String id, IModel<SearchItem> model) {
         super(id, model);
@@ -91,12 +92,6 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
         popover.add(fragment);
 
         AjaxSubmitButton add = new AjaxSubmitButton(ID_UPDATE, createStringResource("SearchItemPanel.update")) {
-
-
-            @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                //todo implement
-            }
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
@@ -198,7 +193,12 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
     }
 
     private void updateItemPerformed(AjaxRequestTarget target) {
-        // todo implement
+        SearchItem item = getModelObject();
+        LOG.debug("Update item performed, item {} value is {}", item.getName(), item.getValue());
+
+        SearchPanel panel = findParent(SearchPanel.class);
+        panel.refreshForm(target);
+        panel.searchPerformed(target);
     }
 
     private void closeEditPopoverPerformed(AjaxRequestTarget target) {
@@ -211,14 +211,15 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
     }
 
     private void deletePerformed(AjaxRequestTarget target) {
-        LOG.debug("Delete performed");
-
         SearchItem item = getModelObject();
+        LOG.debug("Delete of item {} performed", item.getName());
+
         Search search = item.getSearch();
         search.delete(item);
 
         SearchPanel panel = findParent(SearchPanel.class);
         panel.refreshForm(target);
+        panel.searchPerformed(target);
     }
 
     private static class TextFragment<T extends Serializable> extends Fragment {
@@ -255,6 +256,7 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
                             return Integer.toString(index);
                         }
                     });
+            input.setNullValid(true);
             add(input);
         }
     }
@@ -276,9 +278,22 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
                 }
             };
             add(browse);
+
+            AjaxLink delete = new AjaxLink(ID_DELETE) {
+
+                @Override
+                public void onClick(AjaxRequestTarget target) {
+                    deletePerformed(target);
+                }
+            };
+            add(delete);
         }
 
         private void browsePerformed(AjaxRequestTarget target) {
+            //todo implement
+        }
+
+        private void deletePerformed(AjaxRequestTarget target) {
             //todo implement
         }
     }

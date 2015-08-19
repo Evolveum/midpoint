@@ -78,6 +78,15 @@ public class SearchItem<T extends Serializable> implements Serializable {
 
     public void setValue(T value) {
         this.value = value;
+
+        String displayValue = null;
+        if (value instanceof DisplayableValue) {
+            DisplayableValue dv = (DisplayableValue) value;
+            displayValue = dv.getLabel();
+        } else if (value != null){
+            displayValue = value.toString();
+        }
+        setDisplayValue(displayValue);
     }
 
     public void setDisplayValue(String displayValue) {

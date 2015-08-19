@@ -1,10 +1,18 @@
 package com.evolveum.midpoint.web.component.search;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.BaseSimplePanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
@@ -19,6 +27,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -155,12 +164,58 @@ public class SearchPanel extends BaseSimplePanel<Search> {
         target.appendJavaScript("$('#" + popoverId + "').toggle();");
     }
 
-    public void searchPerformed(AjaxRequestTarget target) {
-        //todo implement
+    void searchPerformed(AjaxRequestTarget target) {
+        ObjectQuery query = createObjectQuery();
+        searchPerformed(query, target);
+    }
+
+    public void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
     }
 
     void refreshForm(AjaxRequestTarget target) {
         target.add(get(ID_FORM), get(ID_POPOVER));
         target.appendJavaScript(initMoreButtonJavascript());
+    }
+
+    private ObjectQuery createObjectQuery() {
+        Search search = getModelObject();
+        List<SearchItem> searchItems = search.getItems();
+        if (searchItems.isEmpty()) {
+            return null;
+        }
+
+        List<ObjectFilter> conditions = new ArrayList<>();
+        for (SearchItem item : searchItems) {
+            ObjectFilter filter = createFilterFromItem(item);
+            if (filter != null) {
+                conditions.add(filter);
+            }
+        }
+
+        if (conditions.size() == 1) {
+            return ObjectQuery.createObjectQuery(conditions.get(0));
+        }
+
+        AndFilter and = AndFilter.createAnd(conditions);
+        return ObjectQuery.createObjectQuery(and);
+    }
+
+    private ObjectFilter createFilterFromItem(SearchItem item) {
+        if (item.getValue() == null) {
+            return null;
+        }
+
+        ItemDefinition definition = item.getDefinition();
+
+        if (definition instanceof PrismReferenceDefinition) {
+            //todo implement
+            return null;
+        }
+
+        PrismPropertyDefinition propDef = (PrismPropertyDefinition) definition;
+        ItemPath path = new ItemPath(ObjectType.F_NAME); //todo implement
+        Object value = item.getValue();
+
+        return EqualFilter.createEqual(path, propDef, value);
     }
 }

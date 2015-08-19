@@ -159,7 +159,6 @@ function initSearchPopover(buttonId, popoverId, leftOffset) {
 
         var position = button.position();
 
-        //27 is bulgarian constant to make popover position :)
         var left = position.left - (popover.outerWidth() - button.outerWidth()) / 2 - leftOffset;
         var top = position.top + button.outerHeight();
 

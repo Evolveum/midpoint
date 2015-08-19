@@ -48,11 +48,13 @@
 </wicket:fragment>
 
 <wicket:fragment wicket:id="browser">
-    <div class="form-group"></div>
     <div class="input-group input-group-sm">
         <input wicket:id="browserInput" type="text" class="form-control"
                style="width: auto; min-width: 150px;" size="20" disabled="true">
         <span class="input-group-btn">
+            <a wicket:id="delete" class="btn btn-danger">
+                <i class="fa fa-trash-o"/>
+            </a>
             <a wicket:id="browse" class="btn btn-primary">
                 <i class="fa fa-pencil-square-o"/>
             </a>
