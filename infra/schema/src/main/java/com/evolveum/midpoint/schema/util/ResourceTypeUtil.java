@@ -41,6 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationLockoutStatusCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
@@ -338,6 +339,24 @@ public class ResourceTypeUtil {
 		if (activationCapability == null) {
 			return false;
 		}
+		return true;
+	}
+	
+	public static boolean hasResourceNativeActivationStatusCapability(ResourceType resource) {
+		ActivationCapabilityType activationCapability = null;
+		if (resource.getCapabilities() != null && resource.getCapabilities().getNative() != null) {
+			activationCapability = CapabilityUtil.getCapability(resource.getCapabilities().getNative().getAny(),
+					ActivationCapabilityType.class);
+		}
+		if (activationCapability == null) {
+			return false;
+		}
+		
+		ActivationStatusCapabilityType status = activationCapability.getStatus();
+		if (status == null) {
+			return false;
+		}
+		
 		return true;
 	}
 	

@@ -243,6 +243,21 @@
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
+    
+    <xsd:element name="legacySchema" type="xsd:boolean">
+		<xsd:annotation>
+			<xsd:documentation>
+				Forces schema processing in "legacy" mode.
+				Legacy mode means that __ACCOUNT__ is translated as AccountObjectClass,
+				__GROUP__ as GroupObjectClass and any other as CustomXXXXXObjectClass.
+				Non-legacy mode does not translates object class names. They are used
+				in the same form as provided by the connector.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:maxOccurs>1</a:maxOccurs>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:element>
 
 </xsd:schema>
 
