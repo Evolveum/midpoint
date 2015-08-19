@@ -260,6 +260,8 @@ public class ReportUtils {
 					return "###INTERNAL#ERROR### " + e.getClass().getName() + ": " + e.getMessage() + "; prettyPrintForReport method for value " + value;
 				} catch (RuntimeException e){
 					return "###INTERNAL#ERROR### " + e.getClass().getName() + ": " + e.getMessage() + "; prettyPrintForReport method for value " + value;
+				} catch (Exception e){
+					return "###INTERNAL#ERROR### " + e.getClass().getName() + ": " + e.getMessage() + "; prettyPrintForReport method for value " + value;
 				}
      	} else {
      		return prettyPrintForReport(value);

@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.parser.XNodeProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -117,10 +118,11 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
 	
 	public <V,ID extends ItemDefinition> V getParsedRealValue(ItemDefinition itemDefinition, ItemPath itemPath) throws SchemaException {
         if (parsed == null && xnode != null){
-        	if (itemDefinition == null){
-        		return PrismUtil.getXnodeProcessor(prismContext).parseAnyValue(xnode);
+        	
+			if (itemDefinition == null){
+        			return PrismUtil.getXnodeProcessor(prismContext).parseAnyValue(xnode);
         	} else {
-	        	QName itemName = ItemPath.getName(itemPath.lastNamed());
+        		QName itemName = ItemPath.getName(itemPath.lastNamed());
 	        	getParsedValue(itemDefinition, itemName);
         	}
         } 
@@ -158,6 +160,13 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
 
     public XNode serializeToXNode() throws SchemaException {
         if (xnode != null) {
+        	QName type = xnode.getTypeQName();
+        	if (xnode instanceof PrimitiveXNode && type != null){
+        		if (!((PrimitiveXNode)xnode).isParsed()){
+        			Object realValue = PrismUtil.getXnodeProcessor(prismContext).parseAnyValue(xnode);
+        			((PrimitiveXNode)xnode).setValue(realValue, type);
+        		}
+        	}
             return xnode;
         } else if (parsed != null) {
             checkPrismContext();
