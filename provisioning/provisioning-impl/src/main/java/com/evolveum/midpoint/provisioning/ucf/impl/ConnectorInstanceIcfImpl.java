@@ -217,7 +217,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	private PrismSchema connectorSchema;
 	private String description;
 	private boolean caseIgnoreAttributeNames = false;
-	private boolean legacySchema = false;
+	private Boolean legacySchema = null;
 	private boolean supportsReturnDefaultAttributes = false;
 
 	public ConnectorInstanceIcfImpl(ConnectorInfo connectorInfo, ConnectorType connectorType,
@@ -322,7 +322,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			} else {
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
 			}
-
+		}
+		
+		PrismProperty<Boolean> legacySchemaConfigProperty = configuration.findProperty(new QName(
+				ConnectorFactoryIcfImpl.NS_ICF_CONFIGURATION,
+				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_LEGACY_SCHEMA_XML_ELEMENT_NAME));
+		if (legacySchemaConfigProperty != null) {
+			legacySchema = legacySchemaConfigProperty.getRealValue();
 		}
 
 	}
@@ -355,17 +361,17 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			return null;
 		}
 
-		PrismSchema mpSchema = new PrismSchema(connectorType.getNamespace(), prismContext);
+		connectorSchema = new PrismSchema(connectorType.getNamespace(), prismContext);
 
 		// Create configuration type - the type used by the "configuration"
 		// element
-		PrismContainerDefinition<?> configurationContainerDef = mpSchema.createPropertyContainerDefinition(
+		PrismContainerDefinition<?> configurationContainerDef = connectorSchema.createPropertyContainerDefinition(
 				ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart(),
 				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME);
 
 		// element with "ConfigurationPropertiesType" - the dynamic part of
 		// configuration schema
-		ComplexTypeDefinition configPropertiesTypeDef = mpSchema.createComplexTypeDefinition(new QName(
+		ComplexTypeDefinition configPropertiesTypeDef = connectorSchema.createComplexTypeDefinition(new QName(
 				connectorType.getNamespace(),
 				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME));
 
@@ -411,6 +417,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
         configurationContainerDef.createContainerDefinition(
                 ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT,
                 ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_TYPE, 0, 1);
+		configurationContainerDef.createPropertyDefinition(
+				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_LEGACY_SCHEMA_ELEMENT,
+				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_LEGACY_SCHEMA_TYPE, 0, 1);
 
 		// No need to create definition of "configuration" element.
 		// midPoint will look for this element, but it will be generated as part
@@ -420,10 +429,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME,
 				configPropertiesTypeDef, 1, 1);
 
-		LOGGER.debug("Generated configuration schema for {}: {} definitions", this, mpSchema.getDefinitions()
+		LOGGER.debug("Generated configuration schema for {}: {} definitions", this, connectorSchema.getDefinitions()
 				.size());
-		connectorSchema = mpSchema;
-		return mpSchema;
+		return connectorSchema;
 	}
 
 	private QName icfTypeToXsdType(Class<?> type, boolean isConfidential) {
@@ -482,7 +490,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		this.capabilities = capabilities;
 		this.caseIgnoreAttributeNames = caseIgnoreAttributeNames;
 		
-		if (resourceSchema != null) {
+		if (resourceSchema != null && legacySchema == null) {
 			legacySchema = isLegacySchema(resourceSchema);
 		}
 
