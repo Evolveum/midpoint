@@ -31,6 +31,7 @@ public class SuperUserTests extends BaseTest {
     public static final String SUPER_ROLE_NAME = "Superuser";
     public static final String USER_PASSWORD = "password";
     public static final String SUPER_USER_NAME = "SuperUser";
+    public static final String ASSIGN_ROLE_LINKTEXT = "Assign role";
 
     /**
      * Create user with assigned Superuser role.
@@ -62,7 +63,9 @@ public class SuperUserTests extends BaseTest {
                 .shouldBe(visible).setValue(USER_PASSWORD);
 
         //assign Superuser role to user
-        userUtil.assignRoleToUser(SUPER_ROLE_NAME);
+        userUtil.assignObjectToUser(ASSIGN_ROLE_LINKTEXT, SUPER_ROLE_NAME,
+                "/html/body/div[6]/form/div/div[2]/div/div/div/div[2]/div/div/div/div/div/div[1]/form[2]/span/a",
+                "/html/body/div[6]/form/div/div[2]/div/div/div/div[2]/div/div/div/div/div/div[2]/div/table/tbody/tr/td[1]/div/input");
 
         //search for the user in users list
         util.searchForElement(SUPER_USER_NAME, "/html/body/div[4]/div/div[4]/form/span/a");
@@ -88,7 +91,7 @@ public class SuperUserTests extends BaseTest {
     }
 
     @Test(dependsOnMethods = {"createSuperUserTest"}, priority = 2)
-    public void disableSuperuserAndLogin() {
+    public void disableSuperuserAndLoginTest() {
         close();
         loginTest.login();
         //check if welcome message appears after user logged in
@@ -126,7 +129,7 @@ public class SuperUserTests extends BaseTest {
     }
 
     @Test(dependsOnMethods = {"createSuperUserTest"}, priority = 3)
-    public void enableSuperuserAndLogin() {
+    public void enableSuperuserAndLoginTest() {
         close();
         loginTest.login();
         //check if welcome message appears after user logged in

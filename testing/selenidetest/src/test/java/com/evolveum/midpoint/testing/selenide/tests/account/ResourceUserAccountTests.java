@@ -155,7 +155,7 @@ public class ResourceUserAccountTests extends BaseTest {
      *  also updated
      */
     @Test (priority = 4, dependsOnMethods = {"createAccountTest"})
-    public void updateAccountAttributes(){
+    public void updateAccountAttributesTest(){
         close();
         loginTest.login();
         //open user's Edit page

@@ -168,8 +168,6 @@ public class ItemPathType implements Serializable, Equals, Cloneable {
 
     @Override
     public String toString() {
-        return "ItemPathType{" +
-                "itemPath=" + getItemPath() +
-                '}';
+        return getItemPath().toString();
     }
 }

@@ -214,6 +214,11 @@ public class ReportUtils {
     		return "";
     	}
     	
+    	
+    	if (value instanceof MetadataType){
+    		return "";
+    	}
+    	
     	//special handling for byte[], some problems with jasper when printing 
     	if (byte[].class.equals(value.getClass())){
     		return prettyPrintForReport((byte[]) value);

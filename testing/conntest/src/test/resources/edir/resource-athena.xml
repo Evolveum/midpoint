@@ -154,7 +154,7 @@
 
             <association>
             	<ref>ri:group</ref>
-            	<displayName>LDAP Group Membership</displayName>
+            	<displayName>Ordinary LDAP Group Membership</displayName>
             	<kind>entitlement</kind>
             	<intent>ldapGroup</intent>
             	<direction>objectToSubject</direction>
@@ -163,6 +163,19 @@
             	<shortcutAssociationAttribute>ri:groupMembership</shortcutAssociationAttribute>
             	<shortcutValueAttribute>ri:dn</shortcutValueAttribute>
             </association>
+            
+            <association>
+            	<ref>ri:orgGroup</ref>
+            	<displayName>Organizational Group Membership</displayName>
+            	<kind>entitlement</kind>
+            	<intent>orgGroup</intent>
+            	<direction>objectToSubject</direction>
+            	<associationAttribute>ri:member</associationAttribute>
+            	<valueAttribute>ri:dn</valueAttribute>
+            	<shortcutAssociationAttribute>ri:groupMembership</shortcutAssociationAttribute>
+            	<shortcutValueAttribute>ri:dn</shortcutValueAttribute>
+            </association>
+            
 				<protected>
 				<filter>
 					<q:equal>
@@ -245,6 +258,73 @@
                 </outbound>
             </attribute>
         </objectType>
+        
+        <objectType>
+		        <kind>entitlement</kind>
+				<intent>orgGroup</intent>
+				<displayName>Organizational Group</displayName>
+				<objectClass>ri:groupOfNames</objectClass>
+				<auxiliaryObjectClass>ri:nestedGroupAux</auxiliaryObjectClass>
+				<attribute>
+					<ref>ri:member</ref>
+					<matchingRule>mr:distinguishedName</matchingRule>
+					<fetchStrategy>minimal</fetchStrategy>
+				</attribute>
+				<attribute>
+		        	<ref>ri:dn</ref>
+					<matchingRule>mr:distinguishedName</matchingRule>
+		        	<outbound>
+					<source>
+						<path>$focus/name</path>
+					</source>
+					<expression>
+						<script>
+							<code>
+								return 'cn=' + name + ',ou=groups,o=example'
+							</code>
+						</script>
+					</expression>
+				</outbound>
+				</attribute>
+				<attribute>
+					<ref>ri:cn</ref>
+					<displayName>Common Name</displayName>
+					<matchingRule>mr:stringIgnoreCase</matchingRule>
+					<outbound>
+						<strength>weak</strength>
+						<source>
+							<path>$focus/name</path>
+						</source>
+					</outbound>
+				</attribute>
+				<attribute>
+			        <ref>ri:fullName</ref>
+					<description>Complete organization name</description>
+					<limitations>
+						<maxOccurs>1</maxOccurs>
+					</limitations>
+					<matchingRule>mr:stringIgnoreCase</matchingRule>
+		        	<outbound>
+					<source>
+						<path>$focus/displayName</path>
+					</source>
+				</outbound>
+			</attribute>
+            <association>
+            	<ref>ri:group</ref>
+                <tolerant>true</tolerant>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+            	<displayName>eDirectory Group in Group Membership</displayName>
+            	<kind>entitlement</kind>
+            	<intent>orgGroup</intent>
+            	<direction>objectToSubject</direction>
+            	<associationAttribute>ri:groupMember</associationAttribute>
+                <shortcutAssociationAttribute>ri:groupMembership</shortcutAssociationAttribute>
+                <shortcutValueAttribute>ri:dn</shortcutValueAttribute>
+                <explicitReferentialIntegrity>false</explicitReferentialIntegrity>
+            	<valueAttribute>ri:dn</valueAttribute>
+            </association>
+			</objectType>
 
 		</schemaHandling>
 
