@@ -187,17 +187,9 @@
 				</filter>
 			</protected>
 
-
-
 				<activation>
 					<administrativeStatus>
 						<outbound/>
-						<inbound>
-							<strength>weak</strength>
-							<expression>
-								<asIs/>
-							</expression>
-						</inbound>
 					</administrativeStatus>
 				</activation>
 
