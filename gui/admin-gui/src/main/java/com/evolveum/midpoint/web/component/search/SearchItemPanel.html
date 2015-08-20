@@ -40,11 +40,25 @@
 </wicket:panel>
 
 <wicket:fragment wicket:id="text">
-    <input wicket:id="textInput" type="text" class="form-control input-sm" style="width: auto; min-width: 150px;" size="20">
+    <div class="input-group input-group-sm">
+        <input wicket:id="textInput" type="text" class="form-control input-sm" style="width: auto; min-width: 150px;" size="20">
+        <span class="input-group-btn">
+            <a wicket:id="delete" class="btn btn-danger" wicket:message="title:SearchItemPanel.clear">
+                <i class="fa fa-times"/>
+            </a>
+        </span>
+    </div>
 </wicket:fragment>
 
 <wicket:fragment wicket:id="combo">
-    <select wicket:id="comboInput" class="form-control input-sm" style="width: auto; min-width: 150px;"/>
+    <div class="input-group input-group-sm">
+        <select wicket:id="comboInput" class="form-control input-sm" style="width: auto; min-width: 150px;"/>
+        <span class="input-group-btn">
+            <a wicket:id="delete" class="btn btn-danger" wicket:message="title:SearchItemPanel.clear">
+                <i class="fa fa-times"/>
+            </a>
+        </span>
+    </div>
 </wicket:fragment>
 
 <wicket:fragment wicket:id="browser">
@@ -52,10 +66,10 @@
         <input wicket:id="browserInput" type="text" class="form-control"
                style="width: auto; min-width: 150px;" size="20" disabled="true">
         <span class="input-group-btn">
-            <a wicket:id="delete" class="btn btn-danger">
-                <i class="fa fa-trash-o"/>
+            <a wicket:id="delete" class="btn btn-danger" wicket:message="title:SearchItemPanel.clear">
+                <i class="fa fa-times"/>
             </a>
-            <a wicket:id="browse" class="btn btn-primary">
+            <a wicket:id="browse" class="btn btn-primary" wicket:message="title:SearchItemPanel.browse">
                 <i class="fa fa-pencil-square-o"/>
             </a>
         </span>

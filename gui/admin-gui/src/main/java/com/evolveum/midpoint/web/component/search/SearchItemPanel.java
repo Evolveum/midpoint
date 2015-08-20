@@ -225,21 +225,32 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
     private static class TextFragment<T extends Serializable> extends Fragment {
 
         public TextFragment(String id, String markupId, MarkupContainer markupProvider,
-                            IModel<T> value) {
+                            final IModel<T> value) {
             super(id, markupId, markupProvider);
 
-            TextField input = new TextField(ID_TEXT_INPUT, value);
+            final TextField input = new TextField(ID_TEXT_INPUT, value);
+            input.setOutputMarkupId(true);
             add(input);
+
+            AjaxLink delete = new AjaxLink(ID_DELETE) {
+
+                @Override
+                public void onClick(AjaxRequestTarget target) {
+                    value.setObject(null);
+                    target.add(input);
+                }
+            };
+            add(delete);
         }
     }
 
     private static class ComboFragment<T extends Serializable> extends Fragment {
 
         public ComboFragment(String id, String markupId, MarkupContainer markupProvider,
-                             IModel<T> value, IModel<List<T>> choices) {
+                             final IModel<T> value, IModel<List<T>> choices) {
             super(id, markupId, markupProvider);
 
-            DropDownChoice input = new DropDownChoice(ID_COMBO_INPUT, value, choices,
+            final DropDownChoice input = new DropDownChoice(ID_COMBO_INPUT, value, choices,
                     new IChoiceRenderer<DisplayableValue>() {
 
                         @Override
@@ -257,7 +268,18 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
                         }
                     });
             input.setNullValid(true);
+            input.setOutputMarkupId(true);
             add(input);
+
+            AjaxLink delete = new AjaxLink(ID_DELETE) {
+
+                @Override
+                public void onClick(AjaxRequestTarget target) {
+                    value.setObject(null);
+                    target.add(input);
+                }
+            };
+            add(delete);
         }
     }
 
