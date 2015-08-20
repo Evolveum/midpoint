@@ -159,7 +159,7 @@ public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter{
 					Collection<AuditEventRecord> audtiEventRecords = searchAuditRecords(script, getPromptingParameters());
 					Collection<AuditEventRecordType> auditEventRecordsType = new ArrayList<>();
 					for (AuditEventRecord aer : audtiEventRecords){
-						AuditEventRecordType aerType = aer.createAuditEventRecordType();
+						AuditEventRecordType aerType = aer.createAuditEventRecordType(true);
 						auditEventRecordsType.add(aerType);
 					}
 					return new JRBeanCollectionDataSource(auditEventRecordsType);

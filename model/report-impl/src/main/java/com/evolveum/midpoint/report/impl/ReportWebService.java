@@ -189,7 +189,7 @@ public class ReportWebService implements ReportPortType, ReportPort {
 
 		AuditEventRecordListType results = new AuditEventRecordListType();
 		for (AuditEventRecord auditRecord : resultList) {
-			results.getObject().add(auditRecord.createAuditEventRecordType());
+			results.getObject().add(auditRecord.createAuditEventRecordType(true));
 		}
 
 		return results;

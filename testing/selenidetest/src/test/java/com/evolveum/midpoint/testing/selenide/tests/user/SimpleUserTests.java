@@ -74,14 +74,8 @@ public class SimpleUserTests extends BaseTest {
         $(By.cssSelector("html.no-js body div.mp-main-container div.row.mainContainer div.page-header h1 small"))
                 .shouldHave(text("welcome to midPoint"));
 
-        //open Users -> List users
-        userUtil.openListUsersPage();
-
-        //search for user in users list
-        util.searchForElement(SIMPLE_USER_NAME, "/html/body/div[4]/div/div[4]/form/span/a");
-        //click on the found user link
-        $(By.xpath("/html/body/div[4]/div/form/div[2]/table/tbody/tr/td[3]/div/a/span"))
-                .shouldBe(visible).click();
+        //open user's Edit page
+        userUtil.openUsersEditPage(SIMPLE_USER_NAME);
 
         //click on the menu icon in the User details section
         $(By.xpath("/html/body/div[4]/div/form/div[3]/div[1]/div/div/div/div[2]/div[2]/ul/li/a")).shouldBe(visible).click();
@@ -160,14 +154,9 @@ public class SimpleUserTests extends BaseTest {
         $(By.cssSelector("html.no-js body div.mp-main-container div.row.mainContainer div.page-header h1 small"))
                 .shouldHave(text("welcome to midPoint"));
 
-        //open Users -> List users
-        userUtil.openListUsersPage();
+        //open user's Edit page
+        userUtil.openUsersEditPage(SIMPLE_USER_NAME);
 
-        //search for user in users list
-        util.searchForElement(SIMPLE_USER_NAME, "/html/body/div[4]/div/div[4]/form/span/a");
-        //click on the found user link
-        $(By.xpath("/html/body/div[4]/div/form/div[2]/table/tbody/tr/td[3]/div/a/span"))
-                .shouldBe(visible).click();
 
         //click on the menu icon in the User details section
         $(By.xpath("/html/body/div[4]/div/form/div[3]/div[1]/div/div/div/div[2]/div[2]/ul/li/a")).shouldBe(visible).click();
@@ -198,7 +187,7 @@ public class SimpleUserTests extends BaseTest {
      * Attempt to create user with all empty fields
      */
     @Test(alwaysRun = true, priority = 4)
-    public void createUserWithEmptyFields() {
+    public void createUserWithEmptyFieldsTest() {
         close();
         loginTest.login();
         //create user with all empty fields
@@ -213,7 +202,7 @@ public class SimpleUserTests extends BaseTest {
      * Attempt to create user with existing name
      */
     @Test(alwaysRun = true, priority = 5)
-    public void createUserWithExistingName() {
+    public void createUserWithExistingNameTest() {
         close();
         loginTest.login();
         //check if welcome message appears after user logged in
@@ -235,7 +224,7 @@ public class SimpleUserTests extends BaseTest {
     }
 
     @Test(alwaysRun = true, priority = 6)
-    public void deleteUser() {
+    public void deleteUserTest() {
         close();
         loginTest.login();
         //check if welcome message appears after user logged in

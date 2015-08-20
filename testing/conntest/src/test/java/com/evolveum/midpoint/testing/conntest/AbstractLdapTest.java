@@ -352,9 +352,15 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         
         ResourceAttributeDefinition<String> cnDef = accountObjectClassDefinition.findAttributeDefinition("cn");
         PrismAsserts.assertDefinition(cnDef, new QName(MidPointConstants.NS_RI, "cn"), DOMUtil.XSD_STRING, 1, -1);
-        assertTrue("createTimestampDef read", cnDef.canRead());
-        assertTrue("createTimestampDef read", cnDef.canModify());
-        assertTrue("createTimestampDef read", cnDef.canAdd());
+        assertTrue("cn read", cnDef.canRead());
+        assertTrue("cn read", cnDef.canModify());
+        assertTrue("cn read", cnDef.canAdd());
+        
+        ResourceAttributeDefinition<String> oDef = accountObjectClassDefinition.findAttributeDefinition("o");
+        PrismAsserts.assertDefinition(oDef, new QName(MidPointConstants.NS_RI, "o"), DOMUtil.XSD_STRING, 0, -1);
+        assertTrue("o read", oDef.canRead());
+        assertTrue("o read", oDef.canModify());
+        assertTrue("o read", oDef.canAdd());
         
         ResourceAttributeDefinition<Long> createTimestampDef = accountObjectClassDefinition.findAttributeDefinition("createTimestamp");
         PrismAsserts.assertDefinition(createTimestampDef, new QName(MidPointConstants.NS_RI, "createTimestamp"),
@@ -446,6 +452,12 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		assertEquals("Unexpected number of entries for group cn="+name+": "+entries, 1, entries.size());
 		Entry entry = entries.get(0);
 
+		return entry;
+	}
+	
+	protected Entry assertLdapGroup(String cn) throws LdapException, IOException, CursorException {
+		Entry entry = getLdapGroupByName(cn);
+		assertAttribute(entry, "cn", cn);
 		return entry;
 	}
 	

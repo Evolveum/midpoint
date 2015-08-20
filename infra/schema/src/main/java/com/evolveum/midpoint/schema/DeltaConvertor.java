@@ -409,6 +409,10 @@ public class DeltaConvertor {
     private static XNode toXNode(ItemDelta delta, PrismValue value) throws SchemaException{
 		XNodeSerializer serializer = delta.getPrismContext().getXnodeProcessor().createSerializer();
 		XNode node = serializer.serializeItemValue(value, delta.getDefinition());
+		if (delta.getDefinition() != null){
+			node.setTypeQName(delta.getDefinition().getTypeName());
+			node.setExplicitTypeDeclaration(true);
+		}
 		return node;
     }
 

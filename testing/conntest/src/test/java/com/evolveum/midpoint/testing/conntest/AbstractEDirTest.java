@@ -36,6 +36,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -43,6 +44,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
@@ -52,21 +54,29 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
@@ -81,6 +91,9 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	protected static final File ROLE_PIRATES_FILE = new File(TEST_DIR, "role-pirate.xml");
 	protected static final String ROLE_PIRATES_OID = "5dd034e8-41d2-11e5-a123-001e8c717e5b";
 	
+	protected static final File ROLE_META_ORG_FILE = new File(TEST_DIR, "role-meta-org.xml");
+	protected static final String ROLE_META_ORG_OID = "f2ad0ace-45d7-11e5-af54-001e8c717e5b";
+	
 	public static final String ATTRIBUTE_LOCKOUT_LOCKED_NAME = "lockedByIntruder";
 	public static final String ATTRIBUTE_LOCKOUT_RESET_TIME_NAME = "loginIntruderResetTime";
 	public static final String ATTRIBUTE_GROUP_MEMBERSHIP_NAME = "groupMembership";
@@ -91,6 +104,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	protected static final String ACCOUNT_JACK_PASSWORD = "qwe123";
 	
 	private static final String GROUP_PIRATES_NAME = "pirates";
+	private static final String GROUP_MELEE_ISLAND_NAME = "Mêlée Island";
 	
 	protected static final int NUMBER_OF_ACCOUNTS = 4;
 	protected static final int LOCKOUT_EXPIRATION_SECONDS = 65;
@@ -100,7 +114,8 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	protected String groupPiratesOid;
 	protected long jackLockoutTimestamp;
 	private String accountBarbossaOid;
-
+	private String orgMeleeIslandOid;
+	protected String groupMeleeOid;
 	
 	@Override
 	public String getStartSystemCommand() {
@@ -178,6 +193,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 		
 		// Roles
 		repoAddObjectFromFile(ROLE_PIRATES_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_META_ORG_FILE, RoleType.class, initResult);
 		
 	}
 	
@@ -188,8 +204,23 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 		cleanupDelete(toDn(USER_BARBOSSA_USERNAME));
 		cleanupDelete(toDn(USER_CPTBARBOSSA_USERNAME));
 		cleanupDelete(toDn(USER_GUYBRUSH_USERNAME));
+		cleanupDelete(toGroupDn("Mêlée Island"));
 	}
 
+	@Test
+    public void test050Capabilities() throws Exception {
+		final String TEST_NAME = "test050Capabilities";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Collection<Object> nativeCapabilitiesCollection = ResourceTypeUtil.getNativeCapabilitiesCollection(resourceType);
+        display("Native capabilities", nativeCapabilitiesCollection);
+        
+        assertTrue("No native activation capability", ResourceTypeUtil.hasResourceNativeActivationCapability(resourceType));
+        assertTrue("No native activation status capability", ResourceTypeUtil.hasResourceNativeActivationStatusCapability(resourceType));
+        assertTrue("No native lockout capability", ResourceTypeUtil.hasResourceNativeActivationLockoutCapability(resourceType));
+        assertTrue("No native credentias capability", ResourceTypeUtil.hasCredentialsCapability(resourceType));
+	}
+	
 	@Test
     public void test100SeachJackByLdapUid() throws Exception {
 		final String TEST_NAME = "test100SeachJackByLdapUid";
@@ -508,8 +539,70 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
 	}
 	
+	@Test
+    public void test230DisableBarbossa() throws Exception {
+		final String TEST_NAME = "test230DisableBarbossa";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_BARBOSSA_OID, 
+        		new ItemPath(UserType.F_ACTIVATION,  ActivationType.F_ADMINISTRATIVE_STATUS), 
+        		task, result, ActivationStatusType.DISABLED);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        assertAdministrativeStatus(user, ActivationStatusType.DISABLED);
+
+        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        assertAttribute(entry, "loginDisabled", "TRUE");
+        
+        String shadowOid = getSingleLinkOid(user);
+        PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
+        assertAdministrativeStatus(shadow, ActivationStatusType.DISABLED);
+	}
+	
+	@Test
+    public void test239EnableBarbossa() throws Exception {
+		final String TEST_NAME = "test239EnableBarbossa";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_BARBOSSA_OID, 
+        		new ItemPath(UserType.F_ACTIVATION,  ActivationType.F_ADMINISTRATIVE_STATUS), 
+        		task, result, ActivationStatusType.ENABLED);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        assertAdministrativeStatus(user, ActivationStatusType.ENABLED);
+
+        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        assertAttribute(entry, "loginDisabled", "FALSE");
+        
+        String shadowOid = getSingleLinkOid(user);
+        PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
+        assertAdministrativeStatus(shadow, ActivationStatusType.ENABLED);
+	}
+	
 	/**
-	 * This should create account with a group.
+	 * This should create account with a group. And disabled.
 	 */
 	@Test
     public void test250AssignGuybrushPirates() throws Exception {
@@ -519,6 +612,10 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
+        
+        modifyUserReplace(USER_GUYBRUSH_OID, 
+        		new ItemPath(UserType.F_ACTIVATION,  ActivationType.F_ADMINISTRATIVE_STATUS), 
+        		task, result, ActivationStatusType.DISABLED);
         
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -531,15 +628,51 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 
         Entry entry = assertLdapAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME);
         display("Entry", entry);
+        assertAttribute(entry, "loginDisabled", "TRUE");
         
         assertEDirGroupMember(entry, GROUP_PIRATES_NAME);
         
         PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
+        assertAdministrativeStatus(user, ActivationStatusType.DISABLED);
         String shadowOid = getSingleLinkOid(user);
         
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
         IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
+        assertAdministrativeStatus(shadow, ActivationStatusType.DISABLED);
 	}
+	
+	@Test
+    public void test260EnableGyubrush() throws Exception {
+		final String TEST_NAME = "test260EnableGyubrush";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_GUYBRUSH_OID, 
+        		new ItemPath(UserType.F_ACTIVATION,  ActivationType.F_ADMINISTRATIVE_STATUS), 
+        		task, result, ActivationStatusType.ENABLED);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
+        assertAdministrativeStatus(user, ActivationStatusType.ENABLED);
+
+        Entry entry = assertLdapAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME);
+        assertAttribute(entry, "loginDisabled", "FALSE");
+        
+        String shadowOid = getSingleLinkOid(user);
+        PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
+        assertAdministrativeStatus(shadow, ActivationStatusType.ENABLED);
+	}
+
+	// TODO: search for disabled accounts
 	
 	@Test
     public void test300AssignBarbossaPirates() throws Exception {
@@ -608,6 +741,73 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	}
 	
 	// TODO: create account with a group membership
+	
+	@Test
+    public void test500AddOrgMeleeIsland() throws Exception {
+		final String TEST_NAME = "test500AddOrgMeleeIsland";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<OrgType> org = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(OrgType.class).instantiate();
+        OrgType orgType = org.asObjectable();
+        orgType.setName(new PolyStringType(GROUP_MELEE_ISLAND_NAME));
+        AssignmentType metaroleAssignment = new AssignmentType();
+        ObjectReferenceType metaroleRef = new ObjectReferenceType();
+        metaroleRef.setOid(ROLE_META_ORG_OID);
+        metaroleRef.setType(RoleType.COMPLEX_TYPE);
+		metaroleAssignment.setTargetRef(metaroleRef);
+		orgType.getAssignment().add(metaroleAssignment);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        addObject(org, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        orgMeleeIslandOid = org.getOid();
+        Entry entry = assertLdapGroup(GROUP_MELEE_ISLAND_NAME);
+        
+        org = getObject(OrgType.class, orgMeleeIslandOid);
+        groupMeleeOid = getSingleLinkOid(org);
+        PrismObject<ShadowType> shadow = getShadowModel(groupMeleeOid);
+        display("Shadow (model)", shadow);
+	}
+	
+	@Test
+    public void test510AssignGuybrushMeleeIsland() throws Exception {
+		final String TEST_NAME = "test510AssignGuybrushMeleeIsland";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignOrg(USER_GUYBRUSH_OID, orgMeleeIslandOid, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        Entry entry = assertLdapAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME);
+        
+        PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
+        String shadowOid = getSingleLinkOid(user);
+        PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
+        display("Shadow (model)", shadow);
+        
+        assertEDirGroupMember(entry, GROUP_PIRATES_NAME);
+
+        IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupMeleeOid);
+	}
 	
 	// Wait until the lockout of Jack expires, check status
 	@Test

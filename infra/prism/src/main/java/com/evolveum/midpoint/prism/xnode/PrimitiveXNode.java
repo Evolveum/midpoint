@@ -199,6 +199,10 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
         	return ((DisplayableValue) value).getValue().toString();
         }
         
+        if (value != null && value.getClass().isEnum()){
+        	return value.toString();
+        }
+        
         return XmlTypeConverter.toXmlTextContent(value, null);
     }
 
