@@ -3,6 +3,7 @@ package com.evolveum.midpoint.web.component.search;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import org.apache.commons.lang.StringUtils;
@@ -26,11 +27,13 @@ public class SearchItem<T extends Serializable> implements Serializable {
 
     private Search search;
 
+    private ItemPath path;
     private ItemDefinition definition;
     private T value;
     private String displayValue;
 
-    public SearchItem(Search search, ItemDefinition definition) {
+    public SearchItem(Search search, ItemPath path, ItemDefinition definition) {
+        Validate.notNull(path, "Item path must not be null.");
         Validate.notNull(definition, "Item definition must not be null.");
 
         if (!(definition instanceof PrismPropertyDefinition)
@@ -39,7 +42,12 @@ public class SearchItem<T extends Serializable> implements Serializable {
         }
 
         this.search = search;
+        this.path = path;
         this.definition = definition;
+    }
+
+    public ItemPath getPath() {
+        return path;
     }
 
     public ItemDefinition getDefinition() {
@@ -83,7 +91,7 @@ public class SearchItem<T extends Serializable> implements Serializable {
         if (value instanceof DisplayableValue) {
             DisplayableValue dv = (DisplayableValue) value;
             displayValue = dv.getLabel();
-        } else if (value != null){
+        } else if (value != null) {
             displayValue = value.toString();
         }
         setDisplayValue(displayValue);
