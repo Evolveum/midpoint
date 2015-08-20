@@ -69,7 +69,33 @@
     	<valueEnumerationRef oid="70000000-0000-0000-1111-000000000001"/>
     </item>
 
-    <!-- RB-RBAC functionality. The Pirate role is automatically assigned based on the value of employeeType property -->
+	<item>
+		<ref>extension/badLuck</ref>
+		<tolerant>false</tolerant>
+		<mapping>
+			<strength>strong</strength>
+			<source>
+				<path>givenName</path>
+			</source>
+			<expression>
+				<script>
+					<relativityMode>absolute</relativityMode>
+					<allowEmptyValues>true</allowEmptyValues>
+					<code>
+						if (basic.stringify(givenName) == 'JACKIE') {
+							[ 123L ]
+						} else if (basic.stringify(givenName) == 'jackie') {
+							null
+						} else {
+							[ 123L, 456L ]
+						}
+					</code>
+				</script>
+			</expression>
+		</mapping>
+	</item>
+
+	<!-- RB-RBAC functionality. The Pirate role is automatically assigned based on the value of employeeType property -->
     <mapping>
     	<authoritative>true</authoritative>
     	<source>
@@ -268,6 +294,5 @@
     		<path>additionalName</path>
     	</target>
     </mapping>
-    
 
 </objectTemplate>
