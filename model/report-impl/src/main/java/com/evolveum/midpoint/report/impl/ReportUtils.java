@@ -43,6 +43,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
+import java.util.MissingResourceException;
 
 /**
  * Utility methods for report. Mostly pretty print functions. Do not use any
@@ -148,7 +149,12 @@ public class ReportUtils {
 
     public static String getPropertyString(String key, String defaultValue) {
         String val = (defaultValue == null) ? key : defaultValue;
-        ResourceBundle bundle = ResourceBundle.getBundle("com.evolveum.midpoint.web.security.MidPointApplication");
+        ResourceBundle bundle;
+        try {
+            bundle = ResourceBundle.getBundle("com.evolveum.midpoint.web.security.MidPointApplication");
+        } catch (MissingResourceException e) {
+            return (defaultValue != null) ? defaultValue : key; //workaround for Jasper Studio
+        }
         if (bundle != null && bundle.containsKey(key)) {
             val = bundle.getString(key);
         }
