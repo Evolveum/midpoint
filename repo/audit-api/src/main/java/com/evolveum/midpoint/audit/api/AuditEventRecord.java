@@ -35,6 +35,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
@@ -43,6 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
  * Audit event record describes a single event (usually data change) in a format suitable for audit.
@@ -297,6 +299,10 @@ public class AuditEventRecord implements DebugDumpable {
 	}
     
     public AuditEventRecordType createAuditEventRecordType(){
+    	return createAuditEventRecordType(false);
+	}
+    
+    public AuditEventRecordType createAuditEventRecordType(boolean tolerateInconsistencies){
     	AuditEventRecordType auditRecordType = new AuditEventRecordType();
     	auditRecordType.setChannel(channel);
     	auditRecordType.setEventIdentifier(eventIdentifier);
@@ -315,15 +321,27 @@ public class AuditEventRecord implements DebugDumpable {
     	auditRecordType.setTaskOID(taskOID);
     	auditRecordType.setTimestamp(MiscUtil.asXMLGregorianCalendar(timestamp));
     	for (ObjectDeltaOperation delta : deltas){
+    		ObjectDeltaOperationType odo = new ObjectDeltaOperationType();
     		try {
-    			ObjectDeltaOperationType odo = new ObjectDeltaOperationType();
     			odo.setObjectDelta(DeltaConvertor.toObjectDeltaType(delta.getObjectDelta()));
     			if (delta.getExecutionResult() != null){
     				odo.setExecutionResult(delta.getExecutionResult().createOperationResultType());
     			}
 				auditRecordType.getDelta().add(odo);
-			} catch (SchemaException e) {
-				continue;
+			} catch (Exception e) {
+				if (tolerateInconsistencies){
+					if (delta.getExecutionResult() != null){
+						delta.getExecutionResult().setMessage("Could not show audit record, bad data in delta: " + delta.getObjectDelta());
+					} else {
+						OperationResult result = new OperationResult("Create audit event record type");
+						result.setMessage("Could not show audit record, bad data in delta: " + delta.getObjectDelta());
+						odo.setExecutionResult(result.createOperationResultType());
+					}
+					continue;
+				} else {
+					throw new SystemException(e.getMessage(), e);
+				}
+				
 			}
     	}
     	

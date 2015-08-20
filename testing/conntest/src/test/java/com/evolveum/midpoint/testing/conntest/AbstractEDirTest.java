@@ -36,6 +36,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -43,6 +44,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
@@ -52,14 +54,17 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
@@ -202,6 +207,20 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 		cleanupDelete(toGroupDn("Mêlée Island"));
 	}
 
+	@Test
+    public void test050Capabilities() throws Exception {
+		final String TEST_NAME = "test050Capabilities";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Collection<Object> nativeCapabilitiesCollection = ResourceTypeUtil.getNativeCapabilitiesCollection(resourceType);
+        display("Native capabilities", nativeCapabilitiesCollection);
+        
+        assertTrue("No native activation capability", ResourceTypeUtil.hasResourceNativeActivationCapability(resourceType));
+        assertTrue("No native activation status capability", ResourceTypeUtil.hasResourceNativeActivationStatusCapability(resourceType));
+        assertTrue("No native lockout capability", ResourceTypeUtil.hasResourceNativeActivationLockoutCapability(resourceType));
+        assertTrue("No native credentias capability", ResourceTypeUtil.hasCredentialsCapability(resourceType));
+	}
+	
 	@Test
     public void test100SeachJackByLdapUid() throws Exception {
 		final String TEST_NAME = "test100SeachJackByLdapUid";
@@ -520,8 +539,70 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
 	}
 	
+	@Test
+    public void test230DisableBarbossa() throws Exception {
+		final String TEST_NAME = "test230DisableBarbossa";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_BARBOSSA_OID, 
+        		new ItemPath(UserType.F_ACTIVATION,  ActivationType.F_ADMINISTRATIVE_STATUS), 
+        		task, result, ActivationStatusType.DISABLED);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        assertAdministrativeStatus(user, ActivationStatusType.DISABLED);
+
+        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        assertAttribute(entry, "loginDisabled", "TRUE");
+        
+        String shadowOid = getSingleLinkOid(user);
+        PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
+        assertAdministrativeStatus(shadow, ActivationStatusType.DISABLED);
+	}
+	
+	@Test
+    public void test239EnableBarbossa() throws Exception {
+		final String TEST_NAME = "test239EnableBarbossa";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_BARBOSSA_OID, 
+        		new ItemPath(UserType.F_ACTIVATION,  ActivationType.F_ADMINISTRATIVE_STATUS), 
+        		task, result, ActivationStatusType.ENABLED);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        assertAdministrativeStatus(user, ActivationStatusType.ENABLED);
+
+        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        assertAttribute(entry, "loginDisabled", "FALSE");
+        
+        String shadowOid = getSingleLinkOid(user);
+        PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
+        assertAdministrativeStatus(shadow, ActivationStatusType.ENABLED);
+	}
+	
 	/**
-	 * This should create account with a group.
+	 * This should create account with a group. And disabled.
 	 */
 	@Test
     public void test250AssignGuybrushPirates() throws Exception {
@@ -531,6 +612,10 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
+        
+        modifyUserReplace(USER_GUYBRUSH_OID, 
+        		new ItemPath(UserType.F_ACTIVATION,  ActivationType.F_ADMINISTRATIVE_STATUS), 
+        		task, result, ActivationStatusType.DISABLED);
         
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -543,15 +628,51 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 
         Entry entry = assertLdapAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME);
         display("Entry", entry);
+        assertAttribute(entry, "loginDisabled", "TRUE");
         
         assertEDirGroupMember(entry, GROUP_PIRATES_NAME);
         
         PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
+        assertAdministrativeStatus(user, ActivationStatusType.DISABLED);
         String shadowOid = getSingleLinkOid(user);
         
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
         IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
+        assertAdministrativeStatus(shadow, ActivationStatusType.DISABLED);
 	}
+	
+	@Test
+    public void test260EnableGyubrush() throws Exception {
+		final String TEST_NAME = "test260EnableGyubrush";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_GUYBRUSH_OID, 
+        		new ItemPath(UserType.F_ACTIVATION,  ActivationType.F_ADMINISTRATIVE_STATUS), 
+        		task, result, ActivationStatusType.ENABLED);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
+        assertAdministrativeStatus(user, ActivationStatusType.ENABLED);
+
+        Entry entry = assertLdapAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME);
+        assertAttribute(entry, "loginDisabled", "FALSE");
+        
+        String shadowOid = getSingleLinkOid(user);
+        PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
+        assertAdministrativeStatus(shadow, ActivationStatusType.ENABLED);
+	}
+
+	// TODO: search for disabled accounts
 	
 	@Test
     public void test300AssignBarbossaPirates() throws Exception {
