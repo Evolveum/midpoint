@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.report.impl;
 
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import java.io.File;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -43,27 +45,25 @@ import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
+import java.lang.reflect.Method;
 import java.util.MissingResourceException;
 
 /**
  * Utility methods for report. Mostly pretty print functions. Do not use any
  * "prism" object and anything related to them. Methods has to work with both,
  * common schema types and extended schema types (prism)
- * 
+ *
  * @author Katarina Valalikova
  * @author Martin Lizner
- * 
+ *
  */
-
 public class ReportUtils {
 
     private static String MIDPOINT_HOME = System.getProperty("midpoint.home");
     private static String EXPORT_DIR = MIDPOINT_HOME + "export/";
 
-   
     private static final Trace LOGGER = TraceManager
             .getTrace(ReportUtils.class);
-
 
     public static Timestamp convertDateTime(XMLGregorianCalendar dateTime) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
@@ -76,7 +76,6 @@ public class ReportUtils {
         return timestamp;
     }
 
-   
     public static String getDateTime() {
         Date createDate = new Date(System.currentTimeMillis());
         SimpleDateFormat formatDate = new SimpleDateFormat("dd-MM-yyyy hh-mm-ss");
@@ -141,8 +140,6 @@ public class ReportUtils {
         return output;
     }
 
-
-
     public static String getPropertyString(String key) {
         return getPropertyString(key, null);
     }
@@ -172,7 +169,6 @@ public class ReportUtils {
     public static String prettyPrintForReport(ProtectedStringType pst) {
         return "*****";
     }
-
 
     public static String prettyPrintForReport(OperationResultType ort) {
         StringBuilder sb = new StringBuilder();
@@ -216,102 +212,121 @@ public class ReportUtils {
      - Credit goes to Evolveum        
      */
     public static String prettyPrintForReport(Object value) {
-    	if (value == null){
-    		return "";
-    	}
-    	
-    	
-    	if (value instanceof MetadataType){
-    		return "";
-    	}
-    	
-    	//special handling for byte[], some problems with jasper when printing 
-    	if (byte[].class.equals(value.getClass())){
-    		return prettyPrintForReport((byte[]) value);
-    	}
+        if (value == null) {
+            return "";
+        }
 
-    	String str = PrettyPrinter.prettyPrint(value);
-    	if (str.length() > 1000){
-    		return str.substring(0, 1000);
-    	}
-    	return str;
+        if (value instanceof MetadataType) {
+            return "";
+        }
+
+        //special handling for byte[], some problems with jasper when printing 
+        if (byte[].class.equals(value.getClass())) {
+            return prettyPrintForReport((byte[]) value);
+        }
+
+        // 1. Try to find prettyPrintForReport in this class first
+        for (Method method : ReportUtils.class.getMethods()) {
+            if (method.getName().equals("prettyPrintForReport")) {
+                Class<?>[] parameterTypes = method.getParameterTypes();
+                if (parameterTypes.length == 1 && parameterTypes[0].equals(value.getClass())) {
+                    try {
+                        return (String) method.invoke(null, value);
+                    } catch (Throwable e) {
+                        return "###INTERNAL#ERROR### " + e.getClass().getName() + ": " + e.getMessage() + "; prettyPrintForReport method for value " + value;
+                    }
+                }
+            }
+        }
+
+        // 2. Default to PrettyPrinter.prettyPrint
+        String str = PrettyPrinter.prettyPrint(value);
+        if (str.length() > 1000) {
+            return str.substring(0, 1000);
+        }
+        return str;
 
     }
-    
-    private static String printItemDeltaValues(ItemDeltaType itemDelta){
-    	 List values = itemDelta.getValue();
-    	 StringBuilder sb = new StringBuilder();
-    	for (Object value : values){
-    		String v = printItemDeltaValue(itemDelta.getPath(), value);
-         	if (StringUtils.isNotBlank(v)){
-         		sb.append(v);
-             	sb.append(", ");
-         	}
-         }
-    	sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter 
-    	return sb.toString();
+
+    private static String printItemDeltaValues(ItemDeltaType itemDelta) {
+        List values = itemDelta.getValue();
+        StringBuilder sb = new StringBuilder();
+        for (Object value : values) {
+            String v = printItemDeltaValue(itemDelta.getPath(), value);
+            if (StringUtils.isNotBlank(v)) {
+                sb.append(v);
+                sb.append(", ");
+            }
+        }
+        sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter 
+        return sb.toString();
     }
-    
-    private static String printItemDeltaValue(ItemPathType itemPath, Object value){
-    	if (value instanceof MetadataType){
-     		return "";
-     	} else if (value instanceof RawType){
-     		try {
-     			
-     			if (isMetadata(itemPath)){
-     				return "";
-     			}
-     			return prettyPrintForReport(((RawType) value).getParsedRealValue(null, itemPath.getItemPath()));
-				} catch (SchemaException e) {
-					return "###INTERNAL#ERROR### " + e.getClass().getName() + ": " + e.getMessage() + "; prettyPrintForReport method for value " + value;
-				} catch (RuntimeException e){
-					return "###INTERNAL#ERROR### " + e.getClass().getName() + ": " + e.getMessage() + "; prettyPrintForReport method for value " + value;
-				} catch (Exception e){
-					return "###INTERNAL#ERROR### " + e.getClass().getName() + ": " + e.getMessage() + "; prettyPrintForReport method for value " + value;
-				}
-     	} else {
-     		return prettyPrintForReport(value);
-     	}
-    	
+
+    private static String printItemDeltaValue(ItemPathType itemPath, Object value) {
+        if (value instanceof MetadataType) {
+            return "";
+        } else if (value instanceof RawType) {
+            try {
+
+                if (isMetadata(itemPath)) {
+                    return "";
+                }
+                return prettyPrintForReport(((RawType) value).getParsedRealValue(null, itemPath.getItemPath()));
+            } catch (SchemaException e) {
+                return "###INTERNAL#ERROR### " + e.getClass().getName() + ": " + e.getMessage() + "; prettyPrintForReport method for value " + value;
+            } catch (RuntimeException e) {
+                return "###INTERNAL#ERROR### " + e.getClass().getName() + ": " + e.getMessage() + "; prettyPrintForReport method for value " + value;
+            } catch (Exception e) {
+                return "###INTERNAL#ERROR### " + e.getClass().getName() + ": " + e.getMessage() + "; prettyPrintForReport method for value " + value;
+            }
+        } else {
+            return prettyPrintForReport(value);
+        }
     }
-    
-    private static String printItemDeltaOldValues(ItemPathType itemPath, List values){
-    	 StringBuilder sb = new StringBuilder();
-    	for (Object value : values){
-    		String v = printItemDeltaValue(itemPath, value);
-         	if (StringUtils.isNotBlank(v)){
-         		sb.append(v);
-             	sb.append(", ");
-         	}
-         }
-    	sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter 
-    	return sb.toString();
-    	
+
+    private static String printItemDeltaOldValues(ItemPathType itemPath, List values) {
+        StringBuilder sb = new StringBuilder();
+        for (Object value : values) {
+            String v = printItemDeltaValue(itemPath, value);
+            if (StringUtils.isNotBlank(v)) {
+                sb.append(v);
+                sb.append(", ");
+            }
+        }
+        sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter 
+        return sb.toString();
+
     }
-    
-    private static boolean isMetadata(ItemDeltaType itemDelta){
-    	List values = itemDelta.getValue();
-    	for (Object v : values){
-    		if (v instanceof MetadataType){
-    			return true;
-    		} else if (v instanceof RawType){
-    			return isMetadata(itemDelta.getPath());
-    		}
-    	}
-    	
-    	return false;
+
+    private static boolean isMetadata(ItemDeltaType itemDelta) {
+        List values = itemDelta.getValue();
+        for (Object v : values) {
+            if (v instanceof MetadataType) {
+                return true;
+            } else if (v instanceof RawType) {
+                return isMetadata(itemDelta.getPath());
+            }
+        }
+
+        return false;
     }
-    
-    private static boolean isMetadata(ItemPathType itemPath){
-    	return com.evolveum.midpoint.prism.path.ItemPath.getFirstName(itemPath.getItemPath()).getLocalPart().equals("metadata");
+
+    private static boolean isMetadata(ItemPathType itemPath) {
+        boolean retMeta = false;
+        for (ItemPathSegment ips : itemPath.getItemPath().getSegments()) {
+            if (ips instanceof NameItemPathSegment && "metadata".equals(((NameItemPathSegment) ips).getName().getLocalPart())) {
+                return true;
+            }
+        }
+        return retMeta;
     }
-    
+
     public static String prettyPrintForReport(ItemDeltaType itemDelta) {
         StringBuilder sb = new StringBuilder();
         boolean displayNA = false;
-        
-        if (isMetadata(itemDelta)){
-        	return sb.toString();
+
+        if (isMetadata(itemDelta)) {
+            return sb.toString();
         }
 
         sb.append(">>> ");
@@ -326,8 +341,8 @@ public class ReportUtils {
             sb.append(", ");
             displayNA = true;
         }
-   
-        if (itemDelta.getModificationType() == ModificationTypeType.REPLACE){
+
+        if (itemDelta.getModificationType() == ModificationTypeType.REPLACE) {
             sb.append("Replace: ");
             sb.append("{");
             sb.append(printItemDeltaValues(itemDelta));
@@ -364,12 +379,10 @@ public class ReportUtils {
         return sb.toString();
     }
 
-    
-    public static String getBusinessDisplayName(ObjectReferenceType ort){
-    	return ort.getDescription();
+    public static String getBusinessDisplayName(ObjectReferenceType ort) {
+        return ort.getDescription();
     }
 
-    
     private static String printChangeType(ObjectDeltaType delta, String opName) {
         StringBuilder sb = new StringBuilder();
         sb.append(opName);
@@ -383,19 +396,17 @@ public class ReportUtils {
         return sb.toString();
     }
 
-
     public static String printDelta(List<ObjectDeltaType> delta) {
-    	StringBuilder sb = new StringBuilder();
-    	for (ObjectDeltaType d : delta){
-    		sb.append(printDelta(d));
-    		sb.append("\n");
-    	}
-    	return sb.toString();
+        StringBuilder sb = new StringBuilder();
+        for (ObjectDeltaType d : delta) {
+            sb.append(printDelta(d));
+            sb.append("\n");
+        }
+        return sb.toString();
     }
-    
+
     public static String printDelta(ObjectDeltaType delta) {
         StringBuilder sb = new StringBuilder();
-        Boolean isMeta;
 
         switch (delta.getChangeType()) {
             case MODIFY:
