@@ -25,6 +25,7 @@ import java.util.Map.Entry;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -134,11 +135,13 @@ public class ObjectTemplateProcessor {
 				new Object[]{objectTemplate, focusContext.getObjectNew(), iteration, iterationToken, phase});
 						
 		Map<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap = new HashMap<>();
-		
+
+		Map<ItemPath,ObjectTemplateItemDefinitionType> itemDefinitionsMap = collectItemDefinitionsFromTemplate(objectTemplate, objectTemplate.toString(), task, result);
+
 		XMLGregorianCalendar nextRecomputeTime = collectTripleFromTemplate(context, objectTemplate, phase, focusOdo, outputTripleMap,
 				iteration, iterationToken, now, objectTemplate.toString(), task, result);
-								
-		Collection<ItemDelta<?,?>> itemDeltas = computeItemDeltas(outputTripleMap, focusOdo, focusDefinition, "object template "+objectTemplate+ " for focus "+focusOdo.getAnyObject());
+
+		Collection<ItemDelta<?,?>> itemDeltas = computeItemDeltas(outputTripleMap, itemDefinitionsMap, focusOdo, focusDefinition, "object template "+objectTemplate+ " for focus "+focusOdo.getAnyObject());
 		
 		focusContext.applyProjectionWaveSecondaryDeltas(itemDeltas);
 				
@@ -172,7 +175,38 @@ public class ObjectTemplateProcessor {
 
 	}
 
+	private Map<ItemPath, ObjectTemplateItemDefinitionType> collectItemDefinitionsFromTemplate(ObjectTemplateType objectTemplateType, String contextDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+		Map<ItemPath, ObjectTemplateItemDefinitionType> definitions = new HashMap<>();
+		// Process includes (TODO refactor as a generic method)
+		for (ObjectReferenceType includeRef: objectTemplateType.getIncludeRef()) {
+			PrismObject<ObjectTemplateType> includeObject = includeRef.asReferenceValue().getObject();
+			if (includeObject == null) {
+				ObjectTemplateType includeObjectType = modelObjectResolver.resolve(includeRef, ObjectTemplateType.class,
+						null, "include reference in "+objectTemplateType + " in " + contextDesc, result);
+				includeObject = includeObjectType.asPrismObject();
+				// Store resolved object for future use (e.g. next waves).
+				includeRef.asReferenceValue().setObject(includeObject);
+			}
+			LOGGER.trace("Including template {}", includeObject);
+			ObjectTemplateType includeObjectType = includeObject.asObjectable();
+			Map<ItemPath, ObjectTemplateItemDefinitionType> includedDefinitions = collectItemDefinitionsFromTemplate(includeObjectType, "include "+includeObject+" in "+objectTemplateType + " in " + contextDesc, task, result);
+			if (includedDefinitions != null) {
+				ItemPathUtil.putAllToMap(definitions, includedDefinitions);
+			}
+		}
+
+		// Process own definitions
+		for (ObjectTemplateItemDefinitionType def : objectTemplateType.getItem()) {
+			if (def.getRef() == null) {
+				throw new IllegalStateException("Item definition with null ref in " + contextDesc);
+			}
+			ItemPathUtil.putToMap(definitions, def.getRef().getItemPath(), def);	// TODO check for incompatible overrides
+		}
+		return definitions;
+	}
+
 	<F extends FocusType> Collection<ItemDelta<?,?>> computeItemDeltas(Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap,
+			Map<ItemPath,ObjectTemplateItemDefinitionType> itemDefinitionsMap,	// may be null
 			ObjectDeltaObject<F> focusOdo, PrismObjectDefinition<F> focusDefinition, String contextDesc) throws ExpressionEvaluationException, PolicyViolationException, SchemaException {
 		Collection<ItemDelta<?,?>> itemDeltas = new ArrayList<>();
 		for (Entry<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> entry: outputTripleMap.entrySet()) {
@@ -181,13 +215,34 @@ public class ObjectTemplateProcessor {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Computed triple for {}:\n{}", itemPath, outputTriple.debugDump());
 			}
-			ItemDelta apropriItemDelta = null;
-//			boolean addUnchangedValues = focusContext.isAdd();
-			// We need to add unchanged values otherwise the unconditional mappings will not be applied
-			boolean addUnchangedValues = true;
+			ObjectTemplateItemDefinitionType itemDefinition = null;
+			if (itemDefinitionsMap != null) {
+				itemDefinition = ItemPathUtil.getFromMap(itemDefinitionsMap, itemPath);
+			}
+			boolean isNonTolerant = itemDefinition != null && Boolean.FALSE.equals(itemDefinition.isTolerant());
+
+			ItemDelta aprioriItemDelta = null;
+			boolean addUnchangedValues = true;	// We need to add unchanged values otherwise the unconditional mappings will not be applied
+			boolean filterExistingValues = !isNonTolerant;	// if non-tolerant, we want to gather ZERO & PLUS sets
 			ItemDelta<?,?> itemDelta = LensUtil.consolidateTripleToDelta(itemPath, (DeltaSetTriple)outputTriple,
-					focusDefinition.findItemDefinition(itemPath), apropriItemDelta, focusOdo.getNewObject(), null, null, 
-					addUnchangedValues, true, false, contextDesc, true);
+					focusDefinition.findItemDefinition(itemPath), aprioriItemDelta, focusOdo.getNewObject(), null, null,
+					addUnchangedValues, filterExistingValues, false, contextDesc, true);
+
+			if (isNonTolerant) {
+				if (itemDelta.isDelete()) {
+					LOGGER.trace("Non-tolerant item with values to DELETE => removing them");
+					itemDelta.resetValuesToDelete();        // these are useless now - we move everything to REPLACE
+				}
+				if (itemDelta.isAdd()) {
+					itemDelta.addToReplaceDelta();
+					LOGGER.trace("Non-tolerant item with resulting ADD delta => converted ADD to REPLACE values");
+				} else if (itemDelta.isReplace()) {
+					LOGGER.trace("Non-tolerant item with resulting REPLACE delta => doing nothing");
+				} else {
+					itemDelta.setValuesToReplace();
+					LOGGER.trace("Non-tolerant item => converting resulting empty delta to 'delete all values' delta");
+				}
+			}
 			
 			itemDelta.simplify();
 			itemDelta.validate(contextDesc);
@@ -221,7 +276,7 @@ public class ObjectTemplateProcessor {
 			LOGGER.trace("Including template {}", includeObject);
 			ObjectTemplateType includeObjectType = includeObject.asObjectable();
 			XMLGregorianCalendar includeNextRecomputeTime = collectTripleFromTemplate(context, includeObjectType, phase, userOdo, 
-					outputTripleMap, iteration, iterationToken, 
+					outputTripleMap, iteration, iterationToken,
 					now, "include "+includeObject+" in "+objectTemplateType + " in " + contextDesc, task, result);
 			if (includeNextRecomputeTime != null) {
 				if (nextRecomputeTime == null || nextRecomputeTime.compare(includeNextRecomputeTime) == DatatypeConstants.GREATER) {

@@ -434,6 +434,10 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
         valuesToAdd = null;
     }
 
+	public void resetValuesToDelete() {
+		valuesToDelete = null;
+	}
+
 	public void setValuesToReplace(Collection<V> newValues) {
 		if (valuesToAdd != null) {
 			throw new IllegalStateException("Delta " + this
@@ -1563,6 +1567,14 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 		for (ItemDelta deltaToMerge: deltasToMerge) {
 			merge(modifications, deltaToMerge);
 		}
+	}
+
+	public void addToReplaceDelta() {
+		if (isReplace()) {
+			throw new IllegalStateException("Delta is a REPLACE delta, not an ADD one");
+		}
+		valuesToReplace = valuesToAdd;
+		valuesToAdd = null;
 	}
 	
 }

@@ -33,6 +33,7 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.datatype.DatatypeConstants.Field;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -116,9 +117,12 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
         XMLGregorianCalendar monthLater = XmlTypeConverter.addDuration(now, XmlTypeConverter.createDuration("P1M"));
         assertTrigger(userJack, RecomputeTriggerHandler.HANDLER_URI, monthLater, 100000L);
+
+        // original value of 0 should be gone now, because the corresponding item in user template is marked as non-tolerant
+        PrismAsserts.assertPropertyValue(userJack.findContainer(UserType.F_EXTENSION), PIRACY_BAD_LUCK, 123L, 456L);
 	}
-	
-	@Test
+
+    @Test
     public void test101ModifyUserEmployeeTypePirate() throws Exception {
 		final String TEST_NAME = "test101ModifyUserEmployeeTypePirate";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -155,8 +159,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong costCenter", "G001", userJackType.getCostCenter());
         
         jackEmployeeNumber = userJackType.getEmployeeNumber();
-        assertEquals("Unexpected length  of employeeNumber, maybe it was not generated?", 
-        		GenerateExpressionEvaluator.DEFAULT_LENGTH, jackEmployeeNumber.length());
+        assertEquals("Unexpected length  of employeeNumber, maybe it was not generated?",
+                GenerateExpressionEvaluator.DEFAULT_LENGTH, jackEmployeeNumber.length());
         
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
         XMLGregorianCalendar monthLater = XmlTypeConverter.addDuration(now, XmlTypeConverter.createDuration("P1M"));
@@ -314,7 +318,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
         assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
         assertEquals("Wrong telephone number", "1234", userJackType.getTelephoneNumber());
-        assertNull("Unexpected title: "+userJackType.getTitle(), userJackType.getTitle());
+        assertNull("Unexpected title: " + userJackType.getTitle(), userJackType.getTitle());
 	}
 	
 	@Test
@@ -351,7 +355,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         
         assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
         assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
-        assertNull("Unexpected telephone number: "+userJackType.getTelephoneNumber(), userJackType.getTelephoneNumber());
+        assertNull("Unexpected telephone number: " + userJackType.getTelephoneNumber(), userJackType.getTelephoneNumber());
         assertEquals("Wrong Title", PrismTestUtil.createPolyStringType("Happy Pirate"), userJackType.getTitle());
 	}
 	
@@ -390,7 +394,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
         assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
         assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
-        assertNull("Unexpected title: "+userJackType.getTitle(), userJackType.getTitle());
+        assertNull("Unexpected title: " + userJackType.getTitle(), userJackType.getTitle());
 	}
 	
 	@Test
@@ -424,7 +428,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
         assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
         assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
-        assertNull("Unexpected title: "+userJackType.getTitle(), userJackType.getTitle());
+        assertNull("Unexpected title: " + userJackType.getTitle(), userJackType.getTitle());
         IntegrationTestTools.assertExtensionProperty(userJack, PIRACY_COLORS, "none");
 	}
 	
@@ -494,7 +498,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
         assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
         assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
-        assertNull("Unexpected title: "+userJackType.getTitle(), userJackType.getTitle());
+        assertNull("Unexpected title: " + userJackType.getTitle(), userJackType.getTitle());
 //        IntegrationTestTools.assertNoExtensionProperty(userJack, PIRACY_COLORS);
 	}
 
@@ -706,8 +710,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
                     
 		// WHEN
-        modifyUserDelete(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, 
-        		PrismTestUtil.createPolyString("FD002"));
+        modifyUserDelete(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result,
+                PrismTestUtil.createPolyString("FD002"));
 
 		// THEN
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
@@ -739,8 +743,59 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertNull("Unexpected title: "+userJackType.getTitle(), userJackType.getTitle());
 //        IntegrationTestTools.assertNoExtensionProperty(userJack, PIRACY_COLORS);
 	}
-	
-	private PrismObject<OrgType> assertOnDemandOrgExists(String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+
+    @Test
+    public void test160ModifyUserGivenNameAgain() throws Exception {
+        TestUtil.displayTestTile(this, "test160ModifyUserGivenNameAgain");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + ".test160ModifyUserGivenNameAgain");
+        OperationResult result = task.getResult();
+
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class,
+                USER_JACK_OID, UserType.F_GIVEN_NAME, prismContext, new PolyString("JACKIE"));
+        deltas.add(userDelta);
+
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
+
+        // THEN
+        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        PrismAsserts.assertPropertyValue(userJack.findContainer(UserType.F_EXTENSION), PIRACY_BAD_LUCK, 123L);
+    }
+
+    @Test
+    public void test165ModifyUserGivenNameAgainAgain() throws Exception {
+        TestUtil.displayTestTile(this, "test165ModifyUserGivenNameAgainAgain");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + ".test165ModifyUserGivenNameAgainAgain");
+        OperationResult result = task.getResult();
+
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class,
+                USER_JACK_OID, UserType.F_GIVEN_NAME, prismContext, new PolyString("jackie"));
+        deltas.add(userDelta);
+
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
+
+        // THEN
+        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        // all the values should be gone now, because the corresponding item in user template is marked as non-tolerant
+        PrismAsserts.assertNoItem(userJack, new ItemPath(UserType.F_EXTENSION, PIRACY_BAD_LUCK));
+    }
+
+    private PrismObject<OrgType> assertOnDemandOrgExists(String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 		PrismObject<OrgType> org = findObjectByName(OrgType.class, orgName);
 		assertNotNull("The org "+orgName+" is missing!", org);
 		display("Org "+orgName, org);

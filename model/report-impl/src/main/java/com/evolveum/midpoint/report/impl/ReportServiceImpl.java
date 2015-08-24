@@ -84,9 +84,9 @@ public class ReportServiceImpl implements ReportService {
 		try {
 			SearchFilterType filter = (SearchFilterType) prismContext.parseAtomicValue(query,
 					SearchFilterType.COMPLEX_TYPE);
-			LOGGER.info("filter {}", filter);
+			LOGGER.trace("filter {}", filter);
 			ObjectFilter f = QueryConvertor.parseFilter(filter, UserType.class, prismContext);
-			LOGGER.info("f {}", f.debugDump());
+			LOGGER.trace("f {}", f.debugDump());
 			if (!(f instanceof TypeFilter)) {
 				throw new IllegalArgumentException(
 						"Defined query must contain type. Use 'type filter' in your report query.");
@@ -105,7 +105,7 @@ public class ReportServiceImpl implements ReportService {
 			((TypeFilter) f).setFilter(q.getFilter());
 			parsedQuery = ObjectQuery.createObjectQuery(f);
 
-			LOGGER.info("query dump {}", parsedQuery.debugDump());
+			LOGGER.trace("query dump {}", parsedQuery.debugDump());
 		} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException e) {
 			// TODO Auto-generated catch block
 			throw e;

@@ -27,6 +27,7 @@
         <piracy:ship xsi:type="xsd:string">Black Pearl</piracy:ship>
         <piracy:weapon>pistol</piracy:weapon>
         <piracy:weapon>mouth</piracy:weapon>
+        <piracy:badLuck>0</piracy:badLuck>
     </extension>
     <fullName>Jack Sparrow</fullName>
     <givenName>Jack</givenName>
