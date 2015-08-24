@@ -117,6 +117,15 @@ public class ObjectImporter {
     private Migrator migrator = new Migrator();
 
     public void importObjects(InputStream input, final ImportOptionsType options, final Task task, final OperationResult parentResult) {
+        importObjectsInternal(input, options, true, task, parentResult);
+    }
+
+    // TODO provide "noRaw" option in ImportOptionsType?
+    public void importObjectsNotRaw(InputStream input, final ImportOptionsType options, final Task task, final OperationResult parentResult) {
+        importObjectsInternal(input, options, false, task, parentResult);
+    }
+
+    private void importObjectsInternal(InputStream input, final ImportOptionsType options, final boolean raw, final Task task, final OperationResult parentResult) {
 
         EventHandler handler = new EventHandler() {
 
@@ -198,7 +207,7 @@ public class ObjectImporter {
                 
                 try {
 
-                    importObjectToRepository(object, options, task, objectResult);
+                    importObjectToRepository(object, options, raw, task, objectResult);
 
                     LOGGER.info("Imported object {}", object);
 
@@ -270,7 +279,7 @@ public class ObjectImporter {
 
     }
 
-    private <T extends ObjectType> void importObjectToRepository(PrismObject<T> object, ImportOptionsType options,
+    private <T extends ObjectType> void importObjectToRepository(PrismObject<T> object, ImportOptionsType options, boolean raw,
                                          Task task, OperationResult objectResult) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
 				ConfigurationException, PolicyViolationException, SecurityViolationException, SchemaException, ObjectAlreadyExistsException {
 
@@ -292,7 +301,7 @@ public class ObjectImporter {
         
         try {
 			String oid = addObject(object, BooleanUtils.isTrue(options.isOverwrite()), 
-					BooleanUtils.isFalse(options.isEncryptProtectedValues()), task, result);
+					BooleanUtils.isFalse(options.isEncryptProtectedValues()), raw, task, result);
 			
             if (object.canRepresent(TaskType.class)) {
             	taskManager.onTaskCreate(oid, result);
@@ -318,7 +327,7 @@ public class ObjectImporter {
          	 	 		if (BooleanUtils.isTrue(options.isKeepOid())) {
          	 	 			object.setOid(deletedOid);
          	 	 		}
-         	 	 		addObject(object, false, BooleanUtils.isFalse(options.isEncryptProtectedValues()), task, result);
+         	 	 		addObject(object, false, BooleanUtils.isFalse(options.isEncryptProtectedValues()), raw, task, result);
 	         	 	 	if (object.canRepresent(TaskType.class)) {
 	         	 	 		taskManager.onTaskCreate(object.getOid(), result);
 	         	 	 	}
@@ -348,13 +357,13 @@ public class ObjectImporter {
         }
     }
 
-    private <T extends ObjectType> String addObject(PrismObject<T> object, boolean overwrite, boolean noCrypt,
+    private <T extends ObjectType> String addObject(PrismObject<T> object, boolean overwrite, boolean noCrypt, boolean raw,
     		Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
     	
     	ObjectDelta<T> delta = ObjectDelta.createAddDelta(object);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
 		ModelExecuteOptions options = new ModelExecuteOptions();
-		options.setRaw(true);
+		options.setRaw(raw);
 		if (overwrite) {
 			options.setOverwrite(true);
 		}
