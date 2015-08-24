@@ -34,9 +34,11 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.Validate;
 import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -369,7 +371,7 @@ public class ModelRestService {
 	public Response notifyChange(ResourceObjectShadowChangeDescriptionType changeDescription, 
 			@Context UriInfo uriInfo, @Context MessageContext mc) {
 		LOGGER.info("model rest service for notify change operation start");
-
+		Validate.notNull(changeDescription, "Chnage description must not be null");
 		Task task = taskManager.createTaskInstance("notifyChange");
 		initRequest(task, mc);
 		OperationResult parentResult = task.getResult();
@@ -377,7 +379,15 @@ public class ModelRestService {
 		Response response;
 		try {
 			model.notifyChange(changeDescription, parentResult, task);
-			response = Response.seeOther((uriInfo.getBaseUriBuilder().path(this.getClass(), "getObject").build(ObjectTypes.TASK.getRestType(), task.getOid()))).build();
+			return Response.ok().build();
+//			String oldShadowOid = changeDescription.getOldShadowOid();
+//			if (oldShadowOid != null){
+//				URI resourceURI = uriInfo.getAbsolutePathBuilder().path(oldShadowOid).build(oldShadowOid);
+//				return Response.accepted().location(resourceURI).build();
+//			} else {
+//				changeDescription.get
+//			}
+//			response = Response.seeOther((uriInfo.getBaseUriBuilder().path(this.getClass(), "getObject").build(ObjectTypes.TASK.getRestType(), task.getOid()))).build();
 		} catch (ObjectAlreadyExistsException e) {
 			response = Response.status(Status.CONFLICT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
 		} catch (ObjectNotFoundException e) {
