@@ -530,12 +530,12 @@ public class ReconciliationProcessor {
 		
 		for (PrismPropertyValue<Object> isPValue : arePValues){
 			if (matchPattern(attributeDefinition.getTolerantValuePattern(), isPValue, valueMatcher)){
-				LOGGER.trace("Value {} of the attribute {} match with toletant value pattern. Value will be NOT DELETED." , new Object[]{isPValue, attributeDefinition});
+				LOGGER.trace("Value {} of the attribute {} match with tolerant value pattern. Value will be NOT DELETED." , new Object[]{isPValue, attributeDefinition});
 				continue;
 			}
 		
 			if (matchPattern(attributeDefinition.getIntolerantValuePattern(), isPValue, valueMatcher)){
-				LOGGER.trace("Value {} of the attribute {} match with intoletant value pattern. Value will be DELETED." , new Object[]{isPValue, attributeDefinition});
+				LOGGER.trace("Value {} of the attribute {} match with intolerant value pattern. Value will be DELETED." , new Object[]{isPValue, attributeDefinition});
 				recordDelta(valueMatcher, accCtx, attributeDefinition, ModificationType.DELETE,
 						isPValue.getValue(), null);
 				continue;

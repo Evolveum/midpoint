@@ -549,7 +549,9 @@ mainCycle:
             task.setProgress(runResult.getProgress());
             task.setLastRunFinishTimestamp(System.currentTimeMillis());
             if (runResult.getOperationResult() != null) {
-                task.setResult(runResult.getOperationResult());
+                OperationResult taskResult = runResult.getOperationResult().clone();
+                taskResult.cleanupResult();
+                task.setResult(taskResult);
             }
             task.setNode(null);
             task.savePendingModifications(result);
