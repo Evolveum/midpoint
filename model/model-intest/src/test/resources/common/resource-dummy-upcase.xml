@@ -291,6 +291,10 @@
         	<default>true</default>
         	<objectClass>ri:GroupObjectClass</objectClass>
         	<attribute>
+				<ref>icfs:uid</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+			</attribute>
+        	<attribute>
 				<ref>icfs:name</ref>
 				<displayName>Groupname</displayName>
 				<matchingRule>mr:stringIgnoreCase</matchingRule>
