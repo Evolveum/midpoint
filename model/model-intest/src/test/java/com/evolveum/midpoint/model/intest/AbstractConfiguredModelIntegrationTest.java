@@ -157,6 +157,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String RESOURCE_DUMMY_UPCASE_OID = "10000000-0000-0000-0000-000000001204";
 	protected static final String RESOURCE_DUMMY_UPCASE_NAME = "upcase";
 	protected static final String RESOURCE_DUMMY_UPCASE_NAMESPACE = MidPointConstants.NS_RI;
+	protected static final QName RESOURCE_DUMMY_UPCASE_ASSOCIATION_GROUP_QNAME = new QName(RESOURCE_DUMMY_UPCASE_NAMESPACE, "group");
 
 	protected static final String RESOURCE_DUMMY_FAKE_FILENAME = COMMON_DIR + "/resource-dummy-fake.xml";
 	protected static final String RESOURCE_DUMMY_FAKE_OID = "10000000-0000-0000-0000-00000000000f";
@@ -295,7 +296,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	public static final String GROUP_DUMMY_TESTERS_DESCRIPTION = "To boldly go where no pirate has gone before";
 	
 	public static final File GROUP_SHADOW_JOKER_DUMMY_UPCASE_FILE = new File(COMMON_DIR, "group-shadow-dummy-upcase-joker.xml");
-	public static final String GROUP_SHADOW_JOKER_DUMMY_UPCASE_OID = "c0c010c0-d34d-b33f-f00d-22220004000e";
+	public static final String GROUP_SHADOW_JOKER_DUMMY_UPCASE_OID = "bc2a1d98-9ca4-11e4-a600-001e8c717e5b";
 	public static final String GROUP_SHADOW_JOKER_DUMMY_UPCASE_NAME = "joker";
 	public static final String GROUP_JOKER_DUMMY_UPCASE_NAME = "JOKER";
 	

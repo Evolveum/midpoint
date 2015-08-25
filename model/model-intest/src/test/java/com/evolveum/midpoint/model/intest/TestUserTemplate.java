@@ -949,7 +949,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         clock.override(now);
         
         // WHEN
-        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
         
         // THEN
         PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);

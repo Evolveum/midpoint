@@ -40,7 +40,7 @@ This resource definition contains only the very basic definitions for midPoint t
     	<!-- Resource name. It will be displayed in GUI.  -->
 		<name>Basic Active Directory</name>
      
-     	<!-- Reference to the ICF AD connector. OID is "virtual" for now. -->
+     	<!-- Reference to the AD connector. -->
 		<connectorRef type="ConnectorType">
 			<filter>
 				<q:equal>

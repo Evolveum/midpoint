@@ -106,7 +106,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest{
 		
 		waitForTaskStart(TASK_RECON_DUMMY_OID, false, DEFAULT_TASK_WAIT_TIMEOUT);
 		
-		waitForTaskNextRun(TASK_RECON_DUMMY_OID, false, DEFAULT_TASK_WAIT_TIMEOUT);
+		waitForTaskNextRunAssertSuccess(TASK_RECON_DUMMY_OID, false, DEFAULT_TASK_WAIT_TIMEOUT);
 		
 		waitForTaskFinish(TASK_RECON_DUMMY_OID, false);
 		
@@ -148,7 +148,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest{
 //		
 		waitForTaskStart(TASK_RECON_DUMMY_OID, false, DEFAULT_TASK_WAIT_TIMEOUT);
 //		
-		waitForTaskNextRun(TASK_RECON_DUMMY_OID, false, DEFAULT_TASK_WAIT_TIMEOUT);
+		waitForTaskNextRunAssertSuccess(TASK_RECON_DUMMY_OID, false, DEFAULT_TASK_WAIT_TIMEOUT);
 		
 		waitForTaskFinish(TASK_RECON_DUMMY_OID, true);
 		
@@ -206,7 +206,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest{
 		
 		waitForTaskStart(TASK_RECON_DUMMY_OID, false);
 		
-		waitForTaskNextRun(TASK_RECON_DUMMY_OID, false);
+		waitForTaskNextRunAssertSuccess(TASK_RECON_DUMMY_OID, false);
 		
 		waitForTaskFinish(TASK_RECON_DUMMY_OID, false);
 		
@@ -239,7 +239,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest{
 		
 		waitForTaskStart(TASK_RECON_DUMMY_OID, false);
 		
-		waitForTaskNextRun(TASK_RECON_DUMMY_OID, false);
+		waitForTaskNextRunAssertSuccess(TASK_RECON_DUMMY_OID, false);
 		
 		waitForTaskFinish(TASK_RECON_DUMMY_OID, false);
 		

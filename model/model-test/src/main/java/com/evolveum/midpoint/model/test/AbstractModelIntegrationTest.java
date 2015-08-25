@@ -96,6 +96,7 @@ import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -1892,27 +1893,37 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		IntegrationTestTools.waitFor("Waiting for task " + taskOid + " start", checker, timeout, DEFAULT_TASK_SLEEP_TIME);
 	}
 	
-	protected void waitForTaskNextRun(String taskOid, boolean checkSubresult) throws Exception {
-		waitForTaskNextRun(taskOid, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
+	protected OperationResult waitForTaskNextRunAssertSuccess(String taskOid, boolean checkSubresult) throws Exception {
+		return waitForTaskNextRunAssertSuccess(taskOid, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
 	}
 	
-	protected void waitForTaskNextRun(final String taskOid, final boolean checkSubresult, final int timeout) throws Exception {
+	protected OperationResult waitForTaskNextRunAssertSuccess(final String taskOid, final boolean checkSubresult, final int timeout) throws Exception {
+		OperationResult taskResult = waitForTaskNextRun(taskOid, checkSubresult, timeout);
+		if (isError(taskResult, checkSubresult)) {
+            assert false : "Error in task "+taskOid+": "+TestUtil.getErrorMessage(taskResult)+"\n\n"+taskResult.debugDump();
+        }
+		return taskResult;
+	}
+	
+	protected OperationResult waitForTaskNextRun(final String taskOid, final boolean checkSubresult, final int timeout) throws Exception {
 		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskNextRun");
 		Task origTask = taskManager.getTask(taskOid, waitResult);
 		final Long origLastRunStartTimestamp = origTask.getLastRunStartTimestamp();
 		final Long origLastRunFinishTimestamp = origTask.getLastRunFinishTimestamp();
+		final Holder<OperationResult> taskResultHolder = new Holder<>();
 		Checker checker = new Checker() {
 			@Override
 			public boolean check() throws Exception {
 				Task freshTask = taskManager.getTask(taskOid, waitResult);
-				OperationResult result = freshTask.getResult();
+				OperationResult taskResult = freshTask.getResult();
 //				display("Times", longTimeToString(origLastRunStartTimestamp) + "-" + longTimeToString(origLastRunStartTimestamp) 
 //						+ " : " + longTimeToString(freshTask.getLastRunStartTimestamp()) + "-" + longTimeToString(freshTask.getLastRunFinishTimestamp()));
-				if (verbose) display("Check result", result);
-				if (isError(result, checkSubresult)) {
-                    assert false : "Error in "+freshTask+": "+TestUtil.getErrorMessage(result)+"\n\n"+result.debugDump();
+				if (verbose) display("Check result", taskResult);
+				taskResultHolder.setValue(taskResult);
+				if (isError(taskResult, checkSubresult)) {
+                    return true;
                 }
-				if (isUknown(result, checkSubresult)) {
+				if (isUknown(taskResult, checkSubresult)) {
 					return false;
 				}
 				if (freshTask.getLastRunFinishTimestamp() == null) {
@@ -1940,6 +1951,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			}
 		};
 		IntegrationTestTools.waitFor("Waiting for task " + taskOid + " next run", checker, timeout, DEFAULT_TASK_SLEEP_TIME);
+		return taskResultHolder.getValue();
 	}
 	
 	private String longTimeToString(Long longTime) {

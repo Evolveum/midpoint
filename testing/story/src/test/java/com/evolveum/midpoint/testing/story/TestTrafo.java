@@ -413,7 +413,7 @@ public class TestTrafo extends AbstractStoryTest {
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
         clock.overrideDuration("P2D");
-        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
 		
 		// THEN
         TestUtil.displayThen(TEST_NAME);
@@ -601,7 +601,7 @@ public class TestTrafo extends AbstractStoryTest {
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
         clock.overrideDuration("P2D");
-        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
 		
 		// THEN
         TestUtil.displayThen(TEST_NAME);

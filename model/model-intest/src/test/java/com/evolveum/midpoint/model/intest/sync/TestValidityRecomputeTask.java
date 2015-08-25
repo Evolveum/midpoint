@@ -248,7 +248,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        waitForTaskNextRun(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
 		
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -279,7 +279,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        waitForTaskNextRun(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
 		
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -609,7 +609,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        waitForTaskNextRun(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
 		
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -651,7 +651,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        waitForTaskNextRun(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
 		
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -693,7 +693,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        waitForTaskNextRun(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
 		
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -734,7 +734,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        waitForTaskNextRun(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
 		
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -862,7 +862,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        waitForTaskNextRun(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
 		
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -914,7 +914,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        waitForTaskNextRun(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
 		
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -972,7 +972,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         modelService.executeChanges(MiscSchemaUtil.createCollection(objectDelta), null, task, result);
                 
         assertNoDummyAccount(null, USER_BARBOSSA_USERNAME);
-        waitForTaskNextRun(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
         assertNoDummyAccount(null, USER_BARBOSSA_USERNAME);
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
@@ -1001,7 +1001,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        waitForTaskNextRun(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
 		
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -1051,7 +1051,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        waitForTaskNextRun(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
 		
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -1093,7 +1093,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        waitForTaskNextRun(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
 		
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -1135,7 +1135,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        waitForTaskNextRun(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
 		
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -1176,7 +1176,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        waitForTaskNextRun(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
 		
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -1308,7 +1308,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        waitForTaskNextRun(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
 		
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -1364,7 +1364,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        waitForTaskNextRun(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
 		
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -1422,7 +1422,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         modelService.executeChanges(MiscSchemaUtil.createCollection(objectDelta), null, task, result);
                 
         assertNoDummyAccount(null, USER_BARBOSSA_USERNAME);
-        waitForTaskNextRun(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
         assertNoDummyAccount(null, USER_BARBOSSA_USERNAME);
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
@@ -1452,7 +1452,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        waitForTaskNextRun(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
 		
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -1496,7 +1496,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         
 		/// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        waitForTaskNextRun(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
 		
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -1600,7 +1600,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         TestUtil.assertSuccess(result);
         
         // Let's wait for the task to give it a change to screw up
-        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("Jack", userJack);
@@ -1641,7 +1641,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         TestUtil.displayWhen(TEST_NAME);
         clock.override(time);
         
-        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -1689,8 +1689,8 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         
         // THEN
         // Give the tasks a chance to screw up
-        waitForTaskNextRun(TASK_VALIDITY_SCANNER_OID, true);
-        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
         
         // Make sure that it is effectivelly disabled
         PrismObject<UserType> userDrakeAfter = getUser(USER_DRAKE_OID);
@@ -1714,8 +1714,8 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         		
 		// WHEN
         // just wait
-        waitForTaskNextRun(TASK_VALIDITY_SCANNER_OID, true);
-        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
         
         // THEN
         // Make sure that it is effectivelly disabled
@@ -1742,8 +1742,8 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         		
 		// WHEN
         // just wait
-        waitForTaskNextRun(TASK_VALIDITY_SCANNER_OID, true);
-        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
         
         // THEN
         PrismObject<UserType> userDrakeAfter = getUser(USER_DRAKE_OID);
@@ -1769,8 +1769,8 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         		
 		// WHEN
         // just wait
-        waitForTaskNextRun(TASK_VALIDITY_SCANNER_OID, true);
-        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
         
         // THEN
         PrismObject<UserType> userDrakeAfter = getUser(USER_DRAKE_OID);
@@ -1796,8 +1796,8 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         		
 		// WHEN
         // just wait
-        waitForTaskNextRun(TASK_VALIDITY_SCANNER_OID, true);
-        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
         
         // THEN
         PrismObject<UserType> userDrakeAfter = getUser(USER_DRAKE_OID);
@@ -1824,8 +1824,8 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         		
 		// WHEN
         // just wait
-        waitForTaskNextRun(TASK_VALIDITY_SCANNER_OID, true);
-        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
         
         // THEN
         PrismObject<UserType> userDrakeAfter = getUser(USER_DRAKE_OID);
@@ -1852,8 +1852,8 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         		
 		// WHEN
         // just wait
-        waitForTaskNextRun(TASK_VALIDITY_SCANNER_OID, true);
-        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
         
         // THEN
         PrismObject<UserType> userDrakeAfter = getUser(USER_DRAKE_OID);
@@ -1934,7 +1934,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         
         // WHEN
         // just wait
-        waitForTaskNextRun(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
         
         assertRoleJudgeValid(TEST_NAME, task, result);
 	}
@@ -1955,7 +1955,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         
         // WHEN
         // just wait
-        waitForTaskNextRun(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
         
         assertRoleJudgeInValid(TEST_NAME, task, result);
 	}
