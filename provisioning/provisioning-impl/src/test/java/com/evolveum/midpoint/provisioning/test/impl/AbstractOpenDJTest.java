@@ -122,8 +122,9 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 	protected static final String NON_EXISTENT_OID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
 	
 	protected static final String RESOURCE_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
-	protected static final QName RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS = new QName(RESOURCE_NS,"inetOrgPerson");
-	protected static final QName RESOURCE_OPENDJ_POSIX_ACCOUNT_OBJECTCLASS = new QName(RESOURCE_NS,"posixAccount");
+	protected static final QName RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS = new QName(RESOURCE_NS, "inetOrgPerson");
+	protected static final QName RESOURCE_OPENDJ_GROUP_OBJECTCLASS = new QName(RESOURCE_NS, "groupOfUniqueNames");
+	protected static final QName RESOURCE_OPENDJ_POSIX_ACCOUNT_OBJECTCLASS = new QName(RESOURCE_NS, "posixAccount");
 	
 	protected static final File QUERY_COMPLEX_FILTER_FILE = new File(TEST_DIR, "query-complex-filter.xml");
 	protected static final File QUERY_ALL_ACCOUNTS_FILE = new File(TEST_DIR, "query-filter-all-accounts.xml");
@@ -131,6 +132,8 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 	
 	protected static final String OBJECT_CLASS_INETORGPERSON_NAME = "inetOrgPerson";
 	protected static final String GROUP_MEMBER_ATTR_NAME = "uniqueMember";
+	
+	protected static final QName ASSOCIATION_GROUP_NAME = new QName(RESOURCE_OPENDJ_NS, "group");
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractOpenDJTest.class);
 	

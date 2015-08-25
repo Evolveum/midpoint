@@ -19,6 +19,7 @@ package com.evolveum.midpoint.prism;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -514,7 +515,8 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
 	            while(iterator.hasNext()) {
 	            	PrismPropertyValue<T> value = iterator.next();
 	            	if (value.isRaw()) {
-	            		sb.append("(raw)");
+	            		sb.append(formatRawValueForDump(value.getRawElement()));
+	            		sb.append(" (raw)");
 	            	} else {
 		            	T realValue = value.getValue();
 		            	if (realValue instanceof DebugDumpable) {
@@ -540,7 +542,8 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
 	            while(iterator.hasNext()) {
 	            	PrismPropertyValue<T> value = iterator.next();
 	            	if (value.isRaw()) {
-	            		sb.append("(raw)");
+	            		sb.append(formatRawValueForDump(value.getRawElement()));
+	            		sb.append(" (raw)");
 	            	} else {
 		            	if (DebugUtil.isDetailedDebugDump()) {
 		            		sb.append(PrettyPrinter.prettyPrint(value));
@@ -569,7 +572,18 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
         return sb.toString();
     }
     
-    public String toHumanReadableString() {
+    private String formatRawValueForDump(Object rawElement) {
+		if (rawElement == null) {
+			return null;
+		}
+		if (rawElement instanceof PrimitiveXNode<?>) {
+			return ((PrimitiveXNode<?>)rawElement).getStringValue();
+		} else {
+			return "<class " + rawElement.getClass().getSimpleName()+">";
+		}
+	}
+
+	public String toHumanReadableString() {
     	StringBuilder sb = new StringBuilder();
     	sb.append(PrettyPrinter.prettyPrint(getElementName())).append(" = ");
     	if (getValues() == null) {

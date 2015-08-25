@@ -1853,6 +1853,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		assertConnectorOperationIncrement(1);
 		assertConnectorSimulatedPagingSearchIncrement(0);
+		
+		assertShadows(16);
 	}
 	
 	// TODO: synchronization of auxiliary object classes
@@ -1897,6 +1899,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertNotNull("No LDAP group entry");
 		String groupDn = ldapEntry.getDN().toString();
 		assertEquals("Wrong group DN", GROUP_SWASHBUCKLERS_DN, groupDn);
+		
+		assertShadows(17);
 	}
 	
 	@Test
@@ -1942,6 +1946,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		display("LDAP group", groupEntry);
 		assertNotNull("No LDAP group entry");
 		openDJController.assertUniqueMember(groupEntry, accountDn);
+		
+		assertShadows(18);
 	}
 	
 	@Test
@@ -1972,14 +1978,91 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertNotNull("No LDAP group entry");
 		String groupDn = ldapEntry.getDN().toString();
 		assertEquals("Wrong group DN", GROUP_SWASHBUCKLERS_DN, groupDn);
+		
+		assertShadows(18);
 	}
 
+	@Test
+	public void test410CreateLdapGroupAndSearchGroups() throws Exception {
+		final String TEST_NAME = "test410CreateLdapGroupAndSearchGroups";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+				+ "." + TEST_NAME);
+		
+		openDJController.addEntry("dn: cn=seadogs,ou=Groups,dc=example,dc=com\n" +
+								"objectClass: groupOfUniqueNames\n" +
+								"objectClass: top\n" +
+								"cn: seadogs");
+		
+		ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_OPENDJ_OID, 
+				RESOURCE_OPENDJ_GROUP_OBJECTCLASS, prismContext);
+		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		SearchResultList<PrismObject<ShadowType>> resultList = provisioningService.searchObjects(ShadowType.class, query, null, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		assertSuccess(result);
+		display("Search result", resultList);
+		
+		IntegrationTestTools.assertSearchResultNames(resultList, 
+				"cn=Pirates,ou=groups,dc=example,dc=com", 
+				"cn=swashbucklers,ou=Groups,dc=example,dc=com",
+				"cn=seadogs,ou=Groups,dc=example,dc=com");
+		
+		assertShadows(19);
+		
+	}
+	
+	@Test
+	public void test412CreateLdapGroupAddMemberAndGet() throws Exception {
+		final String TEST_NAME = "test412CreateLdapGroupAddMemberAndGet";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+				+ "." + TEST_NAME);
+		
+		openDJController.addEntry("dn: cn=sailor,ou=Groups,dc=example,dc=com\n" +
+								"objectClass: groupOfUniqueNames\n" +
+								"objectClass: top\n" +
+								"cn: sailor\n" +
+								"uniqueMember: uid=morgan,ou=People,dc=example,dc=com");
+		
+		ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_OPENDJ_OID, 
+				RESOURCE_OPENDJ_GROUP_OBJECTCLASS, prismContext);
+		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID, null, taskManager.createTaskInstance(), result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		assertSuccess(result);
+		display("Account shadow after", shadow);
+		
+		assertShadows(20);
+		
+		PrismObject<ShadowType> groupSailorShadow = findShadowByName(RESOURCE_OPENDJ_GROUP_OBJECTCLASS, "cn=sailor,ou=groups,dc=example,dc=com", resource, result);
+		display("Group shadow", groupSailorShadow);
+		
+		assertEntitlementGroup(shadow, groupSailorShadow.getOid());
+		
+		assertShadows(20);
+		
+	}
+	
+	// TODO: create fresh group, add user to the group (in LDAP), get user
+	
 	/**
 	 * Morgan has a group association. If the account is gone the group membership should also be gone.
 	 */
 	@Test
-	public void test409DeleteAccountMorgan() throws Exception {
-		final String TEST_NAME = "test409DeleteAccountMorgan";
+	public void test429DeleteAccountMorgan() throws Exception {
+		final String TEST_NAME = "test429DeleteAccountMorgan";
 		TestUtil.displayTestTile(TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestOpenDJ.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
@@ -2013,12 +2096,9 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		display("LDAP group", groupEntry);
 		assertNotNull("No LDAP group entry");
 		openDJController.assertNoUniqueMember(groupEntry, ACCOUNT_MORGAN_DN);
+		
+		assertShadows(19);
 	}
-
-	
-	
-	
-	
 	
 	@Test
 	public void test701ConfiguredCapabilityNoRead() throws Exception{
@@ -2167,5 +2247,9 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		OperationResult initResult = operationResult.findSubresult(ConnectorTestOperation.CONNECTOR_INITIALIZATION.getOperation());
 		assertTrue("Unexpected connector initialization message: "+initResult.getMessage(), initResult.getMessage().contains("invalidCredentials"));
 		assertTrue("Unexpected connector initialization message: "+initResult.getMessage(), initResult.getMessage().contains("49"));
+	}
+	
+	protected void assertEntitlementGroup(PrismObject<ShadowType> account, String entitlementOid) {
+		IntegrationTestTools.assertAssociation(account, ASSOCIATION_GROUP_NAME, entitlementOid);
 	}
 }
