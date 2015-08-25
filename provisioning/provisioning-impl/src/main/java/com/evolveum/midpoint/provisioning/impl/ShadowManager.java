@@ -316,9 +316,24 @@ public class ShadowManager {
 		
 	}
 
+	public PrismObject<ShadowType> addRepositoryShadow(ProvisioningContext ctx,
+			PrismObject<ShadowType> resourceShadow, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ObjectAlreadyExistsException {
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Adding new shadow from resource object: {}", resourceShadow.debugDump());
+		}
+		PrismObject<ShadowType> repoShadow = createRepositoryShadow(ctx, resourceShadow);
+		ConstraintsChecker.onShadowAddOperation(repoShadow.asObjectable());
+		String oid = repositoryService.addObject(repoShadow, null, parentResult);
+		repoShadow.setOid(oid);
+		LOGGER.debug("Added new shadow (from resource object): {}", repoShadow);
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Added new shadow (from resource object):\n{}", repoShadow.debugDump());
+		}
+		return repoShadow;
+	}
 
     // beware, may return null if an shadow that was to be marked as DEAD, was deleted in the meantime
-	public PrismObject<ShadowType> findOrCreateShadowFromChange(ProvisioningContext ctx, Change<ShadowType> change,
+	public PrismObject<ShadowType> findOrAddShadowFromChange(ProvisioningContext ctx, Change<ShadowType> change,
 			OperationResult parentResult) throws SchemaException, CommunicationException,
 			ConfigurationException, SecurityViolationException, ObjectNotFoundException {
 
@@ -352,7 +367,10 @@ public class ShadowManager {
 							+ " to the repository. Reason: " + e.getMessage(), e);
 					throw new IllegalStateException(e.getMessage(), e);
 				}
-				LOGGER.trace("Created shadow object: {}", newShadow);
+				LOGGER.debug("Added new shadow (from change): {}", newShadow);
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Added new shadow (from change):\n{}", newShadow.debugDump());
+				}
 			}
 
 		} else {
@@ -387,7 +405,7 @@ public class ShadowManager {
 		return newShadow;
 	}
 	
-	public PrismObject<ShadowType> findOrCreateShadowFromChangeGlobalContext(ProvisioningContext globalCtx, Change<ShadowType> change,
+	public PrismObject<ShadowType> findOrAddShadowFromChangeGlobalContext(ProvisioningContext globalCtx, Change<ShadowType> change,
 			OperationResult parentResult) throws SchemaException, CommunicationException,
 			ConfigurationException, SecurityViolationException, ObjectNotFoundException {
 
@@ -421,7 +439,10 @@ public class ShadowManager {
 							+ " to the repository. Reason: " + e.getMessage(), e);
 					throw new IllegalStateException(e.getMessage(), e);
 				}
-				LOGGER.trace("Created shadow object: {}", newShadow);
+				LOGGER.debug("Added new shadow (from global change): {}", newShadow);
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Added new shadow (from global change):\n{}", newShadow.debugDump());
+				}
 			}
 
 		} else {
@@ -828,8 +849,6 @@ public class ShadowManager {
 		refinedAttributeDefinition = refinedObjectClassDefinition.findAttributeDefinition(attributeA.getElementName());
 		Collection<T> valuesB = getNormalizedAttributeValues(attributeB, refinedAttributeDefinition);
 		return MiscUtil.unorderedCollectionEquals(valuesA, valuesB);
-	}
-
-	
+	}	
 
 }

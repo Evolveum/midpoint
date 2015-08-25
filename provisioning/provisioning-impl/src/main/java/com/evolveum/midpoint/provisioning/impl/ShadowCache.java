@@ -928,11 +928,7 @@ public abstract class ShadowCache {
 
 		try {
 
-			repoShadow = shadowManager.createRepositoryShadow(ctx, resourceShadow);
-			ConstraintsChecker.onShadowAddOperation(repoShadow.asObjectable());
-			String oid = repositoryService.addObject(repoShadow, null,
-					parentResult);
-			repoShadow.setOid(oid);
+			repoShadow =  shadowManager.addRepositoryShadow(ctx, resourceShadow, parentResult);
 			
 		} catch (ObjectAlreadyExistsException e) {
 			// This should not happen. We haven't supplied an OID so is should not conflict
@@ -1087,7 +1083,7 @@ public abstract class ShadowCache {
 					if (change.getObjectDelta() != null && change.getObjectDelta().isDelete()) {				
 						oldShadow = change.getOldShadow();
 						if (oldShadow == null) {
-							oldShadow = shadowManager.findOrCreateShadowFromChangeGlobalContext(ctx, change, parentResult);
+							oldShadow = shadowManager.findOrAddShadowFromChangeGlobalContext(ctx, change, parentResult);
 						}
 						if (oldShadow == null) {
 							LOGGER.debug("No old shadow for delete synchronization event {}, we probably did not know about that object anyway, so well be ignoring this event", change);
@@ -1315,7 +1311,7 @@ public abstract class ShadowCache {
 					throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectNotFoundException, GenericConnectorException, ObjectAlreadyExistsException{
 				
 		if (oldShadow == null) {
-			oldShadow = shadowManager.findOrCreateShadowFromChange(ctx, change, parentResult);
+			oldShadow = shadowManager.findOrAddShadowFromChange(ctx, change, parentResult);
 		}
 		
 		if (oldShadow != null) {
