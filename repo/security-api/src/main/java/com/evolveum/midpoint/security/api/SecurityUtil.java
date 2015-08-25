@@ -32,8 +32,9 @@ public class SecurityUtil {
 	public static MidPointPrincipal getPrincipal() throws SecurityViolationException {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		if (authentication == null) {
-			LOGGER.error("No authentication", new RuntimeException());
-			throw new SecurityException("No authentication");
+			SecurityViolationException ex = new SecurityViolationException("No authentication");
+			LOGGER.error("No authentication", ex);
+			throw ex;
 		}
 		Object principalObject = authentication.getPrincipal();
 		if (!(principalObject instanceof MidPointPrincipal)) {
