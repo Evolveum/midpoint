@@ -506,6 +506,13 @@ public class IntegrationTestTools {
 				stackTrace});
 	}
 	
+	public static <O extends ObjectType> void assertSearchResultNames(SearchResultList<PrismObject<O>> resultList, MatchingRule<String> matchingRule, String... expectedNames) {
+		List<String> names = new ArrayList<>(expectedNames.length);
+		for(PrismObject<O> obj: resultList) {
+			names.add(obj.asObjectable().getName().getOrig());
+		}
+		PrismAsserts.assertSets("Unexpected search result", matchingRule, names, expectedNames);
+	}
 	
 	public static <O extends ObjectType> void assertSearchResultNames(SearchResultList<PrismObject<O>> resultList, String... expectedNames) {
 		List<String> names = new ArrayList<>(expectedNames.length);

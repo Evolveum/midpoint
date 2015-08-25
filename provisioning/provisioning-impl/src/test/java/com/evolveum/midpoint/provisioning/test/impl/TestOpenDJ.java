@@ -99,6 +99,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
@@ -123,6 +124,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollection
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
@@ -161,6 +163,8 @@ import com.sun.mail.imap.protocol.UID;
 public class TestOpenDJ extends AbstractOpenDJTest {
 
 	private static Trace LOGGER = TraceManager.getTrace(TestOpenDJ.class);
+	
+	private String groupSailorOid;
 
 	@Autowired
 	TaskManager taskManager;
@@ -1887,7 +1891,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		PrismObject<ShadowType> provisioningShadow = provisioningService.getObject(ShadowType.class, GROUP_SWASHBUCKLERS_OID,
 				null, taskManager.createTaskInstance(), result);
 		ShadowType provisioningShadowType = provisioningShadow.asObjectable();
-		PrismAsserts.assertEqualsPolyString("Wrong ICF name (provisioning)", GROUP_SWASHBUCKLERS_DN, provisioningShadowType.getName());
+		assertEquals("Wrong ICF name (provisioning)", dnMatchingRule.normalize(GROUP_SWASHBUCKLERS_DN), 
+				dnMatchingRule.normalize(provisioningShadowType.getName().getOrig()));
 		
 		String uid = ShadowUtil.getSingleStringAttributeValue(shadowType, getPrimaryIdentifierQName());		
 		assertNotNull(uid);
@@ -1898,7 +1903,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		display("LDAP group", ldapEntry);
 		assertNotNull("No LDAP group entry");
 		String groupDn = ldapEntry.getDN().toString();
-		assertEquals("Wrong group DN", GROUP_SWASHBUCKLERS_DN, groupDn);
+		assertEquals("Wrong group DN", dnMatchingRule.normalize(GROUP_SWASHBUCKLERS_DN), dnMatchingRule.normalize(groupDn));
 		
 		assertShadows(17);
 	}
@@ -1926,7 +1931,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		ShadowType provisioningShadowType = provisioningService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID,
 				null, taskManager.createTaskInstance(), result).asObjectable();
-		PrismAsserts.assertEqualsPolyString("Wrong ICF name (provisioning)", ACCOUNT_MORGAN_DN, provisioningShadowType.getName());
+		PrismAsserts.assertEqualsPolyString("Wrong ICF name (provisioning)",
+				ACCOUNT_MORGAN_DN, provisioningShadowType.getName());
 		
 		String uid = ShadowUtil.getSingleStringAttributeValue(shadowType, getPrimaryIdentifierQName());		
 		assertNotNull(uid);
@@ -1966,7 +1972,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
 		ShadowType provisioningShadowType = provisioningShadow.asObjectable();
-		PrismAsserts.assertEqualsPolyString("Wrong ICF name (provisioning)", GROUP_SWASHBUCKLERS_DN, provisioningShadowType.getName());
+		assertEquals("Wrong ICF name (provisioning)",  dnMatchingRule.normalize(GROUP_SWASHBUCKLERS_DN),
+				dnMatchingRule.normalize(provisioningShadowType.getName().getOrig()));
 		
 		String uid = ShadowUtil.getSingleStringAttributeValue(provisioningShadowType, getPrimaryIdentifierQName());		
 		assertNotNull(uid);
@@ -1977,7 +1984,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		display("LDAP group", ldapEntry);
 		assertNotNull("No LDAP group entry");
 		String groupDn = ldapEntry.getDN().toString();
-		assertEquals("Wrong group DN", GROUP_SWASHBUCKLERS_DN, groupDn);
+		assertEquals("Wrong group DN", dnMatchingRule.normalize(GROUP_SWASHBUCKLERS_DN), dnMatchingRule.normalize(groupDn));
 		
 		assertShadows(18);
 	}
@@ -1990,7 +1997,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ "." + TEST_NAME);
 		
-		openDJController.addEntry("dn: cn=seadogs,ou=Groups,dc=example,dc=com\n" +
+		openDJController.addEntry("dn: cn=seadogs,ou=groups,dc=EXAMPLE,dc=com\n" +
 								"objectClass: groupOfUniqueNames\n" +
 								"objectClass: top\n" +
 								"cn: seadogs");
@@ -2008,18 +2015,17 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertSuccess(result);
 		display("Search result", resultList);
 		
-		IntegrationTestTools.assertSearchResultNames(resultList, 
+		IntegrationTestTools.assertSearchResultNames(resultList, dnMatchingRule,
 				"cn=Pirates,ou=groups,dc=example,dc=com", 
 				"cn=swashbucklers,ou=Groups,dc=example,dc=com",
 				"cn=seadogs,ou=Groups,dc=example,dc=com");
 		
 		assertShadows(19);
-		
 	}
 	
 	@Test
-	public void test412CreateLdapGroupAddMemberAndGet() throws Exception {
-		final String TEST_NAME = "test412CreateLdapGroupAddMemberAndGet";
+	public void test412CreateLdapGroupWithMemberAndGet() throws Exception {
+		final String TEST_NAME = "test412CreateLdapGroupWithMemberAndGet";
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
@@ -2029,7 +2035,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 								"objectClass: groupOfUniqueNames\n" +
 								"objectClass: top\n" +
 								"cn: sailor\n" +
-								"uniqueMember: uid=morgan,ou=People,dc=example,dc=com");
+								"uniqueMember: uid=MOrgan,ou=PEOPLE,dc=example,dc=com");
 		
 		ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_OPENDJ_OID, 
 				RESOURCE_OPENDJ_GROUP_OBJECTCLASS, prismContext);
@@ -2048,17 +2054,98 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		PrismObject<ShadowType> groupSailorShadow = findShadowByName(RESOURCE_OPENDJ_GROUP_OBJECTCLASS, "cn=sailor,ou=groups,dc=example,dc=com", resource, result);
 		display("Group shadow", groupSailorShadow);
+		groupSailorOid = groupSailorShadow.getOid();
 		
-		assertEntitlementGroup(shadow, groupSailorShadow.getOid());
+		assertEntitlementGroup(shadow, groupSailorOid);
 		
 		assertShadows(20);
-		
 	}
 	
-	// TODO: create fresh group, add user to the group (in LDAP), get user
+
+	@Test
+	public void test414AddGroupCorsairsAssociateUser() throws Exception {
+		final String TEST_NAME = "test414AddGroupCorsairsAssociateUser";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+				+ "." + TEST_NAME);
+		
+		ShadowType object = parseObjectType(GROUP_CORSAIRS_FILE, ShadowType.class);
+		IntegrationTestTools.display("Adding object", object);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		assertEquals(GROUP_CORSAIRS_OID, addedObjectOid);
+
+		ShadowType shadowType =  repositoryService.getObject(ShadowType.class, GROUP_CORSAIRS_OID,
+				null, result).asObjectable();
+		PrismAsserts.assertEqualsPolyString("Wrong ICF name (repo)", GROUP_CORSAIRS_DN, shadowType.getName());
+
+		// Do NOT read provisioning shadow here. We want everything to be "fresh"
+		
+		assertShadows(21);
+	}
+
+	@Test
+	public void test416AssociateUserToCorsairs() throws Exception {
+		final String TEST_NAME = "test416AssociateUserToCorsairs";
+		TestUtil.displayTestTile(TEST_NAME);
+
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_MORGAN_OID, 
+				ASSOCIATION_GROUP_NAME, GROUP_CORSAIRS_OID, prismContext);
+		display("ObjectDelta", delta);
+		delta.checkConsistence();
+		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+				new OperationProvisioningScriptsType(), null, task, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		
+		SearchResultEntry groupEntry = openDJController.fetchEntry(GROUP_CORSAIRS_DN);
+		display("LDAP group", groupEntry);
+		assertNotNull("No LDAP group entry");
+		openDJController.assertUniqueMember(groupEntry, ACCOUNT_MORGAN_DN);
+		
+		assertShadows(21);
+	}
+	
+	@Test
+	public void test418GetMorgan() throws Exception {
+		final String TEST_NAME = "test418GetMorgan";
+		TestUtil.displayTestTile(TEST_NAME);
+
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID, null, task, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		assertSuccess(result);
+		display("Shadow", shadow);
+		
+		assertEntitlementGroup(shadow, GROUP_SWASHBUCKLERS_OID);
+		assertEntitlementGroup(shadow, groupSailorOid);
+		assertEntitlementGroup(shadow, GROUP_CORSAIRS_OID);
+		
+		assertShadows(21);
+	}
 	
 	/**
-	 * Morgan has a group association. If the account is gone the group membership should also be gone.
+	 * Morgan has a group associations. If the account is gone the group memberships should also be gone.
 	 */
 	@Test
 	public void test429DeleteAccountMorgan() throws Exception {
@@ -2097,7 +2184,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertNotNull("No LDAP group entry");
 		openDJController.assertNoUniqueMember(groupEntry, ACCOUNT_MORGAN_DN);
 		
-		assertShadows(19);
+		assertShadows(20);
 	}
 	
 	@Test

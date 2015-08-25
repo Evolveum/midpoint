@@ -23,6 +23,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.match.DistinguishedNameMatchingRule;
+import com.evolveum.midpoint.prism.match.MatchingRule;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.ConnectorManager;
@@ -31,6 +34,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
@@ -117,7 +121,11 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 	
 	protected static final File GROUP_SWASHBUCKLERS_FILE = new File(TEST_DIR, "group-swashbucklers.xml");
 	protected static final String GROUP_SWASHBUCKLERS_OID = "3d96846e-c570-11e3-a80f-001e8c717e5b";
-	protected static final String GROUP_SWASHBUCKLERS_DN = "cn=swashbucklers,ou=Groups,dc=example,dc=com";
+	protected static final String GROUP_SWASHBUCKLERS_DN = "cn=swashbucklers,ou=groups,dc=example,dc=com";
+	
+	protected static final File GROUP_CORSAIRS_FILE = new File(TEST_DIR, "group-corsairs.xml");
+	protected static final String GROUP_CORSAIRS_OID = "70a1f3ee-4b5b-11e5-95d0-001e8c717e5b";
+	protected static final String GROUP_CORSAIRS_DN = "cn=corsairs,ou=groups,dc=example,dc=com";
 	
 	protected static final String NON_EXISTENT_OID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
 	
@@ -137,6 +145,8 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractOpenDJTest.class);
 	
+	protected MatchingRule<String> dnMatchingRule;
+	
 	protected PrismObject<ResourceType> resource;
 	protected ResourceType resourceType;
 	protected PrismObject<ConnectorType> connector;
@@ -150,6 +160,9 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 
 	@Autowired(required = true)
 	protected SynchornizationServiceMock syncServiceMock;
+	
+	@Autowired(required = true)
+	protected MatchingRuleRegistry matchingRuleRegistry;
 
 	
 	@Override
@@ -160,6 +173,8 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 		provisioningService.postInit(initResult);
 		resource = addResourceFromFile(RESOURCE_OPENDJ_FILE, ProvisioningTestUtil.CONNECTOR_LDAP_TYPE, initResult);
 		repoAddShadowFromFile(ACCOUNT_BAD_FILE, initResult);
+		
+		dnMatchingRule = matchingRuleRegistry.getMatchingRule(DistinguishedNameMatchingRule.NAME, DOMUtil.XSD_STRING);
 	}
 	
 	protected <T> void assertAttribute(ShadowType shadow, String attrName, T... expectedValues) {
