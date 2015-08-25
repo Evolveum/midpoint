@@ -1381,161 +1381,6 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 				LockoutStatusType.NORMAL);
 	}
 	
-	@Test
-	public void test190AddGroupSwashbucklers() throws Exception {
-		final String TEST_NAME = "test190AddGroupSwashbucklers";
-		TestUtil.displayTestTile(TEST_NAME);
-		
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
-				+ "." + TEST_NAME);
-		
-		ShadowType object = parseObjectType(GROUP_SWASHBUCKLERS_FILE, ShadowType.class);
-		IntegrationTestTools.display("Adding object", object);
-
-		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
-		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
-		
-		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		assertEquals(GROUP_SWASHBUCKLERS_OID, addedObjectOid);
-
-		ShadowType shadowType =  repositoryService.getObject(ShadowType.class, GROUP_SWASHBUCKLERS_OID,
-				null, result).asObjectable();
-		PrismAsserts.assertEqualsPolyString("Wrong ICF name (repo)", GROUP_SWASHBUCKLERS_DN, shadowType.getName());
-
-		PrismObject<ShadowType> provisioningShadow = provisioningService.getObject(ShadowType.class, GROUP_SWASHBUCKLERS_OID,
-				null, taskManager.createTaskInstance(), result);
-		ShadowType provisioningShadowType = provisioningShadow.asObjectable();
-		PrismAsserts.assertEqualsPolyString("Wrong ICF name (provisioning)", GROUP_SWASHBUCKLERS_DN, provisioningShadowType.getName());
-		
-		String uid = ShadowUtil.getSingleStringAttributeValue(shadowType, getPrimaryIdentifierQName());		
-		assertNotNull(uid);
-		ResourceAttribute<Object> memberAttr = ShadowUtil.getAttribute(provisioningShadow, new QName(RESOURCE_OPENDJ_NS, GROUP_MEMBER_ATTR_NAME));
-		assertNull("Member attribute sneaked in", memberAttr);
-		
-		SearchResultEntry ldapEntry = openDJController.searchAndAssertByEntryUuid(uid);
-		display("LDAP group", ldapEntry);
-		assertNotNull("No LDAP group entry");
-		String groupDn = ldapEntry.getDN().toString();
-		assertEquals("Wrong group DN", GROUP_SWASHBUCKLERS_DN, groupDn);
-	}
-	
-	@Test
-	public void test192AddAccountMorganWithAssociation() throws Exception {
-		final String TEST_NAME = "test192AddAccountMorganWithAssociation";
-		TestUtil.displayTestTile(TEST_NAME);
-		
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
-				+ "." + TEST_NAME);
-
-		ShadowType object = parseObjectType(ACCOUNT_MORGAN_FILE, ShadowType.class);
-		IntegrationTestTools.display("Adding object", object);
-
-		// WHEN
-		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
-		
-		// THEN
-		assertEquals(ACCOUNT_MORGAN_OID, addedObjectOid);
-
-		ShadowType shadowType =  repositoryService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID,
-				null, result).asObjectable();
-		PrismAsserts.assertEqualsPolyString("Wrong ICF name (repo)", ACCOUNT_MORGAN_DN, shadowType.getName());
-
-		ShadowType provisioningShadowType = provisioningService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID,
-				null, taskManager.createTaskInstance(), result).asObjectable();
-		PrismAsserts.assertEqualsPolyString("Wrong ICF name (provisioning)", ACCOUNT_MORGAN_DN, provisioningShadowType.getName());
-		
-		String uid = ShadowUtil.getSingleStringAttributeValue(shadowType, getPrimaryIdentifierQName());		
-		assertNotNull(uid);
-		
-		List<ShadowAssociationType> associations = provisioningShadowType.getAssociation();
-		assertEquals("Unexpected number of associations", 1, associations.size());
-		ShadowAssociationType association = associations.get(0);
-		assertEquals("Wrong group OID in association", GROUP_SWASHBUCKLERS_OID, association.getShadowRef().getOid());
-		
-		SearchResultEntry accountEntry = openDJController.searchAndAssertByEntryUuid(uid);
-		display("LDAP account", accountEntry);
-		assertNotNull("No LDAP account entry");
-		String accountDn = accountEntry.getDN().toString();
-		assertEquals("Wrong account DN", ACCOUNT_MORGAN_DN, accountDn);
-		
-		SearchResultEntry groupEntry = openDJController.fetchEntry(GROUP_SWASHBUCKLERS_DN);
-		display("LDAP group", groupEntry);
-		assertNotNull("No LDAP group entry");
-		openDJController.assertUniqueMember(groupEntry, accountDn);
-	}
-	
-	@Test
-	public void test195GetGroupSwashbucklers() throws Exception {
-		final String TEST_NAME = "test195GetGroupSwashbucklers";
-		TestUtil.displayTestTile(TEST_NAME);
-		
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
-				+ "." + TEST_NAME);
-		
-		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
-		PrismObject<ShadowType> provisioningShadow = provisioningService.getObject(ShadowType.class, GROUP_SWASHBUCKLERS_OID,
-				null, taskManager.createTaskInstance(), result);
-		
-		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		ShadowType provisioningShadowType = provisioningShadow.asObjectable();
-		PrismAsserts.assertEqualsPolyString("Wrong ICF name (provisioning)", GROUP_SWASHBUCKLERS_DN, provisioningShadowType.getName());
-		
-		String uid = ShadowUtil.getSingleStringAttributeValue(provisioningShadowType, getPrimaryIdentifierQName());		
-		assertNotNull(uid);
-		ResourceAttribute<Object> memberAttr = ShadowUtil.getAttribute(provisioningShadow, new QName(RESOURCE_OPENDJ_NS, GROUP_MEMBER_ATTR_NAME));
-		assertNull("Member attribute sneaked in", memberAttr);
-		
-		SearchResultEntry ldapEntry = openDJController.searchAndAssertByEntryUuid(uid);
-		display("LDAP group", ldapEntry);
-		assertNotNull("No LDAP group entry");
-		String groupDn = ldapEntry.getDN().toString();
-		assertEquals("Wrong group DN", GROUP_SWASHBUCKLERS_DN, groupDn);
-	}
-
-	/**
-	 * Morgan has a group association. If the account is gone the group membership should also be gone.
-	 */
-	@Test
-	public void test199DeleteAccountMorgan() throws Exception {
-		final String TEST_NAME = "test199DeleteAccountMorgan";
-		TestUtil.displayTestTile(TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestOpenDJ.class.getName() + "." + TEST_NAME);
-		OperationResult result = task.getResult();
-	
-		// WHEN
-		provisioningService.deleteObject(ShadowType.class, ACCOUNT_MORGAN_OID, null, null, task, result);
-
-		ShadowType objType = null;
-
-		try {
-			objType = provisioningService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID,
-					null, task, result).asObjectable();
-			Assert.fail("Expected exception ObjectNotFoundException, but haven't got one.");
-		} catch (ObjectNotFoundException ex) {
-			System.out.println("Catched ObjectNotFoundException.");
-			assertNull(objType);
-		}
-
-		try {
-			objType = repositoryService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID,
-					null, result).asObjectable();
-			// objType = container.getObject();
-			Assert.fail("Expected exception, but haven't got one.");
-		} catch (Exception ex) {
-			assertNull(objType);
-            assertEquals(ex.getClass(), ObjectNotFoundException.class);
-            assertTrue(ex.getMessage().contains(ACCOUNT_MORGAN_OID));
-		}
-		
-		SearchResultEntry groupEntry = openDJController.fetchEntry(GROUP_SWASHBUCKLERS_DN);
-		display("LDAP group", groupEntry);
-		assertNotNull("No LDAP group entry");
-		openDJController.assertNoUniqueMember(groupEntry, ACCOUNT_MORGAN_DN);
-	}
 	
 	@Test
 	public void test200SearchObjectsIterative() throws Exception {
@@ -1883,7 +1728,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		OpenDJController.assertAttribute(entry, "loginShell", "/bin/whisky");
 		OpenDJController.assertAttribute(entry, "homeDirectory", "/home/scotland");
 		
-		assertShadows(17);
+		assertShadows(16);
 	}
 	
 	@Test
@@ -1929,7 +1774,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		OpenDJController.assertAttribute(entry, "roomNumber", "Barber Shop");
 		OpenDJController.assertAttribute(entry, "uidNumber", "1001");
 				
-		assertShadows(17);
+		assertShadows(16);
 	}
 	
 	@Test
@@ -1965,7 +1810,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
             assertTrue(ex.getMessage().contains(ACCOUNT_POSIX_MCMUTTON_OID));
 		}
 		
-		assertShadows(16);
+		assertShadows(15);
 	}
 	
 	/**
@@ -2011,17 +1856,177 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 	}
 	
 	// TODO: synchronization of auxiliary object classes
-
+	
+	
 	
 	@Test
-	public void test401ConfiguredCapabilityNoRead() throws Exception{
+	public void test400AddGroupSwashbucklers() throws Exception {
+		final String TEST_NAME = "test400AddGroupSwashbucklers";
+		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult parentResult = new OperationResult("test401noReadNativeCapability");
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+				+ "." + TEST_NAME);
+		
+		ShadowType object = parseObjectType(GROUP_SWASHBUCKLERS_FILE, ShadowType.class);
+		IntegrationTestTools.display("Adding object", object);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		assertEquals(GROUP_SWASHBUCKLERS_OID, addedObjectOid);
+
+		ShadowType shadowType =  repositoryService.getObject(ShadowType.class, GROUP_SWASHBUCKLERS_OID,
+				null, result).asObjectable();
+		PrismAsserts.assertEqualsPolyString("Wrong ICF name (repo)", GROUP_SWASHBUCKLERS_DN, shadowType.getName());
+
+		PrismObject<ShadowType> provisioningShadow = provisioningService.getObject(ShadowType.class, GROUP_SWASHBUCKLERS_OID,
+				null, taskManager.createTaskInstance(), result);
+		ShadowType provisioningShadowType = provisioningShadow.asObjectable();
+		PrismAsserts.assertEqualsPolyString("Wrong ICF name (provisioning)", GROUP_SWASHBUCKLERS_DN, provisioningShadowType.getName());
+		
+		String uid = ShadowUtil.getSingleStringAttributeValue(shadowType, getPrimaryIdentifierQName());		
+		assertNotNull(uid);
+		ResourceAttribute<Object> memberAttr = ShadowUtil.getAttribute(provisioningShadow, new QName(RESOURCE_OPENDJ_NS, GROUP_MEMBER_ATTR_NAME));
+		assertNull("Member attribute sneaked in", memberAttr);
+		
+		SearchResultEntry ldapEntry = openDJController.searchAndAssertByEntryUuid(uid);
+		display("LDAP group", ldapEntry);
+		assertNotNull("No LDAP group entry");
+		String groupDn = ldapEntry.getDN().toString();
+		assertEquals("Wrong group DN", GROUP_SWASHBUCKLERS_DN, groupDn);
+	}
+	
+	@Test
+	public void test402AddAccountMorganWithAssociation() throws Exception {
+		final String TEST_NAME = "test402AddAccountMorganWithAssociation";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+				+ "." + TEST_NAME);
+
+		ShadowType object = parseObjectType(ACCOUNT_MORGAN_FILE, ShadowType.class);
+		IntegrationTestTools.display("Adding object", object);
+
+		// WHEN
+		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
+		
+		// THEN
+		assertEquals(ACCOUNT_MORGAN_OID, addedObjectOid);
+
+		ShadowType shadowType =  repositoryService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID,
+				null, result).asObjectable();
+		PrismAsserts.assertEqualsPolyString("Wrong ICF name (repo)", ACCOUNT_MORGAN_DN, shadowType.getName());
+
+		ShadowType provisioningShadowType = provisioningService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID,
+				null, taskManager.createTaskInstance(), result).asObjectable();
+		PrismAsserts.assertEqualsPolyString("Wrong ICF name (provisioning)", ACCOUNT_MORGAN_DN, provisioningShadowType.getName());
+		
+		String uid = ShadowUtil.getSingleStringAttributeValue(shadowType, getPrimaryIdentifierQName());		
+		assertNotNull(uid);
+		
+		List<ShadowAssociationType> associations = provisioningShadowType.getAssociation();
+		assertEquals("Unexpected number of associations", 1, associations.size());
+		ShadowAssociationType association = associations.get(0);
+		assertEquals("Wrong group OID in association", GROUP_SWASHBUCKLERS_OID, association.getShadowRef().getOid());
+		
+		SearchResultEntry accountEntry = openDJController.searchAndAssertByEntryUuid(uid);
+		display("LDAP account", accountEntry);
+		assertNotNull("No LDAP account entry");
+		String accountDn = accountEntry.getDN().toString();
+		assertEquals("Wrong account DN", ACCOUNT_MORGAN_DN, accountDn);
+		
+		SearchResultEntry groupEntry = openDJController.fetchEntry(GROUP_SWASHBUCKLERS_DN);
+		display("LDAP group", groupEntry);
+		assertNotNull("No LDAP group entry");
+		openDJController.assertUniqueMember(groupEntry, accountDn);
+	}
+	
+	@Test
+	public void test405GetGroupSwashbucklers() throws Exception {
+		final String TEST_NAME = "test405GetGroupSwashbucklers";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+				+ "." + TEST_NAME);
+		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		PrismObject<ShadowType> provisioningShadow = provisioningService.getObject(ShadowType.class, GROUP_SWASHBUCKLERS_OID,
+				null, taskManager.createTaskInstance(), result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		ShadowType provisioningShadowType = provisioningShadow.asObjectable();
+		PrismAsserts.assertEqualsPolyString("Wrong ICF name (provisioning)", GROUP_SWASHBUCKLERS_DN, provisioningShadowType.getName());
+		
+		String uid = ShadowUtil.getSingleStringAttributeValue(provisioningShadowType, getPrimaryIdentifierQName());		
+		assertNotNull(uid);
+		ResourceAttribute<Object> memberAttr = ShadowUtil.getAttribute(provisioningShadow, new QName(RESOURCE_OPENDJ_NS, GROUP_MEMBER_ATTR_NAME));
+		assertNull("Member attribute sneaked in", memberAttr);
+		
+		SearchResultEntry ldapEntry = openDJController.searchAndAssertByEntryUuid(uid);
+		display("LDAP group", ldapEntry);
+		assertNotNull("No LDAP group entry");
+		String groupDn = ldapEntry.getDN().toString();
+		assertEquals("Wrong group DN", GROUP_SWASHBUCKLERS_DN, groupDn);
+	}
+
+	/**
+	 * Morgan has a group association. If the account is gone the group membership should also be gone.
+	 */
+	@Test
+	public void test409DeleteAccountMorgan() throws Exception {
+		final String TEST_NAME = "test409DeleteAccountMorgan";
+		TestUtil.displayTestTile(TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestOpenDJ.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+	
+		// WHEN
+		provisioningService.deleteObject(ShadowType.class, ACCOUNT_MORGAN_OID, null, null, task, result);
+
+		ShadowType objType = null;
+
+		try {
+			objType = provisioningService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID,
+					null, task, result).asObjectable();
+			Assert.fail("Expected exception ObjectNotFoundException, but haven't got one.");
+		} catch (ObjectNotFoundException ex) {
+			System.out.println("Catched ObjectNotFoundException.");
+			assertNull(objType);
+		}
+
+		try {
+			objType = repositoryService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID,
+					null, result).asObjectable();
+			// objType = container.getObject();
+			Assert.fail("Expected exception, but haven't got one.");
+		} catch (Exception ex) {
+			assertNull(objType);
+            assertEquals(ex.getClass(), ObjectNotFoundException.class);
+            assertTrue(ex.getMessage().contains(ACCOUNT_MORGAN_OID));
+		}
+		
+		SearchResultEntry groupEntry = openDJController.fetchEntry(GROUP_SWASHBUCKLERS_DN);
+		display("LDAP group", groupEntry);
+		assertNotNull("No LDAP group entry");
+		openDJController.assertNoUniqueMember(groupEntry, ACCOUNT_MORGAN_DN);
+	}
+
+	
+	
+	
+	
+	
+	@Test
+	public void test701ConfiguredCapabilityNoRead() throws Exception{
+		final String TEST_NAME = "test701ConfiguredCapabilityNoRead";
+		Task task = taskManager.createTaskInstance(TEST_NAME);
+		OperationResult parentResult = task.getResult();
 		
 		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "resource-opendj-no-read.xml"), ProvisioningTestUtil.CONNECTOR_LDAP_TYPE, true, parentResult);
-		
-		Task task = taskManager.createTaskInstance();
-		
 		
 		try {
 			provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID,
@@ -2034,14 +2039,12 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 	}
 
 	@Test
-	public void test402ConfiguredCapabilityNoCreate() throws Exception{
-		
-		OperationResult parentResult = new OperationResult("test401noReadNativeCapability");
+	public void test702ConfiguredCapabilityNoCreate() throws Exception{
+		final String TEST_NAME = "test702ConfiguredCapabilityNoCreate";
+		Task task = taskManager.createTaskInstance(TEST_NAME);
+		OperationResult parentResult = task.getResult();
 		
 		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "/resource-opendj-no-create.xml"), ProvisioningTestUtil.CONNECTOR_LDAP_TYPE, true, parentResult);
-		
-		Task task = taskManager.createTaskInstance();
-		
 		
 		try {
 			PrismObject<ShadowType> shadow = parseObjectType(ACCOUNT_WILL_FILE, ShadowType.class).asPrismObject();
@@ -2055,14 +2058,12 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 	}
 	
 	@Test
-	public void test403ConfiguredCapabilityNoDelete() throws Exception{
-		
-		OperationResult parentResult = new OperationResult("test401noReadNativeCapability");
+	public void test703ConfiguredCapabilityNoDelete() throws Exception{
+		final String TEST_NAME = "test703ConfiguredCapabilityNoDelete";
+		Task task = taskManager.createTaskInstance(TEST_NAME);
+		OperationResult parentResult = task.getResult();
 		
 		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "/resource-opendj-no-delete.xml"), ProvisioningTestUtil.CONNECTOR_LDAP_TYPE, true, parentResult);
-		
-		Task task = taskManager.createTaskInstance();
-		
 		
 		try {
 			provisioningService.deleteObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, task, parentResult);
@@ -2074,14 +2075,12 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 	}
 	
 	@Test
-	public void test404ConfiguredCapabilityNoUpdate() throws Exception{
+	public void test704ConfiguredCapabilityNoUpdate() throws Exception{
+		final String TEST_NAME = "test704ConfiguredCapabilityNoUpdate";
+		Task task = taskManager.createTaskInstance(TEST_NAME);
+		OperationResult parentResult = task.getResult();
 		
-		OperationResult parentResult = new OperationResult("test401noReadNativeCapability");
-		
-		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "/resource-opendj-no-update.xml"), ProvisioningTestUtil.CONNECTOR_LDAP_TYPE, true, parentResult);
-		
-		Task task = taskManager.createTaskInstance();
-		
+		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "/resource-opendj-no-update.xml"), ProvisioningTestUtil.CONNECTOR_LDAP_TYPE, true, parentResult);		
 		
 		try {
 			PropertyDelta delta = PropertyDelta.createModificationReplaceProperty(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(resourceType.getNamespace(), "sn")), prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class), "doesnotmatter");
@@ -2095,8 +2094,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 	}
 	
 	@Test
-	public void test600AddResourceOpenDjBadCredentials() throws Exception {
-		final String TEST_NAME = "test600AddResourceOpenDjBadCredentials";
+	public void test710AddResourceOpenDjBadCredentials() throws Exception {
+		final String TEST_NAME = "test710AddResourceOpenDjBadCredentials";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
@@ -2117,8 +2116,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 	}
 	
 	@Test
-	public void test603ConnectionBadCredentials() throws Exception {
-		final String TEST_NAME = "test603ConnectionBadCredentials";
+	public void test713ConnectionBadCredentials() throws Exception {
+		final String TEST_NAME = "test713ConnectionBadCredentials";
 		TestUtil.displayTestTile(TEST_NAME);
 
 		// WHEN
@@ -2133,8 +2132,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 	}
 	
 	@Test
-	public void test610AddResourceOpenDjBadBindDn() throws Exception {
-		final String TEST_NAME = "test610AddResourceOpenDjBadBindDn";
+	public void test720AddResourceOpenDjBadBindDn() throws Exception {
+		final String TEST_NAME = "test720AddResourceOpenDjBadBindDn";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
@@ -2155,8 +2154,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 	}
 	
 	@Test
-	public void test613ConnectionBadBindDn() throws Exception {
-		final String TEST_NAME = "test613ConnectionBadBindDn";
+	public void test723ConnectionBadBindDn() throws Exception {
+		final String TEST_NAME = "test723ConnectionBadBindDn";
 		TestUtil.displayTestTile(TEST_NAME);
 
 		// WHEN
