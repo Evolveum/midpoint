@@ -35,6 +35,7 @@
             <association>
             	<ref>ri:group</ref>
             	<outbound>
+            		<strength>strong</strength>
                 	<expression>
 						<value>
 							<!-- group joker -->

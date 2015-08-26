@@ -57,6 +57,7 @@ import com.evolveum.prism.xml.ns._public.types_3.EncryptedDataType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedDataType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
 /**
@@ -275,9 +276,11 @@ public class XNodeSerializer {
     //region Serializing references - specific functionality
     private XNode serializeReferenceValue(PrismReferenceValue value, PrismReferenceDefinition definition) throws SchemaException {
         MapXNode xmap = new MapXNode();
+        boolean containsOid = false;
         String namespace = definition != null ? definition.getNamespace() : null;           // namespace for filter and description
         if (StringUtils.isNotBlank(value.getOid())){
-            xmap.put(XNode.KEY_REFERENCE_OID, createPrimitiveXNodeStringAttr(value.getOid()));
+            containsOid = true;
+        	xmap.put(XNode.KEY_REFERENCE_OID, createPrimitiveXNodeStringAttr(value.getOid()));
         }
         QName relation = value.getRelation();
         if (relation != null) {
@@ -296,12 +299,12 @@ public class XNodeSerializer {
             XNode xsubnode = filter.serializeToXNode();
             xmap.put(createReferenceQName(XNode.KEY_REFERENCE_FILTER, namespace), xsubnode);
         }
-
+      
         boolean isComposite = false;
         if (definition != null) {
             isComposite = definition.isComposite();
         }
-        if ((serializeCompositeObjects || isComposite) && value.getObject() != null) {
+        if ((serializeCompositeObjects || isComposite || !containsOid) && value.getObject() != null) {
             XNode xobjnode = serializeObjectContent(value.getObject());
             xmap.put(createReferenceQName(XNode.KEY_REFERENCE_OBJECT, namespace), xobjnode);
         }

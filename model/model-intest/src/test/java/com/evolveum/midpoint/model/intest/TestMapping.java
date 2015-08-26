@@ -694,13 +694,52 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
 	}
 	
+	/**
+	 * Organization is used in the expression for "ship" attribute. But it is not specified as a source.
+	 * Nevertheless the mapping is strong, therefore the result should be applied anyway. 
+	 * Reconciliation should be triggered.
+	 */
+	@Test
+    public void test128ModifyUserOrganization() throws Exception {
+		final String TEST_NAME = "test128ModifyUserOrganization";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+
+		// WHEN
+        modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATION, task, result,
+        		PrismTestUtil.createPolyString("Brethren of the Coast"));
+		
+		// THEN
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
+		
+		assertAccountShip(userJack, "Captain Jack Sparrow", "Brethren of the Coast / Black Pearl", dummyResourceCtlRed, task);
+
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertExecutionSuccess();
+	}
 	
 	/**
 	 * Note: red resource disables account on unsassign, does NOT delete it
 	 */
 	@Test
-    public void test128ModifyUserUnassignAccountRed() throws Exception {
-		final String TEST_NAME = "test128ModifyUserUnassignAccountRed";
+    public void test138ModifyUserUnassignAccountRed() throws Exception {
+		final String TEST_NAME = "test138ModifyUserUnassignAccountRed";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -738,7 +777,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		XMLGregorianCalendar disableTimestamp = accountRed.asObjectable().getActivation().getDisableTimestamp();
 		TestUtil.assertBetween("Wrong disableTimestamp", start, end, disableTimestamp);
 
-		assertAccountShip(userJack, "Captain Jack Sparrow", "Black Pearl", false, dummyResourceCtlRed, task);
+		assertAccountShip(userJack, "Captain Jack Sparrow", "Brethren of the Coast / Black Pearl", false, dummyResourceCtlRed, task);
                 
         // Check if dummy resource account is gone
         assertNoDummyAccount("jack");
@@ -759,8 +798,8 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	 * So let's delete the account explicitly to make room for the following tests
 	 */
 	@Test
-    public void test129DeleteAccountRed() throws Exception {
-		final String TEST_NAME = "test129DeleteAccountRed";
+    public void test139DeleteAccountRed() throws Exception {
+		final String TEST_NAME = "test139DeleteAccountRed";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN

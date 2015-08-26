@@ -59,6 +59,7 @@ public class WaitForTasksTaskHandler implements TaskHandler {
 	public TaskRunResult run(Task task) {
 
 		OperationResult result = task.getResult().createSubresult(WaitForTasksTaskHandler.class.getName()+".run");
+        result.recordInProgress();
 
         LOGGER.info("WaitForTasksTaskHandler run starting; in task " + task.getName());
         try {
@@ -71,6 +72,8 @@ public class WaitForTasksTaskHandler implements TaskHandler {
             throw new SystemException("Couldn't mark task as waiting for prerequisite tasks", e);       // should not occur; will be handled by task runner
         }
         LOGGER.info("WaitForTasksTaskHandler run finishing; in task " + task.getName());
+
+        result.computeStatus();
 
         TaskRunResult runResult = new TaskRunResult();
         runResult.setOperationResult(result);

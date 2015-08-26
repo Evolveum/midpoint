@@ -162,6 +162,9 @@ public class ProjectionValuesProcessor {
 		if (policyDecision != null && policyDecision == SynchronizationPolicyDecision.UNLINK) {
 			// We will not update accounts that are being unlinked.
 			// we cannot skip deleted accounts here as the delete delta will be skipped as well
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Skipping processing of value for {} because the decision is {}", projContext.getHumanReadableName(), policyDecision);
+			}
 			return;
 		}
 		
@@ -169,6 +172,9 @@ public class ProjectionValuesProcessor {
 		
 		if (!projContext.hasFullShadow() && hasIterationExpression(projContext)) {
 			LensUtil.loadFullAccount(context, projContext, provisioningService, result);
+			if (projContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
+            	return;
+            }
 		}
 		
 		int maxIterations = determineMaxIterations(projContext);

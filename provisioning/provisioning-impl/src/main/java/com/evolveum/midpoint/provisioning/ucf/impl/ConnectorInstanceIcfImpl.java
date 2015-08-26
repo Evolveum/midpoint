@@ -217,7 +217,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	private PrismSchema connectorSchema;
 	private String description;
 	private boolean caseIgnoreAttributeNames = false;
-	private boolean legacySchema = false;
+	private Boolean legacySchema = null;
 	private boolean supportsReturnDefaultAttributes = false;
 
 	public ConnectorInstanceIcfImpl(ConnectorInfo connectorInfo, ConnectorType connectorType,
@@ -322,9 +322,15 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			} else {
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
 			}
-
 		}
-
+		
+		PrismProperty<Boolean> legacySchemaConfigProperty = configuration.findProperty(new QName(
+				ConnectorFactoryIcfImpl.NS_ICF_CONFIGURATION,
+				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_LEGACY_SCHEMA_XML_ELEMENT_NAME));
+		if (legacySchemaConfigProperty != null) {
+			legacySchema = legacySchemaConfigProperty.getRealValue();
+		}
+		LOGGER.trace("Legacy schema (config): {}", legacySchema);
 	}
 
 	private PrismContainerDefinition<?> getConfigurationContainerDefinition() throws SchemaException {
@@ -355,17 +361,17 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			return null;
 		}
 
-		PrismSchema mpSchema = new PrismSchema(connectorType.getNamespace(), prismContext);
+		connectorSchema = new PrismSchema(connectorType.getNamespace(), prismContext);
 
 		// Create configuration type - the type used by the "configuration"
 		// element
-		PrismContainerDefinition<?> configurationContainerDef = mpSchema.createPropertyContainerDefinition(
+		PrismContainerDefinition<?> configurationContainerDef = connectorSchema.createPropertyContainerDefinition(
 				ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart(),
 				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME);
 
 		// element with "ConfigurationPropertiesType" - the dynamic part of
 		// configuration schema
-		ComplexTypeDefinition configPropertiesTypeDef = mpSchema.createComplexTypeDefinition(new QName(
+		ComplexTypeDefinition configPropertiesTypeDef = connectorSchema.createComplexTypeDefinition(new QName(
 				connectorType.getNamespace(),
 				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME));
 
@@ -411,6 +417,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
         configurationContainerDef.createContainerDefinition(
                 ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT,
                 ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_TYPE, 0, 1);
+		configurationContainerDef.createPropertyDefinition(
+				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_LEGACY_SCHEMA_ELEMENT,
+				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_LEGACY_SCHEMA_TYPE, 0, 1);
 
 		// No need to create definition of "configuration" element.
 		// midPoint will look for this element, but it will be generated as part
@@ -420,10 +429,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME,
 				configPropertiesTypeDef, 1, 1);
 
-		LOGGER.debug("Generated configuration schema for {}: {} definitions", this, mpSchema.getDefinitions()
+		LOGGER.debug("Generated configuration schema for {}: {} definitions", this, connectorSchema.getDefinitions()
 				.size());
-		connectorSchema = mpSchema;
-		return mpSchema;
+		return connectorSchema;
 	}
 
 	private QName icfTypeToXsdType(Class<?> type, boolean isConfidential) {
@@ -482,8 +490,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		this.capabilities = capabilities;
 		this.caseIgnoreAttributeNames = caseIgnoreAttributeNames;
 		
-		if (resourceSchema != null) {
-			legacySchema = isLegacySchema(resourceSchema);
+		if (resourceSchema != null && legacySchema == null) {
+			legacySchema = detectLegacySchema(resourceSchema);
 		}
 
 		if (resourceSchema == null || capabilities == null) {
@@ -636,7 +644,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		// New instance of midPoint schema object
 		setResourceSchema(new ResourceSchema(getSchemaNamespace(), prismContext));
 
-		legacySchema = isLegacySchema(icfSchema);
+		if (legacySchema == null) {
+			legacySchema = detectLegacySchema(icfSchema);
+		}
+		LOGGER.trace("Converting resource schema (legacy mode: {})", legacySchema);
 		
 		Set<ObjectClassInfo> objectClassInfoSet = icfSchema.getObjectClassInfo();
 		// Let's convert every objectclass in the ICF schema ...		
@@ -646,8 +657,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			QName objectClassXsdName = icfNameMapper.objectClassToQname(new ObjectClass(objectClassInfo.getType()), getSchemaNamespace(), legacySchema);
 
 			if (!shouldBeGenerated(generateObjectClasses, objectClassXsdName)){
+				LOGGER.trace("Skipping object class {} ({})", objectClassInfo.getType(), objectClassXsdName);
 				continue;
 			}
+			
+			LOGGER.trace("Convering object class {} ({})", objectClassInfo.getType(), objectClassXsdName);
 			
 			// ResourceObjectDefinition is a midPpoint way how to represent an
 			// object class.
@@ -979,7 +993,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	}
 
-	private boolean isLegacySchema(Schema icfSchema) {
+	private boolean detectLegacySchema(Schema icfSchema) {
 		Set<ObjectClassInfo> objectClassInfoSet = icfSchema.getObjectClassInfo();
 		for (ObjectClassInfo objectClassInfo : objectClassInfoSet) {
 			if (objectClassInfo.is(ObjectClass.ACCOUNT_NAME) || objectClassInfo.is(ObjectClass.GROUP_NAME)) {
@@ -990,7 +1004,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return false;
 	}
 	
-	private boolean isLegacySchema(ResourceSchema resourceSchema) {
+	private boolean detectLegacySchema(ResourceSchema resourceSchema) {
 		ComplexTypeDefinition accountObjectClass = resourceSchema.findComplexTypeDefinition(
 				new QName(getSchemaNamespace(), ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME));
 		return accountObjectClass != null;

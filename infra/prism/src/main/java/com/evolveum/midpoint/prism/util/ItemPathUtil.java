@@ -7,6 +7,8 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import java.util.Map;
+
 public class ItemPathUtil {
 	
 	private ItemPathUtil(){
@@ -49,4 +51,27 @@ public class ItemPathUtil {
 		}
 	}
 
+	public static <T> T putToMap(Map<ItemPath, T> map, ItemPath itemPath, T value) {
+		for (ItemPath key : map.keySet()) {
+			if (key.equivalent(itemPath)) {
+				return map.put(key, value);
+			}
+		}
+		return map.put(itemPath, value);
+	}
+
+	public static <T> void putAllToMap(Map<ItemPath, T> target, Map<ItemPath, T> source) {
+		for (Map.Entry<ItemPath, T> entry : source.entrySet()) {
+			putToMap(target, entry.getKey(), entry.getValue());
+		}
+	}
+
+	public static <T> T getFromMap(Map<ItemPath, T> map, ItemPath itemPath) {
+		for (Map.Entry<ItemPath, T> entry : map.entrySet()) {
+			if (entry.getKey().equivalent(itemPath)) {
+				return entry.getValue();
+			}
+		}
+		return null;
+	}
 }

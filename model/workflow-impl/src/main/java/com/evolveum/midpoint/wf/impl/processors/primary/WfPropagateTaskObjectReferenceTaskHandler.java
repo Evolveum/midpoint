@@ -159,6 +159,8 @@ public class WfPropagateTaskObjectReferenceTaskHandler implements TaskHandler {
             }
         }
 
+        result.computeStatusIfUnknown();
+
         TaskRunResult runResult = new TaskRunResult();
         runResult.setRunResultStatus(status);
         runResult.setOperationResult(task.getResult());

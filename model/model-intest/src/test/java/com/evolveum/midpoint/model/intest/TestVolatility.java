@@ -373,7 +373,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
     }
 
     protected void waitForSyncTaskNextRun() throws Exception {
-        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_HR_OID, false, 10000);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, false, 10000);
     }
 
 	private void assertAccount(PrismObject<UserType> userJack, String name, String expectedFullName, String shipAttributeName, String expectedShip,

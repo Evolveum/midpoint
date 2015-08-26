@@ -78,7 +78,7 @@
             <kind>entitlement</kind>
             <intent>ldapProject</intent>
             <displayName>LDAP project groups</displayName>
-            <objectClass>ri:GroupObjectClass</objectClass>
+            <objectClass>ri:groupOfUniqueNames</objectClass>
             <attribute>
                 <c:ref>icfs:name</c:ref>
                 <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">mr:stringIgnoreCase</matchingRule>

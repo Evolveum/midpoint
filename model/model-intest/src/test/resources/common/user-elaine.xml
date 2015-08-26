@@ -55,4 +55,12 @@
     	<effectiveStatus>enabled</effectiveStatus>
     </activation>
     
+    <credentials> 
+         <password> 
+        	<value> 
+ 	            <clearValue>P1ranhaD0GZ</clearValue>
+             </value>
+         </password>
+     </credentials>
+    
 </user>

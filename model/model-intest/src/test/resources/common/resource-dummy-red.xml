@@ -184,9 +184,24 @@
 				<displayName>Ship</displayName>
 				<outbound>
 					<strength>strong</strength>
+					<!-- organization is NOT a source here - by purpose -->
 					<source>
 						<path>$user/organizationalUnit</path>
 					</source>
+					<expression>
+						<script>
+							<code>
+if (focus == null) {
+	return null;
+}
+if (focus.getOrganization().size() == 0) {
+	return organizationalUnit;
+} else {
+	return focus.getOrganization().get(0).getOrig()+' / '+organizationalUnit;
+}
+							</code>
+						</script>
+					</expression>
 				</outbound>
 			</attribute>
 			<attribute>

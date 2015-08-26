@@ -252,7 +252,8 @@ public class ConsolidationProcessor {
         // That may be a waste of resources if the weak mapping results in no change anyway.
         // Let's be very very lazy about fetching the account from the resource.
  		if (!projCtx.hasFullShadow() && 
- 				(hasActiveWeakMapping(squeezedAttributes, projCtx) || hasActiveWeakMapping(squeezedAssociations, projCtx))) {
+ 				(hasActiveWeakMapping(squeezedAttributes, projCtx) || hasActiveWeakMapping(squeezedAssociations, projCtx)
+ 						|| (hasActiveStrongMapping(squeezedAttributes, projCtx) || hasActiveStrongMapping(squeezedAssociations, projCtx)))) {
  			// Full account was not yet loaded. This will cause problems as
  			// the weak mapping may be applied even though it should not be
  			// applied
@@ -260,12 +261,20 @@ public class ConsolidationProcessor {
  			// of all
  			// account's attributes.Therefore load the account now, but with
  			// doNotDiscovery options..
+ 			
+ 			// We also need to get account if there are strong mappings. Strong mappings
+ 			// should always be applied. So reading the account now will indirectly
+ 			// trigger reconciliation which makes sure that the strong mappings are
+ 			// applied.
 
  			// By getting accounts from provisioning, there might be a problem with
  	 		// resource availability. We need to know, if the account was read full
  	 		// or we have only the shadow from the repository. If we have only
  	 		// shadow, the weak mappings may applied even if they should not be. 
  			LensUtil.loadFullAccount(context, projCtx, provisioningService, result);
+ 			if (projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
+ 				return null;
+ 			}
      	}
 		
 		boolean completeAccount = projCtx.hasFullShadow();
@@ -388,10 +397,12 @@ public class ConsolidationProcessor {
     				PrismContainerValue<ShadowAssociationType> o2) {
     			
     			if (o1 == null && o2 == null){
+    				LOGGER.trace("Comparing {} and {}: 0 (A)", o1, o2);
     				return 0;
     			} 
     			
     			if (o1 == null || o2 == null){
+    				LOGGER.trace("Comparing {} and {}: 2 (B)", o1, o2);
     				return 1;
     			}
     			
@@ -404,9 +415,11 @@ public class ConsolidationProcessor {
 				String oid1 = ref1 != null ? ref1.getOid() : null;
 				String oid2 = ref2 != null ? ref2.getOid() : null;
     			if (ObjectUtils.equals(oid1, oid2)) {
+    				LOGGER.trace("Comparing {} and {}: 0 (C)", o1, o2);
     				return 0;
     			}
     			
+    			LOGGER.trace("Comparing {} and {}: 1 (D)", o1, o2);
     			return 1;
     		}
 		};
@@ -560,6 +573,23 @@ public class ConsolidationProcessor {
 					if (aPrioriAttributeDelta != null && aPrioriAttributeDelta.isReplace() && aPrioriAttributeDelta.getValuesToReplace().isEmpty()) {
 						return true;
 					}
+				}
+			}
+		}
+		return false;
+	}
+	
+	private <V extends PrismValue,D extends ItemDefinition> boolean hasActiveStrongMapping(
+			Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedAttributes, LensProjectionContext accCtx) throws SchemaException {
+		for (Map.Entry<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> entry : squeezedAttributes.entrySet()) {
+			DeltaSetTriple<ItemValueWithOrigin<V,D>> ivwoTriple = entry.getValue();
+			for (ItemValueWithOrigin<V,D> ivwo: ivwoTriple.getAllValues()) {
+				PrismValueDeltaSetTripleProducer<V,D> mapping = ivwo.getMapping();
+				if (mapping.getStrength() == MappingStrengthType.STRONG) {
+					// Do not optimize for "nothing changed" case here. We want to make
+					// sure that the values of strong mappings are applied even if nothing
+					// has changed.
+					return true;
 				}
 			}
 		}

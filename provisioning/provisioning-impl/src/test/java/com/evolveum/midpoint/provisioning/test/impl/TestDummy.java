@@ -3109,8 +3109,7 @@ public class TestDummy extends AbstractDummyTest {
 		final String TEST_NAME = "test220EntitleAccountWillPirates";
 		TestUtil.displayTestTile(TEST_NAME);
 
-		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
-				+ "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		
 		rememberDummyResourceGroupMembersReadCount(null);
@@ -3233,6 +3232,12 @@ public class TestDummy extends AbstractDummyTest {
 		
 		syncServiceMock.assertNotifySuccessOnly();
 		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
+		
+		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
+		display("Shadow after", shadow);
+		assertEntitlementGroup(shadow, GROUP_PIRATES_OID);
+		assertEntitlementPriv(shadow, PRIVILEGE_PILLAGE_OID);
+		
 		assertSteadyResource();
 	}
 
@@ -3280,7 +3285,7 @@ public class TestDummy extends AbstractDummyTest {
         assertMember(group, transformNameFromResource(getWillRepoIcfName()));
 
         syncServiceMock.assertNotifySuccessOnly();
-
+        
         assertSteadyResource();
     }
 
@@ -3462,6 +3467,12 @@ public class TestDummy extends AbstractDummyTest {
 
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 		syncServiceMock.assertNotifySuccessOnly();
+		
+        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
+		display("Shadow after", shadow);
+		assertEntitlementPriv(shadow, PRIVILEGE_PILLAGE_OID);
+		assertEntitlementPriv(shadow, PRIVILEGE_BARGAIN_OID);
+		
 		assertSteadyResource();
 	}
 	
@@ -3506,6 +3517,12 @@ public class TestDummy extends AbstractDummyTest {
 		assertNotNull("Privilege object is gone!", priv);
 		
 		syncServiceMock.assertNotifySuccessOnly();
+		
+        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
+		display("Shadow after", shadow);
+		assertEntitlementPriv(shadow, PRIVILEGE_BARGAIN_OID);
+
+		
 		assertSteadyResource();
 	}
 

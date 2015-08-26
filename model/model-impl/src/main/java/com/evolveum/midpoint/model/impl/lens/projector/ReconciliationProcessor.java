@@ -132,12 +132,18 @@ public class ReconciliationProcessor {
 			// reconciliation is cheap if the shadow is already fetched
 			// therefore just do it
 			if (!projCtx.isDoReconciliation() && !projCtx.isFullShadow()) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Skipping reconciliation of {}: no doReconciliation and no full shadow", projCtx.getHumanReadableName());
+				}
 				return;
 			}
 
 			SynchronizationPolicyDecision policyDecision = projCtx.getSynchronizationPolicyDecision();
 			if (policyDecision != null
 					&& (policyDecision == SynchronizationPolicyDecision.DELETE || policyDecision == SynchronizationPolicyDecision.UNLINK)) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Skipping reconciliation of {}: decision={}", projCtx.getHumanReadableName(), policyDecision);
+				}
 				return;
 			}
 
@@ -156,6 +162,10 @@ public class ReconciliationProcessor {
 				projCtx.setLoadedObject(objectOld);
 
 				projCtx.recompute();
+			}
+			
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Starting reconciliation of {}", projCtx.getHumanReadableName());
 			}
 
             RefinedObjectClassDefinition rOcDef = projCtx.getStructuralObjectClassDefinition();
@@ -207,8 +217,8 @@ public class ReconciliationProcessor {
 						+ projCtx.getResourceShadowDiscriminator());
 			}
 
-			DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>> pvwoTriple = squeezedAttributes
-					.get(attrName);
+			DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>> pvwoTriple = 
+					squeezedAttributes.get(attrName);
 
 			if (attributeDefinition.isIgnored(LayerType.MODEL)) {
 				LOGGER.trace("Skipping reconciliation of attribute {} because it is ignored", attrName);
@@ -292,15 +302,16 @@ public class ReconciliationProcessor {
 				if (shouldBeMapping == null) {
 					continue;
 				}
+				Object shouldBeRealValue = shouldBePvwo.getItemValue().getValue();
 				if (shouldBeMapping.getStrength() != MappingStrengthType.STRONG
 						&& (!arePValues.isEmpty() || hasStrongShouldBePValue)) {
 					// weak or normal value and the attribute already has a
 					// value. Skip it.
 					// we cannot override it as it might have been legally
 					// changed directly on the projection resource object
+					LOGGER.trace("Skipping reconciliation of value {} of the attribute {}: the mapping is not strong" , shouldBeRealValue, attributeDefinition.getName().getLocalPart());
 					continue;
 				}
-				Object shouldBeRealValue = shouldBePvwo.getItemValue().getValue();
 				if (!isInValues(valueMatcher, shouldBeRealValue, arePValues)) {
 					if (attributeDefinition.isSingleValue()) {
 						if (hasValue) {
@@ -308,9 +319,11 @@ public class ReconciliationProcessor {
 									"Attempt to set more than one value for single-valued attribute "
 											+ attrName + " in " + projCtx.getResourceShadowDiscriminator());
 						}
+						LOGGER.trace("Reconciliation: REPLACING value {} of the attribute {}" , shouldBeRealValue, attributeDefinition.getName().getLocalPart());
 						recordDelta(valueMatcher, projCtx, attributeDefinition, ModificationType.REPLACE, shouldBeRealValue,
 								shouldBePvwo.getConstruction().getSource());
 					} else {
+						LOGGER.trace("Reconciliation: ADDING value {} of the attribute {}" , shouldBeRealValue, attributeDefinition.getName().getLocalPart());
 						recordDelta(valueMatcher, projCtx, attributeDefinition, ModificationType.ADD, shouldBeRealValue,
 								shouldBePvwo.getConstruction().getSource());
 					}
@@ -522,7 +535,7 @@ public class ReconciliationProcessor {
         }
     }
 
-	private void decideIfTolerate(LensProjectionContext accCtx,
+	private void decideIfTolerate(LensProjectionContext projCtx,
 			RefinedAttributeDefinition attributeDefinition,
 			Collection<PrismPropertyValue<Object>> arePValues,
 			Collection<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>> shouldBePValues,
@@ -530,13 +543,13 @@ public class ReconciliationProcessor {
 		
 		for (PrismPropertyValue<Object> isPValue : arePValues){
 			if (matchPattern(attributeDefinition.getTolerantValuePattern(), isPValue, valueMatcher)){
-				LOGGER.trace("Value {} of the attribute {} match with toletant value pattern. Value will be NOT DELETED." , new Object[]{isPValue, attributeDefinition});
+				LOGGER.trace("Reconciliation: KEEPING value {} of the attribute {}: match with tolerant value pattern." , isPValue, attributeDefinition.getName().getLocalPart());
 				continue;
 			}
 		
 			if (matchPattern(attributeDefinition.getIntolerantValuePattern(), isPValue, valueMatcher)){
-				LOGGER.trace("Value {} of the attribute {} match with intoletant value pattern. Value will be DELETED." , new Object[]{isPValue, attributeDefinition});
-				recordDelta(valueMatcher, accCtx, attributeDefinition, ModificationType.DELETE,
+				LOGGER.trace("Reconciliation: DELETING value {} of the attribute {}: match with intolerant value pattern." , isPValue, attributeDefinition.getName().getLocalPart());
+				recordDelta(valueMatcher, projCtx, attributeDefinition, ModificationType.DELETE,
 						isPValue.getValue(), null);
 				continue;
 			}		
@@ -544,7 +557,8 @@ public class ReconciliationProcessor {
 			
 			if (!attributeDefinition.isTolerant()) {
 				if (!isInPvwoValues(valueMatcher, isPValue.getValue(), shouldBePValues)) {
-						recordDelta(valueMatcher, accCtx, attributeDefinition, ModificationType.DELETE,
+						LOGGER.trace("Reconciliation: DELETING value {} of the attribute {}" , isPValue, attributeDefinition.getName().getLocalPart());
+						recordDelta(valueMatcher, projCtx, attributeDefinition, ModificationType.DELETE,
 								isPValue.getValue(), null);
 				}
 			}

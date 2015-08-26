@@ -15,7 +15,7 @@
     <operationalState>
         <lastAvailabilityStatus>up</lastAvailabilityStatus>
     </operationalState>
-    <connectorRef oid="8a6ce790-46b7-4b4d-bd14-c6c340153008" type="c:ConnectorType"><!-- ICF com.evolveum.polygon.connector.liferay.LiferayConnector v1.1.0.0-SNAPSHOT -->
+    <connectorRef type="c:ConnectorType"><!-- ICF com.evolveum.polygon.connector.liferay.LiferayConnector v1.1.0.0-SNAPSHOT -->
         <filter>
             <q:equal>
                 <q:path>c:connectorType</q:path>
@@ -30,19 +30,8 @@
             <gen877:defaultRoles>Power User</gen877:defaultRoles>
             <gen877:customFields>java.util.Date:accountExpiration</gen877:customFields>
             <gen877:companyId>20155</gen877:companyId>
-            <!-- password: test -->
             <gen877:password>
-                <t:encryptedData>
-                    <t:encryptionMethod>
-                        <t:algorithm>http://www.w3.org/2001/04/xmlenc#aes128-cbc</t:algorithm>
-                    </t:encryptionMethod>
-                    <t:keyInfo>
-                        <t:keyName>oBsByjtNPIamiJ8TsF0DGmz3zUw=</t:keyName>
-                    </t:keyInfo>
-                    <t:cipherData>
-                        <t:cipherValue>rnVRJuetlL4YnDlZ6eOQ0Dfulmdzm0y1l+0KMVfqF9w=</t:cipherValue>
-                    </t:cipherData>
-                </t:encryptedData>
+                <t:clearValue>test</t:clearValue>
             </gen877:password>
             <gen877:endpoint>http://localhost:8080/api/axis/</gen877:endpoint>
         </icfc:configurationProperties>

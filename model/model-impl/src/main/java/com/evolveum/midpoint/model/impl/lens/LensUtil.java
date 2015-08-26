@@ -35,6 +35,7 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.expression.Expression;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
@@ -380,9 +381,8 @@ public class LensUtil {
                     continue;
                 }
                 if (filterExistingValues && !hasValue(itemExisting, value, valueMatcher, comparator)) {
-					// temporarily changed from .trace to .info in order to assist with problems like MID-2368
-                	LOGGER.info("Value {} NOT deleted to delta for item {} the item does not have that value in {}",
-                			new Object[]{value, itemPath, contextDescription});
+                	LOGGER.trace("Value {} NOT deleted to delta for item {} the item does not have that value in {} (matcher: {})",
+                			new Object[]{value, itemPath, contextDescription, valueMatcher});
                 	continue;
                 }
                 LOGGER.trace("Value {} deleted to delta for item {} in {}",
@@ -618,11 +618,16 @@ public class LensUtil {
 				return;
 			}
 		}
-		LOGGER.trace("Loading full resource object {} from provisioning", accCtx);
 		
-		try{
-			GetOperationOptions getOptions = GetOperationOptions.createDoNotDiscovery();
-			getOptions.setAllowNotFound(true);
+		
+		GetOperationOptions getOptions = GetOperationOptions.createAllowNotFound();
+		if (SchemaConstants.CHANGE_CHANNEL_DISCOVERY.equals(context.getChannel())) {
+			LOGGER.trace("Loading full resource object {} from provisioning - with doNotDiscover to avoid loops", accCtx);
+			getOptions.setDoNotDiscovery(true);
+		} else {
+			LOGGER.trace("Loading full resource object {} from provisioning (discovery enabled)", accCtx);
+		}
+		try {	
 			Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(getOptions);
 			PrismObject<ShadowType> objectOld = provisioningService.getObject(ShadowType.class,
 					accCtx.getOid(), options,
@@ -632,12 +637,20 @@ public class LensUtil {
 			ShadowType oldShadow = objectOld.asObjectable();
 			accCtx.determineFullShadowFlag(oldShadow.getFetchResult());
 		
-		} catch (ObjectNotFoundException ex){
+		} catch (ObjectNotFoundException ex) {
+			LOGGER.trace("Load of full resource object {} ended with ObjectNotFoundException (options={})", accCtx, getOptions);
 			if (accCtx.isDelete()){
 				//this is OK, shadow was deleted, but we will continue in processing with old shadow..and set it as full so prevent from other full loading
 				accCtx.setFullShadow(true);
-			} else 
-				throw ex;
+			} else {
+				accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+				if (GetOperationOptions.isDoNotDiscovery(getOptions)) {
+					LOGGER.error("Load of full resource object {} resulted in ObjectNotFoundException (discovery disabled to avoid loops)", accCtx, getOptions);
+					throw ex;
+				} else {
+					// Setting the context to broken should be enough here.
+				}
+			}
 		}
 		
 		accCtx.recompute();

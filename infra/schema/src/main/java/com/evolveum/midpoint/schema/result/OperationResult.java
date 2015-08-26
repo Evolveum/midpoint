@@ -1258,6 +1258,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	 */
 	public void cleanupResult(Throwable e) {
 		if (status == OperationResultStatus.UNKNOWN) {
+			LOGGER.error("Attempt to cleanup result of operation " + operation + " that is still UNKNOWN:\n{}", this.debugDump());
 			throw new IllegalStateException("Attempt to cleanup result of operation "+operation+" that is still UNKNOWN");
 		}
 		if (subresults == null) {
@@ -1268,6 +1269,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 			OperationResult subresult = iterator.next();
 			if (subresult.getStatus() == OperationResultStatus.UNKNOWN) {
 				String message = "Subresult "+subresult.getOperation()+" of operation "+operation+" is still UNKNOWN during cleanup";
+				LOGGER.error("{}:\n{}", message, this.debugDump());
 				if (e == null) {
 					throw new IllegalStateException(message);
 				} else {
