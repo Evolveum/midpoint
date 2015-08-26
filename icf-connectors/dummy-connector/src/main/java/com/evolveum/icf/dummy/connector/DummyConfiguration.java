@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,6 +54,7 @@ public class DummyConfiguration extends AbstractConfiguration {
 	private boolean generateAccountDescriptionOnCreate = false;		   // simulates volatile behavior (on create)
 	private boolean generateAccountDescriptionOnUpdate = false;        // simulates volatile behavior (on update)
 	private String[] forbiddenNames = new String[0];
+	private boolean useLegacySchema = true;
 
 	/**
      * Defines name of the dummy resource instance. There may be several dummy resource running in
@@ -293,6 +294,16 @@ public class DummyConfiguration extends AbstractConfiguration {
 
 	public void setForbiddenNames(String[] forbiddenNames) {
 		this.forbiddenNames = forbiddenNames.clone();
+	}
+
+	@ConfigurationProperty(displayMessageKey = "UI_USE_LEGACY_SCHEMA",
+			helpMessageKey = "UI_USE_LEGACY_SCHEMA_HELP")
+	public boolean getUseLegacySchema() {
+		return useLegacySchema;
+	}
+
+	public void setUseLegacySchema(boolean useLegacySchema) {
+		this.useLegacySchema = useLegacySchema;
 	}
 
 	/**
