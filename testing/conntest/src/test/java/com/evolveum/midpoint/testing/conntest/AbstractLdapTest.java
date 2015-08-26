@@ -276,6 +276,11 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		return "/opt/Bamboo/local/conntest";
 	}
 	
+	protected boolean isImportResourceAtInit() {
+		return true;
+	}
+
+	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
@@ -304,8 +309,10 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		// Roles
 		
 		// Resources
-		resource = importAndGetObjectFromFile(ResourceType.class, getResourceFile(), getResourceOid(), initTask, initResult);
-		resourceType = resource.asObjectable();
+		if (isImportResourceAtInit()) {
+			resource = importAndGetObjectFromFile(ResourceType.class, getResourceFile(), getResourceOid(), initTask, initResult);
+			resourceType = resource.asObjectable();
+		}
 		
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -322,7 +329,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         
         ciMatchingRule = matchingRuleRegistry.getMatchingRule(StringIgnoreCaseMatchingRule.NAME, DOMUtil.XSD_STRING);
 	}
-	
+
 	@Test
 	public void test010Connection() throws Exception {
 		final String TEST_NAME = "test010Connection";
