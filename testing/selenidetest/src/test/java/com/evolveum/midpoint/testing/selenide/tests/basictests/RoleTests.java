@@ -1,8 +1,9 @@
-package com.evolveum.midpoint.testing.selenide.tests;
+package com.evolveum.midpoint.testing.selenide.tests.basictests;
 
 import static com.codeborne.selenide.Condition.*;
 
 import com.codeborne.selenide.SelenideElement;
+import com.evolveum.midpoint.testing.selenide.tests.AbstractSelenideTest;
 import org.openqa.selenium.By;
 import org.testng.annotations.Test;
 

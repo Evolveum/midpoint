@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.testing.selenide.tests.user;
+package com.evolveum.midpoint.testing.selenide.tests.basictests;
 
 import com.evolveum.midpoint.testing.selenide.tests.AbstractSelenideTest;
 import org.openqa.selenium.By;

@@ -1,5 +1,6 @@
- package com.evolveum.midpoint.testing.selenide.tests;
+ package com.evolveum.midpoint.testing.selenide.tests.basictests;
 
+import com.evolveum.midpoint.testing.selenide.tests.AbstractSelenideTest;
 import org.openqa.selenium.By;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -13,7 +14,7 @@ import static com.codeborne.selenide.Condition.*;
 /**
  * Created by Kate on 07.08.2015.
  */
-@Component
+//@Component
 public class LoginTest extends AbstractSelenideTest {
     /**
      * Log in to system as administrator/5ecr3t

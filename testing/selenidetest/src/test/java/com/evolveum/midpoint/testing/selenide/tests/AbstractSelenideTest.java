@@ -25,8 +25,9 @@ import static com.codeborne.selenide.Selenide.open;
 /**
  * Created by Kate on 13.08.2015.
  */
-@ContextConfiguration(locations = {"classpath:spring-module.xml"})
-public class AbstractSelenideTest extends AbstractTestNGSpringContextTests {
+//@ContextConfiguration(locations = {"classpath:spring-module.xml"})
+public class AbstractSelenideTest{
+//        extends AbstractTestNGSpringContextTests {
     public static final String SITE_URL = "/midpoint";
     public static final String ADMIN_LOGIN = "administrator";
     public static final String ADMIN_PASSWORD = "5ecr3t";
@@ -86,12 +87,12 @@ public class AbstractSelenideTest extends AbstractTestNGSpringContextTests {
 
     Logger LOGGER = Logger.getLogger(AbstractSelenideTest.class);
 
-    protected AbstractSelenideTest() {
-        SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
-        // configure log4j properties file
-//        DOMConfigurator.configure("log4j.xml");
-//        PropertyConfigurator.configure("log4j.properties");
-    }
+//    protected AbstractSelenideTest() {
+//        SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
+//        // configure log4j properties file
+////        DOMConfigurator.configure("log4j.xml");
+////        PropertyConfigurator.configure("log4j.properties");
+//    }
 
     //Login util methods
     /**

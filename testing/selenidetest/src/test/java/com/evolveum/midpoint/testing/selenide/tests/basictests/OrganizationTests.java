@@ -1,5 +1,6 @@
-package com.evolveum.midpoint.testing.selenide.tests;
+package com.evolveum.midpoint.testing.selenide.tests.basictests;
 
+import com.evolveum.midpoint.testing.selenide.tests.AbstractSelenideTest;
 import org.openqa.selenium.By;
 import org.testng.annotations.Test;
 
