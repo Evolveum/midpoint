@@ -7,7 +7,8 @@ import org.openqa.selenium.By;
 import org.springframework.stereotype.Component;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
-import org.springframework.web.context.support.SpringBeanAutowiringSupport;
+import org.testng.ITestContext;
+import org.testng.annotations.BeforeClass;
 
 import java.io.File;
 import java.util.HashMap;
@@ -87,12 +88,14 @@ public class AbstractSelenideTest{
 
     Logger LOGGER = Logger.getLogger(AbstractSelenideTest.class);
 
-//    protected AbstractSelenideTest() {
-//        SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
-//        // configure log4j properties file
-////        DOMConfigurator.configure("log4j.xml");
-////        PropertyConfigurator.configure("log4j.properties");
-//    }
+    private static final String PARAM_SITE_URL = "site.url";
+    public String siteUrl;
+
+
+    @BeforeClass(alwaysRun = true)
+    public void beforeClass(ITestContext context) {
+        siteUrl = context.getCurrentXmlTest().getParameter(PARAM_SITE_URL);
+    }
 
     //Login util methods
     /**
@@ -100,12 +103,12 @@ public class AbstractSelenideTest{
      */
     protected void login(){
         //perform login
-        login(SITE_URL, ADMIN_LOGIN, ADMIN_PASSWORD);
+        login(siteUrl, ADMIN_LOGIN, ADMIN_PASSWORD);
     }
 
     protected void login(String username, String password){
         //perform login
-        login(SITE_URL, username, password);
+        login(siteUrl, username, password);
     }
 
     protected void login(String siteUrl, String username, String password) {

@@ -1019,6 +1019,34 @@
 				</plugins>
 			</build>
 		</profile>
+		<profile>
+			<id>wstest</id>
+			<build>
+				<plugins>
+					<plugin>
+					  <!-- Skip all tests by default. We only want selected tests to run. -->
+					  <artifactId>maven-surefire-plugin</artifactId>
+					  <configuration>
+					    <skip>true</skip>
+					  </configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>guitest</id>
+			<build>
+				<plugins>
+					<plugin>
+					  <!-- Skip all tests by default. We only want selected tests to run. -->
+					  <artifactId>maven-surefire-plugin</artifactId>
+					  <configuration>
+					    <skip>true</skip>
+					  </configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
     </profiles>
     <dependencies>
         <dependency>

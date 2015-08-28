@@ -107,7 +107,7 @@
 
   <profiles>
 		<profile>
-			<id>extratest</id>
+			<id>wstest</id>
 			<build>
 				<plugins>
 					<plugin>

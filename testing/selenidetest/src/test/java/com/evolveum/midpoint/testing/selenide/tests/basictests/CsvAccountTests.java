@@ -49,7 +49,6 @@ public class CsvAccountTests extends AbstractSelenideTest {
 
     @Test(priority = 0)
     public void test001createCsvAccount() {
-//        LOGGER.info("aaaaaaaaaaaaa");
         close();
         login();
         //check if welcome message appears after user logged in
@@ -102,6 +101,16 @@ public class CsvAccountTests extends AbstractSelenideTest {
         System.out.println(isAccountExistInCsvFile(CSV_FILE_PATH, ACCOUNT_NAME_VALUE, ACCOUNT_FIRST_NAME_VALUE, ACCOUNT_LAST_NAME_VALUE, ACCOUNT_PASSWORD_VALUE));
     }
 
+    /**
+     * check if account entry was created in the CSV file
+     * after account creating in the MidPoint
+     * @param csvFilePath
+     * @param accountName
+     * @param accountFirstName
+     * @param accountLastName
+     * @param accountPassword
+     * @return
+     */
     public boolean isAccountExistInCsvFile(String csvFilePath, String accountName,
                                            String accountFirstName, String accountLastName, String accountPassword) {
         BufferedReader br = null;
@@ -138,18 +147,17 @@ public class CsvAccountTests extends AbstractSelenideTest {
         return false;
     }
 
+    /**
+     * Update icfccsvfile:filePath tag value, set the correct
+     * path to midpoint-flatfile.csv file
+     */
     public void updateCsvFilePath() {
         try {
             DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
             Document doc = docBuilder.parse(CSV_RESOURCE_XML_PATH);
 
-            // Get the staff element , it may not working if tag has spaces, or
-            // whatever weird characters in front...it's better to use
-            // getElementsByTagName() to get it directly.
-            // Node staff = company.getFirstChild();
-
-            // Get the staff element by tag name directly
+            // Get the CSV filePath element by tag name directly
             Node filePathNode = doc.getElementsByTagName("icfccsvfile:filePath").item(0);
             filePathNode.setTextContent(System.getProperty("user.dir") + "/src/test/resources/mp-resources/midpoint-flatfile.csv");
 
@@ -159,9 +167,6 @@ public class CsvAccountTests extends AbstractSelenideTest {
             DOMSource source = new DOMSource(doc);
             StreamResult result = new StreamResult(new File(CSV_RESOURCE_XML_PATH));
             transformer.transform(source, result);
-
-            System.out.println("Done");
-
         } catch (ParserConfigurationException pce) {
             pce.printStackTrace();
         } catch (TransformerException tfe) {

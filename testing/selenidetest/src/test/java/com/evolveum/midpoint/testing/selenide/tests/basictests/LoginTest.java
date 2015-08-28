@@ -21,9 +21,8 @@ public class LoginTest extends AbstractSelenideTest {
      */
     @Test
     public void test001loginWithCorrectCredentialsTest(){
-        open(SITE_URL);
         //perform login
-        login(SITE_URL, ADMIN_LOGIN, ADMIN_PASSWORD);
+        login(ADMIN_LOGIN, ADMIN_PASSWORD);
 
         //check if welcome message appears after user logged in
         $(byText("welcome to midPoint")).shouldBe(visible);
@@ -39,9 +38,8 @@ public class LoginTest extends AbstractSelenideTest {
      */
     @Test
     public void test002loginWithIncorrectUsernameTest(){
-        open(SITE_URL);
         //perform login
-        login(SITE_URL, "incorrectUserName", ADMIN_PASSWORD);
+        login("incorrectUserName", ADMIN_PASSWORD);
 
         //check if error message appears
         $(byText("Invalid username and/or password.")).shouldBe(visible);
@@ -54,9 +52,8 @@ public class LoginTest extends AbstractSelenideTest {
      */
     @Test
     public void test003loginWithoutUsernameTest(){
-        open(SITE_URL);
         //perform login
-        login(SITE_URL, "", ADMIN_PASSWORD);
+        login("", ADMIN_PASSWORD);
 
         //check if error message appears
         $(By.className("messages-error")).find(by("title", "Partial error")).shouldBe(visible);
@@ -69,9 +66,8 @@ public class LoginTest extends AbstractSelenideTest {
      */
     @Test
     public void test004loginWithIncorrectPasswordTest(){
-        open(SITE_URL);
         //perform login
-        login(SITE_URL, ADMIN_LOGIN, "incorrectPassword");
+        login(ADMIN_LOGIN, "incorrectPassword");
 
         //check if error message appears
         $(byText("Invalid username and/or password.")).shouldBe(visible);
@@ -84,9 +80,8 @@ public class LoginTest extends AbstractSelenideTest {
      */
     @Test
     public void test005loginWithoutPasswordTest(){
-        open(SITE_URL);
         //perform login
-        login(SITE_URL, ADMIN_LOGIN, "");
+        login(ADMIN_LOGIN, "");
 
         //check if error message appears
         $(By.className("messages-error")).find(by("title", "Partial error")).shouldBe(visible);

@@ -216,14 +216,18 @@ public abstract class AbstractWebserviceTest {
      * */
     protected static ModelPortType createModelPort(String username, String password, String passwordType) {
 
+    	String endpoint = ENDPOINT;
+    	if (System.getProperty("midpoint.endpoint") != null) {
+    		endpoint = System.getProperty("midpoint.endpoint");
+    	}
         LOGGER.info("Creating model client endpoint: {} , username={}, password={}", 
-        		new Object[] {ENDPOINT, username, password});
+        		new Object[] {endpoint, username, password});
 
         ModelService modelService = new ModelService();
         ModelPortType modelPort = modelService.getModelPort();
         BindingProvider bp = (BindingProvider)modelPort;
         Map<String, Object> requestContext = bp.getRequestContext();
-        requestContext.put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, ENDPOINT);
+        requestContext.put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, endpoint);
 
         org.apache.cxf.endpoint.Client client = ClientProxy.getClient(modelPort);
         org.apache.cxf.endpoint.Endpoint cxfEndpoint = client.getEndpoint();
