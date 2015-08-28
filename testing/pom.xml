@@ -55,6 +55,18 @@
 				<module>conntest</module>
 			</modules>
 		</profile>
+		<profile>
+			<id>guitest</id>
+			<modules>
+				<module>selenidetest</module>
+			</modules>
+		</profile>
+		<profile>
+			<id>wstest</id>
+			<modules>
+				<module>wstest</module>
+			</modules>
+		</profile>
 	</profiles>
 
 </project>
