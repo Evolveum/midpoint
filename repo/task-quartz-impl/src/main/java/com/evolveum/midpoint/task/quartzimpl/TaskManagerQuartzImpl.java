@@ -926,7 +926,12 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
         try {
             if (TaskType.class.isAssignableFrom(type)) {
-                return (PrismObject<T>) getTaskAsObject(oid, options, result);
+                GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+                if (GetOperationOptions.isRaw(rootOptions)) {
+                    return (PrismObject<T>) repositoryService.getObject(TaskType.class, oid, options, result);
+                } else {
+                    return (PrismObject<T>) getTaskAsObject(oid, options, result);
+                }
             } else if (NodeType.class.isAssignableFrom(type)) {
                 return (PrismObject<T>) repositoryService.getObject(NodeType.class, oid, options, result);      // TODO add transient attributes just like in searchObject
             } else {

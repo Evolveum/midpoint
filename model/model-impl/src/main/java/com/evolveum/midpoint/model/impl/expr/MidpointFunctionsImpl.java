@@ -733,7 +733,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resourceType);
         AndFilter filter = AndFilter.createAnd(idFilter, ocFilter, resourceRefFilter);
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-		return modelObjectResolver.countObjects(ShadowType.class, query, result);
+		return modelObjectResolver.countObjects(ShadowType.class, query, null, result);
     }
 
     public <T> boolean isUniquePropertyValue(ObjectType objectType, String propertyPathString, T propertyValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {

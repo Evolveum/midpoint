@@ -63,6 +63,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 	private AtomicInteger errors = new AtomicInteger();
 	private boolean stopOnError;
 	private boolean logObjectProgress;
+	private boolean logErrors = true;
 	private BlockingQueue<ProcessingRequest> requestQueue;
 	private AtomicBoolean stopRequestedByAnyWorker = new AtomicBoolean(false);
 	private final long startTime;
@@ -352,7 +353,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		} else {
 			message = result.getMessage();
 		}
-		if (LOGGER.isErrorEnabled()) {
+		if (logErrors && LOGGER.isErrorEnabled()) {
 			LOGGER.error("{} of object {} {} failed: {}", new Object[] {
 					getProcessShortNameCapitalized(),
 					object, getContextDesc(), message, ex });
@@ -384,6 +385,14 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 	
 	public void setStopOnError(boolean stopOnError) {
 		this.stopOnError = stopOnError;
+	}
+
+	public boolean isLogErrors() {
+		return logErrors;
+	}
+
+	public void setLogErrors(boolean logErrors) {
+		this.logErrors = logErrors;
 	}
 
 	protected abstract boolean handleObject(PrismObject<O> object, Task workerTask, OperationResult result) throws CommonException;

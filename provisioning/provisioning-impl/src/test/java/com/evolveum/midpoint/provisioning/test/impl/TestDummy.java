@@ -32,14 +32,12 @@ import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -59,7 +57,6 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.DummyPrivilege;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
-import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
@@ -103,7 +100,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -1490,7 +1486,7 @@ public class TestDummy extends AbstractDummyTest {
 		display("All shadows query", query);
 
 		// WHEN
-		Integer count = provisioningService.countObjects(ShadowType.class, query, result);
+		Integer count = provisioningService.countObjects(ShadowType.class, query, null, result);
 		
 		// THEN
 		result.computeStatus();
@@ -1537,7 +1533,7 @@ public class TestDummy extends AbstractDummyTest {
 				+ ".test117CountNullQueryResource");
 
 		// WHEN
-		int count = provisioningService.countObjects(ResourceType.class, new ObjectQuery(), result);
+		int count = provisioningService.countObjects(ResourceType.class, new ObjectQuery(), null, result);
 		
 		// THEN
 		result.computeStatus();
