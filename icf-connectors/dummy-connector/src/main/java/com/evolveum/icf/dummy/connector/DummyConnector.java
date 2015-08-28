@@ -125,8 +125,10 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
     // Marker used in logging tests
     public static final String LOG_MARKER = "_M_A_R_K_E_R_";
     
+    private static final String OBJECTCLASS_ACCOUNT_NAME = "account";
+	private static final String OBJECTCLASS_GROUP_NAME = "group";
 	private static final String OBJECTCLASS_PRIVILEGE_NAME = "privilege";
-    
+	
     /**
      * Place holder for the {@link Configuration} passed into the init() method
      */
@@ -802,7 +804,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 
         SchemaBuilder builder = new SchemaBuilder(DummyConnector.class);
         
-        builder.defineObjectClass(createAccountObjectClass(configuration.getSupportActivation()));
+    	builder.defineObjectClass(createAccountObjectClass(configuration.getSupportActivation()));
         builder.defineObjectClass(createGroupObjectClass(configuration.getSupportActivation()));
         builder.defineObjectClass(createPrivilegeObjectClass());
 
@@ -810,6 +812,22 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
         return builder.build();
     }
 
+	private String getAccountObjectClassName() {
+		if (configuration.getUseLegacySchema()) {
+			return ObjectClass.ACCOUNT_NAME;
+		} else {
+			return OBJECTCLASS_ACCOUNT_NAME;
+		}
+	}
+
+	private String getGroupObjectClassName() {
+		if (configuration.getUseLegacySchema()) {
+			return ObjectClass.GROUP_NAME;
+		} else {
+			return OBJECTCLASS_GROUP_NAME;
+		}
+	}
+    
     private ObjectClassInfoBuilder createCommonObjectClassBuilder(String typeName, 
     		DummyObjectClass dummyAccountObjectClass, boolean supportsActivation) {
     	ObjectClassInfoBuilder objClassBuilder = new ObjectClassInfoBuilder();
@@ -849,7 +867,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 			throw new ConnectorException(e.getMessage(), e);
 		} // DO NOT catch IllegalStateException, let it pass
 		
-		ObjectClassInfoBuilder objClassBuilder = createCommonObjectClassBuilder(null, dummyAccountObjectClass, supportsActivation);
+		ObjectClassInfoBuilder objClassBuilder = createCommonObjectClassBuilder(getAccountObjectClassName(), dummyAccountObjectClass, supportsActivation);
         
         // __PASSWORD__ attribute
         objClassBuilder.addAttributeInfo(OperationalAttributeInfos.PASSWORD);
@@ -859,7 +877,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 	
 	private ObjectClassInfo createGroupObjectClass(boolean supportsActivation) {
 		// __GROUP__ objectclass
-        ObjectClassInfoBuilder objClassBuilder = createCommonObjectClassBuilder(ObjectClass.GROUP_NAME, 
+        ObjectClassInfoBuilder objClassBuilder = createCommonObjectClassBuilder(getGroupObjectClassName(), 
         		resource.getGroupObjectClass(), supportsActivation);
                 
         return objClassBuilder.build();

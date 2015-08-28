@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2015 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+         xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" 
+         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+
+	<resource oid='188ec322-4bd7-11e5-b919-001e8c717e5b'>
+    
+		<name>Active Directory Medusa</name>
+     
+     	<connectorRef type="ConnectorType">
+			<filter>
+				<q:equal>
+				<q:path>c:connectorType</q:path>
+					<q:value>Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector</q:value>
+				</q:equal>
+			</filter>
+		</connectorRef>
+
+     	<connectorConfiguration>
+
+     		<icfc:configurationProperties
+			xmlns:icfcad="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/ActiveDirectory.Connector/Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector">
+				<icfcad:DirectoryAdminName>idmadmin</icfcad:DirectoryAdminName>
+				<icfcad:DirectoryAdminPassword><clearValue>Secret.123</clearValue></icfcad:DirectoryAdminPassword>
+				<icfcad:ObjectClass>User</icfcad:ObjectClass>
+				<icfcad:Container>cn=Users,dc=win,dc=evolveum,dc=com</icfcad:Container>
+				<icfcad:CreateHomeDirectory>true</icfcad:CreateHomeDirectory>
+				<icfcad:LDAPHostName>localhost</icfcad:LDAPHostName>
+				<icfcad:SearchChildDomains>false</icfcad:SearchChildDomains>
+				<icfcad:DomainName>win.evolveum.com</icfcad:DomainName>
+  				<icfcad:SyncGlobalCatalogServer>null</icfcad:SyncGlobalCatalogServer>
+				<icfcad:SyncDomainController>null</icfcad:SyncDomainController>
+			</icfc:configurationProperties>
+            <icfc:resultsHandlerConfiguration>
+                <icfc:enableCaseInsensitiveFilter>true</icfc:enableCaseInsensitiveFilter>
+            </icfc:resultsHandlerConfiguration>
+
+		</connectorConfiguration>
+
+		<schemaHandling>
+			<objectType>
+				<displayName>Default Account</displayName>
+				<default>true</default>
+				<objectClass>ri:AccountObjectClass</objectClass>
+				<attribute>
+					<ref>ri:givenName</ref> <!-- required attribute on AD -->
+					<displayName>Given Name</displayName>
+					<outbound>
+						<source>
+							<path>$user/givenName</path>
+						</source>
+					</outbound>
+				</attribute>
+				<attribute>
+					<ref>ri:sn</ref>
+					<displayName>Surname</displayName>
+					<outbound>
+						<source>
+							<path>$user/familyName</path>
+						</source>
+					</outbound>
+				</attribute>
+				<attribute>
+					<ref>ri:sAMAccountName</ref> <!-- required attribute on AD -->
+					<displayName>Login name</displayName>
+					<outbound>
+						<source>
+							<path>$user/name</path>
+						</source>
+					</outbound>
+				</attribute>
+
+				<attribute>
+					<ref>icfs:name</ref>
+					<displayName>Distinguished Name</displayName>
+
+					<limitations>
+						<minOccurs>0</minOccurs>
+						<access>
+                            <read>true</read>
+							<add>true</add>
+						</access>
+					</limitations>
+
+					<outbound>
+						<source>
+							<path>$user/givenName</path>
+						</source>
+						<source>
+							<path>$user/familyName</path>
+						</source>
+						<expression>
+							<script>
+								<code>'cn=' + givenName + ' ' + familyName + iterationToken + ',cn=Users,dc=win,dc=evolveum,dc=com'</code>
+							</script>
+						</expression>
+					</outbound>
+				</attribute>
+				<attribute>
+					<ref>ri:description</ref>
+					<outbound>
+						<strength>weak</strength>
+						<expression>
+							<value>Created by midPoint</value>
+						</expression>
+					</outbound>
+				</attribute>
+				<attribute>
+					<ref>ri:mail</ref>
+					<outbound>
+						<source>
+							<path>$user/emailAddress</path>
+						</source>
+					</outbound>
+				</attribute>
+				<attribute><!-- This attribute must be set to
+other than "false". We will set it to "true" to expire the password
+immediately (after create). Note there is no "initial" attribute, because the
+current implementation of forms would set the __PASSWORD_EXPIRED__ = false by
+default, which is not what we want. But it works, because it is set to "true"
+on the create, and on the update of other attributes, this attribute is not
+changed, so this outbound will not be processed.
+Please note that AD itself does not support changing the _PASSWORD_EXPIRED__
+to "false". The only way of resetting the flag is to change user's password.
+-->
+					<ref>icfs:passwordExpired</ref>
+					<outbound>
+						<expression>
+							<value>true</value>
+						</expression>
+					</outbound>
+				</attribute>
+				<iteration>
+					<maxIterations>5</maxIterations>
+				</iteration>
+				<protected>
+                			<icfs:name>CN=Administrator,CN=Users,DC=win,DC=evolveum,DC=com</icfs:name>
+           			</protected>
+				<protected>
+                			<icfs:name>CN=IDM Administrator,CN=Users,DC=win,DC=evolveum,DC=com</icfs:name>
+           			</protected>
+				<activation>
+				    <administrativeStatus>
+						<outbound/>
+				    </administrativeStatus>
+				</activation>
+				<credentials>
+				    <password>
+						<outbound/>
+				    </password>
+				</credentials>
+			</objectType>
+		</schemaHandling>
+
+
+	</resource>
+
+</objects>

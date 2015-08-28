@@ -21,13 +21,13 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
-	<name>cn=swashbucklers,ou=Groups,dc=example,dc=com</name>
+	<name>cn=swashbucklers,ou=groups,dc=example,dc=com</name>
 	<resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
 	<objectClass>ri:groupOfUniqueNames</objectClass>
 	<kind>entitlement</kind>
 	<intent>group</intent>
 	<attributes>
-		<ri:dn>cn=swashbucklers,ou=Groups,dc=example,dc=com</ri:dn>
+		<ri:dn>cn=SwashBucklers,ou=GrOuPs,dc=example,dc=COM</ri:dn>
 		<ri:cn>swashbucklers</ri:cn>
 	</attributes>
 </shadow>

@@ -3105,8 +3105,7 @@ public class TestDummy extends AbstractDummyTest {
 		final String TEST_NAME = "test220EntitleAccountWillPirates";
 		TestUtil.displayTestTile(TEST_NAME);
 
-		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
-				+ "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		
 		rememberDummyResourceGroupMembersReadCount(null);

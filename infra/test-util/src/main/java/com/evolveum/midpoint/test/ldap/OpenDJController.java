@@ -722,6 +722,13 @@ public class OpenDJController extends AbstractResourceController {
         	throw new RuntimeException("LDAP operation error: "+addOperation.getResultCode()+": "+addOperation.getErrorMessage());
         }
 	}
+
+	public void addEntry(String ldif) throws IOException, LDIFException {
+		LDIFImportConfig importConfig = new LDIFImportConfig(IOUtils.toInputStream(ldif, "utf-8"));
+	    LDIFReader ldifReader = new LDIFReader(importConfig);
+	    Entry ldifEntry = ldifReader.readEntry();
+	    addEntry(ldifEntry);
+	}
 	
 	public ChangeRecordEntry executeRenameChange(String filename) throws LDIFException, IOException{
 		LDIFImportConfig importConfig = new LDIFImportConfig(filename);
