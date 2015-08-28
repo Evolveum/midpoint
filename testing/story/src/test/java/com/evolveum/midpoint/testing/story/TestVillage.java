@@ -358,7 +358,7 @@ public class TestVillage extends AbstractStoryTest {
 		
         // WHEN
         dummyResourceSrc.addAccount(newAccount);
-        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_SOURCE_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_SOURCE_OID, true);
         
         // THEN
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
@@ -461,7 +461,7 @@ public class TestVillage extends AbstractStoryTest {
 		
         // WHEN
         account.replaceAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_SRC_LOC);
-        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_SOURCE_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_SOURCE_OID, true);
         
         // THEN
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
@@ -497,7 +497,7 @@ public class TestVillage extends AbstractStoryTest {
 		
         // WHEN
         account.replaceAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_SRC_LOC, ACCOUNT_HERMAN_LOC);
-        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_SOURCE_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_SOURCE_OID, true);
         
         // THEN
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
@@ -516,7 +516,7 @@ public class TestVillage extends AbstractStoryTest {
 		
         // WHEN
         account.replaceAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_SRC_LOC);
-        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_SOURCE_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_SOURCE_OID, true);
         
         // THEN
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
@@ -558,7 +558,7 @@ public class TestVillage extends AbstractStoryTest {
 		
         // WHEN
         dummyResourceSrc.addAccount(newAccount);
-        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_SOURCE_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_SOURCE_OID, true);
         
         // THEN
         PrismObject<UserType> userAfter = findUserByUsername(USER_LEMONHEAD_NAME);
@@ -582,7 +582,7 @@ public class TestVillage extends AbstractStoryTest {
 		
         // WHEN
         dummyResourceSrc.addAccount(newAccount);
-        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_SOURCE_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_SOURCE_OID, true);
         
         // THEN
         PrismObject<UserType> userAfter = findUserByUsername(USER_WALLY_NAME);
@@ -641,7 +641,7 @@ public class TestVillage extends AbstractStoryTest {
 		
         // WHEN
         dummyResourceSrc.addAccount(newAccount);
-        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_SOURCE_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_SOURCE_OID, true);
         
         // THEN
         PrismObject<UserType> userAfter = findUserByUsername(USER_MANCOMB_NAME);
@@ -697,7 +697,7 @@ public class TestVillage extends AbstractStoryTest {
 		
         // WHEN
         account.replaceAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_SRC_ORG, ORG_INFRA_NAME);
-        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_SOURCE_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_SOURCE_OID, true);
         
         // THEN
         PrismObject<UserType> user = findUserByUsername(getUsername(ACCOUNT_HERMAN_FIST_NAME, ACCOUNT_HERMAN_LAST_NAME, ORG_INFRA_NAME));
@@ -722,7 +722,7 @@ public class TestVillage extends AbstractStoryTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         account.replaceAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_SRC_ORG);
-        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_SOURCE_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_SOURCE_OID, true);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);

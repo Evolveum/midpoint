@@ -2097,7 +2097,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		// WHEN
 		repoAddObjectFromFile(TASK_OPENDJ_RECONCILIATION_FILENAME, TaskType.class, result);
 		verbose = true;
-		waitForTaskNextRun(TASK_OPENDJ_RECONCILIATION_OID, false, 60000);
+		waitForTaskNextRunAssertSuccess(TASK_OPENDJ_RECONCILIATION_OID, false, 60000);
 
 		// THEN
 		
@@ -2165,7 +2165,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		LOGGER.info("start running task");
 		// WHEN
 		repoAddObjectFromFile(TASK_OPENDJ_RECONCILIATION_FILENAME, TaskType.class, result);
-		waitForTaskNextRun(TASK_OPENDJ_RECONCILIATION_OID, false, 60000);
+		waitForTaskNextRunAssertSuccess(TASK_OPENDJ_RECONCILIATION_OID, false, 60000);
 
 		// THEN
 		

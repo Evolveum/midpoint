@@ -216,8 +216,8 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
     }
 
 	@Test
-    public void test133SeachShadows() throws Exception {
-		final String TEST_NAME="test133SeachShadows";
+    public void test133SeachAccountShadows() throws Exception {
+		final String TEST_NAME="test133SeachAccountShadows";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -264,6 +264,8 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
                 
         assertSteadyResources();
     }
+	
+	// TODO: searchGroupShadows
 	
 	@Test
     public void test139ModifyUserJackUnassignAccount() throws Exception {
@@ -495,21 +497,24 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         
 		// Check shadow
         rememberShadowFetchOperationCount();
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        display("Repo shadow", accountShadow);
+        PrismObject<ShadowType> accountRepoShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        display("Repo shadow", accountRepoShadow);
         assertShadowFetchOperationCountIncrement(0);
-        assertAccountShadowRepo(accountShadow, accountOid, "jack", resourceDummyUpcaseType);
+        assertAccountShadowRepo(accountRepoShadow, accountOid, "jack", resourceDummyUpcaseType);
         
         // Check account
         rememberShadowFetchOperationCount();
-        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-        display("Model shadow", accountModel);
+        PrismObject<ShadowType> accountModelShadow = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+        display("Model shadow", accountModelShadow);
         assertShadowFetchOperationCountIncrement(1);
-        assertAccountShadowModel(accountModel, accountOid, "jack", resourceDummyUpcaseType, uidMatchingRule);
+        assertAccountShadowModel(accountModelShadow, accountOid, "jack", resourceDummyUpcaseType, uidMatchingRule);
         
         assertDummyAccount(RESOURCE_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDummyAccountAttribute(RESOURCE_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME, "title", "JoKeR");
         assertDummyGroupMember(RESOURCE_DUMMY_UPCASE_NAME, GROUP_JOKER_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME);
+        
+        IntegrationTestTools.assertAssociation(accountModelShadow, RESOURCE_DUMMY_UPCASE_ASSOCIATION_GROUP_QNAME, 
+        		GROUP_SHADOW_JOKER_DUMMY_UPCASE_OID);
 	}
 	
 	@Test

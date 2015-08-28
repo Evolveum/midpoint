@@ -215,7 +215,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         // THEN
         TestUtil.displayThen(TEST_NAME);
         
-        waitForTaskNextRun(TASK_RECONCILE_DUMMY_UUID_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_RECONCILE_DUMMY_UUID_OID, true);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);        
@@ -292,7 +292,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         // THEN
         TestUtil.displayThen(TEST_NAME);
         
-        waitForTaskNextRun(TASK_RECONCILE_DUMMY_UUID_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_RECONCILE_DUMMY_UUID_OID, true);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);        
@@ -371,7 +371,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         // THEN
         TestUtil.displayThen(TEST_NAME);
         
-        waitForTaskNextRun(TASK_RECONCILE_DUMMY_UUID_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_RECONCILE_DUMMY_UUID_OID, true);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);        

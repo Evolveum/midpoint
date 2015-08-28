@@ -205,7 +205,7 @@ public abstract class AbstractObjTemplateSyncTest extends AbstractInitializedMod
 	}
 	
 	protected void waitForSyncTaskNextRun(PrismObject<ResourceType> resource) throws Exception {
-		waitForTaskNextRun(getSyncTaskOid(resource), false, getWaitTimeout());
+		waitForTaskNextRunAssertSuccess(getSyncTaskOid(resource), false, getWaitTimeout());
 	}
 
 	protected void rememberTimeBeforeSync() {

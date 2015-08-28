@@ -101,6 +101,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -276,6 +277,10 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		return "/opt/Bamboo/local/conntest";
 	}
 	
+	protected boolean isImportResourceAtInit() {
+		return true;
+	}
+	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
@@ -304,8 +309,10 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		// Roles
 		
 		// Resources
-		resource = importAndGetObjectFromFile(ResourceType.class, getResourceFile(), getResourceOid(), initTask, initResult);
-		resourceType = resource.asObjectable();
+		if (isImportResourceAtInit()) {
+			resource = importAndGetObjectFromFile(ResourceType.class, getResourceFile(), getResourceOid(), initTask, initResult);
+			resourceType = resource.asObjectable();
+		}
 		
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -322,18 +329,16 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         
         ciMatchingRule = matchingRuleRegistry.getMatchingRule(StringIgnoreCaseMatchingRule.NAME, DOMUtil.XSD_STRING);
 	}
-	
+
 	@Test
 	public void test010Connection() throws Exception {
 		final String TEST_NAME = "test010Connection";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult result = new OperationResult(this.getClass().getName()+"."+TEST_NAME);
+		OperationResult	testResult = provisioningService.testResource(getResourceOid());
 		
-		OperationResult	operationResult = provisioningService.testResource(getResourceOid());
-		
-		display("Test connection result",operationResult);
-		TestUtil.assertSuccess("Test connection failed",operationResult);
+		display("Test connection result",testResult);
+		TestUtil.assertSuccess("Test connection failed",testResult);
 	}
 	
 	@Test
@@ -341,26 +346,27 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		final String TEST_NAME = "test020Schema";
         TestUtil.displayTestTile(this, TEST_NAME);
         
-        // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
+        // GIVEN        
+        ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+        display("Resource schema", resourceSchema);
         
         RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
+        display("Refined schema", refinedSchema);
         accountObjectClassDefinition = refinedSchema.findObjectClassDefinition(getAccountObjectClass());
         assertNotNull("No definition for object class "+getAccountObjectClass(), accountObjectClassDefinition);
         display("Account object class def", accountObjectClassDefinition);
         
         ResourceAttributeDefinition<String> cnDef = accountObjectClassDefinition.findAttributeDefinition("cn");
-        PrismAsserts.assertDefinition(cnDef, new QName(MidPointConstants.NS_RI, "cn"), DOMUtil.XSD_STRING, 1, -1);
+        PrismAsserts.assertDefinition(cnDef, new QName(MidPointConstants.NS_RI, "cn"), DOMUtil.XSD_STRING, 0, -1);
         assertTrue("cn read", cnDef.canRead());
-        assertTrue("cn read", cnDef.canModify());
-        assertTrue("cn read", cnDef.canAdd());
+        assertTrue("cn modify", cnDef.canModify());
+        assertTrue("cn add", cnDef.canAdd());
         
         ResourceAttributeDefinition<String> oDef = accountObjectClassDefinition.findAttributeDefinition("o");
         PrismAsserts.assertDefinition(oDef, new QName(MidPointConstants.NS_RI, "o"), DOMUtil.XSD_STRING, 0, -1);
         assertTrue("o read", oDef.canRead());
-        assertTrue("o read", oDef.canModify());
-        assertTrue("o read", oDef.canAdd());
+        assertTrue("o modify", oDef.canModify());
+        assertTrue("o add", oDef.canAdd());
         
         ResourceAttributeDefinition<Long> createTimestampDef = accountObjectClassDefinition.findAttributeDefinition("createTimestamp");
         PrismAsserts.assertDefinition(createTimestampDef, new QName(MidPointConstants.NS_RI, "createTimestamp"),

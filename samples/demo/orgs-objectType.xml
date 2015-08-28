@@ -79,9 +79,9 @@
             <kind>generic</kind>
             <intent>ou</intent>
             <displayName>Organizational Unit</displayName>
-            <objectClass>ri:CustomorganizationalUnitObjectClass</objectClass>
+            <objectClass>ri:organizationalUnit</objectClass>
             <attribute>
-                <c:ref>icfs:name</c:ref>
+                <c:ref>ri:dn</c:ref>
                 <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">mr:stringIgnoreCase</matchingRule>
                 <outbound>
                     <source>

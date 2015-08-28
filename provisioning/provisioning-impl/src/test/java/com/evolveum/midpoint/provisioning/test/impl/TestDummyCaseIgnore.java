@@ -30,6 +30,7 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.DummyPrivilege;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
@@ -156,6 +157,10 @@ public class TestDummyCaseIgnore extends TestDummy {
 		
 		syncServiceMock.assertNotifySuccessOnly();
 		
+		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
+		display("Shadow after", shadow);
+		assertEntitlementGroup(shadow, GROUP_PIRATES_OID);
+		
 		assertSteadyResource();
 	}
 
@@ -233,6 +238,10 @@ public class TestDummyCaseIgnore extends TestDummy {
 		IntegrationTestTools.assertGroupMember(group, getWillRepoIcfName(),true);
 		
 		syncServiceMock.assertNotifySuccessOnly();
+		
+		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
+		display("Shadow after", shadow);
+		assertEntitlementGroup(shadow, GROUP_PIRATES_OID);
 		
 		assertSteadyResource();
 	}

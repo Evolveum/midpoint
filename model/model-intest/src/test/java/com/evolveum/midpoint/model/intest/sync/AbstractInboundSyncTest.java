@@ -206,7 +206,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 	}
 	
 	protected void waitForSyncTaskNextRun(PrismObject<ResourceType> resource) throws Exception {
-		waitForTaskNextRun(getSyncTaskOid(resource), false, getWaitTimeout());
+		waitForTaskNextRunAssertSuccess(getSyncTaskOid(resource), false, getWaitTimeout());
 	}
 	
 	

@@ -41,6 +41,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -76,6 +77,7 @@ import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -504,6 +506,21 @@ public class IntegrationTestTools {
 				stackTrace});
 	}
 	
+	public static <O extends ObjectType> void assertSearchResultNames(SearchResultList<PrismObject<O>> resultList, MatchingRule<String> matchingRule, String... expectedNames) {
+		List<String> names = new ArrayList<>(expectedNames.length);
+		for(PrismObject<O> obj: resultList) {
+			names.add(obj.asObjectable().getName().getOrig());
+		}
+		PrismAsserts.assertSets("Unexpected search result", matchingRule, names, expectedNames);
+	}
+	
+	public static <O extends ObjectType> void assertSearchResultNames(SearchResultList<PrismObject<O>> resultList, String... expectedNames) {
+		List<String> names = new ArrayList<>(expectedNames.length);
+		for(PrismObject<O> obj: resultList) {
+			names.add(obj.asObjectable().getName().getOrig());
+		}
+		PrismAsserts.assertSets("Unexpected search result", names, expectedNames);
+	}
 	
 	public static void checkAllShadows(ResourceType resourceType, RepositoryService repositoryService, 
 			ObjectChecker<ShadowType> checker, PrismContext prismContext) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {

@@ -140,7 +140,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
                 
 		/// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
 		
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -170,7 +170,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
                 
 		/// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
 		
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -198,7 +198,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
                 
 		/// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
 		
         // THEN
         TestUtil.displayThen(TEST_NAME);

@@ -833,8 +833,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         
-        // Fetching just the repo shadow, not full account. No recon, so no problem.
-        assertShadowFetchOperationCountIncrement(0);
+        // There is strong mapping. Complete account is fetched.
+        assertShadowFetchOperationCountIncrement(1);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		assertUserJack(userJack);
@@ -866,7 +866,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         notificationManager.setDisabled(true);
         checkDummyTransportMessages("accountPasswordNotifier", 0);
         checkDummyTransportMessages("userPasswordNotifier", 0);
-        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
         checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
         checkDummyTransportMessages("simpleUserNotifier", 0);
@@ -1123,10 +1123,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	 */
 	@Test
     public void test132ModifyAccountJackDummy() throws Exception {
-        TestUtil.displayTestTile(this, "test132ModifyAccountJackDummy");
+		final String TEST_NAME = "test132ModifyAccountJackDummy";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test132ModifyAccountJackDummy");
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
         
@@ -1144,7 +1145,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// THEN
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
-        assertShadowFetchOperationCountIncrement(0);
+        // There is strong mapping. Complete account is fetched.
+        assertShadowFetchOperationCountIncrement(1);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -1382,7 +1384,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
-        assertShadowFetchOperationCountIncrement(0);
+        // There is strong mapping. Complete account is fetched.
+        assertShadowFetchOperationCountIncrement(1);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -1814,7 +1817,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// THEN
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
-        assertShadowFetchOperationCountIncrement(0);
+        // Strong mappings
+        assertShadowFetchOperationCountIncrement(1);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -2330,7 +2334,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// THEN
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
-        assertShadowFetchOperationCountIncrement(0);
+        // Strong mappings
+        assertShadowFetchOperationCountIncrement(1);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -2399,7 +2404,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// THEN
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
-        assertShadowFetchOperationCountIncrement(0);
+        // Strong mappings
+        assertShadowFetchOperationCountIncrement(1);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -2775,7 +2781,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// THEN
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
-        assertShadowFetchOperationCountIncrement(0);
+        // Strong mappings
+        assertShadowFetchOperationCountIncrement(1);
         
 		PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_MORGAN_OID, null, task, result);
         UserType userMorganType = userMorgan.asObjectable();
