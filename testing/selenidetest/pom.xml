@@ -98,4 +98,20 @@
             <version>4.0.6.RELEASE</version>
         </dependency>
     </dependencies>
+    <profiles>
+		<profile>
+			<id>guitest</id>
+			<build>
+				<plugins>
+					<plugin>
+					  <artifactId>maven-surefire-plugin</artifactId>
+					  <configuration>
+					    <skip>false</skip>
+                        <argLine>-XX:MaxPermSize=256m</argLine>
+					  </configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>
