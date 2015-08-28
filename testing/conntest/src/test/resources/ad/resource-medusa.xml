@@ -42,11 +42,11 @@
      		<icfc:configurationProperties
 			xmlns:icfcad="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/ActiveDirectory.Connector/Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector">
 				<icfcad:DirectoryAdminName>idmadmin</icfcad:DirectoryAdminName>
-				<icfcad:DirectoryAdminPassword><clearValue>Secret123</clearValue></icfcad:DirectoryAdminPassword>
+				<icfcad:DirectoryAdminPassword><clearValue>Secret.123</clearValue></icfcad:DirectoryAdminPassword>
 				<icfcad:ObjectClass>User</icfcad:ObjectClass>
 				<icfcad:Container>cn=Users,dc=win,dc=evolveum,dc=com</icfcad:Container>
 				<icfcad:CreateHomeDirectory>true</icfcad:CreateHomeDirectory>
-				<icfcad:LDAPHostName>medusa.lab.evolveum.com</icfcad:LDAPHostName>
+				<icfcad:LDAPHostName>localhost</icfcad:LDAPHostName>
 				<icfcad:SearchChildDomains>false</icfcad:SearchChildDomains>
 				<icfcad:DomainName>win.evolveum.com</icfcad:DomainName>
   				<icfcad:SyncGlobalCatalogServer>null</icfcad:SyncGlobalCatalogServer>

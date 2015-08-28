@@ -51,6 +51,7 @@ import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -214,7 +215,7 @@ public abstract class AbstractAdTest extends AbstractLdapTest {
 	protected boolean isImportResourceAtInit() {
 		return false;
 	}
-
+	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
@@ -264,10 +265,12 @@ public abstract class AbstractAdTest extends AbstractLdapTest {
  		
  		boolean found = false;
  		for (PrismObject<ConnectorType> connector: connectors) {
- 			display("Found connector", connector);
-// 			if (CONNECTOR_AD_TYPE.equals(connector.asObjectable().getConnectorType()) {
-// 			}
+ 			if (CONNECTOR_AD_TYPE.equals(connector.asObjectable().getConnectorType())) {
+ 				display("Found connector", connector);
+ 				found = true;
+ 			}
  		}
+ 		assertTrue("AD Connector not found", found);
 	}
 	
 	@Test
@@ -288,6 +291,36 @@ public abstract class AbstractAdTest extends AbstractLdapTest {
  		
  		resourceType = resource.asObjectable();
 	}
+	
+	@Test
+    public void test020Schema() throws Exception {
+		final String TEST_NAME = "test020Schema";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN        
+        ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+        display("Resource schema", resourceSchema);
+        
+        RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
+        display("Refined schema", refinedSchema);
+        accountObjectClassDefinition = refinedSchema.findObjectClassDefinition(getAccountObjectClass());
+        assertNotNull("No definition for object class "+getAccountObjectClass(), accountObjectClassDefinition);
+        display("Account object class def", accountObjectClassDefinition);
+        
+        ResourceAttributeDefinition<String> cnDef = accountObjectClassDefinition.findAttributeDefinition("cn");
+        PrismAsserts.assertDefinition(cnDef, new QName(MidPointConstants.NS_RI, "cn"), DOMUtil.XSD_STRING, 0, 1);
+        assertTrue("cn read", cnDef.canRead());
+    	assertFalse("cn modify", cnDef.canModify());
+    	assertFalse("cn add", cnDef.canAdd());
+        
+        ResourceAttributeDefinition<String> userPrincipalNameDef = accountObjectClassDefinition.findAttributeDefinition("userPrincipalName");
+        PrismAsserts.assertDefinition(userPrincipalNameDef, new QName(MidPointConstants.NS_RI, "userPrincipalName"), DOMUtil.XSD_STRING, 0, 1);
+        assertTrue("o read", userPrincipalNameDef.canRead());
+        assertTrue("o modify", userPrincipalNameDef.canModify());
+        assertTrue("o add", userPrincipalNameDef.canAdd());
+        
+	}
+
 	
 	@Test
     public void test050Capabilities() throws Exception {
