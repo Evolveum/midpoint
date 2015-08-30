@@ -355,15 +355,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayThen(TEST_NAME);
         TestUtil.assertSuccess(task.getResult());
         
-        // First fetch: search in import handler
-        // 6 fetches: fetchback to correctly process inbound (import changes the account).
-        // The accounts are modified during import as there are also outbound mappings in
-        // ther dummy resource. As the import is in fact just a recon the "fetchbacks" happens.
-        // One is because of counting resource objects before importing them.
-//        assertShadowFetchOperationCountIncrement(8);
-        
-        // WHY????
-        assertShadowFetchOperationCountIncrement(2);
+        assertShadowFetchOperationCountIncrement(3);
         
         users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", users);
@@ -417,7 +409,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // Even though there are outbound mappings these were already processes
         // by previous import run. There are no account modifications this time.
         // Therefore there should be no "fetchbacks".
-        assertShadowFetchOperationCountIncrement(1);
+        assertShadowFetchOperationCountIncrement(2);
         
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", users);
@@ -470,10 +462,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayThen(TEST_NAME);
         TestUtil.assertSuccess(task.getResult());
         
-        // One fetch: search in import handler
-        // There are no outbound mappings in lime resource, therefore there are no
-        // modifications of accounts during import, therefore there are no "fetchbacks".
-        assertShadowFetchOperationCountIncrement(1);
+        assertShadowFetchOperationCountIncrement(2);
                 
         assertImportedUserByOid(USER_ADMINISTRATOR_OID);
         assertImportedUserByOid(USER_JACK_OID);
@@ -544,9 +533,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
-        // First fetch: searchIterative
-        // Second fetch: "fetchback" of modified account (guybrush)
-        assertShadowFetchOperationCountIncrement(2);
+        assertShadowFetchOperationCountIncrement(3);
         
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 0);
         
@@ -705,9 +692,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 		
         // THEN
         TestUtil.displayThen(TEST_NAME);
-        // First fetch: searchIterative
-        // Second fetch: "fetchback" of modified account (guybrush)
-        assertShadowFetchOperationCountIncrement(2);
+        assertShadowFetchOperationCountIncrement(3);
         
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 0);
         
@@ -863,9 +848,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 		
         // THEN
         TestUtil.displayThen(TEST_NAME);
-        // First fetch: searchIterative
-        // Second fetch: "fetchback" of modified account (guybrush)
-        assertShadowFetchOperationCountIncrement(2);
+        assertShadowFetchOperationCountIncrement(3);
         
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 0);
         
@@ -951,9 +934,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 		
         // THEN
         TestUtil.displayThen(TEST_NAME);
-        // First fetch: searchIterative
-        // Second fetch: "fetchback" of modified account (htm)
-        assertShadowFetchOperationCountIncrement(2);
+        assertShadowFetchOperationCountIncrement(3);
         
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 1);
         

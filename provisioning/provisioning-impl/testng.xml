@@ -53,6 +53,7 @@
 			<class name="com.evolveum.midpoint.provisioning.test.impl.TestDummyPrioritiesAndReadReplace" />
 			<class name="com.evolveum.midpoint.provisioning.test.impl.TestDummyReadReplaceForAll" />
 			<class name="com.evolveum.midpoint.provisioning.test.impl.TestDummyExtra" />
+			<class name="com.evolveum.midpoint.provisioning.test.impl.TestDummyLegacy" />
 		</classes>
 	</test>
 	<test name="provisioning-service-csv" parallel="false" verbose="10">

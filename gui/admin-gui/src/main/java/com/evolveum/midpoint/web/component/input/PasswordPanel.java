@@ -69,9 +69,9 @@ public class PasswordPanel extends InputPanel {
 			protected void onUpdate(AjaxRequestTarget target) {
 				boolean required = !StringUtils.isEmpty(password1.getModel().getObject());
 				password2.setRequired(required);
-
-				target.add(password2);
-				target.appendJavaScript("$(\"#"+ password2.getMarkupId() +"\").focus()");
+                //fix of MID-2463
+//				target.add(password2);
+//				target.appendJavaScript("$(\"#"+ password2.getMarkupId() +"\").focus()");
 			}
 		});
         password2.add(new PasswordValidator(password1, password2));

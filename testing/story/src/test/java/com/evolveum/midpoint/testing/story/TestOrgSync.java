@@ -319,7 +319,7 @@ public class TestOrgSync extends AbstractStoryTest {
 		
         // WHEN
         dummyResourceHr.addAccount(newAccount);
-        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
         
         // THEN
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_HERMAN_USERNAME);
@@ -360,7 +360,7 @@ public class TestOrgSync extends AbstractStoryTest {
 		
         // WHEN
         dummyResourceHr.addAccount(newAccount);
-        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
         
         // THEN
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_LEMONHEAD_USERNAME);
@@ -403,7 +403,7 @@ public class TestOrgSync extends AbstractStoryTest {
 		
         // WHEN
         dummyResourceHr.addAccount(newAccount);
-        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
         
         // THEN
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_SHARPTOOTH_USERNAME);
@@ -446,7 +446,7 @@ public class TestOrgSync extends AbstractStoryTest {
 		
         // WHEN
         dummyResourceHr.addAccount(newAccount);
-        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
         
         // THEN
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_REDSKULL_USERNAME);
@@ -486,7 +486,7 @@ public class TestOrgSync extends AbstractStoryTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         account.removeAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_RESPONSIBILITIES, RESP_CANIBALISM);
-        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -525,7 +525,7 @@ public class TestOrgSync extends AbstractStoryTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         dummyResourceHr.deleteAccountByName(ACCOUNT_REDSKULL_USERNAME);
-        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -559,7 +559,7 @@ public class TestOrgSync extends AbstractStoryTest {
 		
         // WHEN
         dummyResourceHr.addAccount(newAccount);
-        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
         
         // THEN
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_GUYBRUSH_USERNAME);
@@ -604,7 +604,7 @@ public class TestOrgSync extends AbstractStoryTest {
 		
         // WHEN
         dummyResourceHr.addAccount(newAccount);
-        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
         
         // THEN
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_MANCOMB_USERNAME);
@@ -651,7 +651,7 @@ public class TestOrgSync extends AbstractStoryTest {
 		
         // WHEN
         dummyResourceHr.addAccount(newAccount);
-        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
         
         // THEN
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_COBB_USERNAME);
@@ -698,7 +698,7 @@ public class TestOrgSync extends AbstractStoryTest {
 		
         // WHEN
         dummyResourceHr.addAccount(newAccount);
-        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
         
         // THEN
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_LARGO_USERNAME);
@@ -750,7 +750,7 @@ public class TestOrgSync extends AbstractStoryTest {
 		
         // WHEN
         dummyResourceHr.addAccount(newAccount);
-        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
         
         // THEN
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_WALLY_USERNAME);
@@ -794,7 +794,7 @@ public class TestOrgSync extends AbstractStoryTest {
 		
         // WHEN
         dummyResourceHr.addAccount(newAccount);
-        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
         
         // THEN
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_AUGUSTUS_USERNAME);
@@ -838,7 +838,7 @@ public class TestOrgSync extends AbstractStoryTest {
 		
         // WHEN
         dummyResourceHr.addAccount(newAccount);
-        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
         
         // THEN
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_STAN_USERNAME);
@@ -884,7 +884,7 @@ public class TestOrgSync extends AbstractStoryTest {
 		
         // WHEN
         dummyResourceHr.addAccount(newAccount);
-        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
         
         // THEN
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_CAPSIZE_USERNAME);
@@ -930,7 +930,7 @@ public class TestOrgSync extends AbstractStoryTest {
 		
         // WHEN
         dummyResourceHr.addAccount(newAccount);
-        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
         
         // THEN
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_ROGERSSR_USERNAME);
@@ -977,7 +977,7 @@ public class TestOrgSync extends AbstractStoryTest {
 		
         // WHEN
         dummyResourceHr.addAccount(newAccount);
-        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
         
         // THEN
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_TELEKE_USERNAME);

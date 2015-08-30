@@ -91,6 +91,10 @@
             <default>true</default>
             <objectClass>ri:inetOrgPerson</objectClass>
             <attribute>
+				<ref>ri:entryUUID</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+			</attribute>
+            <attribute>
 				<ref>ri:dn</ref>
 				<matchingRule>mr:distinguishedName</matchingRule>
 			</attribute>
@@ -136,6 +140,14 @@
             <intent>ldapGroup</intent>
             <displayName>LDAP Group</displayName>
             <objectClass>ri:groupOfUniqueNames</objectClass>
+            <attribute>
+				<ref>ri:entryUUID</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+			</attribute>
+            <attribute>
+				<ref>ri:dn</ref>
+				<matchingRule>mr:distinguishedName</matchingRule>
+			</attribute>
 			<attribute>
 				<ref>ri:uniqueMember</ref>
 				<matchingRule>mr:distinguishedName</matchingRule>

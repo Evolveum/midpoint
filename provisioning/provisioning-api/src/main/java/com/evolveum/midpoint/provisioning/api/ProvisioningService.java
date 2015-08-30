@@ -233,9 +233,11 @@ public interface ProvisioningService {
 	public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, 
 			SecurityViolationException;
-	
 
-	public <T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult)
+	/**
+	 * Options: if noFetch or raw, we count only shadows from the repository.
+	 */
+	public <T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, 
 			SecurityViolationException;
 	

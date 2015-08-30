@@ -100,6 +100,10 @@ public class ObjectTypeUtil {
         return null;
     }
 
+    public static String toShortString(PrismObject<? extends ObjectType> object) {
+        return toShortString(object != null ? object.asObjectable() : null);
+    }
+
     public static String toShortString(ObjectType object) {
         if (object == null) {
             return "null";

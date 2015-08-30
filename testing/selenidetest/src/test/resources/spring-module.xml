@@ -3,15 +3,13 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
 	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
-    <bean id="baseTest" class="com.evolveum.midpoint.testing.selenide.tests.BaseTest" autowire-candidate="true">
+    <bean id="baseTest" class="com.evolveum.midpoint.testing.selenide.tests.AbstractSelenideTest" autowire-candidate="true">
     </bean>
-    <bean id="loginTest" class="com.evolveum.midpoint.testing.selenide.tests.LoginTest" autowire-candidate="true"/>
-    <bean id="util" class="com.evolveum.midpoint.testing.selenide.tests.Util" autowire-candidate="true"/>
+    <bean id="loginTest" class="com.evolveum.midpoint.testing.selenide.tests.basictests.LoginTest" autowire-candidate="true"/>
     <bean id="createAccountTest" class="com.evolveum.midpoint.testing.selenide.tests.account.ResourceUserAccountTests"
           autowire-candidate="true"/>
-    <bean id="createUserTest" class="com.evolveum.midpoint.testing.selenide.tests.user.SuperUserTests"
+    <bean id="createUserTest" class="com.evolveum.midpoint.testing.selenide.tests.basictests.SuperUserTests"
           autowire-candidate="true"/>
-    <bean id="simpleUserTests" class="com.evolveum.midpoint.testing.selenide.tests.user.SimpleUserTests"
+    <bean id="simpleUserTests" class="com.evolveum.midpoint.testing.selenide.tests.basictests.SimpleUserTests"
           autowire-candidate="true"/>
-    <bean id="userUtil" class="com.evolveum.midpoint.testing.selenide.tests.user.UserUtil" autowire-candidate="true" />
 </beans>

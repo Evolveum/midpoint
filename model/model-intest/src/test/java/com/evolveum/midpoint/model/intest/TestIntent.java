@@ -172,7 +172,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
-        assertShadowFetchOperationCountIncrement(0);
+        assertShadowFetchOperationCountIncrement(1);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -238,7 +238,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
-        assertShadowFetchOperationCountIncrement(0);
+        assertShadowFetchOperationCountIncrement(2);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -309,7 +309,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
-        assertShadowFetchOperationCountIncrement(0);
+        assertShadowFetchOperationCountIncrement(1);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);

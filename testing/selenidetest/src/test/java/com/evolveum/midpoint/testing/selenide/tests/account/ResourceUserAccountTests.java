@@ -4,34 +4,21 @@ package com.evolveum.midpoint.testing.selenide.tests.account;
  * Created by Kate on 09.08.2015.
  */
 
-import com.evolveum.midpoint.testing.selenide.tests.BaseTest;
-import com.evolveum.midpoint.testing.selenide.tests.LoginTest;
-import com.evolveum.midpoint.testing.selenide.tests.Util;
-import com.evolveum.midpoint.testing.selenide.tests.user.SimpleUserTests;
-import com.evolveum.midpoint.testing.selenide.tests.user.UserUtil;
+import com.evolveum.midpoint.testing.selenide.tests.AbstractSelenideTest;
 import org.openqa.selenium.By;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.testng.annotations.Test;
 
+import java.util.HashMap;
+
 import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Selectors.byText;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.close;
 
 @Component
-public class ResourceUserAccountTests extends BaseTest {
-
-    @Autowired
-    LoginTest loginTest;
-
-    @Autowired
-    SimpleUserTests simpleUserTests;
-
-    @Autowired
-    UserUtil userUtil;
-
-    @Autowired
-    Util util;
+public class ResourceUserAccountTests extends AbstractSelenideTest {
 
     public static final String USER_NAME = "UserWithOpendjAccount";
     public static final String OPENDJ_RESOURCE_NAME = "Localhost OpenDJ (no extension schema)";
@@ -42,45 +29,42 @@ public class ResourceUserAccountTests extends BaseTest {
     public static final String ACCOUNT_SURNAME_VALUE = "Surname";
     public static final String ACCOUNT_PASSWORD_VALUE = "Common name";
     public static final String ACCOUNT_COMMON_NAME_VALUE = "Common name";
-    public static final String UPDATED_VALUE = "_updated";
 
     /**
      * Import OpenDJ resource test (file "opendj-localhost-resource-sync-no-extension-advanced.xml" is used)
      */
     @Test(priority = 0)
-    public void importResourceTest(){
+    public void test001importResourceTest(){
         close();
-        loginTest.login();
+        login();
 
         //check if welcome message appears after user logged in
-        $(By.cssSelector("html.no-js body div.mp-main-container div.row.mainContainer div.page-header h1 small"))
-                .shouldHave(text("welcome to midPoint"));
+        $(byText("welcome to midPoint")).shouldBe(visible);
 
         //import resource xml file
-        util.importObjectFromFile(OPENDJ_RESOURCE_PATH);
+        importObjectFromFile(OPENDJ_RESOURCE_PATH);
         //open Resources -> List Resources
         $(By.xpath("/html/body/div[3]/div/div[2]/ul[1]/li[4]/a")).shouldHave(text("Resources")).click();
         $(By.linkText("List resources")).click();
 
         //search for resource in resources list
-        util.searchForElement(OPENDJ_RESOURCE_NAME, "/html/body/div[4]/div/form[1]/span/a");
+        searchForElement(OPENDJ_RESOURCE_NAME);
         $(By.xpath("/html/body/div[4]/div/form[2]/div[2]/table/tbody/tr/td[2]/div/a/span"))
                 .shouldBe(visible);
-
     }
 
     /**
      * Check resource connection on the
      * Resource details page
      */
-    @Test(priority = 1, dependsOnMethods = {"importResourceTest"})
-    public void checkResourceConnectionTest(){
+    @Test(priority = 1, dependsOnMethods = {"test001importResourceTest"})
+    public void test002checkResourceConnectionTest(){
         //open Resources -> List Resources
         $(By.xpath("/html/body/div[3]/div/div[2]/ul[1]/li[4]/a")).shouldHave(text("Resources")).click();
         $(By.linkText("List resources")).click();
 
         //search for resource in resources list
-        util.searchForElement(ResourceUserAccountTests.OPENDJ_RESOURCE_NAME, "/html/body/div[4]/div/form[1]/span/a");
+        searchForElement(ResourceUserAccountTests.OPENDJ_RESOURCE_NAME);
         $(By.xpath("/html/body/div[4]/div/form[2]/div[2]/table/tbody/tr/td[2]/div/a/span")).click();
         //click on resource link
         $(By.linkText(ResourceUserAccountTests.OPENDJ_RESOURCE_NAME)).click();
@@ -101,13 +85,13 @@ public class ResourceUserAccountTests extends BaseTest {
      * Create user, then create account for the user with
      * resource imported in the previous test
      */
-    @Test (priority = 2, dependsOnMethods = {"importResourceTest"})
-    public void createAccountTest() {
+    @Test (priority = 2, dependsOnMethods = {"test001importResourceTest"})
+    public void test003createAccountTest() {
         //create user with filled user name only
-        userUtil.createUser(USER_NAME);
+        createUser(USER_NAME, new HashMap<String, String>());
 
         //open user's Edit page
-        userUtil.openUsersEditPage(USER_NAME);
+        openUsersEditPage(USER_NAME);
 
         //click on the menu icon in the Accounts section
         $(By.xpath("/html/body/div[4]/div/form/div[3]/div[2]/div[1]/div/div[2]/ul/li/a")).shouldBe(visible).click();
@@ -115,8 +99,7 @@ public class ResourceUserAccountTests extends BaseTest {
         $(By.linkText("Add account")).shouldBe(visible).click();
 
         //search for resource in resources list in the opened Select resource(s) window
-        util.searchForElement(OPENDJ_RESOURCE_NAME,
-                "/html/body/div[6]/form/div/div[2]/div/div/div/div[2]/div/div/div/div/div/div[1]/form/span/a");
+        searchForElement(OPENDJ_RESOURCE_NAME);
         $(By.xpath("/html/body/div[6]/form/div/div[2]/div/div/div/div[2]/div/div/div/div/div/div[2]/div/table/tbody/tr/td[2]/div"))
                 .shouldHave(text(OPENDJ_RESOURCE_NAME));
 
@@ -142,7 +125,7 @@ public class ResourceUserAccountTests extends BaseTest {
         $(By.xpath("/html/body/div[4]/div/div[2]/div[1]/ul/li/div/div[1]/div[1]/span")).shouldHave(text("Success"));
 
         //search for user in users list
-        util.searchForElement(USER_NAME, "/html/body/div[4]/div/div[4]/form/span/a");
+        searchForElement(USER_NAME);
         $(By.linkText(USER_NAME)).shouldBe(visible).click();
 
         //check if the created account is displayed in the Accounts section
@@ -154,12 +137,10 @@ public class ResourceUserAccountTests extends BaseTest {
      *  check if the appropriate user's attributes were
      *  also updated
      */
-    @Test (priority = 4, dependsOnMethods = {"createAccountTest"})
-    public void updateAccountAttributesTest(){
-        close();
-        loginTest.login();
+    @Test (priority = 4, dependsOnMethods = {"test003createAccountTest"})
+    public void test004updateAccountAttributesTest(){
         //open user's Edit page
-        userUtil.openUsersEditPage(USER_NAME);
+        openUsersEditPage(USER_NAME);
 
         //click on the account link to expand its fields
         $(By.linkText(OPENDJ_RESOURCE_NAME)).shouldBe(visible).click();
@@ -179,7 +160,7 @@ public class ResourceUserAccountTests extends BaseTest {
         $(By.xpath("/html/body/div[4]/div/div[2]/div[1]/ul/li/div/div[1]/div[1]/span")).shouldHave(text("Success"));
 
         //search for user in users list
-        util.searchForElement(USER_NAME, "/html/body/div[4]/div/div[4]/form/span/a");
+        searchForElement(USER_NAME);
 
         //check if users attributes were updated
         $(By.xpath("/html/body/div[4]/div/form/div[2]/table/tbody/tr/td[5]/div")).shouldHave(text(ACCOUNT_SURNAME_VALUE + UPDATED_VALUE));
