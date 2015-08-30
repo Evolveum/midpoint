@@ -25,9 +25,12 @@ import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -41,6 +44,8 @@ import com.evolveum.midpoint.web.component.assignment.AssignmentTableDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
 import com.evolveum.midpoint.web.component.form.*;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextFormGroup;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.progress.ProgressReporter;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
@@ -51,6 +56,9 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserAccountDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
+import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
@@ -58,19 +66,25 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.*;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -121,6 +135,12 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
     private static final String ID_EXTENSION_LABEL = "extensionLabel";
     private static final String ID_EXTENSION = "extension";
     private static final String ID_EXTENSION_PROPERTY = "property";
+    
+    private static final String ID_ACCOUNT_LIST = "accountList";
+    private static final String ID_ACCOUNTS = "accounts";
+    private static final String ID_ACCOUNT_MENU = "accountMenu";
+    private static final String ID_ACCOUNT_CHECK_ALL = "accountCheckAll";
+    
 
     //private ContainerStatus status;
     private IModel<PrismObject<OrgType>> orgModel;
@@ -128,6 +148,8 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
     private IModel<List<PrismPropertyValue>> orgTypeModel;
     private IModel<List<PrismPropertyValue>> orgMailDomainModel;
     private IModel<ContainerWrapper> extensionModel;
+    
+    private LoadableModel<List<UserAccountDto>> accountsModel;
     private ObjectWrapper orgWrapper;
 
     private ProgressReporter progressReporter;
@@ -218,6 +240,13 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
             }
         };
 
+        accountsModel = new LoadableModel<List<UserAccountDto>>(false) {
+
+            @Override
+            protected List<UserAccountDto> load() {
+                return loadShadowWrappers();
+            }
+        };
         //status = isEditingOrgUnit() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
 
         initLayout();
@@ -270,6 +299,113 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 
         return extensionWrapper;
     }
+    
+    private List<UserAccountDto> loadShadowWrappers() {
+        List<UserAccountDto> list = new ArrayList<UserAccountDto>();
+
+//        ObjectWrapper user = orgWrapper.getObject();
+        PrismObject<OrgType> prismUser = orgModel.getObject();
+        List<ObjectReferenceType> references = prismUser.asObjectable().getLinkRef();
+
+        String OPERATION_LOAD_ACCOUNT = "Operation load shadows";
+        Task task = createSimpleTask(OPERATION_LOAD_ACCOUNT);
+        for (ObjectReferenceType reference : references) {
+            OperationResult subResult = new OperationResult(OPERATION_LOAD_ACCOUNT);
+            try {
+                Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
+                        ShadowType.F_RESOURCE, GetOperationOptions.createResolve());
+
+                if (reference.getOid() == null) {
+                    continue;
+                }
+
+                PrismObject<ShadowType> account = getModelService().getObject(ShadowType.class,
+                        reference.getOid(), options, task, subResult);
+                ShadowType accountType = account.asObjectable();
+
+                OperationResultType fetchResult = accountType.getFetchResult();
+
+                ResourceType resource = accountType.getResource();
+                String resourceName = WebMiscUtil.getName(resource);
+
+                StringBuilder description = new StringBuilder();
+                if (accountType.getIntent() != null) {
+                    description.append(accountType.getIntent()).append(", ");
+                }
+                description.append(WebMiscUtil.getOrigStringFromPoly(accountType.getName()));
+
+                ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(resourceName, description.toString(),
+                            account, ContainerStatus.MODIFYING, true, this);
+//                ObjectWrapper wrapper = new ObjectWrapper(resourceName, WebMiscUtil.getOrigStringFromPoly(accountType
+//                        .getName()), account, ContainerStatus.MODIFYING);
+                wrapper.setFetchResult(OperationResult.createOperationResult(fetchResult));
+                wrapper.setSelectable(true);
+                wrapper.setMinimalized(true);
+                
+//                PrismContainer<ShadowAssociationType> associationContainer = account.findContainer(ShadowType.F_ASSOCIATION);
+//                if (associationContainer != null && associationContainer.getValues() != null){
+//                	List<PrismProperty> associations = new ArrayList<>(associationContainer.getValues().size());
+//                	for (PrismContainerValue associationVal : associationContainer.getValues()){
+//                		ShadowAssociationType associationType = (ShadowAssociationType) associationVal.asContainerable();
+//                        // we can safely eliminate fetching from resource, because we need only the name
+//                		PrismObject<ShadowType> association = getModelService().getObject(ShadowType.class, associationType.getShadowRef().getOid(),
+//                                SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, subResult);
+//                		associations.add(association.findProperty(ShadowType.F_NAME));
+//                	}
+//                	
+//                	wrapper.setAssociations(associations);
+//                	
+//                }
+
+                wrapper.initializeContainers(this);
+
+                list.add(new UserAccountDto(wrapper, UserDtoStatus.MODIFY));
+
+                subResult.recomputeStatus();
+            } catch (ObjectNotFoundException ex) {
+                // this is fix for MID-854, full user/accounts/assignments reload if accountRef reference is broken
+                // because consistency already fixed it.
+
+//                orgModel.reset();
+//                accountsModel.reset();
+//                assignmentsModel.reset();
+            } catch (Exception ex) {
+                subResult.recordFatalError("Couldn't load account." + ex.getMessage(), ex);
+                LoggingUtils.logException(LOGGER, "Couldn't load account", ex);
+                list.add(new UserAccountDto(false, getResourceName(reference.getOid()), subResult));
+            } finally {
+                subResult.computeStatus();
+            }
+        }
+
+        return list;
+    }
+    
+    private String getResourceName(String oid){
+    	String OPERATION_SEARCH_RESOURCE = PageOrgUnit.class.getName()+ ".searchAccountResource";
+        OperationResult result = new OperationResult(OPERATION_SEARCH_RESOURCE);
+        Task task = createSimpleTask(OPERATION_SEARCH_RESOURCE);
+
+        try {
+            Collection<SelectorOptions<GetOperationOptions>> options =
+                    SelectorOptions.createCollection(GetOperationOptions.createRaw());
+
+            PrismObject<ShadowType> shadow = getModelService().getObject(ShadowType.class, oid, options, task, result);
+            PrismObject<ResourceType> resource = getModelService().getObject(ResourceType.class,
+                    shadow.asObjectable().getResourceRef().getOid(), null, task, result);
+
+            if(resource != null){
+                return WebMiscUtil.getOrigStringFromPoly(resource.asObjectable().getName());
+            }
+        } catch (Exception e){
+            result.recordFatalError("Account Resource was not found. " + e.getMessage());
+            LoggingUtils.logException(LOGGER, "Account Resource was not found.", e);
+            showResult(result);
+        }
+
+        return "-";
+    }
+
 
     private void initLayout() {
         final Form form = new Form(ID_FORM);
@@ -485,6 +621,11 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
         extensionProperties.setReuseItems(true);
         form.add(extensionProperties);
 
+        
+        WebMarkupContainer accounts = new WebMarkupContainer(ID_ACCOUNTS);
+        accounts.setOutputMarkupId(true);
+        form.add(accounts);
+        initProjections(accounts);
         initButtons(form);
     }
 
@@ -831,6 +972,77 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 
         return parentList;
     }
+    
+    private void initProjections(final WebMarkupContainer accounts) {
+//        InlineMenu accountMenu = new InlineMenu(ID_ACCOUNT_MENU, new Model((Serializable) createAccountsMenu()));
+//        accounts.add(accountMenu);
+
+    	//TODO: unify - rename UserAccountDto to something else, e.g. FocusShadowDto or FocusProjectionDto or something similar
+        final ListView<UserAccountDto> accountList = new ListView<UserAccountDto>(ID_ACCOUNT_LIST, accountsModel) {
+
+            @Override
+            protected void populateItem(final ListItem<UserAccountDto> item) {
+                PackageResourceReference packageRef;
+                final UserAccountDto dto = item.getModelObject();
+
+                Panel panel;
+
+                if(dto.isLoadedOK()){
+                    packageRef = new PackageResourceReference(ImgResources.class,
+                            ImgResources.HDD_PRISM);
+
+                    panel = new PrismObjectPanel("account", new PropertyModel<ObjectWrapper>(
+                            item.getModel(), "object"), packageRef, (Form) PageOrgUnit.this.get(ID_FORM), PageOrgUnit.this) {
+
+                        @Override
+                        protected Component createHeader(String id, IModel<ObjectWrapper> model) {
+                            return new CheckTableHeader(id, model) {
+
+                                @Override
+                                protected List<InlineMenuItem> createMenuItems() {
+                                    return createDefaultMenuItems(getModel());
+                                }
+                            };
+                        }
+                    };
+                } else{
+                    panel = new SimpleErrorPanel("account", item.getModel()){
+
+                        @Override
+                        public void onShowMorePerformed(AjaxRequestTarget target){
+                            OperationResult fetchResult = dto.getResult();
+                            if (fetchResult != null) {
+                                showResult(fetchResult);
+                                target.add(getPageBase().getFeedbackPanel());
+                            }
+                        }
+                    };
+                }
+
+                panel.setOutputMarkupId(true);
+                item.add(panel);
+            }
+        };
+
+//        AjaxCheckBox accountCheckAll = new AjaxCheckBox(ID_ACCOUNT_CHECK_ALL, new Model()) {
+//
+//            @Override
+//            protected void onUpdate(AjaxRequestTarget target) {
+//                for(UserAccountDto dto: accountList.getModelObject()){
+//                    if(dto.isLoadedOK()){
+//                        ObjectWrapper accModel = dto.getObject();
+//                        accModel.setSelected(getModelObject());
+//                    }
+//                }
+//
+//                target.add(accounts);
+//            }
+//        };
+//        accounts.add(accountCheckAll);
+
+        accounts.add(accountList);
+    }
+
 
     private void reviveModels() throws SchemaException {
         WebMiscUtil.revive(orgModel, getPrismContext());

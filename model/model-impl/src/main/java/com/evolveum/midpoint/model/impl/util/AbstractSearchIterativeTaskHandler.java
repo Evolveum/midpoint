@@ -15,11 +15,18 @@
  */
 package com.evolveum.midpoint.model.impl.util;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
@@ -44,6 +51,9 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.springframework.beans.factory.annotation.Qualifier;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author semancik
@@ -70,8 +80,12 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 	
 	@Autowired(required=true)
 	protected ModelObjectResolver modelObjectResolver;
-	
-	@Autowired(required = true)
+
+    @Autowired
+    @Qualifier("cacheRepositoryService")
+    protected RepositoryService repositoryService;
+
+    @Autowired(required = true)
 	protected PrismContext prismContext;
 	
 	private static final transient Trace LOGGER = TraceManager.getTrace(AbstractSearchIterativeTaskHandler.class);
@@ -129,22 +143,29 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 			return runResult;
 		}
 		
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("{}: searching using query:\n{}", taskName, query.debugDump());
-		}
-
         Class<? extends ObjectType> type = getType(coordinatorTask);
 
-		try {
+        Collection<SelectorOptions<GetOperationOptions>> queryOptions = createQueryOptions(resultHandler, runResult, coordinatorTask, opResult);
+        boolean useRepository = useRepositoryDirectly(resultHandler, runResult, coordinatorTask, opResult);
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("{}: searching {} with options {}, using query:\n{}", taskName, type, queryOptions, query.debugDump());
+        }
+
+        try {
 
             // counting objects can be within try-catch block, because the handling is similar to handling errors within searchIterative
             Long expectedTotal = null;
             if (countObjectsOnStart) {
-                Integer expectedTotalInt = modelObjectResolver.countObjects(type, query, opResult);
-                LOGGER.trace("{}: expecting {} objects to be processed", taskName, expectedTotal);
-                if (expectedTotalInt != null) {
-                    expectedTotal = (long) expectedTotalInt;        // conversion would fail on null
+                if (!useRepository) {
+                    Integer expectedTotalInt = modelObjectResolver.countObjects(type, query, queryOptions, opResult);
+                    if (expectedTotalInt != null) {
+                        expectedTotal = (long) expectedTotalInt;        // conversion would fail on null
+                    }
+                } else {
+                    expectedTotal = Long.valueOf(repositoryService.countObjects(type, query, opResult));
                 }
+                LOGGER.trace("{}: expecting {} objects to be processed", taskName, expectedTotal);
             }
 
             runResult.setProgress(0);
@@ -159,7 +180,11 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
             }
 
             resultHandler.createWorkerThreads(coordinatorTask, opResult);
-            modelObjectResolver.searchIterative((Class<O>) type, query, null, resultHandler, opResult);
+            if (!useRepository) {
+                modelObjectResolver.searchIterative((Class<O>) type, query, queryOptions, resultHandler, opResult);
+            } else {
+                repositoryService.searchObjectsIterative(type, query, (ResultHandler) resultHandler, null, opResult);
+            }
             resultHandler.completeProcessing(opResult);
 
         } catch (ObjectNotFoundException ex) {
@@ -329,21 +354,21 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
         // Local task. No refresh needed. The Task instance has always fresh data.
     }
 
-    // meant to be used in specific createQuery methods; it is not used here directly, because QueryType->ObjectQuery conversion
-    // requires information on object class, and this is specific to individual subclasses (handlers)
-    protected QueryType getObjectQueryTypeFromTask(Task task) {
-        PrismProperty<QueryType> objectQueryPrismProperty = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
-        if (objectQueryPrismProperty != null && objectQueryPrismProperty.getRealValue() != null) {
-            return objectQueryPrismProperty.getRealValue();
-        } else {
-            return null;
-        }
-    }
-
     /**
      * Handler parameter may be used to pass task instance state between the calls. 
      */
 	protected abstract ObjectQuery createQuery(H handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException;
+
+    // useful e.g. to specify noFetch options for shadow-related queries
+    private Collection<SelectorOptions<GetOperationOptions>> createQueryOptions(H resultHandler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
+        return null;
+    }
+
+    // as provisioning service does not allow searches without specifying resource or objectclass/kind, we need to be able to contact repository directly
+    // for some specific tasks
+    protected boolean useRepositoryDirectly(H resultHandler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
+        return false;
+    }
 
     protected abstract Class<? extends ObjectType> getType(Task task);
 
@@ -358,5 +383,45 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 		// Nothing to do by default
 		return true;
 	}
+
+    /**
+     * Ready-made implementation of createQuery - gets and parses objectQuery extension property.
+     */
+    protected ObjectQuery createQueryFromTask(H handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
+        Class<? extends ObjectType> objectClass = getType(task);
+        LOGGER.trace("Object class = {}", objectClass);
+
+        QueryType queryFromTask = getObjectQueryTypeFromTask(task);
+        if (queryFromTask != null) {
+            ObjectQuery query = QueryJaxbConvertor.createObjectQuery(objectClass, queryFromTask, prismContext);
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Using object query from the task: {}", query.debugDump());
+            }
+            return query;
+        } else {
+            // Search all objects
+            return new ObjectQuery();
+        }
+    }
+
+    protected QueryType getObjectQueryTypeFromTask(Task task) {
+        PrismProperty<QueryType> objectQueryPrismProperty = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
+        if (objectQueryPrismProperty != null && objectQueryPrismProperty.getRealValue() != null) {
+            return objectQueryPrismProperty.getRealValue();
+        } else {
+            return null;
+        }
+    }
+
+    protected Class<? extends ObjectType> getTypeFromTask(Task task, Class<? extends ObjectType> defaultType) {
+        Class<? extends ObjectType> objectClass;
+        PrismProperty<QName> objectTypePrismProperty = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
+        if (objectTypePrismProperty != null && objectTypePrismProperty.getRealValue() != null) {
+            objectClass = ObjectTypes.getObjectTypeFromTypeQName(objectTypePrismProperty.getRealValue()).getClassDefinition();
+        } else {
+            objectClass = defaultType;
+        }
+        return objectClass;
+    }
 
 }

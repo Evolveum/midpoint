@@ -83,10 +83,6 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 	@Autowired(required=true)
 	private TriggerHandlerRegistry triggerHandlerRegistry;
 	
-	@Autowired(required=true)
-	@Qualifier("cacheRepositoryService")
-	private RepositoryService repositoryService;
-
 	public TriggerScannerTaskHandler() {
         super(ObjectType.class, "Trigger scan", OperationConstants.TRIGGER_SCAN);
     }

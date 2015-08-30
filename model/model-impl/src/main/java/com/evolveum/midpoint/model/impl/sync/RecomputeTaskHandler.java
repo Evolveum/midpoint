@@ -104,32 +104,11 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<Foc
 	
 	@Override
 	protected ObjectQuery createQuery(AbstractSearchIterativeResultHandler<FocusType> handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
-
-		Class<? extends ObjectType> objectClass = getType(task);
-		LOGGER.trace("Object class = {}", objectClass);
-
-		QueryType queryFromTask = getObjectQueryTypeFromTask(task);
-        if (queryFromTask != null) {
-            ObjectQuery query = QueryJaxbConvertor.createObjectQuery(objectClass, queryFromTask, prismContext);
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Using object query from the task: {}", query.debugDump());
-            }
-            return query;
-        } else {
-		    // Search all objects
-		    return new ObjectQuery();
-        }
+		return createQueryFromTask(handler, runResult, task, opResult);
 	}
 
 	protected Class<? extends ObjectType> getType(Task task) {
-		Class<? extends ObjectType> objectClass;
-		PrismProperty<QName> objectTypePrismProperty = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
-		if (objectTypePrismProperty != null && objectTypePrismProperty.getRealValue() != null) {
-			objectClass = ObjectTypes.getObjectTypeFromTypeQName(objectTypePrismProperty.getRealValue()).getClassDefinition();
-		} else {
-			objectClass = UserType.class;
-		}
-		return objectClass;
+		return getTypeFromTask(task, UserType.class);
 	}
 
 	@Override
