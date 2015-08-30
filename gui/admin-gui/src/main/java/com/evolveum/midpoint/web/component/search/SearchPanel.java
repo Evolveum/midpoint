@@ -149,7 +149,7 @@ public class SearchPanel extends BaseSimplePanel<Search> {
 
         addItemModel.setObject(null);
 
-        refreshForm(target);
+        refreshSearchForm(target);
     }
 
     private void closeMorePopoverPerformed(AjaxRequestTarget target) {
@@ -167,7 +167,7 @@ public class SearchPanel extends BaseSimplePanel<Search> {
         searchPerformed(query, target);
     }
 
-    void refreshForm(AjaxRequestTarget target) {
+    void refreshSearchForm(AjaxRequestTarget target) {
         target.add(get(ID_FORM), get(ID_POPOVER));
         target.appendJavaScript(initMoreButtonJavascript());
     }

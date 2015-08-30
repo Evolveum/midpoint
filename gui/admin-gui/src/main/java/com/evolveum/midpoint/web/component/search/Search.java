@@ -5,6 +5,7 @@ import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -117,8 +118,10 @@ public class Search implements Serializable {
         }
 
         PrismPropertyDefinition propDef = (PrismPropertyDefinition) definition;
-        if (propDef.getAllowedValues() != null && !propDef.getAllowedValues().isEmpty()) {
+        if ((propDef.getAllowedValues() != null && !propDef.getAllowedValues().isEmpty())
+                || DOMUtil.XSD_BOOLEAN.equals(propDef.getTypeName())) {
             //we're looking for enum value, therefore equals filter is ok
+            //or if it's boolean value
             DisplayableValue displayableValue = (DisplayableValue) item.getValue();
             Object value = displayableValue.getValue();
             return EqualFilter.createEqual(path, propDef, value);

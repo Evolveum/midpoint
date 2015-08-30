@@ -24,10 +24,14 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.util.convert.ConversionException;
+import org.apache.wicket.util.convert.IConverter;
+import org.apache.wicket.util.convert.converter.AbstractConverter;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -197,7 +201,7 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
         LOG.debug("Update item performed, item {} value is {}", item.getName(), item.getValue());
 
         SearchPanel panel = findParent(SearchPanel.class);
-        panel.refreshForm(target);
+        panel.refreshSearchForm(target);
         panel.searchPerformed(target);
     }
 
@@ -218,7 +222,7 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
         search.delete(item);
 
         SearchPanel panel = findParent(SearchPanel.class);
-        panel.refreshForm(target);
+        panel.refreshSearchForm(target);
         panel.searchPerformed(target);
     }
 
@@ -250,23 +254,14 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
                              final IModel<T> value, IModel<List<T>> choices) {
             super(id, markupId, markupProvider);
 
-            final DropDownChoice input = new DropDownChoice(ID_COMBO_INPUT, value, choices,
-                    new IChoiceRenderer<DisplayableValue>() {
+            final DisplayableRenderer renderer = new DisplayableRenderer(choices);
+            final DropDownChoice input = new DropDownChoice(ID_COMBO_INPUT, value, choices, renderer) {
 
-                        @Override
-                        public Object getDisplayValue(DisplayableValue object) {
-                            if (object == null) {
-                                return null;
-                            }
-
-                            return object.getLabel();
-                        }
-
-                        @Override
-                        public String getIdValue(DisplayableValue object, int index) {
-                            return Integer.toString(index);
-                        }
-                    });
+                @Override
+                public IConverter getConverter(Class type) {
+                    return renderer;
+                }
+            };
             input.setNullValid(true);
             input.setOutputMarkupId(true);
             add(input);
@@ -317,6 +312,51 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
 
         private void deletePerformed(AjaxRequestTarget target) {
             //todo implement
+        }
+    }
+
+    private static class DisplayableRenderer<T extends Serializable> extends AbstractConverter<DisplayableValue>
+            implements IChoiceRenderer<DisplayableValue<T>> {
+
+        private IModel<List<DisplayableValue>> allChoices;
+
+        public DisplayableRenderer(IModel<List<DisplayableValue>> allChoices) {
+            this.allChoices = allChoices;
+        }
+
+        @Override
+        protected Class<DisplayableValue> getTargetType() {
+            return DisplayableValue.class;
+        }
+
+        @Override
+        public Object getDisplayValue(DisplayableValue<T> object) {
+            if (object == null) {
+                return null;
+            }
+
+            return object.getLabel();
+        }
+
+        @Override
+        public String getIdValue(DisplayableValue<T> object, int index) {
+            return Integer.toString(index);
+        }
+
+        @Override
+        public DisplayableValue<T> convertToObject(String value, Locale locale) throws ConversionException {
+            if (value == null) {
+                return null;
+            }
+
+            List<DisplayableValue> values = allChoices.getObject();
+            for (DisplayableValue val : values) {
+                if (value.equals(val.getLabel())) {
+                    return val;
+                }
+            }
+
+            return null;
         }
     }
 }
