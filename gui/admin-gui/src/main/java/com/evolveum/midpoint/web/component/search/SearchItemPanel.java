@@ -1,12 +1,17 @@
 package com.evolveum.midpoint.web.component.search;
 
 import com.evolveum.midpoint.prism.DisplayableValueImpl;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.BaseSimplePanel;
+import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypeDialog;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -28,6 +33,7 @@ import org.apache.wicket.util.convert.ConversionException;
 import org.apache.wicket.util.convert.IConverter;
 import org.apache.wicket.util.convert.converter.AbstractConverter;
 
+import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,6 +61,7 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
     private static final String ID_BROWSER_INPUT = "browserInput";
     private static final String ID_BROWSE = "browse";
     private static final String ID_DELETE = "delete";
+    private static final String ID_BROWSER_POPUP = "browserPopup";
 
     public SearchItemPanel(String id, IModel<SearchItem> model) {
         super(id, model);
@@ -84,6 +91,42 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
         mainButton.add(deleteButton);
 
         initPopover();
+        initBrowserPopup();
+    }
+
+    private void initBrowserPopup() {
+        //todo better browser dialog
+        ChooseTypeDialog dialog = new ChooseTypeDialog(ID_BROWSER_POPUP, RoleType.class) {
+
+            @Override
+            protected void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object){
+                browserSelectObjectPerformed(target, object);
+            }
+
+            @Override
+            public boolean isSearchEnabled() {
+                return true;
+            }
+
+            @Override
+            public QName getSearchProperty() {
+                return ObjectType.F_NAME;
+            }
+        };
+        add(dialog);
+    }
+
+    private void browserSelectObjectPerformed(AjaxRequestTarget target, ObjectType object) {
+        SearchItem item = getModelObject();
+
+        PrismReferenceValue ref = PrismReferenceValue.createFromTarget(object.asPrismObject());
+        DisplayableValueImpl value = new DisplayableValueImpl(ref, object.getName().getOrig(), null);
+        item.setValue(value);
+
+        ChooseTypeDialog dialog = (ChooseTypeDialog) get(ID_BROWSER_POPUP);
+        dialog.close(target);
+
+        updateItemPerformed(target);
     }
 
     private void initPopover() {
@@ -308,6 +351,9 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
 
         private void browsePerformed(AjaxRequestTarget target) {
             //todo implement
+            SearchItemPanel panel = findParent(SearchItemPanel.class);
+            ChooseTypeDialog dialog = (ChooseTypeDialog) panel.get(ID_BROWSER_POPUP);
+            dialog.show(target);
         }
 
         private void deletePerformed(AjaxRequestTarget target) {
