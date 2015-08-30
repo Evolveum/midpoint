@@ -55,6 +55,18 @@
 
             </div>
             <div class="col-md-6">
+             <div wicket:id="accounts">
+                    <div class="row assignable-header">
+                        <div class="col-xs-10">
+<!--                             <input type="checkbox" wicket:id="accountCheckAll"/> -->
+                            <h3><wicket:message key="pageOrgUnit.accounts"/></h3>
+                        </div>
+                    </div>
+                    <div wicket:id="accountList">
+                        <div wicket:id="account" />
+                    </div>
+                </div>
+            
                 <div wicket:id="inducementsPanel" />
                 <div wicket:id="assignmentsPanel" style="margin-top: 30px;" />
                 <!--
