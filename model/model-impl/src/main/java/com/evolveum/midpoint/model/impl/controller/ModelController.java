@@ -54,7 +54,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jfree.util.Log;
@@ -146,7 +145,6 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.AuthorizationException;
-import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -1624,7 +1622,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
                 objectManager = ObjectTypes.ObjectManager.REPOSITORY;
             }
             switch (objectManager) {
-                case PROVISIONING: count = provisioning.countObjects(type, query, parentResult); break;
+                case PROVISIONING: count = provisioning.countObjects(type, query, null, parentResult); break;
                 case REPOSITORY: count = cacheRepositoryService.countObjects(type, query, parentResult); break;
                 case TASK_MANAGER: count = taskManager.countObjects(type, query, parentResult); break;
                 default: throw new AssertionError("Unexpected objectManager: " + objectManager);

@@ -196,6 +196,34 @@
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
+
+    <xsd:element name="diagnose" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                Problems to diagnose, e.g. for ShadowIntegrityCheck task handler.
+                If not specified, usually all checks are done.
+                TODO change to an enum.
+                EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:maxOccurs>-1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="fix" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                Problems to fix, e.g. for ShadowIntegrityCheck task handler.
+                If not specified, usually no fixes are done.
+                TODO change to an enum.
+                EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:maxOccurs>-1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
     
 </xsd:schema>
 

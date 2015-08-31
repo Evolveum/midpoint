@@ -116,7 +116,11 @@
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-core</artifactId>
         </dependency>
-        <!--<dependency>-->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+		</dependency>
+		<!--<dependency>-->
             <!--<groupId>com.evolveum.midpoint.msl</groupId>-->
             <!--<artifactId>com.evolveum.midpoint.msl</artifactId>-->
             <!--<version>1.0.0-SNAPSHOT</version>-->
@@ -274,7 +278,7 @@
 		    <version>1.2.1</version>
             <scope>test</scope>
 		</dependency>
-    </dependencies>
+	</dependencies>
 	<profiles>
 		<profile>
 			<id>aspectj</id>
