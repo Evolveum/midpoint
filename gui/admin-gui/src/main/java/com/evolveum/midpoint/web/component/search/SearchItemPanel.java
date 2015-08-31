@@ -129,6 +129,10 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
         updateItemPerformed(target);
     }
 
+    private void referenceDeleted(AjaxRequestTarget target) {
+
+    }
+
     private void initPopover() {
         WebMarkupContainer popover = new WebMarkupContainer(ID_POPOVER);
         popover.setOutputMarkupId(true);
@@ -161,14 +165,16 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
         Fragment fragment;
         SearchItem item = getModelObject();
 
-        IModel value = new PropertyModel(getModel(), SearchItem.F_VALUE);
+        IModel value = null;
         IModel<? extends List> choices = null;
 
         switch (item.getType()) {
             case BROWSER:
+                value = new PropertyModel(getModel(), SearchItem.F_DISPLAY_VALUE);
                 fragment = new BrowserFragment(ID_CONTENT, ID_BROWSER, this, value);
                 break;
             case BOOLEAN:
+                value = new PropertyModel(getModel(), SearchItem.F_VALUE);
                 choices = createBooleanChoices();
             case ENUM:
                 if (choices == null) {
@@ -350,7 +356,6 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
         }
 
         private void browsePerformed(AjaxRequestTarget target) {
-            //todo implement
             SearchItemPanel panel = findParent(SearchItemPanel.class);
             ChooseTypeDialog dialog = (ChooseTypeDialog) panel.get(ID_BROWSER_POPUP);
             dialog.show(target);
