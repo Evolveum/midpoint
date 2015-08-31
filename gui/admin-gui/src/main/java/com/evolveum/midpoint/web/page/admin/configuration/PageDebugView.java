@@ -36,6 +36,7 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
@@ -52,6 +53,7 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -72,6 +74,7 @@ public class PageDebugView extends PageAdminConfiguration {
     private static final String DOT_CLASS = PageDebugView.class.getName() + ".";
     private static final String OPERATION_LOAD_OBJECT = DOT_CLASS + "loadObject";
     private static final String OPERATION_SAVE_OBJECT = DOT_CLASS + "saveObject";
+    private static final String ID_PLAIN_TEXTAREA = "plain-textarea";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageDebugView.class);
 
@@ -83,6 +86,9 @@ public class PageDebugView extends PageAdminConfiguration {
     private final IModel<Boolean> saveAsRaw = new Model<>(true);
     private final IModel<Boolean> reevaluateSearchFilters = new Model<>(false);
     private final IModel<Boolean> validateSchema = new Model<Boolean>(false);
+    private final IModel<Boolean> switchToPlainText = new Model<Boolean>(false);
+    private TextArea<String> plainTextarea;
+    final Form mainForm = new Form("mainForm");
 
     public PageDebugView() {
         model = new LoadableModel<ObjectViewDto>(false) {
@@ -170,7 +176,6 @@ public class PageDebugView extends PageAdminConfiguration {
     }
 
     private void initLayout() {
-        Form mainForm = new Form("mainForm");
         add(mainForm);
 
         final IModel<Boolean> editable = new Model<Boolean>(false);
@@ -210,6 +215,29 @@ public class PageDebugView extends PageAdminConfiguration {
                 editPerformed(target, editable.getObject());
             }
         });
+
+        mainForm.add(new AjaxCheckBox("switchToPlainText", switchToPlainText) {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                if (switchToPlainText.getObject().booleanValue()){
+                    editor.setVisible(false);
+                    plainTextarea.setVisible(true);
+                } else {
+                    editor.setVisible(true);
+                    plainTextarea.setVisible(false);
+                }
+                target.add(mainForm);
+            }
+        });
+
+        plainTextarea = new TextArea<>(ID_PLAIN_TEXTAREA,
+                new PropertyModel<String>(model, ObjectViewDto.F_XML));
+        plainTextarea.setVisible(false);
+        plainTextarea.setEnabled(editable.getObject());
+
+        mainForm.add(plainTextarea);
+
         editor = new AceEditor("aceEditor", new PropertyModel<String>(model, ObjectViewDto.F_XML));
         editor.setReadonly(!editable.getObject());
         mainForm.add(editor);
@@ -255,6 +283,8 @@ public class PageDebugView extends PageAdminConfiguration {
 
     public void editPerformed(AjaxRequestTarget target, boolean editable) {
         editor.setReadonly(!editable);
+        plainTextarea.setEnabled(editable);
+        target.add(mainForm);
         editor.refreshReadonly(target);
     }
     
@@ -286,7 +316,11 @@ public class PageDebugView extends PageAdminConfiguration {
             oldObject.revive(getPrismContext());
 
             Holder<PrismObject<ObjectType>> objectHolder = new Holder<PrismObject<ObjectType>>(null);
-            validateObject(editor.getModel().getObject(), objectHolder, validateSchema.getObject(), result);
+            if (editor.isVisible()) {
+                validateObject(editor.getModel().getObject(), objectHolder, validateSchema.getObject(), result);
+            } else {
+                validateObject(plainTextarea.getModel().getObject(), objectHolder, validateSchema.getObject(), result);
+            }
 
             if (result.isAcceptable()) {
                 PrismObject<ObjectType> newObject = objectHolder.getValue();

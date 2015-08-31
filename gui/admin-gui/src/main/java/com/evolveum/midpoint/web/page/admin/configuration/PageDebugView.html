@@ -44,6 +44,10 @@
                         <input type="checkbox" wicket:id="reevaluateSearchFilters">
                         <wicket:message key="pageDebugView.reevaluateSearchFilters"/>
                     </label>
+                    <label class="col-lg-3 checkbox-inline">
+                        <input type="checkbox" wicket:id="switchToPlainText">
+                        <wicket:message key="pageDebugView.switchToPlainText"/>
+                    </label>
                 </div>
             </div>
         </div>
@@ -51,6 +55,11 @@
         <div class="form-group">
             <div class="col-lg-12">
                 <textarea wicket:id="aceEditor"></textarea>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-lg-12">
+                <textarea class="text-area"  wicket:id="plain-textarea"/>
             </div>
         </div>
 
