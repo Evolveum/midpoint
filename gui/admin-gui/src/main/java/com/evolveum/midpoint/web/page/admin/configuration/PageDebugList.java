@@ -579,7 +579,7 @@ public class PageDebugList extends PageAdminConfiguration {
         DebugSearchDto dto = searchModel.getObject();
 
         List<ObjectFilter> filters = new ArrayList<>();
-        if (dto.getResource() != null) {
+        if (ObjectTypes.SHADOW.equals(dto.getType()) && dto.getResource() != null) {
             String oid = dto.getResource().getOid();
             RefFilter ref = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class,
                     getPrismContext(), oid);
