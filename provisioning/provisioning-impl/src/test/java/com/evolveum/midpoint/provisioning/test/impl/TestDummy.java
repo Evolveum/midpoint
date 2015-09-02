@@ -3409,6 +3409,75 @@ public class TestDummy extends AbstractDummyTest {
 		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 		assertSteadyResource();
 	}
+	
+	/**
+	 * Make the account point to a privilege that does not exist.
+	 * MidPoint should ignore such privilege.
+	 */
+	@Test
+    public void test226WillNonsensePrivilege() throws Exception {
+        final String TEST_NAME = "test226WillNonsensePrivilege";
+        TestUtil.displayTestTile(TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestDummy.class.getName()
+                + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        DummyAccount dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+        dummyAccount.addAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, PRIVILEGE_NONSENSE_NAME);
+        
+        syncServiceMock.reset();
+
+        // WHEN
+        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
+
+		// THEN
+		result.computeStatus();
+		display("Account", shadow);
+		
+		display(result);
+		TestUtil.assertSuccess(result);
+		assertConnectorOperationIncrement(3);
+		
+		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
+		
+		PrismObject<ShadowType> foolsShadow = findShadowByName(new QName(RESOURCE_DUMMY_NS, OBJECTCLAS_GROUP_LOCAL_NAME), "fools", resource, result);
+		assertNotNull("No shadow for group fools", foolsShadow);
+		
+		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
+		
+		assertEntitlementGroup(shadow, GROUP_PIRATES_OID);
+		assertEntitlementGroup(shadow, foolsShadow.getOid());
+		assertEntitlementPriv(shadow, PRIVILEGE_PILLAGE_OID);
+        assertEntitlementPriv(shadow, PRIVILEGE_BARGAIN_OID);
+        
+        assertDummyResourceGroupMembersReadCountIncrement(null, 0);
+
+		// Just make sure nothing has changed
+		dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+		assertNotNull("Account will is gone!", dummyAccount);
+		Set<String> accountProvileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
+		PrismAsserts.assertSets("Wrong account privileges", accountProvileges, 
+				PRIVILEGE_PILLAGE_NAME, PRIVILEGE_BARGAIN_NAME, PRIVILEGE_NONSENSE_NAME);
+		
+		// Make sure that privilege object is still there
+		DummyPrivilege priv = getDummyPrivilegeAssert(PRIVILEGE_PILLAGE_NAME, pillageIcfUid);
+		assertNotNull("Privilege object is gone!", priv);
+        DummyPrivilege priv2 = getDummyPrivilegeAssert(PRIVILEGE_BARGAIN_NAME, bargainIcfUid);
+        assertNotNull("Privilege object (bargain) is gone!", priv2);
+
+        assertDummyResourceGroupMembersReadCountIncrement(null, 0);
+        
+		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
+		assertMember(group, transformNameFromResource(getWillRepoIcfName()));
+		
+		String foolsIcfUid = getIcfUid(foolsShadow);
+		DummyGroup groupFools = getDummyGroupAssert("fools", foolsIcfUid);
+		assertMember(group, transformNameFromResource(getWillRepoIcfName()));
+		
+		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
+		assertSteadyResource();
+    }
 		
 	@Test
 	public void test230DetitleAccountWillPirates() throws Exception {
@@ -3451,7 +3520,8 @@ public class TestDummy extends AbstractDummyTest {
 		DummyAccount dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
 		assertNotNull("Account will is gone!", dummyAccount);
 		Set<String> accountProvileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
-		PrismAsserts.assertSets("Wrong account privileges", accountProvileges, PRIVILEGE_PILLAGE_NAME, PRIVILEGE_BARGAIN_NAME);
+		PrismAsserts.assertSets("Wrong account privileges", accountProvileges, 
+				PRIVILEGE_PILLAGE_NAME, PRIVILEGE_BARGAIN_NAME, PRIVILEGE_NONSENSE_NAME);
 		
 		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 		
@@ -3506,7 +3576,8 @@ public class TestDummy extends AbstractDummyTest {
 		DummyAccount dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
 		assertNotNull("Account will is gone!", dummyAccount);
 		Set<String> accountProvileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
-        PrismAsserts.assertSets("Wrong account privileges", accountProvileges, PRIVILEGE_BARGAIN_NAME);
+        PrismAsserts.assertSets("Wrong account privileges", accountProvileges, 
+        		PRIVILEGE_BARGAIN_NAME, PRIVILEGE_NONSENSE_NAME);
 		
 		// Make sure that privilege object is still there
 		DummyPrivilege priv = getDummyPrivilegeAssert(PRIVILEGE_PILLAGE_NAME, pillageIcfUid);
@@ -3523,8 +3594,8 @@ public class TestDummy extends AbstractDummyTest {
 	}
 
     @Test
-    public void test234bDetitleAccountWillBargain() throws Exception {
-        final String TEST_NAME = "test234bDetitleAccountWillBargain";
+    public void test234DetitleAccountWillBargain() throws Exception {
+        final String TEST_NAME = "test234DetitleAccountWillBargain";
         TestUtil.displayTestTile(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestDummy.class.getName()
@@ -3556,7 +3627,7 @@ public class TestDummy extends AbstractDummyTest {
         DummyAccount dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
         assertNotNull("Account will is gone!", dummyAccount);
         Set<String> accountProvileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
-        assertTrue("There are still some privileges", accountProvileges == null || accountProvileges.isEmpty());
+		PrismAsserts.assertSets("Wrong account privileges", accountProvileges, PRIVILEGE_NONSENSE_NAME);
 
         // Make sure that privilege object is still there
         DummyPrivilege priv = getDummyPrivilegeAssert(PRIVILEGE_PILLAGE_NAME, pillageIcfUid);
