@@ -71,7 +71,7 @@
 			<attribute>
 				<ref>ri:dn</ref>
 				<displayName>Distinguished Name</displayName>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<matchingRule>mr:distinguishedName</matchingRule>
 				<outbound>
 				    <source>
 				    	<path>$user/name</path>
@@ -184,7 +184,7 @@
 			<protected>
        			<filter>
 	       			<q:equal>
-	       				<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#stringIgnoreCase</q:matching>
+	       				<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#distinguishedName</q:matching>
 		            	<q:path>attributes/ri:dn</q:path>
 		                <q:value>cn=idm,ou=Special Users,dc=example,dc=com</q:value>
 		            </q:equal>
@@ -217,7 +217,7 @@
             <objectClass>ri:groupOfUniqueNames</objectClass>
             <attribute>
 				<ref>ri:dn</ref>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<matchingRule>mr:distinguishedName</matchingRule>
 				<outbound>
 					<!-- Name cannot be weak. Changes in name trigger object rename. -->
 					<source>
@@ -239,7 +239,7 @@
 			</attribute>
 			<attribute>
 				<ref>ri:uniqueMember</ref>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<matchingRule>mr:distinguishedName</matchingRule>
 			</attribute>
 			<attribute>
 				<ref>ri:cn</ref>

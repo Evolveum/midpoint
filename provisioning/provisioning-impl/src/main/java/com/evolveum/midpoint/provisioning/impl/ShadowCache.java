@@ -1660,8 +1660,17 @@ public abstract class ShadowCache {
 						if (entitlementShadow == null) {
 							entitlementRepoShadow = shadowManager.lookupShadowInRepository(ctxEntitlement, identifierContainer, parentResult);
 							if (entitlementRepoShadow == null) {
-								entitlementShadow = resouceObjectConverter.locateResourceObject(ctxEntitlement, entitlementIdentifiers, parentResult); 
-								entitlementRepoShadow = createShadowInRepository(ctxEntitlement, entitlementShadow, parentResult);
+								try {
+									entitlementShadow = resouceObjectConverter.locateResourceObject(ctxEntitlement, entitlementIdentifiers, parentResult);
+									entitlementRepoShadow = createShadowInRepository(ctxEntitlement, entitlementShadow, parentResult);
+								} catch (ObjectNotFoundException e) {
+									// The entitlement to which we point is not there.
+									// Simply ignore this association value.
+									parentResult.muteLastSubresultError();
+									LOGGER.warn("The entitlement identified by {} referenced from {} does not exist. Skipping.",
+											new Object[]{associationCVal, resourceShadow});
+									continue;
+								}
 							}
 						} else {
 							entitlementRepoShadow = lookupOrCreateShadowInRepository(ctxEntitlement, entitlementShadow, parentResult);
