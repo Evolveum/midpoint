@@ -17,8 +17,12 @@
 package com.evolveum.midpoint.web.session;
 
 import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.web.page.admin.users.dto.OrgTreeDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgUnitSearchDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
 import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
+
+import java.util.Set;
 
 /**
  * @author lazyman
@@ -31,19 +35,22 @@ public class UsersStorage extends PageStorage {
     private UsersDto usersSearch;
 
     /**
-     *  DTO used for search purposes in {@link com.evolveum.midpoint.web.page.admin.users in OrgUnitBrowser}
-     * */
+     * DTO used for search purposes in {@link com.evolveum.midpoint.web.page.admin.users in OrgUnitBrowser}
+     */
     private OrgUnitSearchDto orgUnitSearch;
 
     /**
-     *  Paging DTO used in table on page {@link com.evolveum.midpoint.web.page.admin.users in OrgUnitBrowser}
-     * */
+     * Paging DTO used in table on page {@link com.evolveum.midpoint.web.page.admin.users in OrgUnitBrowser}
+     */
     private ObjectPaging orgUnitPaging;
 
     /**
      * Paging DTO used in table on page {@link com.evolveum.midpoint.web.page.admin.users.PageUsers}
      */
     private ObjectPaging usersPaging;
+
+    private OrgTreeDto selectedItem;
+    private TreeStateSet<OrgTreeDto> expandedItems;
 
     public ObjectPaging getUsersPaging() {
         return usersPaging;
@@ -75,5 +82,21 @@ public class UsersStorage extends PageStorage {
 
     public void setOrgUnitPaging(ObjectPaging orgUnitPaging) {
         this.orgUnitPaging = orgUnitPaging;
+    }
+
+    public Set<OrgTreeDto> getExpandedItems() {
+        return expandedItems;
+    }
+
+    public void setExpandedItems(TreeStateSet<OrgTreeDto> expandedItems) {
+        this.expandedItems = expandedItems != null ? expandedItems.clone() : null;
+    }
+
+    public OrgTreeDto getSelectedItem() {
+        return selectedItem;
+    }
+
+    public void setSelectedItem(OrgTreeDto selectedItem) {
+        this.selectedItem = selectedItem;
     }
 }

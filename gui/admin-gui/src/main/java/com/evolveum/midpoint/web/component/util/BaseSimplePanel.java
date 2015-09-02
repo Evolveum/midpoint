@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.util;
 
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -102,4 +103,8 @@ public class BaseSimplePanel<T> extends Panel {
         return application.getWebApplicationConfiguration();
     }
 
+    @Override
+    public MidPointAuthWebSession getSession() {
+        return (MidPointAuthWebSession) super.getSession();
+    }
 }

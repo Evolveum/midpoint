@@ -107,14 +107,16 @@ public class PageOrgTree extends PageAdminUsers {
             }
         };
 
-        TabbedPanel tabbedPanel;
-        if (TreeTablePanel.returnFromEditRoot) {
-            tabbedPanel = new TabbedPanel(ID_TABS, tabModel, new Model<>(selectedTabbedPanel.getSelectedTab()));
-            selectedTabbedPanel = tabbedPanel;
-        } else {
-            tabbedPanel = new TabbedPanel(ID_TABS, tabModel, new Model<>(0));
-            selectedTabbedPanel = tabbedPanel;
-        }
+        //todo MID-2533
+//        TabbedPanel tabbedPanel;
+//        if (TreeTablePanel.returnFromEditRoot) {
+//            tabbedPanel = new TabbedPanel(ID_TABS, tabModel, new Model<>(selectedTabbedPanel.getSelectedTab()));
+//            selectedTabbedPanel = tabbedPanel;
+//        } else {
+//            tabbedPanel = new TabbedPanel(ID_TABS, tabModel, new Model<>(0));
+//            selectedTabbedPanel = tabbedPanel;
+//        }
+        TabbedPanel tabbedPanel = new TabbedPanel(ID_TABS, tabModel, new Model<>(0));
         tabbedPanel.setOutputMarkupId(true);
         add(tabbedPanel);
     }

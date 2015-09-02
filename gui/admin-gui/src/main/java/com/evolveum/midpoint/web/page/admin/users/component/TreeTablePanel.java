@@ -57,7 +57,9 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAc
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.dto.*;
+import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -134,22 +136,11 @@ public class TreeTablePanel extends SimplePanel<String> {
     private static final String ID_SEARCH_FORM = "searchForm";
     private static final String ID_BASIC_SEARCH = "basicSearch";
 
-    public static boolean returnFromEditRoot = false;
-    public static boolean returnFromEditRoot1 = false;
-    public static OrgTreeDto selectedItem = null;
-    public static TreeStateSet<OrgTreeDto> tempSet;
-
     private IModel<OrgTreeDto> selected = new LoadableModel<OrgTreeDto>() {
 
         @Override
         protected OrgTreeDto load() {
-            if (returnFromEditRoot){
-                returnFromEditRoot1 = true;
-                returnFromEditRoot = false;
-                return selectedItem;
-            } else {
-                return getRootFromProvider();
-            }
+            return getRootFromProvider();
         }
     };
 
@@ -259,7 +250,7 @@ public class TreeTablePanel extends SimplePanel<String> {
         add(treeContainer);
 
         TableTree<OrgTreeDto, String> tree = new TableTree<OrgTreeDto, String>(ID_TREE, columns, provider,
-                Integer.MAX_VALUE, new TreeStateModel(provider)) {
+                Integer.MAX_VALUE, new TreeStateModel(this, provider)) {
 
             @Override
             protected Component newContentComponent(String id, IModel<OrgTreeDto> model) {
@@ -268,7 +259,12 @@ public class TreeTablePanel extends SimplePanel<String> {
                     @Override
                     protected void onClick(AjaxRequestTarget target) {
                         super.onClick(target);
-                        selectedItem = selected.getObject();
+
+                        //todo selection is stored to session, find a place where to "load" this selection from session
+                        MidPointAuthWebSession session = TreeTablePanel.this.getSession();
+                        SessionStorage storage = session.getSessionStorage();
+                        storage.getUsers().setSelectedItem(selected.getObject());
+
                         selectTreeItemPerformed(target);
                     }
                 };
@@ -290,6 +286,17 @@ public class TreeTablePanel extends SimplePanel<String> {
                     }
                 }));
                 return item;
+            }
+
+            @Override
+            protected void onModelChanged() {
+                super.onModelChanged();
+
+                Set<OrgTreeDto> items = getModelObject();
+
+                MidPointAuthWebSession session = TreeTablePanel.this.getSession();
+                SessionStorage storage = session.getSessionStorage();
+                storage.getUsers().setExpandedItems((TreeStateSet<OrgTreeDto>) items);
             }
         };
         tree.getTable().add(AttributeModifier.replace("class", "table table-striped table-condensed"));
@@ -482,9 +489,6 @@ public class TreeTablePanel extends SimplePanel<String> {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                TableTree<OrgTreeDto, String> tree = getTree();
-                TreeStateModel model = (TreeStateModel) tree.getDefaultModel();
-                tempSet = model.set;
                 editRootPerformed(target);
             }
         });
@@ -1402,14 +1406,22 @@ public class TreeTablePanel extends SimplePanel<String> {
 
         private TreeStateSet<OrgTreeDto> set = new TreeStateSet<OrgTreeDto>();
         private ISortableTreeProvider provider;
-        TableTree<OrgTreeDto, String> tree;
+        private TreeTablePanel panel;
 
-        TreeStateModel(ISortableTreeProvider provider) {
+        TreeStateModel(TreeTablePanel panel, ISortableTreeProvider provider) {
+            this.panel = panel;
             this.provider = provider;
         }
 
         @Override
         public Set<OrgTreeDto> getObject() {
+            MidPointAuthWebSession session = panel.getSession();
+            SessionStorage storage = session.getSessionStorage();
+            Set<OrgTreeDto> dtos = storage.getUsers().getExpandedItems();
+            if ((dtos instanceof TreeStateSet) && set.isEmpty()) {
+                set = (TreeStateSet<OrgTreeDto>) dtos;
+            }
+
             //just to have root expanded at all time
             if (set.isEmpty()) {
                 Iterator<OrgTreeDto> iterator = provider.getRoots();
@@ -1417,12 +1429,6 @@ public class TreeTablePanel extends SimplePanel<String> {
                     set.add(iterator.next());
                 }
 
-            }
-            if (returnFromEditRoot1) {
-                returnFromEditRoot1 = false;
-                set.addAll(tempSet);
-                set.add(selectedItem);
-                tempSet.clear();
             }
             return set;
         }

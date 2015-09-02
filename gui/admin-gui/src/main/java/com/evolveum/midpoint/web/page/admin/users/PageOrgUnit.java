@@ -697,7 +697,6 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
     }
 
     private void setSpecificResponsePage() {
-        TreeTablePanel.returnFromEditRoot = true;
         goBack(PageOrgTree.class);
     }
 
