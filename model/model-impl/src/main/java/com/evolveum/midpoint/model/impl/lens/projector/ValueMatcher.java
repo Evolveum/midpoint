@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,18 +49,27 @@ public class ValueMatcher<T> {
 		return new ValueMatcher<T>((MatchingRule<T>) matchingRule);
 	}
 	
-	public boolean match(T realA, T realB) {
+	public boolean match(T realA, T realB) throws SchemaException {
 		return matchingRule.match(realA, realB);
 	}
 	
-	public boolean matches(T realValue, String regex){
+	public boolean matches(T realValue, String regex) throws SchemaException{
 		return matchingRule.matchRegex(realValue, regex);
 	}
 	
 	public boolean hasRealValue(PrismProperty<T> property, PrismPropertyValue<T> pValue) {
 		for (T existingRealValue: property.getRealValues()) {
-			if (matchingRule.match(existingRealValue, pValue.getValue())) {
-				return true;
+			try {
+				if (matchingRule.match(existingRealValue, pValue.getValue())) {
+					return true;
+				}
+			} catch (SchemaException e) {
+				// At least one of the values is invalid. But we do not want to throw exception from
+				// a comparison operation. That will make the system very fragile. Let's fall back to
+				// ordinary equality mechanism instead.
+				if (existingRealValue.equals(pValue.getValue())) {
+					return true;
+				}
 			}
 		}
 		return false;
@@ -71,8 +80,17 @@ public class ValueMatcher<T> {
 			return false;
 		}
 		for (PrismPropertyValue<T> existingPValue: delta.getValuesToAdd()) {
-			if (matchingRule.match(existingPValue.getValue(), pValue.getValue())) {
-				return true;
+			try {
+				if (matchingRule.match(existingPValue.getValue(), pValue.getValue())) {
+					return true;
+				}
+			} catch (SchemaException e) {
+				// At least one of the values is invalid. But we do not want to throw exception from
+				// a comparison operation. That will make the system very fragile. Let's fall back to
+				// ordinary equality mechanism instead.
+				if (existingPValue.getValue().equals(pValue.getValue())) {
+					return true;
+				}
 			}
 		}
 		return false;

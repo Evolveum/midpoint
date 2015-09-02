@@ -1288,8 +1288,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     }
 
     @Test
-    public void test016ProvisioningSearchAccountsIterative() throws SchemaException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+    public void test016ProvisioningSearchAccountsIterative() throws Exception {
         TestUtil.displayTestTile("test016ProvisioningSearchAccountsIterative");
 
         // GIVEN
@@ -1323,7 +1322,11 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 assertNotNull("No ICF UID", icfUid);
                 String icfName = getNormalizedAttributeValue(shadow, refinedAccountDefinition, getOpenDjSecondaryIdentifierQName());
                 assertNotNull("No ICF NAME", icfName);
-                PrismAsserts.assertEquals("Wrong shadow name", caseIgnoreMatchingRule, shadow.getName().getOrig(), icfName);
+                try {
+					PrismAsserts.assertEquals("Wrong shadow name", caseIgnoreMatchingRule, shadow.getName().getOrig(), icfName);
+				} catch (SchemaException e) {
+					throw new IllegalArgumentException(e.getMessage(),e);
+				}
                 assertNotNull("Missing LDAP uid", getAttributeValue(shadow, new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeOpenDjrepo), "uid")));
                 assertNotNull("Missing LDAP cn", getAttributeValue(shadow, new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeOpenDjrepo), "cn")));
                 assertNotNull("Missing LDAP sn", getAttributeValue(shadow, new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeOpenDjrepo), "sn")));

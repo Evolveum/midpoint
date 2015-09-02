@@ -192,7 +192,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         return true;
     }
 
-    private void checkShadow(ShadowCheckResult checkResult, PrismObject<ShadowType> shadow, Task workerTask, OperationResult result) {
+    private void checkShadow(ShadowCheckResult checkResult, PrismObject<ShadowType> shadow, Task workerTask, OperationResult result) throws SchemaException {
         ShadowType shadowType = shadow.asObjectable();
         ObjectReferenceType resourceRef = shadowType.getResourceRef();
         if (LOGGER.isTraceEnabled()) {
@@ -324,7 +324,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         repositoryService.modifyObject(ShadowType.class, shadow.getOid(), checkResult.getFixDeltas(), result);
     }
 
-    private void doCheckNormalization(ShadowCheckResult checkResult, RefinedAttributeDefinition<?> identifier, String value, ObjectTypeContext context) {
+    private void doCheckNormalization(ShadowCheckResult checkResult, RefinedAttributeDefinition<?> identifier, String value, ObjectTypeContext context) throws SchemaException {
         QName matchingRuleQName = identifier.getMatchingRuleQName();
         if (matchingRuleQName == null) {
             return;

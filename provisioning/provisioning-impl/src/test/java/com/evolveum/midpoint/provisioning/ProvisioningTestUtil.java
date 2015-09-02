@@ -172,7 +172,7 @@ public class ProvisioningTestUtil {
 	}
 	
 	public static <T> void assertAttribute(PrismObject<ResourceType> resource, ShadowType shadow, MatchingRule<T> matchingRule, 
-			QName attrQname, T... expectedValues) {
+			QName attrQname, T... expectedValues) throws SchemaException {
 		List<T> actualValues = ShadowUtil.getAttributeValues(shadow, attrQname);
 		PrismAsserts.assertSets("attribute "+attrQname+" in " + shadow, matchingRule, actualValues, expectedValues);
 	}

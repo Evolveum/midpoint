@@ -582,21 +582,6 @@ public class ReconciliationProcessor {
         }
     }
 
-    private boolean matchPattern(List<String> patterns,
-			PrismPropertyValue<Object> isPValue, ValueMatcher valueMatcher) {
-		if (patterns == null || patterns.isEmpty()) {
-			return false;
-		}
-		for (String toleratePattern : patterns) {
-			if (valueMatcher.matches(isPValue.getValue(), toleratePattern)) {
-				return true;
-			}
-
-		}
-		return false;
-	}
-	
-
 	private <T> void recordDelta(ValueMatcher valueMatcher, LensProjectionContext accCtx,
 			ResourceAttributeDefinition attrDef, ModificationType changeType, T value, ObjectType originObject)
 			throws SchemaException {
@@ -677,7 +662,7 @@ public class ReconciliationProcessor {
 		for (Object isInDeltaValue : existingDelta.getValuesToDelete()) {
 			if (isInDeltaValue instanceof PrismPropertyValue){
 				PrismPropertyValue isInRealValue = (PrismPropertyValue) isInDeltaValue;
-				if (valueMatcher.match(isInRealValue.getValue(), value)) {
+				if (matchValue(isInRealValue.getValue(), value, valueMatcher)) {
 					return true;
 				}
 			}
@@ -693,7 +678,7 @@ public class ReconciliationProcessor {
 			return false;
 		}
 		for (PrismPropertyValue<Object> isPValue : arePValues) {
-			if (valueMatcher.match(isPValue.getValue(), shouldBeValue)) {
+			if (matchValue(isPValue.getValue(), shouldBeValue, valueMatcher)) {
 				return true;
 			}
 		}
@@ -707,7 +692,7 @@ public class ReconciliationProcessor {
             return false;
         }
         for (PrismContainerValue<ShadowAssociationType> isPValue : arePValues) {
-            if (valueMatcher.match(isPValue.getValue(), shouldBeValue)) {
+            if (matchValue(isPValue.getValue(), shouldBeValue, valueMatcher)) {
                 return true;
             }
         }
@@ -739,7 +724,7 @@ public class ReconciliationProcessor {
         	}
 			PrismPropertyValue<?> shouldBePPValue = shouldBePvwo.getPropertyValue();
 			Object shouldBeValue = shouldBePPValue.getValue();
-			if (valueMatcher.match(value, shouldBeValue)) {
+			if (matchValue(value, shouldBeValue, valueMatcher)) {
 				return true;
 			}
 		}
@@ -759,11 +744,40 @@ public class ReconciliationProcessor {
         	}
             PrismContainerValue<ShadowAssociationType> shouldBePCValue = shouldBeCvwo.getItemValue();
             ShadowAssociationType shouldBeValue = shouldBePCValue.getValue();
-            if (valueMatcher.match(value, shouldBeValue)) {
+            if (matchValue(value, shouldBeValue, valueMatcher)) {
                 return true;
             }
         }
         return false;
     }
+    
+    
+    private <T> boolean matchValue(T realA, T realB, ValueMatcher valueMatcher) {
+		try {
+			return valueMatcher.match(realA, realB);
+		} catch (SchemaException e) {
+			LOGGER.warn("Value '{}' or '{}' is invalid: {}", realA, realB, e.getMessage(), e);
+			return false;
+		}
+	}
+    
+    private boolean matchPattern(List<String> patterns,
+			PrismPropertyValue<Object> isPValue, ValueMatcher valueMatcher) {
+		if (patterns == null || patterns.isEmpty()) {
+			return false;
+		}
+		for (String toleratePattern : patterns) {
+			try {
+				if (valueMatcher.matches(isPValue.getValue(), toleratePattern)) {
+					return true;
+				}
+			} catch (SchemaException e) {
+				LOGGER.warn("Value '{}' is invalid: {}", isPValue.getValue(), e.getMessage(), e);
+				return false;
+			}
+
+		}
+		return false;
+	}
 
 }

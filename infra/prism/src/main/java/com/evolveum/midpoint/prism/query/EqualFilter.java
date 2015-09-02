@@ -227,8 +227,17 @@ public class EqualFilter<T extends Object> extends PropertyValueFilter<PrismProp
 			}
 			
 			PrismPropertyValue filterV = (PrismPropertyValue) filterValue;
-			if (matchingRule.match(filterV.getValue(), v.getValue())){
-				return true;
+			try {
+				if (matchingRule.match(filterV.getValue(), v.getValue())){
+					return true;
+				}
+			} catch (SchemaException e) {
+				// At least one of the values is invalid. But we do not want to throw exception from
+				// a comparison operation. That will make the system very fragile. Let's fall back to
+				// ordinary equality mechanism instead.
+				if (filterV.getValue().equals(v.getValue())) {
+					return true;
+				}
 			}
 		}
 		

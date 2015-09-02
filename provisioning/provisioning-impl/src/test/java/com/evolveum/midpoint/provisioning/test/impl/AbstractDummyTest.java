@@ -303,7 +303,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		ProvisioningTestUtil.assertAttribute(resource, shadow, attrName, expectedValues);
 	}
 	
-	protected <T> void assertAttribute(ShadowType shadow, MatchingRule<T> matchingRule, QName attrName, T... expectedValues) {
+	protected <T> void assertAttribute(ShadowType shadow, MatchingRule<T> matchingRule, QName attrName, T... expectedValues) throws SchemaException {
 		ProvisioningTestUtil.assertAttribute(resource, shadow, matchingRule, attrName, expectedValues);
 	}
 	

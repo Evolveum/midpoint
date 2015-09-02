@@ -118,15 +118,15 @@ public class TestMatchingRule {
 		assertNoMatch(rule, new PolyString("Bar", "bar"), new PolyString("Bar", "barbar"));
 	}
 
-	private <T> void assertMatch(MatchingRule<T> rule, T a, T b) {
+	private <T> void assertMatch(MatchingRule<T> rule, T a, T b) throws SchemaException {
 		assertTrue("Values '"+a+"' and '"+b+"' does not match; rule: "+rule, rule.match(a, b));
 	}
 
-	private <T> void assertNoMatch(MatchingRule<T> rule, T a, T b) {
+	private <T> void assertNoMatch(MatchingRule<T> rule, T a, T b) throws SchemaException {
 		assertFalse("Values '"+a+"' and '"+b+"' DOES match but they should not; rule: "+rule, rule.match(a, b));
 	}
 
-	private void assertNormalized(MatchingRule<String> rule, String expected, String original) {
+	private void assertNormalized(MatchingRule<String> rule, String expected, String original) throws SchemaException {
 		assertEquals("Normalized value does not match", expected, rule.normalize(original));
 	}
 }

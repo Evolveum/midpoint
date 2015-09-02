@@ -735,10 +735,15 @@ public class PrismAsserts {
 	}
 	
 	public static <T> void assertSets(String message, Collection<T> actualValues, T... expectedValues) {
-		assertSets(message, null, actualValues, expectedValues);
+		try {
+			assertSets(message, null, actualValues, expectedValues);
+		} catch (SchemaException e) {
+			// no matching rule. should not happen
+			throw new IllegalStateException(e.getMessage(), e);
+		}
 	}
 	
-	public static <T> void assertSets(String message, MatchingRule<T> matchingRule, Collection<T> actualValues, T... expectedValues) {
+	public static <T> void assertSets(String message, MatchingRule<T> matchingRule, Collection<T> actualValues, T... expectedValues) throws SchemaException {
 		assertNotNull("Null set in " + message, actualValues);
 		assertEquals("Wrong number of values in " + message+ "; expected (real values) "
 				+PrettyPrinter.prettyPrint(expectedValues)+"; has (pvalues) "+actualValues,
@@ -901,7 +906,7 @@ public class PrismAsserts {
 				+ ", was " + MiscUtil.getValueWithClass(actual);
 	}
 	
-	public static <T> void assertEquals(String message, MatchingRule<T> matchingRule, T expected, T actual) {
+	public static <T> void assertEquals(String message, MatchingRule<T> matchingRule, T expected, T actual) throws SchemaException {
 		assert equals(matchingRule, expected, actual) : message 
 				+ ": expected " + MiscUtil.getValueWithClass(expected)
 				+ ", was " + MiscUtil.getValueWithClass(actual);
@@ -917,7 +922,7 @@ public class PrismAsserts {
 		assert false: message;
 	}
 	
-	private static <T> boolean equals(MatchingRule<T> matchingRule, T a, T b) {
+	private static <T> boolean equals(MatchingRule<T> matchingRule, T a, T b) throws SchemaException {
 		if (a == null && b == null) {
 			return true;
 		}

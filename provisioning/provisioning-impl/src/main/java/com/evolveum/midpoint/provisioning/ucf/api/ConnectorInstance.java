@@ -174,12 +174,19 @@ public interface ConnectorInstance {
 	 * 
 	 * The call to this method will return only after all the callbacks were
 	 * called, therefore it is not asynchronous in a strict sense.
+	 * 
+	 * If nothing is found the method should behave as if there is an empty result set
+	 * (handler is never called) and the call should result in a success.
+	 * The ObjectNotFoundException should be throws only if there is an error in search
+	 * parameters, e.g. if search base points to an non-existent object.
 	 *  
 	 * @param objectClass
 	 * @param handler
 	 * @return 
 	 * @throws CommunicationException 
 	 * @throws SchemaException error converting object from the native (connector) format
+	 * @throws ObjectNotFoundException if something from the search parameters refers non-existent object.
+	 * 									e.g. if search base points to an non-existent object.
 	 */
     public <T extends ShadowType> SearchResultMetadata search(ObjectClassComplexTypeDefinition objectClassDefinition, 
                                                               ObjectQuery query,
@@ -188,7 +195,8 @@ public interface ConnectorInstance {
                                                               PagedSearchCapabilityType pagedSearchConfigurationType,
                                                               SearchHierarchyConstraints searchHierarchyConstraints,
                                                               OperationResult parentResult)
-            throws CommunicationException, GenericFrameworkException, SchemaException, SecurityViolationException;
+            throws CommunicationException, GenericFrameworkException, SchemaException, SecurityViolationException,
+            		ObjectNotFoundException;
 
     /**
      * Counts objects on resource.

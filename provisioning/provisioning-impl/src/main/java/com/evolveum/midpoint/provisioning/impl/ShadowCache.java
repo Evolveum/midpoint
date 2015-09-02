@@ -1658,19 +1658,26 @@ public abstract class ShadowCache {
 						PrismObject<ShadowType> entitlementRepoShadow;
 						PrismObject<ShadowType> entitlementShadow = (PrismObject<ShadowType>) identifierContainer.getUserData(ResourceObjectConverter.FULL_SHADOW_KEY);
 						if (entitlementShadow == null) {
-							entitlementRepoShadow = shadowManager.lookupShadowInRepository(ctxEntitlement, identifierContainer, parentResult);
-							if (entitlementRepoShadow == null) {
-								try {
+							try {
+								entitlementRepoShadow = shadowManager.lookupShadowInRepository(ctxEntitlement, identifierContainer, parentResult);
+								if (entitlementRepoShadow == null) {								
 									entitlementShadow = resouceObjectConverter.locateResourceObject(ctxEntitlement, entitlementIdentifiers, parentResult);
 									entitlementRepoShadow = createShadowInRepository(ctxEntitlement, entitlementShadow, parentResult);
-								} catch (ObjectNotFoundException e) {
-									// The entitlement to which we point is not there.
-									// Simply ignore this association value.
-									parentResult.muteLastSubresultError();
-									LOGGER.warn("The entitlement identified by {} referenced from {} does not exist. Skipping.",
-											new Object[]{associationCVal, resourceShadow});
-									continue;
 								}
+							} catch (ObjectNotFoundException e) {
+								// The entitlement to which we point is not there.
+								// Simply ignore this association value.
+								parentResult.muteLastSubresultError();
+								LOGGER.warn("The entitlement identified by {} referenced from {} does not exist. Skipping.",
+										new Object[]{associationCVal, resourceShadow});
+								continue;
+							} catch (SchemaException e) {
+								// The entitlement to which we point is not bad.
+								// Simply ignore this association value.
+								parentResult.muteLastSubresultError();
+								LOGGER.warn("The entitlement identified by {} referenced from {} violates the schema. Skipping. Original error: {}",
+										new Object[]{associationCVal, resourceShadow, e.getMessage(), e});
+								continue;
 							}
 						} else {
 							entitlementRepoShadow = lookupOrCreateShadowInRepository(ctxEntitlement, entitlementShadow, parentResult);
