@@ -3238,8 +3238,8 @@ public class TestDummy extends AbstractDummyTest {
 	}
 
     @Test
-    public void test222bEntitleAccountWillBargain() throws Exception {
-        final String TEST_NAME = "test222bEntitleAccountWillBargain";
+    public void test223EntitleAccountWillBargain() throws Exception {
+        final String TEST_NAME = "test223EntitleAccountWillBargain";
         TestUtil.displayTestTile(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestDummy.class.getName()
@@ -3289,8 +3289,8 @@ public class TestDummy extends AbstractDummyTest {
 	 * Reads the will accounts, checks that both entitlements are there.
 	 */
 	@Test
-	public void test223GetPillagingPirateWill() throws Exception {
-		final String TEST_NAME = "test223GetPillagingPirateWill";
+	public void test224GetPillagingPirateWill() throws Exception {
+		final String TEST_NAME = "test224GetPillagingPirateWill";
 		TestUtil.displayTestTile(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
@@ -3343,8 +3343,8 @@ public class TestDummy extends AbstractDummyTest {
 	 * in the associations.
 	 */
 	@Test
-	public void test224GetFoolishPirateWill() throws Exception {
-		final String TEST_NAME = "test224GetFoolishPirateWill";
+	public void test225GetFoolishPirateWill() throws Exception {
+		final String TEST_NAME = "test225GetFoolishPirateWill";
 		TestUtil.displayTestTile(TEST_NAME);
 
 		// GIVEN
@@ -3411,8 +3411,8 @@ public class TestDummy extends AbstractDummyTest {
 	}
 		
 	@Test
-	public void test228DetitleAccountWillPirates() throws Exception {
-		final String TEST_NAME = "test228DetitleAccountWillPirates";
+	public void test230DetitleAccountWillPirates() throws Exception {
+		final String TEST_NAME = "test230DetitleAccountWillPirates";
 		TestUtil.displayTestTile(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
@@ -3473,8 +3473,8 @@ public class TestDummy extends AbstractDummyTest {
 	}
 	
 	@Test
-	public void test229DetitleAccountWillPillage() throws Exception {
-		final String TEST_NAME = "test229DetitleAccountWillPillage";
+	public void test232DetitleAccountWillPillage() throws Exception {
+		final String TEST_NAME = "test232DetitleAccountWillPillage";
 		TestUtil.displayTestTile(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
@@ -3523,8 +3523,8 @@ public class TestDummy extends AbstractDummyTest {
 	}
 
     @Test
-    public void test229bDetitleAccountWillBargain() throws Exception {
-        final String TEST_NAME = "test229bDetitleAccountWillBargain";
+    public void test234bDetitleAccountWillBargain() throws Exception {
+        final String TEST_NAME = "test234bDetitleAccountWillBargain";
         TestUtil.displayTestTile(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestDummy.class.getName()
@@ -3572,8 +3572,8 @@ public class TestDummy extends AbstractDummyTest {
 	 * LeChuck has both group and priv entitlement. Let's add him together with these entitlements.
 	 */
 	@Test
-	public void test230AddAccountLeChuck() throws Exception {
-		final String TEST_NAME = "test230AddAccountLeChuck";
+	public void test260AddAccountLeChuck() throws Exception {
+		final String TEST_NAME = "test260AddAccountLeChuck";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
@@ -3659,8 +3659,8 @@ public class TestDummy extends AbstractDummyTest {
 	 * the entitlements.
 	 */
 	@Test
-	public void test235DeleteAccountLeChuck() throws Exception {
-		final String TEST_NAME = "test235DeleteAccountLeChuck";
+	public void test265DeleteAccountLeChuck() throws Exception {
+		final String TEST_NAME = "test265DeleteAccountLeChuck";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
@@ -3706,6 +3706,8 @@ public class TestDummy extends AbstractDummyTest {
 		
 		assertSteadyResource();
 	}
+	
+	// test28x in TestDummyCaseIgnore
 	
 	@Test
 	public void test298DeletePrivPillage() throws Exception {
