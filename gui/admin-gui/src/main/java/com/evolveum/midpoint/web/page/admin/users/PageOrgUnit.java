@@ -140,12 +140,12 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
     private static final String ID_EXTENSION_LABEL = "extensionLabel";
     private static final String ID_EXTENSION = "extension";
     private static final String ID_EXTENSION_PROPERTY = "property";
-    
+
     private static final String ID_ACCOUNT_LIST = "accountList";
     private static final String ID_ACCOUNTS = "accounts";
     private static final String ID_ACCOUNT_MENU = "accountMenu";
     private static final String ID_ACCOUNT_CHECK_ALL = "accountCheckAll";
-    
+
 
     //private ContainerStatus status;
     private IModel<PrismObject<OrgType>> orgModel;
@@ -153,7 +153,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
     private IModel<List<PrismPropertyValue>> orgTypeModel;
     private IModel<List<PrismPropertyValue>> orgMailDomainModel;
     private IModel<ContainerWrapper> extensionModel;
-    
+
     private LoadableModel<List<UserAccountDto>> accountsModel;
     private ObjectWrapper orgWrapper;
 
@@ -304,7 +304,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 
         return extensionWrapper;
     }
-    
+
     private List<UserAccountDto> loadShadowWrappers() {
         List<UserAccountDto> list = new ArrayList<UserAccountDto>();
 
@@ -340,13 +340,13 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
                 description.append(WebMiscUtil.getOrigStringFromPoly(accountType.getName()));
 
                 ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(resourceName, description.toString(),
-                            account, ContainerStatus.MODIFYING, true, this);
+                        account, ContainerStatus.MODIFYING, true, this);
 //                ObjectWrapper wrapper = new ObjectWrapper(resourceName, WebMiscUtil.getOrigStringFromPoly(accountType
 //                        .getName()), account, ContainerStatus.MODIFYING);
                 wrapper.setFetchResult(OperationResult.createOperationResult(fetchResult));
                 wrapper.setSelectable(true);
                 wrapper.setMinimalized(true);
-                
+
 //                PrismContainer<ShadowAssociationType> associationContainer = account.findContainer(ShadowType.F_ASSOCIATION);
 //                if (associationContainer != null && associationContainer.getValues() != null){
 //                	List<PrismProperty> associations = new ArrayList<>(associationContainer.getValues().size());
@@ -385,9 +385,9 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 
         return list;
     }
-    
+
     private String getResourceName(String oid){
-    	String OPERATION_SEARCH_RESOURCE = PageOrgUnit.class.getName()+ ".searchAccountResource";
+        String OPERATION_SEARCH_RESOURCE = PageOrgUnit.class.getName()+ ".searchAccountResource";
         OperationResult result = new OperationResult(OPERATION_SEARCH_RESOURCE);
         Task task = createSimpleTask(OPERATION_SEARCH_RESOURCE);
 
@@ -626,7 +626,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
         extensionProperties.setReuseItems(true);
         form.add(extensionProperties);
 
-        
+
         WebMarkupContainer accounts = new WebMarkupContainer(ID_ACCOUNTS);
         accounts.setOutputMarkupId(true);
         form.add(accounts);
@@ -742,7 +742,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
                 }
             }
 
-        //We are editing OrgUnit
+            //We are editing OrgUnit
         }else if (parentOrgUnitsModel != null && parentOrgUnitsModel.getObject() != null) {
             for (OrgType parent : parentOrgUnitsModel.getObject()) {
                 if (parent != null && WebMiscUtil.getName(parent) != null && !WebMiscUtil.getName(parent).isEmpty()) {
@@ -978,12 +978,12 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 
         return parentList;
     }
-    
+
     private void initProjections(final WebMarkupContainer accounts) {
 //        InlineMenu accountMenu = new InlineMenu(ID_ACCOUNT_MENU, new Model((Serializable) createAccountsMenu()));
 //        accounts.add(accountMenu);
 
-    	//TODO: unify - rename UserAccountDto to something else, e.g. FocusShadowDto or FocusProjectionDto or something similar
+        //TODO: unify - rename UserAccountDto to something else, e.g. FocusShadowDto or FocusProjectionDto or something similar
         final ListView<UserAccountDto> accountList = new ListView<UserAccountDto>(ID_ACCOUNT_LIST, accountsModel) {
 
             @Override

@@ -851,7 +851,7 @@ public class TreeTablePanel extends SimplePanel<String> {
             }
 
             user.getParentOrgRef().add(ref.clone());
-            
+
             AssignmentType assignment = new AssignmentType();
             assignment.setTargetRef(ref);
 

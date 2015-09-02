@@ -75,7 +75,7 @@ public class PageOrgTree extends PageAdminUsers {
     public PageOrgTree() {
         initLayout();
     }
-    
+
     private void initLayout() {
         final IModel<List<ITab>> tabModel = new LoadableModel<List<ITab>>(false) {
 
