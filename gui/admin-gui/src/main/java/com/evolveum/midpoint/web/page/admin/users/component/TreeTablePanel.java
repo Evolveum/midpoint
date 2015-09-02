@@ -134,11 +134,22 @@ public class TreeTablePanel extends SimplePanel<String> {
     private static final String ID_SEARCH_FORM = "searchForm";
     private static final String ID_BASIC_SEARCH = "basicSearch";
 
+    public static boolean returnFromEditRoot = false;
+    public static boolean returnFromEditRoot1 = false;
+    public static OrgTreeDto selectedItem = null;
+    public static TreeStateSet<OrgTreeDto> tempSet;
+
     private IModel<OrgTreeDto> selected = new LoadableModel<OrgTreeDto>() {
 
         @Override
         protected OrgTreeDto load() {
-            return getRootFromProvider();
+            if (returnFromEditRoot){
+                returnFromEditRoot1 = true;
+                returnFromEditRoot = false;
+                return selectedItem;
+            } else {
+                return getRootFromProvider();
+            }
         }
     };
 
@@ -257,7 +268,7 @@ public class TreeTablePanel extends SimplePanel<String> {
                     @Override
                     protected void onClick(AjaxRequestTarget target) {
                         super.onClick(target);
-
+                        selectedItem = selected.getObject();
                         selectTreeItemPerformed(target);
                     }
                 };
@@ -471,6 +482,9 @@ public class TreeTablePanel extends SimplePanel<String> {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
+                TableTree<OrgTreeDto, String> tree = getTree();
+                TreeStateModel model = (TreeStateModel) tree.getDefaultModel();
+                tempSet = model.set;
                 editRootPerformed(target);
             }
         });
@@ -1388,6 +1402,7 @@ public class TreeTablePanel extends SimplePanel<String> {
 
         private TreeStateSet<OrgTreeDto> set = new TreeStateSet<OrgTreeDto>();
         private ISortableTreeProvider provider;
+        TableTree<OrgTreeDto, String> tree;
 
         TreeStateModel(ISortableTreeProvider provider) {
             this.provider = provider;
@@ -1402,6 +1417,12 @@ public class TreeTablePanel extends SimplePanel<String> {
                     set.add(iterator.next());
                 }
 
+            }
+            if (returnFromEditRoot1) {
+                returnFromEditRoot1 = false;
+                set.addAll(tempSet);
+                set.add(selectedItem);
+                tempSet.clear();
             }
             return set;
         }

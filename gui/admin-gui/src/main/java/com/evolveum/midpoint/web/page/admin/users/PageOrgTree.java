@@ -67,6 +67,8 @@ public class PageOrgTree extends PageAdminUsers {
     private static final String DOT_CLASS = PageOrgTree.class.getName() + ".";
     private static final String OPERATION_LOAD_ORG_UNIT = DOT_CLASS + "loadOrgUnit";
 
+    public static TabbedPanel selectedTabbedPanel = null;
+
     private String ID_TABS = "tabs";
 
 
@@ -105,7 +107,14 @@ public class PageOrgTree extends PageAdminUsers {
             }
         };
 
-        TabbedPanel tabbedPanel = new TabbedPanel(ID_TABS, tabModel, new Model<>(0));
+        TabbedPanel tabbedPanel;
+        if (TreeTablePanel.returnFromEditRoot) {
+            tabbedPanel = new TabbedPanel(ID_TABS, tabModel, new Model<>(selectedTabbedPanel.getSelectedTab()));
+            selectedTabbedPanel = tabbedPanel;
+        } else {
+            tabbedPanel = new TabbedPanel(ID_TABS, tabModel, new Model<>(0));
+            selectedTabbedPanel = tabbedPanel;
+        }
         tabbedPanel.setOutputMarkupId(true);
         add(tabbedPanel);
     }
