@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.common.expression.functions;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.Normalizer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -196,6 +197,14 @@ public class BasicExpressionFunctions {
 		return norm(polyString);
 	}
 
+	public String toAscii(Object input) {
+		if (input == null) {
+			return null;
+		}
+		String inputString = stringify(input);
+		String decomposed = Normalizer.normalize(inputString, Normalizer.Form.NFKD);
+		return decomposed.replaceAll("\\p{M}", "");
+	}
 	
 	/**
 	 * Converts whatever it gets to a string. But it does it in a sensitive way.
@@ -206,6 +215,18 @@ public class BasicExpressionFunctions {
 		
 		if (whatever == null) {
 			return "";
+		}
+		
+		if (whatever instanceof String) {
+			return (String)whatever;
+		}
+		
+		if (whatever instanceof PolyString) {
+			return ((PolyString)whatever).getOrig();
+		}
+
+		if (whatever instanceof PolyStringType) {
+			return ((PolyStringType)whatever).getOrig();
 		}
 		
 		if (whatever instanceof Collection) {
