@@ -1851,7 +1851,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 remaining = paging.getMaxSize() != null ? paging.getMaxSize() : countObjects(type, query, result) - offset;
             }
 
-            while (remaining > 0) {
+main:       while (remaining > 0) {
                 paging.setOffset(offset);
                 paging.setMaxSize(remaining < batchSize ? remaining : batchSize);
 
@@ -1859,7 +1859,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
                 for (PrismObject<T> object : objects) {
                     if (!handler.handle(object, result)) {
-                        break;
+                        break main;
                     }
                 }
 
