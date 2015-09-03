@@ -191,6 +191,7 @@ public abstract class SchemaConstants {
 
 	public static final QName MODEL_EXTENSION_DIAGNOSE = new QName(NS_MODEL_EXTENSION, "diagnose");
 	public static final QName MODEL_EXTENSION_FIX = new QName(NS_MODEL_EXTENSION, "fix");
+	public static final QName MODEL_EXTENSION_DUPLICATE_SHADOWS_RESOLVER = new QName(NS_MODEL_EXTENSION, "duplicateShadowsResolver");
 
     public static final String NS_GUI = NS_MIDPOINT_PUBLIC + "/gui";
 	public static final String NS_GUI_CHANNEL = NS_GUI + "/channels-3";

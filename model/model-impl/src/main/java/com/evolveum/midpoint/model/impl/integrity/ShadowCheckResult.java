@@ -53,7 +53,9 @@ public class ShadowCheckResult {
     }
 
     public ShadowCheckResult recordError(String problemCode, Exception e) {
-        problemCodes.add(problemCode);
+        if (problemCode != null) {
+            problemCodes.add(problemCode);
+        }
         LoggingUtils.logException(LOGGER, "{} - for shadow {} on resource {}",
                 e, e.getMessage(), ObjectTypeUtil.toShortString(shadow), ObjectTypeUtil.toShortString(resource));
         errors.add(e);
@@ -61,7 +63,9 @@ public class ShadowCheckResult {
     }
 
     public ShadowCheckResult recordWarning(String problemCode, String message) {
-        problemCodes.add(problemCode);
+        if (problemCode != null) {
+            problemCodes.add(problemCode);
+        }
         LOGGER.warn("{} - for shadow {} on resource {}",
                 message, ObjectTypeUtil.toShortString(shadow), ObjectTypeUtil.toShortString(resource));
         warnings.add(message);

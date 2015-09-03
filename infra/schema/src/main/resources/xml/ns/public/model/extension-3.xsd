@@ -224,7 +224,19 @@
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
-    
+
+    <xsd:element name="duplicateShadowsResolver" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                Class that is used to resolve duplicate shadows in ShadowIntegrityCheck task.
+                If not specified, a default implementation is used.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
 </xsd:schema>
 
 

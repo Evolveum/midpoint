@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.model.impl.integrity;
 
+import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
 import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeTaskHandler;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -70,6 +71,9 @@ public class ShadowIntegrityCheckTaskHandler extends AbstractSearchIterativeTask
     @Autowired
     private MatchingRuleRegistry matchingRuleRegistry;
 
+    @Autowired
+    private SynchronizationService synchronizationService;
+
     private static final Trace LOGGER = TraceManager.getTrace(ShadowIntegrityCheckTaskHandler.class);
 
     public ShadowIntegrityCheckTaskHandler() {
@@ -86,7 +90,7 @@ public class ShadowIntegrityCheckTaskHandler extends AbstractSearchIterativeTask
 	protected ShadowIntegrityCheckResultHandler createHandler(TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
         return new ShadowIntegrityCheckResultHandler(coordinatorTask, ShadowIntegrityCheckTaskHandler.class.getName(),
 				"check shadow integrity", "check shadow integrity", taskManager, prismContext, provisioningService,
-                matchingRuleRegistry, repositoryService);
+                matchingRuleRegistry, repositoryService, synchronizationService, opResult);
 	}
 	
 	@Override
