@@ -69,7 +69,8 @@ public class Statistics {
             CANNOT_APPLY_FIX
     };
 
-    private List<String> fixable = Arrays.asList(NON_NORMALIZED_IDENTIFIER_VALUE);
+    private List<String> fixable = Arrays.asList(NON_NORMALIZED_IDENTIFIER_VALUE,
+            NO_INTENT_SPECIFIED);
 
     // problem code -> number of occurrences [0] and number of shadows [1]
     Map<String,Counts> problemCount = new HashMap<>();
