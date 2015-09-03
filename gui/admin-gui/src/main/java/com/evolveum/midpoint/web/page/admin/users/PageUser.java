@@ -87,6 +87,7 @@ import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -112,6 +113,7 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
 import javax.xml.namespace.QName;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -700,10 +702,13 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
                 	List<PrismProperty> associations = new ArrayList<>(associationContainer.getValues().size());
                 	for (PrismContainerValue associationVal : associationContainer.getValues()){
                 		ShadowAssociationType associationType = (ShadowAssociationType) associationVal.asContainerable();
-                        // we can safely eliminate fetching from resource, because we need only the name
-                		PrismObject<ShadowType> association = getModelService().getObject(ShadowType.class, associationType.getShadowRef().getOid(),
-                                SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, subResult);
-                		associations.add(association.findProperty(ShadowType.F_NAME));
+                		ObjectReferenceType shadowRef = associationType.getShadowRef();
+                		if (shadowRef != null) { // shadowRef can be null in case of "broken" associations
+	                        // we can safely eliminate fetching from resource, because we need only the name
+	                		PrismObject<ShadowType> association = getModelService().getObject(ShadowType.class, shadowRef.getOid(),
+	                                SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, subResult);
+	                		associations.add(association.findProperty(ShadowType.F_NAME));
+                		}
                 	}
                 	
                 	wrapper.setAssociations(associations);
