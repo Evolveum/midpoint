@@ -413,7 +413,14 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
         }
 
         if (matchingRule != null) {
-        	return matchingRule.match(thisRealValue, otherRealValue);
+        	try {
+				return matchingRule.match(thisRealValue, otherRealValue);
+			} catch (SchemaException e) {
+				// At least one of the values is invalid. But we do not want to throw exception from
+				// a comparison operation. That will make the system very fragile. Let's fall back to
+				// ordinary equality mechanism instead.
+				return thisRealValue.equals(otherRealValue);
+			}
         } else {
         
 			if (thisRealValue instanceof Element &&
