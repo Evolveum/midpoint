@@ -33,7 +33,10 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.datatype.DatatypeConstants.Field;
 
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -767,6 +770,44 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
 
         PrismAsserts.assertPropertyValue(userJack.findContainer(UserType.F_EXTENSION), PIRACY_BAD_LUCK, 123L);
+    }
+
+    @Test
+    public void test162ModifyUserGivenNameAgainPhantomChange() throws Exception {
+        TestUtil.displayTestTile(this, "test162ModifyUserGivenNameAgainPhantomChange");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + ".test162ModifyUserGivenNameAgainPhantomChange");
+        OperationResult result = task.getResult();
+
+        dummyAuditService.clear();
+
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class,
+                USER_JACK_OID, UserType.F_GIVEN_NAME, prismContext, new PolyString("JACKIE"));      // this is a phantom change
+        deltas.add(userDelta);
+
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
+
+        // THEN
+        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        PrismAsserts.assertPropertyValue(userJack.findContainer(UserType.F_EXTENSION), PIRACY_BAD_LUCK, 123L);
+
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertTarget(USER_JACK_OID);
+        dummyAuditService.assertExecutionSuccess();
+        ObjectDeltaOperation<?> objectDeltaOperation = dummyAuditService.getExecutionDelta(0);
+        assertEquals("unexpected number of modifications in audited delta", 2, objectDeltaOperation.getObjectDelta().getModifications().size());   // givenName + modifyTimestamp
     }
 
     @Test

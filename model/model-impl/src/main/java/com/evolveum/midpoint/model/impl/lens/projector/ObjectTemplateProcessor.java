@@ -24,7 +24,11 @@ import java.util.Map.Entry;
 
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.match.MatchingRule;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -109,6 +113,9 @@ public class ObjectTemplateProcessor {
 	
 	@Autowired(required = true)
     private MappingEvaluationHelper mappingHelper;
+
+	@Autowired
+	private MatchingRuleRegistry matchingRuleRegistry;
 	
 	public <F extends FocusType> void processTemplate(LensContext<F> context, ObjectTemplateMappingEvaluationPhaseType phase, 
 			XMLGregorianCalendar now, Task task, OperationResult result)
@@ -215,17 +222,18 @@ public class ObjectTemplateProcessor {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Computed triple for {}:\n{}", itemPath, outputTriple.debugDump());
 			}
-			ObjectTemplateItemDefinitionType itemDefinition = null;
+			ObjectTemplateItemDefinitionType templateItemDefinition = null;
 			if (itemDefinitionsMap != null) {
-				itemDefinition = ItemPathUtil.getFromMap(itemDefinitionsMap, itemPath);
+				templateItemDefinition = ItemPathUtil.getFromMap(itemDefinitionsMap, itemPath);
 			}
-			boolean isNonTolerant = itemDefinition != null && Boolean.FALSE.equals(itemDefinition.isTolerant());
+			boolean isNonTolerant = templateItemDefinition != null && Boolean.FALSE.equals(templateItemDefinition.isTolerant());
 
 			ItemDelta aprioriItemDelta = null;
 			boolean addUnchangedValues = true;	// We need to add unchanged values otherwise the unconditional mappings will not be applied
 			boolean filterExistingValues = !isNonTolerant;	// if non-tolerant, we want to gather ZERO & PLUS sets
+			ItemDefinition itemDefinition = focusDefinition.findItemDefinition(itemPath);
 			ItemDelta<?,?> itemDelta = LensUtil.consolidateTripleToDelta(itemPath, (DeltaSetTriple)outputTriple,
-					focusDefinition.findItemDefinition(itemPath), aprioriItemDelta, focusOdo.getNewObject(), null, null,
+					itemDefinition, aprioriItemDelta, focusOdo.getNewObject(), null, null,
 					addUnchangedValues, filterExistingValues, false, contextDesc, true);
 
 			if (isNonTolerant) {
@@ -241,6 +249,24 @@ public class ObjectTemplateProcessor {
 				} else {
 					itemDelta.setValuesToReplace();
 					LOGGER.trace("Non-tolerant item => converting resulting empty delta to 'delete all values' delta");
+				}
+
+				// To avoid phantom changes, compare with existing values (MID-2499).
+				// TODO this should be maybe moved into LensUtil.consolidateTripleToDelta (along with the above code), e.g.
+				// under a special option "createReplaceDelta", but for the time being, let's keep it here
+				if (itemDelta instanceof PropertyDelta) {
+					PropertyDelta propertyDelta = ((PropertyDelta) itemDelta);
+					QName matchingRuleName = templateItemDefinition != null ? templateItemDefinition.getMatchingRule() : null;
+					MatchingRule matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleName, null);
+					if (propertyDelta.isRedundant(focusOdo.getNewObject(), matchingRule)) {
+						LOGGER.trace("Computed property delta is redundant => skipping it. Delta = \n{}", propertyDelta.debugDump());
+						continue;
+					}
+				} else {
+					if (itemDelta.isRedundant(focusOdo.getNewObject())) {
+						LOGGER.trace("Computed item delta is redundant => skipping it. Delta = \n{}", itemDelta.debugDump());
+						continue;
+					}
 				}
 			}
 			
