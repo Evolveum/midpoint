@@ -65,6 +65,7 @@ import org.identityconnectors.framework.api.operations.SyncApiOp;
 import org.identityconnectors.framework.api.operations.TestApiOp;
 import org.identityconnectors.framework.api.operations.UpdateApiOp;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
+import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfo;
@@ -2117,7 +2118,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
                                                               PagedSearchCapabilityType pagedSearchCapabilityType,
                                                               SearchHierarchyConstraints searchHierarchyConstraints,
                                                               OperationResult parentResult)
-            throws CommunicationException, GenericFrameworkException, SchemaException, SecurityViolationException {
+            throws CommunicationException, GenericFrameworkException, SchemaException, SecurityViolationException,
+            			ObjectNotFoundException {
 
 		// Result type for this operation
 		final OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
@@ -2258,6 +2260,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// exception
 			if (midpointEx instanceof CommunicationException) {
 				throw (CommunicationException) midpointEx;
+			} else if (midpointEx instanceof ObjectNotFoundException) {
+				throw (ObjectNotFoundException) midpointEx;
 			} else if (midpointEx instanceof GenericFrameworkException) {
 				throw (GenericFrameworkException) midpointEx;
 			} else if (midpointEx instanceof SchemaException) {

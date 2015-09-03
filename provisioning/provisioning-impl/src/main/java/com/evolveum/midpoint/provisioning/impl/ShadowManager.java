@@ -803,7 +803,7 @@ public class ShadowManager {
 		}
 	}
 	
-	private <T> void normalizeValues(Collection<PrismPropertyValue<T>> values, MatchingRule<T> matchingRule){
+	private <T> void normalizeValues(Collection<PrismPropertyValue<T>> values, MatchingRule<T> matchingRule) throws SchemaException {
 		for (PrismPropertyValue<T> pval: values) {
 			T normalizedRealValue = matchingRule.normalize(pval.getValue());
 			pval.setValue(normalizedRealValue);

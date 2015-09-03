@@ -506,7 +506,7 @@ public class IntegrationTestTools {
 				stackTrace});
 	}
 	
-	public static <O extends ObjectType> void assertSearchResultNames(SearchResultList<PrismObject<O>> resultList, MatchingRule<String> matchingRule, String... expectedNames) {
+	public static <O extends ObjectType> void assertSearchResultNames(SearchResultList<PrismObject<O>> resultList, MatchingRule<String> matchingRule, String... expectedNames) throws SchemaException {
 		List<String> names = new ArrayList<>(expectedNames.length);
 		for(PrismObject<O> obj: resultList) {
 			names.add(obj.asObjectable().getName().getOrig());

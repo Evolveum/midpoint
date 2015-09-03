@@ -41,6 +41,10 @@ public class Statistics {
     public static final String NO_OBJECT_CLASS_REFINED_SCHEMA = "No object class refined schema";
     public static final String OTHER_FAILURE = "Other failure";
     public static final String CANNOT_APPLY_FIX = "Cannot apply fix";
+    public static final String CANNOT_FETCH_RESOURCE_OBJECT = "Cannot fetch resource object";
+    public static final String MULTIPLE_OWNERS = "Multiple owners";
+    public static final String LINKED_WITH_NO_OWNER = "Linked shadow with no owner";
+    public static final String NOT_LINKED_WITH_OWNER = "Not linked shadow with an owner";
 
     private int resources;
     private int shadows;
@@ -50,7 +54,6 @@ public class Statistics {
 
     private String[] codeList = {
             NON_NORMALIZED_IDENTIFIER_VALUE,
-            DUPLICATE_SHADOWS,
             NO_RESOURCE_OID,
             CANNOT_GET_RESOURCE,
             NO_KIND_SPECIFIED,
@@ -58,6 +61,10 @@ public class Statistics {
             NO_RESOURCE_REFINED_SCHEMA,
             CANNOT_GET_REFINED_SCHEMA,
             NO_OBJECT_CLASS_REFINED_SCHEMA,
+            CANNOT_FETCH_RESOURCE_OBJECT,
+            MULTIPLE_OWNERS,
+            LINKED_WITH_NO_OWNER,
+            NOT_LINKED_WITH_OWNER,
             OTHER_FAILURE,
             CANNOT_APPLY_FIX
     };
@@ -158,7 +165,7 @@ public class Statistics {
         }
     }
 
-    public String getDetailsFormatted() {
+    public String getDetailsFormatted(boolean dryRun) {
         StringBuilder sb = new StringBuilder();
         for (String code : codeList) {
             Counts counts = problemCount.get(code);
@@ -172,6 +179,9 @@ public class Statistics {
             }
             if (fixable.contains(code)) {
                 sb.append("; fixed ");
+                if (dryRun) {
+                    sb.append("(if not run in dry-run mode) ");
+                }
                 sb.append(counts.casesFixed).append(" cases");
                 if (counts.casesFixed > 0) {
                     sb.append(" (").append(counts.shadowsFixed).append(" shadows)");

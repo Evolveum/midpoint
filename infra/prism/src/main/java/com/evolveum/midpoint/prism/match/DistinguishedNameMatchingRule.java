@@ -26,6 +26,7 @@ import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Matching rule for LDAP distinguished name (DN).
@@ -51,7 +52,7 @@ public class DistinguishedNameMatchingRule implements MatchingRule<String> {
 	 * @see com.evolveum.midpoint.model.match.MatchingRule#match(java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public boolean match(String a, String b) {
+	public boolean match(String a, String b) throws SchemaException {
 		if (StringUtils.isBlank(a) && StringUtils.isBlank(b)) {
 			return true;
 		}
@@ -62,13 +63,13 @@ public class DistinguishedNameMatchingRule implements MatchingRule<String> {
 		try {
 			dnA = new LdapName(a);
 		} catch (InvalidNameException e) {
-			throw new IllegalArgumentException("String '"+a+"' is not a DN: "+e.getMessage(), e);
+			throw new SchemaException("String '"+a+"' is not a DN: "+e.getMessage(), e);
 		}
 		LdapName dnB;
 		try {
 			dnB = new LdapName(b);
 		} catch (InvalidNameException e) {
-			throw new IllegalArgumentException("String '"+b+"' is not a DN: "+e.getMessage(), e);
+			throw new SchemaException("String '"+b+"' is not a DN: "+e.getMessage(), e);
 		}
 		return dnA.equals(dnB);
 	}
@@ -77,7 +78,7 @@ public class DistinguishedNameMatchingRule implements MatchingRule<String> {
 	 * @see com.evolveum.midpoint.prism.match.MatchingRule#normalize(java.lang.Object)
 	 */
 	@Override
-	public String normalize(String original) {
+	public String normalize(String original) throws SchemaException {
 		if (StringUtils.isBlank(original)) {
 			return null;
 		}
@@ -85,13 +86,13 @@ public class DistinguishedNameMatchingRule implements MatchingRule<String> {
 		try {
 			dn = new LdapName(original);
 		} catch (InvalidNameException e) {
-			throw new IllegalArgumentException("String '"+original+"' is not a DN: "+e.getMessage(), e);
+			throw new SchemaException("String '"+original+"' is not a DN: "+e.getMessage(), e);
 		}
 		return StringUtils.lowerCase(dn.toString());
 	}
 
 	@Override
-	public boolean matchRegex(String a, String regex) {
+	public boolean matchRegex(String a, String regex) throws SchemaException {
 		
 		a = normalize(a);
 		

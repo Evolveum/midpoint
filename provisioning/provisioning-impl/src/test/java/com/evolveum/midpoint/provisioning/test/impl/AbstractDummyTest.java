@@ -141,6 +141,8 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
     protected static final String PRIVILEGE_BARGAIN_FILENAME = TEST_DIR + "privilege-bargain.xml";
     protected static final String PRIVILEGE_BARGAIN_OID = "c0c010c0-d34d-b44f-f11d-3332eeff0001";
     protected static final String PRIVILEGE_BARGAIN_NAME = "bargain";
+    
+    protected static final String PRIVILEGE_NONSENSE_NAME = "NoNsEnSe";
 
     protected static final String FILENAME_ACCOUNT_SCRIPT = TEST_DIR + "account-script.xml";
 	protected static final String ACCOUNT_NEW_SCRIPT_OID = "c0c010c0-d34d-b44f-f11d-33322212abcd";
@@ -301,7 +303,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		ProvisioningTestUtil.assertAttribute(resource, shadow, attrName, expectedValues);
 	}
 	
-	protected <T> void assertAttribute(ShadowType shadow, MatchingRule<T> matchingRule, QName attrName, T... expectedValues) {
+	protected <T> void assertAttribute(ShadowType shadow, MatchingRule<T> matchingRule, QName attrName, T... expectedValues) throws SchemaException {
 		ProvisioningTestUtil.assertAttribute(resource, shadow, matchingRule, attrName, expectedValues);
 	}
 	

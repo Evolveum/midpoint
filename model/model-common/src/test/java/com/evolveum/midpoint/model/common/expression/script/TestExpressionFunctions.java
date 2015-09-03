@@ -421,4 +421,19 @@ public class TestExpressionFunctions {
 		return PrismTestUtil.createPolyString(s);
 	}
 
+	@Test
+	public void testToAscii() throws Exception {
+		final String TEST_NAME = "testToAscii";
+		TestUtil.displayTestTile(TEST_NAME);
+		BasicExpressionFunctions basic = createBasicFunctions();
+		assertEquals("foo", basic.toAscii("foo"));
+		assertEquals("foo", basic.toAscii(poly("foo")));
+		assertEquals("foo", basic.toAscii(PrismTestUtil.createPolyStringType("foo")));
+		assertEquals("Cortuv hrad, tam Strasa!", basic.toAscii("Čórtův hrád, tam Strašá!"));
+		assertEquals("hrabe Teleke z Toloko", basic.toAscii(poly("hrabě Teleke z Tölökö")));
+		assertEquals("Vedeckotechnicka revoluce neni zadna idyla!", basic.toAscii(PrismTestUtil.createPolyStringType("Vědeckotechnická revoluce není žádná idyla!")));
+		assertEquals(null, basic.toAscii(null));
+		assertEquals("", basic.toAscii(""));
+	}
+	
 }
