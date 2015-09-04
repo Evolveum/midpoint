@@ -21,8 +21,8 @@
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
     <c:name>bob</c:name>
     <i:fullName>Bob Dylan</i:fullName>
-    <i:givenName>Bob</i:givenName>
-<!--     <i:familyName>Dylan</i:familyName> -->
+    <!-- <i:givenName>Bob</i:givenName>  -->
+	<i:familyName>Dylan</i:familyName>
 <!--     <i:additionalNames>JackD</i:additionalNames> -->
     <i:honorificPrefix>Mgr.</i:honorificPrefix>
     
