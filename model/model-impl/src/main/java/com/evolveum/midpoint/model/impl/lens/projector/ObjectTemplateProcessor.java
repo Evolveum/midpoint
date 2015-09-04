@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -268,6 +269,7 @@ public class ObjectTemplateProcessor {
 						continue;
 					}
 				}
+				PrismUtil.setDeltaOldValue(focusOdo.getNewObject(), itemDelta);
 			}
 			
 			itemDelta.simplify();
