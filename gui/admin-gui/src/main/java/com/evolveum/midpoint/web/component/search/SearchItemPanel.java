@@ -51,6 +51,7 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
     private static final String ID_LABEL = "label";
     private static final String ID_DELETE_BUTTON = "deleteButton";
     private static final String ID_POPOVER = "popover";
+    private static final String ID_POPOVER_BODY = "popoverBody";
     private static final String ID_UPDATE = "update";
     private static final String ID_CLOSE = "close";
     private static final String ID_VALUES = "values";
@@ -139,6 +140,10 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
         popover.setOutputMarkupId(true);
         add(popover);
 
+        WebMarkupContainer popoverBody = new WebMarkupContainer(ID_POPOVER_BODY);
+        popoverBody.setOutputMarkupId(true);
+        popover.add(popoverBody);
+
         ListView values = new ListView<DisplayableValue>(ID_VALUES,
                 new PropertyModel<List<DisplayableValue>>(getModel(), SearchItem.F_VALUES)) {
 
@@ -157,7 +162,7 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
                 item.add(fragment);
             }
         };
-        popover.add(values);
+        popoverBody.add(values);
 
 
         AjaxSubmitButton add = new AjaxSubmitButton(ID_UPDATE, createStringResource("SearchItemPanel.update")) {
@@ -167,7 +172,7 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
                 updateItemPerformed(target);
             }
         };
-        popover.add(add);
+        popoverBody.add(add);
 
         AjaxButton close = new AjaxButton(ID_CLOSE, createStringResource("SearchItemPanel.close")) {
 
@@ -176,20 +181,18 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
                 closeEditPopoverPerformed(target);
             }
         };
-        popover.add(close);
+        popoverBody.add(close);
     }
 
-    private Fragment createPopoverFragment(IModel<DisplayableValue> model) {
+    private Fragment createPopoverFragment(IModel<DisplayableValue> data) {
         Fragment fragment;
         SearchItem item = getModelObject();
 
-        IModel value = new PropertyModel(model, SearchValue.F_VALUE);
         IModel<? extends List> choices = null;
 
         switch (item.getType()) {
             case BROWSER:
-                value = new PropertyModel(getModel(), SearchValue.F_LABEL);
-                fragment = new BrowserFragment(ID_VALUE, ID_BROWSER, this, value);
+                fragment = new BrowserFragment(ID_VALUE, ID_BROWSER, this, data);
                 break;
             case BOOLEAN:
                 choices = createBooleanChoices();
@@ -197,11 +200,11 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
                 if (choices == null) {
                     choices = new Model((Serializable) item.getAllowedValues());
                 }
-                fragment = new ComboFragment(ID_VALUE, ID_COMBO, this, value, choices);
+                fragment = new ComboFragment(ID_VALUE, ID_COMBO, this, data, choices);
                 break;
             case TEXT:
             default:
-                fragment = new TextFragment(ID_VALUE, ID_TEXT, this, value);
+                fragment = new TextFragment(ID_VALUE, ID_TEXT, this, data);
         }
 
         return fragment;
@@ -303,27 +306,20 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
         panel.searchPerformed(target);
     }
 
+    void updatePopupBody(AjaxRequestTarget target) {
+        target.add(get(createComponentPath(ID_POPOVER, ID_POPOVER_BODY)));
+    }
+
     private static class TextFragment extends SearchFragmentBase {
 
         public TextFragment(String id, String markupId, MarkupContainer markupProvider,
                             IModel<DisplayableValue> value) {
-            super(id, markupId, markupProvider);
+            super(id, markupId, markupProvider, value);
 
-            final TextField input = new TextField(ID_TEXT_INPUT, value);
+            IModel data = new PropertyModel(value, SearchValue.F_VALUE);
+            final TextField input = new TextField(ID_TEXT_INPUT, data);
             input.setOutputMarkupId(true);
             add(input);
-        }
-
-        @Override
-        protected void addPerformed(AjaxRequestTarget target) {
-            // todo implement
-        }
-
-        @Override
-        protected void removePerformed(AjaxRequestTarget target) {
-            // value.setObject(null);
-            // target.add(input);
-            // todo implement
         }
     }
 
@@ -331,10 +327,12 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
 
         public ComboFragment(String id, String markupId, MarkupContainer markupProvider,
                              final IModel<T> value, IModel<List<T>> choices) {
-            super(id, markupId, markupProvider);
+            super(id, markupId, markupProvider, value);
+
+            IModel data = new PropertyModel(value, SearchValue.F_VALUE);
 
             final DisplayableRenderer renderer = new DisplayableRenderer(choices);
-            final DropDownChoice input = new DropDownChoice(ID_COMBO_INPUT, value, choices, renderer) {
+            final DropDownChoice input = new DropDownChoice(ID_COMBO_INPUT, data, choices, renderer) {
 
                 @Override
                 public IConverter getConverter(Class type) {
@@ -345,26 +343,15 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
             input.setOutputMarkupId(true);
             add(input);
         }
-
-        @Override
-        protected void addPerformed(AjaxRequestTarget target) {
-            // todo implement
-        }
-
-        @Override
-        protected void removePerformed(AjaxRequestTarget target) {
-            // value.setObject(null);
-            // target.add(input);
-            // todo implement
-        }
     }
 
     private static class BrowserFragment<T extends Serializable> extends SearchFragmentBase {
 
         public BrowserFragment(String id, String markupId, MarkupContainer markupProvider,
-                               IModel<T> value) {
-            super(id, markupId, markupProvider);
+                               IModel<T> data) {
+            super(id, markupId, markupProvider, data);
 
+            IModel value = new PropertyModel(data, SearchValue.F_LABEL);
             TextField input = new TextField(ID_BROWSER_INPUT, value);
             add(input);
 
@@ -382,18 +369,6 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
             SearchItemPanel panel = findParent(SearchItemPanel.class);
             ChooseTypeDialog dialog = (ChooseTypeDialog) panel.get(ID_BROWSER_POPUP);
             dialog.show(target);
-        }
-
-        @Override
-        protected void addPerformed(AjaxRequestTarget target) {
-            // todo implement
-        }
-
-        @Override
-        protected void removePerformed(AjaxRequestTarget target) {
-            // value.setObject(null);
-            // target.add(input);
-            // todo implement
         }
     }
 

@@ -1,21 +1,28 @@
 package com.evolveum.midpoint.web.component.search;
 
+import com.evolveum.midpoint.util.DisplayableValue;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.panel.Fragment;
+import org.apache.wicket.model.IModel;
+
+import java.io.Serializable;
 
 /**
  * @author Viliam Repan (lazyman)
  */
-abstract class SearchFragmentBase extends Fragment {
+abstract class SearchFragmentBase<T extends Serializable> extends Fragment {
 
     private static final String ID_REMOVE = "remove";
     private static final String ID_ADD = "add";
 
-    SearchFragmentBase(String id, String markupId, MarkupContainer markupProvider) {
+    private IModel<T> data;
+
+    SearchFragmentBase(String id, String markupId, MarkupContainer markupProvider, IModel<T> data) {
         super(id, markupId, markupProvider);
 
+        this.data = data;
         initButtons();
     }
 
@@ -40,10 +47,17 @@ abstract class SearchFragmentBase extends Fragment {
     }
 
     protected void addPerformed(AjaxRequestTarget target) {
-
+        SearchItemPanel panel = findParent(SearchItemPanel.class);
+        panel.getModelObject().getValues().add(new SearchValue());
+        panel.updatePopupBody(target);
     }
 
     protected void removePerformed(AjaxRequestTarget target) {
+        SearchItemPanel panel = findParent(SearchItemPanel.class);
+        T val = data.getObject();
 
+        panel.getModelObject().getValues().remove(val);
+
+        panel.updatePopupBody(target);
     }
 }
