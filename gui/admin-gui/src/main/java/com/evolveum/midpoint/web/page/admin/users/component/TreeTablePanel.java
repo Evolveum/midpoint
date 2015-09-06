@@ -72,6 +72,7 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -140,7 +141,21 @@ public class TreeTablePanel extends SimplePanel<String> {
 
         @Override
         protected OrgTreeDto load() {
-            return getRootFromProvider();
+            TabbedPanel currentTabbedPanel = null;
+            MidPointAuthWebSession session = TreeTablePanel.this.getSession();
+            SessionStorage storage = session.getSessionStorage();
+            if (getTree().getParent().getParent().getParent().getClass() == TabbedPanel.class) {
+                currentTabbedPanel = (TabbedPanel) getTree().getParent().getParent().getParent();
+                int tabId = currentTabbedPanel.getSelectedTab();
+                if (storage.getUsers().getSelectedTabId() != -1 && tabId != storage.getUsers().getSelectedTabId()){
+                    storage.getUsers().setSelectedItem(null);
+                }
+            }
+            if (storage.getUsers().getSelectedItem() != null){
+                return storage.getUsers().getSelectedItem();
+            } else {
+                return getRootFromProvider();
+            }
         }
     };
 
@@ -1418,17 +1433,21 @@ public class TreeTablePanel extends SimplePanel<String> {
             MidPointAuthWebSession session = panel.getSession();
             SessionStorage storage = session.getSessionStorage();
             Set<OrgTreeDto> dtos = storage.getUsers().getExpandedItems();
-            if ((dtos instanceof TreeStateSet) && set.isEmpty()) {
-                set = (TreeStateSet<OrgTreeDto>) dtos;
-            }
-
-            //just to have root expanded at all time
-            if (set.isEmpty()) {
-                Iterator<OrgTreeDto> iterator = provider.getRoots();
-                if (iterator.hasNext()) {
-                    set.add(iterator.next());
+            Iterator<OrgTreeDto> iterator = provider.getRoots();
+            iterator = provider.getRoots();
+            if (dtos != null && (dtos instanceof TreeStateSet)) {
+                for (OrgTreeDto orgTreeDto : dtos) {
+                    if (!set.contains(orgTreeDto)) {
+                        set = (TreeStateSet<OrgTreeDto>) dtos;
+                    }
                 }
-
+            }
+            //just to have root expanded at all time
+            if (iterator.hasNext()){
+                OrgTreeDto root = iterator.next();
+                if (set.isEmpty() || !set.contains(root)) {
+                    set.add(root);
+                }
             }
             return set;
         }
