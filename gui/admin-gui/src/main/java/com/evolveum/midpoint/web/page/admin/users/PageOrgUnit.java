@@ -85,7 +85,7 @@ import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserAccountDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.FocusShadowDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -161,7 +161,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 	private IModel<List<PrismPropertyValue>> orgMailDomainModel;
 	private IModel<ContainerWrapper> extensionModel;
 
-	private LoadableModel<List<UserAccountDto>> shadowsModel;
+	private LoadableModel<List<FocusShadowDto>> shadowsModel;
 	private ObjectWrapper orgWrapper;
 
 	private ProgressReporter progressReporter;
@@ -208,10 +208,10 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 			}
 		};
 
-		shadowsModel = new LoadableModel<List<UserAccountDto>>(false) {
+		shadowsModel = new LoadableModel<List<FocusShadowDto>>(false) {
 
 			@Override
-			protected List<UserAccountDto> load() {
+			protected List<FocusShadowDto> load() {
 				return loadShadowWrappers();
 			}
 		};
@@ -236,8 +236,8 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 		};
 	}
 
-	private List<UserAccountDto> loadShadowWrappers() {
-		List<UserAccountDto> list = new ArrayList<UserAccountDto>();
+	private List<FocusShadowDto> loadShadowWrappers() {
+		List<FocusShadowDto> list = new ArrayList<FocusShadowDto>();
 
 		ObjectWrapper orgWrapper = orgModel.getObject();
 		PrismObject<OrgType> prismUser = orgWrapper.getObject();
@@ -299,7 +299,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 
 				wrapper.initializeContainers(this);
 
-				list.add(new UserAccountDto(wrapper, UserDtoStatus.MODIFY));
+				list.add(new FocusShadowDto(wrapper, UserDtoStatus.MODIFY));
 
 				subResult.recomputeStatus();
 			} catch (ObjectNotFoundException ex) {
@@ -313,7 +313,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 			} catch (Exception ex) {
 				subResult.recordFatalError("Couldn't load account." + ex.getMessage(), ex);
 				LoggingUtils.logException(LOGGER, "Couldn't load account", ex);
-				list.add(new UserAccountDto(false, getResourceName(reference.getOid()), subResult));
+				list.add(new FocusShadowDto(false, getResourceName(reference.getOid()), subResult));
 			} finally {
 				subResult.computeStatus();
 			}
@@ -727,10 +727,10 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 
 	private ObjectDelta getChange(ObjectWrapper orgWrapper) throws SchemaException {
 
-		List<UserAccountDto> accountDtos = shadowsModel.getObject();
+		List<FocusShadowDto> accountDtos = shadowsModel.getObject();
 		List<ReferenceDelta> refDeltas = new ArrayList<ReferenceDelta>();
 		ObjectDelta<OrgType> forceDeleteDelta = null;
-		for (UserAccountDto accDto : accountDtos) {
+		for (FocusShadowDto accDto : accountDtos) {
 			if (!accDto.isLoadedOK()) {
 				continue;
 			}
@@ -765,9 +765,9 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 	private List<ObjectDelta<? extends ObjectType>> modifyShadows(OperationResult result) {
 		List<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
 
-		List<UserAccountDto> shadows = shadowsModel.getObject();
+		List<FocusShadowDto> shadows = shadowsModel.getObject();
 		OperationResult subResult = null;
-		for (UserAccountDto account : shadows) {
+		for (FocusShadowDto account : shadows) {
 			if (!account.isLoadedOK())
 				continue;
 
@@ -1039,13 +1039,13 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 
 		// TODO: unify - rename UserAccountDto to something else, e.g.
 		// FocusShadowDto or FocusProjectionDto or something similar
-		final ListView<UserAccountDto> accountList = new ListView<UserAccountDto>(ID_ACCOUNT_LIST,
+		final ListView<FocusShadowDto> accountList = new ListView<FocusShadowDto>(ID_ACCOUNT_LIST,
 				shadowsModel) {
 
 			@Override
-			protected void populateItem(final ListItem<UserAccountDto> item) {
+			protected void populateItem(final ListItem<FocusShadowDto> item) {
 				PackageResourceReference packageRef;
-				final UserAccountDto dto = item.getModelObject();
+				final FocusShadowDto dto = item.getModelObject();
 
 				Panel panel;
 

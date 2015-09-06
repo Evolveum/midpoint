@@ -26,7 +26,7 @@ import java.io.Serializable;
 /**
  * @author lazyman
  */
-public class UserAccountDto implements Serializable {
+public class FocusShadowDto implements Serializable {
 
     private ObjectWrapper object;
     private UserDtoStatus status;
@@ -35,12 +35,12 @@ public class UserAccountDto implements Serializable {
     private String description;
     private OperationResult result;
 
-    public UserAccountDto(ObjectWrapper object, UserDtoStatus status) {
+    public FocusShadowDto(ObjectWrapper object, UserDtoStatus status) {
         setObject(object);
         setStatus(status);
     }
 
-    public UserAccountDto(boolean loaded, String description, OperationResult result){
+    public FocusShadowDto(boolean loaded, String description, OperationResult result){
         setLoadedOK(loaded);
         setDescription(description);
         this.result = result;

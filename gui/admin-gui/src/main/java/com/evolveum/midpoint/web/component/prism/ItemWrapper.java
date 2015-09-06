@@ -16,7 +16,10 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import java.util.List;
+
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Revivable;
 
 /**
@@ -29,4 +32,18 @@ public interface ItemWrapper extends Revivable {
     void setDisplayName(String name);
 
     Item getItem();
+    
+    ItemDefinition getItemDefinition();
+    
+    boolean isReadonly();
+    
+    boolean hasChanged();
+    
+    public List<ValueWrapper> getValues();
+    
+    public boolean isVisible();
+    
+    ContainerWrapper getContainer();
+    
+    public void addValue();
 }

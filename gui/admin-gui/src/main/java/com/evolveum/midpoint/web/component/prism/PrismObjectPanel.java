@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -144,7 +145,7 @@ public class PrismObjectPanel extends Panel {
         if (activation == null) {
             return false;
         }
-        PropertyWrapper enabledProperty = activation.findPropertyWrapper(ActivationType.F_ADMINISTRATIVE_STATUS);
+        PropertyWrapper enabledProperty = (PropertyWrapper) activation.findPropertyWrapper(ActivationType.F_ADMINISTRATIVE_STATUS);
         if (enabledProperty == null || enabledProperty.getValues().isEmpty()) {
             return false;
         }
@@ -152,7 +153,7 @@ public class PrismObjectPanel extends Panel {
         if (value.getValue() == null) {
             return false;
         }
-        ActivationStatusType status = (ActivationStatusType) value.getValue().getValue();
+        ActivationStatusType status = (ActivationStatusType) ((PrismPropertyValue)value.getValue()).getValue();
         return ActivationStatusType.DISABLED.equals(status);
     }
 
@@ -251,6 +252,7 @@ public class PrismObjectPanel extends Panel {
             @Override
             public boolean isVisible() {
                 return isShowHeader();
+                
             }
         });
 

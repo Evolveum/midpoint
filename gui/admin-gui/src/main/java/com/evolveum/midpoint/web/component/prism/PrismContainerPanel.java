@@ -61,14 +61,14 @@ public class PrismContainerPanel extends Panel {
                 }
 
                 boolean isVisible = false;
-                for (PropertyWrapper property : container.getProperties()) {
-                    if (container.isPropertyVisible(property)) {
+                for (ItemWrapper item : container.getItems()) {
+                    if (container.isItemVisible(item)) {
                         isVisible = true;
                         break;
                     }
                 }
 
-                return !container.getProperties().isEmpty() && isVisible;
+                return !container.getItems().isEmpty() && isVisible;
             }
         });
 
@@ -88,13 +88,18 @@ public class PrismContainerPanel extends Panel {
 
         header.add(new Label("label", new PropertyModel<>(model, "displayName")));
 
-        ListView<PropertyWrapper> properties = new ListView<PropertyWrapper>("properties",
+        ListView<ItemWrapper> properties = new ListView<ItemWrapper>("properties",
                 new PropertyModel(model, "properties")) {
 
             @Override
-            protected void populateItem(ListItem<PropertyWrapper> item) {
-                item.add(new PrismPropertyPanel("property", item.getModel(), form, pageBase));
-                item.add(AttributeModifier.append("class", createStyleClassModel(item.getModel())));
+            protected void populateItem(ListItem<ItemWrapper> item) {
+//            	if (item.getModel().getObject() instanceof PropertyWrapper){
+	                item.add(new PrismPropertyPanel("property", item.getModel(), form, pageBase));
+	                item.add(AttributeModifier.append("class", createStyleClassModel(item.getModel())));
+//            	} else if (item.getModel().getObject() instanceof ReferenceWrapper){
+//            		 item.add(new PrismReferencePanel("property", item.getModel(), form, pageBase));
+// 	                item.add(AttributeModifier.append("class", createStyleClassModel(item.getModel())));
+//            	}
             }
         };
         properties.setReuseItems(true);
@@ -105,12 +110,12 @@ public class PrismContainerPanel extends Panel {
         return pageBase;
     }
 
-    private IModel<String> createStyleClassModel(final IModel<PropertyWrapper> wrapper) {
+    private IModel<String> createStyleClassModel(final IModel<ItemWrapper> wrapper) {
         return new AbstractReadOnlyModel<String>() {
 
             @Override
             public String getObject() {
-                PropertyWrapper property = wrapper.getObject();
+            	ItemWrapper property = wrapper.getObject();
                 return property.isVisible() ? "visible" : null;
             }
         };
