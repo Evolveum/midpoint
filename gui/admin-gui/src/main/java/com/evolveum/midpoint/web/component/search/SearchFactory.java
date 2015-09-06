@@ -32,9 +32,10 @@ public class SearchFactory {
         Map<ItemPath, ItemDefinition> map = new HashMap<>();
 
         Map<ItemPath, ItemDefinition> object = createAvailableDefinitions(UserType.class, ctx,
-                new ItemPath(ObjectType.F_NAME),
-                new ItemPath(ObjectType.F_PARENT_ORG_REF),
-                new ItemPath(ObjectType.F_TENANT_REF));
+                new ItemPath(ObjectType.F_NAME)
+//                new ItemPath(ObjectType.F_PARENT_ORG_REF),
+//                new ItemPath(ObjectType.F_TENANT_REF)
+        );
         map.putAll(object);
 
         return map;
@@ -44,8 +45,8 @@ public class SearchFactory {
         Map<ItemPath, ItemDefinition> map = getAvailableDefinitionsForObject(ctx);
 
         Map<ItemPath, ItemDefinition> user = createAvailableDefinitions(UserType.class, ctx,
-                new ItemPath(FocusType.F_LINK_REF),
-                new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF),
+//                new ItemPath(FocusType.F_LINK_REF),
+//                new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF),
                 new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS));
         map.putAll(user);
 

@@ -1,7 +1,5 @@
 package com.evolveum.midpoint.web.component.search;
 
-import com.evolveum.midpoint.prism.DisplayableValueImpl;
-import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -13,6 +11,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypeDi
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -24,6 +23,8 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -52,7 +53,8 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
     private static final String ID_POPOVER = "popover";
     private static final String ID_UPDATE = "update";
     private static final String ID_CLOSE = "close";
-    private static final String ID_CONTENT = "content";
+    private static final String ID_VALUES = "values";
+    private static final String ID_VALUE = "value";
     private static final String ID_TEXT = "text";
     private static final String ID_TEXT_INPUT = "textInput";
     private static final String ID_COMBO = "combo";
@@ -60,7 +62,6 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
     private static final String ID_BROWSER = "browser";
     private static final String ID_BROWSER_INPUT = "browserInput";
     private static final String ID_BROWSE = "browse";
-    private static final String ID_DELETE = "delete";
     private static final String ID_BROWSER_POPUP = "browserPopup";
 
     public SearchItemPanel(String id, IModel<SearchItem> model) {
@@ -99,7 +100,7 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
         ChooseTypeDialog dialog = new ChooseTypeDialog(ID_BROWSER_POPUP, RoleType.class) {
 
             @Override
-            protected void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object){
+            protected void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object) {
                 browserSelectObjectPerformed(target, object);
             }
 
@@ -120,8 +121,8 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
         SearchItem item = getModelObject();
 
         PrismReferenceValue ref = PrismReferenceValue.createFromTarget(object.asPrismObject());
-        DisplayableValueImpl value = new DisplayableValueImpl(ref, object.getName().getOrig(), null);
-        item.setValue(value);
+        SearchValue value = new SearchValue(ref, object.getName().getOrig());
+//        item.setValue(value); //todo fix
 
         ChooseTypeDialog dialog = (ChooseTypeDialog) get(ID_BROWSER_POPUP);
         dialog.close(target);
@@ -138,9 +139,26 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
         popover.setOutputMarkupId(true);
         add(popover);
 
-        Fragment fragment = createPopoverFragment();
-        fragment.setRenderBodyOnly(true);
-        popover.add(fragment);
+        ListView values = new ListView<DisplayableValue>(ID_VALUES,
+                new PropertyModel<List<DisplayableValue>>(getModel(), SearchItem.F_VALUES)) {
+
+            @Override
+            protected void populateItem(final ListItem<DisplayableValue> item) {
+                item.add(AttributeModifier.replace("style", new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        return item.getIndex() != 0 ? "margin-top: 5px;" : null;
+                    }
+                }));
+
+                Fragment fragment = createPopoverFragment(item.getModel());
+                fragment.setRenderBodyOnly(true);
+                item.add(fragment);
+            }
+        };
+        popover.add(values);
+
 
         AjaxSubmitButton add = new AjaxSubmitButton(ID_UPDATE, createStringResource("SearchItemPanel.update")) {
 
@@ -161,17 +179,17 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
         popover.add(close);
     }
 
-    private Fragment createPopoverFragment() {
+    private Fragment createPopoverFragment(IModel<DisplayableValue> model) {
         Fragment fragment;
         SearchItem item = getModelObject();
 
-        IModel value = new PropertyModel(getModel(), SearchItem.F_VALUE);
+        IModel value = new PropertyModel(model, SearchValue.F_VALUE);
         IModel<? extends List> choices = null;
 
         switch (item.getType()) {
             case BROWSER:
-                value = new PropertyModel(getModel(), SearchItem.F_DISPLAY_VALUE);
-                fragment = new BrowserFragment(ID_CONTENT, ID_BROWSER, this, value);
+                value = new PropertyModel(getModel(), SearchValue.F_LABEL);
+                fragment = new BrowserFragment(ID_VALUE, ID_BROWSER, this, value);
                 break;
             case BOOLEAN:
                 choices = createBooleanChoices();
@@ -179,11 +197,11 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
                 if (choices == null) {
                     choices = new Model((Serializable) item.getAllowedValues());
                 }
-                fragment = new ComboFragment(ID_CONTENT, ID_COMBO, this, value, choices);
+                fragment = new ComboFragment(ID_VALUE, ID_COMBO, this, value, choices);
                 break;
             case TEXT:
             default:
-                fragment = new TextFragment(ID_CONTENT, ID_TEXT, this, value);
+                fragment = new TextFragment(ID_VALUE, ID_TEXT, this, value);
         }
 
         return fragment;
@@ -195,8 +213,8 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
             @Override
             public List<DisplayableValue> getObject() {
                 List<DisplayableValue> list = new ArrayList<>();
-                list.add(new DisplayableValueImpl(Boolean.TRUE, getString("Boolean.TRUE"), null));
-                list.add(new DisplayableValueImpl(Boolean.FALSE, getString("Boolean.FALSE"), null));
+                list.add(new SearchValue(Boolean.TRUE, getString("Boolean.TRUE")));
+                list.add(new SearchValue(Boolean.FALSE, getString("Boolean.FALSE")));
 
                 return list;
             }
@@ -221,8 +239,19 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
                 sb.append(item.getName());
                 sb.append(": ");
 
-                if (StringUtils.isNotEmpty(item.getDisplayValue())) {
-                    sb.append('"').append(item.getDisplayValue()).append('"');
+                List<String> values = new ArrayList<>();
+                for (DisplayableValue value : (List<DisplayableValue>) item.getValues()) {
+                    if (StringUtils.isNotEmpty(value.getLabel())) {
+                        values.add(value.getLabel());
+                    }
+                }
+
+                if (!values.isEmpty()) {
+                    String or = createStringResource("SearchItemPanel.or").getString();
+
+                    sb.append('"');
+                    sb.append(StringUtils.join(values, "\" " + or + " \""));
+                    sb.append('"');
                 } else {
                     String all = createStringResource("SearchItemPanel.all").getString();
                     sb.append(all);
@@ -246,7 +275,7 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
 
     private void updateItemPerformed(AjaxRequestTarget target) {
         SearchItem item = getModelObject();
-        LOG.debug("Update item performed, item {} value is {}", item.getName(), item.getValue());
+        LOG.debug("Update item performed, item {} value is {}", item.getName(), item.getValues());
 
         SearchPanel panel = findParent(SearchPanel.class);
         panel.refreshSearchForm(target);
@@ -274,29 +303,31 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
         panel.searchPerformed(target);
     }
 
-    private static class TextFragment<T extends Serializable> extends Fragment {
+    private static class TextFragment extends SearchFragmentBase {
 
         public TextFragment(String id, String markupId, MarkupContainer markupProvider,
-                            final IModel<T> value) {
+                            IModel<DisplayableValue> value) {
             super(id, markupId, markupProvider);
 
             final TextField input = new TextField(ID_TEXT_INPUT, value);
             input.setOutputMarkupId(true);
             add(input);
+        }
 
-            AjaxLink delete = new AjaxLink(ID_DELETE) {
+        @Override
+        protected void addPerformed(AjaxRequestTarget target) {
+            // todo implement
+        }
 
-                @Override
-                public void onClick(AjaxRequestTarget target) {
-                    value.setObject(null);
-                    target.add(input);
-                }
-            };
-            add(delete);
+        @Override
+        protected void removePerformed(AjaxRequestTarget target) {
+            // value.setObject(null);
+            // target.add(input);
+            // todo implement
         }
     }
 
-    private static class ComboFragment<T extends Serializable> extends Fragment {
+    private static class ComboFragment<T extends Serializable> extends SearchFragmentBase {
 
         public ComboFragment(String id, String markupId, MarkupContainer markupProvider,
                              final IModel<T> value, IModel<List<T>> choices) {
@@ -313,20 +344,22 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
             input.setNullValid(true);
             input.setOutputMarkupId(true);
             add(input);
+        }
 
-            AjaxLink delete = new AjaxLink(ID_DELETE) {
+        @Override
+        protected void addPerformed(AjaxRequestTarget target) {
+            // todo implement
+        }
 
-                @Override
-                public void onClick(AjaxRequestTarget target) {
-                    value.setObject(null);
-                    target.add(input);
-                }
-            };
-            add(delete);
+        @Override
+        protected void removePerformed(AjaxRequestTarget target) {
+            // value.setObject(null);
+            // target.add(input);
+            // todo implement
         }
     }
 
-    private static class BrowserFragment<T extends Serializable> extends Fragment {
+    private static class BrowserFragment<T extends Serializable> extends SearchFragmentBase {
 
         public BrowserFragment(String id, String markupId, MarkupContainer markupProvider,
                                IModel<T> value) {
@@ -343,15 +376,6 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
                 }
             };
             add(browse);
-
-            AjaxLink delete = new AjaxLink(ID_DELETE) {
-
-                @Override
-                public void onClick(AjaxRequestTarget target) {
-                    deletePerformed(target);
-                }
-            };
-            add(delete);
         }
 
         private void browsePerformed(AjaxRequestTarget target) {
@@ -360,8 +384,16 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
             dialog.show(target);
         }
 
-        private void deletePerformed(AjaxRequestTarget target) {
-            //todo implement
+        @Override
+        protected void addPerformed(AjaxRequestTarget target) {
+            // todo implement
+        }
+
+        @Override
+        protected void removePerformed(AjaxRequestTarget target) {
+            // value.setObject(null);
+            // target.add(input);
+            // todo implement
         }
     }
 

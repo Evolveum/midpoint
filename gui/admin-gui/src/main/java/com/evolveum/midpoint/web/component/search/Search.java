@@ -62,6 +62,8 @@ public class Search implements Serializable {
         }
 
         SearchItem item = new SearchItem(this, path, def);
+        item.getValues().add(new SearchValue<>());
+
         items.add(item);
         availableDefinitions.remove(item.getDefinition());
 
@@ -86,7 +88,7 @@ public class Search implements Serializable {
 
         List<ObjectFilter> conditions = new ArrayList<>();
         for (SearchItem item : searchItems) {
-            ObjectFilter filter = createFilterForItem(item, ctx);
+            ObjectFilter filter = createFilterForSearchItem(item, ctx);
             if (filter != null) {
                 conditions.add(filter);
             }
@@ -103,17 +105,41 @@ public class Search implements Serializable {
         }
     }
 
-    private ObjectFilter createFilterForItem(SearchItem item, PrismContext ctx) {
-        if (item.getValue() == null) {
+    private ObjectFilter createFilterForSearchItem(SearchItem item, PrismContext ctx) {
+        if (item.getValues().isEmpty()) {
             return null;
         }
+
+        List<ObjectFilter> conditions = new ArrayList<>();
+        for (DisplayableValue value : (List<DisplayableValue>) item.getValues()) {
+            if (value.getValue() == null) {
+                continue;
+            }
+
+            ObjectFilter filter = createFilterForSearchValue(item, value, ctx);
+            if (filter != null) {
+                conditions.add(filter);
+            }
+        }
+
+        switch (conditions.size()) {
+            case 0:
+                return null;
+            case 1:
+                return conditions.get(0);
+            default:
+                return OrFilter.createOr(conditions);
+        }
+    }
+
+    private ObjectFilter createFilterForSearchValue(SearchItem item, DisplayableValue searchValue,
+                                                    PrismContext ctx) {
 
         ItemDefinition definition = item.getDefinition();
         ItemPath path = item.getPath();
 
         if (definition instanceof PrismReferenceDefinition) {
-            DisplayableValue<PrismReferenceValue> displayableValue = (DisplayableValue) item.getValue();
-            PrismReferenceValue value = displayableValue.getValue();
+            PrismReferenceValue value = (PrismReferenceValue) searchValue.getValue();
             return RefFilter.createReferenceEqual(path, (PrismReferenceDefinition) definition, value);
         }
 
@@ -122,13 +148,13 @@ public class Search implements Serializable {
                 || DOMUtil.XSD_BOOLEAN.equals(propDef.getTypeName())) {
             //we're looking for enum value, therefore equals filter is ok
             //or if it's boolean value
-            DisplayableValue displayableValue = (DisplayableValue) item.getValue();
+            DisplayableValue displayableValue = (DisplayableValue) searchValue.getValue();
             Object value = displayableValue.getValue();
             return EqualFilter.createEqual(path, propDef, value);
         }
 
         //we're looking for string value, therefore substring filter should be used
-        String text = (String) item.getValue();
+        String text = (String) searchValue.getValue();
         PolyStringNormalizer normalizer = ctx.getDefaultPolyStringNormalizer();
         String value = normalizer.normalize(text);
         return SubstringFilter.createSubstring(path, propDef, PolyStringNormMatchingRule.NAME, value);

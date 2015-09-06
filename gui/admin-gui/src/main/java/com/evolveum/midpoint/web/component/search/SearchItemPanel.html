@@ -29,7 +29,9 @@
     <div wicket:id="popover" class="popover fade bottom in">
         <div class="arrow"></div>
         <div class="popover-content">
-            <div wicket:id="content"/>
+            <div wicket:id="values">
+                <div wicket:id="value"/>
+            </div>
 
             <p style="margin: 0px; padding-top: 7px;">
                 <a wicket:id="update" class="btn btn-sm btn-success"/>
@@ -39,14 +41,51 @@
     </div>
 
     <div wicket:id="browserPopup"/>
+
+    <div class="popover fade bottom in" style="top: 200px; left: 200px; display: block;">
+        <div class="arrow"></div>
+        <div class="popover-content">
+            <div class="input-group input-group-sm">
+                <input type="text" class="form-control input-sm" style="min-width: 150px;">
+                <span class="input-group-btn">
+                    <a class="btn btn-danger" wicket:message="title:SearchItemPanel.clear">
+                        <i class="fa fa-minus"/>
+                    </a>
+                    <a class="btn btn-success" wicket:message="title:SearchItemPanel.clear">
+                        <i class="fa fa-plus"/>
+                    </a>
+                </span>
+            </div>
+
+            <div class="input-group input-group-sm" style="margin-top: 5px;">
+                <input type="text" class="form-control input-sm" style="width: auto; min-width: 150px;">
+                <span class="input-group-btn">
+                    <a class="btn btn-danger" wicket:message="title:SearchItemPanel.clear">
+                        <i class="fa fa-minus"/>
+                    </a>
+                    <a class="btn btn-success" wicket:message="title:SearchItemPanel.clear">
+                        <i class="fa fa-plus"/>
+                    </a>
+                </span>
+            </div>
+
+            <p style="margin: 0px; padding-top: 7px;">
+                <a class="btn btn-sm btn-success">Add</a>
+                <a class="btn btn-sm btn-default">Close</a>
+            </p>
+        </div>
+    </div>
 </wicket:panel>
 
 <wicket:fragment wicket:id="text">
     <div class="input-group input-group-sm">
-        <input wicket:id="textInput" type="text" class="form-control input-sm" style="width: auto; min-width: 150px;" size="20">
+        <input wicket:id="textInput" type="text" class="form-control input-sm" style="width: 150px; min-width: 150px;">
         <span class="input-group-btn">
-            <a wicket:id="delete" class="btn btn-danger" wicket:message="title:SearchItemPanel.clear">
-                <i class="fa fa-times"/>
+            <a wicket:id="remove" class="btn btn-danger" wicket:message="title:SearchItemPanel.remove">
+                <i class="fa fa-minus"/>
+            </a>
+            <a wicket:id="add" class="btn btn-success" wicket:message="title:SearchItemPanel.add">
+                <i class="fa fa-plus"/>
             </a>
         </span>
     </div>
@@ -56,8 +95,11 @@
     <div class="input-group input-group-sm">
         <select wicket:id="comboInput" class="form-control input-sm" style="width: auto; min-width: 150px;"/>
         <span class="input-group-btn">
-            <a wicket:id="delete" class="btn btn-danger" wicket:message="title:SearchItemPanel.clear">
-                <i class="fa fa-times"/>
+            <a wicket:id="remove" class="btn btn-danger" wicket:message="title:SearchItemPanel.remove">
+                <i class="fa fa-minus"/>
+            </a>
+            <a wicket:id="add" class="btn btn-success" wicket:message="title:SearchItemPanel.add">
+                <i class="fa fa-plus"/>
             </a>
         </span>
     </div>
@@ -68,11 +110,14 @@
         <input wicket:id="browserInput" type="text" class="form-control"
                style="width: auto; min-width: 150px;" size="20" disabled="true">
         <span class="input-group-btn">
-            <a wicket:id="delete" class="btn btn-danger" wicket:message="title:SearchItemPanel.clear">
-                <i class="fa fa-times"/>
-            </a>
             <a wicket:id="browse" class="btn btn-primary" wicket:message="title:SearchItemPanel.browse">
                 <i class="fa fa-pencil-square-o"/>
+            </a>
+            <a wicket:id="remove" class="btn btn-danger" wicket:message="title:SearchItemPanel.remove">
+                <i class="fa fa-minus"/>
+            </a>
+            <a wicket:id="add" class="btn btn-success" wicket:message="title:SearchItemPanel.add">
+                <i class="fa fa-plus"/>
             </a>
         </span>
     </div>

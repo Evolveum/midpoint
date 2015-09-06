@@ -19,8 +19,6 @@ import java.util.List;
 public class SearchItem<T extends Serializable> implements Serializable {
 
     public static final String F_VALUES = "values";
-    public static final String F_VALUE = "value";
-    public static final String F_DISPLAY_VALUE = "displayValue";
 
     public enum Type {
         TEXT, BOOLEAN, ENUM, BROWSER
@@ -30,9 +28,7 @@ public class SearchItem<T extends Serializable> implements Serializable {
 
     private ItemPath path;
     private ItemDefinition definition;
-    private List<DisplayableValue> values;
-    private T value;
-    private String displayValue;
+    private List<DisplayableValue<T>> values;
 
     public SearchItem(Search search, ItemPath path, ItemDefinition definition) {
         Validate.notNull(path, "Item path must not be null.");
@@ -82,40 +78,15 @@ public class SearchItem<T extends Serializable> implements Serializable {
         return Type.TEXT;
     }
 
-    public T getValue() {
-        return value;
-    }
-
-    public void setValue(T value) {
-        this.value = value;
-
-        String displayValue = null;
-        if (value instanceof DisplayableValue) {
-            DisplayableValue dv = (DisplayableValue) value;
-            displayValue = dv.getLabel();
-        } else if (value != null) {
-            displayValue = value.toString();
-        }
-        setDisplayValue(displayValue);
-    }
-
-    public List<DisplayableValue> getValues() {
+    public List<DisplayableValue<T>> getValues() {
         if (values == null) {
             values = new ArrayList<>();
         }
         return values;
     }
 
-    public void setValues(List<DisplayableValue> values) {
+    public void setValues(List<DisplayableValue<T>> values) {
         this.values = values;
-    }
-
-    public void setDisplayValue(String displayValue) {
-        this.displayValue = displayValue;
-    }
-
-    public String getDisplayValue() {
-        return displayValue;
     }
 
     public Search getSearch() {
