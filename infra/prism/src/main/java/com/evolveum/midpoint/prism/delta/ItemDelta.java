@@ -384,7 +384,7 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 		if (valuesToDelete == null) {
 			valuesToDelete = newValueCollection();
 		}
-		if (containsEquivalentValue(valuesToDelete,newValue)) {
+		if (containsEquivalentValue(valuesToDelete, newValue)) {
 			return;
 		}
 		valuesToDelete.add(newValue);
@@ -807,8 +807,43 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
     		return clone;
     	}
     }
-    
-    public void validate() throws SchemaException {
+
+	/**
+	 * Checks if the delta is redundant w.r.t. current state of the object.
+	 * I.e. if it changes the current object state.
+	 */
+	public boolean isRedundant(PrismObject<? extends Objectable> object) {
+		Comparator<V> comparator = new Comparator<V>() {
+			@Override
+			public int compare(V o1, V o2) {
+				if (o1.equalsComplex(o2, true, false)) {
+					return 0;
+				} else {
+					return 1;
+				}
+			}
+		};
+		return isRedundant(object, comparator);
+	}
+
+	public boolean isRedundant(PrismObject<? extends Objectable> object, Comparator<V> comparator) {
+		Item<V,D> currentItem = (Item<V,D>) object.findItem(getPath());
+		if (currentItem == null) {
+			if (valuesToReplace != null) {
+				return valuesToReplace.isEmpty();
+			}
+			return !hasAnyValue(valuesToAdd);
+		} else {
+			if (valuesToReplace != null) {
+				return MiscUtil.unorderedCollectionEquals(valuesToReplace, currentItem.getValues(), comparator);
+			}
+			ItemDelta<V,D> narrowed = narrow(object, comparator);
+			boolean narrowedNotEmpty = narrowed.hasAnyValue(narrowed.valuesToAdd) || narrowed.hasAnyValue(narrowed.valuesToDelete);
+			return narrowedNotEmpty;
+		}
+	}
+
+	public void validate() throws SchemaException {
     	validate(null);
     }
     
