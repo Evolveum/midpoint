@@ -588,9 +588,9 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 	//
 	private boolean showEmpty(ItemWrapper item) {
 		ObjectWrapper object = getObject();
-
-		if (item instanceof PropertyWrapper) {
-			List<ValueWrapper> values = ((PropertyWrapper) item).getValues();
+//		item.getValues()
+//		if (item instanceof PropertyWrapper) {
+			List<ValueWrapper> values = item.getValues();
 			boolean isEmpty = values.isEmpty();
 			if (values.size() == 1) {
 				ValueWrapper value = values.get(0);
@@ -599,9 +599,9 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 				}
 			}
 			return object.isShowEmpty() || !isEmpty;
-		}
+//		}
 
-		return object.isShowEmpty();
+//		return object.isShowEmpty();
 	}
 
 	@Override

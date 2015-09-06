@@ -45,11 +45,15 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Revivable;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
@@ -617,96 +621,26 @@ public class ObjectWrapper implements Serializable, Revivable {
 				continue;
 			}
 
-			for (PropertyWrapper propertyWrapper : (List<PropertyWrapper>) containerWrapper.getItems()) {
-				if (!propertyWrapper.hasChanged()) {
+			for (ItemWrapper itemWrapper : (List<ItemWrapper>) containerWrapper.getItems()) {
+				if (!itemWrapper.hasChanged()) {
 					continue;
 				}
-
-				PrismPropertyDefinition propertyDef = propertyWrapper.getItem().getDefinition();
-
 				ItemPath path = containerWrapper.getPath() != null ? containerWrapper.getPath()
 						: new ItemPath();
-				PropertyDelta pDelta = new PropertyDelta(path, propertyDef.getName(), propertyDef,
-						propertyDef.getPrismContext()); // hoping the
-														// prismContext is there
-				for (ValueWrapper valueWrapper : propertyWrapper.getValues()) {
-					valueWrapper.normalize();
-					ValueStatus valueStatus = valueWrapper.getStatus();
-					if (!valueWrapper.hasValueChanged()
-							&& (ValueStatus.NOT_CHANGED.equals(valueStatus) || ValueStatus.ADDED
-									.equals(valueStatus))) {
-						continue;
-					}
-
-					// TODO: need to check if the resource has defined
-					// capabilities
-					// todo this is bad hack because now we have not tri-state
-					// checkbox
-					if (SchemaConstants.PATH_ACTIVATION.equivalent(path)) {
-
-						if (object.asObjectable() instanceof ShadowType
-								&& (((ShadowType) object.asObjectable()).getActivation() == null || ((ShadowType) object
-										.asObjectable()).getActivation().getAdministrativeStatus() == null)) {
-
-							if (!hasResourceCapability(((ShadowType) object.asObjectable()).getResource(),
-									ActivationCapabilityType.class)) {
-								continue;
-							}
-						}
-					}
-
-					PrismValue newValCloned = clone(valueWrapper.getValue());
-					PrismValue oldValCloned = clone(valueWrapper.getOldValue());
-					switch (valueWrapper.getStatus()) {
-						case ADDED:
-							if (newValCloned != null) {
-								if (SchemaConstants.PATH_PASSWORD.equivalent(path)) {
-									// password change will always look like
-									// add,
-									// therefore we push replace
-									pDelta.setValuesToReplace(Arrays.asList(newValCloned));
-								} else if (propertyDef.isSingleValue()) {
-									// values for single-valued properties
-									// should be pushed via replace
-									// in order to prevent problems e.g. with
-									// summarizing deltas for
-									// unreachable resources
-									pDelta.setValueToReplace(newValCloned);
-								} else {
-									pDelta.addValueToAdd(newValCloned);
-								}
-							}
-							break;
-						case DELETED:
-							if (newValCloned != null) {
-								pDelta.addValueToDelete(newValCloned);
-							}
-							break;
-						case NOT_CHANGED:
-							// this is modify...
-							if (propertyDef.isSingleValue()) {
-//								newValCloned.isEmpty()
-								if (newValCloned != null && !newValCloned.isEmpty()) {
-									pDelta.setValuesToReplace(Arrays.asList(newValCloned));
-								} else {
-									if (oldValCloned != null) {
-										pDelta.addValueToDelete(oldValCloned);
-									}
-								}
-							} else {
-								if (newValCloned != null && !newValCloned.isEmpty()) {
-									pDelta.addValueToAdd(newValCloned);
-								}
-								if (oldValCloned != null) {
-									pDelta.addValueToDelete(oldValCloned);
-								}
-							}
-							break;
+				if (itemWrapper instanceof PropertyWrapper) {
+					PropertyDelta pDelta = computePropertyDeltas((PropertyWrapper) itemWrapper, path);
+					if (!pDelta.isEmpty()) {
+						delta.addModification(pDelta);
 					}
 				}
-				if (!pDelta.isEmpty()) {
-					delta.addModification(pDelta);
+
+				if (itemWrapper instanceof ReferenceWrapper) {
+					ReferenceDelta pDelta = computeReferenceDeltas((ReferenceWrapper) itemWrapper, path);
+					if (!pDelta.isEmpty()) {
+						delta.addModification(pDelta);
+					}
 				}
+
 			}
 		}
 
@@ -714,6 +648,108 @@ public class ObjectWrapper implements Serializable, Revivable {
 		Collections.sort(containers, new ItemWrapperComparator());
 
 		return delta;
+	}
+
+	private PropertyDelta computePropertyDeltas(PropertyWrapper propertyWrapper, ItemPath path) {
+		PrismPropertyDefinition propertyDef = propertyWrapper.getItem().getDefinition();
+
+		PropertyDelta pDelta = new PropertyDelta(path, propertyDef.getName(), propertyDef,
+				propertyDef.getPrismContext()); // hoping the
+												// prismContext is there
+
+		addItemDelta(propertyWrapper, pDelta, propertyDef, path);
+		return pDelta;
+
+	}
+
+	private ReferenceDelta computeReferenceDeltas(ReferenceWrapper referenceWrapper, ItemPath path) {
+		PrismReferenceDefinition propertyDef = referenceWrapper.getItem().getDefinition();
+
+		ReferenceDelta pDelta = new ReferenceDelta(path, propertyDef.getName(), propertyDef,
+				propertyDef.getPrismContext()); // hoping the
+												// prismContext is there
+
+		addItemDelta(referenceWrapper, pDelta, propertyDef, path);
+		return pDelta;
+
+	}
+
+	private void addItemDelta(ItemWrapper itemWrapper, ItemDelta pDelta, ItemDefinition propertyDef,
+			ItemPath path) {
+		for (ValueWrapper valueWrapper : itemWrapper.getValues()) {
+			valueWrapper.normalize();
+			ValueStatus valueStatus = valueWrapper.getStatus();
+			if (!valueWrapper.hasValueChanged()
+					&& (ValueStatus.NOT_CHANGED.equals(valueStatus) || ValueStatus.ADDED.equals(valueStatus))) {
+				continue;
+			}
+
+			// TODO: need to check if the resource has defined
+			// capabilities
+			// todo this is bad hack because now we have not tri-state
+			// checkbox
+			if (SchemaConstants.PATH_ACTIVATION.equivalent(path)) {
+
+				if (object.asObjectable() instanceof ShadowType
+						&& (((ShadowType) object.asObjectable()).getActivation() == null || ((ShadowType) object
+								.asObjectable()).getActivation().getAdministrativeStatus() == null)) {
+
+					if (!hasResourceCapability(((ShadowType) object.asObjectable()).getResource(),
+							ActivationCapabilityType.class)) {
+						continue;
+					}
+				}
+			}
+
+			PrismValue newValCloned = clone(valueWrapper.getValue());
+			PrismValue oldValCloned = clone(valueWrapper.getOldValue());
+			switch (valueWrapper.getStatus()) {
+				case ADDED:
+					if (newValCloned != null) {
+						if (SchemaConstants.PATH_PASSWORD.equivalent(path)) {
+							// password change will always look like
+							// add,
+							// therefore we push replace
+							pDelta.setValuesToReplace(Arrays.asList(newValCloned));
+						} else if (propertyDef.isSingleValue()) {
+							// values for single-valued properties
+							// should be pushed via replace
+							// in order to prevent problems e.g. with
+							// summarizing deltas for
+							// unreachable resources
+							pDelta.setValueToReplace(newValCloned);
+						} else {
+							pDelta.addValueToAdd(newValCloned);
+						}
+					}
+					break;
+				case DELETED:
+					if (newValCloned != null) {
+						pDelta.addValueToDelete(newValCloned);
+					}
+					break;
+				case NOT_CHANGED:
+					// this is modify...
+					if (propertyDef.isSingleValue()) {
+						// newValCloned.isEmpty()
+						if (newValCloned != null && !newValCloned.isEmpty()) {
+							pDelta.setValuesToReplace(Arrays.asList(newValCloned));
+						} else {
+							if (oldValCloned != null) {
+								pDelta.addValueToDelete(oldValCloned);
+							}
+						}
+					} else {
+						if (newValCloned != null && !newValCloned.isEmpty()) {
+							pDelta.addValueToAdd(newValCloned);
+						}
+						if (oldValCloned != null) {
+							pDelta.addValueToDelete(oldValCloned);
+						}
+					}
+					break;
+			}
+		}
 	}
 
 	private PrismValue clone(PrismValue value) {
@@ -733,6 +769,13 @@ public class ObjectWrapper implements Serializable, Revivable {
 					return null;
 				}
 				((PrismPropertyValue) cloned).setValue(new PolyString(poly.getOrig(), poly.getNorm()));
+			}
+		} else if (value instanceof PrismReferenceValue) {
+			if (cloned == null) {
+				return null;
+			}
+			if (cloned.isEmpty()) {
+				return null;
 			}
 		}
 

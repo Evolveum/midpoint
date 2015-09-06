@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -31,9 +32,11 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
 import com.evolveum.midpoint.web.component.input.*;
 import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
@@ -68,6 +71,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.util.ListModel;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -530,8 +534,13 @@ public class PrismValuePanel extends Panel {
               }
         } else if (item instanceof PrismReference){
 //        	((PrismReferenceDefinition) item.getDefinition()).
-        	Class typeClass = item.getDefinition().getTypeClassIfKnown() != null ? item.getDefinition().getTypeClassIfKnown() : OrgType.class;
-        	panel = new MultiValueChoosePanel(id,
+        	Class typeFromName = null;
+        	PrismContext prismContext = item.getPrismContext();
+        	if (((PrismReferenceDefinition)item.getDefinition()).getTargetTypeName() != null){
+        		 typeFromName = prismContext.getSchemaRegistry().determineCompileTimeClass(((PrismReferenceDefinition) item.getDefinition()).getTargetTypeName());
+        	}
+        	final Class typeClass = typeFromName != null ? typeFromName : (item.getDefinition().getTypeClassIfKnown() != null ? item.getDefinition().getTypeClassIfKnown() : UserType.class);
+        	panel = new ValueChoosePanel(id,
     				new PropertyModel<>(model, "value"), new Model<String>(item.getDisplayName()), "10", "10", false, typeClass) {
 
     			@Override
@@ -540,7 +549,7 @@ public class PrismValuePanel extends Panel {
 
     					@Override
     					public String getObject() {
-    						ObjectReferenceType ort = (ObjectReferenceType) model.getObject();
+    						PrismReferenceValue ort = (PrismReferenceValue) model.getObject();
 
     						return ort == null ? null : ort.getOid();
     					}
@@ -548,10 +557,10 @@ public class PrismValuePanel extends Panel {
     			}
 
     			@Override
-    			protected ObjectType createNewEmptyItem() {
-    				return new OrgType();
-    			}
-
+    					protected ObjectType createNewEmptyItem() throws InstantiationException, IllegalAccessException {
+    						return (ObjectType) typeClass.newInstance();
+    					}
+    			
     			@Override
     			protected ObjectQuery createChooseQuery() {
     				ArrayList<String> oidList = new ArrayList<>();
@@ -579,25 +588,7 @@ public class PrismValuePanel extends Panel {
     				return query;
     			}
 
-    			@Override
-    			protected void replaceIfEmpty(Object object) {
-
-    				boolean added = false;
-
-    				List<PrismReferenceValue> parents = item.getValues();
-    				for (PrismReferenceValue org : parents) {
-    					if (org.getOid() == null || org.getOid().isEmpty()) {
-    						parents.remove(org);
-    						parents.add((PrismReferenceValue) object);
-    						added = true;
-    						break;
-    					}
-    				}
-
-    				if (!added) {
-    					parents.add((PrismReferenceValue) object);
-    				}
-    			}
+    			
     		};
         }
       

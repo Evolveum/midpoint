@@ -103,7 +103,7 @@ public class ReferenceWrapper implements ItemWrapper, Serializable{
 	        List<ValueWrapper> values = new ArrayList<ValueWrapper>();
 
 	        for (PrismReferenceValue prismValue : (List<PrismReferenceValue>) reference.getValues()) {
-	            values.add(new ValueWrapper(this, prismValue, ValueStatus.NOT_CHANGED));
+	            values.add(new ValueWrapper(this, prismValue, prismValue, ValueStatus.NOT_CHANGED));
 	        }
 
 	        int minOccurs = reference.getDefinition().getMinOccurs();
@@ -123,9 +123,12 @@ public class ReferenceWrapper implements ItemWrapper, Serializable{
 	    }
 
 	    public ValueWrapper createValue() {
-	        PrismReferenceDefinition definition = reference.getDefinition();
-
-	        ValueWrapper wrapper = new ValueWrapper(this, new PrismReferenceValue(), ValueStatus.ADDED);
+//	        PrismReferenceDefinition definition = reference.getDefinition();
+//	     	definition.instantiate()
+	    	
+	    	PrismReferenceValue prv = new PrismReferenceValue();
+	    	
+	        ValueWrapper wrapper = new ValueWrapper(this, prv, ValueStatus.ADDED);
 	        return wrapper;
 	    }
 

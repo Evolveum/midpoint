@@ -6777,6 +6777,7 @@
 	                                This reference may point to object of type UserType of OrgType.
                                 </p>
                             </xsd:documentation>
+                            
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="approverExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="unbounded">

@@ -267,7 +267,7 @@ public class PrismPropertyPanel extends Panel {
 
             @Override
             public String getObject() {
-                ItemWrapper wrapper = (PropertyWrapper) model.getObject();
+                ItemWrapper wrapper = model.getObject();
                 String displayName = wrapper.getDisplayName();
                 return getString(displayName, null, displayName);
             }
