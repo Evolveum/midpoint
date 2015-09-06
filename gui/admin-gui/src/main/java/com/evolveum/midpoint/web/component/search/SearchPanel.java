@@ -7,21 +7,26 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.BaseSimplePanel;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
-import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTextField;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -40,8 +45,12 @@ public class SearchPanel extends BaseSimplePanel<Search> {
     private static final String ID_ADD_TEXT = "addText";
     private static final String ID_ADD = "add";
     private static final String ID_CLOSE = "close";
+    private static final String ID_PROPERTIES = "properties";
+    private static final String ID_CHECK = "check";
+    private static final String ID_PROP_NAME = "propName";
+    private static final String ID_PROP_LIST = "propList";
 
-    private IModel<ItemDefinition> addItemModel;
+    private LoadableModel<MoreDialogDto> moreDialogModel;
 
     public SearchPanel(String id, IModel<Search> model) {
         super(id, model);
@@ -49,6 +58,17 @@ public class SearchPanel extends BaseSimplePanel<Search> {
 
     @Override
     protected void initLayout() {
+        moreDialogModel = new LoadableModel<MoreDialogDto>(false) {
+
+            @Override
+            protected MoreDialogDto load() {
+                MoreDialogDto dto = new MoreDialogDto();
+                dto.setProperties(createPropertiesList(null));
+
+                return dto;
+            }
+        };
+
         Form form = new Form(ID_FORM);
         add(form);
 
@@ -89,16 +109,43 @@ public class SearchPanel extends BaseSimplePanel<Search> {
         popover.setOutputMarkupId(true);
         add(popover);
 
-        addItemModel = new Model<>();
-        AutoCompleteTextField addText = new DefinitionAutoComplete(ID_ADD_TEXT, addItemModel,
-                new PropertyModel<List<ItemDefinition>>(getModel(), Search.F_AVAILABLE_DEFINITIONS));
-        addText.add(new AjaxFormComponentUpdatingBehavior("onblur") {
+        TextField addText = new TextField(ID_ADD_TEXT, new PropertyModel(moreDialogModel, MoreDialogDto.F_NAME_FILTER));
+        popover.add(addText);
+        addText.add(new AjaxFormComponentUpdatingBehavior("onkeyup") {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
+                //todo implement
             }
         });
         popover.add(addText);
+
+        WebMarkupContainer propList = new WebMarkupContainer(ID_PROP_LIST);
+        propList.setOutputMarkupId(true);
+        popover.add(propList);
+
+        ListView properties = new ListView(ID_PROPERTIES,
+                new PropertyModel<>(moreDialogModel, MoreDialogDto.F_PROPERTIES)) {
+
+            @Override
+            protected void populateItem(ListItem item) {
+                CheckBox check = new CheckBox(ID_CHECK,
+                        new PropertyModel<Boolean>(item.getModel(), Property.F_SELECTED));
+                check.add(new AjaxFormComponentUpdatingBehavior("onchange") {
+
+                    @Override
+                    protected void onUpdate(AjaxRequestTarget target) {
+                        //nothing, just update model.
+                    }
+                });
+                item.add(check);
+
+                Label name = new Label(ID_PROP_NAME, new PropertyModel<>(item.getModel(), Property.F_NAME));
+                name.setRenderBodyOnly(true);
+                item.add(name);
+            }
+        };
+        propList.add(properties);
 
         AjaxButton add = new AjaxButton(ID_ADD, createStringResource("SearchPanel.add")) {
 
@@ -117,6 +164,25 @@ public class SearchPanel extends BaseSimplePanel<Search> {
             }
         };
         popover.add(close);
+    }
+
+    private List<Property> createPropertiesList(String nameFilter) {
+        List<Property> list = new ArrayList<>();
+
+        Search search = getModelObject();
+        List<ItemDefinition> defs = search.getAvailableDefinitions();
+        for (ItemDefinition def : defs) {
+            Property property = new Property(def);
+
+            if (StringUtils.isNotEmpty(nameFilter)
+                    && !property.getName().toLowerCase().contains(nameFilter.toLowerCase())) {
+                continue;
+            }
+
+            list.add(property);
+        }
+
+        return list;
     }
 
     @Override
@@ -138,17 +204,18 @@ public class SearchPanel extends BaseSimplePanel<Search> {
     }
 
     private void addItemPerformed(AjaxRequestTarget target) {
-        ItemDefinition def = addItemModel.getObject();
-        if (def == null) {
-            //todo show error
-            return;
+        Search search = getModelObject();
+
+        MoreDialogDto dto = moreDialogModel.getObject();
+        for (Property property : dto.getProperties()) {
+            if (!property.isSelected()) {
+                continue;
+            }
+
+            search.addItem(property.getDefinition());
         }
 
-        Search search = getModelObject();
-        search.addItem(def);
-
-        addItemModel.setObject(null);
-
+        moreDialogModel.reset();
         refreshSearchForm(target);
     }
 

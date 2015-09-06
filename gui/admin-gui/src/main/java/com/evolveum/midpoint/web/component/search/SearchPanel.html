@@ -38,13 +38,24 @@
 
     <div wicket:id="popover" class="popover fade bottom in" style="display: none;">
         <div class="arrow"></div>
-        <div class="popover-content">
-            <input wicket:id="addText" type="text" class="form-control input-sm" style="width: auto;" size="20">
+        <div class="search-popover">
+            <div class="more-input">
+                <input wicket:id="addText" type="text" class="form-control input-sm" style="width: auto;" size="20">
+            </div>
 
-            <p style="margin: 0px; padding-top: 7px;">
+            <div class="properties">
+                <dl wicket:id="propList">
+                    <dt><wicket:message key="SearchPanel.properties"/></dt>
+                    <dd wicket:id="properties">
+                        <input wicket:id="check" type="checkbox">&nbsp;<span wicket:id="propName">Name</span>
+                    </dd>
+                </dl>
+            </div>
+
+            <div class="buttons">
                 <a wicket:id="add" class="btn btn-sm btn-success"/>
                 <a wicket:id="close" class="btn btn-sm btn-default"/>
-            </p>
+            </div>
         </div>
     </div>
 </wicket:panel>
