@@ -165,7 +165,7 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
         Fragment fragment;
         SearchItem item = getModelObject();
 
-        IModel value = null;
+        IModel value = new PropertyModel(getModel(), SearchItem.F_VALUE);
         IModel<? extends List> choices = null;
 
         switch (item.getType()) {
@@ -174,7 +174,6 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
                 fragment = new BrowserFragment(ID_CONTENT, ID_BROWSER, this, value);
                 break;
             case BOOLEAN:
-                value = new PropertyModel(getModel(), SearchItem.F_VALUE);
                 choices = createBooleanChoices();
             case ENUM:
                 if (choices == null) {

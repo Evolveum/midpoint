@@ -86,7 +86,7 @@ public class Search implements Serializable {
 
         List<ObjectFilter> conditions = new ArrayList<>();
         for (SearchItem item : searchItems) {
-            ObjectFilter filter = createFilterFromItem(item, ctx);
+            ObjectFilter filter = createFilterForItem(item, ctx);
             if (filter != null) {
                 conditions.add(filter);
             }
@@ -103,7 +103,7 @@ public class Search implements Serializable {
         }
     }
 
-    private ObjectFilter createFilterFromItem(SearchItem item, PrismContext ctx) {
+    private ObjectFilter createFilterForItem(SearchItem item, PrismContext ctx) {
         if (item.getValue() == null) {
             return null;
         }

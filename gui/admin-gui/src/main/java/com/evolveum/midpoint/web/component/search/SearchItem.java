@@ -18,6 +18,7 @@ import java.util.List;
  */
 public class SearchItem<T extends Serializable> implements Serializable {
 
+    public static final String F_VALUES = "values";
     public static final String F_VALUE = "value";
     public static final String F_DISPLAY_VALUE = "displayValue";
 
@@ -29,6 +30,7 @@ public class SearchItem<T extends Serializable> implements Serializable {
 
     private ItemPath path;
     private ItemDefinition definition;
+    private List<DisplayableValue> values;
     private T value;
     private String displayValue;
 
@@ -95,6 +97,17 @@ public class SearchItem<T extends Serializable> implements Serializable {
             displayValue = value.toString();
         }
         setDisplayValue(displayValue);
+    }
+
+    public List<DisplayableValue> getValues() {
+        if (values == null) {
+            values = new ArrayList<>();
+        }
+        return values;
+    }
+
+    public void setValues(List<DisplayableValue> values) {
+        this.values = values;
     }
 
     public void setDisplayValue(String displayValue) {

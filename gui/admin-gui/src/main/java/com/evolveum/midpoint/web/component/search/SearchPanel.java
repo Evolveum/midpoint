@@ -8,6 +8,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.BaseSimplePanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -23,7 +24,6 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import java.util.ArrayList;
@@ -63,7 +63,7 @@ public class SearchPanel extends BaseSimplePanel<Search> {
             @Override
             protected MoreDialogDto load() {
                 MoreDialogDto dto = new MoreDialogDto();
-                dto.setProperties(createPropertiesList(null));
+                dto.setProperties(createPropertiesList());
 
                 return dto;
             }
@@ -109,26 +109,15 @@ public class SearchPanel extends BaseSimplePanel<Search> {
         popover.setOutputMarkupId(true);
         add(popover);
 
-        TextField addText = new TextField(ID_ADD_TEXT, new PropertyModel(moreDialogModel, MoreDialogDto.F_NAME_FILTER));
-        popover.add(addText);
-        addText.add(new AjaxFormComponentUpdatingBehavior("onkeyup") {
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                //todo implement
-            }
-        });
-        popover.add(addText);
-
-        WebMarkupContainer propList = new WebMarkupContainer(ID_PROP_LIST);
+        final WebMarkupContainer propList = new WebMarkupContainer(ID_PROP_LIST);
         propList.setOutputMarkupId(true);
         popover.add(propList);
 
-        ListView properties = new ListView(ID_PROPERTIES,
-                new PropertyModel<>(moreDialogModel, MoreDialogDto.F_PROPERTIES)) {
+        ListView properties = new ListView<Property>(ID_PROPERTIES,
+                new PropertyModel<List<Property>>(moreDialogModel, MoreDialogDto.F_PROPERTIES)) {
 
             @Override
-            protected void populateItem(ListItem item) {
+            protected void populateItem(final ListItem<Property> item) {
                 CheckBox check = new CheckBox(ID_CHECK,
                         new PropertyModel<Boolean>(item.getModel(), Property.F_SELECTED));
                 check.add(new AjaxFormComponentUpdatingBehavior("onchange") {
@@ -143,9 +132,38 @@ public class SearchPanel extends BaseSimplePanel<Search> {
                 Label name = new Label(ID_PROP_NAME, new PropertyModel<>(item.getModel(), Property.F_NAME));
                 name.setRenderBodyOnly(true);
                 item.add(name);
+
+                item.add(new VisibleEnableBehaviour() {
+
+                    @Override
+                    public boolean isVisible() {
+                        MoreDialogDto dto = moreDialogModel.getObject();
+                        String nameFilter = dto.getNameFilter();
+
+                        Property property = item.getModelObject();
+                        String propertyName = property.getName().toLowerCase();
+                        if (StringUtils.isNotEmpty(nameFilter)
+                                && !propertyName.contains(nameFilter.toLowerCase())) {
+                            return false;
+                        }
+
+                        return true;
+                    }
+                });
             }
         };
         propList.add(properties);
+
+        TextField addText = new TextField(ID_ADD_TEXT, new PropertyModel(moreDialogModel, MoreDialogDto.F_NAME_FILTER));
+        popover.add(addText);
+        addText.add(new AjaxFormComponentUpdatingBehavior("onkeyup") {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                target.add(propList);
+            }
+        });
+        popover.add(addText);
 
         AjaxButton add = new AjaxButton(ID_ADD, createStringResource("SearchPanel.add")) {
 
@@ -166,20 +184,13 @@ public class SearchPanel extends BaseSimplePanel<Search> {
         popover.add(close);
     }
 
-    private List<Property> createPropertiesList(String nameFilter) {
+    private List<Property> createPropertiesList() {
         List<Property> list = new ArrayList<>();
 
         Search search = getModelObject();
         List<ItemDefinition> defs = search.getAvailableDefinitions();
         for (ItemDefinition def : defs) {
-            Property property = new Property(def);
-
-            if (StringUtils.isNotEmpty(nameFilter)
-                    && !property.getName().toLowerCase().contains(nameFilter.toLowerCase())) {
-                continue;
-            }
-
-            list.add(property);
+            list.add(new Property(def));
         }
 
         return list;
