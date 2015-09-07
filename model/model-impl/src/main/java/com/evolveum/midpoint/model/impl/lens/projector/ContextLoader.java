@@ -842,6 +842,10 @@ public class ContextLoader {
 	}
 	
 	private void markShadowDead(String oid, OperationResult result) {
+		if (oid == null) {
+			// nothing to mark
+			return;
+		}
 		Collection<? extends ItemDelta<?, ?>> modifications = MiscSchemaUtil.createCollection(PropertyDelta.createReplaceDelta(prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class), 
 				ShadowType.F_DEAD, true));
 		try {

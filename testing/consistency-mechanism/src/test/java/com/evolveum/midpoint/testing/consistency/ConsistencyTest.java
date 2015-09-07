@@ -1128,6 +1128,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		PrismObject<ShadowType> modifiedAccount = provisioningService.getObject(
 				ShadowType.class, accountOid, null, task, parentResult);
 		assertNotNull(modifiedAccount);
+		display("Modified shadow", modifiedAccount);
 		assertShadowName(modifiedAccount.asObjectable(), "uid=guybrush123,ou=people,dc=example,dc=com");
 //		PrismAsserts.assertEqualsPolyString("Wrong shadow name", "uid=guybrush123,ou=people,dc=example,dc=com", modifiedAccount.asObjectable().getName());
 		ResourceAttributeContainer attributeContainer = ShadowUtil
