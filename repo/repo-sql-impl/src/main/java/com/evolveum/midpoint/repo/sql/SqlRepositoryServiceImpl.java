@@ -1093,7 +1093,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         	}
         	}
         	 Query query = session.getNamedQuery("resolveReferences");
-             query.setString("oid", prismObject.getOid());
+             query.setParameterList("oid", oidsToResolve);
              query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
              
              List<Map<String, Object>> results = query.list();
@@ -1105,12 +1105,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
              		if (ref != null && !ref.isEmpty()){
              			Collection<PrismReferenceValue> valuesToReplace = new ArrayList<>();
              			for (PrismReferenceValue rVal : ref.getValues()){
-             				PrismReferenceValue cloned = rVal.clone();
-             				cloned.setTargetName(oidNameMap.get(rVal.getOid()));
-             				valuesToReplace.add(cloned);
+//             				PrismReferenceValue cloned = rVal.clone();
+             				rVal.setTargetName(oidNameMap.get(rVal.getOid()));
+//             				valuesToReplace.add(cloned);
              			}
-             			ref.getValues().clear();
-             			ref.getValues().addAll(valuesToReplace);
+//             			ref.getValues().clear();
+//             			ref.getValues().addAll(valuesToReplace);
              		}
              	}
              	}

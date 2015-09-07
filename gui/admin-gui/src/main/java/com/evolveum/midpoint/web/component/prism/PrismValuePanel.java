@@ -551,7 +551,7 @@ public class PrismValuePanel extends Panel {
     					public String getObject() {
     						PrismReferenceValue ort = (PrismReferenceValue) model.getObject();
 
-    						return ort == null ? null : ort.getOid();
+    						return ort == null ? null : (ort.getTargetName() != null ? ort.getTargetName().getOrig() : ort.getOid());
     					}
     				};
     			}

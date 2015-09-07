@@ -507,6 +507,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		clone.description = this.description;
 		clone.filter = this.filter;
         clone.relation = this.relation;
+        clone.targetName = this.targetName;
 	}
 
 	@Override
