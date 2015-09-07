@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2014 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@
         <xsd:documentation>
             Basic Prism types.
             
-            Version: 3.1
+            Version: 3.3-SNAPSHOT
             Recommended namespace prefix: t
         </xsd:documentation>
     </xsd:annotation>
@@ -307,6 +307,20 @@
                 		<xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
                 	</xsd:sequence>
                 </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="targetName" type="tns:PolyStringType" minOccurs="0" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			        	<p>
+				            Cached name of the target object.
+				            This is a ephemeral value. It is usually not stored.
+				            It may be computed at object retrieval time or it may not be present at all.
+				     		This is NOT an authoritative information. Setting it or changing it will
+				     		not influence the reference meaning. OID is the only authoritative linking
+				     		mechanism.
+			            </p>
+			        </xsd:documentation>
+			    </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="oid" type="xsd:string" use="optional">

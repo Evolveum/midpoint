@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 
     private static final long serialVersionUID = 7321429132391159949L;
+    
+    private static final String PROPERTY_NAME_LOCALPART = "name";
 
     protected String oid;
 	protected String version;
@@ -118,7 +120,19 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
             throw new SystemException("Couldn't create jaxb object instance of '" + clazz + "': "+ex.getMessage(), ex);
         }
 	}
+	
+	public PolyString getName() {
+		PrismProperty<PolyString> nameProperty = getValue().findProperty(getNamePropertyElementName());
+		if (nameProperty == null) {
+			return null;
+		}
+		return nameProperty.getRealValue();
+	}
 
+	private QName getNamePropertyElementName() {
+		return new QName(getElementName().getNamespaceURI(), PrismConstants.NAME_LOCAL_NAME);
+	}
+	
 	public PrismContainer<?> getExtension() {
 		return (PrismContainer<?>) getValue().findItem(getExtensionContainerElementName(), PrismContainer.class);
 	}
