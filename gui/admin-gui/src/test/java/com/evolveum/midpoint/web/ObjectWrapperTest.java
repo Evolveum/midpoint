@@ -16,7 +16,9 @@
 
 package com.evolveum.midpoint.web;
 
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.web.component.prism.*;
@@ -51,9 +53,9 @@ public class ObjectWrapperTest extends BaseGuiTest {
             }
         }
 
-        PropertyWrapper propertyWrapper = containerWrapper.findPropertyWrapper(UserType.F_HONORIFIC_SUFFIX);
+        PropertyWrapper propertyWrapper = (PropertyWrapper) containerWrapper.findPropertyWrapper(UserType.F_HONORIFIC_SUFFIX);
         ValueWrapper valueWrapper = propertyWrapper.getValues().get(0);
-        PolyString value = (PolyString) valueWrapper.getValue().getValue();
+        PolyString value = (PolyString) ((PrismPropertyValue) valueWrapper.getValue()).getValue();
 
         Field orig = PolyString.class.getDeclaredField("orig");
         orig.setAccessible(true);
