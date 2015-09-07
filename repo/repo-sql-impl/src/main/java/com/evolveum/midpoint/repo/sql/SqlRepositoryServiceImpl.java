@@ -1092,28 +1092,28 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         		}
         	}
         	}
-        	 Query query = session.getNamedQuery("resolveReferences");
-             query.setParameterList("oid", oidsToResolve);
-             query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
-             
-             List<Map<String, Object>> results = query.list();
-             Map<String, PolyString> oidNameMap = consolidateResults(results);
-             
-             for (Definition def : defs){
-             	if (def instanceof PrismReferenceDefinition){
-             		PrismReference ref = prismObject.findReference(((PrismReferenceDefinition) def).getName());
-             		if (ref != null && !ref.isEmpty()){
-             			Collection<PrismReferenceValue> valuesToReplace = new ArrayList<>();
-             			for (PrismReferenceValue rVal : ref.getValues()){
-//             				PrismReferenceValue cloned = rVal.clone();
-             				rVal.setTargetName(oidNameMap.get(rVal.getOid()));
-//             				valuesToReplace.add(cloned);
-             			}
-//             			ref.getValues().clear();
-//             			ref.getValues().addAll(valuesToReplace);
-             		}
-             	}
-             	}
+        	
+			if (!oidsToResolve.isEmpty()) {
+				Query query = session.getNamedQuery("resolveReferences");
+				query.setParameterList("oid", oidsToResolve);
+				query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+
+				List<Map<String, Object>> results = query.list();
+				Map<String, PolyString> oidNameMap = consolidateResults(results);
+
+				for (Definition def : defs) {
+					if (def instanceof PrismReferenceDefinition) {
+						PrismReference ref = prismObject.findReference(((PrismReferenceDefinition) def)
+								.getName());
+						if (ref != null && !ref.isEmpty()) {
+							Collection<PrismReferenceValue> valuesToReplace = new ArrayList<>();
+							for (PrismReferenceValue rVal : ref.getValues()) {
+								rVal.setTargetName(oidNameMap.get(rVal.getOid()));
+							}
+						}
+					}
+				}
+			}
         }
         
         validateObjectType(prismObject, type);
