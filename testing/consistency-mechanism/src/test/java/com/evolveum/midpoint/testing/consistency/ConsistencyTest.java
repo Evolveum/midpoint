@@ -231,8 +231,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	private static final String USER_ALICE_FILENAME = REPO_DIR_NAME + "user-alice.xml";
 	private static final String USER_ALICE_OID = "c0c010c0-d34d-b33f-f00d-111111111999";
 	
-	private static final String USER_BOB_NO_FAMILY_NAME_FILENAME = REPO_DIR_NAME + "user-bob-no-family-name.xml";
-	private static final String USER_BOB_NO_FAMILY_NAME_OID = "c0c010c0-d34d-b33f-f00d-222111222999";
+	private static final String USER_BOB_NO_GIVEN_NAME_FILENAME = REPO_DIR_NAME + "user-bob-no-given-name.xml";
+	private static final String USER_BOB_NO_GIVEN_NAME_OID = "c0c010c0-d34d-b33f-f00d-222111222999";
 	
 	private static final String USER_JOHN_WEAK_FILENAME = REPO_DIR_NAME + "user-john.xml";
 	private static final String USER_JOHN_WEAK_OID = "c0c010c0-d34d-b33f-f00d-999111111888";
@@ -1482,51 +1482,43 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	public void test029modifyDiscoveryAddCommunicationProblem() throws Exception {
 		TestUtil.displayTestTile("test029modifyDiscoveryAddCommunicationProblem");
 		OperationResult parentResult = new OperationResult("test029modifyDiscoveryAddCommunicationProblem");
-		repoAddObjectFromFile(USER_BOB_NO_FAMILY_NAME_FILENAME, UserType.class, parentResult);
+		repoAddObjectFromFile(USER_BOB_NO_GIVEN_NAME_FILENAME, UserType.class, parentResult);
 
-		assertUserNoAccountRef(USER_BOB_NO_FAMILY_NAME_OID, parentResult);
+		assertUserNoAccountRef(USER_BOB_NO_GIVEN_NAME_OID, parentResult);
 
 		Task task = taskManager.createTaskInstance();
 		
 		//REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM
-		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGNE_ACCOUNT, USER_BOB_NO_FAMILY_NAME_OID, UserType.class, task, null, parentResult);
+		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGNE_ACCOUNT, USER_BOB_NO_GIVEN_NAME_OID, UserType.class, task, null, parentResult);
 		
 		parentResult.computeStatus();
 		display("add object communication problem result: ", parentResult);
 		assertEquals("Expected handled error but got: " + parentResult.getStatus(), OperationResultStatus.HANDLED_ERROR, parentResult.getStatus());
 		
-		String accountOid = assertUserOneAccountRef(USER_BOB_NO_FAMILY_NAME_OID);
+		String accountOid = assertUserOneAccountRef(USER_BOB_NO_GIVEN_NAME_OID);
 
-		checkPostponedAccountWithAttributes(accountOid, "bob", "Bob", null,  "Bob Dylan", FailedOperationTypeType.ADD, false, task, parentResult);
+		checkPostponedAccountWithAttributes(accountOid, "bob", null, "Dylan",  "Bob Dylan", FailedOperationTypeType.ADD, false, task, parentResult);
 		
 		//start openDJ
 		openDJController.start();
 		//and set the resource availability status to UP
 		modifyResourceAvailabilityStatus(AvailabilityStatusType.UP, parentResult);
 		
-		try {
-			modelService.getObject(ShadowType.class, accountOid, null, task,
-					parentResult);
-			fail("expected schema exception was not thrown");
-		} catch (SchemaException ex) {
-			LOGGER.info("schema exeption while trying to re-add account after communication problem without family name..this is expected.");
-			parentResult.muteLastSubresultError();
-			parentResult.recordSuccess();
-
-		}
+		// This should not throw exception
+		modelService.getObject(ShadowType.class, accountOid, null, task, parentResult);
 		
-		OperationResult modifyFamilyNameResult = new OperationResult("execute changes -> modify user's family name");
-		LOGGER.trace("execute changes -> modify user's family name");
-		Collection<? extends ItemDelta> familyNameDelta = PropertyDelta.createModificationReplacePropertyCollection(UserType.F_FAMILY_NAME, getUserDefinition(), new PolyString("Dylan"));
-		ObjectDelta familyNameD = ObjectDelta.createModifyDelta(USER_BOB_NO_FAMILY_NAME_OID, familyNameDelta, UserType.class, prismContext);
+		OperationResult modifyGivenNameResult = new OperationResult("execute changes -> modify user's given name");
+		LOGGER.trace("execute changes -> modify user's given name");
+		Collection<? extends ItemDelta> givenNameDelta = PropertyDelta.createModificationReplacePropertyCollection(UserType.F_GIVEN_NAME, getUserDefinition(), new PolyString("Bob"));
+		ObjectDelta familyNameD = ObjectDelta.createModifyDelta(USER_BOB_NO_GIVEN_NAME_OID, givenNameDelta, UserType.class, prismContext);
 		Collection<ObjectDelta<? extends ObjectType>> modifyFamilyNameDelta = createDeltaCollection(familyNameD);
-		modelService.executeChanges(modifyFamilyNameDelta, null, task, modifyFamilyNameResult);
+		modelService.executeChanges(modifyFamilyNameDelta, null, task, modifyGivenNameResult);
 		
-		modifyFamilyNameResult.computeStatus();
-		display("add object communication problem result: ", modifyFamilyNameResult);
-		assertEquals("Expected handled error but got: " + modifyFamilyNameResult.getStatus(), OperationResultStatus.SUCCESS, modifyFamilyNameResult.getStatus());
+		modifyGivenNameResult.computeStatus();
+		display("add object communication problem result: ", modifyGivenNameResult);
+		assertEquals("Expected handled error but got: " + modifyGivenNameResult.getStatus(), OperationResultStatus.SUCCESS, modifyGivenNameResult.getStatus());
 		
-		PrismObject<ShadowType> bobRepoAcc = repositoryService.getObject(ShadowType.class, accountOid, null, modifyFamilyNameResult);
+		PrismObject<ShadowType> bobRepoAcc = repositoryService.getObject(ShadowType.class, accountOid, null, modifyGivenNameResult);
 		assertNotNull(bobRepoAcc);
 		ShadowType bobRepoAccount = bobRepoAcc.asObjectable();
 		displayJaxb("Shadow after discovery: ", bobRepoAccount, ShadowType.COMPLEX_TYPE);
@@ -2294,7 +2286,9 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		
 	private void assertAttributes(ShadowType shadow, String uid, String givenName, String sn, String cn){
 		assertAttribute(shadow, resourceTypeOpenDjrepo, "uid", uid);
-		assertAttribute(shadow, resourceTypeOpenDjrepo, "givenName", givenName);
+		if (givenName != null) {
+			assertAttribute(shadow, resourceTypeOpenDjrepo, "givenName", givenName);
+		}
 		if (sn != null) {
 			assertAttribute(shadow, resourceTypeOpenDjrepo, "sn", sn);
 		}
