@@ -19,6 +19,7 @@ package com.evolveum.midpoint.prism;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -49,6 +50,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
     private QName relation = null;
     private String description = null;
     private SearchFilterType filter = null;
+    private PolyString targetName = null;
     
     
     private Referencable referencable;
@@ -119,15 +121,6 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		return null;
 	}
 
-    public Class<Objectable> getTargetTypeCompileTimeClass() {
-        QName type = getTargetType();
-        if (type == null) {
-            return null;
-        } else {
-            return getPrismContext().getSchemaRegistry().findObjectDefinitionByType(type).getCompileTimeClass();
-        }
-    }
-
     public void setTargetType(QName targetType) {
         setTargetType(targetType, false);
     }
@@ -146,6 +139,38 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		this.targetType = targetType;
 	}
 
+	/**
+	 * Returns cached name of the target object.
+     * This is a ephemeral value. It is usually not stored.
+     * It may be computed at object retrieval time or it may not be present at all.
+     * This is NOT an authoritative information. Setting it or changing it will
+     * not influence the reference meaning. OID is the only authoritative linking
+     * mechanism.
+	 * @return cached name of the target object.
+	 */
+	public PolyString getTargetName() {
+		if (targetName != null) {
+			return targetName;
+		}
+		if (object != null) {
+			return object.getName();
+		}
+		return null;
+	}
+	
+	public void setTargetName(PolyString name) {
+		this.targetName = name;
+	}
+
+    public Class<Objectable> getTargetTypeCompileTimeClass() {
+        QName type = getTargetType();
+        if (type == null) {
+            return null;
+        } else {
+            return getPrismContext().getSchemaRegistry().findObjectDefinitionByType(type).getCompileTimeClass();
+        }
+    }
+	
     public QName getRelation() {
 		return relation;
 	}
@@ -404,6 +429,9 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		if (object == null) {
 			sb.append("oid=").append(oid);
 			sb.append(", targetType=").append(PrettyPrinter.prettyPrint(targetType));
+			if (targetName != null) {
+				sb.append(", targetName=").append(PrettyPrinter.prettyPrint(targetName.getOrig()));
+			}
 		} else {
 			sb.append("object=").append(object);
 		}
@@ -423,7 +451,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		return sb.toString();
 	}
 
-	public Referencable asReferencable(){
+	public Referencable asReferencable() {
 		if (referencable == null){
 			Itemable parent = getParent();
 			QName xsdType = parent.getDefinition().getTypeName();
