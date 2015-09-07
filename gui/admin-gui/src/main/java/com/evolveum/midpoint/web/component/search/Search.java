@@ -44,6 +44,10 @@ public class Search implements Serializable {
         return Collections.unmodifiableList(availableDefinitions);
     }
 
+    public List<ItemDefinition> getAllDefinitions() {
+        return new ArrayList<>(allDefinitions.values());
+    }
+
     public SearchItem addItem(ItemDefinition def) {
         if (!availableDefinitions.contains(def)) {
             return null;

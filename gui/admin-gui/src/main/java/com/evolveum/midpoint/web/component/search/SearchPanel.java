@@ -27,6 +27,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -137,10 +138,16 @@ public class SearchPanel extends BaseSimplePanel<Search> {
 
                     @Override
                     public boolean isVisible() {
+                        Property property = item.getModelObject();
+
+                        Search search = SearchPanel.this.getModelObject();
+                        if (!search.getAvailableDefinitions().contains(property.getDefinition())) {
+                            return false;
+                        }
+
                         MoreDialogDto dto = moreDialogModel.getObject();
                         String nameFilter = dto.getNameFilter();
 
-                        Property property = item.getModelObject();
                         String propertyName = property.getName().toLowerCase();
                         if (StringUtils.isNotEmpty(nameFilter)
                                 && !propertyName.contains(nameFilter.toLowerCase())) {
@@ -188,10 +195,12 @@ public class SearchPanel extends BaseSimplePanel<Search> {
         List<Property> list = new ArrayList<>();
 
         Search search = getModelObject();
-        List<ItemDefinition> defs = search.getAvailableDefinitions();
+        List<ItemDefinition> defs = search.getAllDefinitions();
         for (ItemDefinition def : defs) {
             list.add(new Property(def));
         }
+
+        Collections.sort(list);
 
         return list;
     }
