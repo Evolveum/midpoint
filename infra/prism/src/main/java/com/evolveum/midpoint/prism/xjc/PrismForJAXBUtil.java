@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
@@ -416,21 +417,6 @@ public final class PrismForJAXBUtil {
 			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
 		}
 	}
-	
-//	public static void setReferenceFilterElement(PrismReferenceValue rval, Element filterElement) {
-//		DomParser parser = getDomParser(rval);
-//		try {
-//			if (filterElement == null || DOMUtil.isEmpty(filterElement)){
-//				return;
-//			}
-//			MapXNode filterXNode = parser.parseElementAsMap(filterElement);
-//			SearchFilterType filter = new SearchFilterType();
-//            filter.parseFromXNode(filterXNode);
-//			rval.setFilter(filter);
-//		} catch (SchemaException e) {
-//			throw new SystemException("Error parsing filter: "+e.getMessage(),e);
-//		}
-//	}
 
     public static void setReferenceFilterClauseXNode(PrismReferenceValue rval, SearchFilterType filterType) {
         if (filterType != null) {
@@ -440,36 +426,28 @@ public final class PrismForJAXBUtil {
         }
     }
 
-//    public static Element getReferenceFilterElement(PrismReferenceValue rval) {
-//		SearchFilterType filter = rval.getFilter();
-//		if (filter == null) {
-//			return null;
-//		}
-//		Element filterElement;
-//		PrismContext prismContext = rval.getPrismContext();
-//		// We have to work even if prismContext is null. This is needed for
-//		// equals and hashcode and similar methods.
-//		DomParser parser = getDomParser(rval);
-//		try {
-//			MapXNode filterXmap = filter.serializeToXNode();
-//			if (filterXmap.size() != 1) {
-//				// This is supposed to be a map with just a single entry. This is an internal error
-//				throw new IllegalArgumentException("Unexpected map in filter processing, it has "+filterXmap.size()+" entries");
-//			}
-//			Entry<QName, XNode> entry = filterXmap.entrySet().iterator().next();
-//			filterElement = parser.serializeXMapToElement((MapXNode) entry.getValue(), entry.getKey());
-//		} catch (SchemaException e) {
-//			throw new SystemException("Error serializing filter: "+e.getMessage(),e);
-//		}
-//		return filterElement;
-//	}
-
     public static MapXNode getReferenceFilterClauseXNode(PrismReferenceValue rval) {
         SearchFilterType filter = rval.getFilter();
         if (filter == null || !filter.containsFilterClause()) {
             return null;
         }
         return filter.getFilterClauseXNode();
+    }
+    
+    public static PolyStringType getReferenceTargetName(PrismReferenceValue rval) {
+        PolyString targetName = rval.getTargetName();
+        if (targetName == null) {
+            return null;
+        }
+        return new PolyStringType(targetName);
+    }
+    
+    public static void setReferenceTargetName(PrismReferenceValue rval, PolyStringType name) {
+        if (name == null) {
+        	rval.setTargetName(null);
+        } else {
+        	rval.setTargetName(name.toPolyString());
+        }
     }
 
     private static DomParser getDomParser(PrismValue pval) {
