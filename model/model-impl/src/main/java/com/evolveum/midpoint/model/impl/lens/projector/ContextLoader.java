@@ -809,6 +809,7 @@ public class ContextLoader {
 				// slightly inefficient here and check for existing shadow existence
 				try {
 					Collection<SelectorOptions<GetOperationOptions>> opts = SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery());
+					LOGGER.trace("Projection conflict detected, exsting: {}, new {}", projectionContext.getOid(), projection.getOid());
 					PrismObject<ShadowType> existingShadow = provisioningService.getObject(ShadowType.class, projectionContext.getOid(), opts, task, result);
 					// Maybe it is the other way around
 					try {
@@ -831,10 +832,11 @@ public class ContextLoader {
 				} catch (ObjectNotFoundException e) {
 					// This is somehow expected, fix it and we can go on
 					result.muteLastSubresultError();
+					String shadowOid = projectionContext.getOid();
 					projectionContext.getResourceShadowDiscriminator().setThombstone(true);
 					projectionContext = LensUtil.getOrCreateProjectionContext(context, rsd);
 					// We have to mark it as dead right now, otherwise the uniqueness check may fail
-					markShadowDead(projectionContext.getOid(), result);
+					markShadowDead(shadowOid, result);
 				}
 			}
 		}
