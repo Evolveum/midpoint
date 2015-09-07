@@ -31,10 +31,13 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.users.component.TreeTablePanel;
+import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxEventBehavior;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -67,13 +70,15 @@ public class PageOrgTree extends PageAdminUsers {
     private static final String DOT_CLASS = PageOrgTree.class.getName() + ".";
     private static final String OPERATION_LOAD_ORG_UNIT = DOT_CLASS + "loadOrgUnit";
 
+    public static TabbedPanel selectedTabbedPanel = null;
+
     private String ID_TABS = "tabs";
 
 
     public PageOrgTree() {
         initLayout();
     }
-    
+
     private void initLayout() {
         final IModel<List<ITab>> tabModel = new LoadableModel<List<ITab>>(false) {
 
@@ -82,13 +87,23 @@ public class PageOrgTree extends PageAdminUsers {
                 LOGGER.debug("Loading org. roots for tabs for tabbed panel.");
                 List<PrismObject<OrgType>> roots = loadOrgRoots();
 
-                List<ITab> tabs = new ArrayList<>();
+                final List<ITab> tabs = new ArrayList<>();
                 for (PrismObject<OrgType> root : roots) {
                     final String oid = root.getOid();
                     tabs.add(new AbstractTab(createTabTitle(root)) {
+                        private int tabId = tabs.size();
 
                         @Override
                         public WebMarkupContainer getPanel(String panelId) {
+                            add(new AjaxEventBehavior("onload") {
+                                    protected void onEvent(final AjaxRequestTarget target) {
+                                        SessionStorage storage = getSessionStorage();
+                                        storage.getUsers().setSelectedTabId(tabId);
+                                        storage.getUsers().setExpandedItems(null);
+                                    }
+
+                                }
+                            );
                             return new TreeTablePanel(panelId, new Model(oid));
                         }
                     });
@@ -105,7 +120,9 @@ public class PageOrgTree extends PageAdminUsers {
             }
         };
 
-        TabbedPanel tabbedPanel = new TabbedPanel(ID_TABS, tabModel, new Model<>(0));
+        SessionStorage storage = getSessionStorage();
+        int selectedTab = storage.getUsers().getSelectedTabId() == -1 ? 0 : storage.getUsers().getSelectedTabId();
+        TabbedPanel tabbedPanel = new TabbedPanel(ID_TABS, tabModel, new Model<>(selectedTab));
         tabbedPanel.setOutputMarkupId(true);
         add(tabbedPanel);
     }
