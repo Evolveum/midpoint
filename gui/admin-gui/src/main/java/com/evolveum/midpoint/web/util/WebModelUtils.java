@@ -111,6 +111,17 @@ public class WebModelUtils {
         }
         PrismObject<T> object = null;
         try {
+        	if (options == null){
+        		options = SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
+        	} else {
+        		GetOperationOptions getOpts = SelectorOptions.findRootOptions(options);
+        		if (getOpts == null){
+        			options.add(new SelectorOptions<GetOperationOptions>(GetOperationOptions.createResolveNames()));
+        		} else {
+        			getOpts.setResolveNames(Boolean.TRUE);
+        		}
+        	}
+//        	.createResolveNames();
             Task task = page.createSimpleTask(subResult.getOperation(), principal);
             object = page.getModelService().getObject(type, oid, options, task, subResult);
         } catch (Exception ex) {

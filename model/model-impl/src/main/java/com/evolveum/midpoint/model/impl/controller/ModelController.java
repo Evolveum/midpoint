@@ -320,7 +320,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
             
             applySchemasAndSecurity(object, rootOptions, null, task, result);
 			resolve(object, options, task, result);
-            resolveNames(object, options, task, result);
+//            resolveNames(object, options, task, result);
             
 		} catch (SchemaException e) {
 			ModelUtils.recordFatalError(result, e);
@@ -1463,7 +1463,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
                     }
                 }
 				resolve(object, options, task, result);
-				resolveNames(object, options, task, result);
+//				resolveNames(object, options, task, result);
             }
 
 		} finally {
