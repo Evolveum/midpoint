@@ -28,8 +28,12 @@ import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypeDialog;
+import com.evolveum.midpoint.web.page.admin.roles.component.UserOrgReferenceChoosePanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class ValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
 
@@ -49,37 +53,17 @@ public class ValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
 
 	private static final String CLASS_MULTI_VALUE = "multivalue-form";
 
-	public ValueChoosePanel(String id, IModel<T> value, IModel<String> label, String labelSize,
-			String textSize, boolean required, Class<C> type) {
+	public ValueChoosePanel(String id, IModel<T> value, boolean required, Class<C> type) {
 		super(id, value);
 		setOutputMarkupId(true);
 
-		initLayout(value, label, labelSize, textSize, required, type);
+		initLayout(value, required, type);
 	}
 
-	private void initLayout(final IModel<T> value, final IModel<String> label, final String labelSize,
-			final String textSize, final boolean required, Class<C> type) {
+	private void initLayout(final IModel<T> value, final boolean required, Class<C> type) {
 
-		Label l = new Label(ID_LABEL, label);
-
-		if (StringUtils.isNotEmpty(labelSize)) {
-			l.add(AttributeAppender.prepend("class", labelSize));
-		}
-		add(l);
-
+		
 		WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
-		textWrapper.add(AttributeAppender.prepend("class", new AbstractReadOnlyModel<String>() {
-
-			@Override
-			public String getObject() {
-				StringBuilder sb = new StringBuilder();
-				if (StringUtils.isNotEmpty(textSize)) {
-					sb.append(textSize).append(' ');
-				}
-
-				return sb.toString();
-			}
-		}));
 
 		TextField text = new TextField<>(ID_TEXT, createTextModel(value));
 		text.add(new AjaxFormComponentUpdatingBehavior("onblur") {
@@ -89,8 +73,6 @@ public class ValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
 		});
 		text.setRequired(required);
 		text.setEnabled(false);
-		text.add(AttributeAppender.replace("placeholder", label));
-		text.setLabel(label);
 		textWrapper.add(text);
 
 		FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK, new ComponentFeedbackMessageFilter(text));
@@ -117,11 +99,23 @@ public class ValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
 	  protected void replaceIfEmpty(Object object) {
 		  boolean added = false;
 		 	  ObjectReferenceType ort = ObjectTypeUtil.createObjectRef((ObjectType) object);
+		 	  ort.setTargetName(((ObjectType) object).getName());
 			  getModel().setObject((T)ort.asReferenceValue());
 		 
 	  }
 
 	protected void initDialog(final Class<C> type) {
+		
+		if (FocusType.class.equals(type)){
+			 initUserOrgDialog();
+         } else {
+        	 initGenericDialog(type);
+		
+		
+         }
+	}
+	
+	private void initGenericDialog(Class<C> type){
 		ModalWindow dialog = new ChooseTypeDialog(MODAL_ID_CHOOSE_PANEL, type) {
 
 			@Override
@@ -141,7 +135,31 @@ public class ValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
 		};
 		add(dialog);
 	}
+	
+	private void initUserOrgDialog(){
+		ModalWindow dialog = new ChooseTypeDialog(MODAL_ID_CHOOSE_PANEL, UserType.class){
 
+            @Override
+            protected void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object){
+                choosePerformed(target, (C)object);
+            }
+
+            @Override
+            protected WebMarkupContainer createExtraContentContainer(String extraContentId) {
+                return new UserOrgReferenceChoosePanel(extraContentId, Boolean.FALSE){
+
+                    @Override
+                    protected void onReferenceTypeChangePerformed(AjaxRequestTarget target, Boolean newValue) {
+                        updateTableByTypePerformed(target, Boolean.FALSE.equals(newValue) ? UserType.class : OrgType.class);
+                    }
+                };
+            }
+        };
+        add(dialog);
+	}
+
+
+	
 	protected ObjectQuery createChooseQuery() {
 		return null;
 	}
@@ -155,19 +173,13 @@ public class ValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
 	}
 
 	protected IModel<String> createTextModel(final IModel<T> model) {
-		return new IModel<String>() {
+		return new AbstractReadOnlyModel<String>() {
+
 			@Override
 			public String getObject() {
-				T obj = model.getObject();
-				return obj != null ? obj.toString() : null;
-			}
+				PrismReferenceValue ort = (PrismReferenceValue) model.getObject();
 
-			@Override
-			public void setObject(String object) {
-			}
-
-			@Override
-			public void detach() {
+				return ort == null ? null : (ort.getTargetName() != null ? ort.getTargetName().getOrig() : ort.getOid());
 			}
 		};
 	}
@@ -200,11 +212,7 @@ public class ValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
 		target.add(this);
 	}
 
-	// protected void replaceIfEmpty(Object object){
-	// List<T> objects = getModelObject();
-	// objects.add((T)object);
-	// }
-
+	
 	protected boolean isObjectUnique(C object) {
 
 		// for(T o: ){
@@ -219,24 +227,6 @@ public class ValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
 		return true;
 	}
 
-//	protected void removeValuePerformed(AjaxRequestTarget target, ListItem<T> item) {
-//		List<T> objects = getModelObject();
-//		Iterator<T> iterator = objects.iterator();
-//		while (iterator.hasNext()) {
-//			T object = iterator.next();
-//
-//			if (object.equals(item.getModelObject())) {
-//				iterator.remove();
-//				break;
-//			}
-//		}
-//
-//		if (objects.size() == 0) {
-//			objects.add(createNewEmptyItem());
-//		}
-//
-//		target.add(this);
-//	}
 
 	/**
 	 * A custom code in form of hook that can be run on event of choosing new

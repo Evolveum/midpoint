@@ -333,6 +333,8 @@
 	                </xsd:documentation>
 	                <xsd:appinfo>
 	        			<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
+	        			<a:displayName>Parent Organization</a:displayName>
+                    	<a:displayOrder>240</a:displayOrder>
 	        		</xsd:appinfo>
 	            </xsd:annotation>
 	        </xsd:element>
@@ -364,6 +366,8 @@
                     </xsd:documentation>
                     <xsd:appinfo>
             			<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
+            			<a:displayName>Tenant</a:displayName>
+                    	<a:displayOrder>250</a:displayOrder>
             		</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6769,6 +6773,9 @@
 	                    			This may be a numeric value, textual label are any other suitable machine-processable indication.
                     			</p>
                     		</xsd:documentation>
+                    		 <xsd:appinfo>
+                                <a:displayName>Risk Level</a:displayName>
+                            </xsd:appinfo>
                     	</xsd:annotation>
                     </xsd:element>
 					<xsd:element name="ownerRef" type="c:ObjectReferenceType" minOccurs="0">
@@ -6780,6 +6787,9 @@
 	                                This reference may point to object of type UserType of OrgType.
                                 </p>
                             </xsd:documentation>
+                             <xsd:appinfo>
+                                <a:displayName>Owner</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 					<xsd:element name="approverRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
@@ -6791,7 +6801,9 @@
 	                                This reference may point to object of type UserType of OrgType.
                                 </p>
                             </xsd:documentation>
-                            
+                             <xsd:appinfo>
+                                <a:displayName>Approver</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="approverExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="unbounded">
@@ -7758,7 +7770,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>Tenant</a:displayName>
+                                <a:displayName>Is Tenant</a:displayName>
                                 <a:displayOrder>130</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -7837,6 +7849,8 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                     			<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
+                    			<a:displayName>Password Policy</a:displayName>
+                                <a:displayOrder>230</a:displayOrder>
                     		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

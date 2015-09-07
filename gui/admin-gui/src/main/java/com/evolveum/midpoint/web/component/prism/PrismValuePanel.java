@@ -539,22 +539,9 @@ public class PrismValuePanel extends Panel {
         	if (((PrismReferenceDefinition)item.getDefinition()).getTargetTypeName() != null){
         		 typeFromName = prismContext.getSchemaRegistry().determineCompileTimeClass(((PrismReferenceDefinition) item.getDefinition()).getTargetTypeName());
         	}
-        	final Class typeClass = typeFromName != null ? typeFromName : (item.getDefinition().getTypeClassIfKnown() != null ? item.getDefinition().getTypeClassIfKnown() : UserType.class);
+        	final Class typeClass = typeFromName != null ? typeFromName : (item.getDefinition().getTypeClassIfKnown() != null ? item.getDefinition().getTypeClassIfKnown() : FocusType.class);
         	panel = new ValueChoosePanel(id,
-    				new PropertyModel<>(model, "value"), new Model<String>(item.getDisplayName()), "10", "10", false, typeClass) {
-
-    			@Override
-    			protected IModel<String> createTextModel(final IModel model) {
-    				return new AbstractReadOnlyModel<String>() {
-
-    					@Override
-    					public String getObject() {
-    						PrismReferenceValue ort = (PrismReferenceValue) model.getObject();
-
-    						return ort == null ? null : (ort.getTargetName() != null ? ort.getTargetName().getOrig() : ort.getOid());
-    					}
-    				};
-    			}
+    				new PropertyModel<>(model, "value"), false, typeClass) {
 
     			@Override
     					protected ObjectType createNewEmptyItem() throws InstantiationException, IllegalAccessException {

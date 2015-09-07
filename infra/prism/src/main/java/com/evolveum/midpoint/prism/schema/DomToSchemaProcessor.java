@@ -538,7 +538,9 @@ class DomToSchemaProcessor {
 		if (composite != null) {
 			definition.setComposite(composite);
 		}
-        extractDocumentation(definition, annotation);
+		
+		parseItemDefinitionAnnotations(definition, annotation);
+//        extractDocumentation(definition, annotation);
 		return definition;
 	}
 

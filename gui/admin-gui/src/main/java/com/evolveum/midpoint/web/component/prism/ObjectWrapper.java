@@ -70,6 +70,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
@@ -112,12 +113,8 @@ public class ObjectWrapper implements Serializable, Revivable {
 	private boolean selected;
 
 	private boolean showAssignments = false;
-	private boolean showInheritedObjectAttributes = true; // whether to show
-															// name and
-															// description
-															// properties and
-															// metadata
-															// container
+	// whether to show name and description properties and metadata container
+	private boolean showInheritedObjectAttributes = true; 
 	private boolean readonly = false;
 
 	private static final List<QName> INHERITED_OBJECT_SUBCONTAINERS = Arrays.asList(ObjectType.F_METADATA,
@@ -129,36 +126,10 @@ public class ObjectWrapper implements Serializable, Revivable {
 	private List<PrismProperty> associations;
 
 	private OperationResult fetchResult;
-	private PrismContainerDefinition objectDefinitionForEditing; // a "static"
-																	// (non-refined)
-																	// definition
-																	// that
-																	// reflects
-																	// editability
-																	// of the
-																	// object in
-																	// terms of
-																	// midPoint
-																	// schema
-																	// limitations
-																	// and
-																	// security
-	private RefinedObjectClassDefinition objectClassDefinitionForEditing; // a
-																			// refined
-																			// definition
-																			// of
-																			// an
-																			// resource
-																			// object
-																			// class
-																			// that
-																			// reflects
-																			// its
-																			// editability;
-																			// applicable
-																			// for
-																			// shadows
-																			// only
+	// a "static" (non-refined) definition that reflects editability of the object in terms of midPoint schema limitations and security
+	private PrismContainerDefinition objectDefinitionForEditing; 
+	// a refined definition of an resource object class that reflects its editability; applicable for shadows only
+	private RefinedObjectClassDefinition objectClassDefinitionForEditing; 
 
 	public ObjectWrapper(String displayName, String description, PrismObject object,
 			PrismContainerDefinition objectDefinitionForEditing, ContainerStatus status, PageBase pageBase) {
@@ -334,29 +305,8 @@ public class ObjectWrapper implements Serializable, Revivable {
 		list.add(wrapper);
 		// list.addAll(createContainerWrapper(container, null, pageBase));
 		if (!ShadowType.F_ASSOCIATION.equals(name)) {
-			list.addAll(createContainerWrapper(container, new ItemPath(name), pageBase)); // [pm]
-																							// is
-																							// this
-																							// OK?
-																							// "name"
-																							// is
-																							// the
-																							// name
-																							// of
-																							// the
-																							// container
-																							// itself;
-																							// originally
-																							// here
-																							// was
-																							// an
-																							// empty
-																							// path
-																							// -
-																							// that
-																							// seems
-																							// more
-																							// logical
+			// [pm] is this OK? "name" is the name of the container itself; originally here was an empty path - that seems more logical
+			list.addAll(createContainerWrapper(container, new ItemPath(name), pageBase)); 
 		}
 
 		return list;
@@ -524,6 +474,9 @@ public class ObjectWrapper implements Serializable, Revivable {
 			if (TriggerType.COMPLEX_TYPE.equals(def.getTypeName())) {
 				continue; // TEMPORARY FIX TODO: remove after getEditSchema
 							// (authorization) will be fixed.
+			}
+			if (ApprovalSchemaType.COMPLEX_TYPE.equals(def.getTypeName())){
+				continue;
 			}
 
 			LOGGER.trace("ObjectWrapper.createContainerWrapper processing definition: {}", def);
