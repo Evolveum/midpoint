@@ -275,7 +275,6 @@ public class TreeTablePanel extends SimplePanel<String> {
                     protected void onClick(AjaxRequestTarget target) {
                         super.onClick(target);
 
-                        //todo selection is stored to session, find a place where to "load" this selection from session
                         MidPointAuthWebSession session = TreeTablePanel.this.getSession();
                         SessionStorage storage = session.getSessionStorage();
                         storage.getUsers().setSelectedItem(selected.getObject());
@@ -1434,11 +1433,10 @@ public class TreeTablePanel extends SimplePanel<String> {
             SessionStorage storage = session.getSessionStorage();
             Set<OrgTreeDto> dtos = storage.getUsers().getExpandedItems();
             Iterator<OrgTreeDto> iterator = provider.getRoots();
-            iterator = provider.getRoots();
             if (dtos != null && (dtos instanceof TreeStateSet)) {
                 for (OrgTreeDto orgTreeDto : dtos) {
                     if (!set.contains(orgTreeDto)) {
-                        set = (TreeStateSet<OrgTreeDto>) dtos;
+                        set.add(orgTreeDto);
                     }
                 }
             }

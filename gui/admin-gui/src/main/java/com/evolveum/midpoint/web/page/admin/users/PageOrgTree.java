@@ -70,8 +70,6 @@ public class PageOrgTree extends PageAdminUsers {
     private static final String DOT_CLASS = PageOrgTree.class.getName() + ".";
     private static final String OPERATION_LOAD_ORG_UNIT = DOT_CLASS + "loadOrgUnit";
 
-    public static TabbedPanel selectedTabbedPanel = null;
-
     private String ID_TABS = "tabs";
 
 
@@ -99,9 +97,7 @@ public class PageOrgTree extends PageAdminUsers {
                                     protected void onEvent(final AjaxRequestTarget target) {
                                         SessionStorage storage = getSessionStorage();
                                         storage.getUsers().setSelectedTabId(tabId);
-                                        storage.getUsers().setExpandedItems(null);
                                     }
-
                                 }
                             );
                             return new TreeTablePanel(panelId, new Model(oid));
