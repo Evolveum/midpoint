@@ -346,7 +346,6 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		final String TEST_NAME = "test020Schema";
         TestUtil.displayTestTile(this, TEST_NAME);
         
-        // GIVEN        
         ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
         display("Resource schema", resourceSchema);
         
@@ -627,6 +626,14 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	
 	protected String toGroupDn(String cn) {
 		return "cn="+cn+","+getGroupsLdapSuffix();
+	}
+	
+	protected String getAttributeAsString(Entry entry, String primaryIdentifierAttributeName) throws LdapInvalidAttributeValueException {
+		if ("dn".equals(primaryIdentifierAttributeName)) {
+			return entry.getDn().toString();
+		} else {
+			return entry.get(primaryIdentifierAttributeName).getString();
+		}
 	}
 	
 	protected LdapNetworkConnection ldapConnect() throws LdapException {

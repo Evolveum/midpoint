@@ -18,6 +18,7 @@ package com.evolveum.midpoint.testing.conntest;
 import java.io.File;
 
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.Listeners;
 
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -27,27 +28,28 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author semancik
  *
  */
-public class Test389DsBacchus extends Abstract389DsTest {
+@Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
+public class Test389DsDnLocalhost extends Abstract389DsDnTest {
 
 	
 	@Override
 	protected File getResourceFile() {
-		return new File(getBaseDir(), "resource-bacchus.xml");
+		return new File(getBaseDir(), "resource-dn-localhost.xml");
 	}
 
 	@Override
 	public String getStartSystemCommand() {
-		return getScriptDirectoryName()+"/389ds-bacchus-start";
+		return null;
 	}
 
 	@Override
 	public String getStopSystemCommand() {
-		return getScriptDirectoryName()+"/389ds-bacchus-stop";
+		return null;
 	}
 	
 	@Override
 	protected String getLdapServerHost() {
-		return "bacchus.lab.evolveum.com";
+		return "localhost";
 	}
 
 }
