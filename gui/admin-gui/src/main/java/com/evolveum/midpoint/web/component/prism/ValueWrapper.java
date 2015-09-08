@@ -16,15 +16,18 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.commons.lang.Validate;
+import org.apache.cxf.common.util.PrimitiveUtils;
 
 import java.io.Serializable;
 
@@ -111,7 +114,7 @@ public class ValueWrapper<T> implements Serializable {
         this.status = status;
     }
 
-    public void normalize() {
+    public void normalize(PrismContext prismContext) {
 		if (value instanceof PrismPropertyValue) {
 			PrismPropertyValue ppVal = (PrismPropertyValue) value;
 			if (ppVal.getValue() instanceof PolyString) {
@@ -119,6 +122,10 @@ public class ValueWrapper<T> implements Serializable {
 				if (poly.getOrig() == null) {
 					ppVal.setValue((T) new PolyString(""));
 				}
+				if (prismContext != null){
+					PrismUtil.recomputePrismPropertyValue(ppVal, prismContext);
+				}
+				
 			} else if (ppVal.getValue() instanceof DisplayableValue) {
 				DisplayableValue displayableValue = (DisplayableValue) ppVal.getValue();
 				ppVal.setValue((T) displayableValue.getValue());

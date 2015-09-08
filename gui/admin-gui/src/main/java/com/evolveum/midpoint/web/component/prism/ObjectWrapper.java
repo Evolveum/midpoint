@@ -630,7 +630,7 @@ public class ObjectWrapper implements Serializable, Revivable {
 	private void addItemDelta(ItemWrapper itemWrapper, ItemDelta pDelta, ItemDefinition propertyDef,
 			ItemPath path) {
 		for (ValueWrapper valueWrapper : itemWrapper.getValues()) {
-			valueWrapper.normalize();
+			valueWrapper.normalize(propertyDef.getPrismContext());
 			ValueStatus valueStatus = valueWrapper.getStatus();
 			if (!valueWrapper.hasValueChanged()
 					&& (ValueStatus.NOT_CHANGED.equals(valueStatus) || ValueStatus.ADDED.equals(valueStatus))) {
@@ -785,7 +785,7 @@ public class ObjectWrapper implements Serializable, Revivable {
 					continue;
 				}
 				for (ValueWrapper valueWrapper : propertyWrapper.getValues()) {
-					valueWrapper.normalize();
+					valueWrapper.normalize(object.getPrismContext());
 					if (!valueWrapper.hasValueChanged()
 							|| ValueStatus.DELETED.equals(valueWrapper.getStatus())) {
 						continue;
@@ -824,7 +824,6 @@ public class ObjectWrapper implements Serializable, Revivable {
 
 	private void cleanupEmptyContainers(PrismContainer container) {
 		List<PrismContainerValue> values = container.getValues();
-
 		List<PrismContainerValue> valuesToBeRemoved = new ArrayList<PrismContainerValue>();
 		for (PrismContainerValue value : values) {
 			List<? extends Item> items = value.getItems();
