@@ -772,19 +772,21 @@ public class ShadowManager {
 	
 	public <T> void normalizeDeltas(Collection<? extends ItemDelta<PrismPropertyValue<T>,PrismPropertyDefinition<T>>> deltas,
 			RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
-		// TODO Auto-generated method stub
-		for (ItemDelta<PrismPropertyValue<T>,PrismPropertyDefinition<T>> delta : deltas){
-			if (!ShadowType.F_ATTRIBUTES.equals(ItemPath.getName(delta.getPath().first()))){
-				continue;
-			}
-			RefinedAttributeDefinition rAttrDef = objectClassDefinition.findAttributeDefinition(delta.getElementName());
-			if (rAttrDef == null){
-				throw new SchemaException("Failed to normalize attribute: " + delta.getElementName()+ ". Definition for this attribute doesn't exist.");
-			}
-			normalizeDelta(delta, rAttrDef);
+		for (ItemDelta<PrismPropertyValue<T>,PrismPropertyDefinition<T>> delta : deltas) {
+			normalizeDelta(delta, objectClassDefinition);
 		}
-		
-		
+	}
+	
+	public <T> void normalizeDelta(ItemDelta<PrismPropertyValue<T>,PrismPropertyDefinition<T>> delta,
+			RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
+		if (!ShadowType.F_ATTRIBUTES.equals(ItemPath.getName(delta.getPath().first()))){
+			return;
+		}
+		RefinedAttributeDefinition rAttrDef = objectClassDefinition.findAttributeDefinition(delta.getElementName());
+		if (rAttrDef == null){
+			throw new SchemaException("Failed to normalize attribute: " + delta.getElementName()+ ". Definition for this attribute doesn't exist.");
+		}
+		normalizeDelta(delta, rAttrDef);		
 	}
 	
 	private <T> void normalizeDelta(ItemDelta<PrismPropertyValue<T>,PrismPropertyDefinition<T>> delta, RefinedAttributeDefinition rAttrDef) throws SchemaException{

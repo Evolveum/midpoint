@@ -33,7 +33,9 @@ import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -93,45 +95,41 @@ public class ShadowCacheProvisioner extends ShadowCache {
 	}
 
 	@Override
-	public void afterModifyOnResource(PrismObject<ShadowType> shadowType, Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
-		Collection<? extends ItemDelta> shadowChanges = getShadowChanges(modifications);
+	public void afterModifyOnResource(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException {
+		Collection<? extends ItemDelta> shadowChanges = getShadowChanges(ctx, shadow, modifications);
 		if (shadowChanges != null && !shadowChanges.isEmpty()) {
 			LOGGER.trace(
 					"Detected shadow changes. Start to modify shadow in the repository, applying modifications {}",
 					DebugUtil.debugDump(shadowChanges));
 			try {
 				ConstraintsChecker.onShadowModifyOperation(shadowChanges);
-				getRepositoryService().modifyObject(ShadowType.class, shadowType.getOid(), shadowChanges, parentResult);
+				getRepositoryService().modifyObject(ShadowType.class, shadow.getOid(), shadowChanges, parentResult);
 				LOGGER.trace("Shadow changes processed successfully.");
 			} catch (ObjectAlreadyExistsException ex) {
 				throw new SystemException(ex);
 			}
-		}
-
-		
+		}	
 	}
 	
 	@SuppressWarnings("rawtypes")
-	private Collection<? extends ItemDelta> getShadowChanges(Collection<? extends ItemDelta> objectChange)
-			throws SchemaException {
+	private Collection<? extends ItemDelta> getShadowChanges(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> objectChange)
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
 
+		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
+		
 		Collection<ItemDelta> shadowChanges = new ArrayList<ItemDelta>();
 		for (ItemDelta itemDelta : objectChange) {
-			if ((new ItemPath(ShadowType.F_ATTRIBUTES).equivalent(itemDelta.getParentPath()) && !isUidOrName(itemDelta.getPath()))
+			if ((new ItemPath(ShadowType.F_ATTRIBUTES).equivalent(itemDelta.getParentPath()) && !ProvisioningUtil.shouldStoreAtributeInShadow(objectClassDefinition, itemDelta.getElementName()))
 					|| SchemaConstants.PATH_PASSWORD.equivalent(itemDelta.getParentPath())) {
 				continue;
 			} else {
+				shadowManager.normalizeDelta(itemDelta, objectClassDefinition);
 				shadowChanges.add(itemDelta);
 			}
 		}
 		return shadowChanges;
 	}
 	
-	private boolean isUidOrName(ItemPath path){
-		QName name = path.lastNamed().getName();
-		return name.equals(SchemaConstants.ICFS_NAME) || name.equals(SchemaConstants.ICFS_UID);
-	}
-
 	@Override
 	public Collection<? extends ItemDelta> beforeModifyOnResource(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, Collection<? extends ItemDelta> modifications) throws SchemaException {
 		
@@ -150,8 +148,6 @@ public class ShadowCacheProvisioner extends ShadowCache {
 		return modifications;
 		
 	}
-	
-	
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private ObjectDelta mergeDeltas(PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> modifications)
@@ -175,6 +171,4 @@ public class ShadowCacheProvisioner extends ShadowCache {
 		return null;
 	}
 
-	
-	
 }

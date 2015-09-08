@@ -16,12 +16,44 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.ConsistencyCheckScope;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.OriginType;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.Revivable;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
@@ -38,32 +70,34 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-
-import javax.xml.namespace.QName;
-
-import java.io.Serializable;
-import java.util.*;
 
 /**
  * @author lazyman
  */
 public class ObjectWrapper implements Serializable, Revivable {
 
-    public static final String F_DISPLAY_NAME = "displayName";
-    public static final String F_SELECTED = "selected";
+	public static final String F_DISPLAY_NAME = "displayName";
+	public static final String F_SELECTED = "selected";
 
 	private static final Trace LOGGER = TraceManager.getTrace(ObjectWrapper.class);
 
-    private static final String DOT_CLASS = ObjectWrapper.class.getName() + ".";
-    private static final String CREATE_CONTAINERS = DOT_CLASS + "createContainers";
+	private static final String DOT_CLASS = ObjectWrapper.class.getName() + ".";
+	private static final String CREATE_CONTAINERS = DOT_CLASS + "createContainers";
 
 	private PrismObject object;
 	private ObjectDelta oldDelta;
@@ -78,85 +112,93 @@ public class ObjectWrapper implements Serializable, Revivable {
 	private boolean selectable;
 	private boolean selected;
 
-    private boolean showAssignments = false;
-    private boolean showInheritedObjectAttributes = true;       // whether to show name and description properties and metadata container
-    private boolean readonly = false;
+	private boolean showAssignments = false;
+	// whether to show name and description properties and metadata container
+	private boolean showInheritedObjectAttributes = true; 
+	private boolean readonly = false;
 
-    private static final List<QName> INHERITED_OBJECT_SUBCONTAINERS = Arrays.asList(ObjectType.F_METADATA,
-            ObjectType.F_EXTENSION);
+	private static final List<QName> INHERITED_OBJECT_SUBCONTAINERS = Arrays.asList(ObjectType.F_METADATA,
+			ObjectType.F_EXTENSION);
 
-    private OperationResult result;
-    private boolean protectedAccount;
-    
-    private List<PrismProperty> associations;
+	private OperationResult result;
+	private boolean protectedAccount;
 
-    private OperationResult fetchResult;
-    private PrismContainerDefinition objectDefinitionForEditing;                // a "static" (non-refined) definition that reflects editability of the object in terms of midPoint schema limitations and security
-    private RefinedObjectClassDefinition objectClassDefinitionForEditing;       // a refined definition of an resource object class that reflects its editability; applicable for shadows only
-    
-    public ObjectWrapper(String displayName, String description, PrismObject object, PrismContainerDefinition objectDefinitionForEditing, ContainerStatus status, PageBase pageBase) {
-        this(displayName, description, object, objectDefinitionForEditing, null, status, false, pageBase);
+	private List<PrismProperty> associations;
+
+	private OperationResult fetchResult;
+	// a "static" (non-refined) definition that reflects editability of the object in terms of midPoint schema limitations and security
+	private PrismContainerDefinition objectDefinitionForEditing; 
+	// a refined definition of an resource object class that reflects its editability; applicable for shadows only
+	private RefinedObjectClassDefinition objectClassDefinitionForEditing; 
+
+	public ObjectWrapper(String displayName, String description, PrismObject object,
+			PrismContainerDefinition objectDefinitionForEditing, ContainerStatus status, PageBase pageBase) {
+		this(displayName, description, object, objectDefinitionForEditing, null, status, false, pageBase);
 	}
 
-    // delayContainerCreation is used in cases where caller wants to configure those aspects of the wrapper that must be set before container creation
-    public ObjectWrapper(String displayName, String description, PrismObject object, PrismContainerDefinition objectDefinitionForEditing, RefinedObjectClassDefinition objectClassDefinitionForEditing, ContainerStatus status, boolean delayContainerCreation, PageBase pageBase) {
-        Validate.notNull(object, "Object must not be null.");
-        Validate.notNull(status, "Container status must not be null.");
-        Validate.notNull(pageBase, "pageBase must not be null.");
+	// delayContainerCreation is used in cases where caller wants to configure
+	// those aspects of the wrapper that must be set before container creation
+	public ObjectWrapper(String displayName, String description, PrismObject object,
+			PrismContainerDefinition objectDefinitionForEditing,
+			RefinedObjectClassDefinition objectClassDefinitionForEditing, ContainerStatus status,
+			boolean delayContainerCreation, PageBase pageBase) {
+		Validate.notNull(object, "Object must not be null.");
+		Validate.notNull(status, "Container status must not be null.");
+		Validate.notNull(pageBase, "pageBase must not be null.");
 
-        this.displayName = displayName;
-        this.description = description;
-        this.object = object;
-        this.status = status;
-        this.objectDefinitionForEditing = objectDefinitionForEditing;
-        this.objectClassDefinitionForEditing = objectClassDefinitionForEditing;
+		this.displayName = displayName;
+		this.description = description;
+		this.object = object;
+		this.status = status;
+		this.objectDefinitionForEditing = objectDefinitionForEditing;
+		this.objectClassDefinitionForEditing = objectClassDefinitionForEditing;
 
-        if (!delayContainerCreation) {
-            initializeContainers(pageBase);
-        }
+		if (!delayContainerCreation) {
+			initializeContainers(pageBase);
+		}
 	}
 
-    public void initializeContainers(PageBase pageBase) {
-        containers = createContainers(pageBase);
-    }
+	public void initializeContainers(PageBase pageBase) {
+		containers = createContainers(pageBase);
+	}
 
-    public void revive(PrismContext prismContext) throws SchemaException {
-        if (object != null) {
-            object.revive(prismContext);
-        }
-        if (oldDelta != null) {
-            oldDelta.revive(prismContext);
-        }
-        if (containers != null) {
-            for (ContainerWrapper containerWrapper : containers) {
-                containerWrapper.revive(prismContext);
-            }
-        }
-    }
+	public void revive(PrismContext prismContext) throws SchemaException {
+		if (object != null) {
+			object.revive(prismContext);
+		}
+		if (oldDelta != null) {
+			oldDelta.revive(prismContext);
+		}
+		if (containers != null) {
+			for (ContainerWrapper containerWrapper : containers) {
+				containerWrapper.revive(prismContext);
+			}
+		}
+	}
 
-    public List<PrismProperty> getAssociations() {
+	public List<PrismProperty> getAssociations() {
 		return associations;
 	}
-    
-    public void setAssociations(List<PrismProperty> associations) {
+
+	public void setAssociations(List<PrismProperty> associations) {
 		this.associations = associations;
 	}
-    
-    public OperationResult getFetchResult() {
-        return fetchResult;
-    }
 
-    public void setFetchResult(OperationResult fetchResult) {
-        this.fetchResult = fetchResult;
-    }
+	public OperationResult getFetchResult() {
+		return fetchResult;
+	}
 
-    public OperationResult getResult() {
-        return result;
-    }
+	public void setFetchResult(OperationResult fetchResult) {
+		this.fetchResult = fetchResult;
+	}
 
-    public void clearResult() {
-        result = null;
-    }
+	public OperationResult getResult() {
+		return result;
+	}
+
+	public void clearResult() {
+		result = null;
+	}
 
 	public HeaderStatus getHeaderStatus() {
 		if (headerStatus == null) {
@@ -234,21 +276,22 @@ public class ObjectWrapper implements Serializable, Revivable {
 
 	public ContainerWrapper findContainerWrapper(ItemPath path) {
 		for (ContainerWrapper wrapper : getContainers()) {
-            if (path != null) {
-                if (path.equivalent(wrapper.getPath())) {
-                    return wrapper;
-                }
-            } else {
-                if (wrapper.getPath() == null) {
-                    return wrapper;
-                }
-            }
+			if (path != null) {
+				if (path.equivalent(wrapper.getPath())) {
+					return wrapper;
+				}
+			} else {
+				if (wrapper.getPath() == null) {
+					return wrapper;
+				}
+			}
 		}
 
 		return null;
 	}
 
-	private List<ContainerWrapper> createCustomContainerWrapper(PrismObject object, QName name, PageBase pageBase) {
+	private List<ContainerWrapper> createCustomContainerWrapper(PrismObject object, QName name,
+			PageBase pageBase) {
 		PrismContainer container = object.findContainer(name);
 		ContainerStatus status = container == null ? ContainerStatus.ADDING : ContainerStatus.MODIFYING;
 		List<ContainerWrapper> list = new ArrayList<ContainerWrapper>();
@@ -257,27 +300,28 @@ public class ObjectWrapper implements Serializable, Revivable {
 			container = definition.instantiate();
 		}
 
-        ContainerWrapper wrapper = new ContainerWrapper(this, container, status, new ItemPath(name), pageBase);
-        addSubresult(wrapper.getResult());
+		ContainerWrapper wrapper = new ContainerWrapper(this, container, status, new ItemPath(name), pageBase);
+		addSubresult(wrapper.getResult());
 		list.add(wrapper);
-//		list.addAll(createContainerWrapper(container, null, pageBase)); 
-		if (!ShadowType.F_ASSOCIATION.equals(name)){
-		list.addAll(createContainerWrapper(container, new ItemPath(name), pageBase));     // [pm] is this OK? "name" is the name of the container itself; originally here was an empty path - that seems more logical
+		// list.addAll(createContainerWrapper(container, null, pageBase));
+		if (!ShadowType.F_ASSOCIATION.equals(name)) {
+			// [pm] is this OK? "name" is the name of the container itself; originally here was an empty path - that seems more logical
+			list.addAll(createContainerWrapper(container, new ItemPath(name), pageBase)); 
 		}
 
 		return list;
 	}
 
-    private void addSubresult(OperationResult subResult) {
-        if (result == null || subResult == null) {
-            return;
-        }
+	private void addSubresult(OperationResult subResult) {
+		if (result == null || subResult == null) {
+			return;
+		}
 
-        result.addSubresult(subResult);
-    }
+		result.addSubresult(subResult);
+	}
 
 	private List<ContainerWrapper> createContainers(PageBase pageBase) {
-        result = new OperationResult(CREATE_CONTAINERS);
+		result = new OperationResult(CREATE_CONTAINERS);
 
 		List<ContainerWrapper> containers = new ArrayList<ContainerWrapper>();
 
@@ -294,111 +338,123 @@ public class ObjectWrapper implements Serializable, Revivable {
 
 				ContainerWrapper container = new ContainerWrapper(this, attributes, status, new ItemPath(
 						ShadowType.F_ATTRIBUTES), pageBase);
-                addSubresult(container.getResult());
+				addSubresult(container.getResult());
 
 				container.setMain(true);
 				containers.add(container);
 
-				if (hasResourceCapability(((ShadowType) object.asObjectable()).getResource(), ActivationCapabilityType.class)) {
-					containers.addAll(createCustomContainerWrapper(object, ShadowType.F_ACTIVATION, pageBase));
+				if (hasResourceCapability(((ShadowType) object.asObjectable()).getResource(),
+						ActivationCapabilityType.class)) {
+					containers
+							.addAll(createCustomContainerWrapper(object, ShadowType.F_ACTIVATION, pageBase));
 				}
-				if (hasResourceCapability(((ShadowType) object.asObjectable()).getResource(), CredentialsCapabilityType.class)) {
-					containers.addAll(createCustomContainerWrapper(object, ShadowType.F_CREDENTIALS, pageBase));
+				if (hasResourceCapability(((ShadowType) object.asObjectable()).getResource(),
+						CredentialsCapabilityType.class)) {
+					containers
+							.addAll(createCustomContainerWrapper(object, ShadowType.F_CREDENTIALS, pageBase));
 				}
-				
-				PrismContainer<ShadowAssociationType> associationContainer = object.findContainer(ShadowType.F_ASSOCIATION);
+
+				PrismContainer<ShadowAssociationType> associationContainer = object
+						.findContainer(ShadowType.F_ASSOCIATION);
 				if (associationContainer != null) {
-					container = new ContainerWrapper(this, associationContainer, ContainerStatus.MODIFYING, new ItemPath(
-							ShadowType.F_ASSOCIATION), pageBase);
-	                addSubresult(container.getResult());
-	                containers.add(container);
+					container = new ContainerWrapper(this, associationContainer, ContainerStatus.MODIFYING,
+							new ItemPath(ShadowType.F_ASSOCIATION), pageBase);
+					addSubresult(container.getResult());
+					containers.add(container);
 				}
-            } else if (ResourceType.class.isAssignableFrom(clazz)) {
-                containers = createResourceContainers(pageBase);
-            } else if (ReportType.class.isAssignableFrom(clazz)) {
-                containers = createReportContainers(pageBase);
+			} else if (ResourceType.class.isAssignableFrom(clazz)) {
+				containers = createResourceContainers(pageBase);
+			} else if (ReportType.class.isAssignableFrom(clazz)) {
+				containers = createReportContainers(pageBase);
 			} else {
 				ContainerWrapper container = new ContainerWrapper(this, object, getStatus(), null, pageBase);
-                addSubresult(container.getResult());
+				addSubresult(container.getResult());
 				containers.add(container);
 
 				containers.addAll(createContainerWrapper(object, null, pageBase));
 			}
 		} catch (Exception ex) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Error occurred during container wrapping", ex);
-			result.recordFatalError("Error occurred during container wrapping, reason: " + ex.getMessage(), ex);
+			result.recordFatalError("Error occurred during container wrapping, reason: " + ex.getMessage(),
+					ex);
 		}
 
 		Collections.sort(containers, new ItemWrapperComparator());
-        result.recomputeStatus();
-        result.recordSuccessIfUnknown();
+		result.recomputeStatus();
+		result.recordSuccessIfUnknown();
 
 		return containers;
 	}
 
-    private List<ContainerWrapper> createReportContainers(PageBase pageBase) throws SchemaException {
-        List<ContainerWrapper> containers = new ArrayList<ContainerWrapper>();
+	private List<ContainerWrapper> createReportContainers(PageBase pageBase) throws SchemaException {
+		List<ContainerWrapper> containers = new ArrayList<ContainerWrapper>();
 
-        PrismContainer container = object.findContainer(ReportType.F_CONFIGURATION);
-        ContainerStatus status = container != null ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
+		PrismContainer container = object.findContainer(ReportType.F_CONFIGURATION);
+		ContainerStatus status = container != null ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
 
-        if (container == null) {
-            PrismSchema schema = ReportTypeUtil.parseReportConfigurationSchema((PrismObject<ReportType>) object,
-                    object.getPrismContext());
-            PrismContainerDefinition definition = ReportTypeUtil.findReportConfigurationDefinition(schema);
-            if (definition == null) {
-                return containers;
-            }
-            container = definition.instantiate();
-        }
+		if (container == null) {
+			PrismSchema schema = ReportTypeUtil.parseReportConfigurationSchema(
+					(PrismObject<ReportType>) object, object.getPrismContext());
+			PrismContainerDefinition definition = ReportTypeUtil.findReportConfigurationDefinition(schema);
+			if (definition == null) {
+				return containers;
+			}
+			container = definition.instantiate();
+		}
 
-        ContainerWrapper wrapper = new ContainerWrapper(this, container, status, new ItemPath(ReportType.F_CONFIGURATION), pageBase);
-        addSubresult(wrapper.getResult());
+		ContainerWrapper wrapper = new ContainerWrapper(this, container, status, new ItemPath(
+				ReportType.F_CONFIGURATION), pageBase);
+		addSubresult(wrapper.getResult());
 
-        containers.add(wrapper);
+		containers.add(wrapper);
 
-        return containers;
-    }
+		return containers;
+	}
 
-    private List<ContainerWrapper> createResourceContainers(PageBase pageBase) throws SchemaException {
-        List<ContainerWrapper> containers = new ArrayList<ContainerWrapper>();
-        PrismObject<ConnectorType> connector = loadConnector();
+	private List<ContainerWrapper> createResourceContainers(PageBase pageBase) throws SchemaException {
+		List<ContainerWrapper> containers = new ArrayList<ContainerWrapper>();
+		PrismObject<ConnectorType> connector = loadConnector();
 
-        if (connector != null) {
-            containers.addAll(createResourceContainerWrapper(connector, pageBase));
-        }
-        return containers;
-    }
+		if (connector != null) {
+			containers.addAll(createResourceContainerWrapper(connector, pageBase));
+		}
+		return containers;
+	}
 
-    private PrismObject<ConnectorType> loadConnector() {
-        PrismReference connectorRef = object.findReference(ResourceType.F_CONNECTOR_REF);
-        return connectorRef.getValue().getObject();
-        //todo reimplement
-    }
+	private PrismObject<ConnectorType> loadConnector() {
+		PrismReference connectorRef = object.findReference(ResourceType.F_CONNECTOR_REF);
+		return connectorRef.getValue().getObject();
+		// todo reimplement
+	}
 
-    private List<ContainerWrapper> createResourceContainerWrapper(PrismObject<ConnectorType> connector, PageBase pageBase)
-        throws SchemaException {
+	private List<ContainerWrapper> createResourceContainerWrapper(PrismObject<ConnectorType> connector,
+			PageBase pageBase) throws SchemaException {
 
-        PrismContainer container = object.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
+		PrismContainer container = object.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 
-        ConnectorType connectorType = connector.asObjectable();
-        PrismSchema schema = ConnectorTypeUtil.parseConnectorSchema(connectorType, connector.getPrismContext());
-        PrismContainerDefinition definition = ConnectorTypeUtil.findConfigurationContainerDefintion(connectorType, schema);
+		ConnectorType connectorType = connector.asObjectable();
+		PrismSchema schema = ConnectorTypeUtil.parseConnectorSchema(connectorType,
+				connector.getPrismContext());
+		PrismContainerDefinition definition = ConnectorTypeUtil.findConfigurationContainerDefintion(
+				connectorType, schema);
 
-        ContainerStatus status = container != null ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
-        if (container == null) {
-			// brutal hack - the definition has (errorneously) set maxOccurs = unbounded. But there can be only one configuration container.
+		ContainerStatus status = container != null ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
+		if (container == null) {
+			// brutal hack - the definition has (errorneously) set maxOccurs =
+			// unbounded. But there can be only one configuration container.
 			// See MID-2317 and related issues
 			PrismContainerDefinition definitionFixed = definition.clone();
 			definitionFixed.setMaxOccurs(1);
 			container = definitionFixed.instantiate();
-        }
-        
-        return createContainerWrapper(container, new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION), pageBase);
-        
-    }
+		}
 
-	private List<ContainerWrapper> createContainerWrapper(PrismContainer parent, ItemPath path, PageBase pageBase) {
+		return createContainerWrapper(container, new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION),
+				pageBase);
+
+	}
+
+	private List<ContainerWrapper> createContainerWrapper(PrismContainer parent, ItemPath path,
+			PageBase pageBase) {
 
 		PrismContainerDefinition definition = parent.getDefinition();
 		List<ContainerWrapper> wrappers = new ArrayList<ContainerWrapper>();
@@ -412,55 +468,72 @@ public class ObjectWrapper implements Serializable, Revivable {
 			if (!(def instanceof PrismContainerDefinition)) {
 				continue;
 			}
-            if (ObjectSpecificationType.COMPLEX_TYPE.equals(def.getTypeName())) {
-                continue;       // TEMPORARY FIX
-            }
-            if (TriggerType.COMPLEX_TYPE.equals(def.getTypeName())) {
-                continue;       // TEMPORARY FIX TODO: remove after getEditSchema (authorization) will be fixed.
-            }
-           
-            LOGGER.trace("ObjectWrapper.createContainerWrapper processing definition: {}", def);
+			if (ObjectSpecificationType.COMPLEX_TYPE.equals(def.getTypeName())) {
+				continue; // TEMPORARY FIX
+			}
+			if (TriggerType.COMPLEX_TYPE.equals(def.getTypeName())) {
+				continue; // TEMPORARY FIX TODO: remove after getEditSchema
+							// (authorization) will be fixed.
+			}
+			if (ApprovalSchemaType.COMPLEX_TYPE.equals(def.getTypeName())){
+				continue;
+			}
+
+			LOGGER.trace("ObjectWrapper.createContainerWrapper processing definition: {}", def);
 
 			PrismContainerDefinition containerDef = (PrismContainerDefinition) def;
 			if (!showAssignments && AssignmentType.COMPLEX_TYPE.equals(containerDef.getTypeName())) {
 				continue;
 			}
-            if (!showInheritedObjectAttributes) {
-                boolean result = INHERITED_OBJECT_SUBCONTAINERS.contains(containerDef.getName());
-                LOGGER.info("checking " + containerDef.getName() + ", result = " + result);
-                if (result) {
-                    continue;
-                }
-            }
+			if (!showInheritedObjectAttributes) {
+				boolean result = INHERITED_OBJECT_SUBCONTAINERS.contains(containerDef.getName());
+				LOGGER.info("checking " + containerDef.getName() + ", result = " + result);
+				if (result) {
+					continue;
+				}
+			}
 
 			ItemPath newPath = createPropertyPath(parentPath, containerDef.getName());
 
-            // [med]
-            // The following code fails to work when parent is multivalued or potentially multivalued.
-            // Therefore (as a brutal hack), for multivalued parents we simply
-            // skip it.
-            if (parent.size() <= 1) {
+			// [med]
+			// The following code fails to work when parent is multivalued or
+			// potentially multivalued.
+			// Therefore (as a brutal hack), for multivalued parents we simply
+			// skip it.
+			if (parent.size() <= 1) {
 
-                // the same check as in getValue() implementation
-                boolean isMultiValued = parent.getDefinition() != null && !parent.getDefinition().isDynamic() && !parent.getDefinition().isSingleValue();
-                if (!isMultiValued) {
-                    PrismContainer prismContainer = parent.findContainer(def.getName());
+				// the same check as in getValue() implementation
+				boolean isMultiValued = parent.getDefinition() != null && !parent.getDefinition().isDynamic()
+						&& !parent.getDefinition().isSingleValue();
+				if (!isMultiValued) {
+					PrismContainer prismContainer = parent.findContainer(def.getName());
 
-                    ContainerWrapper container;
-                    if (prismContainer != null && !prismContainer.getElementName().equals(CredentialsType.F_PASSWORD)) {
-                        container = new ContainerWrapper(this, prismContainer, ContainerStatus.MODIFYING, newPath, pageBase);
-                    } else {
-                        prismContainer = containerDef.instantiate();
-                        container = new ContainerWrapper(this, prismContainer, ContainerStatus.ADDING, newPath, pageBase);
-                    }
-                    addSubresult(container.getResult());
-                    wrappers.add(container);
+					ContainerWrapper container;
+					if (prismContainer != null
+							&& !prismContainer.getElementName().equals(CredentialsType.F_PASSWORD)) {
+						container = new ContainerWrapper(this, prismContainer, ContainerStatus.MODIFYING,
+								newPath, pageBase);
+					} else {
+						prismContainer = containerDef.instantiate();
+						container = new ContainerWrapper(this, prismContainer, ContainerStatus.ADDING,
+								newPath, pageBase);
+					}
+					addSubresult(container.getResult());
+					wrappers.add(container);
 
-                    if (!AssignmentType.COMPLEX_TYPE.equals(containerDef.getTypeName()) || !ShadowType.F_ASSOCIATION.equals(parent.getElementName())) {      // do not show internals of Assignments (e.g. activation)
-                        wrappers.addAll(createContainerWrapper(prismContainer, newPath, pageBase));
-                    }
-                }
-            }
+					if (!AssignmentType.COMPLEX_TYPE.equals(containerDef.getTypeName())
+							|| !ShadowType.F_ASSOCIATION.equals(parent.getElementName())) { // do
+																							// not
+																							// show
+																							// internals
+																							// of
+																							// Assignments
+																							// (e.g.
+																							// activation)
+						wrappers.addAll(createContainerWrapper(prismContainer, newPath, pageBase));
+					}
+				}
+			}
 		}
 
 		return wrappers;
@@ -488,7 +561,8 @@ public class ObjectWrapper implements Serializable, Revivable {
 			return createAddingObjectDelta();
 		}
 
-		ObjectDelta delta = new ObjectDelta(object.getCompileTimeClass(), ChangeType.MODIFY, object.getPrismContext());
+		ObjectDelta delta = new ObjectDelta(object.getCompileTimeClass(), ChangeType.MODIFY,
+				object.getPrismContext());
 		delta.setOid(object.getOid());
 
 		List<ContainerWrapper> containers = getContainers();
@@ -500,117 +574,170 @@ public class ObjectWrapper implements Serializable, Revivable {
 				continue;
 			}
 
-			for (PropertyWrapper propertyWrapper : (List<PropertyWrapper>) containerWrapper.getProperties()) {
-				if (!propertyWrapper.hasChanged()) {
+			for (ItemWrapper itemWrapper : (List<ItemWrapper>) containerWrapper.getItems()) {
+				if (!itemWrapper.hasChanged()) {
 					continue;
 				}
-
-				PrismPropertyDefinition propertyDef = propertyWrapper.getItem().getDefinition();
-
 				ItemPath path = containerWrapper.getPath() != null ? containerWrapper.getPath()
 						: new ItemPath();
-				PropertyDelta pDelta = new PropertyDelta(path, propertyDef.getName(), propertyDef, propertyDef.getPrismContext());             // hoping the prismContext is there
-				for (ValueWrapper valueWrapper : propertyWrapper.getValues()) {
-                    valueWrapper.normalize();
-					ValueStatus valueStatus = valueWrapper.getStatus();
-					if (!valueWrapper.hasValueChanged()
-							&& (ValueStatus.NOT_CHANGED.equals(valueStatus) || ValueStatus.ADDED.equals(valueStatus))) {
-						continue;
+				if (itemWrapper instanceof PropertyWrapper) {
+					PropertyDelta pDelta = computePropertyDeltas((PropertyWrapper) itemWrapper, path);
+					if (!pDelta.isEmpty()) {
+						delta.addModification(pDelta);
 					}
-
-					//TODO: need to check if the resource has defined capabilities
-                    //todo this is bad hack because now we have not tri-state checkbox
-					if (SchemaConstants.PATH_ACTIVATION.equivalent(path)) {
-
-						if (object.asObjectable() instanceof ShadowType
-                                && (((ShadowType) object.asObjectable()).getActivation() == null
-                                || ((ShadowType) object.asObjectable()).getActivation().getAdministrativeStatus() == null)) {
-
-							if (!hasResourceCapability(((ShadowType) object.asObjectable()).getResource(), ActivationCapabilityType.class)){
-								continue;
-							}
-						}
-					}
-
-                    PrismPropertyValue newValCloned = clone(valueWrapper.getValue());
-                    PrismPropertyValue oldValCloned = clone(valueWrapper.getOldValue());
-                    switch (valueWrapper.getStatus()) {
-                        case ADDED:
-                            if (newValCloned != null) {
-                                if (SchemaConstants.PATH_PASSWORD.equivalent(path)) {
-                                    // password change will always look like add,
-                                    // therefore we push replace
-                                    pDelta.setValuesToReplace(Arrays.asList(newValCloned));
-                                } else if (propertyDef.isSingleValue()) {
-                                    // values for single-valued properties should be pushed via replace
-                                    // in order to prevent problems e.g. with summarizing deltas for
-                                    // unreachable resources
-                                    pDelta.setValueToReplace(newValCloned);
-                                } else {
-                                    pDelta.addValueToAdd(newValCloned);
-                                }
-                            }
-                            break;
-                        case DELETED:
-                            if (newValCloned != null) {
-                                pDelta.addValueToDelete(newValCloned);
-                            }
-                            break;
-                        case NOT_CHANGED:
-                            // this is modify...
-                            if (propertyDef.isSingleValue()) {
-                                if (newValCloned != null && newValCloned.getValue() != null) {
-                                    pDelta.setValuesToReplace(Arrays.asList(newValCloned));
-                                } else {
-                                    if (oldValCloned != null) {
-                                        pDelta.addValueToDelete(oldValCloned);
-                                    }
-                                }
-                            } else {
-                                if (newValCloned != null && newValCloned.getValue() != null) {
-                                    pDelta.addValueToAdd(newValCloned);
-                                }
-                                if (oldValCloned != null) {
-                                    pDelta.addValueToDelete(oldValCloned);
-                                }
-                            }
-                            break;
-                    }
-                }
-                if (!pDelta.isEmpty()) {
-					delta.addModification(pDelta);
 				}
+
+				if (itemWrapper instanceof ReferenceWrapper) {
+					ReferenceDelta pDelta = computeReferenceDeltas((ReferenceWrapper) itemWrapper, path);
+					if (!pDelta.isEmpty()) {
+						delta.addModification(pDelta);
+					}
+				}
+
 			}
 		}
 
-        //returning container to previous order
-        Collections.sort(containers, new ItemWrapperComparator());
+		// returning container to previous order
+		Collections.sort(containers, new ItemWrapperComparator());
 
 		return delta;
 	}
 
-    private PrismPropertyValue clone(PrismPropertyValue value) {
-        if (value == null) {
-            return null;
-        }
-        PrismPropertyValue cloned = value.clone();
-        cloned.setOriginType(OriginType.USER_ACTION);
-        if (value.getValue() instanceof ProtectedStringType) {
-            cloned.setValue(((ProtectedStringType)value.getValue()).clone());
-        }
-        if (value.getValue() instanceof PolyString) {
-            PolyString poly = (PolyString) value.getValue();
-            if (StringUtils.isEmpty(poly.getOrig())) {
-                return null;
-            }
-            cloned.setValue(new PolyString(poly.getOrig(), poly.getNorm()));
-        }
+	private PropertyDelta computePropertyDeltas(PropertyWrapper propertyWrapper, ItemPath path) {
+		PrismPropertyDefinition propertyDef = propertyWrapper.getItem().getDefinition();
 
-        return cloned;
-    }
+		PropertyDelta pDelta = new PropertyDelta(path, propertyDef.getName(), propertyDef,
+				propertyDef.getPrismContext()); // hoping the
+												// prismContext is there
 
-	private boolean hasResourceCapability(ResourceType resource, Class<? extends CapabilityType> capabilityClass){
-		if (resource == null){
+		addItemDelta(propertyWrapper, pDelta, propertyDef, path);
+		return pDelta;
+
+	}
+
+	private ReferenceDelta computeReferenceDeltas(ReferenceWrapper referenceWrapper, ItemPath path) {
+		PrismReferenceDefinition propertyDef = referenceWrapper.getItem().getDefinition();
+
+		ReferenceDelta pDelta = new ReferenceDelta(path, propertyDef.getName(), propertyDef,
+				propertyDef.getPrismContext()); // hoping the
+												// prismContext is there
+
+		addItemDelta(referenceWrapper, pDelta, propertyDef, path);
+		return pDelta;
+
+	}
+
+	private void addItemDelta(ItemWrapper itemWrapper, ItemDelta pDelta, ItemDefinition propertyDef,
+			ItemPath path) {
+		for (ValueWrapper valueWrapper : itemWrapper.getValues()) {
+			valueWrapper.normalize(propertyDef.getPrismContext());
+			ValueStatus valueStatus = valueWrapper.getStatus();
+			if (!valueWrapper.hasValueChanged()
+					&& (ValueStatus.NOT_CHANGED.equals(valueStatus) || ValueStatus.ADDED.equals(valueStatus))) {
+				continue;
+			}
+
+			// TODO: need to check if the resource has defined
+			// capabilities
+			// todo this is bad hack because now we have not tri-state
+			// checkbox
+			if (SchemaConstants.PATH_ACTIVATION.equivalent(path)) {
+
+				if (object.asObjectable() instanceof ShadowType
+						&& (((ShadowType) object.asObjectable()).getActivation() == null || ((ShadowType) object
+								.asObjectable()).getActivation().getAdministrativeStatus() == null)) {
+
+					if (!hasResourceCapability(((ShadowType) object.asObjectable()).getResource(),
+							ActivationCapabilityType.class)) {
+						continue;
+					}
+				}
+			}
+
+			PrismValue newValCloned = clone(valueWrapper.getValue());
+			PrismValue oldValCloned = clone(valueWrapper.getOldValue());
+			switch (valueWrapper.getStatus()) {
+				case ADDED:
+					if (newValCloned != null) {
+						if (SchemaConstants.PATH_PASSWORD.equivalent(path)) {
+							// password change will always look like
+							// add,
+							// therefore we push replace
+							pDelta.setValuesToReplace(Arrays.asList(newValCloned));
+						} else if (propertyDef.isSingleValue()) {
+							// values for single-valued properties
+							// should be pushed via replace
+							// in order to prevent problems e.g. with
+							// summarizing deltas for
+							// unreachable resources
+							pDelta.setValueToReplace(newValCloned);
+						} else {
+							pDelta.addValueToAdd(newValCloned);
+						}
+					}
+					break;
+				case DELETED:
+					if (newValCloned != null) {
+						pDelta.addValueToDelete(newValCloned);
+					}
+					break;
+				case NOT_CHANGED:
+					// this is modify...
+					if (propertyDef.isSingleValue()) {
+						// newValCloned.isEmpty()
+						if (newValCloned != null && !newValCloned.isEmpty()) {
+							pDelta.setValuesToReplace(Arrays.asList(newValCloned));
+						} else {
+							if (oldValCloned != null) {
+								pDelta.addValueToDelete(oldValCloned);
+							}
+						}
+					} else {
+						if (newValCloned != null && !newValCloned.isEmpty()) {
+							pDelta.addValueToAdd(newValCloned);
+						}
+						if (oldValCloned != null) {
+							pDelta.addValueToDelete(oldValCloned);
+						}
+					}
+					break;
+			}
+		}
+	}
+
+	private PrismValue clone(PrismValue value) {
+		if (value == null) {
+			return null;
+		}
+		PrismValue cloned = value.clone();
+		cloned.setOriginType(OriginType.USER_ACTION);
+		if (value instanceof PrismPropertyValue) {
+			PrismPropertyValue ppValue = (PrismPropertyValue) value;
+			if (ppValue.getValue() instanceof ProtectedStringType) {
+				((PrismPropertyValue) cloned).setValue(((ProtectedStringType) ppValue.getValue()).clone());
+			}
+			if (ppValue.getValue() instanceof PolyString) {
+				PolyString poly = (PolyString) ppValue.getValue();
+				if (StringUtils.isEmpty(poly.getOrig())) {
+					return null;
+				}
+				((PrismPropertyValue) cloned).setValue(new PolyString(poly.getOrig(), poly.getNorm()));
+			}
+		} else if (value instanceof PrismReferenceValue) {
+			if (cloned == null) {
+				return null;
+			}
+			if (cloned.isEmpty()) {
+				return null;
+			}
+		}
+
+		return cloned;
+	}
+
+	private boolean hasResourceCapability(ResourceType resource,
+			Class<? extends CapabilityType> capabilityClass) {
+		if (resource == null) {
 			return false;
 		}
 		return ResourceTypeUtil.hasEffectiveCapability(resource, capabilityClass);
@@ -648,18 +775,19 @@ public class ObjectWrapper implements Serializable, Revivable {
 				container = object;
 			}
 
-			for (PropertyWrapper propertyWrapper : (List<PropertyWrapper>) containerWrapper.getProperties()) {
+			for (ItemWrapper propertyWrapper : (List<ItemWrapper>) containerWrapper.getItems()) {
 				if (!propertyWrapper.hasChanged()) {
 					continue;
 				}
 
-				PrismProperty property = propertyWrapper.getItem().clone();
+				Item property = propertyWrapper.getItem().clone();
 				if (container.findProperty(property.getElementName()) != null) {
 					continue;
 				}
 				for (ValueWrapper valueWrapper : propertyWrapper.getValues()) {
-                    valueWrapper.normalize();
-					if (!valueWrapper.hasValueChanged() || ValueStatus.DELETED.equals(valueWrapper.getStatus())) {
+					valueWrapper.normalize(object.getPrismContext());
+					if (!valueWrapper.hasValueChanged()
+							|| ValueStatus.DELETED.equals(valueWrapper.getStatus())) {
 						continue;
 					}
 
@@ -667,15 +795,15 @@ public class ObjectWrapper implements Serializable, Revivable {
 						continue;
 					}
 
-                    PrismPropertyValue cloned = clone(valueWrapper.getValue());
-                    if (cloned != null) {
-                        property.addValue(cloned);
-                    }
+					PrismValue cloned = clone(valueWrapper.getValue());
+					if (cloned != null) {
+						property.add(cloned);
+					}
 				}
 
-                if (!property.isEmpty()) {
-                    container.add(property);
-                }
+				if (!property.isEmpty()) {
+					container.add(property);
+				}
 			}
 		}
 
@@ -684,19 +812,18 @@ public class ObjectWrapper implements Serializable, Revivable {
 
 		ObjectDelta delta = ObjectDelta.createAddDelta(object);
 
-        //returning container to previous order
-        Collections.sort(containers, new ItemWrapperComparator());
-        
-        if (InternalsConfig.consistencyChecks) {
-        	delta.checkConsistence(true, true, true, ConsistencyCheckScope.THOROUGH);
-        }
+		// returning container to previous order
+		Collections.sort(containers, new ItemWrapperComparator());
+
+		if (InternalsConfig.consistencyChecks) {
+			delta.checkConsistence(true, true, true, ConsistencyCheckScope.THOROUGH);
+		}
 
 		return delta;
 	}
 
 	private void cleanupEmptyContainers(PrismContainer container) {
 		List<PrismContainerValue> values = container.getValues();
-
 		List<PrismContainerValue> valuesToBeRemoved = new ArrayList<PrismContainerValue>();
 		for (PrismContainerValue value : values) {
 			List<? extends Item> items = value.getItems();
@@ -738,20 +865,20 @@ public class ObjectWrapper implements Serializable, Revivable {
 		return builder.toString();
 	}
 
-    public boolean isProtectedAccount() {
-        if (object == null || !(ShadowType.class.isAssignableFrom(object.getCompileTimeClass()))) {
-            return false;
-        }
+	public boolean isProtectedAccount() {
+		if (object == null || !(ShadowType.class.isAssignableFrom(object.getCompileTimeClass()))) {
+			return false;
+		}
 
-        PrismProperty<Boolean> protectedObject = object.findProperty(ShadowType.F_PROTECTED_OBJECT);
-        if (protectedObject == null) {
-            return false;
-        }
+		PrismProperty<Boolean> protectedObject = object.findProperty(ShadowType.F_PROTECTED_OBJECT);
+		if (protectedObject == null) {
+			return false;
+		}
 
-        return protectedObject.getRealValue() != null ? protectedObject.getRealValue() : false;
-    }
+		return protectedObject.getRealValue() != null ? protectedObject.getRealValue() : false;
+	}
 
-    private static class PathSizeComparator implements Comparator<ContainerWrapper> {
+	private static class PathSizeComparator implements Comparator<ContainerWrapper> {
 
 		@Override
 		public int compare(ContainerWrapper c1, ContainerWrapper c2) {
@@ -762,44 +889,44 @@ public class ObjectWrapper implements Serializable, Revivable {
 		}
 	}
 
-    public boolean isShowAssignments() {
-        return showAssignments;
-    }
+	public boolean isShowAssignments() {
+		return showAssignments;
+	}
 
-    public void setShowAssignments(boolean showAssignments) {
-        this.showAssignments = showAssignments;
-    }
+	public void setShowAssignments(boolean showAssignments) {
+		this.showAssignments = showAssignments;
+	}
 
-    public boolean isReadonly() {
-        if (isProtectedAccount()) {
-            return true;
-        }
-        return readonly;
-    }
+	public boolean isReadonly() {
+		if (isProtectedAccount()) {
+			return true;
+		}
+		return readonly;
+	}
 
-    public void setReadonly(boolean readonly) {
-        this.readonly = readonly;
-    }
+	public void setReadonly(boolean readonly) {
+		this.readonly = readonly;
+	}
 
-    public boolean isShowInheritedObjectAttributes() {
-        return showInheritedObjectAttributes;
-    }
+	public boolean isShowInheritedObjectAttributes() {
+		return showInheritedObjectAttributes;
+	}
 
-    public void setShowInheritedObjectAttributes(boolean showInheritedObjectAttributes) {
-        this.showInheritedObjectAttributes = showInheritedObjectAttributes;
-    }
-    
-    public PrismContainerDefinition getDefinition() {
-    	if (objectDefinitionForEditing != null){
-    		return objectDefinitionForEditing;
-    	}
+	public void setShowInheritedObjectAttributes(boolean showInheritedObjectAttributes) {
+		this.showInheritedObjectAttributes = showInheritedObjectAttributes;
+	}
+
+	public PrismContainerDefinition getDefinition() {
+		if (objectDefinitionForEditing != null) {
+			return objectDefinitionForEditing;
+		}
 		return object.getDefinition();
 	}
-    
-    public PrismContainerDefinition getRefinedAttributeDefinition() {
+
+	public PrismContainerDefinition getRefinedAttributeDefinition() {
 		if (objectClassDefinitionForEditing != null) {
 			return objectClassDefinitionForEditing.toResourceAttributeContainerDefinition();
 		}
-    	return null;
+		return null;
 	}
 }

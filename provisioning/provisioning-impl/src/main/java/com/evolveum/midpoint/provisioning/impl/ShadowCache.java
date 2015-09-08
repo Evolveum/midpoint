@@ -392,7 +392,8 @@ public abstract class ShadowCache {
 		return operationDescription;
 	}
 
-	public abstract void afterModifyOnResource(PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
+	public abstract void afterModifyOnResource(ProvisioningContext ctx, PrismObject<ShadowType> shadow, 
+			Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException;
 	
 	public abstract Collection<? extends ItemDelta> beforeModifyOnResource(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, Collection<? extends ItemDelta> modifications) throws SchemaException;
 	
@@ -460,12 +461,11 @@ public abstract class ShadowCache {
 
 		Collection<PropertyDelta<PrismPropertyValue>> sideEffectDeltas = convertToPropertyDelta(sideEffectChanges);
 		if (!sideEffectDeltas.isEmpty()) {
-			shadowManager.normalizeDeltas(sideEffectDeltas, ctx.getObjectClassDefinition());
 			PrismUtil.setDeltaOldValue(shadow, sideEffectDeltas);
 			ItemDelta.addAll(modifications, (Collection) sideEffectDeltas);
 		}
 		
-		afterModifyOnResource(shadow, modifications, parentResult);
+		afterModifyOnResource(ctx, shadow, modifications, parentResult);
 
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModifyDelta(shadow.getOid(), modifications, shadow.getCompileTimeClass(), prismContext);
 		ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, shadow,

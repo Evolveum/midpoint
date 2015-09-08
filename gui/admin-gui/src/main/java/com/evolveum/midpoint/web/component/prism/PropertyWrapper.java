@@ -77,10 +77,11 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
         }
     }
 
-    protected PrismPropertyDefinition getItemDefinition() {
+    @Override
+    public PrismPropertyDefinition getItemDefinition() {
     	PrismPropertyDefinition propDef = null;
-    	if (container.getContainerDefinition() != null){
-    		propDef = container.getContainerDefinition().findPropertyDefinition(property.getDefinition().getName());
+    	if (container.getItemDefinition() != null){
+    		propDef = container.getItemDefinition().findPropertyDefinition(property.getDefinition().getName());
     	}
     	if (propDef == null) {
     		propDef = property.getDefinition();
@@ -93,12 +94,12 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
             return false;
         }
 
-        return container.isPropertyVisible(this);
+        return container.isItemVisible(this);
     }
     
     
 
-    ContainerWrapper getContainer() {
+    public ContainerWrapper getContainer() {
         return container;
     }
 
@@ -150,7 +151,7 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
         return values;
     }
 
-    public void addValue() {
+    public void addValue(){
         getValues().add(createValue());
     }
 
@@ -198,7 +199,7 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
         return true;
     }
 
-    boolean hasChanged() {
+    public boolean hasChanged() {
         for (ValueWrapper value : getValues()) {
             switch (value.getStatus()) {
                 case DELETED:
@@ -229,6 +230,7 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
         return builder.toString();
     }
 
+    @Override
     public boolean isReadonly() {
         return readonly;
     }

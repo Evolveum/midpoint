@@ -83,6 +83,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import org.apache.commons.lang.BooleanUtils;
+import org.jfree.util.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -1178,8 +1179,11 @@ public class ChangeExecutor {
             }
         }
 
-        OperationProvisioningScriptsType scripts = prepareScripts(object, context, objectContext, ProvisioningOperationTypeType.ADD,
+        OperationProvisioningScriptsType scripts = null;
+        if (object.canRepresent(ShadowType.class)) {
+        	scripts = prepareScripts(object, context, objectContext, ProvisioningOperationTypeType.ADD,
                 resource, task, result);
+        }
         Utils.setRequestee(task, context);
         String oid = provisioning.addObject(object, scripts, options, task, result);
         Utils.clearRequestee(task);
@@ -1191,16 +1195,19 @@ public class ChangeExecutor {
             ResourceType resource, Task task, OperationResult result) throws ObjectNotFoundException, ObjectAlreadyExistsException,
             SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
     	
+    	PrismObject<T> shadowToModify = null;
 		OperationProvisioningScriptsType scripts = null;
 		try {
-			PrismObject<T> shadowToModify = provisioning.getObject(objectTypeClass, oid,
+			shadowToModify = provisioning.getObject(objectTypeClass, oid,
 					SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, result);
-			scripts = prepareScripts(shadowToModify, context, objectContext, ProvisioningOperationTypeType.DELETE, resource,
-					task, result);
 		} catch (ObjectNotFoundException ex) {
 			// this is almost OK, mute the error and try to delete account (it
 			// will fail if something is wrong)
 			result.muteLastSubresultError();
+		}
+		if (ShadowType.class.isAssignableFrom(objectTypeClass)) {
+			scripts = prepareScripts(shadowToModify, context, objectContext, ProvisioningOperationTypeType.DELETE, resource,
+				task, result);
 		}
         Utils.setRequestee(task, context);
 		provisioning.deleteObject(objectTypeClass, oid, options, scripts, task, result);
@@ -1211,10 +1218,22 @@ public class ChangeExecutor {
             Collection<? extends ItemDelta> modifications, LensContext<F> context, LensElementContext<T> objectContext, ProvisioningOperationOptions options,
             ResourceType resource, Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
 
-    	PrismObject<T> shadowToModify = provisioning.getObject(objectTypeClass, oid,
+    	PrismObject<T> shadowToModify = null;
+    	OperationProvisioningScriptsType scripts = null;
+    	try {
+    		shadowToModify = provisioning.getObject(objectTypeClass, oid,
     			SelectorOptions.createCollection(GetOperationOptions.createRaw()), task, result);
-    	OperationProvisioningScriptsType scripts = prepareScripts(shadowToModify, context, objectContext,
+    	} catch (ObjectNotFoundException e) {
+    		// We do not want the operation to fail here. The object might have been re-created on the resource
+    		// or discovery might re-create it. So simply ignore this error and give provisioning a chance to fail
+    		// properly.
+    		result.muteLastSubresultError();
+    		LOGGER.warn("Repository object {}: {} is gone. But trying to modify resource object anyway", objectTypeClass, oid);
+    	}
+    	if (ShadowType.class.isAssignableFrom(objectTypeClass)) {
+    		scripts = prepareScripts(shadowToModify, context, objectContext,
                 ProvisioningOperationTypeType.MODIFY, resource, task, result);
+    	}
         Utils.setRequestee(task, context);
         String changedOid = provisioning.modifyObject(objectTypeClass, oid, modifications, scripts, options, task, result);
         Utils.clearRequestee(task);
@@ -1225,10 +1244,6 @@ public class ChangeExecutor {
     		PrismObject<T> changedObject, LensContext<F> context, LensElementContext<T> objectContext,
     		ProvisioningOperationTypeType operation, ResourceType resource, Task task, OperationResult result) throws ObjectNotFoundException,
             SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-    	
-    	if (!changedObject.canRepresent(ShadowType.class)) {
-    		return null;
-    	}
     	
     	if (resource == null){
     		LOGGER.warn("Resource does not exist. Skipping processing scripts.");

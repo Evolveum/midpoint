@@ -449,4 +449,8 @@ public class ProvisioningUtil {
         coordinates.setObjectClass(objectClass);
         return coordinates;
 	}
+	
+	public static boolean shouldStoreAtributeInShadow(ObjectClassComplexTypeDefinition objectClassDefinition, QName attributeName) {
+		return (objectClassDefinition.isIdentifier(attributeName) || objectClassDefinition.isSecondaryIdentifier(attributeName));
+	}
 }

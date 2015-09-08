@@ -77,7 +77,7 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
 import com.evolveum.midpoint.web.page.admin.users.component.*;
 import com.evolveum.midpoint.web.page.admin.users.dto.SimpleUserResourceProvider;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserAccountDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.FocusShadowDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -184,7 +184,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
     private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
 
     private LoadableModel<ObjectWrapper> userModel;
-    private LoadableModel<List<UserAccountDto>> accountsModel;
+    private LoadableModel<List<FocusShadowDto>> accountsModel;
     private LoadableModel<List<AssignmentEditorDto>> assignmentsModel;
     private IModel<PrismObject<UserType>> summaryUser;
 
@@ -222,10 +222,10 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
                 return loadUserWrapper(userToEdit);
             }
         };
-        accountsModel = new LoadableModel<List<UserAccountDto>>(false) {
+        accountsModel = new LoadableModel<List<FocusShadowDto>>(false) {
 
             @Override
-            protected List<UserAccountDto> load() {
+            protected List<FocusShadowDto> load() {
                 return loadAccountWrappers();
             }
         };
@@ -591,12 +591,12 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         InlineMenu accountMenu = new InlineMenu(ID_ACCOUNT_MENU, new Model((Serializable) createAccountsMenu()));
         accounts.add(accountMenu);
 
-        final ListView<UserAccountDto> accountList = new ListView<UserAccountDto>(ID_ACCOUNT_LIST, accountsModel) {
+        final ListView<FocusShadowDto> accountList = new ListView<FocusShadowDto>(ID_ACCOUNT_LIST, accountsModel) {
 
             @Override
-            protected void populateItem(final ListItem<UserAccountDto> item) {
+            protected void populateItem(final ListItem<FocusShadowDto> item) {
                 PackageResourceReference packageRef;
-                final UserAccountDto dto = item.getModelObject();
+                final FocusShadowDto dto = item.getModelObject();
 
                 Panel panel;
 
@@ -641,7 +641,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                for(UserAccountDto dto: accountList.getModelObject()){
+                for(FocusShadowDto dto: accountList.getModelObject()){
                     if(dto.isLoadedOK()){
                         ObjectWrapper accModel = dto.getObject();
                         accModel.setSelected(getModelObject());
@@ -656,8 +656,8 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         accounts.add(accountList);
     }
 
-    private List<UserAccountDto> loadAccountWrappers() {
-        List<UserAccountDto> list = new ArrayList<UserAccountDto>();
+    private List<FocusShadowDto> loadAccountWrappers() {
+        List<FocusShadowDto> list = new ArrayList<FocusShadowDto>();
 
         ObjectWrapper user = userModel.getObject();
         PrismObject<UserType> prismUser = user.getObject();
@@ -717,7 +717,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
 
                 wrapper.initializeContainers(this);
 
-                list.add(new UserAccountDto(wrapper, UserDtoStatus.MODIFY));
+                list.add(new FocusShadowDto(wrapper, UserDtoStatus.MODIFY));
 
                 subResult.recomputeStatus();
             } catch (ObjectNotFoundException ex) {
@@ -730,7 +730,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
             } catch (Exception ex) {
                 subResult.recordFatalError("Couldn't load account." + ex.getMessage(), ex);
                 LoggingUtils.logException(LOGGER, "Couldn't load account", ex);
-                list.add(new UserAccountDto(false, getResourceName(reference.getOid()), subResult));
+                list.add(new FocusShadowDto(false, getResourceName(reference.getOid()), subResult));
             } finally {
                 subResult.computeStatus();
             }
@@ -1101,9 +1101,9 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
     private List<ObjectDelta<? extends ObjectType>> modifyAccounts(OperationResult result) {
         List<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
 
-        List<UserAccountDto> accounts = accountsModel.getObject();
+        List<FocusShadowDto> accounts = accountsModel.getObject();
         OperationResult subResult = null;
-        for (UserAccountDto account : accounts) {
+        for (FocusShadowDto account : accounts) {
             if(!account.isLoadedOK())
                 continue;
 
@@ -1149,11 +1149,11 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
 
     private ArrayList<PrismObject> getAccountsForSubmit(OperationResult result,
                                                         Collection<ObjectDelta<? extends ObjectType>> deltas) {
-        List<UserAccountDto> accounts = accountsModel.getObject();
+        List<FocusShadowDto> accounts = accountsModel.getObject();
         ArrayList<PrismObject> prismAccounts = new ArrayList<PrismObject>();
         OperationResult subResult = null;
         Task task = createSimpleTask(OPERATION_PREPARE_ACCOUNTS);
-        for (UserAccountDto account : accounts) {
+        for (FocusShadowDto account : accounts) {
             prismAccounts.add(account.getObject().getObject());
             try {
                 ObjectWrapper accountWrapper = account.getObject();
@@ -1188,8 +1188,8 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
     private void prepareUserForAdd(PrismObject<UserType> user) throws SchemaException {
         UserType userType = user.asObjectable();
         // handle added accounts
-        List<UserAccountDto> accounts = accountsModel.getObject();
-        for (UserAccountDto accDto : accounts) {
+        List<FocusShadowDto> accounts = accountsModel.getObject();
+        for (FocusShadowDto accDto : accounts) {
             if(!accDto.isLoadedOK()){
                 continue;
             }
@@ -1252,8 +1252,8 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
     private ReferenceDelta prepareUserAccountsDeltaForModify(PrismReferenceDefinition refDef) throws SchemaException {
         ReferenceDelta refDelta = new ReferenceDelta(refDef, getPrismContext());
 
-        List<UserAccountDto> accounts = accountsModel.getObject();
-        for (UserAccountDto accDto : accounts) {
+        List<FocusShadowDto> accounts = accountsModel.getObject();
+        for (FocusShadowDto accDto : accounts) {
             if(accDto.isLoadedOK()){
                 ObjectWrapper accountWrapper = accDto.getObject();
                 ObjectDelta delta = accountWrapper.getObjectDelta();
@@ -1852,10 +1852,10 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
 
     private ObjectDelta getChange(ObjectWrapper userWrapper) throws SchemaException {
 
-        List<UserAccountDto> accountDtos = accountsModel.getObject();
+        List<FocusShadowDto> accountDtos = accountsModel.getObject();
         List<ReferenceDelta> refDeltas = new ArrayList<ReferenceDelta>();
         ObjectDelta<UserType> forceDeleteDelta = null;
-        for (UserAccountDto accDto : accountDtos) {
+        for (FocusShadowDto accDto : accountDtos) {
             if(!accDto.isLoadedOK()){
                 continue;
             }
@@ -1904,11 +1904,11 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         return object;
     }
 
-    private List<UserAccountDto> getSelectedAccounts() {
-        List<UserAccountDto> selected = new ArrayList<UserAccountDto>();
+    private List<FocusShadowDto> getSelectedAccounts() {
+        List<FocusShadowDto> selected = new ArrayList<FocusShadowDto>();
 
-        List<UserAccountDto> all = accountsModel.getObject();
-        for (UserAccountDto account : all) {
+        List<FocusShadowDto> all = accountsModel.getObject();
+        for (FocusShadowDto account : all) {
             if (account.isLoadedOK() && account.getObject().isSelected()) {
                 selected.add(account);
             }
@@ -1971,7 +1971,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
 
                 wrapper.setShowEmpty(true);
                 wrapper.setMinimalized(false);
-                accountsModel.getObject().add(new UserAccountDto(wrapper, UserDtoStatus.ADD));
+                accountsModel.getObject().add(new FocusShadowDto(wrapper, UserDtoStatus.ADD));
                 setResponsePage(getPage());
             } catch (Exception ex) {
                 error(getString("pageUser.message.couldntCreateAccount", resource.getName(), ex.getMessage()));
@@ -2050,12 +2050,12 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
  
     
     
-    private void updateAccountActivation(AjaxRequestTarget target, List<UserAccountDto> accounts, boolean enabled) {
+    private void updateAccountActivation(AjaxRequestTarget target, List<FocusShadowDto> accounts, boolean enabled) {
         if (!isAnyAccountSelected(target)) {
             return;
         }
 
-        for (UserAccountDto account : accounts) {
+        for (FocusShadowDto account : accounts) {
             if(!account.isLoadedOK()){
                 continue;
             }
@@ -2068,14 +2068,14 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
                 continue;
             }
 
-            PropertyWrapper enabledProperty = activation.findPropertyWrapper(ActivationType.F_ADMINISTRATIVE_STATUS);
+            PropertyWrapper enabledProperty = (PropertyWrapper)activation.findPropertyWrapper(ActivationType.F_ADMINISTRATIVE_STATUS);
             if (enabledProperty == null || enabledProperty.getValues().size() != 1) {
                 warn(getString("pageUser.message.noEnabledPropertyFound", wrapper.getDisplayName()));
                 continue;
             }
             ValueWrapper value = enabledProperty.getValues().get(0);
             ActivationStatusType status = enabled ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED;
-            value.getValue().setValue(status);
+            ((PrismPropertyValue)value.getValue()).setValue(status);
 
             wrapper.setSelected(false);
         }
@@ -2084,7 +2084,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
     }
 
     private boolean isAnyAccountSelected(AjaxRequestTarget target) {
-        List<UserAccountDto> selected = getSelectedAccounts();
+        List<FocusShadowDto> selected = getSelectedAccounts();
         if (selected.isEmpty()) {
             warn(getString("pageUser.message.noAccountSelected"));
             target.add(getFeedbackPanel());
@@ -2108,9 +2108,9 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         target.add(getFeedbackPanel());
     }
 
-    private void deleteAccountConfirmedPerformed(AjaxRequestTarget target, List<UserAccountDto> selected) {
-        List<UserAccountDto> accounts = accountsModel.getObject();
-        for (UserAccountDto account : selected) {
+    private void deleteAccountConfirmedPerformed(AjaxRequestTarget target, List<FocusShadowDto> selected) {
+        List<FocusShadowDto> accounts = accountsModel.getObject();
+        for (FocusShadowDto account : selected) {
             if (UserDtoStatus.ADD.equals(account.getStatus())) {
                 accounts.remove(account);
             } else {
@@ -2134,12 +2134,12 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         target.add(getFeedbackPanel(), get(createComponentPath(ID_MAIN_FORM, ID_ASSIGNMENTS)));
     }
 
-    private void unlinkAccountPerformed(AjaxRequestTarget target, List<UserAccountDto> selected) {
+    private void unlinkAccountPerformed(AjaxRequestTarget target, List<FocusShadowDto> selected) {
         if (!isAnyAccountSelected(target)) {
             return;
         }
 
-        for (UserAccountDto account : selected) {
+        for (FocusShadowDto account : selected) {
             if (UserDtoStatus.ADD.equals(account.getStatus())) {
                 continue;
             }
@@ -2148,12 +2148,12 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         target.add(get(createComponentPath(ID_MAIN_FORM, ID_ACCOUNTS)));
     }
 
-    private void unlockAccountPerformed(AjaxRequestTarget target, List<UserAccountDto> selected) {
+    private void unlockAccountPerformed(AjaxRequestTarget target, List<FocusShadowDto> selected) {
         if (!isAnyAccountSelected(target)) {
             return;
         }
 
-        for (UserAccountDto account : selected) {
+        for (FocusShadowDto account : selected) {
             // TODO: implement unlock
         }
     }

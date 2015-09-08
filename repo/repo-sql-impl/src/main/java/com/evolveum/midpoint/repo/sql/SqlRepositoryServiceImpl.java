@@ -16,10 +16,68 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import java.lang.reflect.Method;
+import java.sql.Connection;
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+import javax.annotation.PostConstruct;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.Visitable;
+import com.evolveum.midpoint.prism.Visitor;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.hibernate.Criteria;
+import org.hibernate.LockMode;
+import org.hibernate.LockOptions;
+import org.hibernate.Query;
+import org.hibernate.SQLQuery;
+import org.hibernate.ScrollMode;
+import org.hibernate.ScrollableResults;
+import org.hibernate.Session;
+import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Restrictions;
+import org.hibernate.exception.ConstraintViolationException;
+import org.hibernate.internal.SessionFactoryImpl;
+import org.hibernate.jdbc.Work;
+import org.hibernate.transform.Transformers;
+import org.springframework.stereotype.Repository;
+
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.ConsistencyCheckScope;
+import com.evolveum.midpoint.prism.Definition;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.parser.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -34,45 +92,48 @@ import com.evolveum.midpoint.repo.sql.data.common.RLookupTable;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
 import com.evolveum.midpoint.repo.sql.data.common.any.RValueType;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.other.RLookupTableRow;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.query.QueryEngine;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.RQuery;
-import com.evolveum.midpoint.repo.sql.util.*;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.repo.sql.util.ClassMapper;
+import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
+import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
+import com.evolveum.midpoint.repo.sql.util.PrismIdentifierGenerator;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.repo.sql.util.ScrollableResultsIterator;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.LabeledString;
+import com.evolveum.midpoint.schema.ObjectSelector;
+import com.evolveum.midpoint.schema.RelationalValueSearchQuery;
+import com.evolveum.midpoint.schema.RepositoryDiag;
+import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.RetrieveOption;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.Transformer;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.hibernate.*;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.exception.ConstraintViolationException;
-import org.hibernate.internal.SessionFactoryImpl;
-import org.hibernate.jdbc.Work;
-import org.springframework.stereotype.Repository;
-
-import javax.annotation.PostConstruct;
-import javax.xml.namespace.QName;
-
-import java.lang.reflect.Method;
-import java.sql.Connection;
-import java.sql.Driver;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.util.*;
 
 /**
  * @author lazyman
@@ -182,7 +243,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         if (fullObject == null) {
             throwObjectNotFoundException(type, oid);
         }
-
+        
+       
         LOGGER.trace("Transforming data to JAXB type.");
         PrismObject<T> prismObject = updateLoadedObject(fullObject, type, options, session);
         validateObjectType(prismObject, type);
@@ -1017,9 +1079,66 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             updateLoadedLookupTable(prismObject, options, session);
         }
 
+        GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+        
+        if (GetOperationOptions.isResolveNames(rootOptions)) {
+            final List<String> oidsToResolve = new ArrayList<String>();
+            Visitor oidExtractor = new Visitor() {
+                @Override
+                public void visit(Visitable visitable) {
+                    if (visitable instanceof PrismReferenceValue) {
+                        PrismReferenceValue value = (PrismReferenceValue) visitable;
+                        if (value.getTargetName() != null) {    // just for sure
+                            return;
+                        }
+                        if (value.getObject() != null) {        // improbable but possible
+                            value.setTargetName(value.getObject().getName());
+                            return;
+                        }
+                        if (value.getOid() == null) {           // shouldn't occur as well
+                            return;
+                        }
+                        oidsToResolve.add(value.getOid());
+                    }
+                }
+            };
+            prismObject.accept(oidExtractor);
+
+			if (!oidsToResolve.isEmpty()) {
+				Query query = session.getNamedQuery("resolveReferences");
+				query.setParameterList("oid", oidsToResolve);
+				query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+
+				List<Map<String, Object>> results = query.list();
+				final Map<String, PolyString> oidNameMap = consolidateResults(results);
+
+                Visitor nameSetter = new Visitor() {
+                    @Override
+                    public void visit(Visitable visitable) {
+                        if (visitable instanceof PrismReferenceValue) {
+                            PrismReferenceValue value = (PrismReferenceValue) visitable;
+                            if (value.getTargetName() == null && value.getOid() != null) {
+                                value.setTargetName(oidNameMap.get(value.getOid()));
+                            }
+                        }
+                    }
+                };
+                prismObject.accept(nameSetter);
+			}
+        }
+        
         validateObjectType(prismObject, type);
 
         return prismObject;
+    }
+    
+    private Map<String, PolyString> consolidateResults(List<Map<String, Object>> results){
+    	Map<String, PolyString> oidNameMap = new HashMap<String, PolyString>();
+    	for (Map<String, Object> map : results){
+    		PolyStringType name = RPolyString.copyToJAXB((RPolyString) map.get("1"));
+    		oidNameMap.put((String)map.get("0"), new PolyString(name.getOrig(), name.getNorm()));
+    	}
+    	return oidNameMap;
     }
 
     private GetOperationOptions findLookupTableGetOption(Collection<SelectorOptions<GetOperationOptions>> options) {

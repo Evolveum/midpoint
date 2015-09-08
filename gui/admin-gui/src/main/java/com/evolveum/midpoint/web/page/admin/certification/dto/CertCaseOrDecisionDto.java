@@ -68,7 +68,7 @@ public class CertCaseOrDecisionDto extends Selectable {
         if (ref == null) {
             return null;
         }
-        String name = (String) ref.asReferenceValue().getUserData(XNodeSerializer.USER_DATA_KEY_COMMENT);
+        String name = ref.getTargetName() != null ? ref.getTargetName().getOrig() : null;
         if (name == null) {
             return "(" + ref.getOid() + ")";
         } else {

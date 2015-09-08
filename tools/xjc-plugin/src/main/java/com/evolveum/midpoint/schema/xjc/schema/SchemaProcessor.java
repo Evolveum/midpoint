@@ -168,6 +168,8 @@ public class SchemaProcessor implements Processor {
     private static final String METHOD_PRISM_UTIL_SET_REFERENCE_VALUE_AS_OBJECT = "setReferenceValueAsObject";
     private static final String METHOD_PRISM_UTIL_GET_REFERENCE_FILTER_CLAUSE_XNODE = "getReferenceFilterClauseXNode";
     private static final String METHOD_PRISM_UTIL_SET_REFERENCE_FILTER_CLAUSE_XNODE = "setReferenceFilterClauseXNode";
+    private static final String METHOD_PRISM_UTIL_GET_REFERENCE_TARGET_NAME = "getReferenceTargetName";
+    private static final String METHOD_PRISM_UTIL_SET_REFERENCE_TARGET_NAME = "setReferenceTargetName";
     private static final String METHOD_PRISM_UTIL_OBJECTABLE_AS_REFERENCE_VALUE = "objectableAsReferenceValue";
 	private static final String METHOD_PRISM_UTIL_SETUP_CONTAINER_VALUE = "setupContainerValue";
     private static final String METHOD_PRISM_UTIL_CREATE_TARGET_INSTANCE = "createTargetInstance";
@@ -297,11 +299,28 @@ public class SchemaProcessor implements Processor {
         body._return(JExpr.invoke(JExpr.invoke(getReference), "getTargetType"));
 
         definedClass.removeField(typeField);
+        
         JMethod setType = recreateMethod(findMethod(definedClass, "setType"), definedClass);
         body = setType.body();
         JInvocation invocation = body.invoke(JExpr.invoke(getReference), "setTargetType");
         invocation.arg(setType.listParams()[0]);
         invocation.arg(JExpr.lit(true));
+        
+        JFieldVar targetNameField = definedClass.fields().get("targetName");
+        JMethod getTargetName = recreateMethod(findMethod(definedClass, "getTargetName"), definedClass);
+        copyAnnotations(getTargetName, targetNameField);
+        JBlock getTargetNamebody = getTargetName.body();
+        JInvocation getTargetNameInvocation = CLASS_MAP.get(PrismForJAXBUtil.class).staticInvoke(METHOD_PRISM_UTIL_GET_REFERENCE_TARGET_NAME);
+        getTargetNameInvocation.arg(JExpr.invoke(getReference));
+        getTargetNamebody._return(getTargetNameInvocation);
+
+        definedClass.removeField(targetNameField);
+        
+        JMethod setTargetName = recreateMethod(findMethod(definedClass, "setTargetName"), definedClass);
+        JBlock setTargetNamebody = setTargetName.body();
+        JInvocation setTagetNameInvocation = setTargetNamebody.staticInvoke(CLASS_MAP.get(PrismForJAXBUtil.class), METHOD_PRISM_UTIL_SET_REFERENCE_TARGET_NAME);
+        setTagetNameInvocation.arg(JExpr.invoke(getReference));
+        setTagetNameInvocation.arg(setTargetName.listParams()[0]);        
     }
 
     private void updateObjectReferenceRelation(JDefinedClass definedClass, JMethod getReference) {

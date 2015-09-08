@@ -1119,6 +1119,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		Task task = taskManager.createTaskInstance();
 		
 		//WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_NOT_FOUND_DELETE_ACCOUNT, ACCOUNT_GUYBRUSH_MODIFY_DELETE_OID, ShadowType.class, task, null, parentResult);
 
 		// THEN
@@ -1128,6 +1129,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		PrismObject<ShadowType> modifiedAccount = provisioningService.getObject(
 				ShadowType.class, accountOid, null, task, parentResult);
 		assertNotNull(modifiedAccount);
+		display("Modified shadow", modifiedAccount);
 		assertShadowName(modifiedAccount.asObjectable(), "uid=guybrush123,ou=people,dc=example,dc=com");
 //		PrismAsserts.assertEqualsPolyString("Wrong shadow name", "uid=guybrush123,ou=people,dc=example,dc=com", modifiedAccount.asObjectable().getName());
 		ResourceAttributeContainer attributeContainer = ShadowUtil

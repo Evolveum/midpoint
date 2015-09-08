@@ -85,7 +85,7 @@ import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserAccountDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.FocusShadowDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -156,12 +156,12 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 
 	// private ContainerStatus status;
 	private LoadableModel<ObjectWrapper> orgModel;
-	private IModel<List<OrgType>> parentOrgUnitsModel;  //class="form-group" 
+//	private IModel<List<OrgType>> parentOrgUnitsModel;  //class="form-group" 
 	private IModel<List<PrismPropertyValue>> orgTypeModel;
 	private IModel<List<PrismPropertyValue>> orgMailDomainModel;
 	private IModel<ContainerWrapper> extensionModel;
 
-	private LoadableModel<List<UserAccountDto>> shadowsModel;
+	private LoadableModel<List<FocusShadowDto>> shadowsModel;
 	private ObjectWrapper orgWrapper;
 
 	private ProgressReporter progressReporter;
@@ -200,18 +200,18 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 			}
 		};
 
-		parentOrgUnitsModel = new LoadableModel<List<OrgType>>(false) {
+//		parentOrgUnitsModel = new LoadableModel<List<OrgType>>(false) {
+//
+//			@Override
+//			protected List<OrgType> load() {
+//				return loadParentOrgUnits();
+//			}
+//		};
+
+		shadowsModel = new LoadableModel<List<FocusShadowDto>>(false) {
 
 			@Override
-			protected List<OrgType> load() {
-				return loadParentOrgUnits();
-			}
-		};
-
-		shadowsModel = new LoadableModel<List<UserAccountDto>>(false) {
-
-			@Override
-			protected List<UserAccountDto> load() {
+			protected List<FocusShadowDto> load() {
 				return loadShadowWrappers();
 			}
 		};
@@ -236,8 +236,8 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 		};
 	}
 
-	private List<UserAccountDto> loadShadowWrappers() {
-		List<UserAccountDto> list = new ArrayList<UserAccountDto>();
+	private List<FocusShadowDto> loadShadowWrappers() {
+		List<FocusShadowDto> list = new ArrayList<FocusShadowDto>();
 
 		ObjectWrapper orgWrapper = orgModel.getObject();
 		PrismObject<OrgType> prismUser = orgWrapper.getObject();
@@ -299,7 +299,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 
 				wrapper.initializeContainers(this);
 
-				list.add(new UserAccountDto(wrapper, UserDtoStatus.MODIFY));
+				list.add(new FocusShadowDto(wrapper, UserDtoStatus.MODIFY));
 
 				subResult.recomputeStatus();
 			} catch (ObjectNotFoundException ex) {
@@ -313,7 +313,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 			} catch (Exception ex) {
 				subResult.recordFatalError("Couldn't load account." + ex.getMessage(), ex);
 				LoggingUtils.logException(LOGGER, "Couldn't load account", ex);
-				list.add(new UserAccountDto(false, getResourceName(reference.getOid()), subResult));
+				list.add(new FocusShadowDto(false, getResourceName(reference.getOid()), subResult));
 			} finally {
 				subResult.computeStatus();
 			}
@@ -364,8 +364,8 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 		};
 		form.add(orgForm);
 
-		MultiValueChoosePanel parentOrgType = initParentOrgUnit();
-		form.add(parentOrgType);
+//		MultiValueChoosePanel parentOrgType = initParentOrgUnit();
+//		form.add(parentOrgType);
 
 		AssignmentTablePanel assignments = initAssignments();
 		form.add(assignments);
@@ -415,79 +415,79 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 		return assignments;
 	}
 
-	private MultiValueChoosePanel initParentOrgUnit() {
-		MultiValueChoosePanel parentOrgType = new MultiValueChoosePanel<OrgType>(ID_PARENT_ORG_UNITS,
-				parentOrgUnitsModel, createStringResource("PageOrgUnit.parentOrgRef"), ID_LABEL_SIZE,
-				ID_INPUT_SIZE, false, OrgType.class) {
-
-			@Override
-			protected IModel<String> createTextModel(final IModel model) {
-				return new AbstractReadOnlyModel<String>() {
-
-					@Override
-					public String getObject() {
-						OrgType org = (OrgType) model.getObject();
-
-						return org == null ? null : WebMiscUtil.getOrigStringFromPoly(org.getName());
-					}
-				};
-			}
-
-			@Override
-			protected OrgType createNewEmptyItem() {
-				return new OrgType();
-			}
-
-			@Override
-			protected ObjectQuery createChooseQuery() {
-				ArrayList<String> oidList = new ArrayList<>();
-				ObjectQuery query = new ObjectQuery();
-
-				for (OrgType org : parentOrgUnitsModel.getObject()) {
-					if (org != null) {
-						if (org.getOid() != null && !org.getOid().isEmpty()) {
-							oidList.add(org.getOid());
-						}
-					}
-				}
-
-				if (isEditingOrgUnit()) {
-					oidList.add(orgModel.getObject().getObject().asObjectable().getOid());
-				}
-
-				if (oidList.isEmpty()) {
-					return null;
-				}
-
-				ObjectFilter oidFilter = InOidFilter.createInOid(oidList);
-				query.setFilter(NotFilter.createNot(oidFilter));
-
-				return query;
-			}
-
-			@Override
-			protected void replaceIfEmpty(Object object) {
-
-				boolean added = false;
-
-				List<OrgType> parents = parentOrgUnitsModel.getObject();
-				for (OrgType org : parents) {
-					if (WebMiscUtil.getName(org) == null || WebMiscUtil.getName(org).isEmpty()) {
-						parents.remove(org);
-						parents.add((OrgType) object);
-						added = true;
-						break;
-					}
-				}
-
-				if (!added) {
-					parents.add((OrgType) object);
-				}
-			}
-		};
-
-		return parentOrgType;
-	}
+//	private MultiValueChoosePanel initParentOrgUnit() {
+//		MultiValueChoosePanel parentOrgType = new MultiValueChoosePanel<OrgType>(ID_PARENT_ORG_UNITS,
+//				parentOrgUnitsModel, createStringResource("PageOrgUnit.parentOrgRef"), ID_LABEL_SIZE,
+//				ID_INPUT_SIZE, false, OrgType.class) {
+//
+//			@Override
+//			protected IModel<String> createTextModel(final IModel model) {
+//				return new AbstractReadOnlyModel<String>() {
+//
+//					@Override
+//					public String getObject() {
+//						OrgType org = (OrgType) model.getObject();
+//
+//						return org == null ? null : WebMiscUtil.getOrigStringFromPoly(org.getName());
+//					}
+//				};
+//			}
+//
+//			@Override
+//			protected OrgType createNewEmptyItem() {
+//				return new OrgType();
+//			}
+//
+//			@Override
+//			protected ObjectQuery createChooseQuery() {
+//				ArrayList<String> oidList = new ArrayList<>();
+//				ObjectQuery query = new ObjectQuery();
+//
+//				for (OrgType org : parentOrgUnitsModel.getObject()) {
+//					if (org != null) {
+//						if (org.getOid() != null && !org.getOid().isEmpty()) {
+//							oidList.add(org.getOid());
+//						}
+//					}
+//				}
+//
+//				if (isEditingOrgUnit()) {
+//					oidList.add(orgModel.getObject().getObject().asObjectable().getOid());
+//				}
+//
+//				if (oidList.isEmpty()) {
+//					return null;
+//				}
+//
+//				ObjectFilter oidFilter = InOidFilter.createInOid(oidList);
+//				query.setFilter(NotFilter.createNot(oidFilter));
+//
+//				return query;
+//			}
+//
+//			@Override
+//			protected void replaceIfEmpty(Object object) {
+//
+//				boolean added = false;
+//
+//				List<OrgType> parents = parentOrgUnitsModel.getObject();
+//				for (OrgType org : parents) {
+//					if (WebMiscUtil.getName(org) == null || WebMiscUtil.getName(org).isEmpty()) {
+//						parents.remove(org);
+//						parents.add((OrgType) object);
+//						added = true;
+//						break;
+//					}
+//				}
+//
+//				if (!added) {
+//					parents.add((OrgType) object);
+//				}
+//			}
+//		};
+//
+//		return parentOrgType;
+//	}
 
 	private IModel<String> createStyleClassModel(final IModel<PropertyWrapper> wrapper) {
 		return new AbstractReadOnlyModel<String>() {
@@ -561,14 +561,14 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 		goBack(PageOrgTree.class);
 	}
 
-	private boolean isRefInParentOrgModel(ObjectReferenceType reference) {
-		for (OrgType parent : parentOrgUnitsModel.getObject()) {
-			if (reference.getOid().equals(parent.getOid())) {
-				return true;
-			}
-		}
-		return false;
-	}
+//	private boolean isRefInParentOrgModel(ObjectReferenceType reference) {
+//		for (OrgType parent : parentOrgUnitsModel.getObject()) {
+//			if (reference.getOid().equals(parent.getOid())) {
+//				return true;
+//			}
+//		}
+//		return false;
+//	}
 
 	private boolean isOrgParent(OrgType unit, List<ObjectReferenceType> parentList) {
 		for (ObjectReferenceType parentRef : parentList) {
@@ -727,10 +727,10 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 
 	private ObjectDelta getChange(ObjectWrapper orgWrapper) throws SchemaException {
 
-		List<UserAccountDto> accountDtos = shadowsModel.getObject();
+		List<FocusShadowDto> accountDtos = shadowsModel.getObject();
 		List<ReferenceDelta> refDeltas = new ArrayList<ReferenceDelta>();
 		ObjectDelta<OrgType> forceDeleteDelta = null;
-		for (UserAccountDto accDto : accountDtos) {
+		for (FocusShadowDto accDto : accountDtos) {
 			if (!accDto.isLoadedOK()) {
 				continue;
 			}
@@ -765,9 +765,9 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 	private List<ObjectDelta<? extends ObjectType>> modifyShadows(OperationResult result) {
 		List<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
 
-		List<UserAccountDto> shadows = shadowsModel.getObject();
+		List<FocusShadowDto> shadows = shadowsModel.getObject();
 		OperationResult subResult = null;
-		for (UserAccountDto account : shadows) {
+		for (FocusShadowDto account : shadows) {
 			if (!account.isLoadedOK())
 				continue;
 
@@ -831,33 +831,33 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 				ID_INDUCEMENTS_TABLE));
 		inducementPanel.handleAssignmentDeltas(delta, inducementDef, OrgType.F_INDUCEMENT);
 		// We are editing OrgUnit
-		if (handleParentOrgs) {
-			if (parentOrgUnitsModel != null && parentOrgUnitsModel.getObject() != null) {
-				for (OrgType parent : parentOrgUnitsModel.getObject()) {
-					if (parent != null && WebMiscUtil.getName(parent) != null
-							&& !WebMiscUtil.getName(parent).isEmpty()) {
-						if (!isOrgParent(parent, parentOrgList)) {
-							ObjectReferenceType ref = new ObjectReferenceType();
-							ref.setOid(parent.getOid());
-							ref.setType(OrgType.COMPLEX_TYPE);
-							ReferenceDelta refDelta = ReferenceDelta.createModificationAdd(
-									OrgType.F_PARENT_ORG_REF, getOrgTypeDefinition(), ref.asReferenceValue());
-							delta.addModification(refDelta);
-							// org.asObjectable().getParentOrgRef().add(ref);
-						}
-					}
-				}
-				// Delete parentOrgUnits from edited OrgUnit
-				for (ObjectReferenceType parent : parentOrgList) {
-					if (!isRefInParentOrgModel(parent)) {
-						ReferenceDelta refDelta = ReferenceDelta.createModificationAdd(
-								OrgType.F_PARENT_ORG_REF, getOrgTypeDefinition(), parent.asReferenceValue());
-						delta.addModification(refDelta);
-						// org.asObjectable().getParentOrgRef().remove(parent);
-					}
-				}
-			}
-		}
+//		if (handleParentOrgs) {
+//			if (parentOrgUnitsModel != null && parentOrgUnitsModel.getObject() != null) {
+//				for (OrgType parent : parentOrgUnitsModel.getObject()) {
+//					if (parent != null && WebMiscUtil.getName(parent) != null
+//							&& !WebMiscUtil.getName(parent).isEmpty()) {
+//						if (!isOrgParent(parent, parentOrgList)) {
+//							ObjectReferenceType ref = new ObjectReferenceType();
+//							ref.setOid(parent.getOid());
+//							ref.setType(OrgType.COMPLEX_TYPE);
+//							ReferenceDelta refDelta = ReferenceDelta.createModificationAdd(
+//									OrgType.F_PARENT_ORG_REF, getOrgTypeDefinition(), ref.asReferenceValue());
+//							delta.addModification(refDelta);
+//							// org.asObjectable().getParentOrgRef().add(ref);
+//						}
+//					}
+//				}
+//				// Delete parentOrgUnits from edited OrgUnit
+//				for (ObjectReferenceType parent : parentOrgList) {
+//					if (!isRefInParentOrgModel(parent)) {
+//						ReferenceDelta refDelta = ReferenceDelta.createModificationAdd(
+//								OrgType.F_PARENT_ORG_REF, getOrgTypeDefinition(), parent.asReferenceValue());
+//						delta.addModification(refDelta);
+//						// org.asObjectable().getParentOrgRef().remove(parent);
+//					}
+//				}
+//			}
+//		}
 
 	}
 
@@ -878,24 +878,24 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 				.getInducement());
 
 		// We are creating new OrgUnit
-		if (parentOrgUnitsModel != null && parentOrgUnitsModel.getObject() != null) { // this
-																						// should
-																						// be
-																						// always
-																						// the
-																						// case
-			// parentOrgRef in org is not relevant anymore, so delete it
-			newOrgUnit.asObjectable().getParentOrgRef().clear();
-			for (OrgType parent : parentOrgUnitsModel.getObject()) {
-				if (parent != null && WebMiscUtil.getName(parent) != null
-						&& !WebMiscUtil.getName(parent).isEmpty()) {
-					ObjectReferenceType ref = new ObjectReferenceType();
-					ref.setOid(parent.getOid());
-					ref.setType(OrgType.COMPLEX_TYPE);
-					newOrgUnit.asObjectable().getParentOrgRef().add(ref);
-				}
-			}
-		}
+//		if (parentOrgUnitsModel != null && parentOrgUnitsModel.getObject() != null) { // this
+//																						// should
+//																						// be
+//																						// always
+//																						// the
+//																						// case
+//			// parentOrgRef in org is not relevant anymore, so delete it
+//			newOrgUnit.asObjectable().getParentOrgRef().clear();
+//			for (OrgType parent : parentOrgUnitsModel.getObject()) {
+//				if (parent != null && WebMiscUtil.getName(parent) != null
+//						&& !WebMiscUtil.getName(parent).isEmpty()) {
+//					ObjectReferenceType ref = new ObjectReferenceType();
+//					ref.setOid(parent.getOid());
+//					ref.setType(OrgType.COMPLEX_TYPE);
+//					newOrgUnit.asObjectable().getParentOrgRef().add(ref);
+//				}
+//			}
+//		}
 
 	}
 
@@ -1039,13 +1039,13 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 
 		// TODO: unify - rename UserAccountDto to something else, e.g.
 		// FocusShadowDto or FocusProjectionDto or something similar
-		final ListView<UserAccountDto> accountList = new ListView<UserAccountDto>(ID_ACCOUNT_LIST,
+		final ListView<FocusShadowDto> accountList = new ListView<FocusShadowDto>(ID_ACCOUNT_LIST,
 				shadowsModel) {
 
 			@Override
-			protected void populateItem(final ListItem<UserAccountDto> item) {
+			protected void populateItem(final ListItem<FocusShadowDto> item) {
 				PackageResourceReference packageRef;
-				final UserAccountDto dto = item.getModelObject();
+				final FocusShadowDto dto = item.getModelObject();
 
 				Panel panel;
 
@@ -1107,7 +1107,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 
 	private void reviveModels() throws SchemaException {
 		WebMiscUtil.revive(orgModel, getPrismContext());
-		WebMiscUtil.revive(parentOrgUnitsModel, getPrismContext());
+//		WebMiscUtil.revive(parentOrgUnitsModel, getPrismContext());
 	}
 
 }

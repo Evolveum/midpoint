@@ -158,6 +158,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapTest {
 	
 	protected String account0Oid;
 	protected String accountBarbossaOid;
+	protected String accountBarbossaEntryId;
 
     @Autowired
     protected ReconciliationTaskHandler reconciliationTaskHandler;
@@ -190,6 +191,13 @@ public abstract class AbstractLdapConnTest extends AbstractLdapTest {
 		
 	}
 		
+	@Test
+    public void test000Sanity() throws Exception {
+		cleanupDelete(toGroupDn(GROUP_MONKEYS_CN));
+		cleanupDelete(toDn(USER_BARBOSSA_USERNAME));
+		cleanupDelete(toDn(USER_CPTBARBOSSA_USERNAME));
+	}
+	
 	@Test
     public void test100SeachAccount0ByLdapUid() throws Exception {
 		final String TEST_NAME = "test100SeachAccount0ByLdapUid";
@@ -528,10 +536,10 @@ public abstract class AbstractLdapConnTest extends AbstractLdapTest {
         display("Shadow (model)", shadow);
         accountBarbossaOid = shadow.getOid();
         Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(shadow);
-        String accountBarbossaIcfUid = (String) identifiers.iterator().next().getRealValue();
-        assertNotNull("No identifier in "+shadow, accountBarbossaIcfUid);
+        accountBarbossaEntryId = (String) identifiers.iterator().next().getRealValue();
+        assertNotNull("No identifier in "+shadow, accountBarbossaEntryId);
         
-        assertEquals("Wrong ICFS UID", entry.get(getPrimaryIdentifierAttributeName()).getString(), accountBarbossaIcfUid);
+        assertEquals("Wrong ICFS UID", getAttributeAsString(entry, getPrimaryIdentifierAttributeName()), accountBarbossaEntryId);
         
         assertLdapPassword(USER_BARBOSSA_USERNAME, "deadjacktellnotales");
         
@@ -541,7 +549,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapTest {
         // LDAP server may be on a different host. Allow for some clock offset.
         TestUtil.assertBetween("Wrong createTimestamp in "+shadow, roundTsDown(tsStart)-1000, roundTsUp(tsEnd)+1000, createTimestamp);
 	}
-	
+
 	@Test
     public void test210ModifyAccountBarbossaTitle() throws Exception {
 		final String TEST_NAME = "test210ModifyAccountBarbossaTitle";
@@ -631,6 +639,16 @@ public abstract class AbstractLdapConnTest extends AbstractLdapTest {
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         String shadowOid = getSingleLinkOid(user);
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
+        
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, shadowOid, null, result);
+        display("Repo shadow after rename", repoShadow);
+        
+        String repoPrimaryIdentifier = ShadowUtil.getAttributeValue(repoShadow, getPrimaryIdentifierAttributeQName());
+        if ("dn".equals(getPrimaryIdentifierAttributeName())) {
+        	assertEquals("Entry DN (primary identifier) was not updated in the shadow", toDn(USER_CPTBARBOSSA_USERNAME), repoPrimaryIdentifier);
+        } else {
+        	assertEquals("Entry ID changed after rename", accountBarbossaEntryId, repoPrimaryIdentifier);
+        }
 	}
 	
 	@Test

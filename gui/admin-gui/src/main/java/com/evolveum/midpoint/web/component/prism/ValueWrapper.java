@@ -16,13 +16,18 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
-
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
 import org.apache.commons.lang.Validate;
+import org.apache.cxf.common.util.PrimitiveUtils;
 
 import java.io.Serializable;
 
@@ -31,66 +36,77 @@ import java.io.Serializable;
  */
 public class ValueWrapper<T> implements Serializable {
 
-    private PropertyWrapper property;
-    private PrismPropertyValue<T> value;
-    private PrismPropertyValue<T> oldValue;
+    private ItemWrapper item;
+    private PrismValue value;
+    private PrismValue oldValue;
+//    private PrismPropertyValue<T> value;
+//    private PrismPropertyValue<T> oldValue;
     private ValueStatus status;
 
-    public ValueWrapper(PropertyWrapper property, PrismPropertyValue<T> value) {
+    public ValueWrapper(ItemWrapper property, PrismValue value) {
         this(property, value, ValueStatus.NOT_CHANGED);
     }
 
-    public ValueWrapper(PropertyWrapper property, PrismPropertyValue<T> value, ValueStatus status) {
+    public ValueWrapper(ItemWrapper property, PrismValue value, ValueStatus status) {
         this(property, value, null, status);
     }
 
-    public ValueWrapper(PropertyWrapper property, PrismPropertyValue<T> value, PrismPropertyValue<T> oldValue,
+    public ValueWrapper(ItemWrapper property, PrismValue value, PrismValue oldValue,
             ValueStatus status) {
         Validate.notNull(property, "Property wrapper must not be null.");
         Validate.notNull(value, "Property value must not be null.");
 
-        this.property = property;
+        this.item = property;
         this.status = status;
         
-        if (value != null) {
-            T val = value.getValue();
-            if (val instanceof PolyString) {    
-                PolyString poly = (PolyString)val;
-                this.value = new PrismPropertyValue(new PolyString(poly.getOrig(), poly.getNorm()),
-                        value.getOriginType(), value.getOriginObject());
-            } else if (val instanceof ProtectedStringType) {
-                this.value = value.clone();
-                // prevents "Attempt to encrypt protected data that are already encrypted" when applying resulting delta
-                ((ProtectedStringType) (this.value.getValue())).setEncryptedData(null);
-            } else {
-                this.value = value.clone();
-            }
-        }
+		if (value != null) {
+			if (value instanceof PrismPropertyValue) {
 
-        if (oldValue == null) {
-            T val = this.value.getValue();
+				T val = ((PrismPropertyValue<T>) value).getValue();
+				if (val instanceof PolyString) {
+					PolyString poly = (PolyString) val;
+					this.value = new PrismPropertyValue(new PolyString(poly.getOrig(), poly.getNorm()),
+							value.getOriginType(), value.getOriginObject());
+				} else if (val instanceof ProtectedStringType) {
+					this.value = value.clone();
+					// prevents
+					// "Attempt to encrypt protected data that are already encrypted"
+					// when applying resulting delta
+					((ProtectedStringType) (((PrismPropertyValue) this.value).getValue()))
+							.setEncryptedData(null);
+				} else {
+					this.value = value.clone();
+				}
+			} else {
+				this.value = value.clone();
+			}
+		}
+        
+        if (oldValue == null && value instanceof PrismPropertyValue) {
+            T val = ((PrismPropertyValue<T>) this.value).getValue();
             if (val instanceof PolyString) {
                 PolyString poly = (PolyString)val;
                 val = (T) new PolyString(poly.getOrig(), poly.getNorm());
             }
             oldValue = new PrismPropertyValue<T>(CloneUtil.clone(val), this.value.getOriginType(), this.value.getOriginObject());
         }
+        
         this.oldValue = oldValue;
     }
 
-    public PropertyWrapper getProperty() {
-        return property;
+    public ItemWrapper getItem() {
+        return item;
     }
 
     public ValueStatus getStatus() {
         return status;
     }
 
-    public PrismPropertyValue<T> getValue() {
+    public PrismValue getValue() {
         return value;
     }
 
-    public PrismPropertyValue<T> getOldValue() {
+    public PrismValue getOldValue() {
         return oldValue;
     }
 
@@ -98,16 +114,23 @@ public class ValueWrapper<T> implements Serializable {
         this.status = status;
     }
 
-    public void normalize() {
-        if (value.getValue() instanceof PolyString)  {
-            PolyString poly = (PolyString) value.getValue();
-            if (poly.getOrig()==null) {
-                value.setValue((T) new PolyString(""));
-            }
-        } else if (value.getValue() instanceof DisplayableValue){
-        	DisplayableValue displayableValue = (DisplayableValue) value.getValue();
-        	value.setValue((T) displayableValue.getValue());
-        }
+    public void normalize(PrismContext prismContext) {
+		if (value instanceof PrismPropertyValue) {
+			PrismPropertyValue ppVal = (PrismPropertyValue) value;
+			if (ppVal.getValue() instanceof PolyString) {
+				PolyString poly = (PolyString) ppVal.getValue();
+				if (poly.getOrig() == null) {
+					ppVal.setValue((T) new PolyString(""));
+				}
+				if (prismContext != null){
+					PrismUtil.recomputePrismPropertyValue(ppVal, prismContext);
+				}
+				
+			} else if (ppVal.getValue() instanceof DisplayableValue) {
+				DisplayableValue displayableValue = (DisplayableValue) ppVal.getValue();
+				ppVal.setValue((T) displayableValue.getValue());
+			}
+		}
     }
 
     public boolean hasValueChanged() {
@@ -115,7 +138,7 @@ public class ValueWrapper<T> implements Serializable {
     }
 
     public boolean isReadonly() {
-        return property.isReadonly();
+        return item.isReadonly();
     }
 
     @Override

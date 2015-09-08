@@ -131,11 +131,6 @@ public class IcfConvertor {
 //			LOGGER.trace("Resource attribute container definition {}.", attributesContainerDefinition.debugDump());
 //		}
 
-		// Uid is always there
-		Uid uid = co.getUid();
-		ResourceAttribute<String> uidRoa = IcfUtil.createUidAttribute(uid, IcfUtil.getUidDefinition(attributesContainerDefinition.getComplexTypeDefinition()));
-		attributesContainer.getValue().add(uidRoa);
-
 		for (Attribute icfAttr : co.getAttributes()) {
 			if (icfAttr.is(PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME)) {
 				List<QName> auxiliaryObjectClasses = shadow.getAuxiliaryObjectClass();
@@ -278,6 +273,13 @@ public class IcfConvertor {
 				}
 			}
 
+		}
+		
+		// Add Uid if it is not there already. It can be already present, e.g. if Uid and Name represent the same attribute
+		Uid uid = co.getUid();
+		ResourceAttribute<String> uidRoa = IcfUtil.createUidAttribute(uid, IcfUtil.getUidDefinition(attributesContainerDefinition.getComplexTypeDefinition()));
+		if (attributesContainer.getValue().findItem(uidRoa.getElementName()) == null) {
+			attributesContainer.getValue().add(uidRoa);
 		}
 
 		return shadowPrism;

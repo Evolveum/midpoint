@@ -58,7 +58,7 @@ public class PrismPropertyPanel extends Panel {
 
     private PageBase pageBase;
 
-    public PrismPropertyPanel(String id, final IModel<PropertyWrapper> model, Form form, PageBase pageBase) {
+    public PrismPropertyPanel(String id, final IModel<ItemWrapper> model, Form form, PageBase pageBase) {
         super(id);
         this.pageBase = pageBase;
 
@@ -67,7 +67,7 @@ public class PrismPropertyPanel extends Panel {
 
             @Override
             public boolean isVisible() {
-                PropertyWrapper property = model.getObject();
+            	ItemWrapper property = model.getObject();
                 return property.isVisible();
             }
 
@@ -80,7 +80,7 @@ public class PrismPropertyPanel extends Panel {
         initLayout(model, form);
     }
 
-    private void initLayout(final IModel<PropertyWrapper> model, final Form form) {
+    private void initLayout(final IModel<ItemWrapper> model, final Form form) {
         WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
         labelContainer.setOutputMarkupId(true);
         add(labelContainer);
@@ -112,9 +112,9 @@ public class PrismPropertyPanel extends Panel {
 
             @Override
             public boolean isVisible() {
-                PropertyWrapper wrapper = model.getObject();
-                PrismProperty property = wrapper.getItem();
-                PrismPropertyDefinition def = property.getDefinition();
+                ItemWrapper wrapper = model.getObject();
+                Item property = wrapper.getItem();
+                ItemDefinition def = property.getDefinition();
 
                 if (ObjectType.F_NAME.equals(def.getName())) {
                     //fix for "name as required" MID-789
@@ -181,9 +181,9 @@ public class PrismPropertyPanel extends Panel {
         return "row";
     }
 
-    private String loadHelpText(IModel<PropertyWrapper> model) {
-        PrismProperty property = model.getObject().getItem();
-        PrismPropertyDefinition def = property.getDefinition();
+    private String loadHelpText(IModel<ItemWrapper> model) {
+        Item property = (Item) model.getObject().getItem();
+        ItemDefinition def = property.getDefinition();
         String doc = def.getHelp();
         if (StringUtils.isEmpty(doc)) {
             return null;
@@ -207,7 +207,7 @@ public class PrismPropertyPanel extends Panel {
     }
 
     private int getIndexOfValue(ValueWrapper value) {
-        PropertyWrapper property = value.getProperty();
+        ItemWrapper property = value.getItem();
         List<ValueWrapper> values = property.getValues();
         for (int i = 0; i < values.size(); i++) {
             if (values.get(i).equals(value)) {
@@ -218,10 +218,10 @@ public class PrismPropertyPanel extends Panel {
         return -1;
     }
 
-    private boolean hasOutbound(IModel<PropertyWrapper> model) {
-        PropertyWrapper wrapper = model.getObject();
-        PrismProperty property = wrapper.getItem();
-        PrismPropertyDefinition def = property.getDefinition();
+    private boolean hasOutbound(IModel<ItemWrapper> model) {
+        ItemWrapper wrapper = model.getObject();
+        Item property = wrapper.getItem();
+        ItemDefinition def = property.getDefinition();
         if (!(def instanceof RefinedAttributeDefinition)) {
             return false;
         }
@@ -230,8 +230,8 @@ public class PrismPropertyPanel extends Panel {
         return refinedDef.hasOutboundMapping();
     }
 
-    private boolean hasPendingModification(IModel<PropertyWrapper> model) {
-        PropertyWrapper propertyWrapper = model.getObject();
+    private boolean hasPendingModification(IModel<ItemWrapper> model) {
+        ItemWrapper propertyWrapper = model.getObject();
         ContainerWrapper containerWrapper = propertyWrapper.getContainer();
         ObjectWrapper objectWrapper = containerWrapper.getObject();
 
@@ -262,12 +262,12 @@ public class PrismPropertyPanel extends Panel {
         return false;
     }
 
-    private IModel<String> createDisplayName(final IModel<PropertyWrapper> model) {
+    private IModel<String> createDisplayName(final IModel<ItemWrapper> model) {
         return new AbstractReadOnlyModel<String>() {
 
             @Override
             public String getObject() {
-                PropertyWrapper wrapper = model.getObject();
+                ItemWrapper wrapper = model.getObject();
                 String displayName = wrapper.getDisplayName();
                 return getString(displayName, null, displayName);
             }

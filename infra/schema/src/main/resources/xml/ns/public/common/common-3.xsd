@@ -46,7 +46,7 @@
             <a href="https://wiki.evolveum.com/display/midPoint/Data+Model">https://wiki.evolveum.com/display/midPoint/Data+Model</a>
             for more details.
 
-            <p>Version: 3.2</p>
+            <p>Version: 3.3-SNAPSHOT</p>
 
             <p>Recommended namespace prefix: (default), c</p>
         </xsd:documentation>
@@ -333,6 +333,8 @@
 	                </xsd:documentation>
 	                <xsd:appinfo>
 	        			<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
+	        			<a:displayName>Parent Organization</a:displayName>
+                    	<a:displayOrder>240</a:displayOrder>
 	        		</xsd:appinfo>
 	            </xsd:annotation>
 	        </xsd:element>
@@ -364,6 +366,8 @@
                     </xsd:documentation>
                     <xsd:appinfo>
             			<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
+            			<a:displayName>Tenant</a:displayName>
+                    	<a:displayOrder>250</a:displayOrder>
             		</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -476,6 +480,20 @@
 				            It must not be used for normal operations. The filter may be stored in the repository
 				            to avoid data loss. But even if it is stored it will not be used beyond initial
 				            import or unless explicitly requested.
+			            </p>
+			        </xsd:documentation>
+			    </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="targetName" type="t:PolyStringType" minOccurs="0" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			        	<p>
+				            Cached name of the target object.
+				            This is a ephemeral value. It is not stored in the repository.
+				            It may be computed at object retrieval time or it may not be present at all.
+				     		This is NOT an authoritative information. Setting it or changing it will
+				     		not influence the reference meaning. OID is the only authoritative linking
+				     		mechanism.
 			            </p>
 			        </xsd:documentation>
 			    </xsd:annotation>
@@ -6755,6 +6773,9 @@
 	                    			This may be a numeric value, textual label are any other suitable machine-processable indication.
                     			</p>
                     		</xsd:documentation>
+                    		 <xsd:appinfo>
+                                <a:displayName>Risk Level</a:displayName>
+                            </xsd:appinfo>
                     	</xsd:annotation>
                     </xsd:element>
 					<xsd:element name="ownerRef" type="c:ObjectReferenceType" minOccurs="0">
@@ -6766,6 +6787,9 @@
 	                                This reference may point to object of type UserType of OrgType.
                                 </p>
                             </xsd:documentation>
+                             <xsd:appinfo>
+                                <a:displayName>Owner</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 					<xsd:element name="approverRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
@@ -6777,6 +6801,9 @@
 	                                This reference may point to object of type UserType of OrgType.
                                 </p>
                             </xsd:documentation>
+                             <xsd:appinfo>
+                                <a:displayName>Approver</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="approverExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="unbounded">
@@ -7743,7 +7770,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>Tenant</a:displayName>
+                                <a:displayName>Is Tenant</a:displayName>
                                 <a:displayOrder>130</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -7822,6 +7849,8 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                     			<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
+                    			<a:displayName>Password Policy</a:displayName>
+                                <a:displayOrder>230</a:displayOrder>
                     		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

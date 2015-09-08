@@ -148,6 +148,9 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
         
 		List<V> pvals = new ArrayList<V>();
 		
+		// TODO: cleanup copy&paste block..and what about PrismContianer and
+		// PrismReference? Shouldn't they be processed in the same way as
+		// PrismProperty?
 		if (evalRawResult instanceof Collection) {
 			for(Object evalRawResultElement : (Collection)evalRawResult) {
 				T evalResult = convertScalarResult(javaReturnType, evalRawResultElement, contextDescription);
@@ -155,6 +158,13 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 				if (allowEmptyValues || !isEmpty(evalResult)) {
 					if (outputDefinition instanceof PrismReferenceDefinition){
 						pval = (V) ((ObjectReferenceType)evalResult).asReferenceValue();
+					} else if (outputDefinition instanceof PrismContainerDefinition){
+						try {
+							prismContext.adopt((Containerable)evalResult);
+						} catch (SchemaException e) {
+							throw new ExpressionEvaluationException(e.getMessage() + " " + contextDescription, e);
+						}
+						pval = (V) ((Containerable)evalResult).asPrismContainerValue();
 					} else {
 						pval = (V) new PrismPropertyValue<T>(evalResult);
 					}

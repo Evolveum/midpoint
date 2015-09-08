@@ -608,7 +608,7 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
             @Override
             public boolean isVisible() {
                 if(extensionModel == null || extensionModel.getObject() == null
-                        || extensionModel.getObject().getProperties().isEmpty()){
+                        || extensionModel.getObject().getItems().isEmpty()){
                     return false;
                 } else {
                     return true;
@@ -617,11 +617,11 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
         });
         form.add(extensionLabel);
 
-        ListView<PropertyWrapper> extensionProperties = new ListView<PropertyWrapper>(ID_EXTENSION,
+        ListView<ItemWrapper> extensionProperties = new ListView<ItemWrapper>(ID_EXTENSION,
                 new PropertyModel(extensionModel, "properties")) {
 
             @Override
-            protected void populateItem(ListItem<PropertyWrapper> item) {
+            protected void populateItem(ListItem<ItemWrapper> item) {
                 PrismPropertyPanel propertyPanel = new PrismPropertyPanel(ID_EXTENSION_PROPERTY, item.getModel(), form, PageRole.this);
                 propertyPanel.get("labelContainer:label").add(new AttributeAppender("style", "font-weight:bold;"));
                 propertyPanel.get("labelContainer").add(new AttributeModifier("class", ID_LABEL_SIZE + " control-label"));
@@ -665,12 +665,12 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
         form.add(inducements);
     }
 
-    private IModel<String> createStyleClassModel(final IModel<PropertyWrapper> wrapper) {
+    private IModel<String> createStyleClassModel(final IModel<ItemWrapper> wrapper) {
         return new AbstractReadOnlyModel<String>() {
 
             @Override
             public String getObject() {
-                PropertyWrapper property = wrapper.getObject();
+            	ItemWrapper property = wrapper.getObject();
                 return property.isVisible() ? "visible" : null;
             }
         };

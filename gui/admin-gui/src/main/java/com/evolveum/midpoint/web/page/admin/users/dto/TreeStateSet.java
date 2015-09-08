@@ -108,4 +108,13 @@ public class TreeStateSet<T extends Serializable> implements Set<T>, Serializabl
     public void clear() {
         set.clear();
     }
+
+    @Override
+    public TreeStateSet clone() {
+        TreeStateSet set = new TreeStateSet();
+        set.inverse = this.inverse;
+        set.set.addAll(this.set);
+
+        return set;
+    }
 }

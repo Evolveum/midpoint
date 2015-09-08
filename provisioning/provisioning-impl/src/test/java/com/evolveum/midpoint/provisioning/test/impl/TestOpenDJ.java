@@ -887,13 +887,11 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		display("Object after change",accountType);
 		
-
 		String uid = ShadowUtil.getSingleStringAttributeValue(accountType, getPrimaryIdentifierQName());
 		List<Object> snValues = ShadowUtil.getAttributeValues(accountType, new QName(RESOURCE_NS, "sn"));
 		assertNotNull("No 'sn' attribute", snValues);
 		assertFalse("Surname attributes must not be empty", snValues.isEmpty());
 		assertEquals(1, snValues.size());
-		
 		
 		//check icf_name in the shadow object fetched only from the repository
 		ShadowType repoShadow = repositoryService.getObject(ShadowType.class, objectChange.getOid(), null, result).asObjectable();
