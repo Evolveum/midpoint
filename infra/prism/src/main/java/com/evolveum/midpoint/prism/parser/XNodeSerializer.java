@@ -70,7 +70,7 @@ public class XNodeSerializer {
 	private boolean serializeCompositeObjects = false;
 
     // TODO think out where to put this key
-    public static final String USER_DATA_KEY_COMMENT = XNodeSerializer.class.getName()+".comment";
+//    public static final String USER_DATA_KEY_COMMENT = XNodeSerializer.class.getName()+".comment";
 	
 	public XNodeSerializer(PrismBeanConverter beanConverter) {
 		super();
@@ -196,6 +196,10 @@ public class XNodeSerializer {
         }
         if (itemValue instanceof PrismReferenceValue) {
             xnode = serializeReferenceValue((PrismReferenceValue)itemValue, (PrismReferenceDefinition) definition);
+            PolyString commentValue = ((PrismReferenceValue) itemValue).getTargetName();
+            if (commentValue != null) {
+                xnode.setComment(commentValue.getOrig());
+            }
         } else if (itemValue instanceof PrismPropertyValue<?>) {
             xnode = serializePropertyValue((PrismPropertyValue<?>)itemValue, (PrismPropertyDefinition)definition);
         } else if (itemValue instanceof PrismContainerValue<?>) {
@@ -206,10 +210,10 @@ public class XNodeSerializer {
         if (definition != null && definition.isDynamic()) {
             xnode.setExplicitTypeDeclaration(true);
         }
-        Object commentValue = itemValue.getUserData(USER_DATA_KEY_COMMENT);
-        if (commentValue != null) {
-            xnode.setComment(commentValue.toString());
-        }
+//        Object commentValue = itemValue.getUserData(USER_DATA_KEY_COMMENT);
+//        if (commentValue != null) {
+//            xnode.setComment(commentValue.toString());
+//        }
 //		System.out.println("item value serialization: \n" + xnode.debugDump());
         return xnode;
     }

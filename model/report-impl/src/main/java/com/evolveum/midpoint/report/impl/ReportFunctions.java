@@ -137,7 +137,7 @@ public class ReportFunctions {
 			return null;
 		}
 		PrismReferenceValue refValue = ref.asReferenceValue();
-		Object name = refValue.getUserData(XNodeSerializer.USER_DATA_KEY_COMMENT);
+		Object name = refValue.getTargetName() != null ? ref.getTargetName().getOrig() : null;
 		if (!(name instanceof String)){
 			LOGGER.error("Couldn't resolve object name");
 		}

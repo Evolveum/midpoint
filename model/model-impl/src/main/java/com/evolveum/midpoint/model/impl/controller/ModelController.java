@@ -418,7 +418,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 						name = PolyString.getOrig(refObject.asObjectable().getName());
 					}
 					if (StringUtils.isNotEmpty(name)) {
-						refVal.setUserData(XNodeSerializer.USER_DATA_KEY_COMMENT, " " + name + " ");
+						refVal.setTargetName(refObject.getName());
 					}
 				}
 			}
@@ -1515,7 +1515,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
                             hook.invoke(object, options, task, result);     // TODO result or parentResult??? [med]
                         }
                     }
-                    resolveNames(object, options, task, parentResult);
+//                    resolveNames(object, options, task, parentResult);
                     applySchemasAndSecurity(object, rootOptions, null, task, parentResult);
                 } catch (SchemaException | ObjectNotFoundException | SecurityViolationException
                         | CommunicationException | ConfigurationException ex) {

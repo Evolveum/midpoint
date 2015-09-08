@@ -320,8 +320,10 @@ public class AccCertQueryHelper {
         }
 
         // brutal hack - we (mis)use the fact that names are serialized as XNode comments
-        String leftName = (String) leftRef.asReferenceValue().getUserData(XNodeSerializer.USER_DATA_KEY_COMMENT);
-        String rightName = (String) rightRef.asReferenceValue().getUserData(XNodeSerializer.USER_DATA_KEY_COMMENT);
+//        String leftName = (String) leftRef.asReferenceValue().getUserData(XNodeSerializer.USER_DATA_KEY_COMMENT);
+//        String rightName = (String) rightRef.asReferenceValue().getUserData(XNodeSerializer.USER_DATA_KEY_COMMENT);
+        String leftName = leftRef.asReferenceValue().getTargetName() != null ? leftRef.asReferenceValue().getTargetName().getOrig() : null;
+        String rightName = rightRef.asReferenceValue().getTargetName() != null ? rightRef.asReferenceValue().getTargetName().getOrig() : null;
         if (leftName == null) {
             return respectDirection(1, direction);      // null > anything
         } else if (rightName == null) {
