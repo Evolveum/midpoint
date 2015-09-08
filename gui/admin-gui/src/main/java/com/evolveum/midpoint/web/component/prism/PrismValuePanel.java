@@ -207,7 +207,7 @@ public class PrismValuePanel extends Panel {
     private int countUsableValues(ItemWrapper property) {
         int count = 0;
         for (ValueWrapper value : property.getValues()) {
-            value.normalize();
+            value.normalize(property.getItemDefinition().getPrismContext());
 
             if (ValueStatus.DELETED.equals(value.getStatus())) {
                 continue;
@@ -225,7 +225,7 @@ public class PrismValuePanel extends Panel {
     private List<ValueWrapper> getUsableValues(ItemWrapper property) {
         List<ValueWrapper> values = new ArrayList<>();
         for (ValueWrapper value : property.getValues()) {
-            value.normalize();
+            value.normalize(property.getItemDefinition().getPrismContext());
             if (ValueStatus.DELETED.equals(value.getStatus())) {
                 continue;
             }
@@ -238,7 +238,7 @@ public class PrismValuePanel extends Panel {
     private int countNonDeletedValues(ItemWrapper property) {
         int count = 0;
         for (ValueWrapper value : property.getValues()) {
-            value.normalize();
+            value.normalize(property.getItemDefinition().getPrismContext());
             if (ValueStatus.DELETED.equals(value.getStatus())) {
                 continue;
             }
@@ -249,7 +249,7 @@ public class PrismValuePanel extends Panel {
 
     private boolean hasEmptyPlaceholder(ItemWrapper property) {
         for (ValueWrapper value : property.getValues()) {
-            value.normalize();
+            value.normalize(property.getItemDefinition().getPrismContext());
             if (ValueStatus.ADDED.equals(value.getStatus()) && !value.hasValueChanged()) {
                 return true;
             }
