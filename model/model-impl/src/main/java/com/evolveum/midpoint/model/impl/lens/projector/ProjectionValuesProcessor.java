@@ -127,7 +127,10 @@ public class ProjectionValuesProcessor {
 	@Autowired(required = true)
 	private SynchronizationService synchronizationService;
 
-	@Autowired(required = true)
+	@Autowired(required=true)
+    private ContextLoader contextLoader;
+	
+	@Autowired(required=true)
 	private ProvisioningService provisioningService;
 	
 	private List<LensProjectionContext> conflictingAccountContexts = new ArrayList<LensProjectionContext>();
@@ -171,7 +174,7 @@ public class ProjectionValuesProcessor {
 		if (consistencyChecks) context.checkConsistence();
 		
 		if (!projContext.hasFullShadow() && hasIterationExpression(projContext)) {
-			LensUtil.loadFullAccount(context, projContext, provisioningService, result);
+			contextLoader.loadFullShadow(context, projContext, result);
 			if (projContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
             	return;
             }
