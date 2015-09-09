@@ -218,9 +218,7 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
         try {
             if (operation.getObjectDelta() != null) {
                 ObjectDelta delta = operation.getObjectDelta();
-                DeltaConversionOptions options = new DeltaConversionOptions();
-                options.setSerializeReferenceNames(true);
-                String xmlDelta = DeltaConvertor.toObjectDeltaTypeXml(delta, options);
+                String xmlDelta = DeltaConvertor.toObjectDeltaTypeXml(delta, DeltaConversionOptions.createSerializeReferenceNames());
                 auditDelta.setDelta(xmlDelta);
                 auditDelta.setDeltaOid(delta.getOid());
                 auditDelta.setDeltaType(RUtil.getRepoEnumValue(delta.getChangeType(), RChangeType.class));

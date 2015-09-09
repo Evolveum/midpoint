@@ -34,4 +34,10 @@ public class DeltaConversionOptions {
     public static boolean isSerializeReferenceNames(DeltaConversionOptions options) {
         return options != null && options.isSerializeReferenceNames();
     }
+
+    public static DeltaConversionOptions createSerializeReferenceNames() {
+        DeltaConversionOptions options = new DeltaConversionOptions();
+        options.setSerializeReferenceNames(true);
+        return options;
+    }
 }
