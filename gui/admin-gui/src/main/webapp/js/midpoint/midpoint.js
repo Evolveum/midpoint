@@ -150,21 +150,31 @@ function initPageSizePopover(buttonId, popoverId) {
  *
  * @param buttonId
  * @param popoverId
- * @param leftOffset value which will shift popover to the left from center bottom position against button
+ * @param paddingRight value which will shift popover to the left from center bottom position against button
  */
-function initSearchPopover(buttonId, popoverId, leftOffset) {
+function toggleSearchPopover(buttonId, popoverId, paddingRight) {
+    console.log("Called toggleSearchPopover with buttonId=" + buttonId + ",popoverId="
+        + popoverId + ",paddingRight=" + paddingRight);
+
     var button = $('#' + buttonId);
-    button.click(function () {
-        var popover = $('#' + popoverId);
+    var popover = $('#' + popoverId);
 
-        var position = button.position();
+    var popovers = button.parents('.search-form').find('.popover:visible').each(function () {
+        var id = $(this).attr('id');
+        console.log("Found popover with id=" + id);
 
-        var left = position.left - (popover.outerWidth() - button.outerWidth()) / 2 - leftOffset;
-        var top = position.top + button.outerHeight();
-
-        popover.css("top", top);
-        popover.css("left", left);
-
-        popover.toggle();
+        if (id != popoverId) {
+            $(this).hide(200);
+        }
     });
+
+    var position = button.position();
+
+    var left = position.left - (popover.outerWidth() - button.outerWidth()) / 2 - paddingRight;
+    var top = position.top + button.outerHeight();
+
+    popover.css('top', top);
+    popover.css('left', left);
+
+    popover.toggle(200);
 }

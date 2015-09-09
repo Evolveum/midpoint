@@ -224,13 +224,6 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
         };
     }
 
-    @Override
-    public void renderHead(IHeaderResponse response) {
-        super.renderHead(response);
-
-        response.render(OnDomReadyHeaderItem.forScript(initButtonJavascript()));
-    }
-
     private IModel<String> createLabelModel() {
         return new AbstractReadOnlyModel<String>() {
 
@@ -265,17 +258,6 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
         };
     }
 
-    private String initButtonJavascript() {
-        StringBuilder sb = new StringBuilder();
-        String moreId = get(ID_MAIN_BUTTON).getMarkupId();
-        String popoverId = get(ID_POPOVER).getMarkupId();
-
-        sb.append("initSearchPopover('").append(moreId);
-        sb.append("','").append(popoverId).append("', 0);");
-
-        return sb.toString();
-    }
-
     private void updateItemPerformed(AjaxRequestTarget target) {
         SearchItem item = getModelObject();
         LOG.debug("Update item performed, item {} value is {}", item.getName(), item.getValues());
@@ -286,12 +268,18 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
     }
 
     private void closeEditPopoverPerformed(AjaxRequestTarget target) {
-        String popoverId = get(ID_POPOVER).getMarkupId();
-        target.appendJavaScript("$('#" + popoverId + "').toggle();");
+        togglePopover(target);
     }
 
     private void editPerformed(AjaxRequestTarget target) {
         LOG.debug("Edit performed");
+
+        togglePopover(target);
+    }
+
+    public void togglePopover(AjaxRequestTarget target) {
+        SearchPanel panel = findParent(SearchPanel.class);
+        panel.togglePopover(target, get(ID_MAIN_BUTTON), get(ID_POPOVER), 0);
     }
 
     private void deletePerformed(AjaxRequestTarget target) {

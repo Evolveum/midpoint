@@ -11,11 +11,11 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
-import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
@@ -84,7 +84,15 @@ public class SearchPanel extends BaseSimplePanel<Search> {
         };
         form.add(items);
 
-        WebMarkupContainer more = new WebMarkupContainer(ID_MORE);
+        AjaxLink more = new AjaxLink(ID_MORE) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                Component button = SearchPanel.this.get(createComponentPath(ID_FORM, ID_MORE));
+                Component popover = SearchPanel.this.get(createComponentPath(ID_POPOVER));
+                togglePopover(target, button, popover, 14);
+            }
+        };
         more.setOutputMarkupId(true);
         form.add(more);
 
@@ -205,24 +213,6 @@ public class SearchPanel extends BaseSimplePanel<Search> {
         return list;
     }
 
-    @Override
-    public void renderHead(IHeaderResponse response) {
-        super.renderHead(response);
-
-        response.render(OnDomReadyHeaderItem.forScript(initMoreButtonJavascript()));
-    }
-
-    private String initMoreButtonJavascript() {
-        StringBuilder sb = new StringBuilder();
-        String moreId = get(createComponentPath(ID_FORM, ID_MORE)).getMarkupId();
-        String popoverId = get(ID_POPOVER).getMarkupId();
-
-        sb.append("initSearchPopover('").append(moreId);
-        sb.append("','").append(popoverId).append("', 27);");
-
-        return sb.toString();
-    }
-
     private void addItemPerformed(AjaxRequestTarget target) {
         Search search = getModelObject();
 
@@ -256,9 +246,18 @@ public class SearchPanel extends BaseSimplePanel<Search> {
 
     void refreshSearchForm(AjaxRequestTarget target) {
         target.add(get(ID_FORM), get(ID_POPOVER));
-        target.appendJavaScript(initMoreButtonJavascript());
     }
 
     public void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
+    }
+
+    public void togglePopover(AjaxRequestTarget target, Component button, Component popover, int paddingRight) {
+        StringBuilder script = new StringBuilder();
+        script.append("toggleSearchPopover('");
+        script.append(button.getMarkupId()).append("','");
+        script.append(popover.getMarkupId()).append("',");
+        script.append(paddingRight).append(");");
+
+        target.appendJavaScript(script.toString());
     }
 }
