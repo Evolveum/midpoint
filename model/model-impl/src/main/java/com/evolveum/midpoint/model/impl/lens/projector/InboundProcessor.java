@@ -21,7 +21,6 @@ import com.evolveum.midpoint.common.filter.FilterManager;
 import com.evolveum.midpoint.common.refinery.PropertyLimitations;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
@@ -52,6 +51,7 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -102,8 +102,8 @@ public class InboundProcessor {
     @Autowired(required = true)
     private MappingFactory mappingFactory;
     
-    @Autowired
-    private ProvisioningService provisioningService;
+    @Autowired(required=true)
+    private ContextLoader contextLoader;
     
     @Autowired(required = true)
     private MappingEvaluationHelper mappingEvaluatorHelper;
@@ -268,7 +268,7 @@ public class InboundProcessor {
 	                	if (!projContext.isFullShadow()) {
 	                		LOGGER.warn("Attempted to execute inbound expression on account shadow {} WITHOUT full account. Trying to load the account now.", projContext.getOid());      // todo change to trace level eventually
                             try {
-                                LensUtil.loadFullAccount(context, projContext, provisioningService, result);
+                                contextLoader.loadFullShadow(context, projContext, result);
                                 if (projContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
                                 	return;
                                 }

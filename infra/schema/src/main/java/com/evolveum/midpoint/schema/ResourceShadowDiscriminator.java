@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.common.refinery;
+package com.evolveum.midpoint.schema;
 
 import java.io.Serializable;
 
@@ -229,7 +229,7 @@ public class ResourceShadowDiscriminator implements Serializable {
 		if (intent == null) {
 			if (other.intent != null)
 				return false;
-		} else if (!equalsAccountType(this.intent, other.intent))
+		} else if (!equalsIntent(this.intent, other.intent))
 			return false;
 		if (resourceOid == null) {
 			if (other.resourceOid != null)
@@ -241,7 +241,7 @@ public class ResourceShadowDiscriminator implements Serializable {
 		return true;
 	}
 	
-	public static boolean equalsAccountType(String a, String b) {
+	public static boolean equalsIntent(String a, String b) {
 		if (a == null || b == null) {
 			return false;
 		}

@@ -28,13 +28,13 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.mutable.MutableBoolean;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.expression.Expression;
@@ -65,6 +65,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -615,66 +616,6 @@ public class LensUtil {
         }
     }
 
-	public static <F extends ObjectType> void loadFullAccount(LensContext<F> context, LensProjectionContext accCtx, ProvisioningService provisioningService,
-			OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
-		if (accCtx.isFullShadow()) {
-			// already loaded
-			return;
-		}
-		if (accCtx.isAdd() && accCtx.getOid() == null) {
-			// nothing to load yet
-			return;
-		}
-		ResourceShadowDiscriminator discr = accCtx.getResourceShadowDiscriminator();
-		if (discr != null && discr.getOrder() > 0) {
-			// It may be just too early to load the projection
-			if (LensUtil.hasLowerOrderContext(context, accCtx) && (context.getExecutionWave() < accCtx.getWave())) {
-				// We cannot reliably load the context now
-				return;
-			}
-		}
-		
-		
-		GetOperationOptions getOptions = GetOperationOptions.createAllowNotFound();
-		if (SchemaConstants.CHANGE_CHANNEL_DISCOVERY.equals(context.getChannel())) {
-			LOGGER.trace("Loading full resource object {} from provisioning - with doNotDiscover to avoid loops", accCtx);
-			getOptions.setDoNotDiscovery(true);
-		} else {
-			LOGGER.trace("Loading full resource object {} from provisioning (discovery enabled)", accCtx);
-		}
-		try {	
-			Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(getOptions);
-			PrismObject<ShadowType> objectOld = provisioningService.getObject(ShadowType.class,
-					accCtx.getOid(), options,
-					null, result);
-			// TODO: use setLoadedObject() instead?
-			accCtx.setObjectCurrent(objectOld);
-			ShadowType oldShadow = objectOld.asObjectable();
-			accCtx.determineFullShadowFlag(oldShadow.getFetchResult());
-		
-		} catch (ObjectNotFoundException ex) {
-			LOGGER.trace("Load of full resource object {} ended with ObjectNotFoundException (options={})", accCtx, getOptions);
-			if (accCtx.isDelete()){
-				//this is OK, shadow was deleted, but we will continue in processing with old shadow..and set it as full so prevent from other full loading
-				accCtx.setFullShadow(true);
-			} else {
-				accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
-				if (GetOperationOptions.isDoNotDiscovery(getOptions)) {
-					LOGGER.error("Load of full resource object {} resulted in ObjectNotFoundException (discovery disabled to avoid loops)", accCtx, getOptions);
-					throw ex;
-				} else {
-					// Setting the context to broken should be enough here.
-				}
-			}
-		}
-		
-		accCtx.recompute();
-
-		
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Loaded full resource object:\n{}", accCtx.debugDump());
-		}
-	}
 
 	public static Object getIterationVariableValue(LensProjectionContext accCtx) {
 		Integer iterationOld = null;
