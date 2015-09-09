@@ -15,12 +15,12 @@
  */
 package com.evolveum.midpoint.prism.parser;
 
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.Raw;
 import com.evolveum.midpoint.prism.Revivable;
+import com.evolveum.midpoint.prism.SerializationContext;
 import com.evolveum.midpoint.prism.parser.util.XNodeProcessorUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -792,6 +792,10 @@ public class PrismBeanConverter {
 	}
 
 	public <T> XNode marshall(T bean) throws SchemaException {
+		return marshall(bean, null);
+	}
+
+	public <T> XNode marshall(T bean, SerializationContext ctx) throws SchemaException {
 		if (bean == null) {
 			return null;
 		}
@@ -807,7 +811,7 @@ public class PrismBeanConverter {
         } else if (bean instanceof XmlAsStringType) {
             return marshalXmlAsStringType((XmlAsStringType) bean);
         } else if (prismContext != null && prismContext.getSchemaRegistry().determineDefinitionFromClass(bean.getClass()) != null){
-        	return prismContext.getXnodeProcessor().serializeObject(((Objectable)bean).asPrismObject()).getSubnode();
+        	return prismContext.getXnodeProcessor().serializeObject(((Objectable)bean).asPrismObject(), false, ctx).getSubnode();
         }
         // Note: SearchFilterType is treated below
 
@@ -898,7 +902,7 @@ public class PrismBeanConverter {
 					if (element instanceof JAXBElement){
 						elementToMarshall = ((JAXBElement) element).getValue();
 					} 
-					XNode marshalled = marshallValue(elementToMarshall, fieldTypeName, isAttribute);
+					XNode marshalled = marshallValue(elementToMarshall, fieldTypeName, isAttribute, ctx);
 
                     // Brutal hack - made here just to make scripts (bulk actions) functional while not breaking anything else
                     // Fix it in 3.1. [med]
@@ -926,7 +930,7 @@ public class PrismBeanConverter {
 				} else{
 					valueToMarshall = getterResult;
 				}
-				XNode marshelled = marshallValue(valueToMarshall, fieldTypeName, isAttribute);
+				XNode marshelled = marshallValue(valueToMarshall, fieldTypeName, isAttribute, ctx);
 				if (!getter.getReturnType().equals(valueToMarshall.getClass()) && getter.getReturnType().isAssignableFrom(valueToMarshall.getClass())){
 					if (prismContext != null) {
                         PrismObjectDefinition def = prismContext.getSchemaRegistry().determineDefinitionFromClass(valueToMarshall.getClass());
@@ -1060,13 +1064,13 @@ public class PrismBeanConverter {
 		}
 	}
 	
-	private <T> XNode marshallValue(T value, QName fieldTypeName, boolean isAttribute) throws SchemaException {
+	private <T> XNode marshallValue(T value, QName fieldTypeName, boolean isAttribute, SerializationContext ctx) throws SchemaException {
 		if (value == null) {
 			return null;
 		}
 		if (canProcess(value.getClass())) {
 			// This must be a bean
-			return marshall(value);
+			return marshall(value, ctx);
 		} else {
 			// primitive value
 			return createPrimitiveXNode(value, fieldTypeName, isAttribute);

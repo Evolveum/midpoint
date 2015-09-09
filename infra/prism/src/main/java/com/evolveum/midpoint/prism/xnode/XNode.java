@@ -43,6 +43,7 @@ public abstract class XNode implements DebugDumpable, Visitable, Cloneable, Seri
 	public static final QName KEY_REFERENCE_RELATION = new QName(null, "relation");
 	public static final QName KEY_REFERENCE_DESCRIPTION = new QName(null, "description");
 	public static final QName KEY_REFERENCE_FILTER = new QName(null, "filter");
+	public static final QName KEY_REFERENCE_TARGET_NAME = new QName(null, "targetName");
 	public static final QName KEY_REFERENCE_OBJECT = new QName(null, "object");
 
 	// Common fields

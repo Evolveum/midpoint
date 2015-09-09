@@ -38,6 +38,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -563,10 +564,14 @@ public class PrismContext {
      * cases like PolyStringType, ProtectedStringType, etc.
      */
     public String serializeAtomicValue(Object value, QName elementName, String language) throws SchemaException {
-        Parser parser = getParserNotNull(language);
-        RootXNode xnode = xnodeProcessor.serializeAtomicValue(value, elementName);
-        return parser.serializeToString(xnode);
+        return serializeAtomicValue(value, elementName, language, null);
     }
+
+	public String serializeAtomicValue(Object value, QName elementName, String language, SerializationOptions serializationOptions) throws SchemaException {
+		Parser parser = getParserNotNull(language);
+		RootXNode xnode = xnodeProcessor.serializeAtomicValue(value, elementName, new SerializationContext(serializationOptions));
+		return parser.serializeToString(xnode);
+	}
 
     public String serializeAtomicValue(JAXBElement<?> element, String language) throws SchemaException {
         Parser parser = getParserNotNull(language);
