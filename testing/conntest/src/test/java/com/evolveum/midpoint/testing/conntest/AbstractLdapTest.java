@@ -50,6 +50,7 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.apache.directory.api.ldap.codec.api.BinaryAttributeDetector;
@@ -135,6 +136,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  *
  */
 @ContextConfiguration(locations = {"classpath:ctx-conntest-test-main.xml"})
+@Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	
@@ -262,7 +264,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	}
 	
 	public String getPrimaryIdentifierAttributeName() {
-    	return "entryUuid";
+    	return "entryUUID";
     }
 	
 	public QName getPrimaryIdentifierAttributeQName() {
