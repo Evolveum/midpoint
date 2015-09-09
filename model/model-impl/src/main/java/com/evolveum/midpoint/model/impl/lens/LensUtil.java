@@ -27,6 +27,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.ObjectResolver;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.mutable.MutableBoolean;
 
@@ -140,6 +141,20 @@ public class LensUtil {
 			// pre-parsed schema
 			resourceType = provisioningService.getObject(ResourceType.class, resourceOid, null, null, result)
 					.asObjectable();
+			context.rememberResource(resourceType);
+		}
+		return resourceType;
+	}
+
+	public static <F extends ObjectType> ResourceType getResource(LensContext<F> context, String resourceOid, ObjectResolver objectResolver,
+																  OperationResult result) throws ObjectNotFoundException,
+			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+		ResourceType resourceType = context.getResource(resourceOid);
+		if (resourceType == null) {
+			ObjectReferenceType ref = new ObjectReferenceType();
+			ref.setType(ResourceType.COMPLEX_TYPE);
+			ref.setOid(resourceOid);
+			resourceType = objectResolver.resolve(ref, ResourceType.class, null, "resource fetch in lens", result);
 			context.rememberResource(resourceType);
 		}
 		return resourceType;

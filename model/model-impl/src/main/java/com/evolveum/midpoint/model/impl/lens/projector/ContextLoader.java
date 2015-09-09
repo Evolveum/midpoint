@@ -762,9 +762,7 @@ public class ContextLoader {
 					if (resourceOid == null) {
 						throw new IllegalArgumentException("No resource OID in " + account);
 					}
-					ResourceType resourceType = provisioningService.getObject(ResourceType.class,
-							resourceOid, null, null, result).asObjectable();
-					context.rememberResource(resourceType);
+					ResourceType resourceType = LensUtil.getResource(context, resourceOid, provisioningService, result);
 					accountCtx.setResource(resourceType);
 				}
 				accountCtx.setFresh(true);
@@ -1019,12 +1017,7 @@ public class ContextLoader {
 		
 		// Load resource
 		if (resourceType == null) {
-			resourceType = context.getResource(resourceOid);
-			if (resourceType == null) {
-				PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, resourceOid, null, null, result);
-				resourceType = resource.asObjectable();
-				context.rememberResource(resourceType);
-			}
+			resourceType = LensUtil.getResource(context, resourceOid, provisioningService, result);
 			projContext.setResource(resourceType);
 		}
 		

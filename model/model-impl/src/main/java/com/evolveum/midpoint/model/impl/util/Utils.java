@@ -91,34 +91,36 @@ public final class Utils {
     private Utils() {
     }
 
-    public static void resolveResource(ShadowType shadow, ProvisioningService provisioning,
-            OperationResult result) throws CommunicationException, SchemaException, ObjectNotFoundException, ConfigurationException, 
-            SecurityViolationException {
-
-        Validate.notNull(shadow, "Resource object shadow must not be null.");
-        Validate.notNull(provisioning, "Provisioning service must not be null.");
-
-        ResourceType resource = getResource(shadow, provisioning, result);
-        shadow.setResourceRef(null);
-        shadow.setResource(resource);
-    }
-
-    public static ResourceType getResource(ShadowType shadow, ProvisioningService provisioning,
-            OperationResult result) throws CommunicationException, SchemaException, ObjectNotFoundException, ConfigurationException, 
-            SecurityViolationException {
-
-        if (shadow.getResource() != null) {
-            return shadow.getResource();
-        }
-
-        if (shadow.getResourceRef() == null) {
-            throw new IllegalArgumentException("Couldn't resolve resource. Resource object shadow doesn't" +
-                    " contain resource nor resource ref.");
-        }
-
-        ObjectReferenceType resourceRef = shadow.getResourceRef();
-        return provisioning.getObject(ResourceType.class, resourceRef.getOid(), null, null, result).asObjectable();
-    }
+	// inefficient (does not make use of LensContext resource cache)
+	// and seemingly not used at all => commenting out before deleting forever
+//    public static void resolveResource(ShadowType shadow, ProvisioningService provisioning,
+//            OperationResult result) throws CommunicationException, SchemaException, ObjectNotFoundException, ConfigurationException,
+//            SecurityViolationException {
+//
+//        Validate.notNull(shadow, "Resource object shadow must not be null.");
+//        Validate.notNull(provisioning, "Provisioning service must not be null.");
+//
+//        ResourceType resource = getResource(shadow, provisioning, result);
+//        shadow.setResourceRef(null);
+//        shadow.setResource(resource);
+//    }
+//
+//    public static ResourceType getResource(ShadowType shadow, ProvisioningService provisioning,
+//            OperationResult result) throws CommunicationException, SchemaException, ObjectNotFoundException, ConfigurationException,
+//            SecurityViolationException {
+//
+//        if (shadow.getResource() != null) {
+//            return shadow.getResource();
+//        }
+//
+//        if (shadow.getResourceRef() == null) {
+//            throw new IllegalArgumentException("Couldn't resolve resource. Resource object shadow doesn't" +
+//                    " contain resource nor resource ref.");
+//        }
+//
+//        ObjectReferenceType resourceRef = shadow.getResourceRef();
+//        return provisioning.getObject(ResourceType.class, resourceRef.getOid(), null, null, result).asObjectable();
+//    }
     
 	public static <T extends ObjectType> void searchIterative(RepositoryService repositoryService, Class<T> type, ObjectQuery query, 
 			Handler<PrismObject<T>> handler, int blockSize, OperationResult opResult) throws SchemaException {
