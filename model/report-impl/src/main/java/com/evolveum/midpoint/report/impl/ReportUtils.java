@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.report.impl;
 
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import java.io.File;
@@ -168,6 +169,10 @@ public class ReportUtils {
 
     public static String prettyPrintForReport(ProtectedStringType pst) {
         return "*****";
+    }
+    
+     public static String prettyPrintForReport(PrismReferenceValue prv) {        
+         return prv.toString();
     }
 
     public static String prettyPrintForReport(OperationResultType ort) {
