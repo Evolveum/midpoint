@@ -1107,13 +1107,16 @@ public class ContextLoader {
 		}
 		try {	
 			Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(getOptions);
-			PrismObject<ShadowType> objectOld = provisioningService.getObject(ShadowType.class,
-					projCtx.getOid(), options,
-					null, result);
+			PrismObject<ShadowType> objectCurrent = provisioningService.getObject(ShadowType.class,
+					projCtx.getOid(), options, null, result);
 			// TODO: use setLoadedObject() instead?
-			projCtx.setObjectCurrent(objectOld);
-			ShadowType oldShadow = objectOld.asObjectable();
+			projCtx.setObjectCurrent(objectCurrent);
+			ShadowType oldShadow = objectCurrent.asObjectable();
 			projCtx.determineFullShadowFlag(oldShadow.getFetchResult());
+			// The getObject may return different OID than we have requested in case that compensation happened
+			// TODO: this probably need to be fixed in the consistency mechanism
+			// TODO: the following line is a temporary fix
+			projCtx.setOid(objectCurrent.getOid());
 		
 		} catch (ObjectNotFoundException ex) {
 			LOGGER.trace("Load of full resource object {} ended with ObjectNotFoundException (options={})", projCtx, getOptions);
