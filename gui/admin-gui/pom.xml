@@ -31,9 +31,6 @@
         <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
         <url>https://fisheye.evolveum.com/browse/midPoint</url>
     </scm>
-    <properties>
-        <wro4j.version>1.7.1</wro4j.version>
-    </properties>
     <build>
         <finalName>midpoint</finalName>
         <resources>
@@ -96,27 +93,14 @@
         <dependency>
             <groupId>ro.isdc.wro4j</groupId>
             <artifactId>wro4j-core</artifactId>
-            <version>${wro4j.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>slf4j-api</artifactId>
-                    <groupId>org.slf4j</groupId>
-                </exclusion>
-                <exclusion>
-				    <groupId>org.webjars</groupId>
-    				<artifactId>webjars-locator</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
         	<groupId>org.webjars</groupId>
     		<artifactId>webjars-locator</artifactId>
-    		<version>0.15</version>
         </dependency>
         <dependency>
             <groupId>ro.isdc.wro4j</groupId>
             <artifactId>wro4j-extensions</artifactId>
-            <version>${wro4j.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -276,10 +260,13 @@
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
-  <groupId>org.codehaus.groovy.modules.http-builder</groupId>
-  <artifactId>http-builder</artifactId>
-  <version>0.7</version>
-</dependency>
+			<groupId>org.codehaus.groovy.modules.http-builder</groupId>
+			<artifactId>http-builder</artifactId>
+		</dependency>
+		<dependency>
+				<groupId>joda-time</groupId>
+				<artifactId>joda-time</artifactId>
+			</dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-cache</artifactId>
