@@ -712,6 +712,11 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 				}
 			}
 		}
+		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("AUTZ: evaluated security constraints principal={}, object={}:\n{}", 
+					principal, object, objectSecurityConstraints.debugDump());
+		}
 
 		return objectSecurityConstraints;
 	}
