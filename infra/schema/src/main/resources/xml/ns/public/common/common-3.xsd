@@ -5514,7 +5514,17 @@
 		        	<xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="1">
 		        	</xsd:element>
 		        	<xsd:element name="searchOnResource" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                DEPRECATED, use searchStrategy instead.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:deprecated/>
+                            </xsd:appinfo>
+                        </xsd:annotation>
 		        	</xsd:element>
+                    <xsd:element name="searchStrategy" type="tns:ObjectSearchStrategyType" minOccurs="0" maxOccurs="1">
+                    </xsd:element>
 		        	<xsd:element name="createOnDemand" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
 		        	</xsd:element>
 		        	<xsd:element name="populateObject" type="tns:PopulateObjectType" minOccurs="0">
@@ -5529,6 +5539,46 @@
         </xsd:complexContent>
     </xsd:complexType>
 	<xsd:element name="associationTargetSearch" type="tns:SearchObjectExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+
+    <xsd:simpleType name="ObjectSearchStrategyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="inRepository">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Search is carried out in repository only.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IN_REPOSITORY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="onResource">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Search is always carried out on the resource.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ON_RESOURCE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="onResourceIfNeeded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Search is carried out in the repository first. If not found, then the resource is queried.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ON_RESOURCE_IF_NEEDED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
 	<xsd:complexType name="SearchObjectRefExpressionEvaluatorType">
         <xsd:annotation>

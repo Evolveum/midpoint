@@ -25,6 +25,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSearchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
@@ -65,24 +66,24 @@ public class AbstractSearchExpressionEvaluatorCache extends AbstractCache {
         return "Q:"+queries.size();
     }
 
-    public <T extends ObjectType> void putQueryResult(Class<T> type, ObjectQuery query, boolean searchOnResource, Object qualifier, List resultList, PrismContext prismContext) {
-        QueryKey queryKey = createQueryKey(type, query, searchOnResource, qualifier, prismContext);
+    public <T extends ObjectType> void putQueryResult(Class<T> type, ObjectQuery query, ObjectSearchStrategyType searchStrategy, Object qualifier, List resultList, PrismContext prismContext) {
+        QueryKey queryKey = createQueryKey(type, query, searchStrategy, qualifier, prismContext);
         if (queryKey != null) {     // TODO BRUTAL HACK
             queries.put(queryKey, resultList);
         }
     }
 
-    private QueryKey createQueryKey(Class<? extends ObjectType> type, ObjectQuery query, boolean searchOnResource, Object qualifier, PrismContext prismContext) {
+    private QueryKey createQueryKey(Class<? extends ObjectType> type, ObjectQuery query, ObjectSearchStrategyType searchStrategy, Object qualifier, PrismContext prismContext) {
         try {
-            return new QueryKey(type, query, searchOnResource, qualifier, prismContext);
+            return new QueryKey(type, query, searchStrategy, qualifier, prismContext);
         } catch (Exception e) {     // TODO THIS IS REALLY UGLY HACK - query converter / prism serializer refuse to serialize some queries - should be fixed RSN!
             LoggingUtils.logException(LOGGER, "Couldn't create query key. Although this particular exception is harmless, please fix prism implementation!", e);
             return null;            // we "treat" it so that we simply pretend the entry is not in the cache and/or refuse to enter it into the cache
         }
     }
 
-    public List getQueryResult(Class<? extends ObjectType> type, ObjectQuery query, boolean searchOnResource, Object qualifier, PrismContext prismContext) {
-        QueryKey queryKey = createQueryKey(type, query, searchOnResource, qualifier, prismContext);
+    public List getQueryResult(Class<? extends ObjectType> type, ObjectQuery query, ObjectSearchStrategyType searchStrategy, Object qualifier, PrismContext prismContext) {
+        QueryKey queryKey = createQueryKey(type, query, searchStrategy, qualifier, prismContext);
         if (queryKey != null) {         // TODO BRUTAL HACK
             return queries.get(queryKey);
         } else {
@@ -94,17 +95,17 @@ public class AbstractSearchExpressionEvaluatorCache extends AbstractCache {
 
         private Class<? extends ObjectType> type;
         private QueryType query;
-        private boolean searchOnResource;
+        private ObjectSearchStrategyType searchStrategy;
         private Object qualifier;
 
-        public <T extends ObjectType> QueryKey(Class<T> type, ObjectQuery query, boolean searchOnResource, Object qualifier, PrismContext prismContext) {
+        public <T extends ObjectType> QueryKey(Class<T> type, ObjectQuery query, ObjectSearchStrategyType searchStrategy, Object qualifier, PrismContext prismContext) {
             this.type = type;
             try {
                 this.query = query != null ? QueryJaxbConvertor.createQueryType(query, prismContext) : null;
             } catch (SchemaException e) {
                 throw new SystemException(e);
             }
-            this.searchOnResource = searchOnResource;
+            this.searchStrategy = searchStrategy;
             this.qualifier = qualifier;
         }
 
@@ -117,7 +118,7 @@ public class AbstractSearchExpressionEvaluatorCache extends AbstractCache {
 
             if (query != null ? !query.equals(queryKey.query) : queryKey.query != null) return false;
             if (type != null ? !type.equals(queryKey.type) : queryKey.type != null) return false;
-            if (searchOnResource != queryKey.searchOnResource) return false;
+            if (searchStrategy != null ? !searchStrategy.equals(queryKey.searchStrategy) : queryKey.searchStrategy != null) return false;
             if (qualifier != null ? !qualifier.equals(queryKey.qualifier) : queryKey.qualifier != null) return false;
 
             return true;
@@ -127,7 +128,7 @@ public class AbstractSearchExpressionEvaluatorCache extends AbstractCache {
         public int hashCode() {
             int result = type != null ? type.hashCode() : 0;
             result = 31 * result + (query != null ? query.hashCode() : 0);
-            result = 31 * result + (searchOnResource ? 1 : 0);
+            result = 31 * result + (searchStrategy != null ? searchStrategy.hashCode() : 0);
             result = 31 * result + (qualifier != null ? qualifier.hashCode() : 0);
             return result;
         }
