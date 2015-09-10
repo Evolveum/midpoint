@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -90,16 +91,18 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 	private Protector protector;
 	private ObjectResolver objectResolver;
 	private ModelService modelService;
+	private boolean useCache;
 
-	protected AbstractSearchExpressionEvaluator(SearchObjectExpressionEvaluatorType expressionEvaluatorType, 
-			D outputDefinition, Protector protector, ObjectResolver objectResolver, 
-			ModelService modelService, PrismContext prismContext, SecurityEnforcer securityEnforcer) {
+	protected AbstractSearchExpressionEvaluator(SearchObjectExpressionEvaluatorType expressionEvaluatorType,
+												D outputDefinition, Protector protector, ObjectResolver objectResolver,
+												ModelService modelService, PrismContext prismContext, SecurityEnforcer securityEnforcer, boolean useCache) {
 		super(expressionEvaluatorType, securityEnforcer);
 		this.outputDefinition = outputDefinition;
 		this.prismContext = prismContext;
 		this.protector = protector;
 		this.objectResolver = objectResolver;
 		this.modelService = modelService;
+		this.useCache = useCache;
 	}
 	
 	public PrismContext getPrismContext() {
@@ -173,7 +176,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 				LOGGER.trace("Query after extension: {}", query.debugDump());
 			}
 			
-			resultValues = executeSearch(targetTypeClass, targetTypeQName, query, params, contextDescription, params.getResult());
+			resultValues = executeSearchUsingCache(targetTypeClass, targetTypeQName, query, params, contextDescription, params.getResult());
 		}
 			
 		if (resultValues.isEmpty() && getExpressionEvaluatorType().isCreateOnDemand() == Boolean.TRUE &&
@@ -193,6 +196,41 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 
 	protected QName getDefaultTargetType() {
 		return null;
+	}
+
+	protected Object extractCachingRelevantParams(ExpressionEvaluationContext params) {
+		return null;
+	}
+
+	private <O extends ObjectType> List<V> executeSearchUsingCache(Class<O> targetTypeClass,
+														 final QName targetTypeQName, ObjectQuery query, final ExpressionEvaluationContext params, String contextDescription, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+
+		if (!useCache) {
+			return executeSearch(targetTypeClass, targetTypeQName, query, params, contextDescription, result);
+		}
+
+		AbstractSearchExpressionEvaluatorCache cache = AbstractSearchExpressionEvaluatorCache.getCache();
+		if (cache == null) {
+			LOGGER.trace("Caching is enabled but no cache is present.");
+			return executeSearch(targetTypeClass, targetTypeQName, query, params, contextDescription, result);
+		}
+
+		boolean searchOnResource = BooleanUtils.isTrue(getExpressionEvaluatorType().isSearchOnResource());
+
+		Object qualifier = extractCachingRelevantParams(params);
+
+		List<V> list = cache.getQueryResult(targetTypeClass, query, searchOnResource, qualifier, prismContext);
+		if (list != null) {
+			LOGGER.trace("Cache: HIT {} ({})", query, targetTypeClass.getSimpleName());
+			return CloneUtil.clone(list);
+		}
+		LOGGER.trace("Cache: MISS {} ({})", query, targetTypeClass.getSimpleName());
+		list = executeSearch(targetTypeClass, targetTypeQName, query, params, contextDescription, result);
+		if (list != null && !list.isEmpty()) {
+			// we don't want to cache negative results (for future use with focal objects it might mean that they would be attempted to create multiple times)
+			cache.putQueryResult(targetTypeClass, query, searchOnResource, qualifier, CloneUtil.clone(list), prismContext);
+		}
+		return list;
 	}
 
 	private <O extends ObjectType> List<V> executeSearch(Class<O> targetTypeClass,

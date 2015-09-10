@@ -30,6 +30,7 @@ import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.model.common.expression.evaluator.AbstractSearchExpressionEvaluatorCache;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
 import com.evolveum.midpoint.model.impl.controller.ModelUtils;
@@ -180,6 +181,7 @@ public class Clockwork {
 
 		try {
 			FocusConstraintsChecker.enterCache();
+			AbstractSearchExpressionEvaluatorCache.enterCache();
 			provisioningService.enterConstraintsCheckerCache();
 			while (context.getState() != ModelState.FINAL) {
 
@@ -203,6 +205,7 @@ public class Clockwork {
 			return click(context, task, result);
 		} finally {
 			FocusConstraintsChecker.exitCache();
+			AbstractSearchExpressionEvaluatorCache.exitCache();
 			provisioningService.exitConstraintsCheckerCache();
 		}
 	}
