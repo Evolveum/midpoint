@@ -22,7 +22,6 @@ import com.evolveum.midpoint.common.refinery.PropertyLimitations;
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
@@ -57,6 +56,7 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -110,9 +110,9 @@ public class ConsolidationProcessor {
     
     private PrismContainerDefinition<ShadowAssociationType> associationDefinition;
     
-    @Autowired(required = true)
-    private ProvisioningService provisioningService;
-
+    @Autowired(required=true)
+    private ContextLoader contextLoader;
+    
     @Autowired(required=true)
 	private MatchingRuleRegistry matchingRuleRegistry;
 
@@ -271,7 +271,7 @@ public class ConsolidationProcessor {
  	 		// resource availability. We need to know, if the account was read full
  	 		// or we have only the shadow from the repository. If we have only
  	 		// shadow, the weak mappings may applied even if they should not be. 
- 			LensUtil.loadFullAccount(context, projCtx, provisioningService, result);
+ 			contextLoader.loadFullShadow(context, projCtx, result);
  			if (projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
  				return null;
  			}

@@ -1212,8 +1212,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw (GenericFrameworkException) midpointEx;
 			} else if (midpointEx instanceof ConfigurationException) {
 				throw (ConfigurationException) midpointEx;
-			} else if (midpointEx instanceof SecurityViolationException){
+			} else if (midpointEx instanceof SecurityViolationException) {
 				throw (SecurityViolationException) midpointEx;
+			} else if (midpointEx instanceof ObjectNotFoundException) {
+				LOGGER.trace("Got ObjectNotFoundException while looking for resource object ConnId UID: {}", uid);
+				return null;
 			} else if (midpointEx instanceof RuntimeException) {
 				throw (RuntimeException)midpointEx;
 			} else if (midpointEx instanceof Error) {

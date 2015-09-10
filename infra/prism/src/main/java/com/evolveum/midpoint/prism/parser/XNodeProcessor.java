@@ -22,6 +22,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.SerializationContext;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -30,7 +31,6 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
@@ -49,7 +49,6 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.parser.util.XNodeProcessorUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -68,7 +67,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedByteArrayType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
@@ -819,6 +817,9 @@ public class XNodeProcessor {
 
         refVal.setFilter(parseFilter(xmap.get(XNode.KEY_REFERENCE_FILTER)));
 
+        PolyString targetName = xmap.getParsedPrimitiveValue(XNode.KEY_REFERENCE_TARGET_NAME, PrismConstants.POLYSTRING_TYPE_QNAME);
+        refVal.setTargetName(targetName);
+
         XNode xrefObject = xmap.get(XNode.KEY_REFERENCE_OBJECT);
         if (xrefObject != null) {
             if (!(xrefObject instanceof MapXNode)) {
@@ -1180,10 +1181,14 @@ public class XNodeProcessor {
 		return serializer.serializeObject(object);
 	}
 
-	public <O extends Objectable> RootXNode serializeObject(PrismObject<O> object, boolean serializeCompositeObjects) throws SchemaException {
+    public <O extends Objectable> RootXNode serializeObject(PrismObject<O> object, boolean serializeCompositeObjects) throws SchemaException {
+        return serializeObject(object, serializeCompositeObjects, null);
+    }
+
+	public <O extends Objectable> RootXNode serializeObject(PrismObject<O> object, boolean serializeCompositeObjects, SerializationContext ctx) throws SchemaException {
 		XNodeSerializer serializer = createSerializer();
 		serializer.setSerializeCompositeObjects(serializeCompositeObjects);
-		return serializer.serializeObject(object);
+		return serializer.serializeObject(object, ctx);
 	}
 	
 //	public <C extends Containerable> RootXNode serializeContainerValueRoot(PrismContainerValue<C> cval) throws SchemaException {
@@ -1251,8 +1256,8 @@ public class XNodeProcessor {
 
 
     // TODO: very preliminary implementation - does not care for special cases (e.g. PolyString etc)
-    public RootXNode serializeAtomicValue(Object object, QName elementName) throws SchemaException {
-        XNode valueXNode = getBeanConverter().marshall(object);
+    public RootXNode serializeAtomicValue(Object object, QName elementName, SerializationContext ctx) throws SchemaException {
+        XNode valueXNode = getBeanConverter().marshall(object, ctx);
         QName typeQName = JAXBUtil.getTypeQName(object.getClass());
         if (typeQName != null) {
             valueXNode.setTypeQName(typeQName);
@@ -1264,7 +1269,7 @@ public class XNodeProcessor {
 
     public RootXNode serializeAtomicValue(JAXBElement<?> element) throws SchemaException {
         Validate.notNull(element);
-        return serializeAtomicValue(element.getValue(), element.getName());
+        return serializeAtomicValue(element.getValue(), element.getName(), null);
     }
 
 

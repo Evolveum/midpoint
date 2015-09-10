@@ -22,6 +22,8 @@ import java.util.List;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.SerializationContext;
+import com.evolveum.midpoint.prism.SerializationOptions;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.prism.Item;
@@ -188,8 +190,12 @@ public class DeltaConvertor {
         }
         return modType;
     }
-    
-	public static ObjectDeltaType toObjectDeltaType(ObjectDelta<? extends ObjectType> objectDelta) throws SchemaException {
+
+    public static ObjectDeltaType toObjectDeltaType(ObjectDelta<? extends ObjectType> objectDelta) throws SchemaException {
+        return toObjectDeltaType(objectDelta, null);
+    }
+
+    public static ObjectDeltaType toObjectDeltaType(ObjectDelta<? extends ObjectType> objectDelta, DeltaConversionOptions options) throws SchemaException {
         Validate.notNull(objectDelta.getPrismContext(), "ObjectDelta without prismContext cannot be converted to ObjectDeltaType");
 		ObjectDeltaType objectDeltaType = new ObjectDeltaType();
 		objectDeltaType.setChangeType(convertChangeType(objectDelta.getChangeType()));
@@ -204,18 +210,6 @@ public class DeltaConvertor {
 		if (objectDelta.getChangeType() == ChangeType.ADD) {
 			PrismObject<? extends ObjectType> prismObject = objectDelta.getObjectToAdd();
 			if (prismObject != null) {
-//				Element objectElement = prismObject.getPrismContext().getJaxbDomHack().serializeObjectToJaxb(prismObject);
-//				ObjectDeltaType.ObjectToAdd objectToAdd = new ObjectDeltaType.ObjectToAdd();
-//				objectToAdd.setAny(new JAXBElement(new QName("any"), prismObject.getCompileTimeClass(), prismObject.asObjectable()));
-//				XNode node = prismObject.getPrismContext().getXnodeProcessor().serializeObject(prismObject);
-//				MapXNode objToAdd = null;
-//				if (node instanceof RootXNode){
-//					objToAdd = (MapXNode) ((RootXNode) node).getSubnode();
-//				} else if (node instanceof MapXNode){
-//					objToAdd = (MapXNode) node;
-//				} else {
-//					throw new IllegalArgumentException("cannot process delta with object to add: " + node);
-//				}
 				objectDeltaType.setObjectToAdd(prismObject.asObjectable());
 			}
 		} else if (objectDelta.getChangeType() == ChangeType.MODIFY) {
@@ -224,7 +218,7 @@ public class DeltaConvertor {
 		    for (ItemDelta<?,?> propDelta : objectDelta.getModifications()) {
 		        Collection<ItemDeltaType> propPropModTypes;
 		        try {
-		            propPropModTypes = toItemDeltaTypes(propDelta);
+		            propPropModTypes = toItemDeltaTypes(propDelta, options);
 		        } catch (SchemaException e) {
 		            throw new SchemaException(e.getMessage() + " in " + objectDelta.toString(), e);
 		        }
@@ -239,9 +233,15 @@ public class DeltaConvertor {
 	}
 
     public static String toObjectDeltaTypeXml(ObjectDelta<? extends ObjectType> delta) throws SchemaException, JAXBException {
+        return toObjectDeltaTypeXml(delta, null);
+    }
+
+    public static String toObjectDeltaTypeXml(ObjectDelta<? extends ObjectType> delta, DeltaConversionOptions options) throws SchemaException, JAXBException {
         Validate.notNull(delta.getPrismContext(), "ObjectDelta without prismContext cannot be converted to XML");
-        ObjectDeltaType objectDeltaType = toObjectDeltaType(delta);
-        return delta.getPrismContext().serializeAtomicValue(objectDeltaType, SchemaConstants.T_OBJECT_DELTA, PrismContext.LANG_XML);
+        ObjectDeltaType objectDeltaType = toObjectDeltaType(delta, options);
+        SerializationOptions serializationOptions = new SerializationOptions();
+        serializationOptions.setSerializeReferenceNames(DeltaConversionOptions.isSerializeReferenceNames(options));
+        return delta.getPrismContext().serializeAtomicValue(objectDeltaType, SchemaConstants.T_OBJECT_DELTA, PrismContext.LANG_XML, serializationOptions);
     }
 
 
@@ -334,6 +334,10 @@ public class DeltaConvertor {
      * Converts this delta to PropertyModificationType (XML).
      */
     public static Collection<ItemDeltaType> toItemDeltaTypes(ItemDelta delta) throws SchemaException {
+        return toItemDeltaTypes(delta, null);
+    }
+
+    public static Collection<ItemDeltaType> toItemDeltaTypes(ItemDelta delta, DeltaConversionOptions options) throws SchemaException {
     	delta.checkConsistence();
         if (!delta.isEmpty() && delta.getPrismContext() == null) {
             throw new IllegalStateException("Non-empty ItemDelta with no prismContext cannot be converted to ItemDeltaType.");
@@ -345,11 +349,11 @@ public class DeltaConvertor {
             mod.setPath(path);
             mod.setModificationType(ModificationTypeType.REPLACE);
             try {
-                addModValues(delta, mod, delta.getValuesToReplace());
+                addModValues(delta, mod, delta.getValuesToReplace(), options);
             } catch (SchemaException e) {
                 throw new SchemaException(e.getMessage() + " while converting property " + delta.getElementName(), e);
             }
-            addOldValues(delta, mod, delta.getEstimatedOldValues());
+            addOldValues(delta, mod, delta.getEstimatedOldValues(), options);
             mods.add(mod);
         }
         if (delta.getValuesToAdd() != null) {
@@ -357,11 +361,11 @@ public class DeltaConvertor {
             mod.setPath(path);
             mod.setModificationType(ModificationTypeType.ADD);
             try {
-                addModValues(delta, mod, delta.getValuesToAdd());
+                addModValues(delta, mod, delta.getValuesToAdd(), options);
             } catch (SchemaException e) {
                 throw new SchemaException(e.getMessage() + " while converting property " + delta.getElementName(), e);
             }
-            addOldValues(delta, mod, delta.getEstimatedOldValues());
+            addOldValues(delta, mod, delta.getEstimatedOldValues(), options);
             mods.add(mod);
         }
         if (delta.getValuesToDelete() != null) {
@@ -369,65 +373,54 @@ public class DeltaConvertor {
             mod.setPath(path);
             mod.setModificationType(ModificationTypeType.DELETE);
             try {
-                addModValues(delta, mod, delta.getValuesToDelete());
+                addModValues(delta, mod, delta.getValuesToDelete(), options);
             } catch (SchemaException e) {
                 throw new SchemaException(e.getMessage() + " while converting property " + delta.getElementName(), e);
             }
-            addOldValues(delta, mod, delta.getEstimatedOldValues());
+            addOldValues(delta, mod, delta.getEstimatedOldValues(), options);
             mods.add(mod);
         }
         return mods;
     }
 
     // requires delta.prismContext to be set
-    private static void addModValues(ItemDelta delta, ItemDeltaType mod, Collection<PrismValue> values) throws SchemaException {
+    private static void addModValues(ItemDelta delta, ItemDeltaType mod, Collection<PrismValue> values, DeltaConversionOptions options) throws SchemaException {
         if (values == null || values.isEmpty()) {
             RawType modValue = new RawType(delta.getPrismContext());
             mod.getValue().add(modValue);
         } else {
 	        for (PrismValue value : values) {
-	        	XNode xnode = toXNode(delta, value);
+	        	XNode xnode = toXNode(delta, value, options);
 	        	RawType modValue = new RawType(xnode, value.getPrismContext());
                 mod.getValue().add(modValue);
 	        }
         }
     }
     
-    private static void addOldValues(ItemDelta delta, ItemDeltaType mod, Collection<PrismValue> values) throws SchemaException {
+    private static void addOldValues(ItemDelta delta, ItemDeltaType mod, Collection<PrismValue> values, DeltaConversionOptions options) throws SchemaException {
         if (values == null || values.isEmpty()) {
             RawType modValue = new RawType(delta.getPrismContext());
             mod.getEstimatedOldValue().add(modValue);
         } else {
 	        for (PrismValue value : values) {
-	        	XNode xnode = toXNode(delta, value);
+	        	XNode xnode = toXNode(delta, value, options);
 	        	RawType modValue = new RawType(xnode, delta.getPrismContext());
                 mod.getEstimatedOldValue().add(modValue);
 	        }
         }
     }
     
-    private static XNode toXNode(ItemDelta delta, PrismValue value) throws SchemaException{
+    private static XNode toXNode(ItemDelta delta, PrismValue value, DeltaConversionOptions options) throws SchemaException{
 		XNodeSerializer serializer = delta.getPrismContext().getXnodeProcessor().createSerializer();
-		XNode node = serializer.serializeItemValue(value, delta.getDefinition());
+        SerializationOptions opts = new SerializationOptions();
+        opts.setSerializeReferenceNames(DeltaConversionOptions.isSerializeReferenceNames(options));
+		XNode node = serializer.serializeItemValue(value, delta.getDefinition(), opts);
 		if (delta.getDefinition() != null){
 			node.setTypeQName(delta.getDefinition().getTypeName());
 			node.setExplicitTypeDeclaration(true);
 		}
 		return node;
     }
-
-//	private static Object toAny(ItemDelta delta, PrismValue value, Document document) throws SchemaException {
-//		PrismContext prismContext = delta.getPrismContext();
-//		if (prismContext != null) {
-//			return RawTypeUtil.toAny(value, document, prismContext);
-//		}
-//		if (value instanceof PrismPropertyValue<?>) {
-//			PrismPropertyValue<?> pval = (PrismPropertyValue<?>)value;
-//			return pval.getRawElement();
-//		} else {
-//			throw new SystemException("Null prism context in "+value+" in "+delta);
-//		}
-//	}
 
     public static Collection<ObjectDelta> createObjectDeltas(ObjectDeltaListType deltaList, PrismContext prismContext) throws SchemaException {
         List<ObjectDelta> retval = new ArrayList<>();

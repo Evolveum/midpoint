@@ -56,9 +56,13 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
@@ -303,10 +307,11 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 				resource = constructionType.getResource();
 			} else if (constructionType.getResourceRef() != null) {
 				try {
-					resource = objectResolver.resolve(constructionType.getResourceRef(), ResourceType.class,
-							null, "account construction in "+ source , result);
+					resource = LensUtil.getResource(lensContext, constructionType.getResourceRef().getOid(), objectResolver, result);
 				} catch (ObjectNotFoundException e) {
 					throw new ObjectNotFoundException("Resource reference seems to be invalid in account construction in " + source + ": "+e.getMessage(), e);
+				} catch (SecurityViolationException|CommunicationException|ConfigurationException e) {
+					throw new SystemException("Couldn't fetch the resource in account construction in " + source + ": " + e.getMessage(), e);
 				}
 			}
 			if (resource == null) {
