@@ -23,12 +23,14 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSearchStrategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.commons.lang.BooleanUtils;
-import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
@@ -47,7 +49,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -60,7 +61,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -76,7 +76,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PopulateItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PopulateObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchObjectExpressionEvaluatorType;
-import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
@@ -209,13 +208,13 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		ObjectSearchStrategyType searchStrategy = getSearchStrategy();
 
 		if (!useCache) {
-			return executeSearch(targetTypeClass, targetTypeQName, query, searchStrategy, params, contextDescription, result);
+			return executeSearch(targetTypeClass, targetTypeQName, query, searchStrategy, params, contextDescription, null, result);
 		}
 
 		AbstractSearchExpressionEvaluatorCache cache = AbstractSearchExpressionEvaluatorCache.getCache();
 		if (cache == null) {
 			LOGGER.trace("Caching is enabled but no cache is present.");
-			return executeSearch(targetTypeClass, targetTypeQName, query, searchStrategy, params, contextDescription, result);
+			return executeSearch(targetTypeClass, targetTypeQName, query, searchStrategy, params, contextDescription, null, result);
 		}
 
 		Object qualifier = extractCachingRelevantParams(params);
@@ -226,10 +225,11 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 			return CloneUtil.clone(list);
 		}
 		LOGGER.trace("Cache: MISS {} ({})", query, targetTypeClass.getSimpleName());
-		list = executeSearch(targetTypeClass, targetTypeQName, query, searchStrategy, params, contextDescription, result);
+		Holder<ShadowKindType> kindHolder = new Holder<>();		// FIXME brutal hack
+		list = executeSearch(targetTypeClass, targetTypeQName, query, searchStrategy, params, contextDescription, kindHolder, result);
 		if (list != null && !list.isEmpty()) {
 			// we don't want to cache negative results (for future use with focal objects it might mean that they would be attempted to create multiple times)
-			cache.putQueryResult(targetTypeClass, query, searchStrategy, qualifier, CloneUtil.clone(list), prismContext);
+			cache.putQueryResult(targetTypeClass, query, searchStrategy, qualifier, CloneUtil.clone(list), kindHolder.getValue(), prismContext);
 		}
 		return list;
 	}
@@ -248,7 +248,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 	private <O extends ObjectType> List<V> executeSearch(Class<O> targetTypeClass, final QName targetTypeQName, ObjectQuery query,
 														 ObjectSearchStrategyType searchStrategy,
 														 ExpressionEvaluationContext params, String contextDescription,
-														 OperationResult result)
+														 Holder<ShadowKindType> kindHolder, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
 
@@ -262,15 +262,15 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 
 		switch (searchStrategy) {
 			case IN_REPOSITORY:
-				return executeSearchAttempt(targetTypeClass, targetTypeQName, query, false, false, params, contextDescription, result);
+				return executeSearchAttempt(targetTypeClass, targetTypeQName, query, false, false, params, contextDescription, kindHolder, result);
 			case ON_RESOURCE:
-				return executeSearchAttempt(targetTypeClass, targetTypeQName, query, true, true, params, contextDescription, result);
+				return executeSearchAttempt(targetTypeClass, targetTypeQName, query, true, true, params, contextDescription, kindHolder, result);
 			case ON_RESOURCE_IF_NEEDED:
-				List<V> inRepo = executeSearchAttempt(targetTypeClass, targetTypeQName, query, false, false, params, contextDescription, result);
+				List<V> inRepo = executeSearchAttempt(targetTypeClass, targetTypeQName, query, false, false, params, contextDescription, kindHolder, result);
 				if (!inRepo.isEmpty()) {
 					return inRepo;
 				}
-				return executeSearchAttempt(targetTypeClass, targetTypeQName, query, true, false, params, contextDescription, result);
+				return executeSearchAttempt(targetTypeClass, targetTypeQName, query, true, false, params, contextDescription, kindHolder, result);
 			default:
 				throw new IllegalArgumentException("Unknown search strategy: " + searchStrategy);
 		}
@@ -279,7 +279,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 	private <O extends ObjectType> List<V> executeSearchAttempt(Class<O> targetTypeClass, final QName targetTypeQName,
 																ObjectQuery query, boolean searchOnResource, boolean tryAlsoRepository,
 																final ExpressionEvaluationContext params, String contextDescription,
-																OperationResult result) throws ExpressionEvaluationException,
+																final Holder<ShadowKindType> kindHolder, OperationResult result) throws ExpressionEvaluationException,
 			ObjectNotFoundException, SchemaException {
 
 		final List<V> list = new ArrayList<V>();
@@ -292,6 +292,9 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		ResultHandler<O> handler = new ResultHandler<O>() {
 			@Override
 			public boolean handle(PrismObject<O> object, OperationResult parentResult) {
+				if (kindHolder != null && kindHolder.getValue() == null && object.asObjectable() instanceof ShadowType) {
+					kindHolder.setValue(((ShadowType) (object.asObjectable())).getKind());
+				}
 				list.add(createPrismValue(object.getOid(), targetTypeQName, params));
 
 				// TODO: we should count results and stop after some reasonably high number?

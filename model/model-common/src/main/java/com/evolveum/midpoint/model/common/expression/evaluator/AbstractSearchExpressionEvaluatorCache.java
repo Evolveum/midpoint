@@ -17,8 +17,12 @@
 package com.evolveum.midpoint.model.common.expression.evaluator;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.util.caching.AbstractCache;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -27,14 +31,21 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSearchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * EXPERIMENTAL. Quickly extracted from repository cache Cache implementation.
+ *
+ * Currently please use only for shadows.
  *
  * @author Pavol Mederly
  */
@@ -48,29 +59,87 @@ public class AbstractSearchExpressionEvaluatorCache extends AbstractCache {
         return cacheInstances.get();
     }
 
-    public static void enterCache() {
-        enter(cacheInstances, AbstractSearchExpressionEvaluatorCache.class, LOGGER);
+    public static AbstractSearchExpressionEvaluatorCache enterCache() {
+        return enter(cacheInstances, AbstractSearchExpressionEvaluatorCache.class, LOGGER);
     }
 
-    public static void exitCache() {
-        exit(cacheInstances, LOGGER);
+    public static AbstractSearchExpressionEvaluatorCache exitCache() {
+        return exit(cacheInstances, LOGGER);
     }
+
+    private Invalidator invalidator;
 
     public static void init() {
     }
 
     private Map<QueryKey, List> queries = new HashMap<>();
+    private Map<String, Map<ShadowKindType, Set<QueryKey>>> keysByCoordinates = new HashMap<>();        // auxiliary structure to enable fast invalidation of shadows
 
     @Override
     public String description() {
         return "Q:"+queries.size();
     }
 
-    public <T extends ObjectType> void putQueryResult(Class<T> type, ObjectQuery query, ObjectSearchStrategyType searchStrategy, Object qualifier, List resultList, PrismContext prismContext) {
+    public Invalidator getInvalidator() {
+        return invalidator;
+    }
+
+    public void setInvalidator(Invalidator invalidator) {
+        this.invalidator = invalidator;
+    }
+
+    // resultList must not be empty
+    public <T extends ObjectType> void putQueryResult(Class<T> type, ObjectQuery query, ObjectSearchStrategyType searchStrategy, Object qualifier, List resultList, ShadowKindType kind, PrismContext prismContext) {
         QueryKey queryKey = createQueryKey(type, query, searchStrategy, qualifier, prismContext);
         if (queryKey != null) {     // TODO BRUTAL HACK
             queries.put(queryKey, resultList);
+            if (ShadowType.class.isAssignableFrom(type)) {
+                categorizeQueryKey(query, resultList, queryKey, kind);
+            }
         }
+    }
+
+    private void categorizeQueryKey(ObjectQuery query, List resultList, QueryKey queryKey, ShadowKindType defaultKind) {
+        if (query == null) {
+            throw new IllegalStateException("Null query in search expression evaluator");
+        }
+        ObjectFilter filter = query.getFilter();
+        if (filter == null) {
+            throw new IllegalStateException("Null search filter in search expression evaluator");
+        }
+        filter = ObjectQueryUtil.simplify(filter);
+
+        ResourceShadowDiscriminator coordinates;
+        try {
+            coordinates = ObjectQueryUtil.getCoordinates(filter);
+        } catch (SchemaException e) {
+            throw new SystemException("Couldn't parse search filter query", e);
+        }
+
+        String resourceOid = coordinates.getResourceOid();
+        ShadowKindType kind = coordinates.getKind();
+        if (kind == null) {
+            kind = defaultKind;
+        }
+        // TODO determine kind somehow...
+//        if (kind == null && !resultList.isEmpty()) {
+//            // let's take the kind from the resultList
+//            kind = ((PrismObject<ShadowType>) resultList.get(0)).asObjectable().getKind();
+//        }
+
+        Map<ShadowKindType, Set<QueryKey>> resourceContent = keysByCoordinates.get(resourceOid);
+        if (resourceContent == null) {
+            resourceContent = new HashMap<>();
+            keysByCoordinates.put(resourceOid, resourceContent);
+        }
+
+        Set<QueryKey> keysForKind = resourceContent.get(kind);
+        if (keysForKind == null) {
+            keysForKind = new HashSet<>();
+            resourceContent.put(kind, keysForKind);
+        }
+
+        keysForKind.add(queryKey);
     }
 
     private QueryKey createQueryKey(Class<? extends ObjectType> type, ObjectQuery query, ObjectSearchStrategyType searchStrategy, Object qualifier, PrismContext prismContext) {
@@ -89,6 +158,51 @@ public class AbstractSearchExpressionEvaluatorCache extends AbstractCache {
         } else {
             return null;
         }
+    }
+
+    // shadow may be null
+    public void invalidate(PrismObject<ResourceType> resource, PrismObject<? extends ShadowType> shadow) {
+        if (resource == null || resource.getOid() == null) {    // shouldn't occur
+            LOGGER.warn("No resource - invalidating all the cache");
+            invalidateAll();
+            return;
+        }
+        String resourceOid = resource.getOid();
+        ShadowKindType kind = null;
+        if (shadow != null) {
+            kind = shadow.asObjectable().getKind();
+        }
+
+        Map<ShadowKindType, Set<QueryKey>> resourceContent = keysByCoordinates.get(resourceOid);
+        if (resourceContent == null) {
+            return;
+        }
+
+        if (kind == null) {
+            for (Map.Entry<ShadowKindType, Set<QueryKey>> entry : resourceContent.entrySet()) {
+                invalidateKind(entry.getValue());
+            }
+        } else {
+            invalidateKind(resourceContent.get(null));
+            invalidateKind(resourceContent.get(kind));
+        }
+    }
+
+    private void invalidateKind(Set<QueryKey> keys) {
+        if (keys == null) {
+            return;
+        }
+        for (QueryKey key : keys) {
+            LOGGER.info("Invalidating query key {}", key);
+            queries.remove(key);
+        }
+        keys.clear();
+    }
+
+    private void invalidateAll() {
+        LOGGER.info("Invalidating whole cache");
+        queries.clear();
+        keysByCoordinates.clear();
     }
 
     public class QueryKey {
@@ -136,6 +250,20 @@ public class AbstractSearchExpressionEvaluatorCache extends AbstractCache {
         public Class<? extends ObjectType> getType() {
             return type;
         }
+
+        @Override
+        public String toString() {
+            return "QueryKey{" +
+                    "type=" + type +
+                    ", query=" + query +
+                    ", searchStrategy=" + searchStrategy +
+                    ", qualifier=" + qualifier +
+                    '}';
+        }
+    }
+
+    public interface Invalidator {
+
     }
 
 }

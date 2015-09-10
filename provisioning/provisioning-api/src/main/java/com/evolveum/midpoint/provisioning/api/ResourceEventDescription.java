@@ -128,4 +128,20 @@ public class ResourceEventDescription implements Serializable, DebugDumpable{
 //	
 //	
 
+	public PrismObject<ShadowType> getShadow() {
+		PrismObject<ShadowType> shadow;
+		if (getCurrentShadow() != null) {
+			shadow = getCurrentShadow();
+		} else if (getOldShadow() != null) {
+			shadow = getOldShadow();
+		} else if (getDelta() != null && getDelta().isAdd()) {
+			if (getDelta().getObjectToAdd() == null) {
+				throw new IllegalStateException("Found ADD delta, but no object to add was specified.");
+			}
+			shadow = getDelta().getObjectToAdd();
+		} else {
+			throw new IllegalStateException("Resource event description does not contain neither old shadow, nor current shadow, nor shadow in delta");
+		}
+		return shadow;
+	}
 }

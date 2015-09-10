@@ -106,22 +106,9 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
 		applyDefinitions(eventDescription, parentResult);
 		
 		PrismObject<ShadowType> shadow = null;
-		
-		if (eventDescription.getCurrentShadow() != null){
-			shadow = eventDescription.getCurrentShadow();
-		} else if (eventDescription.getOldShadow() != null){
-			shadow = eventDescription.getOldShadow();
-		} else if (eventDescription.getDelta() != null && eventDescription.getDelta().isAdd()){
-			if (eventDescription.getDelta().getObjectToAdd() == null){
-				throw new IllegalStateException("Found ADD delta, but no object to add was specified.");
-			}
-			shadow = eventDescription.getDelta().getObjectToAdd();
-		} else{
-			
-			throw new IllegalStateException("Resource event description does not contain neither old shadow, nor current shadow, nor shadow in delta");
-		}
-		
-	
+
+		shadow = eventDescription.getShadow();
+
 		ShadowCache shadowCache = getShadowCache(Mode.STANDARD);
 		
 		ProvisioningContext ctx = provisioningContextFactory.create(shadow, task, parentResult);
