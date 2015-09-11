@@ -21,8 +21,15 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.mutable.MutableBoolean;
 
@@ -333,4 +340,85 @@ public class ObjectQueryUtil {
 			return filter.clone();
 		}
  	}
+
+	@SuppressWarnings("rawtypes")
+	public static <T> T getValueFromFilter(List<? extends ObjectFilter> conditions, QName propertyName)
+			throws SchemaException {
+		ItemPath propertyPath = new ItemPath(propertyName);
+		for (ObjectFilter f : conditions) {
+			if (f instanceof EqualFilter && propertyPath.equivalent(((EqualFilter) f).getFullPath())) {
+				List<? extends PrismValue> values = ((EqualFilter) f).getValues();
+				if (values.size() > 1) {
+					throw new SchemaException("More than one " + propertyName
+							+ " defined in the search query.");
+				}
+				if (values.size() < 1) {
+					throw new SchemaException("Search query does not have specified " + propertyName + ".");
+				}
+
+				return (T) ((PrismPropertyValue) values.get(0)).getValue();
+			}
+			if (NaryLogicalFilter.class.isAssignableFrom(f.getClass())) {
+				T value = getValueFromFilter(((NaryLogicalFilter) f).getConditions(), propertyName);
+				if (value != null) {
+					return value;
+				}
+			}
+		}
+
+		return null;
+	}
+
+	@SuppressWarnings("unchecked")
+	public static String getResourceOidFromFilter(List<? extends ObjectFilter> conditions)
+			throws SchemaException {
+
+		for (ObjectFilter f : conditions) {
+			if (f instanceof RefFilter
+					&& ShadowType.F_RESOURCE_REF.equals(((RefFilter) f).getDefinition().getName())) {
+				List<PrismReferenceValue> values = (List<PrismReferenceValue>) ((RefFilter) f).getValues();
+				if (values.size() > 1) {
+					throw new SchemaException(
+							"More than one resource references defined in the search query.");
+				}
+				if (values.size() < 1) {
+					throw new SchemaException("Search query does not have specified resource reference.");
+				}
+				return values.get(0).getOid();
+			}
+			if (NaryLogicalFilter.class.isAssignableFrom(f.getClass())) {
+				String resourceOid = getResourceOidFromFilter(((NaryLogicalFilter) f).getConditions());
+				if (resourceOid != null) {
+					return resourceOid;
+				}
+			}
+		}
+		return null;
+	}
+
+	public static ResourceShadowDiscriminator getCoordinates(ObjectFilter filter) throws SchemaException {
+		String resourceOid = null;
+        QName objectClass = null;
+        ShadowKindType kind = null;
+        String intent = null;
+
+        if (filter instanceof AndFilter) {
+            List<? extends ObjectFilter> conditions = ((AndFilter) filter).getConditions();
+            resourceOid = getResourceOidFromFilter(conditions);
+            objectClass = getValueFromFilter(conditions, ShadowType.F_OBJECT_CLASS);
+            kind = getValueFromFilter(conditions, ShadowType.F_KIND);
+			intent = getValueFromFilter(conditions, ShadowType.F_INTENT);
+        }
+
+        if (resourceOid == null) {
+            throw new SchemaException("Resource not defined in a search query");
+        }
+        if (objectClass == null && kind == null) {
+        	throw new SchemaException("Neither objectclass not kind is specified in a search query");
+        }
+
+        ResourceShadowDiscriminator coordinates = new ResourceShadowDiscriminator(resourceOid, kind, intent, false);
+        coordinates.setObjectClass(objectClass);
+        return coordinates;
+	}
 }

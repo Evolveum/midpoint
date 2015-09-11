@@ -27,7 +27,7 @@ public abstract class AbstractCache {
 
     private int entryCount = 0;
 
-    public static <T extends AbstractCache> void enter(ThreadLocal<T> cacheThreadLocal, Class<T> cacheClass, Trace logger) {
+    public static <T extends AbstractCache> T enter(ThreadLocal<T> cacheThreadLocal, Class<T> cacheClass, Trace logger) {
         T inst = cacheThreadLocal.get();
         logger.trace("Cache: ENTER for thread {}, {}", Thread.currentThread().getName(), inst);
         if (inst == null) {
@@ -40,9 +40,10 @@ public abstract class AbstractCache {
             cacheThreadLocal.set(inst);
         }
         inst.incrementEntryCount();
+        return inst;
     }
 
-    public static <T extends AbstractCache> void exit(ThreadLocal<T> cacheThreadLocal, Trace logger) {
+    public static <T extends AbstractCache> T exit(ThreadLocal<T> cacheThreadLocal, Trace logger) {
         T inst = cacheThreadLocal.get();
         logger.trace("Cache: EXIT for thread {}, {}", Thread.currentThread().getName(), inst);
         if (inst == null || inst.getEntryCount() == 0) {
@@ -54,6 +55,7 @@ public abstract class AbstractCache {
                 destroy(cacheThreadLocal, logger);
             }
         }
+        return inst;
     }
 
     public static <T extends AbstractCache> void destroy(ThreadLocal<T> cacheThreadLocal, Trace logger) {
