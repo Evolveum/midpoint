@@ -16,7 +16,8 @@
 
 package com.evolveum.midpoint.model.impl.lens;
 
-import com.evolveum.midpoint.model.common.expression.evaluator.AbstractSearchExpressionEvaluatorCache;
+import com.evolveum.midpoint.model.common.expression.evaluator.caching.AbstractSearchExpressionEvaluatorCache;
+import com.evolveum.midpoint.model.common.expression.evaluator.caching.AssociationSearchExpressionEvaluatorCache;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
@@ -27,11 +28,11 @@ import com.evolveum.midpoint.task.api.Task;
 /**
  * @author Pavol Mederly
  */
-class SearchExpressionCacheInvalidator implements AbstractSearchExpressionEvaluatorCache.Invalidator, ResourceOperationListener, ResourceObjectChangeListener {
+class AssociationSearchExpressionCacheInvalidator implements ResourceOperationListener, ResourceObjectChangeListener {
 
-	private AbstractSearchExpressionEvaluatorCache cache;
+	private AssociationSearchExpressionEvaluatorCache cache;
 
-	public SearchExpressionCacheInvalidator(AbstractSearchExpressionEvaluatorCache cache) {
+	public AssociationSearchExpressionCacheInvalidator(AssociationSearchExpressionEvaluatorCache cache) {
 		this.cache = cache;
 	}
 

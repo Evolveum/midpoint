@@ -21,6 +21,8 @@ import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.model.common.expression.evaluator.caching.AbstractSearchExpressionEvaluatorCache;
+import com.evolveum.midpoint.model.common.expression.evaluator.caching.AssociationSearchExpressionEvaluatorCache;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -55,9 +57,14 @@ public class AssociationTargetSearchExpressionEvaluator
 	public AssociationTargetSearchExpressionEvaluator(SearchObjectExpressionEvaluatorType expressionEvaluatorType, 
 			PrismContainerDefinition<ShadowAssociationType> outputDefinition, Protector protector, ObjectResolver objectResolver, 
 			ModelService modelService, PrismContext prismContext, SecurityEnforcer securityEnforcer) {
-		super(expressionEvaluatorType, outputDefinition, protector, objectResolver, modelService, prismContext, securityEnforcer, true);	//SystemConfigurationHolder.isExperimentalCodeEnabled();
+		super(expressionEvaluatorType, outputDefinition, protector, objectResolver, modelService, prismContext, securityEnforcer);
 	}
-	
+
+	@Override
+	protected AbstractSearchExpressionEvaluatorCache getCache() {
+		return AssociationSearchExpressionEvaluatorCache.getCache();
+	}
+
 	@Override
 	protected ObjectQuery extendQuery(ObjectQuery query, ExpressionEvaluationContext params) throws SchemaException, ExpressionEvaluationException {
 		RefinedObjectClassDefinition rAssocTargetDef = (RefinedObjectClassDefinition) params.getVariables().get(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION);
@@ -108,8 +115,4 @@ public class AssociationTargetSearchExpressionEvaluator
 		return "associationExpression";
 	}
 
-	@Override
-	protected Object extractCachingRelevantParams(ExpressionEvaluationContext params) {
-		return params != null ? params.getMappingQName() : null;
-	}
 }

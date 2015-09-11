@@ -48,7 +48,7 @@ public class AssignmentTargetSearchExpressionEvaluator
 	public AssignmentTargetSearchExpressionEvaluator(SearchObjectRefExpressionEvaluatorType expressionEvaluatorType, 
 			PrismContainerDefinition<AssignmentType> outputDefinition, Protector protector, ObjectResolver objectResolver, 
 			ModelService modelService, PrismContext prismContext, SecurityEnforcer securityEnforcer) {
-		super(expressionEvaluatorType, outputDefinition, protector, objectResolver, modelService, prismContext, securityEnforcer, false);
+		super(expressionEvaluatorType, outputDefinition, protector, objectResolver, modelService, prismContext, securityEnforcer);
 	}
 	
 	protected PrismContainerValue<AssignmentType> createPrismValue(String oid, QName targetTypeQName, ExpressionEvaluationContext params) {

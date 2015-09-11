@@ -30,7 +30,8 @@ import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.model.common.expression.evaluator.AbstractSearchExpressionEvaluatorCache;
+import com.evolveum.midpoint.model.common.expression.evaluator.caching.AbstractSearchExpressionEvaluatorCache;
+import com.evolveum.midpoint.model.common.expression.evaluator.caching.AssociationSearchExpressionEvaluatorCache;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
 import com.evolveum.midpoint.model.impl.controller.ModelUtils;
@@ -186,7 +187,7 @@ public class Clockwork {
 
 		try {
 			FocusConstraintsChecker.enterCache();
-			enterAbstractSearchExpressionEvaluatorCache();
+			enterAssociationSearchExpressionEvaluatorCache();
 			provisioningService.enterConstraintsCheckerCache();
 
 			while (context.getState() != ModelState.FINAL) {
@@ -211,26 +212,26 @@ public class Clockwork {
 			return click(context, task, result);
 		} finally {
 			FocusConstraintsChecker.exitCache();
-			exitAbstractSearchExpressionEvaluatorCache();
+			exitAssociationSearchExpressionEvaluatorCache();
 			provisioningService.exitConstraintsCheckerCache();
 		}
 	}
 
-	private void enterAbstractSearchExpressionEvaluatorCache() {
-		AbstractSearchExpressionEvaluatorCache cache = AbstractSearchExpressionEvaluatorCache.enterCache();
-		SearchExpressionCacheInvalidator invalidator = new SearchExpressionCacheInvalidator(cache);
-		cache.setInvalidator(invalidator);
+	private void enterAssociationSearchExpressionEvaluatorCache() {
+		AssociationSearchExpressionEvaluatorCache cache = AssociationSearchExpressionEvaluatorCache.enterCache();
+		AssociationSearchExpressionCacheInvalidator invalidator = new AssociationSearchExpressionCacheInvalidator(cache);
+		cache.setClientContextInformation(invalidator);
 		changeNotificationDispatcher.registerNotificationListener((ResourceObjectChangeListener) invalidator);
 		changeNotificationDispatcher.registerNotificationListener((ResourceOperationListener) invalidator);
 	}
 
-	private void exitAbstractSearchExpressionEvaluatorCache() {
-		AbstractSearchExpressionEvaluatorCache cache = AbstractSearchExpressionEvaluatorCache.exitCache();
+	private void exitAssociationSearchExpressionEvaluatorCache() {
+		AssociationSearchExpressionEvaluatorCache cache = AssociationSearchExpressionEvaluatorCache.exitCache();
 		if (cache == null) {
 			return;			// shouldn't occur
 		}
-		AbstractSearchExpressionEvaluatorCache.Invalidator invalidator = cache.getInvalidator();
-		if (invalidator == null || !(invalidator instanceof SearchExpressionCacheInvalidator)) {
+		Object invalidator = cache.getClientContextInformation();
+		if (invalidator == null || !(invalidator instanceof AssociationSearchExpressionCacheInvalidator)) {
 			return;			// shouldn't occur either
 		}
 		changeNotificationDispatcher.unregisterNotificationListener((ResourceObjectChangeListener) invalidator);
