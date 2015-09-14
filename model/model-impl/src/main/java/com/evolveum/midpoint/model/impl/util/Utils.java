@@ -27,7 +27,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.impl.ModelConstants;
@@ -56,6 +55,7 @@ import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -91,34 +91,36 @@ public final class Utils {
     private Utils() {
     }
 
-    public static void resolveResource(ShadowType shadow, ProvisioningService provisioning,
-            OperationResult result) throws CommunicationException, SchemaException, ObjectNotFoundException, ConfigurationException, 
-            SecurityViolationException {
-
-        Validate.notNull(shadow, "Resource object shadow must not be null.");
-        Validate.notNull(provisioning, "Provisioning service must not be null.");
-
-        ResourceType resource = getResource(shadow, provisioning, result);
-        shadow.setResourceRef(null);
-        shadow.setResource(resource);
-    }
-
-    public static ResourceType getResource(ShadowType shadow, ProvisioningService provisioning,
-            OperationResult result) throws CommunicationException, SchemaException, ObjectNotFoundException, ConfigurationException, 
-            SecurityViolationException {
-
-        if (shadow.getResource() != null) {
-            return shadow.getResource();
-        }
-
-        if (shadow.getResourceRef() == null) {
-            throw new IllegalArgumentException("Couldn't resolve resource. Resource object shadow doesn't" +
-                    " contain resource nor resource ref.");
-        }
-
-        ObjectReferenceType resourceRef = shadow.getResourceRef();
-        return provisioning.getObject(ResourceType.class, resourceRef.getOid(), null, null, result).asObjectable();
-    }
+	// inefficient (does not make use of LensContext resource cache)
+	// and seemingly not used at all => commenting out before deleting forever
+//    public static void resolveResource(ShadowType shadow, ProvisioningService provisioning,
+//            OperationResult result) throws CommunicationException, SchemaException, ObjectNotFoundException, ConfigurationException,
+//            SecurityViolationException {
+//
+//        Validate.notNull(shadow, "Resource object shadow must not be null.");
+//        Validate.notNull(provisioning, "Provisioning service must not be null.");
+//
+//        ResourceType resource = getResource(shadow, provisioning, result);
+//        shadow.setResourceRef(null);
+//        shadow.setResource(resource);
+//    }
+//
+//    public static ResourceType getResource(ShadowType shadow, ProvisioningService provisioning,
+//            OperationResult result) throws CommunicationException, SchemaException, ObjectNotFoundException, ConfigurationException,
+//            SecurityViolationException {
+//
+//        if (shadow.getResource() != null) {
+//            return shadow.getResource();
+//        }
+//
+//        if (shadow.getResourceRef() == null) {
+//            throw new IllegalArgumentException("Couldn't resolve resource. Resource object shadow doesn't" +
+//                    " contain resource nor resource ref.");
+//        }
+//
+//        ObjectReferenceType resourceRef = shadow.getResourceRef();
+//        return provisioning.getObject(ResourceType.class, resourceRef.getOid(), null, null, result).asObjectable();
+//    }
     
 	public static <T extends ObjectType> void searchIterative(RepositoryService repositoryService, Class<T> type, ObjectQuery query, 
 			Handler<PrismObject<T>> handler, int blockSize, OperationResult opResult) throws SchemaException {

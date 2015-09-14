@@ -58,11 +58,11 @@ public class ShadowCacheReconciler extends ShadowCache{
 	}
 
 	@Override
-	public void afterModifyOnResource(PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+	public void afterModifyOnResource(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 		LOGGER.trace("Modified shadow is reconciled. Start to clean up account after successfull reconciliation.");
-		try{
-		cleanShadowInRepository(shadow, parentResult);
-		} catch (ObjectAlreadyExistsException ex){
+		try {
+			cleanShadowInRepository(shadow, parentResult);
+		} catch (ObjectAlreadyExistsException ex) {
 			//should be never thrown
 			throw new SystemException("While modifying object in the repository got exception: " + ex.getMessage(), ex);
 		}

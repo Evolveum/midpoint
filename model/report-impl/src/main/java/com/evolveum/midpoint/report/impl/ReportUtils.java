@@ -15,6 +15,12 @@
  */
 package com.evolveum.midpoint.report.impl;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import java.io.File;
@@ -46,6 +52,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import java.lang.reflect.Method;
+import java.util.Iterator;
 import java.util.MissingResourceException;
 
 /**
@@ -170,6 +177,42 @@ public class ReportUtils {
         return "*****";
     }
 
+    public static String prettyPrintForReport(PrismPropertyValue ppv) {
+        return prettyPrintForReport(ppv.getValue());
+    }
+
+    public static String prettyPrintForReport(PrismContainerValue pcv) {
+        StringBuilder sb = new StringBuilder();
+        for (Iterator<Item> iter = pcv.getItems().iterator(); iter.hasNext();) {
+            Item item = iter.next();
+            sb.append(prettyPrintForReport(item.getElementName()));
+            sb.append("=");
+            sb.append("{");
+            for (Iterator iter2 = item.getValues().iterator(); iter2.hasNext();) {
+                Object item2 = iter2.next();
+                sb.append(prettyPrintForReport(item2));
+                sb.append(", ");
+            }
+            sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter 
+            sb.append("}");
+            sb.append(", ");
+        }
+        sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter 
+        return sb.toString();
+    }
+
+    public static String prettyPrintForReport(PrismReferenceValue prv) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(prettyPrintForReport(prv.getTargetType()));
+        sb.append(": ");
+        if (prv.getTargetName() != null) {
+            sb.append(prv.getTargetName());
+        } else {
+            sb.append(prv.getOid());
+        }
+        return sb.toString();
+    }
+
     public static String prettyPrintForReport(OperationResultType ort) {
         StringBuilder sb = new StringBuilder();
         if (ort.getOperation() != null) {
@@ -226,6 +269,10 @@ public class ReportUtils {
         }
 
         // 1. Try to find prettyPrintForReport in this class first
+        if (value instanceof Containerable) { //e.g. RoleType needs to be converted to PCV in order to format properly
+            value = (((Containerable) value).asPrismContainerValue());
+        }
+
         for (Method method : ReportUtils.class.getMethods()) {
             if (method.getName().equals("prettyPrintForReport")) {
                 Class<?>[] parameterTypes = method.getParameterTypes();
@@ -243,7 +290,7 @@ public class ReportUtils {
         String str = PrettyPrinter.prettyPrint(value);
         if (str.length() > 1000) {
             return str.substring(0, 1000);
-        }
+        }        
         return str;
 
     }
@@ -271,7 +318,12 @@ public class ReportUtils {
                 if (isMetadata(itemPath)) {
                     return "";
                 }
-                return prettyPrintForReport(((RawType) value).getParsedRealValue(null, itemPath.getItemPath()));
+
+                Object parsedRealValue = ((RawType) value).getParsedRealValue(null, itemPath.getItemPath());
+                if (parsedRealValue instanceof Containerable) { // this is for PCV
+                    return prettyPrintForReport(((Containerable) parsedRealValue).asPrismContainerValue());
+                }
+                return prettyPrintForReport(parsedRealValue);
             } catch (SchemaException e) {
                 return "###INTERNAL#ERROR### " + e.getClass().getName() + ": " + e.getMessage() + "; prettyPrintForReport method for value " + value;
             } catch (RuntimeException e) {

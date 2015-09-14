@@ -205,7 +205,6 @@
 		<dependency>
 			<groupId>org.apache.derby</groupId>
 			<artifactId>derbyclient</artifactId>
-			<version>10.8.1.2</version>
 			<type>jar</type>
 		</dependency>
 	</dependencies>

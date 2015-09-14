@@ -147,7 +147,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 		if (InternalsConfig.consistencyChecks) change.checkConsistence();
 		
 		if ((null != changeListeners) && (!changeListeners.isEmpty())) {
-			for (ResourceObjectChangeListener listener : changeListeners) {
+			for (ResourceObjectChangeListener listener : new ArrayList<>(changeListeners)) {		// sometimes there is registration/deregistration from within
 				//LOGGER.trace("Listener: {}", listener.getClass().getSimpleName());
 				try {
 					listener.notifyChange(change, task, parentResult);
@@ -178,7 +178,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 		failureDescription.checkConsistence();
 		
 		if ((null != changeListeners) && (!changeListeners.isEmpty())) {
-			for (ResourceOperationListener listener : operationListeners) {
+			for (ResourceOperationListener listener : new ArrayList<>(operationListeners)) {		// sometimes there is registration/deregistration from within
 				//LOGGER.trace("Listener: {}", listener.getClass().getSimpleName());
 				try {
 					listener.notifyFailure(failureDescription, task, parentResult);
@@ -208,7 +208,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 		failureDescription.checkConsistence();
 		
 		if ((null != changeListeners) && (!changeListeners.isEmpty())) {
-			for (ResourceOperationListener listener : operationListeners) {
+			for (ResourceOperationListener listener : new ArrayList<>(operationListeners)) {		// sometimes there is registration/deregistration from within
 				//LOGGER.trace("Listener: {}", listener.getClass().getSimpleName());
 				try {
 					listener.notifySuccess(failureDescription, task, parentResult);
@@ -238,7 +238,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 		failureDescription.checkConsistence();
 		
 		if ((null != changeListeners) && (!changeListeners.isEmpty())) {
-			for (ResourceOperationListener listener : operationListeners) {
+			for (ResourceOperationListener listener : new ArrayList<>(operationListeners)) {		// sometimes there is registration/deregistration from within
 				//LOGGER.trace("Listener: {}", listener.getClass().getSimpleName());
 				try {
 					listener.notifyInProgress(failureDescription, task, parentResult);
@@ -281,7 +281,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 //		if (InternalsConfig.consistencyChecks) eventDescription.checkConsistence();
 		
 		if ((null != eventListeners) && (!eventListeners.isEmpty())) {
-			for (ResourceEventListener listener : eventListeners) {
+			for (ResourceEventListener listener : new ArrayList<>(eventListeners)) {			// sometimes there is registration/deregistration from within
 				//LOGGER.trace("Listener: {}", listener.getClass().getSimpleName());
 				try {
 					listener.notifyEvent(eventDescription, task, parentResult);

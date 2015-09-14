@@ -36,6 +36,8 @@ import java.util.Properties;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Visitable;
+import com.evolveum.midpoint.prism.Visitor;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.Criteria;
@@ -1079,40 +1081,49 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
         
-        if (GetOperationOptions.isResolveNames(rootOptions)){
-        	List<ItemDefinition> defs = (List<ItemDefinition>) prismObject.getDefinition().getDefinitions();
-        	List<String> oidsToResolve = new ArrayList<String>();
-        	for (Definition def : defs){
-        	if (def instanceof PrismReferenceDefinition){
-        		PrismReference ref = prismObject.findReference(((PrismReferenceDefinition) def).getName());
-        		if (ref != null && !ref.isEmpty()){
-        			for (PrismReferenceValue rVal : ref.getValues()){
-        				oidsToResolve.add(rVal.getOid());
-        			}
-        		}
-        	}
-        	}
-        	
+        if (GetOperationOptions.isResolveNames(rootOptions)) {
+            final List<String> oidsToResolve = new ArrayList<String>();
+            Visitor oidExtractor = new Visitor() {
+                @Override
+                public void visit(Visitable visitable) {
+                    if (visitable instanceof PrismReferenceValue) {
+                        PrismReferenceValue value = (PrismReferenceValue) visitable;
+                        if (value.getTargetName() != null) {    // just for sure
+                            return;
+                        }
+                        if (value.getObject() != null) {        // improbable but possible
+                            value.setTargetName(value.getObject().getName());
+                            return;
+                        }
+                        if (value.getOid() == null) {           // shouldn't occur as well
+                            return;
+                        }
+                        oidsToResolve.add(value.getOid());
+                    }
+                }
+            };
+            prismObject.accept(oidExtractor);
+
 			if (!oidsToResolve.isEmpty()) {
 				Query query = session.getNamedQuery("resolveReferences");
 				query.setParameterList("oid", oidsToResolve);
 				query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 
 				List<Map<String, Object>> results = query.list();
-				Map<String, PolyString> oidNameMap = consolidateResults(results);
+				final Map<String, PolyString> oidNameMap = consolidateResults(results);
 
-				for (Definition def : defs) {
-					if (def instanceof PrismReferenceDefinition) {
-						PrismReference ref = prismObject.findReference(((PrismReferenceDefinition) def)
-								.getName());
-						if (ref != null && !ref.isEmpty()) {
-							Collection<PrismReferenceValue> valuesToReplace = new ArrayList<>();
-							for (PrismReferenceValue rVal : ref.getValues()) {
-								rVal.setTargetName(oidNameMap.get(rVal.getOid()));
-							}
-						}
-					}
-				}
+                Visitor nameSetter = new Visitor() {
+                    @Override
+                    public void visit(Visitable visitable) {
+                        if (visitable instanceof PrismReferenceValue) {
+                            PrismReferenceValue value = (PrismReferenceValue) visitable;
+                            if (value.getTargetName() == null && value.getOid() != null) {
+                                value.setTargetName(oidNameMap.get(value.getOid()));
+                            }
+                        }
+                    }
+                };
+                prismObject.accept(nameSetter);
 			}
         }
         

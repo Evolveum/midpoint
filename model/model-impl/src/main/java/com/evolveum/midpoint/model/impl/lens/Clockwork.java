@@ -30,6 +30,8 @@ import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.model.common.expression.evaluator.caching.AbstractSearchExpressionEvaluatorCache;
+import com.evolveum.midpoint.model.common.expression.evaluator.caching.AssociationSearchExpressionEvaluatorCache;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
 import com.evolveum.midpoint.model.impl.controller.ModelUtils;
@@ -52,7 +54,10 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
+import com.evolveum.midpoint.provisioning.api.ResourceOperationListener;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -70,7 +75,6 @@ import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.AuthorizationException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -149,7 +153,10 @@ public class Clockwork {
 
 	@Autowired
 	private transient ProvisioningService provisioningService;
-    
+
+	@Autowired
+	private transient ChangeNotificationDispatcher changeNotificationDispatcher;
+
     @Autowired(required = true)
     private ScriptExpressionFactory scriptExpressionFactory;
     
@@ -180,7 +187,9 @@ public class Clockwork {
 
 		try {
 			FocusConstraintsChecker.enterCache();
+			enterAssociationSearchExpressionEvaluatorCache();
 			provisioningService.enterConstraintsCheckerCache();
+
 			while (context.getState() != ModelState.FINAL) {
 
 				// TODO implement in model context (as transient or even non-transient attribute) to allow for checking in more complex scenarios
@@ -203,8 +212,30 @@ public class Clockwork {
 			return click(context, task, result);
 		} finally {
 			FocusConstraintsChecker.exitCache();
+			exitAssociationSearchExpressionEvaluatorCache();
 			provisioningService.exitConstraintsCheckerCache();
 		}
+	}
+
+	private void enterAssociationSearchExpressionEvaluatorCache() {
+		AssociationSearchExpressionEvaluatorCache cache = AssociationSearchExpressionEvaluatorCache.enterCache();
+		AssociationSearchExpressionCacheInvalidator invalidator = new AssociationSearchExpressionCacheInvalidator(cache);
+		cache.setClientContextInformation(invalidator);
+		changeNotificationDispatcher.registerNotificationListener((ResourceObjectChangeListener) invalidator);
+		changeNotificationDispatcher.registerNotificationListener((ResourceOperationListener) invalidator);
+	}
+
+	private void exitAssociationSearchExpressionEvaluatorCache() {
+		AssociationSearchExpressionEvaluatorCache cache = AssociationSearchExpressionEvaluatorCache.exitCache();
+		if (cache == null) {
+			return;			// shouldn't occur
+		}
+		Object invalidator = cache.getClientContextInformation();
+		if (invalidator == null || !(invalidator instanceof AssociationSearchExpressionCacheInvalidator)) {
+			return;			// shouldn't occur either
+		}
+		changeNotificationDispatcher.unregisterNotificationListener((ResourceObjectChangeListener) invalidator);
+		changeNotificationDispatcher.unregisterNotificationListener((ResourceOperationListener) invalidator);
 	}
 
 	private <F extends ObjectType> int getMaxClicks(LensContext<F> context, OperationResult result) throws SchemaException, ObjectNotFoundException {
@@ -990,6 +1021,6 @@ public class Clockwork {
 			securityEnforcer.authorize(actionUrl, AuthorizationPhaseType.REQUEST, object, null, target, ownerResolver, result);
 		}
 	}
-	
-	
+
+
 }

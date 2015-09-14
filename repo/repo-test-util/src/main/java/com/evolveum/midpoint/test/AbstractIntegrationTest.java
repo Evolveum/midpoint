@@ -615,10 +615,17 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		
 		RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resourceType);
 		ObjectClassComplexTypeDefinition ocDef = rSchema.findObjectClassDefinition(objectClass);
-		ResourceAttributeDefinition idSecDef = ocDef.getSecondaryIdentifiers().iterator().next();
-		PrismProperty<String> idProp = attributesContainer.findProperty(idSecDef.getName());
-		assertNotNull("No secondary identifier ("+idSecDef.getName()+") attribute in shadow for "+username, idProp);
-		PrismAsserts.assertEquals("Unexpected ICF name attribute in shadow for "+username, nameMatchingRule, username, idProp.getRealValue());
+		if (ocDef.getSecondaryIdentifiers().isEmpty()) {
+			ResourceAttributeDefinition idDef = ocDef.getIdentifiers().iterator().next();
+			PrismProperty<String> idProp = attributesContainer.findProperty(idDef.getName());
+			assertNotNull("No primary identifier ("+idDef.getName()+") attribute in shadow for "+username, idProp);
+			PrismAsserts.assertEquals("Unexpected primary identifier in shadow for "+username, nameMatchingRule, username, idProp.getRealValue());			
+		} else {
+			ResourceAttributeDefinition idSecDef = ocDef.getSecondaryIdentifiers().iterator().next();
+			PrismProperty<String> idProp = attributesContainer.findProperty(idSecDef.getName());
+			assertNotNull("No secondary identifier ("+idSecDef.getName()+") attribute in shadow for "+username, idProp);
+			PrismAsserts.assertEquals("Unexpected ICF name attribute in shadow for "+username, nameMatchingRule, username, idProp.getRealValue());
+		}
 	}
 	
 	protected void assertShadowRepo(String oid, String username, ResourceType resourceType, QName objectClass) throws ObjectNotFoundException, SchemaException {

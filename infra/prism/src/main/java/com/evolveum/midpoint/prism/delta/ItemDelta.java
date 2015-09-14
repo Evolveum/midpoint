@@ -162,8 +162,14 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 				pval.accept(visitor);
 			}
 		}
+		if (getEstimatedOldValues() != null) {
+			for (V pval : getEstimatedOldValues()) {
+				pval.accept(visitor);
+			}
+		}
 	}
-	
+
+	// TODO think if estimated old values have to be visited as well
 	@Override
 	public void accept(Visitor visitor, ItemPath path, boolean recursive) {
 		if (path == null || path.isEmpty()) {

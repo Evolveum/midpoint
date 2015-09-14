@@ -28,6 +28,7 @@ import java.io.IOException;
 
 import javax.xml.bind.JAXBException;
 
+import com.evolveum.midpoint.util.exception.NoFocusNameSchemaException;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -118,7 +119,7 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 		controller.addObject(new UserType().asPrismObject(), null, taskManager.createTaskInstance(), null);
 	}
 
-	@Test(expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = NoFocusNameSchemaException.class)
 	@SuppressWarnings("unchecked")
 	public void addUserWithoutName() throws Exception {
 		TestUtil.displayTestTile("addUserWithoutName");

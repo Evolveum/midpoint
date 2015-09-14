@@ -19,18 +19,39 @@ package com.evolveum.midpoint.init;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.audit.spi.AuditServiceRegistry;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.Visitable;
+import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.RetrieveOption;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
-
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
@@ -41,18 +62,28 @@ import java.util.Vector;
 public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
 
     private static final Trace LOGGER = TraceManager.getTrace(AuditServiceProxy.class);
+
     @Autowired
     private LightweightIdentifierGenerator lightweightIdentifierGenerator;
+
+    @Autowired(required = false)                    // missing in some tests
+    private RepositoryService repositoryService;
+
+    @Autowired
+    private PrismContext prismContext;
+
     private List<AuditService> services = new Vector<AuditService>();
 
     @Override
     public void audit(AuditEventRecord record, Task task) {
-        assertCorrectness(record, task);
-        completeRecord(record, task);
 
         if (services.isEmpty()) {
             LOGGER.warn("Audit event will not be recorded. No audit services registered.");
+            return;
         }
+
+        assertCorrectness(record, task);
+        completeRecord(record, task);
 
         for (AuditService service : services) {
             service.audit(record, task);
@@ -130,6 +161,71 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
 
         if (record.getHostIdentifier() == null) {
             // TODO
+        }
+
+        if (record.getDeltas() != null) {
+            for (ObjectDeltaOperation<? extends ObjectType> objectDeltaOperation : record.getDeltas()) {
+                ObjectDelta<? extends ObjectType> delta = objectDeltaOperation.getObjectDelta();
+                final Map<String,PolyString> resolvedOids = new HashMap<>();
+                Visitor namesResolver = new Visitor() {
+                    @Override
+                    public void visit(Visitable visitable) {
+                        if (visitable instanceof PrismReferenceValue) {
+                            PrismReferenceValue refVal = ((PrismReferenceValue) visitable);
+                            String oid = refVal.getOid();
+                            if (oid == null) {  // sanity check; should not happen
+                                return;
+                            }
+                            if (refVal.getTargetName() != null) {
+                                resolvedOids.put(oid, refVal.getTargetName());
+                                return;
+                            }
+                            if (resolvedOids.containsKey(oid)) {
+                                PolyString resolvedName = resolvedOids.get(oid);        // may be null
+                                refVal.setTargetName(resolvedName);
+                                return;
+                            }
+                            if (refVal.getObject() != null) {
+                                PolyString name = refVal.getObject().getName();
+                                refVal.setTargetName(name);
+                                resolvedOids.put(oid, name);
+                                return;
+                            }
+                            if (repositoryService == null) {
+                                LOGGER.warn("No repository, no OID resolution (for {})", oid);
+                                return;
+                            }
+                            PrismObjectDefinition<? extends ObjectType> objectDefinition = null;
+                            if (refVal.getTargetType() != null) {
+                                objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByType(refVal.getTargetType());
+                            }
+                            Class<? extends ObjectType> objectClass = null;
+                            if (objectDefinition != null) {
+                                objectClass = objectDefinition.getCompileTimeClass();
+                            }
+                            if (objectClass == null) {
+                                objectClass = ObjectType.class;         // the default (shouldn't be needed)
+                            }
+                            SelectorOptions<GetOperationOptions> getNameOnly = SelectorOptions.create(
+                                    new ItemPath(ObjectType.F_NAME), GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+                            try {
+                                PrismObject<? extends ObjectType> object = repositoryService.getObject(objectClass, oid, Arrays.asList(getNameOnly), new OperationResult("dummy"));
+                                PolyString name = object.getName();
+                                refVal.setTargetName(name);
+                                resolvedOids.put(oid, name);
+                                LOGGER.trace("Resolved {}: {} to {}", objectClass, oid, name);
+                            } catch (ObjectNotFoundException e) {
+                                LOGGER.trace("Couldn't determine the name for {}: {} as it does not exist", objectClass, oid, e);
+                                resolvedOids.put(oid, null);
+                            } catch (SchemaException|RuntimeException e) {
+                                LOGGER.trace("Couldn't determine the name for {}: {} because of unexpected exception", objectClass, oid, e);
+                                resolvedOids.put(oid, null);
+                            }
+                        }
+                    }
+                };
+                delta.accept(namesResolver);
+            }
         }
     }
 

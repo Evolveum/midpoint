@@ -91,6 +91,11 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-email</artifactId>
         </dependency>
+        <dependency> <!-- Explicit version (in dependency management) -->
+                <groupId>javax.activation</groupId>
+                <artifactId>activation</artifactId>
+        </dependency>
+        
         <!-- Test -->
         <dependency>
             <groupId>org.testng</groupId>

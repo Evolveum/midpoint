@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.DeltaConversionOptions;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -323,7 +324,7 @@ public class AuditEventRecord implements DebugDumpable {
     	for (ObjectDeltaOperation delta : deltas){
     		ObjectDeltaOperationType odo = new ObjectDeltaOperationType();
     		try {
-    			odo.setObjectDelta(DeltaConvertor.toObjectDeltaType(delta.getObjectDelta()));
+    			odo.setObjectDelta(DeltaConvertor.toObjectDeltaType(delta.getObjectDelta(), DeltaConversionOptions.createSerializeReferenceNames()));
     			if (delta.getExecutionResult() != null){
     				odo.setExecutionResult(delta.getExecutionResult().createOperationResultType());
     			}

@@ -30,7 +30,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
@@ -56,6 +55,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -164,7 +164,6 @@ public class ContextLoader {
         }
         
         LensUtil.traceContext(LOGGER, activityDescription, "after load", false, context, false);
-
 	}
 	
 
@@ -762,9 +761,7 @@ public class ContextLoader {
 					if (resourceOid == null) {
 						throw new IllegalArgumentException("No resource OID in " + account);
 					}
-					ResourceType resourceType = provisioningService.getObject(ResourceType.class,
-							resourceOid, null, null, result).asObjectable();
-					context.rememberResource(resourceType);
+					ResourceType resourceType = LensUtil.getResource(context, resourceOid, provisioningService, result);
 					accountCtx.setResource(resourceType);
 				}
 				accountCtx.setFresh(true);
@@ -1019,12 +1016,7 @@ public class ContextLoader {
 		
 		// Load resource
 		if (resourceType == null) {
-			resourceType = context.getResource(resourceOid);
-			if (resourceType == null) {
-				PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, resourceOid, null, null, result);
-				resourceType = resource.asObjectable();
-				context.rememberResource(resourceType);
-			}
+			resourceType = LensUtil.getResource(context, resourceOid, provisioningService, result);
 			projContext.setResource(resourceType);
 		}
 		
@@ -1086,5 +1078,114 @@ public class ContextLoader {
 			}
 		}
 	}
+	
+	public <F extends ObjectType> void loadFullShadow(LensContext<F> context, LensProjectionContext projCtx, OperationResult result) 
+			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+		if (projCtx.isFullShadow()) {
+			// already loaded
+			return;
+		}
+		if (projCtx.isAdd() && projCtx.getOid() == null) {
+			// nothing to load yet
+			return;
+		}
+		ResourceShadowDiscriminator discr = projCtx.getResourceShadowDiscriminator();
+		if (discr != null && discr.getOrder() > 0) {
+			// It may be just too early to load the projection
+			if (LensUtil.hasLowerOrderContext(context, projCtx) && (context.getExecutionWave() < projCtx.getWave())) {
+				// We cannot reliably load the context now
+				return;
+			}
+		}
+		
+		GetOperationOptions getOptions = GetOperationOptions.createAllowNotFound();
+		if (SchemaConstants.CHANGE_CHANNEL_DISCOVERY.equals(context.getChannel())) {
+			LOGGER.trace("Loading full resource object {} from provisioning - with doNotDiscover to avoid loops", projCtx);
+			getOptions.setDoNotDiscovery(true);
+		} else {
+			LOGGER.trace("Loading full resource object {} from provisioning (discovery enabled)", projCtx);
+		}
+		try {	
+			Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(getOptions);
+			PrismObject<ShadowType> objectCurrent = provisioningService.getObject(ShadowType.class,
+					projCtx.getOid(), options, null, result);
+			// TODO: use setLoadedObject() instead?
+			projCtx.setObjectCurrent(objectCurrent);
+			ShadowType oldShadow = objectCurrent.asObjectable();
+			projCtx.determineFullShadowFlag(oldShadow.getFetchResult());
+			// The getObject may return different OID than we have requested in case that compensation happened
+			// TODO: this probably need to be fixed in the consistency mechanism
+			// TODO: the following line is a temporary fix
+			projCtx.setOid(objectCurrent.getOid());
+		
+		} catch (ObjectNotFoundException ex) {
+			LOGGER.trace("Load of full resource object {} ended with ObjectNotFoundException (options={})", projCtx, getOptions);
+			if (projCtx.isDelete()){
+				//this is OK, shadow was deleted, but we will continue in processing with old shadow..and set it as full so prevent from other full loading
+				projCtx.setFullShadow(true);
+			} else {
+				
+				boolean compensated = false;
+				if (!GetOperationOptions.isDoNotDiscovery(getOptions)) {
+					// The account might have been re-created by the discovery.
+					// Reload focus, try to find out if there is a new matching link (and the old is gone)
+					LensFocusContext<F> focusContext = context.getFocusContext();
+					if (focusContext != null) {
+						Class<F> focusClass = focusContext.getObjectTypeClass();
+						if (FocusType.class.isAssignableFrom(focusClass)) {
+							LOGGER.trace("Reloading focus to check for new links");
+							PrismObject<F> focusCurrent = cacheRepositoryService.getObject(focusContext.getObjectTypeClass(), focusContext.getOid(), null, result);
+							FocusType focusType = (FocusType) focusCurrent.asObjectable();
+							for (ObjectReferenceType linkRef: focusType.getLinkRef()) {
+								if (linkRef.getOid().equals(projCtx.getOid())) {
+									throw new SystemException("Internal error: the old OID still exists in the linkRef ("+focusCurrent+")");
+								}
+								boolean found = false;
+								for (LensProjectionContext pCtx: context.getProjectionContexts()) {
+									if (linkRef.getOid().equals(pCtx.getOid())) {
+										found = true;
+										break;
+									}
+								}
+								if (!found) {
+									// This link is new, it is not in the existing lens context
+									PrismObject<ShadowType> newLinkRepoShadow = cacheRepositoryService.getObject(ShadowType.class, linkRef.getOid(), null, result);
+									if (ShadowUtil.matches(newLinkRepoShadow, projCtx.getResourceShadowDiscriminator())) {
+										LOGGER.trace("Found new matching link: {}, updating projection context", newLinkRepoShadow);
+										projCtx.setObjectCurrent(newLinkRepoShadow);
+										projCtx.setOid(newLinkRepoShadow.getOid());
+										projCtx.recompute();
+										compensated = true;
+										break;
+									} else {
+										LOGGER.trace("Found new link: {}, but skipping it because it does not match the projection context", newLinkRepoShadow);
+									}
+								}
+							}
+						}
+					}
+					
+				}
+			
+				if (!compensated) {		
+					projCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+					if (GetOperationOptions.isDoNotDiscovery(getOptions)) {
+						LOGGER.error("Load of full resource object {} resulted in ObjectNotFoundException (discovery disabled to avoid loops)", projCtx, getOptions);
+						throw ex;
+					} else {
+						// Setting the context to broken should be enough here.
+					}
+				}
+			}
+		}
+		
+		projCtx.recompute();
+
+		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Loaded full resource object:\n{}", projCtx.debugDump());
+		}
+	}
+
 	
 }

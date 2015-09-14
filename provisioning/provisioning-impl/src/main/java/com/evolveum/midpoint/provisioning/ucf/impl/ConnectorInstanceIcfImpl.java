@@ -680,6 +680,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			
 			ResourceAttributeDefinition<String> uidDefinition = null;
 			ResourceAttributeDefinition<String> nameDefinition = null;
+			boolean hasUidDefinition = false;
 
 			int displayOrder = ConnectorFactoryIcfImpl.ATTR_DISPLAY_ORDER_START;
 			// Let's iterate over all attributes in this object class ...
@@ -747,25 +748,46 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				
 				if (Name.NAME.equals(icfName)) {
 					nameDefinition = attrDef;
-					if (attributeInfo.getNativeName() == null) {
-						// Set a better display name for __NAME__. The "name" is s very
-						// overloaded term, so let's try to make things
-						// a bit clearer
-						attrDef.setDisplayName(ConnectorFactoryIcfImpl.ICFS_NAME_DISPLAY_NAME);
+					if (uidDefinition != null && attrXsdName.equals(uidDefinition.getName())) {
+						attrDef.setDisplayOrder(ConnectorFactoryIcfImpl.ICFS_UID_DISPLAY_ORDER);
+						uidDefinition = attrDef;
+						hasUidDefinition = true;
+					} else {
+						if (attributeInfo.getNativeName() == null) {
+							// Set a better display name for __NAME__. The "name" is s very
+							// overloaded term, so let's try to make things
+							// a bit clearer
+							attrDef.setDisplayName(ConnectorFactoryIcfImpl.ICFS_NAME_DISPLAY_NAME);
+						}
+						attrDef.setDisplayOrder(ConnectorFactoryIcfImpl.ICFS_NAME_DISPLAY_ORDER);
 					}
-					attrDef.setDisplayOrder(ConnectorFactoryIcfImpl.ICFS_NAME_DISPLAY_ORDER);
-					((Collection<ResourceAttributeDefinition>)ocDef.getSecondaryIdentifiers()).add(attrDef);
 					
 				} else if (Uid.NAME.equals(icfName)) {
-					uidDefinition = attrDef;
-					if (attributeInfo.getNativeName() == null) {
-						attrDef.setDisplayName(ConnectorFactoryIcfImpl.ICFS_UID_DISPLAY_NAME);
-					}
-					attrDef.setDisplayOrder(ConnectorFactoryIcfImpl.ICFS_UID_DISPLAY_ORDER);
+					// UID can be the same as other attribute
+					ResourceAttributeDefinition existingDefinition = ocDef.findAttributeDefinition(attrXsdName);
+					if (existingDefinition != null) {
+						hasUidDefinition = true;
+						existingDefinition.setDisplayOrder(ConnectorFactoryIcfImpl.ICFS_UID_DISPLAY_ORDER);
+						uidDefinition = existingDefinition;
+						continue;
+					} else {
+						uidDefinition = attrDef;
+						if (attributeInfo.getNativeName() == null) {
+							attrDef.setDisplayName(ConnectorFactoryIcfImpl.ICFS_UID_DISPLAY_NAME);
+						}
+						attrDef.setDisplayOrder(ConnectorFactoryIcfImpl.ICFS_UID_DISPLAY_ORDER);
+					}					
 						
 				} else {
-					attrDef.setDisplayOrder(displayOrder);
-					displayOrder += ConnectorFactoryIcfImpl.ATTR_DISPLAY_ORDER_INCREMENT;
+					// Check conflict with UID definition
+					if (uidDefinition != null && attrXsdName.equals(uidDefinition.getName())) {
+						attrDef.setDisplayOrder(ConnectorFactoryIcfImpl.ICFS_UID_DISPLAY_ORDER);
+						uidDefinition = attrDef;
+						hasUidDefinition = true;
+					} else {
+						attrDef.setDisplayOrder(displayOrder);
+						displayOrder += ConnectorFactoryIcfImpl.ATTR_DISPLAY_ORDER_INCREMENT;
+					}
 				}
 				
 				attrDef.setNativeAttributeName(attributeInfo.getNativeName());
@@ -826,8 +848,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				uidDefinition.setDisplayOrder(ConnectorFactoryIcfImpl.ICFS_UID_DISPLAY_ORDER);
 				// Uid is a primary identifier of every object (this is the ICF way)
 			}
-			ocDef.add(uidDefinition);
+			if (!hasUidDefinition) {
+				ocDef.add(uidDefinition);
+			}
 			((Collection<ResourceAttributeDefinition>)ocDef.getIdentifiers()).add(uidDefinition);
+			if (uidDefinition != nameDefinition) {
+				((Collection<ResourceAttributeDefinition>)ocDef.getSecondaryIdentifiers()).add(nameDefinition);
+			}
 
 
 			// Add schema annotations
@@ -1111,7 +1138,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			throw ex;
 		} catch (ObjectNotFoundException ex) {
 			result.recordFatalError("Object not found");
-			throw new ObjectNotFoundException("Object identified by " + identifiers + ", objectClass " + objectClassDefinition.getTypeName() + "  was not found by "
+			throw new ObjectNotFoundException("Object identified by " + identifiers + " (ConnId UID "+uid+"), objectClass " + objectClassDefinition.getTypeName() + "  was not found by "
 					+ connectorType);
 		} catch (SchemaException ex) {
 			result.recordFatalError(ex);
@@ -1123,7 +1150,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		if (co == null) {
 			result.recordFatalError("Object not found");
-			throw new ObjectNotFoundException("Object identified by " + identifiers + ", objectClass " + objectClassDefinition.getTypeName() + " was not found by "
+			throw new ObjectNotFoundException("Object identified by " + identifiers + " (ConnId UID "+uid+"), objectClass " + objectClassDefinition.getTypeName() + " was not found by "
 					+ connectorType);
 		}
 
@@ -1185,8 +1212,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw (GenericFrameworkException) midpointEx;
 			} else if (midpointEx instanceof ConfigurationException) {
 				throw (ConfigurationException) midpointEx;
-			} else if (midpointEx instanceof SecurityViolationException){
+			} else if (midpointEx instanceof SecurityViolationException) {
 				throw (SecurityViolationException) midpointEx;
+			} else if (midpointEx instanceof ObjectNotFoundException) {
+				LOGGER.trace("Got ObjectNotFoundException while looking for resource object ConnId UID: {}", uid);
+				return null;
 			} else if (midpointEx instanceof RuntimeException) {
 				throw (RuntimeException)midpointEx;
 			} else if (midpointEx instanceof Error) {
@@ -1835,19 +1865,18 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		if (!originalUid.equals(uid.getUidValue())) {
 			// UID was changed during the operation, this is most likely a
 			// rename
-			PropertyDelta<String> uidDelta = createUidDelta(uid, getUidDefinition(identifiers));
+			PropertyDelta<String> uidDelta = createUidDelta(uid, getUidDefinition(objectClassDef, identifiers));
 			PropertyModificationOperation uidMod = new PropertyModificationOperation(uidDelta);
 			// TODO what about matchingRuleQName ?
 			sideEffectChanges.add(uidMod);
 
-			replaceUidValue(identifiers, uid);
+			replaceUidValue(objectClassDef, identifiers, uid);
 		}
 		return sideEffectChanges;
 	}
 
 	private PropertyDelta<String> createUidDelta(Uid uid, ResourceAttributeDefinition uidDefinition) {
-		QName attributeName = icfNameMapper.convertAttributeNameToQName(uid.getName(), uidDefinition);
-		PropertyDelta<String> uidDelta = new PropertyDelta<String>(new ItemPath(ShadowType.F_ATTRIBUTES, attributeName),
+		PropertyDelta<String> uidDelta = new PropertyDelta<String>(new ItemPath(ShadowType.F_ATTRIBUTES, uidDefinition.getName()),
 				uidDefinition, prismContext);
 		uidDelta.setValueToReplace(new PrismPropertyValue<String>(uid.getUidValue()));
 		return uidDelta;
@@ -2233,6 +2262,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
         }
 		OperationOptions options = optionsBuilder.build();
 
+		Filter filter = convertFilterToIcf(query, objectClassDefinition);
+		
 		// Connector operation cannot create result for itself, so we need to
 		// create result for it
 		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".search");
@@ -2241,8 +2272,6 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		SearchResult icfSearchResult;
 		try {
-
-			Filter filter = convertFilterToIcf(query, objectClassDefinition);
 
 			InternalMonitor.recordConnectorOperation("search");
 			icfSearchResult = icfConnectorFacade.search(icfObjectClass, filter, icfHandler, options);
@@ -2451,7 +2480,21 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return null;
 	}
 
-	private void replaceUidValue(Collection<? extends ResourceAttribute<?>> identifiers, Uid newUid) {
+	private void replaceUidValue(ObjectClassComplexTypeDefinition objectClass, Collection<? extends ResourceAttribute<?>> identifiers, Uid newUid) {
+		if (identifiers.size() == 0) {
+			throw new IllegalStateException("No identifiers");
+		}
+		if (identifiers.size() == 1) {
+			identifiers.iterator().next().setValue(new PrismPropertyValue(newUid.getUidValue()));
+			return;
+		}
+		for (ResourceAttribute<?> attr : identifiers) {
+			if (objectClass.isIdentifier(attr.getElementName())) {
+				((ResourceAttribute<String>) attr).setValue(new PrismPropertyValue(newUid.getUidValue()));
+				return;
+			}
+		}
+		// fallback, compatibility
 		for (ResourceAttribute<?> attr : identifiers) {
 			if (attr.getElementName().equals(ConnectorFactoryIcfImpl.ICFS_UID)) {
 				attr.setValue(new PrismPropertyValue(newUid.getUidValue()));			// expecting the UID property is of type String
@@ -2461,7 +2504,19 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		throw new IllegalStateException("No UID attribute in " + identifiers);
 	}
 
-	private ResourceAttributeDefinition getUidDefinition(Collection<? extends ResourceAttribute<?>> identifiers) {
+	private ResourceAttributeDefinition getUidDefinition(ObjectClassComplexTypeDefinition objectClass, Collection<? extends ResourceAttribute<?>> identifiers) {
+		if (identifiers.size() == 0) {
+			return null;
+		}
+		if (identifiers.size() == 1) {
+			return identifiers.iterator().next().getDefinition();
+		}
+		for (ResourceAttribute<?> attr : identifiers) {
+			if (objectClass.isIdentifier(attr.getElementName())) {
+				return ((ResourceAttribute<String>) attr).getDefinition();
+			}
+		}
+		// fallback, compatibility
 		for (ResourceAttribute<?> attr : identifiers) {
 			if (attr.getElementName().equals(ConnectorFactoryIcfImpl.ICFS_UID)) {
 				return attr.getDefinition();
