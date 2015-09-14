@@ -584,19 +584,19 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// from the resource).
 			InternalMonitor.recordConnectorOperation("schema");
 			// TODO have context present
-			//reporter.recordIcfOperationStart(ProvisioningOperation.ICF_GET_SCHEMA, null);
+			//recordIcfOperationStart(reporter, ProvisioningOperation.ICF_GET_SCHEMA, null);
 			icfSchema = icfConnectorFacade.schema();
-			//reporter.recordIcfOperationEnd(ProvisioningOperation.ICF_GET_SCHEMA, null);
+			//recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_GET_SCHEMA, null);
 
 			icfResult.recordSuccess();
 		} catch (UnsupportedOperationException ex) {
-			//reporter.recordIcfOperationEnd(ProvisioningOperation.ICF_GET_SCHEMA, null, ex);
+			//recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_GET_SCHEMA, null, ex);
 			// The connector does no support schema() operation.
 			icfResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, ex.getMessage());
 			resetResourceSchema();
 			return;
 		} catch (Throwable ex) {
-			//reporter.recordIcfOperationEnd(ProvisioningOperation.ICF_GET_SCHEMA, null, ex);
+			//recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_GET_SCHEMA, null, ex);
 			// conditions.
 			// Therefore this kind of heavy artillery is necessary.
 			// ICF interface does not specify exceptions or other error
@@ -1198,13 +1198,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 			// Invoke the ICF connector
 			InternalMonitor.recordConnectorOperation("getObject");
-			reporter.recordIcfOperationStart(ProvisioningOperation.ICF_GET, objectClassDefinition, uid);
+			recordIcfOperationStart(reporter, ProvisioningOperation.ICF_GET, objectClassDefinition, uid);
 			co = icfConnectorFacade.getObject(icfObjectClass, uid, options);
-			reporter.recordIcfOperationEnd(ProvisioningOperation.ICF_GET, objectClassDefinition, uid);
+			recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_GET, objectClassDefinition, uid);
 
 			icfResult.recordSuccess();
 		} catch (Throwable ex) {
-			reporter.recordIcfOperationEnd(ProvisioningOperation.ICF_GET, objectClassDefinition, ex, uid);
+			recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_GET, objectClassDefinition, ex, uid);
 			String desc = this.getHumanReadableName() + " while getting object identified by ICF UID '"+uid.getUidValue()+"'";
 			Throwable midpointEx = processIcfException(ex, desc, icfResult);
 			icfResult.computeStatus("Add object failed");
@@ -1237,7 +1237,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return co;
 	}
 
-	private void convertToIcfAttrsToGet(ObjectClassComplexTypeDefinition objectClassDefinition, 
+	private void convertToIcfAttrsToGet(ObjectClassComplexTypeDefinition objectClassDefinition,
 			AttributesToReturn attributesToReturn, OperationOptionsBuilder optionsBuilder) throws SchemaException {
 		if (attributesToReturn == null) {
 			return;
@@ -1407,12 +1407,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 			// CALL THE ICF FRAMEWORK
 			InternalMonitor.recordConnectorOperation("create");
-			reporter.recordIcfOperationStart(ProvisioningOperation.ICF_CREATE, ocDef, null);		// TODO provide object name
+			recordIcfOperationStart(reporter, ProvisioningOperation.ICF_CREATE, ocDef, null);		// TODO provide object name
 			uid = icfConnectorFacade.create(icfObjectClass, attributes, options);
-			reporter.recordIcfOperationEnd(ProvisioningOperation.ICF_CREATE, ocDef, uid);
+			recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_CREATE, ocDef, uid);
 
 		} catch (Throwable ex) {
-			reporter.recordIcfOperationEnd(ProvisioningOperation.ICF_CREATE, ocDef, ex, null);		// TODO name
+			recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_CREATE, ocDef, ex, null);		// TODO name
 			Throwable midpointEx = processIcfException(ex, this, icfResult);
 			result.computeStatus("Add object failed");
 
@@ -1705,14 +1705,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				InternalMonitor.recordConnectorOperation("addAttributeValues");
 				
 				// Invoking ConnId
-				reporter.recordIcfOperationStart(ProvisioningOperation.ICF_UPDATE, objectClassDef, uid);
+				recordIcfOperationStart(reporter, ProvisioningOperation.ICF_UPDATE, objectClassDef, uid);
 				uid = icfConnectorFacade.addAttributeValues(objClass, uid, attributesToAdd, options);
-				reporter.recordIcfOperationEnd(ProvisioningOperation.ICF_UPDATE, objectClassDef, null, uid);
+				recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_UPDATE, objectClassDef, null, uid);
 
 				icfResult.recordSuccess();
 			}
 		} catch (Throwable ex) {
-			reporter.recordIcfOperationEnd(ProvisioningOperation.ICF_UPDATE, objectClassDef, ex, uid);
+			recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_UPDATE, objectClassDef, ex, uid);
 			String desc = this.getHumanReadableName() + " while adding attribute values to object identified by ICF UID '"+uid.getUidValue()+"'";
 			Throwable midpointEx = processIcfException(ex, desc, icfResult);
 			result.computeStatus("Adding attribute values failed");
@@ -1784,13 +1784,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				try {
 					// Call ICF
 					InternalMonitor.recordConnectorOperation("update");
-					reporter.recordIcfOperationStart(ProvisioningOperation.ICF_UPDATE, objectClassDef, uid);
+					recordIcfOperationStart(reporter, ProvisioningOperation.ICF_UPDATE, objectClassDef, uid);
 					uid = icfConnectorFacade.update(objClass, uid, attributesToUpdate, options);
-					reporter.recordIcfOperationEnd(ProvisioningOperation.ICF_UPDATE, objectClassDef, null, uid);
+					recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_UPDATE, objectClassDef, null, uid);
 	
 					icfResult.recordSuccess();
 				} catch (Throwable ex) {
-					reporter.recordIcfOperationEnd(ProvisioningOperation.ICF_UPDATE, objectClassDef, ex, uid);
+					recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_UPDATE, objectClassDef, ex, uid);
 					String desc = this.getHumanReadableName() + " while updating object identified by ICF UID '"+uid.getUidValue()+"'";
 					Throwable midpointEx = processIcfException(ex, desc, icfResult);
 					result.computeStatus("Update failed");
@@ -1839,13 +1839,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				}
 
 				InternalMonitor.recordConnectorOperation("removeAttributeValues");
-				reporter.recordIcfOperationStart(ProvisioningOperation.ICF_UPDATE, objectClassDef, uid);
+				recordIcfOperationStart(reporter, ProvisioningOperation.ICF_UPDATE, objectClassDef, uid);
 				uid = icfConnectorFacade.removeAttributeValues(objClass, uid, attributesToRemove, options);
-				reporter.recordIcfOperationEnd(ProvisioningOperation.ICF_UPDATE, objectClassDef, null, uid);
+				recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_UPDATE, objectClassDef, null, uid);
 				icfResult.recordSuccess();
 			}
 		} catch (Throwable ex) {
-			reporter.recordIcfOperationEnd(ProvisioningOperation.ICF_UPDATE, objectClassDef, ex, uid);
+			recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_UPDATE, objectClassDef, ex, uid);
 			String desc = this.getHumanReadableName() + " while removing attribute values from object identified by ICF UID '"+uid.getUidValue()+"'";
 			Throwable midpointEx = processIcfException(ex, desc, icfResult);
 			result.computeStatus("Removing attribute values failed");
@@ -1946,14 +1946,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		try {
 
 			InternalMonitor.recordConnectorOperation("delete");
-			reporter.recordIcfOperationStart(ProvisioningOperation.ICF_DELETE, objectClass, uid);
+			recordIcfOperationStart(reporter, ProvisioningOperation.ICF_DELETE, objectClass, uid);
 			icfConnectorFacade.delete(objClass, uid, new OperationOptionsBuilder().build());
-			reporter.recordIcfOperationEnd(ProvisioningOperation.ICF_DELETE, objectClass, null, uid);
+			recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_DELETE, objectClass, null, uid);
 
 			icfResult.recordSuccess();
 
 		} catch (Throwable ex) {
-			reporter.recordIcfOperationEnd(ProvisioningOperation.ICF_DELETE, objectClass, ex, uid);
+			recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_DELETE, objectClass, ex, uid);
 			String desc = this.getHumanReadableName() + " while deleting object identified by ICF UID '"+uid.getUidValue()+"'";
 			Throwable midpointEx = processIcfException(ex, desc, icfResult);
 			result.computeStatus("Removing attribute values failed");
@@ -2009,13 +2009,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		SyncToken syncToken = null;
 		try {
 			InternalMonitor.recordConnectorOperation("getLatestSyncToken");
-			reporter.recordIcfOperationStart(ProvisioningOperation.ICF_GET_LATEST_SYNC_TOKEN, objectClassDef);
+			recordIcfOperationStart(reporter, ProvisioningOperation.ICF_GET_LATEST_SYNC_TOKEN, objectClassDef);
 			syncToken = icfConnectorFacade.getLatestSyncToken(icfObjectClass);
-			reporter.recordIcfOperationEnd(ProvisioningOperation.ICF_GET_LATEST_SYNC_TOKEN, objectClassDef);
+			recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_GET_LATEST_SYNC_TOKEN, objectClassDef);
 			icfResult.recordSuccess();
 			icfResult.addReturn("syncToken", syncToken==null?null:String.valueOf(syncToken.getValue()));
 		} catch (Throwable ex) {
-			reporter.recordIcfOperationEnd(ProvisioningOperation.ICF_GET_LATEST_SYNC_TOKEN, objectClassDef, ex);
+			recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_GET_LATEST_SYNC_TOKEN, objectClassDef, ex);
 			Throwable midpointEx = processIcfException(ex, this, icfResult);
 			result.computeStatus();
 			// Do some kind of acrobatics to do proper throwing of checked
@@ -2095,14 +2095,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		SyncToken lastReceivedToken;
 		try {
 			InternalMonitor.recordConnectorOperation("sync");
-			reporter.recordIcfOperationStart(ProvisioningOperation.ICF_SYNC, objectClass);
+			recordIcfOperationStart(reporter, ProvisioningOperation.ICF_SYNC, objectClass);
 			lastReceivedToken = icfConnectorFacade.sync(icfObjectClass, syncToken, syncHandler,
 					options);
-			reporter.recordIcfOperationEnd(ProvisioningOperation.ICF_SYNC, objectClass);
+			recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_SYNC, objectClass);
 			icfResult.recordSuccess();
 			icfResult.addReturn(OperationResult.RETURN_COUNT, syncDeltas.size());
 		} catch (Throwable ex) {
-			reporter.recordIcfOperationEnd(ProvisioningOperation.ICF_SYNC, objectClass, ex);
+			recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_SYNC, objectClass, ex);
 			Throwable midpointEx = processIcfException(ex, this, icfResult);
 			result.computeStatus();
 			// Do some kind of acrobatics to do proper throwing of checked
@@ -2209,7 +2209,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			public boolean handle(ConnectorObject connectorObject) {
 				// Convert ICF-specific connector object to a generic
 				// ResourceObject
-				reporter.recordIcfOperationSuspend(ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
+				recordIcfOperationSuspend(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
                 int count = countHolder.getValue();
                 countHolder.setValue(count+1);
                 if (!useConnectorPaging) {
@@ -2244,7 +2244,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			}
 
 			private void recordResume() {
-				reporter.recordIcfOperationResume(ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
+				recordIcfOperationResume(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
 			}
 		};
 		
@@ -2303,19 +2303,19 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		try {
 
 			InternalMonitor.recordConnectorOperation("search");
-			reporter.recordIcfOperationStart(ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
+			recordIcfOperationStart(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
 			icfSearchResult = icfConnectorFacade.search(icfObjectClass, filter, icfHandler, options);
-			reporter.recordIcfOperationEnd(ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
+			recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
 
 			icfResult.recordSuccess();
 		} catch (IntermediateException inex) {
-			reporter.recordIcfOperationEnd(ProvisioningOperation.ICF_SEARCH, objectClassDefinition, inex);
+			recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition, inex);
 			SchemaException ex = (SchemaException) inex.getCause();
 			icfResult.recordFatalError(ex);
 			result.recordFatalError(ex);
 			throw ex;
 		} catch (Throwable ex) {
-			reporter.recordIcfOperationEnd(ProvisioningOperation.ICF_SEARCH, objectClassDefinition, ex);
+			recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition, ex);
 			Throwable midpointEx = processIcfException(ex, this, icfResult);
 			result.computeStatus();
 			// Do some kind of acrobatics to do proper throwing of checked
@@ -2420,9 +2420,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
                 }
             };
             InternalMonitor.recordConnectorOperation("search");
-			reporter.recordIcfOperationStart(ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
+			recordIcfOperationStart(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
             SearchResult searchResult = icfConnectorFacade.search(icfObjectClass, filter, icfHandler, options);
-			reporter.recordIcfOperationEnd(ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
+			recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
 
             if (searchResult == null || searchResult.getRemainingPagedResults() == -1) {
                 throw new UnsupportedOperationException("Connector does not seem to support paged searches or does not provide object count information");
@@ -2432,18 +2432,18 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
             icfResult.recordSuccess();
         } catch (IntermediateException inex) {
-			reporter.recordIcfOperationEnd(ProvisioningOperation.ICF_SEARCH, objectClassDefinition, inex);
+			recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition, inex);
             SchemaException ex = (SchemaException) inex.getCause();
             icfResult.recordFatalError(ex);
             result.recordFatalError(ex);
             throw ex;
         } catch (UnsupportedOperationException uoe) {
-			reporter.recordIcfOperationEnd(ProvisioningOperation.ICF_SEARCH, objectClassDefinition, uoe);
+			recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition, uoe);
             icfResult.recordFatalError(uoe);
             result.recordFatalError(uoe);
             throw uoe;
         } catch (Throwable ex) {
-			reporter.recordIcfOperationEnd(ProvisioningOperation.ICF_SEARCH, objectClassDefinition, ex);
+			recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition, ex);
             Throwable midpointEx = processIcfException(ex, this, icfResult);
             result.computeStatus();
             // Do some kind of acrobatics to do proper throwing of checked
@@ -2851,7 +2851,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				
 				LOGGER.trace("Running script ({})", icfOpName);
 
-				reporter.recordIcfOperationStart(ProvisioningOperation.ICF_SCRIPT, null);
+				recordIcfOperationStart(reporter, ProvisioningOperation.ICF_SCRIPT, null);
 				if (scriptOperation.isConnectorHost()) {
 					InternalMonitor.recordConnectorOperation("runScriptOnConnector");
 					output = icfConnectorFacade.runScriptOnConnector(scriptContext, new OperationOptionsBuilder().build());
@@ -2859,7 +2859,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					InternalMonitor.recordConnectorOperation("runScriptOnResource");
 					output = icfConnectorFacade.runScriptOnResource(scriptContext, new OperationOptionsBuilder().build());
 				}
-				reporter.recordIcfOperationEnd(ProvisioningOperation.ICF_SCRIPT, null);
+				recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_SCRIPT, null);
 
 				icfResult.recordSuccess();
 				
@@ -2869,7 +2869,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				
 			} catch (Throwable ex) {
 
-				reporter.recordIcfOperationEnd(ProvisioningOperation.ICF_SCRIPT, null, ex);
+				recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_SCRIPT, null, ex);
 
 				if (LOGGER.isDebugEnabled()) {
 					LOGGER.debug("Finished running script ({}), ERROR: {}", icfOpName, ex.getMessage());
@@ -3251,6 +3251,55 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	@Override
 	public void dispose() {
 		// Nothing to do
+	}
+
+	private void recordIcfOperationStart(StateReporter reporter, ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDefinition, Uid uid) {
+		if (reporter != null) {
+			reporter.recordIcfOperationStart(operation, objectClassDefinition, uid);
+		}
+	}
+
+	private void recordIcfOperationStart(StateReporter reporter, ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDefinition) {
+		if (reporter != null) {
+			reporter.recordIcfOperationStart(operation, objectClassDefinition, null);
+		}
+	}
+
+	private void recordIcfOperationResume(StateReporter reporter, ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDefinition) {
+		if (reporter != null) {
+			reporter.recordIcfOperationResume(operation, objectClassDefinition);
+		}
+	}
+
+	private void recordIcfOperationSuspend(StateReporter reporter, ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDefinition) {
+		if (reporter != null) {
+			reporter.recordIcfOperationSuspend(operation, objectClassDefinition);
+		}
+	}
+
+	private void recordIcfOperationEnd(StateReporter reporter, ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDefinition, Uid uid) {
+		if (reporter != null) {
+			reporter.recordIcfOperationEnd(operation, objectClassDefinition, null, uid);
+		}
+	}
+
+	private void recordIcfOperationEnd(StateReporter reporter, ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDefinition, Throwable ex) {
+		if (reporter != null) {
+			reporter.recordIcfOperationEnd(operation, objectClassDefinition, ex, null);
+		}
+	}
+
+	private void recordIcfOperationEnd(StateReporter reporter, ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDefinition, Throwable ex, Uid uid) {
+		if (reporter != null) {
+			reporter.recordIcfOperationEnd(operation, objectClassDefinition, ex, uid);
+		}
+	}
+
+
+	private void recordIcfOperationEnd(StateReporter reporter, ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDefinition) {
+		if (reporter != null) {
+			reporter.recordIcfOperationEnd(operation, objectClassDefinition, null, null);
+		}
 	}
 
 }

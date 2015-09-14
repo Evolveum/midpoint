@@ -57,6 +57,7 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.PageTemplate;
+import com.evolveum.midpoint.web.page.admin.server.currentState.TaskStatePanel;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
 import com.evolveum.midpoint.web.page.admin.server.subtasks.SubtasksPanel;
 import com.evolveum.midpoint.web.page.admin.server.workflowInformation.WorkflowInformationPanel;
@@ -126,6 +127,7 @@ public class PageTaskEdit extends PageAdminTasks {
     private static final String ID_SUBTASKS_PANEL = "subtasksPanel";
     private static final String ID_WORKFLOW_INFORMATION_LABEL = "workflowInformationLabel";
     private static final String ID_WORKFLOW_INFORMATION_PANEL = "workflowInformationPanel";
+    private static final String ID_TASK_STATE_PANEL = "taskStatePanel";
     private static final String ID_NAME = "name";
     private static final String ID_NAME_LABEL = "nameLabel";
     private static final String ID_DESCRIPTION = "description";
@@ -287,14 +289,9 @@ public class PageTaskEdit extends PageAdminTasks {
         panel.add(modelOpBehaviour);
         mainForm.add(panel);
 
-		SortableDataProvider<OperationResult, String> provider = new ListDataProvider<>(this,
-				new PropertyModel<List<OperationResult>>(model, "opResult"));
-		TablePanel result = new TablePanel<>("operationResult", provider, initResultColumns());
-		result.setStyle("padding-top: 0px;");
-		result.setShowPaging(false);
-		result.setOutputMarkupId(true);
-        result.add(hiddenWhenEditing);
-		mainForm.add(result);
+        TaskStatePanel taskStatePanel = new TaskStatePanel(ID_TASK_STATE_PANEL, model);
+        taskStatePanel.add(hiddenWhenEditing);
+        mainForm.add(taskStatePanel);
 
 		DropDownChoice threadStop = new DropDownChoice<>("threadStop", new Model<ThreadStopActionType>() {
 

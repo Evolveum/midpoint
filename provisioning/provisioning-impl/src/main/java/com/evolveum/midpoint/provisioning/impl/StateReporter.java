@@ -23,6 +23,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.identityconnectors.framework.common.objects.Uid;
 
+import javax.xml.namespace.QName;
 import java.util.Date;
 
 /**
@@ -83,11 +84,7 @@ public class StateReporter {
         if (uid != null) {
             object = " " + uid.getUidValue();
         }
-        recordState("Starting " + operation + " of " + objectClassDef.getTypeName().getLocalPart() + object + " on " + getResourceName());
-    }
-
-    public void recordIcfOperationStart(ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDefinition) {
-        recordIcfOperationStart(operation, objectClassDefinition, null);
+        recordState("Starting " + operation + " of " + getObjectClassName(objectClassDef) + object + " on " + getResourceName());
     }
 
     // we just add duration, not count (we'll do this on end)
@@ -118,14 +115,22 @@ public class StateReporter {
         recordState("Continuing " + operation + " of " + objectClassDef.getTypeName().getLocalPart() + " on " + getResourceName());
     }
 
+    private String getObjectClassName(ObjectClassComplexTypeDefinition objectClassDef) {
+        return objectClassDef != null && objectClassDef.getTypeName() != null ? objectClassDef.getTypeName().getLocalPart() : "(null)";
+    }
+
+    private QName getObjectClassQName(ObjectClassComplexTypeDefinition objectClassDef) {
+        return objectClassDef != null ? objectClassDef.getTypeName() : null;
+    }
+
     public void recordIcfOperationEnd(ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDef, Throwable ex, Uid uid) {
         long duration = -1L;
         if (lastOperation != operation) {
             LOGGER.warn("Finishing operation other than current: finishing {}, last recorded {}",
                     operation, lastOperation);
-        } else if (lastObjectClass == null || !lastObjectClass.getTypeName().equals(objectClassDef.getTypeName())) {
+        } else if (objectClassDef != null && (lastObjectClass == null || !lastObjectClass.getTypeName().equals(objectClassDef.getTypeName()))) {
             LOGGER.warn("Finishing operation on object class other than current: finishing on {}, last recorded {}",
-                    objectClassDef.getTypeName(), lastObjectClass != null ? lastObjectClass.getTypeName() : "(null)");
+                    getObjectClassName(objectClassDef), getObjectClassName(lastObjectClass));
         } else {
             duration = System.currentTimeMillis() - lastStarted.getTime();
         }
@@ -146,23 +151,11 @@ public class StateReporter {
         if (uid != null) {
             object = " " + uid.getUidValue();
         }
-        recordState(finished + " " + operation + " of " + objectClassDef.getTypeName().getLocalPart() + object + " on " + getResourceName() + durationString);
+        recordState(finished + " " + operation + " of " + getObjectClassName(objectClassDef) + object + " on " + getResourceName() + durationString);
         if (task != null && duration >= 0) {
-            task.recordProvisioningOperation(resourceOid, getResourceName(), objectClassDef.getTypeName(), lastOperation, ex == null, 1, duration);
+            task.recordProvisioningOperation(resourceOid, getResourceName(), getObjectClassQName(objectClassDef), lastOperation, ex == null, 1, duration);
         }
         lastOperation = null;
-    }
-
-    public void recordIcfOperationEnd(ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDef, Uid uid) {
-        recordIcfOperationEnd(operation, objectClassDef, null, uid);
-    }
-
-    public void recordIcfOperationEnd(ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDefinition) {
-        recordIcfOperationEnd(operation, objectClassDefinition, null, null);
-    }
-
-    public void recordIcfOperationEnd(ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDef, Throwable ex) {
-        recordIcfOperationEnd(operation, objectClassDef, ex, null);
     }
 
     private void recordState(String message) {
