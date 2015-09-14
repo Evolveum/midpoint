@@ -24,6 +24,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.OperationalInformation;
+import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -932,4 +934,16 @@ public interface Task extends DebugDumpable {
      * (just a shortcut to analogous call in TaskManager)
      */
     void startLightweightHandler();
+
+    // =================================================================== Operational data
+
+    OperationalInformation getOperationalInformation();
+
+    void recordState(String message);
+
+    void recordProvisioningOperation(String resourceOid, String resourceName, QName objectClassName, ProvisioningOperation operation, boolean success, int count, long duration);
+
+    void recordNotificationOperation(String transportName, boolean success, long duration);
+
+    void recordMappingOperation(String objectOid, String objectName, String mappingName, long duration);
 }

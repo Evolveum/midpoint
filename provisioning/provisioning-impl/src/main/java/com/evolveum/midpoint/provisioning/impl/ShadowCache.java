@@ -959,7 +959,7 @@ public abstract class ShadowCache {
                     ObjectQuery attributeQuery = createAttributeQuery(query);
                     int count;
                     try {
-                    	count = connector.count(objectClassDef.getObjectClassDefinition(), attributeQuery, objectClassDef.getPagedSearches(), result);
+                    	count = connector.count(objectClassDef.getObjectClassDefinition(), attributeQuery, objectClassDef.getPagedSearches(), ctx, result);
                     } catch (CommunicationException | GenericFrameworkException| SchemaException | UnsupportedOperationException e) {
                     	result.recordFatalError(e);
                         throw e;

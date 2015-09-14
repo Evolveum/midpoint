@@ -15,10 +15,6 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
-import java.util.Collection;
-
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -31,15 +27,22 @@ import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import javax.xml.namespace.QName;
+import java.util.Collection;
 
 /**
  * @author semancik
  *
  */
-public class ProvisioningContext {
+public class ProvisioningContext extends StateReporter {
+
+	private static final Trace LOGGER = TraceManager.getTrace(ProvisioningContext.class);
 	
 	private ResourceManager resourceManager;
 	private ConnectorManager connectorManager;
@@ -58,7 +61,6 @@ public class ProvisioningContext {
 	private RefinedResourceSchema refinedSchema;
 	
 	public ProvisioningContext(ConnectorManager connectorManager, ResourceManager resourceManager, OperationResult parentResult) {
-		super();
 		this.connectorManager = connectorManager;
 		this.resourceManager = resourceManager;
 		this.parentResult = parentResult;
@@ -105,6 +107,9 @@ public class ProvisioningContext {
 				throw new SchemaException("Null resource OID "+getDesc());
 			}
 			resource = resourceManager.getResource(resourceOid, parentResult).asObjectable();
+			if (resource != null && resource.getName() != null) {
+				super.setResourceName(resource.getName().getOrig());
+			}
 		}
 		return resource;
 	}
@@ -133,6 +138,7 @@ public class ProvisioningContext {
 
 	public void setTask(Task task) {
 		this.task = task;
+		super.setTask(task);
 	}
 	
 	public String getChannel() {
@@ -234,5 +240,5 @@ public class ProvisioningContext {
 	public String toString() {
 		return "ProvisioningContext("+getDesc()+")";
 	}
-	
+
 }

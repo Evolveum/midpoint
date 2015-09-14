@@ -173,6 +173,7 @@ public class ProgressReporter implements Serializable {
         startRefreshingProgressPanel(target);
         showProgressPanel();
 
+        progressPanel.setTask(task);
         progressListener = new DefaultGuiProgressListener(parentPage, progressPanel.getModelObject());
         Runnable execution = new Runnable() {
             @Override

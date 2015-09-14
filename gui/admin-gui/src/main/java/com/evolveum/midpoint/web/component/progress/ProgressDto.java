@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.web.component.progress;
 
+import com.evolveum.midpoint.schema.statistics.StatusMessage;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +29,7 @@ public class ProgressDto implements Serializable {
 
     private List<ProgressReportActivityDto> progressReportActivities = new ArrayList<>();
     private List<String> logItems = new ArrayList<>();
+    private List<StatusMessage> logEntries = new ArrayList<>();
 
     public List<ProgressReportActivityDto> getProgressReportActivities() {
         return progressReportActivities;
@@ -64,5 +67,9 @@ public class ProgressDto implements Serializable {
             }
         }
         return true;
+    }
+
+    public List<StatusMessage> getLogEntries() {
+        return logEntries;
     }
 }

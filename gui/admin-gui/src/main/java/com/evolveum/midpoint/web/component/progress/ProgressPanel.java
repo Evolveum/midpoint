@@ -17,19 +17,17 @@
 package com.evolveum.midpoint.web.component.progress;
 
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
 import java.util.List;
 
@@ -46,6 +44,7 @@ public class ProgressPanel extends SimplePanel<ProgressDto> {
     private static final String ID_ACTIVITY_DESCRIPTION = "description";
     private static final String ID_ACTIVITY_STATE = "status";
     private static final String ID_ACTIVITY_COMMENT = "comment";
+    private static final String ID_STATISTICS = "statistics";
     private static final String ID_LOG_ITEMS = "logItems";
     private static final String ID_LOG_ITEM = "logItem";
     private static final String ID_EXECUTION_TIME = "executionTime";
@@ -54,6 +53,8 @@ public class ProgressPanel extends SimplePanel<ProgressDto> {
     private long operationDurationTime;         // if >0, operation has finished
 
     private WebMarkupContainer contentsPanel;
+    private StatisticsPanel statisticsPanel;
+    private transient Task task;
 
     public ProgressPanel(String id) {
         super(id);
@@ -159,6 +160,9 @@ public class ProgressPanel extends SimplePanel<ProgressDto> {
         };
         contentsPanel.add(statusItemsListView);
 
+        statisticsPanel = new StatisticsPanel(ID_STATISTICS, task);
+        contentsPanel.add(statisticsPanel);
+
         ListView logItemsListView = new ListView(ID_LOG_ITEMS, new AbstractReadOnlyModel<List>() {
             @Override
             public List getObject() {
@@ -205,5 +209,16 @@ public class ProgressPanel extends SimplePanel<ProgressDto> {
 
     public void recordExecutionStop() {
         operationDurationTime = System.currentTimeMillis() - operationStartTime;
+    }
+
+    public void setTask(Task task) {
+        this.task = task;
+        if (statisticsPanel != null) {
+            statisticsPanel.setTask(task);
+        }
+    }
+
+    public Task getTask() {
+        return task;
     }
 }

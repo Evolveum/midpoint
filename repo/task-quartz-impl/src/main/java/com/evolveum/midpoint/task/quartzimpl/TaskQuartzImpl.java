@@ -42,6 +42,8 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.OperationalInformation;
+import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.task.api.LightweightTaskHandler;
 import com.evolveum.midpoint.task.api.Task;
@@ -115,6 +117,8 @@ public class TaskQuartzImpl implements Task {
 
     private PrismObject<UserType> requestee;                                  // temporary information
 
+	private OperationalInformation operationalInformation;
+
 	/**
 	 * Lightweight asynchronous subtasks.
 	 * Each task here is a LAT, i.e. transient and with assigned lightweight handler.
@@ -166,6 +170,13 @@ public class TaskQuartzImpl implements Task {
 	private volatile boolean lightweightHandlerExecuting;
 
 	private static final Trace LOGGER = TraceManager.getTrace(TaskQuartzImpl.class);
+	private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
+
+	private TaskQuartzImpl(TaskManagerQuartzImpl taskManager) {
+		this.taskManager = taskManager;
+		this.canRun = true;
+		this.operationalInformation = new OperationalInformation();
+	}
 
 	//region Constructors
     /**
@@ -175,11 +186,10 @@ public class TaskQuartzImpl implements Task {
      * @param operationName if null, default op. name will be used
 	 */	
 	TaskQuartzImpl(TaskManagerQuartzImpl taskManager, LightweightIdentifier taskIdentifier, String operationName) {
-		this.taskManager = taskManager;
+		this(taskManager);
 		this.repositoryService = null;
 		this.taskPrism = createPrism();
-		this.canRun = true;
-		
+
 		setTaskIdentifier(taskIdentifier.toString());
 		setExecutionStatusTransient(TaskExecutionStatus.RUNNABLE);
 		setRecurrenceStatusTransient(TaskRecurrence.SINGLE);
@@ -196,10 +206,9 @@ public class TaskQuartzImpl implements Task {
      * @param operationName if null, default op. name will be used
      */
 	TaskQuartzImpl(TaskManagerQuartzImpl taskManager, PrismObject<TaskType> taskPrism, RepositoryService repositoryService, String operationName) {
-		this.taskManager = taskManager;
+		this(taskManager);
 		this.repositoryService = repositoryService;
 		this.taskPrism = taskPrism;
-		canRun = true;
         createOrUpdateTaskResult(operationName);
 
         setDefaults();
@@ -2519,5 +2528,46 @@ public class TaskQuartzImpl implements Task {
 
 	public boolean isLightweightHandlerExecuting() {
 		return lightweightHandlerExecuting;
+	}
+
+	// Operational data
+
+	@Override
+	public OperationalInformation getOperationalInformation() {
+		return operationalInformation;
+	}
+
+	@Override
+	public void recordState(String message) {
+		if (operationalInformation != null) {
+			if (LOGGER.isDebugEnabled()) {		// TODO consider this
+				LOGGER.debug("{}", message);
+			}
+			if (PERFORMANCE_ADVISOR.isDebugEnabled()) {
+				PERFORMANCE_ADVISOR.debug("{}", message);
+			}
+			operationalInformation.recordState(message);
+		}
+	}
+
+	@Override
+	public void recordProvisioningOperation(String resourceOid, String resourceName, QName objectClassName, ProvisioningOperation operation, boolean success, int count, long duration) {
+		if (operationalInformation != null) {
+			operationalInformation.recordProvisioningOperation(resourceOid, resourceName, objectClassName, operation, success, count, duration);
+		}
+	}
+
+	@Override
+	public void recordNotificationOperation(String transportName, boolean success, long duration) {
+		if (operationalInformation != null) {
+			operationalInformation.recordNotificationOperation(transportName, success, duration);
+		}
+	}
+
+	@Override
+	public void recordMappingOperation(String objectOid, String objectName, String mappingName, long duration) {
+		if (operationalInformation != null) {
+			operationalInformation.recordMappingOperation(objectOid, objectName, mappingName, duration);
+		}
 	}
 }

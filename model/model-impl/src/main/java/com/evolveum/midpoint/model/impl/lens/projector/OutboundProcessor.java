@@ -146,8 +146,9 @@ public class OutboundProcessor {
 			Mapping<PrismPropertyValue<?>,RefinedAttributeDefinition<?>> mapping = mappingFactory.createMapping(outboundMappingType, 
 			        "outbound mapping for " + PrettyPrinter.prettyPrint(refinedAttributeDefinition.getName())
 			        + " in " + rOcDef.getResourceType());
-
-			Mapping<PrismPropertyValue<?>,RefinedAttributeDefinition<?>> evaluatedMapping = evaluateMapping(mapping, attributeName, refinedAttributeDefinition, 
+			mapping.setOriginObject(rOcDef.getResourceType());
+			mapping.setOriginType(OriginType.OUTBOUND);
+			Mapping<PrismPropertyValue<?>,RefinedAttributeDefinition<?>> evaluatedMapping = evaluateMapping(mapping, attributeName, refinedAttributeDefinition,
 					focusOdo, projectionOdo, operation, rOcDef, null, context, projCtx, task, result);
 			
 			if (evaluatedMapping != null) {

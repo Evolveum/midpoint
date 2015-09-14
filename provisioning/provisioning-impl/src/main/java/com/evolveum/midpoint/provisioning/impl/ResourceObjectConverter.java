@@ -234,7 +234,7 @@ public class ResourceObjectConverter {
 				}
 			};
 			try {
-				connector.search(ctx.getObjectClassDefinition(), query, handler, attributesToReturn, null, null, parentResult);
+				connector.search(ctx.getObjectClassDefinition(), query, handler, attributesToReturn, null, null, ctx, parentResult);
 				if (shadowHolder.isEmpty()) {
 					throw new ObjectNotFoundException("No object found for secondary identifier "+secondaryIdentifier);
 				}
@@ -303,7 +303,7 @@ public class ResourceObjectConverter {
 				throw new UnsupportedOperationException("Resource does not support 'create' operation");
 			}
 			
-			resourceAttributesAfterAdd = connector.addObject(shadowClone, additionalOperations, parentResult);
+			resourceAttributesAfterAdd = connector.addObject(shadowClone, additionalOperations, ctx, parentResult);
 
 			if (LOGGER.isDebugEnabled()) {
 				// TODO: reduce only to new/different attributes. Dump all
@@ -388,7 +388,7 @@ public class ResourceObjectConverter {
 				throw new UnsupportedOperationException("Resource does not support 'delete' operation");
 			}
 
-			connector.deleteObject(ctx.getObjectClassDefinition(), additionalOperations, identifiers, parentResult);
+			connector.deleteObject(ctx.getObjectClassDefinition(), additionalOperations, identifiers, ctx, parentResult);
 
 			LOGGER.debug("PROVISIONING DELETE successful");
 			parentResult.recordSuccess();
@@ -587,7 +587,7 @@ public class ResourceObjectConverter {
 				}
 				if (!operationsWave.isEmpty()) {
 					Collection<PropertyModificationOperation> sideEffects =
-							connector.modifyObject(objectClassDefinition, identifiersWorkingCopy, operationsWave, parentResult);
+							connector.modifyObject(objectClassDefinition, identifiersWorkingCopy, operationsWave, ctx, parentResult);
 					sideEffectChanges.addAll(sideEffects);
 					// we accept that one attribute can be changed multiple times in sideEffectChanges; TODO: normalize
 				}
@@ -1036,8 +1036,8 @@ public class ResourceObjectConverter {
 		ConnectorInstance connector = ctx.getConnector(parentResult);
 		SearchResultMetadata metadata = null;
 		try {
-			metadata = connector.search(objectClassDef, query, innerResultHandler, attributesToReturn, 
-					objectClassDef.getPagedSearches(), searchHierarchyConstraints, parentResult);
+			metadata = connector.search(objectClassDef, query, innerResultHandler, attributesToReturn, objectClassDef.getPagedSearches(), searchHierarchyConstraints, ctx,
+					parentResult);
 		} catch (GenericFrameworkException e) {
 			parentResult.recordFatalError("Generic error in the connector: " + e.getMessage(), e);
 			throw new SystemException("Generic error in the connector: " + e.getMessage(), e);
@@ -1083,7 +1083,7 @@ public class ResourceObjectConverter {
 		PrismProperty lastToken = null;
 		ConnectorInstance connector = ctx.getConnector(parentResult);
 		try {
-			lastToken = connector.fetchCurrentToken(ctx.getObjectClassDefinition(), parentResult);
+			lastToken = connector.fetchCurrentToken(ctx.getObjectClassDefinition(), ctx, parentResult);
 		} catch (GenericFrameworkException e) {
 			parentResult.recordFatalError("Generic error in the connector: " + e.getMessage(), e);
 			throw new CommunicationException("Generic error in the connector: " + e.getMessage(), e);
@@ -1455,7 +1455,7 @@ public class ResourceObjectConverter {
 		ConnectorInstance connector = ctx.getConnector(parentResult);
 		
 		// get changes from the connector
-		List<Change<ShadowType>> changes = connector.fetchChanges(ctx.getObjectClassDefinition(), lastToken, attrsToReturn, parentResult);
+		List<Change<ShadowType>> changes = connector.fetchChanges(ctx.getObjectClassDefinition(), lastToken, attrsToReturn, ctx, parentResult);
 
 		Iterator<Change<ShadowType>> iterator = changes.iterator();
 		while (iterator.hasNext()) {
@@ -1510,7 +1510,7 @@ public class ResourceObjectConverter {
 							// re-fetch the shadow if necessary (if attributesToGet does not match)
 							ResourceObjectIdentification identification = new ResourceObjectIdentification(shadowCtx.getObjectClassDefinition(), change.getIdentifiers());
 							LOGGER.trace("Re-fetching object {} because of attrsToReturn", identification);
-							currentShadow = connector.fetchObject(ShadowType.class, identification, shadowAttrsToReturn, parentResult);
+							currentShadow = connector.fetchObject(ShadowType.class, identification, shadowAttrsToReturn, ctx, parentResult);
 						}
 						
 					}

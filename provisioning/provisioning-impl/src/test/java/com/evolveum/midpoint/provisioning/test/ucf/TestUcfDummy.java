@@ -35,7 +35,6 @@ import javax.xml.namespace.QName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
-import org.testng.Assert;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -45,8 +44,6 @@ import org.xml.sax.SAXException;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -67,7 +64,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
-import com.evolveum.midpoint.provisioning.ucf.api.UcfException;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
@@ -376,7 +372,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		icfsNameProp.setRealValue(ACCOUNT_JACK_USERNAME);
 		
 		// WHEN
-		cc.addObject(shadow, null, result);
+		cc.addObject(shadow, null, null, result);
 
 		// THEN
 		DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_JACK_USERNAME);
@@ -409,7 +405,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testSearch");
 
 		// WHEN
-		cc.search(accountDefinition, new ObjectQuery(), handler, null, null, null, result);
+		cc.search(accountDefinition, new ObjectQuery(), handler, null, null, null, null, result);
 
 		// THEN
 		assertEquals("Unexpected number of search results", 1, searchResults.size());
@@ -431,7 +427,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 		
 		// WHEN
-		PrismProperty<?> lastToken = cc.fetchCurrentToken(accountDefinition, result);
+		PrismProperty<?> lastToken = cc.fetchCurrentToken(accountDefinition, null, result);
 
 		assertNotNull("No last sync token", lastToken);
 		
@@ -444,7 +440,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		assertTrue("Last sync token definition is NOT dynamic", lastTokenDef.isDynamic());
 		
 		// WHEN
-		List<Change<ShadowType>> changes = cc.fetchChanges(accountDefinition, lastToken, null, result);
+		List<Change<ShadowType>> changes = cc.fetchChanges(accountDefinition, lastToken, null, null, result);
 		
 		AssertJUnit.assertEquals(0, changes.size());
 	}
@@ -456,7 +452,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		OperationResult result = new OperationResult(this.getClass().getName() + ".test101FetchAddChange");
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 		
-		PrismProperty<?> lastToken = cc.fetchCurrentToken(accountDefinition, result);
+		PrismProperty<?> lastToken = cc.fetchCurrentToken(accountDefinition, null, result);
 		assertNotNull("No last sync token", lastToken);
 
 		// Add account to the resource
@@ -468,7 +464,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		dummyResource.addAccount(newAccount);
 		
 		// WHEN
-		List<Change<ShadowType>> changes = cc.fetchChanges(accountDefinition, lastToken, null, result);
+		List<Change<ShadowType>> changes = cc.fetchChanges(accountDefinition, lastToken, null, null, result);
 		
 		AssertJUnit.assertEquals(1, changes.size());
 		Change change = changes.get(0);
