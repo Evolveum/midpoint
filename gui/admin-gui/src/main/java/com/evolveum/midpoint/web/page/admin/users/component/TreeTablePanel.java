@@ -362,8 +362,13 @@ public class TreeTablePanel extends SimplePanel<String> {
         form.add(childOrgUnitContainer);
 
         List<IColumn<OrgTableDto, String>> childTableColumns = createChildTableColumns();
+
+        MidPointAuthWebSession session = getSession();
+        SessionStorage storage = session.getSessionStorage();
+        int pageSize = storage.getUserProfile().getPagingSize(UserProfileStorage.TableId.TREE_TABLE_PANEL_CHILD);
+
         final TablePanel childTable = new TablePanel<>(ID_CHILD_TABLE, childTableProvider, childTableColumns,
-                UserProfileStorage.TableId.TREE_TABLE_PANEL_CHILD, UserProfileStorage.DEFAULT_PAGING_SIZE);
+                UserProfileStorage.TableId.TREE_TABLE_PANEL_CHILD, pageSize);
         childTable.setOutputMarkupId(true);
         childTable.getNavigatorPanel().add(new VisibleEnableBehaviour(){
 
