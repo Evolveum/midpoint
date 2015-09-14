@@ -36,7 +36,9 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.form.GenericValueLabelEditPanel;
 import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
+import com.evolveum.midpoint.web.component.form.multivalue.GenericMultiValueLabelEditPanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
 import com.evolveum.midpoint.web.component.input.*;
 import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
@@ -44,6 +46,7 @@ import com.evolveum.midpoint.web.component.model.delta.ModificationsPanel;
 import com.evolveum.midpoint.web.component.util.LookupPropertyModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.roles.component.MultiplicityPolicyDialog;
 import com.evolveum.midpoint.web.util.DateValidator;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
@@ -58,6 +61,7 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -541,44 +545,8 @@ public class PrismValuePanel extends Panel {
         	}
         	final Class typeClass = typeFromName != null ? typeFromName : (item.getDefinition().getTypeClassIfKnown() != null ? item.getDefinition().getTypeClassIfKnown() : FocusType.class);
         	panel = new ValueChoosePanel(id,
-    				new PropertyModel<>(model, "value"), false, typeClass) {
-
-    			@Override
-    					protected ObjectType createNewEmptyItem() throws InstantiationException, IllegalAccessException {
-    						return (ObjectType) typeClass.newInstance();
-    					}
-    			
-    			@Override
-    			protected ObjectQuery createChooseQuery() {
-    				ArrayList<String> oidList = new ArrayList<>();
-    				ObjectQuery query = new ObjectQuery();
-
-    				for (PrismReferenceValue ref : (List<PrismReferenceValue>)item.getValues()) {
-    					if (ref != null) {
-    						if (ref.getOid() != null && !ref.getOid().isEmpty()) {
-    							oidList.add(ref.getOid());
-    						}
-    					}
-    				}
-
-//    				if (isediting) {
-//    					oidList.add(orgModel.getObject().getObject().asObjectable().getOid());
-//    				}
-
-    				if (oidList.isEmpty()) {
-    					return null;
-    				}
-
-    				ObjectFilter oidFilter = InOidFilter.createInOid(oidList);
-    				query.setFilter(NotFilter.createNot(oidFilter));
-
-    				return query;
-    			}
-
-    			
-    		};
-        }
-      
+    				new PropertyModel<>(model, "value"), item.getValues(), false, typeClass);
+        } 
 
         return panel;
     }

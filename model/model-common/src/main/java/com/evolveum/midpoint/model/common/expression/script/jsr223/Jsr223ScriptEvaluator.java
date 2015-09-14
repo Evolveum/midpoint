@@ -161,6 +161,7 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 					} else if (outputDefinition instanceof PrismContainerDefinition){
 						try {
 							prismContext.adopt((Containerable)evalResult);
+							((Containerable)evalResult).asPrismContainerValue().applyDefinition(outputDefinition);
 						} catch (SchemaException e) {
 							throw new ExpressionEvaluationException(e.getMessage() + " " + contextDescription, e);
 						}
@@ -182,9 +183,11 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 				} else if (outputDefinition instanceof PrismContainerDefinition){
 					try {
 						prismContext.adopt((Containerable)evalResult);
+						((Containerable)evalResult).asPrismContainerValue().applyDefinition(outputDefinition);
 					} catch (SchemaException e) {
 						throw new ExpressionEvaluationException(e.getMessage() + " " + contextDescription, e);
 					}
+					
 					pval = (V) ((Containerable)evalResult).asPrismContainerValue();
 				} else {
 					pval = (V) new PrismPropertyValue<T>(evalResult);

@@ -374,6 +374,7 @@ public class ObjectWrapper implements Serializable, Revivable {
 				containers.addAll(createContainerWrapper(object, null, pageBase));
 			}
 		} catch (Exception ex) {
+			//TODO: shouldn't be this exception thrown????
 			LoggingUtils.logUnexpectedException(LOGGER, "Error occurred during container wrapping", ex);
 			result.recordFatalError("Error occurred during container wrapping, reason: " + ex.getMessage(),
 					ex);
