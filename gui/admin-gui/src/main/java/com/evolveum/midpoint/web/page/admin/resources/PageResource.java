@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.resources;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -42,8 +43,10 @@ import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceObjectTypeDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -64,6 +67,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -109,6 +113,7 @@ public class PageResource extends PageAdminResources {
     private static final String ID_BUTTON_DELETE_SYNC_TOKEN = "deleteSyncToken";
 
     private IModel<ResourceDto> model;
+    private PrismObject<ResourceType> resource;
 
     public PageResource() {
         initialize();
@@ -140,7 +145,7 @@ public class PageResource extends PageAdminResources {
         Collection<SelectorOptions<GetOperationOptions>> options =
                 SelectorOptions.createCollection(ResourceType.F_CONNECTOR, GetOperationOptions.createResolve());
 
-        PrismObject<ResourceType> resource = loadResource(options);
+        resource = loadResource(options);
         return new ResourceDto(resource, getPrismContext(), resource.asObjectable().getConnector(),
                 initCapabilities(resource.asObjectable()));
     }
@@ -437,7 +442,20 @@ public class PageResource extends PageAdminResources {
         OperationResult result = new OperationResult(OPERATION_IMPORT_FROM_RESOURCE);
         try {
             Task task = createSimpleTask(OPERATION_IMPORT_FROM_RESOURCE);
-            getModelService().importFromResource(dto.getOid(), dto.getDefaultAccountObjectClass(), task, result);
+            QName objectClass =  dto.getDefaultAccountObjectClass();
+            if (objectClass == null){
+                RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
+                        LayerType.MODEL, getPrismContext());
+                if (refinedSchema == null) {
+                    error("No refined schema for " + resource);
+                    LOGGER.debug("No refined schema for " + resource);
+                } else {
+                    objectClass = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT).getObjectClassDefinition()
+                            .getTypeName();
+                }
+
+            }
+            getModelService().importFromResource(dto.getOid(), objectClass, task, result);
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Error occurred during accounts import from resource {} ({}), class {}",
                     ex, dto.getName(), dto.getOid(), dto.getDefaultAccountObjectClass());
