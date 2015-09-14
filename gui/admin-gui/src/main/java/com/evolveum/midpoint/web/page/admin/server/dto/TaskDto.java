@@ -518,6 +518,14 @@ public class TaskDto extends Selectable {
         return taskType.getNodeAsObserved();
     }
 
+    public Long getProgress() {
+        return taskType.getProgress();
+    }
+
+    public Long getExpectedTotal() {
+        return taskType.getExpectedTotal();
+    }
+
     public String getProgressDescription() {
         if (taskType.getProgress() == null && taskType.getExpectedTotal() == null) {
             return "";      // the task handler probably does not report progress at all

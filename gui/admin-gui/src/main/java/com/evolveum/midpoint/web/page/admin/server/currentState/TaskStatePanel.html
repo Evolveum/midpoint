@@ -18,6 +18,39 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 
+    <table class="table table-condensed table-striped">
+        <tr>
+            <td><wicket:message key="TaskStatePanel.executionStatus"/></td>
+            <td><span wicket:id="executionStatus"/> <span wicket:id="executionNode"/></td>
+        </tr>
+        <tr>
+            <td><wicket:message key="TaskStatePanel.executionTime"/></td>
+            <td><span wicket:id="executionTime"/></td>
+        </tr>
+        <tr>
+            <td><wicket:message key="TaskStatePanel.progress"/></td>
+            <td><span wicket:id="progress"/></td>
+        </tr>
+        <tr>
+            <td><wicket:message key="TaskStatePanel.lastObjectProcessedOk"/></td>
+            <td><span wicket:id="lastObjectProcessedOk"/></td>
+        </tr>
+        <tr>
+            <td><wicket:message key="TaskStatePanel.lastObjectProcessedNotOk"/></td>
+            <td><span wicket:id="lastObjectProcessedNotOk"/></td>
+        </tr>
+        <tr>
+            <td><wicket:message key="TaskStatePanel.lastError"/></td>
+            <td><span wicket:id="lastError"/></td>
+        </tr>
+        <tr>
+            <td><wicket:message key="TaskStatePanel.currentObjectProcessed"/></td>
+            <td><span wicket:id="currentObjectProcessed"/></td>
+        </tr>
+    </table>
+
+    <h3><wicket:message key="TaskStatePanel.statistics"/></h3>
+    <div wicket:id="statisticsPanel"/>
 
     <h3><wicket:message key="TaskStatePanel.opResult"/></h3>
     <div wicket:id="operationResult"/>

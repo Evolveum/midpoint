@@ -24,6 +24,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 import java.util.ArrayList;
@@ -81,6 +82,7 @@ public class StatisticsPanel extends SimplePanel<ProgressDto> {
 
     private WebMarkupContainer contentsPanel;
     private transient Task task;
+    private IModel<Task> taskModel;
 
     public StatisticsPanel(String id) {
         super(id);
@@ -91,6 +93,11 @@ public class StatisticsPanel extends SimplePanel<ProgressDto> {
         this.task = task;
     }
 
+    public StatisticsPanel(String id, IModel<Task> taskModel) {
+        super(id);
+        this.taskModel = taskModel;
+    }
+
     protected void initLayout() {
         contentsPanel = new WebMarkupContainer(ID_CONTENTS_PANEL);
         contentsPanel.setOutputMarkupId(true);
@@ -99,10 +106,11 @@ public class StatisticsPanel extends SimplePanel<ProgressDto> {
         ListView provisioningLines = new ListView<ProvisioningStatisticsLineDto>(ID_PROVISIONING_STATISTICS_LINES, new AbstractReadOnlyModel<List<ProvisioningStatisticsLineDto>>() {
             @Override
             public List<ProvisioningStatisticsLineDto> getObject() {
-                if (task == null && task.getOperationalInformation() == null) {
+                Task t = getTask();
+                if (t == null || t.getOperationalInformation() == null) {
                     return new ArrayList<>();
                 }
-                return ProvisioningStatisticsLineDto.extractFromOperationalInformation(task.getOperationalInformation());
+                return ProvisioningStatisticsLineDto.extractFromOperationalInformation(t.getOperationalInformation());
             }
         }) {
             protected void populateItem(final ListItem<ProvisioningStatisticsLineDto> item) {
@@ -135,10 +143,11 @@ public class StatisticsPanel extends SimplePanel<ProgressDto> {
         ListView mappingsLines = new ListView<MappingsLineDto>(ID_MAPPINGS_STATISTICS_LINES, new AbstractReadOnlyModel<List<MappingsLineDto>>() {
             @Override
             public List<MappingsLineDto> getObject() {
-                if (task == null && task.getOperationalInformation() == null) {
+                Task t = getTask();
+                if (t == null || t.getOperationalInformation() == null) {
                     return new ArrayList<>();
                 }
-                return MappingsLineDto.extractFromOperationalInformation(task.getOperationalInformation());
+                return MappingsLineDto.extractFromOperationalInformation(t.getOperationalInformation());
             }
         }) {
             protected void populateItem(final ListItem<MappingsLineDto> item) {
@@ -155,10 +164,11 @@ public class StatisticsPanel extends SimplePanel<ProgressDto> {
         ListView notificationsLines = new ListView<NotificationsLineDto>(ID_NOTIFICATIONS_STATISTICS_LINES, new AbstractReadOnlyModel<List<NotificationsLineDto>>() {
             @Override
             public List<NotificationsLineDto> getObject() {
-                if (task == null && task.getOperationalInformation() == null) {
+                Task t = getTask();
+                if (t == null || t.getOperationalInformation() == null) {
                     return new ArrayList<>();
                 }
-                return NotificationsLineDto.extractFromOperationalInformation(task.getOperationalInformation());
+                return NotificationsLineDto.extractFromOperationalInformation(t.getOperationalInformation());
             }
         }) {
             protected void populateItem(final ListItem<NotificationsLineDto> item) {
@@ -176,10 +186,11 @@ public class StatisticsPanel extends SimplePanel<ProgressDto> {
         Label lastMessage = new Label(ID_LAST_MESSAGE, new AbstractReadOnlyModel<String>() {
             @Override
             public String getObject() {
-                if (task == null || task.getOperationalInformation() == null) {
+                Task t = getTask();
+                if (t == null || t.getOperationalInformation() == null) {
                     return "(unavailable)";
                 }
-                List<StatusMessage> messages = task.getOperationalInformation().getMessages();
+                List<StatusMessage> messages = t.getOperationalInformation().getMessages();
                 if (messages == null || messages.isEmpty()) {
                     return "(none)";
                 }
@@ -206,6 +217,12 @@ public class StatisticsPanel extends SimplePanel<ProgressDto> {
     }
 
     public Task getTask() {
-        return task;
+        if (task != null) {
+            return task;
+        } else if (taskModel != null) {
+            return taskModel.getObject();
+        } else {
+            return null;
+        }
     }
 }

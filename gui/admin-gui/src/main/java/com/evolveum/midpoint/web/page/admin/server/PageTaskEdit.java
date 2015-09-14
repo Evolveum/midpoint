@@ -289,7 +289,7 @@ public class PageTaskEdit extends PageAdminTasks {
         panel.add(modelOpBehaviour);
         mainForm.add(panel);
 
-        TaskStatePanel taskStatePanel = new TaskStatePanel(ID_TASK_STATE_PANEL, model);
+        TaskStatePanel taskStatePanel = new TaskStatePanel(ID_TASK_STATE_PANEL, model, this);
         taskStatePanel.add(hiddenWhenEditing);
         mainForm.add(taskStatePanel);
 
@@ -957,16 +957,6 @@ public class PageTaskEdit extends PageAdminTasks {
         });
         mainForm.add(runNow);
     }
-
-	private List<IColumn<OperationResult, String>> initResultColumns() {
-		List<IColumn<OperationResult, String>> columns = new ArrayList<IColumn<OperationResult, String>>();
-
-		columns.add(new PropertyColumn(createStringResource("pageTaskEdit.opResult.token"), "token"));
-		columns.add(new PropertyColumn(createStringResource("pageTaskEdit.opResult.operation"), "operation"));
-		columns.add(new PropertyColumn(createStringResource("pageTaskEdit.opResult.status"), "status"));
-		columns.add(new PropertyColumn(createStringResource("pageTaskEdit.opResult.message"), "message"));
-		return columns;
-	}
 
     private List<TaskAddResourcesDto> createResourceList() {
         OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCES);

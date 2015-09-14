@@ -237,6 +237,29 @@
         </xsd:annotation>
     </xsd:element>
 
+    <xsd:element name="operationalInformation" type="c:OperationalInformationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <!-- TODO better name -->
+    <xsd:element name="taskBusinessStatusInformation" type="c:AbstractIterativeTaskStatusType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
 </xsd:schema>
 
 
