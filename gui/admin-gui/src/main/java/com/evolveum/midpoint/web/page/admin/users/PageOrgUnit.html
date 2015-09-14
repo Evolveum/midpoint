@@ -18,19 +18,84 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <form class="form-horizontal" wicket:id="form">
-        <!--
-            name,description,requestable,displayName,identifier,costCenter,locality,parentOrgRef
-            assignment,inducement,orgType,activation,authorization,exclusion, approverRef, approverExpression
-        -->
+<div wicket:id="resourcePopup" />
+	<div wicket:id="assignablePopup" />
+	<div wicket:id="assignableOrgPopup" />
+
+	<div wicket:id="confirmDeleteShadowPopup"/>
+    <div wicket:id="confirmDeleteAssignmentPopup"/>
+
+   
+    <form wicket:id="mainForm" autocomplete="off" class="form-horizontal">
 
         <div class="row">
-         <div class="col-md-6">
-         <h3><wicket:message key="PageOrgUnit.title.parentOrgUnit"/></h3>
+            <div class="col-md-6">
+                <div wicket:id="focusForm"/>
+            </div>
+            <div class="col-md-6">
+                <div wicket:id="shadows">
+                    <div class="row assignable-header">
+                        <div class="col-xs-10">
+                            <input type="checkbox" wicket:id="shadowCheckAll"/>
+                            <h3><wicket:message key="pageUser.shadows"/></h3>
+                        </div>
+                        <div class="col-xs-2 cog" wicket:id="shadowMenu" about="shadowMenu" />
+                    </div>
+                    <div wicket:id="shadowList">
+                        <div wicket:id="shadow" />
+                    </div>
+                </div>
+                
+                <div wicket:id="inducementsPanel" />
+
+                <div wicket:id="assignments" style="margin-top: 30px;">
+                    <div class="row assignable-header">
+                        <div class="col-xs-10">
+                            <input type="checkbox" wicket:id="assignmentCheckAll"/>
+                            <h3><wicket:message key="pageUser.assignments"/></h3>
+                        </div>
+                        <div class="col-xs-2 cog" wicket:id="assignmentMenu"/>
+                    </div>
+                    <div wicket:id="assignmentList">
+                        <div wicket:id="assignmentEditor" class="assignment-item" />
+                    </div>
+                </div>
+
+                <div wicket:id="tasks">
+                    <h3><wicket:message key="pageUser.tasks"/></h3>
+                    <div wicket:id="taskTable"/>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin: 20px 0;" class="form-group" wicket:id="executeOptions" />
+
+        <div wicket:id="progressPanel">[Status indicator here]</div>
+
+        <div class="main-button-bar">
+            <span class="button-group">
+                <a class="btn btn-default" wicket:id="back"/>
+            </span>
+            <!-- todo implement previes -->
+<!--             <a class="btn btn-info" wicket:id="recomputeAssignments" /> -->
+            <a class="btn btn-primary" wicket:id="save"/>
+            <a class="btn btn-danger" wicket:id="abort"/>
+        </div>
+
+    </form>
+
+<!--     <form class="form-horizontal" wicket:id="form"> -->
+<!--        
+<!--             name,description,requestable,displayName,identifier,costCenter,locality,parentOrgRef -->
+<!--             assignment,inducement,orgType,activation,authorization,exclusion, approverRef, approverExpression -->
+        
+<!--         <div class="row"> -->
+<!--          <div class="col-md-6"> -->
+<!--          <h3><wicket:message key="PageOrgUnit.title.parentOrgUnit"/></h3> -->
 <!--          <div wicket:id="parentOrgUnits" /> -->
          	
-                <div wicket:id="orgForm"/>
-            </div>
+<!--                 <div wicket:id="orgForm"/> -->
+<!--             </div> -->
 <!--             <div class="col-md-6"> -->
 <!--                 <h3><wicket:message key="PageOrgUnit.title.basic"/></h3> -->
 <!--                 <div class="form-group" wicket:id="name" /> -->
@@ -60,50 +125,50 @@
 <!--                 </div> -->
 
 <!--             </div> -->
-            <div class="col-md-6">
+<!--             <div class="col-md-6"> -->
             
-             <div wicket:id="accounts">
-                    <div class="row assignable-header">
-                        <div class="col-xs-10">
+<!--              <div wicket:id="accounts"> -->
+<!--                     <div class="row assignable-header"> -->
+<!--                         <div class="col-xs-10"> -->
 <!--                             <input type="checkbox" wicket:id="accountCheckAll"/> -->
-                            <h3><wicket:message key="pageOrgUnit.accounts"/></h3>
-                        </div>
-                    </div>
-                    <div wicket:id="accountList">
-                        <div wicket:id="account" />
-                    </div>
-                </div>
+<!--                             <h3><wicket:message key="pageOrgUnit.accounts"/></h3> -->
+<!--                         </div> -->
+<!--                     </div> -->
+<!--                     <div wicket:id="accountList"> -->
+<!--                         <div wicket:id="account" /> -->
+<!--                     </div> -->
+<!--                 </div> -->
             	
-                <div wicket:id="inducementsPanel" />
-                <div wicket:id="assignmentsPanel" style="margin-top: 30px;" />
-                <!--
-                <h3><wicket:message key="PageOrgUnit.title.assignments"/></h3>
-                todo
-                <h3><wicket:message key="PageOrgUnit.title.inducements"/></h3>
-                todo
-                <h3><wicket:message key="PageOrgUnit.title.authorizations"/></h3>
-                todo
-                <h3><wicket:message key="PageOrgUnit.title.exclusions"/></h3>
-                todo
-                <h3><wicket:message key="PageOrgUnit.title.approvers"/></h3>
-                todo
-                -->
-            </div>
-        </div>
+<!--                 <div wicket:id="inducementsPanel" /> -->
+<!--                 <div wicket:id="assignmentsPanel" style="margin-top: 30px;" /> -->
+<!--                
+<!--                 <h3><wicket:message key="PageOrgUnit.title.assignments"/></h3> -->
+<!--                 todo -->
+<!--                 <h3><wicket:message key="PageOrgUnit.title.inducements"/></h3> -->
+<!--                 todo -->
+<!--                 <h3><wicket:message key="PageOrgUnit.title.authorizations"/></h3> -->
+<!--                 todo -->
+<!--                 <h3><wicket:message key="PageOrgUnit.title.exclusions"/></h3> -->
+<!--                 todo -->
+<!--                 <h3><wicket:message key="PageOrgUnit.title.approvers"/></h3> -->
+<!--                 todo -->
+<!--                 --> -->
+<!--             </div> -->
+<!--         </div> -->
 
-        <div style="margin: 20px 0;" class="form-group" wicket:id="executeOptions" />
+<!--         <div style="margin: 20px 0;" class="form-group" wicket:id="executeOptions" /> -->
 
-        <div wicket:id="progressPanel">[Progress panel here]</div>
+<!--         <div wicket:id="progressPanel">[Progress panel here]</div> -->
 
-        <div class="main-button-bar">
-            <span class="button-group">
-                <a class="btn btn-default" wicket:id="back"/>
-            </span>
+<!--         <div class="main-button-bar"> -->
+<!--             <span class="button-group"> -->
+<!--                 <a class="btn btn-default" wicket:id="back"/> -->
+<!--             </span> -->
 
-            <a class="btn btn-primary" wicket:id="save"/>
-            <a class="btn btn-danger" wicket:id="abort"/>
-        </div>
-    </form>
+<!--             <a class="btn btn-primary" wicket:id="save"/> -->
+<!--             <a class="btn btn-danger" wicket:id="abort"/> -->
+<!--         </div> -->
+<!--     </form> -->
 </wicket:extend>
 </body>
 </html>

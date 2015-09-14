@@ -16,112 +16,113 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.image.Image;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.request.resource.AbstractResource;
+import org.apache.wicket.request.resource.ByteArrayResource;
+import org.apache.wicket.request.resource.ContextRelativeResource;
+import org.apache.wicket.util.string.StringValue;
+
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.EvaluatedAbstractRole;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedConstruction;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.OriginType;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.NoFocusNameSchemaException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
-import com.evolveum.midpoint.web.component.assignment.AssignmentEditorPanel;
 import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.component.prism.ContainerStatus;
+import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
+import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.web.component.progress.ProgressReporter;
-import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.PageTemplate;
+import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
-import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
-import com.evolveum.midpoint.web.page.admin.users.component.*;
-import com.evolveum.midpoint.web.page.admin.users.dto.SimpleUserResourceProvider;
+import com.evolveum.midpoint.web.page.admin.users.component.AssignmentPreviewDialog;
+import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusShadowDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import com.evolveum.midpoint.web.resource.img.ImgResources;
-import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.image.Image;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.request.resource.AbstractResource;
-import org.apache.wicket.request.resource.ByteArrayResource;
-import org.apache.wicket.request.resource.ContextRelativeResource;
-import org.apache.wicket.request.resource.PackageResourceReference;
-import org.apache.wicket.util.string.StringValue;
-
-import javax.xml.namespace.QName;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author lazyman
@@ -133,7 +134,7 @@ import java.util.TreeSet;
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USER_URL,
                 label = "PageUser.auth.user.label",
                 description = "PageUser.auth.user.description")})
-public class PageUser extends PageAdminUsers implements ProgressReportingAwarePage {
+public class PageUser extends PageAdminFocus {
 
     public static final String PARAM_RETURN_PAGE = "returnPage";
     private static final String DOT_CLASS = PageUser.class.getName() + ".";
@@ -183,9 +184,9 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
 
-    private LoadableModel<ObjectWrapper> userModel;
-    private LoadableModel<List<FocusShadowDto>> accountsModel;
-    private LoadableModel<List<AssignmentEditorDto>> assignmentsModel;
+//    private LoadableModel<ObjectWrapper> userModel;
+//    private LoadableModel<List<FocusShadowDto>> accountsModel;
+//    private LoadableModel<List<AssignmentEditorDto>> assignmentsModel;
     private IModel<PrismObject<UserType>> summaryUser;
 
     private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel
@@ -214,31 +215,31 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         initialize(userToEdit);
     }
 
-    protected void initialize(final PrismObject<UserType> userToEdit) {
-        userModel = new LoadableModel<ObjectWrapper>(false) {
-
-            @Override
-            protected ObjectWrapper load() {
-                return loadUserWrapper(userToEdit);
-            }
-        };
-        accountsModel = new LoadableModel<List<FocusShadowDto>>(false) {
-
-            @Override
-            protected List<FocusShadowDto> load() {
-                return loadAccountWrappers();
-            }
-        };
-        assignmentsModel = new LoadableModel<List<AssignmentEditorDto>>(false) {
-
-            @Override
-            protected List<AssignmentEditorDto> load() {
-                return loadAssignments();
-            }
-        };
-
-        initLayout();
-    }
+//    protected void initialize(final PrismObject<UserType> userToEdit) {
+//        userModel = new LoadableModel<ObjectWrapper>(false) {
+//
+//            @Override
+//            protected ObjectWrapper load() {
+//                return loadUserWrapper(userToEdit);
+//            }
+//        };
+//        accountsModel = new LoadableModel<List<FocusShadowDto>>(false) {
+//
+//            @Override
+//            protected List<FocusShadowDto> load() {
+//                return loadAccountWrappers();
+//            }
+//        };
+//        assignmentsModel = new LoadableModel<List<AssignmentEditorDto>>(false) {
+//
+//            @Override
+//            protected List<AssignmentEditorDto> load() {
+//                return loadAssignments();
+//            }
+//        };
+//
+//        initLayout();
+//    }
 
     @Override
     protected IModel<String> createPageTitleModel(){
@@ -266,8 +267,8 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
                 }
 
                 String name = null;
-                if(userModel != null && userModel.getObject() != null && userModel.getObject().getObject() != null){
-                    name = WebMiscUtil.getName(userModel.getObject().getObject());
+                if(getFocusWrapper() != null && getFocusWrapper().getObject() != null){
+                    name = WebMiscUtil.getName(getFocusWrapper().getObject());
                 }
 
                 return createStringResource("pageUser.subTitle.edituser", name).getObject();
@@ -275,114 +276,114 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         };
     }
 
-    private ObjectWrapper loadUserWrapper(PrismObject<UserType> userToEdit) {
-        OperationResult result = new OperationResult(OPERATION_LOAD_USER);
-        PrismObject<UserType> user = null;
-        try {
-            if (!isEditingUser()) {
-                if (userToEdit == null) {
-                    UserType userType = new UserType();
-                    getMidpointApplication().getPrismContext().adopt(userType);
-                    user = userType.asPrismObject();
-                } else {
-                    user= userToEdit;
-                }
-            } else {
-                Task task = createSimpleTask(OPERATION_LOAD_USER);
+//    private ObjectWrapper loadUserWrapper(PrismObject<UserType> userToEdit) {
+//        OperationResult result = new OperationResult(OPERATION_LOAD_USER);
+//        PrismObject<UserType> user = null;
+//        try {
+//            if (!isEditingUser()) {
+//                if (userToEdit == null) {
+//                    UserType userType = new UserType();
+//                    getMidpointApplication().getPrismContext().adopt(userType);
+//                    user = userType.asPrismObject();
+//                } else {
+//                    user= userToEdit;
+//                }
+//            } else {
+//                Task task = createSimpleTask(OPERATION_LOAD_USER);
+//
+//                StringValue userOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
+//                Collection options = SelectorOptions.createCollection(UserType.F_JPEG_PHOTO,
+//                        GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+//
+//                user = getModelService().getObject(UserType.class, userOid.toString(), options, task, result);
+//            }
+//
+//            result.recordSuccess();
+//        } catch (Exception ex) {
+//            result.recordFatalError("Couldn't get user.", ex);
+//            LoggingUtils.logException(LOGGER, "Couldn't load user", ex);
+//        }
+//
+//        if (!result.isSuccess()) {
+//            showResultInSession(result);
+//        }
+//
+//        if (user == null) {
+//            if (isEditingUser()) {
+//                getSession().error(getString("pageUser.message.cantEditUser"));
+//            } else {
+//                getSession().error(getString("pageUser.message.cantNewUser"));
+//            }
+//            throw new RestartResponseException(PageUsers.class);
+//        }
+//
+//        ContainerStatus status = isEditingUser() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
+//        ObjectWrapper wrapper = null;
+//        try{
+//        	wrapper = ObjectWrapperUtil.createObjectWrapper("pageUser.userDetails", null, user, status, this);
+//        } catch (Exception ex){
+//        	result.recordFatalError("Couldn't get user.", ex);
+//            LoggingUtils.logException(LOGGER, "Couldn't load user", ex);
+//            wrapper = new ObjectWrapper("pageUser.userDetails", null, user, null, status, this);
+//        }
+////        ObjectWrapper wrapper = new ObjectWrapper("pageUser.userDetails", null, user, status);
+//        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+//            showResultInSession(wrapper.getResult());
+//        }
+//
+//        wrapper.setShowEmpty(!isEditingUser());
+//        return wrapper;
+//    }
 
-                StringValue userOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
-                Collection options = SelectorOptions.createCollection(UserType.F_JPEG_PHOTO,
-                        GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+//    private void initLayout() {
+//        final Form mainForm = new Form(ID_MAIN_FORM, true);
+//        mainForm.setMaxSize(MidPointApplication.USER_PHOTO_MAX_FILE_SIZE);
+//        mainForm.setMultiPart(true);
+//        add(mainForm);
+//
+//        progressReporter = ProgressReporter.create(this, mainForm, "progressPanel");
+//
+//        initSummaryInfo(mainForm);
+//
+//        PrismObjectPanel userForm = new PrismObjectPanel(ID_USER_FORM, userModel, new PackageResourceReference(
+//                ImgResources.class, ImgResources.USER_PRISM), mainForm, this) {
+//
+//            @Override
+//            protected IModel<String> createDescription(IModel<ObjectWrapper> model) {
+//                return createStringResource("pageUser.description");
+//            }
+//        };
+//        mainForm.add(userForm);
+//
+//        WebMarkupContainer accounts = new WebMarkupContainer(ID_ACCOUNTS);
+//        accounts.setOutputMarkupId(true);
+//        mainForm.add(accounts);
+//        initAccounts(accounts);
+//
+//        WebMarkupContainer assignments = new WebMarkupContainer(ID_ASSIGNMENTS);
+//        assignments.setOutputMarkupId(true);
+//        mainForm.add(assignments);
+//        initAssignments(assignments);
+//
+//        WebMarkupContainer tasks = new WebMarkupContainer(ID_TASKS);
+//        tasks.setOutputMarkupId(true);
+//        mainForm.add(tasks);
+//        initTasks(tasks);
+//
+//        initButtons(mainForm);
+//
+//        initResourceModal();
+//        initAssignableModal();
+//        initConfirmationDialogs();
+//    }
 
-                user = getModelService().getObject(UserType.class, userOid.toString(), options, task, result);
-            }
-
-            result.recordSuccess();
-        } catch (Exception ex) {
-            result.recordFatalError("Couldn't get user.", ex);
-            LoggingUtils.logException(LOGGER, "Couldn't load user", ex);
-        }
-
-        if (!result.isSuccess()) {
-            showResultInSession(result);
-        }
-
-        if (user == null) {
-            if (isEditingUser()) {
-                getSession().error(getString("pageUser.message.cantEditUser"));
-            } else {
-                getSession().error(getString("pageUser.message.cantNewUser"));
-            }
-            throw new RestartResponseException(PageUsers.class);
-        }
-
-        ContainerStatus status = isEditingUser() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
-        ObjectWrapper wrapper = null;
-        try{
-        	wrapper = ObjectWrapperUtil.createObjectWrapper("pageUser.userDetails", null, user, status, this);
-        } catch (Exception ex){
-        	result.recordFatalError("Couldn't get user.", ex);
-            LoggingUtils.logException(LOGGER, "Couldn't load user", ex);
-            wrapper = new ObjectWrapper("pageUser.userDetails", null, user, null, status, this);
-        }
-//        ObjectWrapper wrapper = new ObjectWrapper("pageUser.userDetails", null, user, status);
-        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
-            showResultInSession(wrapper.getResult());
-        }
-
-        wrapper.setShowEmpty(!isEditingUser());
-        return wrapper;
-    }
-
-    private void initLayout() {
-        final Form mainForm = new Form(ID_MAIN_FORM, true);
-        mainForm.setMaxSize(MidPointApplication.USER_PHOTO_MAX_FILE_SIZE);
-        mainForm.setMultiPart(true);
-        add(mainForm);
-
-        progressReporter = ProgressReporter.create(this, mainForm, "progressPanel");
-
-        initSummaryInfo(mainForm);
-
-        PrismObjectPanel userForm = new PrismObjectPanel(ID_USER_FORM, userModel, new PackageResourceReference(
-                ImgResources.class, ImgResources.USER_PRISM), mainForm, this) {
-
-            @Override
-            protected IModel<String> createDescription(IModel<ObjectWrapper> model) {
-                return createStringResource("pageUser.description");
-            }
-        };
-        mainForm.add(userForm);
-
-        WebMarkupContainer accounts = new WebMarkupContainer(ID_ACCOUNTS);
-        accounts.setOutputMarkupId(true);
-        mainForm.add(accounts);
-        initAccounts(accounts);
-
-        WebMarkupContainer assignments = new WebMarkupContainer(ID_ASSIGNMENTS);
-        assignments.setOutputMarkupId(true);
-        mainForm.add(assignments);
-        initAssignments(assignments);
-
-        WebMarkupContainer tasks = new WebMarkupContainer(ID_TASKS);
-        tasks.setOutputMarkupId(true);
-        mainForm.add(tasks);
-        initTasks(tasks);
-
-        initButtons(mainForm);
-
-        initResourceModal();
-        initAssignableModal();
-        initConfirmationDialogs();
-    }
-
-    private String getLabelFromPolyString(PolyStringType poly){
-        if(poly == null || poly.getOrig() == null){
-            return "-";
-        } else{
-            return poly.getOrig();
-        }
-    }
+//    private String getLabelFromPolyString(PolyStringType poly){
+//        if(poly == null || poly.getOrig() == null){
+//            return "-";
+//        } else{
+//            return poly.getOrig();
+//        }
+//    }
 
     private void initSummaryInfo(Form mainForm){
 
@@ -407,7 +408,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
 
             @Override
             public PrismObject<UserType> getObject() {
-                ObjectWrapper user = userModel.getObject();
+                ObjectWrapper user = getFocusWrapper();
                 return user.getObject();
             }
         };
@@ -432,643 +433,643 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         summaryContainer.add(img);
     }
 
-    private void initConfirmationDialogs() {
-        ConfirmationDialog dialog = new ConfirmationDialog(MODAL_ID_CONFIRM_DELETE_ACCOUNT,
-                createStringResource("pageUser.title.confirmDelete"), new AbstractReadOnlyModel<String>() {
-
-            @Override
-            public String getObject() {
-                return createStringResource("pageUser.message.deleteAccountConfirm",
-                        getSelectedAccounts().size()).getString();
-            }
-        }) {
-
-            @Override
-            public void yesPerformed(AjaxRequestTarget target) {
-                close(target);
-                deleteAccountConfirmedPerformed(target, getSelectedAccounts());
-            }
-        };
-        add(dialog);
-
-        dialog = new ConfirmationDialog(MODAL_ID_CONFIRM_DELETE_ASSIGNMENT,
-                createStringResource("pageUser.title.confirmDelete"), new AbstractReadOnlyModel<String>() {
-
-            @Override
-            public String getObject() {
-                return createStringResource("pageUser.message.deleteAssignmentConfirm",
-                        getSelectedAssignments().size()).getString();
-            }
-        }) {
-
-            @Override
-            public void yesPerformed(AjaxRequestTarget target) {
-                close(target);
-                deleteAssignmentConfirmedPerformed(target, getSelectedAssignments());
-            }
-        };
-        add(dialog);
-
-        // TODO: uncoment later -> check for unsaved changes
-        // dialog = new ConfirmationDialog(MODAL_ID_CONFIRM_CANCEL,
-        // createStringResource("pageUser.title.confirmCancel"), new
-        // AbstractReadOnlyModel<String>() {
-        //
-        // @Override
-        // public String getObject() {
-        // return createStringResource("pageUser.message.cancelConfirm",
-        // getSelectedAssignments().size()).getString();
-        // }
-        // }) {
-        //
-        // @Override
-        // public void yesPerformed(AjaxRequestTarget target) {
-        // close(target);
-        // setResponsePage(PageUsers.class);
-        // // deleteAssignmentConfirmedPerformed(target,
-        // getSelectedAssignments());
-        // }
-        // };
-        // add(dialog);
-    }
-
-    private List<InlineMenuItem> createAssignmentsMenu() {
-        List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
-        InlineMenuItem item = new InlineMenuItem(createStringResource("pageUser.menu.assignAccount"), new InlineMenuItemAction() {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                showAssignablePopup(target, ResourceType.class);
-            }
-        });
-        items.add(item);
-        item = new InlineMenuItem(createStringResource("pageUser.menu.assignRole"), new InlineMenuItemAction() {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                showAssignablePopup(target, RoleType.class);
-            }
-        });
-        items.add(item);
-        item = new InlineMenuItem(createStringResource("pageUser.menu.assignOrg"), new InlineMenuItemAction() {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                showAssignableOrgPopup(target);
-            }
-        });
-        items.add(item);
-        items.add(new InlineMenuItem());
-        item = new InlineMenuItem(createStringResource("pageUser.menu.unassign"), new InlineMenuItemAction() {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                deleteAssignmentPerformed(target);
-            }
-        });
-        items.add(item);
-
-        return items;
-    }
-
-    private List<InlineMenuItem> createAccountsMenu() {
-        List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
-        InlineMenuItem item = new InlineMenuItem(createStringResource("pageUser.button.addAccount"), new InlineMenuItemAction() {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                showModalWindow(MODAL_ID_RESOURCE, target);
-            }
-        });
-        items.add(item);
-        items.add(new InlineMenuItem());
-        item = new InlineMenuItem(createStringResource("pageUser.button.enable"), new InlineMenuItemAction() {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                updateAccountActivation(target, getSelectedAccounts(), true);
-            }
-        });
-        items.add(item);
-        item = new InlineMenuItem(createStringResource("pageUser.button.disable"), new InlineMenuItemAction() {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                updateAccountActivation(target, getSelectedAccounts(), false);
-            }
-        });
-        items.add(item);
-        item = new InlineMenuItem(createStringResource("pageUser.button.unlink"), new InlineMenuItemAction() {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                unlinkAccountPerformed(target, getSelectedAccounts());
-            }
-        });
-        items.add(item);
-        item = new InlineMenuItem(createStringResource("pageUser.button.unlock"), new InlineMenuItemAction() {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                unlockAccountPerformed(target, getSelectedAccounts());
-            }
-        });
-        items.add(item);
-        items.add(new InlineMenuItem());
-        item = new InlineMenuItem(createStringResource("pageUser.button.delete"), new InlineMenuItemAction() {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                deleteAccountPerformed(target);
-            }
-        });
-        items.add(item);
-
-        return items;
-    }
-
-    private void initAccounts(final WebMarkupContainer accounts) {
-        InlineMenu accountMenu = new InlineMenu(ID_ACCOUNT_MENU, new Model((Serializable) createAccountsMenu()));
-        accounts.add(accountMenu);
-
-        final ListView<FocusShadowDto> accountList = new ListView<FocusShadowDto>(ID_ACCOUNT_LIST, accountsModel) {
-
-            @Override
-            protected void populateItem(final ListItem<FocusShadowDto> item) {
-                PackageResourceReference packageRef;
-                final FocusShadowDto dto = item.getModelObject();
-
-                Panel panel;
-
-                if(dto.isLoadedOK()){
-                    packageRef = new PackageResourceReference(ImgResources.class,
-                            ImgResources.HDD_PRISM);
-
-                    panel = new PrismObjectPanel("account", new PropertyModel<ObjectWrapper>(
-                            item.getModel(), "object"), packageRef, (Form) PageUser.this.get(ID_MAIN_FORM), PageUser.this) {
-
-                        @Override
-                        protected Component createHeader(String id, IModel<ObjectWrapper> model) {
-                            return new CheckTableHeader(id, model) {
-
-                                @Override
-                                protected List<InlineMenuItem> createMenuItems() {
-                                    return createDefaultMenuItems(getModel());
-                                }
-                            };
-                        }
-                    };
-                } else{
-                    panel = new SimpleErrorPanel("account", item.getModel()){
-
-                        @Override
-                        public void onShowMorePerformed(AjaxRequestTarget target){
-                            OperationResult fetchResult = dto.getResult();
-                            if (fetchResult != null) {
-                                showResult(fetchResult);
-                                target.add(getPageBase().getFeedbackPanel());
-                            }
-                        }
-                    };
-                }
-
-                panel.setOutputMarkupId(true);
-                item.add(panel);
-            }
-        };
-
-        AjaxCheckBox accountCheckAll = new AjaxCheckBox(ID_ACCOUNT_CHECK_ALL, new Model()) {
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                for(FocusShadowDto dto: accountList.getModelObject()){
-                    if(dto.isLoadedOK()){
-                        ObjectWrapper accModel = dto.getObject();
-                        accModel.setSelected(getModelObject());
-                    }
-                }
-
-                target.add(accounts);
-            }
-        };
-        accounts.add(accountCheckAll);
-
-        accounts.add(accountList);
-    }
-
-    private List<FocusShadowDto> loadAccountWrappers() {
-        List<FocusShadowDto> list = new ArrayList<FocusShadowDto>();
-
-        ObjectWrapper user = userModel.getObject();
-        PrismObject<UserType> prismUser = user.getObject();
-        List<ObjectReferenceType> references = prismUser.asObjectable().getLinkRef();
-
-        Task task = createSimpleTask(OPERATION_LOAD_ACCOUNT);
-        for (ObjectReferenceType reference : references) {
-            OperationResult subResult = new OperationResult(OPERATION_LOAD_ACCOUNT);
-            try {
-                Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
-                        ShadowType.F_RESOURCE, GetOperationOptions.createResolve());
-
-                if (reference.getOid() == null) {
-                    continue;
-                }
-
-                PrismObject<ShadowType> account = getModelService().getObject(ShadowType.class,
-                        reference.getOid(), options, task, subResult);
-                ShadowType accountType = account.asObjectable();
-
-                OperationResultType fetchResult = accountType.getFetchResult();
-
-                ResourceType resource = accountType.getResource();
-                String resourceName = WebMiscUtil.getName(resource);
-
-                StringBuilder description = new StringBuilder();
-                if (accountType.getIntent() != null) {
-                    description.append(accountType.getIntent()).append(", ");
-                }
-                description.append(WebMiscUtil.getOrigStringFromPoly(accountType.getName()));
-
-                ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(resourceName, description.toString(),
-                            account, ContainerStatus.MODIFYING, true, this);
-//                ObjectWrapper wrapper = new ObjectWrapper(resourceName, WebMiscUtil.getOrigStringFromPoly(accountType
-//                        .getName()), account, ContainerStatus.MODIFYING);
-                wrapper.setFetchResult(OperationResult.createOperationResult(fetchResult));
-                wrapper.setSelectable(true);
-                wrapper.setMinimalized(true);
-                
-                PrismContainer<ShadowAssociationType> associationContainer = account.findContainer(ShadowType.F_ASSOCIATION);
-                if (associationContainer != null && associationContainer.getValues() != null){
-                	List<PrismProperty> associations = new ArrayList<>(associationContainer.getValues().size());
-                	for (PrismContainerValue associationVal : associationContainer.getValues()){
-                		ShadowAssociationType associationType = (ShadowAssociationType) associationVal.asContainerable();
-                		ObjectReferenceType shadowRef = associationType.getShadowRef();
-                		if (shadowRef != null) { // shadowRef can be null in case of "broken" associations
-	                        // we can safely eliminate fetching from resource, because we need only the name
-	                		PrismObject<ShadowType> association = getModelService().getObject(ShadowType.class, shadowRef.getOid(),
-	                                SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, subResult);
-	                		associations.add(association.findProperty(ShadowType.F_NAME));
-                		}
-                	}
-                	
-                	wrapper.setAssociations(associations);
-                	
-                }
-
-                wrapper.initializeContainers(this);
-
-                list.add(new FocusShadowDto(wrapper, UserDtoStatus.MODIFY));
-
-                subResult.recomputeStatus();
-            } catch (ObjectNotFoundException ex) {
-                // this is fix for MID-854, full user/accounts/assignments reload if accountRef reference is broken
-                // because consistency already fixed it.
-
-                userModel.reset();
-                accountsModel.reset();
-                assignmentsModel.reset();
-            } catch (Exception ex) {
-                subResult.recordFatalError("Couldn't load account." + ex.getMessage(), ex);
-                LoggingUtils.logException(LOGGER, "Couldn't load account", ex);
-                list.add(new FocusShadowDto(false, getResourceName(reference.getOid()), subResult));
-            } finally {
-                subResult.computeStatus();
-            }
-        }
-
-        return list;
-    }
-
-    private String getResourceName(String oid){
-        OperationResult result = new OperationResult(OPERATION_SEARCH_RESOURCE);
-        Task task = createSimpleTask(OPERATION_SEARCH_RESOURCE);
-
-        try {
-            Collection<SelectorOptions<GetOperationOptions>> options =
-                    SelectorOptions.createCollection(GetOperationOptions.createRaw());
-
-            PrismObject<ShadowType> shadow = getModelService().getObject(ShadowType.class, oid, options, task, result);
-            PrismObject<ResourceType> resource = getModelService().getObject(ResourceType.class,
-                    shadow.asObjectable().getResourceRef().getOid(), null, task, result);
-
-            if(resource != null){
-                return WebMiscUtil.getOrigStringFromPoly(resource.asObjectable().getName());
-            }
-        } catch (Exception e){
-            result.recordFatalError("Account Resource was not found. " + e.getMessage());
-            LoggingUtils.logException(LOGGER, "Account Resource was not found.", e);
-            showResult(result);
-        }
-
-        return "-";
-    }
-
-    private List<AssignmentEditorDto> loadAssignments() {
-        List<AssignmentEditorDto> list = new ArrayList<AssignmentEditorDto>();
-
-        OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENTS);
-
-        ObjectWrapper user = userModel.getObject();
-        PrismObject<UserType> prismUser = user.getObject();
-        List<AssignmentType> assignments = prismUser.asObjectable().getAssignment();
-        for (AssignmentType assignment : assignments) {
-            ObjectType targetObject = null;
-            AssignmentEditorDtoType type = AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION;
-            if (assignment.getTarget() != null) {
-                // object assignment
-                targetObject = assignment.getTarget();
-                type = AssignmentEditorDtoType.getType(targetObject.getClass());
-            } else if (assignment.getTargetRef() != null) {
-                // object assignment through reference
-                ObjectReferenceType ref = assignment.getTargetRef();
-                PrismObject target = getReference(ref, result);
-
-                if (target != null) {
-                    targetObject = (ObjectType) target.asObjectable();
-                    type = AssignmentEditorDtoType.getType(target.getCompileTimeClass());
-                }
-            } else if (assignment.getConstruction() != null) {
-                // account assignment through account construction
-                ConstructionType construction = assignment.getConstruction();
-                if (construction.getResource() != null) {
-                    targetObject = construction.getResource();
-                } else if (construction.getResourceRef() != null) {
-                    ObjectReferenceType ref = construction.getResourceRef();
-                    PrismObject target = getReference(ref, result);
-                    if (target != null) {
-                        targetObject = (ObjectType) target.asObjectable();
-                    }
-                }
-            }
-
-            list.add(new AssignmentEditorDto(targetObject, type, UserDtoStatus.MODIFY, assignment, this));
-        }
-
-        Collections.sort(list);
-
-        return list;
-    }
-
-    private PrismObject getReference(ObjectReferenceType ref, OperationResult result) {
-        OperationResult subResult = result.createSubresult(OPERATION_LOAD_ASSIGNMENT);
-        subResult.addParam("targetRef", ref.getOid());
-        PrismObject target = null;
-        try {
-            Task task = createSimpleTask(OPERATION_LOAD_ASSIGNMENT);
-            Class type = ObjectType.class;
-            if (ref.getType() != null) {
-                type = getPrismContext().getSchemaRegistry().determineCompileTimeClass(ref.getType());
-            }
-            target = getModelService().getObject(type, ref.getOid(), null, task, subResult);
-            subResult.recordSuccess();
-        } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't get assignment target ref", ex);
-            subResult.recordFatalError("Couldn't get assignment target ref.", ex);
-        }
-
-        if(!subResult.isHandledError() && !subResult.isSuccess()){
-            showResult(subResult);
-        }
-
-        return target;
-    }
-
-    private void initAssignments(final WebMarkupContainer assignments) {
-        InlineMenu accountMenu = new InlineMenu(ID_ASSIGNMENT_MENU, new Model((Serializable) createAssignmentsMenu()));
-        assignments.add(accountMenu);
-
-        final ListView<AssignmentEditorDto> assignmentList = new ListView<AssignmentEditorDto>(ID_ASSIGNMENT_LIST,
-                assignmentsModel) {
-
-            @Override
-            protected void populateItem(final ListItem<AssignmentEditorDto> item) {
-                AssignmentEditorPanel assignmentEditor = new AssignmentEditorPanel(ID_ASSIGNMENT_EDITOR,
-                        item.getModel());
-                item.add(assignmentEditor);
-            }
-        };
-        assignmentList.setOutputMarkupId(true);
-        assignments.add(assignmentList);
-
-        AjaxCheckBox assignmentCheckAll = new AjaxCheckBox(ID_ASSIGNMENT_CHECK_ALL, new Model()) {
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                for(AssignmentEditorDto item: assignmentList.getModelObject()){
-                    item.setSelected(this.getModelObject());
-                }
-
-                target.add(assignments);
-            }
-        };
-        assignmentCheckAll.setOutputMarkupId(true);
-        assignments.add(assignmentCheckAll);
-    }
-
-    private void initTasks(WebMarkupContainer tasks) {
-        List<IColumn<TaskDto, String>> taskColumns = initTaskColumns();
-        final TaskDtoProvider taskDtoProvider = new TaskDtoProvider(PageUser.this,
-                TaskDtoProviderOptions.minimalOptions());
-        taskDtoProvider.setQuery(createTaskQuery(null));
-        TablePanel taskTable = new TablePanel<TaskDto>(ID_TASK_TABLE, taskDtoProvider, taskColumns) {
-
-            @Override
-            protected void onInitialize() {
-                super.onInitialize();
-                StringValue oidValue = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
-
-                taskDtoProvider.setQuery(createTaskQuery(oidValue != null ? oidValue.toString() : null));
-            }
-        };
-        tasks.add(taskTable);
-
-        tasks.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return taskDtoProvider.size() > 0;
-            }
-        });
-    }
-
-    private ObjectQuery createTaskQuery(String oid) {
-        List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
-
-        if (oid == null) {
-            oid = "non-existent";      // TODO !!!!!!!!!!!!!!!!!!!!
-        }
-        try {
-            filters.add(RefFilter.createReferenceEqual(TaskType.F_OBJECT_REF, TaskType.class, getPrismContext(), oid));
-            filters.add(NotFilter.createNot(EqualFilter.createEqual(TaskType.F_EXECUTION_STATUS, TaskType.class, getPrismContext(), null, TaskExecutionStatusType.CLOSED)));
-            filters.add(EqualFilter.createEqual(TaskType.F_PARENT, TaskType.class, getPrismContext(), null));
-        } catch (SchemaException e) {
-            throw new SystemException("Unexpected SchemaException when creating task filter", e);
-        }
-
-        return new ObjectQuery().createObjectQuery(AndFilter.createAnd(filters));
-    }
-
-    private List<IColumn<TaskDto, String>> initTaskColumns() {
-        List<IColumn<TaskDto, String>> columns = new ArrayList<IColumn<TaskDto, String>>();
-
-        columns.add(PageTasks.createTaskNameColumn(this, "pageUser.task.name"));
-        columns.add(PageTasks.createTaskCategoryColumn(this, "pageUser.task.category"));
-        columns.add(PageTasks.createTaskExecutionStatusColumn(this, "pageUser.task.execution"));
-        columns.add(PageTasks.createTaskResultStatusColumn(this, "pageUser.task.status"));
-        return columns;
-    }
-
-
-    private void initButtons(final Form mainForm) {
-        AjaxSubmitButton saveButton = new AjaxSubmitButton("save",
-                createStringResource("pageUser.button.save")) {
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
-                progressReporter.onSaveSubmit();
-                savePerformed(target);
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
-                target.add(getFeedbackPanel());
-            }
-        };
-        progressReporter.registerSaveButton(saveButton);
-        mainForm.add(saveButton);
-
-        AjaxSubmitButton abortButton = new AjaxSubmitButton("abort",
-                createStringResource("pageUser.button.abort")) {
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
-                progressReporter.onAbortSubmit(target);
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
-                target.add(getFeedbackPanel());
-            }
-        };
-        progressReporter.registerAbortButton(abortButton);
-        mainForm.add(abortButton);
-
-        AjaxSubmitButton recomputeAssignments = new AjaxSubmitButton(ID_BUTTON_RECOMPUTE_ASSIGNMENTS,
-                createStringResource("pageUser.button.recompute.assignments")) {
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
-                recomputeAssignmentsPerformed(target);
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
-                target.add(getFeedbackPanel());
-            }
-        };
-        mainForm.add(recomputeAssignments);
-
-        AjaxButton back = new AjaxButton("back", createStringResource("pageUser.button.back")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                cancelPerformed(target);
-            }
-        };
-        mainForm.add(back);
-
-        mainForm.add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel, true, false));
-    }
-
-    private void showAssignablePopup(AjaxRequestTarget target, Class<? extends ObjectType> type) {
-        ModalWindow modal = (ModalWindow) get(MODAL_ID_ASSIGNABLE);
-        AssignablePopupContent content =  (AssignableRolePopupContent) modal.get(modal.getContentId());
-        content.setType(type);
-        showModalWindow(MODAL_ID_ASSIGNABLE, target);
-        target.add(getFeedbackPanel());
-    }
-    
-    private void showAssignableOrgPopup(AjaxRequestTarget target) {
-        ModalWindow modal = (ModalWindow) get(MODAL_ID_ASSIGNABLE_ORG);
-        AssignablePopupContent content =  (AssignableOrgPopupContent) modal.get(modal.getContentId());
-        content.setType(OrgType.class);
-        showModalWindow(MODAL_ID_ASSIGNABLE_ORG, target);
-        target.add(getFeedbackPanel());
-    }
-
-    private void initResourceModal() {
-        ModalWindow window = createModalWindow(MODAL_ID_RESOURCE,
-                createStringResource("pageUser.title.selectResource"), 1100, 560);
-
-        final SimpleUserResourceProvider provider = new SimpleUserResourceProvider(this, accountsModel){
-
-            @Override
-            protected void handlePartialError(OperationResult result) {
-                showResult(result);
-            }
-        };
-        window.setContent(new ResourcesPopup(window.getContentId()) {
-
-            @Override
-            public SimpleUserResourceProvider getProvider() {
-                return provider;
-            }
-
-            @Override
-            protected void addPerformed(AjaxRequestTarget target, List<ResourceType> newResources) {
-                addSelectedAccountPerformed(target, newResources);
-            }
-        });
-        add(window);
-    }
-
-    private void initAssignableModal() {
-        ModalWindow window = createModalWindow(MODAL_ID_ASSIGNABLE,
-                createStringResource("pageUser.title.selectAssignable"), 1100, 560);
-        window.setContent(new AssignableRolePopupContent(window.getContentId()) {
-
-            @Override
-            protected void handlePartialError(OperationResult result) {
-                showResult(result);
-            }
-
-            @Override
-            protected void addPerformed(AjaxRequestTarget target, List<ObjectType> selected) {
-                addSelectedAssignablePerformed(target, selected, MODAL_ID_ASSIGNABLE);
-            }
-
-            @Override
-            protected PrismObject<UserType> getUserDefinition() {
-                return userModel.getObject().getObject();
-            }
-        });
-        add(window);
-        
-        window = createModalWindow(MODAL_ID_ASSIGNABLE_ORG,
-                createStringResource("pageUser.title.selectAssignable"), 1150, 600);
-        window.setContent(new AssignableOrgPopupContent(window.getContentId()) {
-
-            @Override
-            protected void handlePartialError(OperationResult result) {
-                showResult(result);
-            }
-
-            @Override
-            protected void addPerformed(AjaxRequestTarget target, List<ObjectType> selected) {
-                addSelectedAssignablePerformed(target, selected, MODAL_ID_ASSIGNABLE_ORG);
-            }
-        });
-        add(window);
-
-        ModalWindow assignmentPreviewPopup = new AssignmentPreviewDialog(MODAL_ID_ASSIGNMENTS_PREVIEW, null, null);
-        add(assignmentPreviewPopup);
-    }
+//    private void initConfirmationDialogs() {
+//        ConfirmationDialog dialog = new ConfirmationDialog(MODAL_ID_CONFIRM_DELETE_ACCOUNT,
+//                createStringResource("pageUser.title.confirmDelete"), new AbstractReadOnlyModel<String>() {
+//
+//            @Override
+//            public String getObject() {
+//                return createStringResource("pageUser.message.deleteAccountConfirm",
+//                        getSelectedAccounts().size()).getString();
+//            }
+//        }) {
+//
+//            @Override
+//            public void yesPerformed(AjaxRequestTarget target) {
+//                close(target);
+//                deleteAccountConfirmedPerformed(target, getSelectedAccounts());
+//            }
+//        };
+//        add(dialog);
+//
+//        dialog = new ConfirmationDialog(MODAL_ID_CONFIRM_DELETE_ASSIGNMENT,
+//                createStringResource("pageUser.title.confirmDelete"), new AbstractReadOnlyModel<String>() {
+//
+//            @Override
+//            public String getObject() {
+//                return createStringResource("pageUser.message.deleteAssignmentConfirm",
+//                        getSelectedAssignments().size()).getString();
+//            }
+//        }) {
+//
+//            @Override
+//            public void yesPerformed(AjaxRequestTarget target) {
+//                close(target);
+//                deleteAssignmentConfirmedPerformed(target, getSelectedAssignments());
+//            }
+//        };
+//        add(dialog);
+//
+//        // TODO: uncoment later -> check for unsaved changes
+//        // dialog = new ConfirmationDialog(MODAL_ID_CONFIRM_CANCEL,
+//        // createStringResource("pageUser.title.confirmCancel"), new
+//        // AbstractReadOnlyModel<String>() {
+//        //
+//        // @Override
+//        // public String getObject() {
+//        // return createStringResource("pageUser.message.cancelConfirm",
+//        // getSelectedAssignments().size()).getString();
+//        // }
+//        // }) {
+//        //
+//        // @Override
+//        // public void yesPerformed(AjaxRequestTarget target) {
+//        // close(target);
+//        // setResponsePage(PageUsers.class);
+//        // // deleteAssignmentConfirmedPerformed(target,
+//        // getSelectedAssignments());
+//        // }
+//        // };
+//        // add(dialog);
+//    }
+//
+//    private List<InlineMenuItem> createAssignmentsMenu() {
+//        List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
+//        InlineMenuItem item = new InlineMenuItem(createStringResource("pageUser.menu.assignAccount"), new InlineMenuItemAction() {
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                showAssignablePopup(target, ResourceType.class);
+//            }
+//        });
+//        items.add(item);
+//        item = new InlineMenuItem(createStringResource("pageUser.menu.assignRole"), new InlineMenuItemAction() {
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                showAssignablePopup(target, RoleType.class);
+//            }
+//        });
+//        items.add(item);
+//        item = new InlineMenuItem(createStringResource("pageUser.menu.assignOrg"), new InlineMenuItemAction() {
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                showAssignableOrgPopup(target);
+//            }
+//        });
+//        items.add(item);
+//        items.add(new InlineMenuItem());
+//        item = new InlineMenuItem(createStringResource("pageUser.menu.unassign"), new InlineMenuItemAction() {
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                deleteAssignmentPerformed(target);
+//            }
+//        });
+//        items.add(item);
+//
+//        return items;
+//    }
+//
+//    private List<InlineMenuItem> createAccountsMenu() {
+//        List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
+//        InlineMenuItem item = new InlineMenuItem(createStringResource("pageUser.button.addAccount"), new InlineMenuItemAction() {
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                showModalWindow(MODAL_ID_RESOURCE, target);
+//            }
+//        });
+//        items.add(item);
+//        items.add(new InlineMenuItem());
+//        item = new InlineMenuItem(createStringResource("pageUser.button.enable"), new InlineMenuItemAction() {
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                updateAccountActivation(target, getSelectedAccounts(), true);
+//            }
+//        });
+//        items.add(item);
+//        item = new InlineMenuItem(createStringResource("pageUser.button.disable"), new InlineMenuItemAction() {
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                updateAccountActivation(target, getSelectedAccounts(), false);
+//            }
+//        });
+//        items.add(item);
+//        item = new InlineMenuItem(createStringResource("pageUser.button.unlink"), new InlineMenuItemAction() {
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                unlinkAccountPerformed(target, getSelectedAccounts());
+//            }
+//        });
+//        items.add(item);
+//        item = new InlineMenuItem(createStringResource("pageUser.button.unlock"), new InlineMenuItemAction() {
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                unlockAccountPerformed(target, getSelectedAccounts());
+//            }
+//        });
+//        items.add(item);
+//        items.add(new InlineMenuItem());
+//        item = new InlineMenuItem(createStringResource("pageUser.button.delete"), new InlineMenuItemAction() {
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                deleteAccountPerformed(target);
+//            }
+//        });
+//        items.add(item);
+//
+//        return items;
+//    }
+//
+//    private void initAccounts(final WebMarkupContainer accounts) {
+//        InlineMenu accountMenu = new InlineMenu(ID_ACCOUNT_MENU, new Model((Serializable) createAccountsMenu()));
+//        accounts.add(accountMenu);
+//
+//        final ListView<FocusShadowDto> accountList = new ListView<FocusShadowDto>(ID_ACCOUNT_LIST, accountsModel) {
+//
+//            @Override
+//            protected void populateItem(final ListItem<FocusShadowDto> item) {
+//                PackageResourceReference packageRef;
+//                final FocusShadowDto dto = item.getModelObject();
+//
+//                Panel panel;
+//
+//                if(dto.isLoadedOK()){
+//                    packageRef = new PackageResourceReference(ImgResources.class,
+//                            ImgResources.HDD_PRISM);
+//
+//                    panel = new PrismObjectPanel("account", new PropertyModel<ObjectWrapper>(
+//                            item.getModel(), "object"), packageRef, (Form) PageUser.this.get(ID_MAIN_FORM), PageUser.this) {
+//
+//                        @Override
+//                        protected Component createHeader(String id, IModel<ObjectWrapper> model) {
+//                            return new CheckTableHeader(id, model) {
+//
+//                                @Override
+//                                protected List<InlineMenuItem> createMenuItems() {
+//                                    return createDefaultMenuItems(getModel());
+//                                }
+//                            };
+//                        }
+//                    };
+//                } else{
+//                    panel = new SimpleErrorPanel("account", item.getModel()){
+//
+//                        @Override
+//                        public void onShowMorePerformed(AjaxRequestTarget target){
+//                            OperationResult fetchResult = dto.getResult();
+//                            if (fetchResult != null) {
+//                                showResult(fetchResult);
+//                                target.add(getPageBase().getFeedbackPanel());
+//                            }
+//                        }
+//                    };
+//                }
+//
+//                panel.setOutputMarkupId(true);
+//                item.add(panel);
+//            }
+//        };
+//
+//        AjaxCheckBox accountCheckAll = new AjaxCheckBox(ID_ACCOUNT_CHECK_ALL, new Model()) {
+//
+//            @Override
+//            protected void onUpdate(AjaxRequestTarget target) {
+//                for(FocusShadowDto dto: accountList.getModelObject()){
+//                    if(dto.isLoadedOK()){
+//                        ObjectWrapper accModel = dto.getObject();
+//                        accModel.setSelected(getModelObject());
+//                    }
+//                }
+//
+//                target.add(accounts);
+//            }
+//        };
+//        accounts.add(accountCheckAll);
+//
+//        accounts.add(accountList);
+//    }
+//
+//    private List<FocusShadowDto> loadAccountWrappers() {
+//        List<FocusShadowDto> list = new ArrayList<FocusShadowDto>();
+//
+//        ObjectWrapper user = userModel.getObject();
+//        PrismObject<UserType> prismUser = user.getObject();
+//        List<ObjectReferenceType> references = prismUser.asObjectable().getLinkRef();
+//
+//        Task task = createSimpleTask(OPERATION_LOAD_ACCOUNT);
+//        for (ObjectReferenceType reference : references) {
+//            OperationResult subResult = new OperationResult(OPERATION_LOAD_ACCOUNT);
+//            try {
+//                Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
+//                        ShadowType.F_RESOURCE, GetOperationOptions.createResolve());
+//
+//                if (reference.getOid() == null) {
+//                    continue;
+//                }
+//
+//                PrismObject<ShadowType> account = getModelService().getObject(ShadowType.class,
+//                        reference.getOid(), options, task, subResult);
+//                ShadowType accountType = account.asObjectable();
+//
+//                OperationResultType fetchResult = accountType.getFetchResult();
+//
+//                ResourceType resource = accountType.getResource();
+//                String resourceName = WebMiscUtil.getName(resource);
+//
+//                StringBuilder description = new StringBuilder();
+//                if (accountType.getIntent() != null) {
+//                    description.append(accountType.getIntent()).append(", ");
+//                }
+//                description.append(WebMiscUtil.getOrigStringFromPoly(accountType.getName()));
+//
+//                ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(resourceName, description.toString(),
+//                            account, ContainerStatus.MODIFYING, true, this);
+////                ObjectWrapper wrapper = new ObjectWrapper(resourceName, WebMiscUtil.getOrigStringFromPoly(accountType
+////                        .getName()), account, ContainerStatus.MODIFYING);
+//                wrapper.setFetchResult(OperationResult.createOperationResult(fetchResult));
+//                wrapper.setSelectable(true);
+//                wrapper.setMinimalized(true);
+//                
+//                PrismContainer<ShadowAssociationType> associationContainer = account.findContainer(ShadowType.F_ASSOCIATION);
+//                if (associationContainer != null && associationContainer.getValues() != null){
+//                	List<PrismProperty> associations = new ArrayList<>(associationContainer.getValues().size());
+//                	for (PrismContainerValue associationVal : associationContainer.getValues()){
+//                		ShadowAssociationType associationType = (ShadowAssociationType) associationVal.asContainerable();
+//                		ObjectReferenceType shadowRef = associationType.getShadowRef();
+//                		if (shadowRef != null) { // shadowRef can be null in case of "broken" associations
+//	                        // we can safely eliminate fetching from resource, because we need only the name
+//	                		PrismObject<ShadowType> association = getModelService().getObject(ShadowType.class, shadowRef.getOid(),
+//	                                SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, subResult);
+//	                		associations.add(association.findProperty(ShadowType.F_NAME));
+//                		}
+//                	}
+//                	
+//                	wrapper.setAssociations(associations);
+//                	
+//                }
+//
+//                wrapper.initializeContainers(this);
+//
+//                list.add(new FocusShadowDto(wrapper, UserDtoStatus.MODIFY));
+//
+//                subResult.recomputeStatus();
+//            } catch (ObjectNotFoundException ex) {
+//                // this is fix for MID-854, full user/accounts/assignments reload if accountRef reference is broken
+//                // because consistency already fixed it.
+//
+//                userModel.reset();
+//                accountsModel.reset();
+//                assignmentsModel.reset();
+//            } catch (Exception ex) {
+//                subResult.recordFatalError("Couldn't load account." + ex.getMessage(), ex);
+//                LoggingUtils.logException(LOGGER, "Couldn't load account", ex);
+//                list.add(new FocusShadowDto(false, getResourceName(reference.getOid()), subResult));
+//            } finally {
+//                subResult.computeStatus();
+//            }
+//        }
+//
+//        return list;
+//    }
+//
+//    private String getResourceName(String oid){
+//        OperationResult result = new OperationResult(OPERATION_SEARCH_RESOURCE);
+//        Task task = createSimpleTask(OPERATION_SEARCH_RESOURCE);
+//
+//        try {
+//            Collection<SelectorOptions<GetOperationOptions>> options =
+//                    SelectorOptions.createCollection(GetOperationOptions.createRaw());
+//
+//            PrismObject<ShadowType> shadow = getModelService().getObject(ShadowType.class, oid, options, task, result);
+//            PrismObject<ResourceType> resource = getModelService().getObject(ResourceType.class,
+//                    shadow.asObjectable().getResourceRef().getOid(), null, task, result);
+//
+//            if(resource != null){
+//                return WebMiscUtil.getOrigStringFromPoly(resource.asObjectable().getName());
+//            }
+//        } catch (Exception e){
+//            result.recordFatalError("Account Resource was not found. " + e.getMessage());
+//            LoggingUtils.logException(LOGGER, "Account Resource was not found.", e);
+//            showResult(result);
+//        }
+//
+//        return "-";
+//    }
+//
+//    private List<AssignmentEditorDto> loadAssignments() {
+//        List<AssignmentEditorDto> list = new ArrayList<AssignmentEditorDto>();
+//
+//        OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENTS);
+//
+//        ObjectWrapper user = userModel.getObject();
+//        PrismObject<UserType> prismUser = user.getObject();
+//        List<AssignmentType> assignments = prismUser.asObjectable().getAssignment();
+//        for (AssignmentType assignment : assignments) {
+//            ObjectType targetObject = null;
+//            AssignmentEditorDtoType type = AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION;
+//            if (assignment.getTarget() != null) {
+//                // object assignment
+//                targetObject = assignment.getTarget();
+//                type = AssignmentEditorDtoType.getType(targetObject.getClass());
+//            } else if (assignment.getTargetRef() != null) {
+//                // object assignment through reference
+//                ObjectReferenceType ref = assignment.getTargetRef();
+//                PrismObject target = getReference(ref, result);
+//
+//                if (target != null) {
+//                    targetObject = (ObjectType) target.asObjectable();
+//                    type = AssignmentEditorDtoType.getType(target.getCompileTimeClass());
+//                }
+//            } else if (assignment.getConstruction() != null) {
+//                // account assignment through account construction
+//                ConstructionType construction = assignment.getConstruction();
+//                if (construction.getResource() != null) {
+//                    targetObject = construction.getResource();
+//                } else if (construction.getResourceRef() != null) {
+//                    ObjectReferenceType ref = construction.getResourceRef();
+//                    PrismObject target = getReference(ref, result);
+//                    if (target != null) {
+//                        targetObject = (ObjectType) target.asObjectable();
+//                    }
+//                }
+//            }
+//
+//            list.add(new AssignmentEditorDto(targetObject, type, UserDtoStatus.MODIFY, assignment, this));
+//        }
+//
+//        Collections.sort(list);
+//
+//        return list;
+//    }
+//
+//    private PrismObject getReference(ObjectReferenceType ref, OperationResult result) {
+//        OperationResult subResult = result.createSubresult(OPERATION_LOAD_ASSIGNMENT);
+//        subResult.addParam("targetRef", ref.getOid());
+//        PrismObject target = null;
+//        try {
+//            Task task = createSimpleTask(OPERATION_LOAD_ASSIGNMENT);
+//            Class type = ObjectType.class;
+//            if (ref.getType() != null) {
+//                type = getPrismContext().getSchemaRegistry().determineCompileTimeClass(ref.getType());
+//            }
+//            target = getModelService().getObject(type, ref.getOid(), null, task, subResult);
+//            subResult.recordSuccess();
+//        } catch (Exception ex) {
+//            LoggingUtils.logException(LOGGER, "Couldn't get assignment target ref", ex);
+//            subResult.recordFatalError("Couldn't get assignment target ref.", ex);
+//        }
+//
+//        if(!subResult.isHandledError() && !subResult.isSuccess()){
+//            showResult(subResult);
+//        }
+//
+//        return target;
+//    }
+//
+//    private void initAssignments(final WebMarkupContainer assignments) {
+//        InlineMenu accountMenu = new InlineMenu(ID_ASSIGNMENT_MENU, new Model((Serializable) createAssignmentsMenu()));
+//        assignments.add(accountMenu);
+//
+//        final ListView<AssignmentEditorDto> assignmentList = new ListView<AssignmentEditorDto>(ID_ASSIGNMENT_LIST,
+//                assignmentsModel) {
+//
+//            @Override
+//            protected void populateItem(final ListItem<AssignmentEditorDto> item) {
+//                AssignmentEditorPanel assignmentEditor = new AssignmentEditorPanel(ID_ASSIGNMENT_EDITOR,
+//                        item.getModel());
+//                item.add(assignmentEditor);
+//            }
+//        };
+//        assignmentList.setOutputMarkupId(true);
+//        assignments.add(assignmentList);
+//
+//        AjaxCheckBox assignmentCheckAll = new AjaxCheckBox(ID_ASSIGNMENT_CHECK_ALL, new Model()) {
+//
+//            @Override
+//            protected void onUpdate(AjaxRequestTarget target) {
+//                for(AssignmentEditorDto item: assignmentList.getModelObject()){
+//                    item.setSelected(this.getModelObject());
+//                }
+//
+//                target.add(assignments);
+//            }
+//        };
+//        assignmentCheckAll.setOutputMarkupId(true);
+//        assignments.add(assignmentCheckAll);
+//    }
+//
+//    private void initTasks(WebMarkupContainer tasks) {
+//        List<IColumn<TaskDto, String>> taskColumns = initTaskColumns();
+//        final TaskDtoProvider taskDtoProvider = new TaskDtoProvider(PageUser.this,
+//                TaskDtoProviderOptions.minimalOptions());
+//        taskDtoProvider.setQuery(createTaskQuery(null));
+//        TablePanel taskTable = new TablePanel<TaskDto>(ID_TASK_TABLE, taskDtoProvider, taskColumns) {
+//
+//            @Override
+//            protected void onInitialize() {
+//                super.onInitialize();
+//                StringValue oidValue = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
+//
+//                taskDtoProvider.setQuery(createTaskQuery(oidValue != null ? oidValue.toString() : null));
+//            }
+//        };
+//        tasks.add(taskTable);
+//
+//        tasks.add(new VisibleEnableBehaviour() {
+//            @Override
+//            public boolean isVisible() {
+//                return taskDtoProvider.size() > 0;
+//            }
+//        });
+//    }
+//
+//    private ObjectQuery createTaskQuery(String oid) {
+//        List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
+//
+//        if (oid == null) {
+//            oid = "non-existent";      // TODO !!!!!!!!!!!!!!!!!!!!
+//        }
+//        try {
+//            filters.add(RefFilter.createReferenceEqual(TaskType.F_OBJECT_REF, TaskType.class, getPrismContext(), oid));
+//            filters.add(NotFilter.createNot(EqualFilter.createEqual(TaskType.F_EXECUTION_STATUS, TaskType.class, getPrismContext(), null, TaskExecutionStatusType.CLOSED)));
+//            filters.add(EqualFilter.createEqual(TaskType.F_PARENT, TaskType.class, getPrismContext(), null));
+//        } catch (SchemaException e) {
+//            throw new SystemException("Unexpected SchemaException when creating task filter", e);
+//        }
+//
+//        return new ObjectQuery().createObjectQuery(AndFilter.createAnd(filters));
+//    }
+//
+//    private List<IColumn<TaskDto, String>> initTaskColumns() {
+//        List<IColumn<TaskDto, String>> columns = new ArrayList<IColumn<TaskDto, String>>();
+//
+//        columns.add(PageTasks.createTaskNameColumn(this, "pageUser.task.name"));
+//        columns.add(PageTasks.createTaskCategoryColumn(this, "pageUser.task.category"));
+//        columns.add(PageTasks.createTaskExecutionStatusColumn(this, "pageUser.task.execution"));
+//        columns.add(PageTasks.createTaskResultStatusColumn(this, "pageUser.task.status"));
+//        return columns;
+//    }
+//
+//
+//    private void initButtons(final Form mainForm) {
+//        AjaxSubmitButton saveButton = new AjaxSubmitButton("save",
+//                createStringResource("pageUser.button.save")) {
+//
+//            @Override
+//            protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+//                progressReporter.onSaveSubmit();
+//                savePerformed(target);
+//            }
+//
+//            @Override
+//            protected void onError(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+//                target.add(getFeedbackPanel());
+//            }
+//        };
+//        progressReporter.registerSaveButton(saveButton);
+//        mainForm.add(saveButton);
+//
+//        AjaxSubmitButton abortButton = new AjaxSubmitButton("abort",
+//                createStringResource("pageUser.button.abort")) {
+//
+//            @Override
+//            protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+//                progressReporter.onAbortSubmit(target);
+//            }
+//
+//            @Override
+//            protected void onError(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+//                target.add(getFeedbackPanel());
+//            }
+//        };
+//        progressReporter.registerAbortButton(abortButton);
+//        mainForm.add(abortButton);
+//
+//        AjaxSubmitButton recomputeAssignments = new AjaxSubmitButton(ID_BUTTON_RECOMPUTE_ASSIGNMENTS,
+//                createStringResource("pageUser.button.recompute.assignments")) {
+//
+//            @Override
+//            protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+//                recomputeAssignmentsPerformed(target);
+//            }
+//
+//            @Override
+//            protected void onError(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+//                target.add(getFeedbackPanel());
+//            }
+//        };
+//        mainForm.add(recomputeAssignments);
+//
+//        AjaxButton back = new AjaxButton("back", createStringResource("pageUser.button.back")) {
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                cancelPerformed(target);
+//            }
+//        };
+//        mainForm.add(back);
+//
+//        mainForm.add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel, true, false));
+//    }
+//
+//    private void showAssignablePopup(AjaxRequestTarget target, Class<? extends ObjectType> type) {
+//        ModalWindow modal = (ModalWindow) get(MODAL_ID_ASSIGNABLE);
+//        AssignablePopupContent content =  (AssignableRolePopupContent) modal.get(modal.getContentId());
+//        content.setType(type);
+//        showModalWindow(MODAL_ID_ASSIGNABLE, target);
+//        target.add(getFeedbackPanel());
+//    }
+//    
+//    private void showAssignableOrgPopup(AjaxRequestTarget target) {
+//        ModalWindow modal = (ModalWindow) get(MODAL_ID_ASSIGNABLE_ORG);
+//        AssignablePopupContent content =  (AssignableOrgPopupContent) modal.get(modal.getContentId());
+//        content.setType(OrgType.class);
+//        showModalWindow(MODAL_ID_ASSIGNABLE_ORG, target);
+//        target.add(getFeedbackPanel());
+//    }
+//
+//    private void initResourceModal() {
+//        ModalWindow window = createModalWindow(MODAL_ID_RESOURCE,
+//                createStringResource("pageUser.title.selectResource"), 1100, 560);
+//
+//        final SimpleUserResourceProvider provider = new SimpleUserResourceProvider(this, accountsModel){
+//
+//            @Override
+//            protected void handlePartialError(OperationResult result) {
+//                showResult(result);
+//            }
+//        };
+//        window.setContent(new ResourcesPopup(window.getContentId()) {
+//
+//            @Override
+//            public SimpleUserResourceProvider getProvider() {
+//                return provider;
+//            }
+//
+//            @Override
+//            protected void addPerformed(AjaxRequestTarget target, List<ResourceType> newResources) {
+//                addSelectedAccountPerformed(target, newResources);
+//            }
+//        });
+//        add(window);
+//    }
+
+//    private void initAssignableModal() {
+//        ModalWindow window = createModalWindow(MODAL_ID_ASSIGNABLE,
+//                createStringResource("pageUser.title.selectAssignable"), 1100, 560);
+//        window.setContent(new AssignableRolePopupContent(window.getContentId()) {
+//
+//            @Override
+//            protected void handlePartialError(OperationResult result) {
+//                showResult(result);
+//            }
+//
+//            @Override
+//            protected void addPerformed(AjaxRequestTarget target, List<ObjectType> selected) {
+//                addSelectedAssignablePerformed(target, selected, MODAL_ID_ASSIGNABLE);
+//            }
+//
+//            @Override
+//            protected PrismObject<UserType> getUserDefinition() {
+//                return userModel.getObject().getObject();
+//            }
+//        });
+//        add(window);
+//        
+//        window = createModalWindow(MODAL_ID_ASSIGNABLE_ORG,
+//                createStringResource("pageUser.title.selectAssignable"), 1150, 600);
+//        window.setContent(new AssignableOrgPopupContent(window.getContentId()) {
+//
+//            @Override
+//            protected void handlePartialError(OperationResult result) {
+//                showResult(result);
+//            }
+//
+//            @Override
+//            protected void addPerformed(AjaxRequestTarget target, List<ObjectType> selected) {
+//                addSelectedAssignablePerformed(target, selected, MODAL_ID_ASSIGNABLE_ORG);
+//            }
+//        });
+//        add(window);
+//
+//        ModalWindow assignmentPreviewPopup = new AssignmentPreviewDialog(MODAL_ID_ASSIGNMENTS_PREVIEW, null, null);
+//        add(assignmentPreviewPopup);
+//    }
 
     private boolean isEditingUser() {
         StringValue userOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
         return userOid != null && StringUtils.isNotEmpty(userOid.toString());
     }
 
-    private void cancelPerformed(AjaxRequestTarget target) {
+    protected void cancelPerformed(AjaxRequestTarget target) {
         // uncoment later -> check for changes to not allow leave the page when
         // some changes were made
         // try{
@@ -1101,7 +1102,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
     private List<ObjectDelta<? extends ObjectType>> modifyAccounts(OperationResult result) {
         List<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
 
-        List<FocusShadowDto> accounts = accountsModel.getObject();
+        List<FocusShadowDto> accounts = getFocusShadows();
         OperationResult subResult = null;
         for (FocusShadowDto account : accounts) {
             if(!account.isLoadedOK())
@@ -1147,48 +1148,48 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         return deltas;
     }
 
-    private ArrayList<PrismObject> getAccountsForSubmit(OperationResult result,
-                                                        Collection<ObjectDelta<? extends ObjectType>> deltas) {
-        List<FocusShadowDto> accounts = accountsModel.getObject();
-        ArrayList<PrismObject> prismAccounts = new ArrayList<PrismObject>();
-        OperationResult subResult = null;
-        Task task = createSimpleTask(OPERATION_PREPARE_ACCOUNTS);
-        for (FocusShadowDto account : accounts) {
-            prismAccounts.add(account.getObject().getObject());
-            try {
-                ObjectWrapper accountWrapper = account.getObject();
-                ObjectDelta delta = accountWrapper.getObjectDelta();
-                if (delta.isEmpty()) {
-                    if (accountWrapper.getOldDelta() == null || accountWrapper.getOldDelta().isEmpty()) {
-                        continue;
-                    } else {
-                        delta = accountWrapper.getOldDelta();
-                    }
-                } else {
-                    if (accountWrapper.getOldDelta() != null && !accountWrapper.getOldDelta().isEmpty()) {
-                        delta = ObjectDelta.summarize(delta, accountWrapper.getOldDelta());
-
-                    }
-                }
-
-                WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
-                subResult = result.createSubresult(OPERATION_PREPARE_ACCOUNTS);
-                deltas.add(delta);
-                subResult.recordSuccess();
-            } catch (Exception ex) {
-                if (subResult != null) {
-                    subResult.recordFatalError("Preparing account failed.", ex);
-                }
-                LoggingUtils.logException(LOGGER, "Couldn't prepare account for submit", ex);
-            }
-        }
-        return prismAccounts;
-    }
+//    private ArrayList<PrismObject> getAccountsForSubmit(OperationResult result,
+//                                                        Collection<ObjectDelta<? extends ObjectType>> deltas) {
+//        List<FocusShadowDto> accounts = accountsModel.getObject();
+//        ArrayList<PrismObject> prismAccounts = new ArrayList<PrismObject>();
+//        OperationResult subResult = null;
+//        Task task = createSimpleTask(OPERATION_PREPARE_ACCOUNTS);
+//        for (FocusShadowDto account : accounts) {
+//            prismAccounts.add(account.getObject().getObject());
+//            try {
+//                ObjectWrapper accountWrapper = account.getObject();
+//                ObjectDelta delta = accountWrapper.getObjectDelta();
+//                if (delta.isEmpty()) {
+//                    if (accountWrapper.getOldDelta() == null || accountWrapper.getOldDelta().isEmpty()) {
+//                        continue;
+//                    } else {
+//                        delta = accountWrapper.getOldDelta();
+//                    }
+//                } else {
+//                    if (accountWrapper.getOldDelta() != null && !accountWrapper.getOldDelta().isEmpty()) {
+//                        delta = ObjectDelta.summarize(delta, accountWrapper.getOldDelta());
+//
+//                    }
+//                }
+//
+//                WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
+//                subResult = result.createSubresult(OPERATION_PREPARE_ACCOUNTS);
+//                deltas.add(delta);
+//                subResult.recordSuccess();
+//            } catch (Exception ex) {
+//                if (subResult != null) {
+//                    subResult.recordFatalError("Preparing account failed.", ex);
+//                }
+//                LoggingUtils.logException(LOGGER, "Couldn't prepare account for submit", ex);
+//            }
+//        }
+//        return prismAccounts;
+//    }
 
     private void prepareUserForAdd(PrismObject<UserType> user) throws SchemaException {
         UserType userType = user.asObjectable();
         // handle added accounts
-        List<FocusShadowDto> accounts = accountsModel.getObject();
+        List<FocusShadowDto> accounts = getFocusShadows();
         for (FocusShadowDto accDto : accounts) {
             if(!accDto.isLoadedOK()){
                 continue;
@@ -1213,7 +1214,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         // handle added assignments
         // existing user assignments are not relevant -> delete them
         userType.getAssignment().clear();
-        List<AssignmentEditorDto> assignments = assignmentsModel.getObject();
+        List<AssignmentEditorDto> assignments = getFocusAssignments();
         for (AssignmentEditorDto assDto : assignments) {
             if (UserDtoStatus.DELETE.equals(assDto.getStatus())) {
                 continue;
@@ -1252,7 +1253,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
     private ReferenceDelta prepareUserAccountsDeltaForModify(PrismReferenceDefinition refDef) throws SchemaException {
         ReferenceDelta refDelta = new ReferenceDelta(refDef, getPrismContext());
 
-        List<FocusShadowDto> accounts = accountsModel.getObject();
+        List<FocusShadowDto> accounts = getFocusShadows();
         for (FocusShadowDto accDto : accounts) {
             if(accDto.isLoadedOK()){
                 ObjectWrapper accountWrapper = accDto.getObject();
@@ -1293,11 +1294,11 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
             throws SchemaException {
         ContainerDelta assDelta = new ContainerDelta(new ItemPath(), UserType.F_ASSIGNMENT, def, getPrismContext());
 
-        PrismObject<UserType> user = userModel.getObject().getObject();
+        PrismObject<UserType> user = getFocusWrapper().getObject();
         PrismObjectDefinition userDef = user.getDefinition();
         PrismContainerDefinition assignmentDef = userDef.findContainerDefinition(UserType.F_ASSIGNMENT);
 
-        List<AssignmentEditorDto> assignments = assignmentsModel.getObject();
+        List<AssignmentEditorDto> assignments = getFocusAssignments();
         for (AssignmentEditorDto assDto : assignments) {
             PrismContainerValue newValue = assDto.getNewValue();
 
@@ -1402,7 +1403,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         try {
             reviveModels();
 
-            ObjectWrapper userWrapper = userModel.getObject();
+            ObjectWrapper userWrapper = getFocusWrapper();
             delta = userWrapper.getObjectDelta();
             if (userWrapper.getOldDelta() != null) {
                 delta = ObjectDelta.summarize(userWrapper.getOldDelta(), delta);
@@ -1572,10 +1573,10 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
 //        assignments.add(objectType);
 //    }
 
-    private void savePerformed(AjaxRequestTarget target) {
+    protected void savePerformed(AjaxRequestTarget target) {
         LOGGER.debug("Save user.");
         OperationResult result = new OperationResult(OPERATION_SAVE);
-        ObjectWrapper userWrapper = userModel.getObject();
+        ObjectWrapper userWrapper = getFocusWrapper();
         // todo: improve, delta variable is quickfix for MID-1006
         // redirecting to user list page everytime user is created in repository
         // during user add in gui,
@@ -1723,8 +1724,8 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         Collection<SimpleValidationError> errors = null;
 
         if(user == null){
-            if(userModel != null && userModel.getObject() != null && userModel.getObject().getObject() != null){
-                user = userModel.getObject().getObject();
+            if(getFocusWrapper() != null && getFocusWrapper().getObject() != null){
+                user = getFocusWrapper().getObject();
 
                 for (ObjectDelta delta: deltas) {
                     if (UserType.class.isAssignableFrom(delta.getObjectTypeClass())) {  // because among deltas there can be also ShadowType deltas
@@ -1765,7 +1766,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
             showResultInSession(result);
             // todo refactor this...what is this for? why it's using some
             // "shadow" param from result???
-            PrismObject<UserType> user = userModel.getObject().getObject();
+            PrismObject<UserType> user = getFocusWrapper().getObject();
             UserType userType = user.asObjectable();
             for (ObjectReferenceType ref : userType.getLinkRef()) {
                 Object o = findParam("shadow", ref.getOid(), result);
@@ -1792,10 +1793,10 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
     }
 
 
-    private void reviveModels() throws SchemaException {
-        WebMiscUtil.revive(userModel, getPrismContext());
-        WebMiscUtil.revive(accountsModel, getPrismContext());
-        WebMiscUtil.revive(assignmentsModel, getPrismContext());
+    protected void reviveCustomModels() throws SchemaException {
+//        WebMiscUtil.revive(userModel, getPrismContext());
+//        WebMiscUtil.revive(accountsModel, getPrismContext());
+//        WebMiscUtil.revive(assignmentsModel, getPrismContext());
         WebMiscUtil.revive(summaryUser, getPrismContext());
     }
 
@@ -1852,7 +1853,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
 
     private ObjectDelta getChange(ObjectWrapper userWrapper) throws SchemaException {
 
-        List<FocusShadowDto> accountDtos = accountsModel.getObject();
+        List<FocusShadowDto> accountDtos = getFocusShadows();
         List<ReferenceDelta> refDeltas = new ArrayList<ReferenceDelta>();
         ObjectDelta<UserType> forceDeleteDelta = null;
         for (FocusShadowDto accDto : accountDtos) {
@@ -1907,7 +1908,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
     private List<FocusShadowDto> getSelectedAccounts() {
         List<FocusShadowDto> selected = new ArrayList<FocusShadowDto>();
 
-        List<FocusShadowDto> all = accountsModel.getObject();
+        List<FocusShadowDto> all = getFocusShadows();
         for (FocusShadowDto account : all) {
             if (account.isLoadedOK() && account.getObject().isSelected()) {
                 selected.add(account);
@@ -1920,7 +1921,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
     private List<AssignmentEditorDto> getSelectedAssignments() {
         List<AssignmentEditorDto> selected = new ArrayList<AssignmentEditorDto>();
 
-        List<AssignmentEditorDto> all = assignmentsModel.getObject();
+        List<AssignmentEditorDto> all = getFocusAssignments();
         for (AssignmentEditorDto wrapper : all) {
             if (wrapper.isSelected()) {
                 selected.add(wrapper);
@@ -1971,7 +1972,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
 
                 wrapper.setShowEmpty(true);
                 wrapper.setMinimalized(false);
-                accountsModel.getObject().add(new FocusShadowDto(wrapper, UserDtoStatus.ADD));
+                getFocusShadows().add(new FocusShadowDto(wrapper, UserDtoStatus.ADD));
                 setResponsePage(getPage());
             } catch (Exception ex) {
                 error(getString("pageUser.message.couldntCreateAccount", resource.getName(), ex.getMessage()));
@@ -1997,7 +1998,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
 
         construction.setResource(resource);
 
-        List<AssignmentEditorDto> assignments = assignmentsModel.getObject();
+        List<AssignmentEditorDto> assignments = getFocusAssignments();
         AssignmentEditorDto dto = new AssignmentEditorDto(resource, AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION,
                 UserDtoStatus.ADD, assignment, this);
         assignments.add(dto);
@@ -2016,7 +2017,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
             return;
         }
 
-        List<AssignmentEditorDto> assignments = assignmentsModel.getObject();
+        List<AssignmentEditorDto> assignments = getFocusAssignments();
         for (ObjectType object : newAssignables) {
             try {
                 if (object instanceof ResourceType) {
@@ -2109,7 +2110,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
     }
 
     private void deleteAccountConfirmedPerformed(AjaxRequestTarget target, List<FocusShadowDto> selected) {
-        List<FocusShadowDto> accounts = accountsModel.getObject();
+        List<FocusShadowDto> accounts = getFocusShadows();
         for (FocusShadowDto account : selected) {
             if (UserDtoStatus.ADD.equals(account.getStatus())) {
                 accounts.remove(account);
@@ -2121,7 +2122,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
     }
 
     private void deleteAssignmentConfirmedPerformed(AjaxRequestTarget target, List<AssignmentEditorDto> selected) {
-        List<AssignmentEditorDto> assignments = assignmentsModel.getObject();
+        List<AssignmentEditorDto> assignments = getFocusAssignments();
         for (AssignmentEditorDto assignment : selected) {
             if (UserDtoStatus.ADD.equals(assignment.getStatus())) {
                 assignments.remove(assignment);
@@ -2179,4 +2180,43 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         taskTable.modelChanged();
         return this;
     }
+
+	@Override
+	protected FocusType createNewFocus() {
+		return new UserType();
+	}
+
+	@Override
+	protected void initCustomLayout(Form mainForm) {
+		initSummaryInfo(mainForm);
+	}
+
+	@Override
+	protected void initCustomButtons(Form mainForm) {
+		 AjaxSubmitButton recomputeAssignments = new AjaxSubmitButton(ID_BUTTON_RECOMPUTE_ASSIGNMENTS,
+	                createStringResource("pageUser.button.recompute.assignments")) {
+
+	            @Override
+	            protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+	                recomputeAssignmentsPerformed(target);
+	            }
+
+	            @Override
+	            protected void onError(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+	                target.add(getFeedbackPanel());
+	            }
+	        };
+	        mainForm.add(recomputeAssignments);
+		
+	}
+	
+	@Override
+	protected Class getRestartResponsePage() {
+		return PageUsers.class;
+	}
+	
+	@Override
+	protected Class getCompileTimeClass() {
+		return UserType.class;
+	}
 }
