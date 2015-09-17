@@ -35,18 +35,30 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.EvaluatedAbstractRole;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedConstruction;
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
@@ -54,6 +66,7 @@ import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -117,6 +130,8 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
+import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
+import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
@@ -126,6 +141,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -158,10 +174,15 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 	    private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadFocus";
 	    private static final String OPERATION_LOAD_ASSIGNMENTS = DOT_CLASS + "loadAssignments";
 	    private static final String OPERATION_LOAD_ASSIGNMENT = DOT_CLASS + "loadAssignment";
+	    private static final String OPERATION_SAVE = DOT_CLASS + "save";
+	    private static final String OPERATION_SEND_TO_SUBMIT = DOT_CLASS + "sendToSubmit";
+//	    private static final String OPERATION_MODIFY_ACCOUNT = DOT_CLASS + "modifyAccount";
+//	    private static final String OPERATION_PREPARE_ACCOUNTS = DOT_CLASS + "getAccountsForSubmit";
+	    private static final String OPERATION_RECOMPUTE_ASSIGNMENTS = DOT_CLASS + "recomputeAssignments";
 	    
 	    private static final String OPERATION_LOAD_SHADOW = DOT_CLASS + "loadShadow";
 	    
-	    private static final String ID_MAIN_FORM = "mainForm";
+	    protected static final String ID_MAIN_FORM = "mainForm";
 	    private static final String ID_ASSIGNMENT_EDITOR = "assignmentEditor";
 	    private static final String ID_ASSIGNMENT_LIST = "assignmentList";
 	    private static final String ID_TASK_TABLE = "taskTable";
@@ -176,6 +197,7 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 	    private static final String ID_ASSIGNMENT_MENU = "assignmentMenu";
 	    private static final String ID_SHADOW_CHECK_ALL = "shadowCheckAll";
 	    private static final String ID_ASSIGNMENT_CHECK_ALL = "assignmentCheckAll";
+	    private static final String ID_BUTTON_RECOMPUTE_ASSIGNMENTS = "recomputeAssignments";
 	    
 	    private static final String MODAL_ID_RESOURCE = "resourcePopup";
 	    private static final String MODAL_ID_ASSIGNABLE = "assignablePopup";
@@ -186,6 +208,9 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 	    
 	    private static final Trace LOGGER = TraceManager.getTrace(PageAdminFocus.class);
 	    
+	 // used to determine whether to leave this page or stay on it (after operation finishing)
+	    private ObjectDelta delta;    
+	    
 	    private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel
         = new LoadableModel<ExecuteChangeOptionsDto>(false) {
 
@@ -194,6 +219,10 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
         return new ExecuteChangeOptionsDto();
     }
 };
+
+public LoadableModel<ObjectWrapper> getFocusModel() {
+	return focusModel;
+}
 	
 	
 	 public void initialize(final PrismObject<T> userToEdit) {
@@ -218,9 +247,15 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 	                return loadAssignments();
 	            }
 	        };
+	        
+	        performCustomInitialization();
 
 	        initLayout();
 	    }
+	 
+	 protected void performCustomInitialization(){
+		 
+	 }
 	 
 	 protected abstract T createNewFocus();
 	 
@@ -239,7 +274,7 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 
 	            @Override
 	            protected IModel<String> createDescription(IModel<ObjectWrapper> model) {
-	                return createStringResource("pageUser.description");
+	                return createStringResource("pageAdminFocus.description");
 	            }
 	        };
 	        mainForm.add(userForm);
@@ -327,9 +362,9 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 
 	        if (focus == null) {
 	            if (isEditingFocus()) {
-	                getSession().error(getString("pageUser.message.cantEditUser"));
+	                getSession().error(getString("pageAdminFocus.message.cantEditFocus"));
 	            } else {
-	                getSession().error(getString("pageUser.message.cantNewUser"));
+	                getSession().error(getString("pageAdminFocus.message.cantNewFocus"));
 	            }
 	            throw new RestartResponseException(getRestartResponsePage());
 	        }
@@ -337,11 +372,11 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 	        ContainerStatus status = isEditingFocus() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
 	        ObjectWrapper wrapper = null;
 	        try{
-	        	wrapper = ObjectWrapperUtil.createObjectWrapper("pageUser.userDetails", null, focus, status, this);
+	        	wrapper = ObjectWrapperUtil.createObjectWrapper("pageAdminFocus.focusDetails", null, focus, status, this);
 	        } catch (Exception ex){
 	        	result.recordFatalError("Couldn't get user.", ex);
 	            LoggingUtils.logException(LOGGER, "Couldn't load user", ex);
-	            wrapper = new ObjectWrapper("pageUser.userDetails", null, focus, null, status, this);
+	            wrapper = new ObjectWrapper("pageAdminFocus.focusDetails", null, focus, null, status, this);
 	        }
 //	        ObjectWrapper wrapper = new ObjectWrapper("pageUser.userDetails", null, user, status);
 	        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
@@ -352,6 +387,61 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 	        return wrapper;
 	    }
 	 
+//	 protected void finishProcessing(ObjectDelta objectDelta, AjaxRequestTarget target, OperationResult result){
+//		 delta = objectDelta;
+//		 finishProcessing(target, result);
+//	 }
+	 
+	 public Object findParam(String param, String oid, OperationResult result) {
+
+	        Object object = null;
+
+	        for (OperationResult subResult : result.getSubresults()) {
+	            if (subResult != null && subResult.getParams() != null) {
+	                if (subResult.getParams().get(param) != null
+	                        && subResult.getParams().get(OperationResult.PARAM_OID) != null
+	                        && subResult.getParams().get(OperationResult.PARAM_OID).equals(oid)) {
+	                    return subResult.getParams().get(param);
+	                }
+	                object = findParam(param, oid, subResult);
+
+	            }
+	        }
+	        return object;
+	    }
+	 
+	 @Override
+	    public void finishProcessing(AjaxRequestTarget target, OperationResult result) {
+		    boolean userAdded = delta != null && delta.isAdd() && StringUtils.isNotEmpty(delta.getOid());
+	        if (!executeOptionsModel.getObject().isKeepDisplayingResults() && progressReporter.isAllSuccess() && (userAdded || !result.isFatalError())) {           // TODO
+	            showResultInSession(result);
+	            // todo refactor this...what is this for? why it's using some
+	            // "shadow" param from result???
+	            PrismObject<T> focus = getFocusWrapper().getObject();
+	            T focusType = focus.asObjectable();
+	            for (ObjectReferenceType ref : focusType.getLinkRef()) {
+	                Object o = findParam("shadow", ref.getOid(), result);
+	                if (o != null && o instanceof ShadowType) {
+	                    ShadowType accountType = (ShadowType) o;
+	                    OperationResultType fetchResult = accountType.getFetchResult();
+	                    if (fetchResult != null && !OperationResultStatusType.SUCCESS.equals(fetchResult.getStatus())) {
+	                        showResultInSession(OperationResult.createOperationResult(fetchResult));
+	                    }
+	                }
+	            }
+	            setSpecificResponsePage();
+	        } else {
+	            showResult(result);
+	            target.add(getFeedbackPanel());
+
+	            // if we only stayed on the page because of displaying results, hide the Save button
+	            // (the content of the page might not be consistent with reality, e.g. concerning the accounts part...
+	            // this page was not created with the repeated save possibility in mind)
+	            if (userAdded || !result.isFatalError()) {
+	                progressReporter.hideSaveButton(target);
+	            }
+	        }
+	    }
 	 
 	 
 	 private List<FocusShadowDto> loadShadowWrappers() {
@@ -518,6 +608,707 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 	        return focusOid != null && StringUtils.isNotEmpty(focusOid.toString());
 	    }
 	 
+	 protected void savePerformed(AjaxRequestTarget target) {
+	        LOGGER.debug("Save user.");
+	        OperationResult result = new OperationResult(OPERATION_SAVE);
+	        ObjectWrapper userWrapper = getFocusWrapper();
+	        // todo: improve, delta variable is quickfix for MID-1006
+	        // redirecting to user list page everytime user is created in repository
+	        // during user add in gui,
+	        // and we're not taking care about account/assignment create errors
+	        // (error message is still displayed)
+	        delta = null;
+
+	        Task task = createSimpleTask(OPERATION_SEND_TO_SUBMIT);
+	        ExecuteChangeOptionsDto executeOptions = executeOptionsModel.getObject();
+	        ModelExecuteOptions options = executeOptions.createOptions();
+	        LOGGER.debug("Using options {}.", new Object[]{executeOptions});
+
+	        try {
+	            reviveModels();
+
+	            delta = userWrapper.getObjectDelta();
+	            if (userWrapper.getOldDelta() != null) {
+	                delta = ObjectDelta.summarize(userWrapper.getOldDelta(), delta);
+	            }
+	            if (LOGGER.isTraceEnabled()) {
+	                LOGGER.trace("User delta computed from form:\n{}", new Object[]{delta.debugDump(3)});
+	            }
+	        } catch (Exception ex) {
+	            result.recordFatalError(getString("pageUser.message.cantCreateUser"), ex);
+	            LoggingUtils.logException(LOGGER, "Create user failed", ex);
+	            showResult(result);
+	            return;
+	        }
+
+	        switch (userWrapper.getStatus()) {
+	            case ADDING:
+	                try {
+	                    PrismObject<T> focus = delta.getObjectToAdd();
+	                    WebMiscUtil.encryptCredentials(focus, true, getMidpointApplication());
+	                    prepareFocusForAdd(focus);
+	                    getPrismContext().adopt(focus, getCompileTimeClass());
+	                    if (LOGGER.isTraceEnabled()) {
+	                        LOGGER.trace("Delta before add user:\n{}", new Object[]{delta.debugDump(3)});
+	                    }
+
+	                    if (!delta.isEmpty()) {
+	                        delta.revive(getPrismContext());
+
+	                        Collection<SimpleValidationError> validationErrors = performCustomValidation(focus, WebMiscUtil.createDeltaCollection(delta));
+	                        if(validationErrors != null && !validationErrors.isEmpty()){
+	                            for(SimpleValidationError error: validationErrors){
+	                                LOGGER.error("Validation error, attribute: '" + error.printAttribute() + "', message: '" + error.getMessage() + "'.");
+	                                error("Validation error, attribute: '" + error.printAttribute() + "', message: '" + error.getMessage() + "'.");
+	                            }
+
+	                            target.add(getFeedbackPanel());
+	                            return;
+	                        }
+
+	                        progressReporter.executeChanges(WebMiscUtil.createDeltaCollection(delta), options, task, result, target);
+	                    } else {
+	                        result.recordSuccess();
+	                    }
+	                } catch (Exception ex) {
+	                    result.recordFatalError(getString("pageFocus.message.cantCreateFocus"), ex);
+	                    LoggingUtils.logException(LOGGER, "Create user failed", ex);
+	                }
+	                break;
+
+	            case MODIFYING:
+	                try {
+	                    WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
+	                    prepareFocusDeltaForModify(delta);
+
+	                    if (LOGGER.isTraceEnabled()) {
+	                        LOGGER.trace("Delta before modify user:\n{}", new Object[]{delta.debugDump(3)});
+	                    }
+
+	                    List<ObjectDelta<? extends ObjectType>> accountDeltas = modifyShadows(result);
+	                    Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
+
+	                    if (!delta.isEmpty()) {
+	                        delta.revive(getPrismContext());
+	                        deltas.add(delta);
+	                    }
+	                    for (ObjectDelta accDelta : accountDeltas) {
+	                        if (!accDelta.isEmpty()) {
+	                            //accDelta.setPrismContext(getPrismContext());
+	                            accDelta.revive(getPrismContext());
+	                            deltas.add(accDelta);
+	                        }
+	                    }
+
+	                    if (delta.isEmpty() && ModelExecuteOptions.isReconcile(options)) {
+	                        ObjectDelta emptyDelta = ObjectDelta.createEmptyModifyDelta(UserType.class,
+	                                userWrapper.getObject().getOid(), getPrismContext());
+	                        deltas.add(emptyDelta);
+
+	                        Collection<SimpleValidationError> validationErrors = performCustomValidation(null, deltas);
+	                        if(validationErrors != null && !validationErrors.isEmpty()){
+	                            for(SimpleValidationError error: validationErrors){
+	                                LOGGER.error("Validation error, attribute: '" + error.printAttribute() + "', message: '" + error.getMessage() + "'.");
+	                                error("Validation error, attribute: '" + error.printAttribute() + "', message: '" + error.getMessage() + "'.");
+	                            }
+
+	                            target.add(getFeedbackPanel());
+	                            return;
+	                        }
+
+	                        progressReporter.executeChanges(deltas, options, task, result, target);
+	                    } else if (!deltas.isEmpty()) {
+	                        Collection<SimpleValidationError> validationErrors = performCustomValidation(null, deltas);
+	                        if(validationErrors != null && !validationErrors.isEmpty()){
+	                            for(SimpleValidationError error: validationErrors){
+	                                LOGGER.error("Validation error, attribute: '" + error.printAttribute() + "', message: '" + error.getMessage() + "'.");
+	                                error("Validation error, attribute: '" + error.printAttribute() + "', message: '" + error.getMessage() + "'.");
+	                            }
+
+	                            target.add(getFeedbackPanel());
+	                            return;
+	                        }
+
+	                        progressReporter.executeChanges(deltas, options, task, result, target);
+	                    } else {
+	                        result.recordSuccess();
+	                    }
+
+	                } catch (Exception ex) {
+	                    if (!executeForceDelete(userWrapper, task, options, result)) {
+	                        result.recordFatalError(getString("pageUser.message.cantUpdateUser"), ex);
+	                        LoggingUtils.logException(LOGGER, getString("pageUser.message.cantUpdateUser"), ex);
+	                    } else {
+	                        result.recomputeStatus();
+	                    }
+	                }
+	                break;
+	            // support for add/delete containers (e.g. delete credentials)
+	            default:
+	                error(getString("pageAdminFocus.message.unsupportedState", userWrapper.getStatus()));
+	        }
+
+	        result.recomputeStatus();
+
+	        if (!result.isInProgress()) {
+	            finishProcessing(target, result);
+	        }
+	    }
+	 
+	  private boolean executeForceDelete(ObjectWrapper userWrapper, Task task, ModelExecuteOptions options,
+              OperationResult parentResult) {
+if (executeOptionsModel.getObject().isForce()) {
+OperationResult result = parentResult.createSubresult("Force delete operation");
+// List<UserAccountDto> accountDtos = accountsModel.getObject();
+// List<ReferenceDelta> refDeltas = new ArrayList<ReferenceDelta>();
+// ObjectDelta<UserType> forceDeleteDelta = null;
+// for (UserAccountDto accDto : accountDtos) {
+// if (accDto.getStatus() == UserDtoStatus.DELETE) {
+// ObjectWrapper accWrapper = accDto.getObject();
+// ReferenceDelta refDelta =
+// ReferenceDelta.createModificationDelete(UserType.F_ACCOUNT_REF,
+// userWrapper.getObject().getDefinition(), accWrapper.getObject());
+// refDeltas.add(refDelta);
+// }
+// }
+// if (!refDeltas.isEmpty()) {
+// forceDeleteDelta =
+// ObjectDelta.createModifyDelta(userWrapper.getObject().getOid(),
+// refDeltas,
+// UserType.class, getPrismContext());
+// }
+// PrismContainerDefinition def =
+// userWrapper.getObject().findContainer(UserType.F_ASSIGNMENT).getDefinition();
+// if (forceDeleteDelta == null) {
+// forceDeleteDelta =
+// ObjectDelta.createEmptyModifyDelta(UserType.class,
+// userWrapper.getObject().getOid(),
+// getPrismContext());
+// }
+try {
+ObjectDelta<UserType> forceDeleteDelta = getChange(userWrapper);
+forceDeleteDelta.revive(getPrismContext());
+
+if (forceDeleteDelta != null && !forceDeleteDelta.isEmpty()) {
+getModelService().executeChanges(WebMiscUtil.createDeltaCollection(forceDeleteDelta), options,
+   task, result);
+}
+} catch (Exception ex) {
+result.recordFatalError("Failed to execute delete operation with force.");
+LoggingUtils.logException(LOGGER, "Failed to execute delete operation with force", ex);
+return false;
+}
+
+result.recomputeStatus();
+result.recordSuccessIfUnknown();
+return true;
+}
+return false;
+	}
+
+	private ObjectDelta getChange(ObjectWrapper userWrapper) throws SchemaException {
+
+		List<FocusShadowDto> accountDtos = getFocusShadows();
+		List<ReferenceDelta> refDeltas = new ArrayList<ReferenceDelta>();
+		ObjectDelta<T> forceDeleteDelta = null;
+		for (FocusShadowDto accDto : accountDtos) {
+			if (!accDto.isLoadedOK()) {
+				continue;
+			}
+
+			if (accDto.getStatus() == UserDtoStatus.DELETE) {
+				ObjectWrapper accWrapper = accDto.getObject();
+				ReferenceDelta refDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF,
+						userWrapper.getObject().getDefinition(), accWrapper.getObject());
+				refDeltas.add(refDelta);
+			} else if (accDto.getStatus() == UserDtoStatus.UNLINK) {
+				ObjectWrapper accWrapper = accDto.getObject();
+				ReferenceDelta refDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF,
+						userWrapper.getObject().getDefinition(), accWrapper.getObject().getOid());
+				refDeltas.add(refDelta);
+			}
+		}
+		if (!refDeltas.isEmpty()) {
+			forceDeleteDelta = ObjectDelta.createModifyDelta(userWrapper.getObject().getOid(), refDeltas,
+					getCompileTimeClass(), getPrismContext());
+		}
+		PrismContainerDefinition def = userWrapper.getObject().findContainer(UserType.F_ASSIGNMENT)
+				.getDefinition();
+		if (forceDeleteDelta == null) {
+			forceDeleteDelta = ObjectDelta.createEmptyModifyDelta(getCompileTimeClass(), userWrapper.getObject()
+					.getOid(), getPrismContext());
+		}
+
+		handleAssignmentDeltas(forceDeleteDelta, def);
+		return forceDeleteDelta;
+	}
+
+
+	    private Collection<SimpleValidationError> performCustomValidation(PrismObject<T> user, Collection<ObjectDelta<? extends ObjectType>> deltas) throws SchemaException {
+	        Collection<SimpleValidationError> errors = null;
+
+	        if(user == null){
+	            if(getFocusWrapper() != null && getFocusWrapper().getObject() != null){
+	                user = getFocusWrapper().getObject();
+
+	                for (ObjectDelta delta: deltas) {
+	                    if (UserType.class.isAssignableFrom(delta.getObjectTypeClass())) {  // because among deltas there can be also ShadowType deltas
+	                        delta.applyTo(user);
+	                    }
+	                }
+	            }
+	        }
+
+	        if(user != null && user.asObjectable() != null){
+	            for(AssignmentType assignment: user.asObjectable().getAssignment()){
+	                for(MidpointFormValidator validator: getFormValidatorRegistry().getValidators()){
+	                    if(errors == null){
+	                        errors = validator.validateAssignment(assignment);
+	                    } else {
+	                        errors.addAll(validator.validateAssignment(assignment));
+	                    }
+	                }
+	            }
+	        }
+
+	        for(MidpointFormValidator validator: getFormValidatorRegistry().getValidators()){
+	            if(errors == null){
+	                errors = validator.validateObject(user, deltas);
+	            } else {
+	                errors.addAll(validator.validateObject(user, deltas));
+	            }
+	        }
+
+	        return errors;
+	    }
+
+	    protected void prepareFocusForAdd(PrismObject<T> focus) throws SchemaException {
+	        T focusType = focus.asObjectable();
+	        // handle added accounts
+	        List<FocusShadowDto> accounts = getFocusShadows();
+	        for (FocusShadowDto accDto : accounts) {
+	            if(!accDto.isLoadedOK()){
+	                continue;
+	            }
+
+	            if (!UserDtoStatus.ADD.equals(accDto.getStatus())) {
+	                warn(getString("pageAdminFocus.message.illegalAccountState", accDto.getStatus()));
+	                continue;
+	            }
+
+	            ObjectWrapper accountWrapper = accDto.getObject();
+	            ObjectDelta delta = accountWrapper.getObjectDelta();
+	            PrismObject<ShadowType> account = delta.getObjectToAdd();
+	            WebMiscUtil.encryptCredentials(account, true, getMidpointApplication());
+
+	            focusType.getLink().add(account.asObjectable());
+	        }
+
+	        PrismObjectDefinition userDef = focus.getDefinition();
+	        PrismContainerDefinition assignmentDef = userDef.findContainerDefinition(UserType.F_ASSIGNMENT);
+
+	        // handle added assignments
+	        // existing user assignments are not relevant -> delete them
+	        focusType.getAssignment().clear();
+	        List<AssignmentEditorDto> assignments = getFocusAssignments();
+	        for (AssignmentEditorDto assDto : assignments) {
+	            if (UserDtoStatus.DELETE.equals(assDto.getStatus())) {
+	                continue;
+	            }
+
+	            AssignmentType assignment = new AssignmentType();
+	            PrismContainerValue value = assDto.getNewValue();
+	            assignment.setupContainerValue(value);
+	            value.applyDefinition(assignmentDef, false);
+	            focusType.getAssignment().add(assignment.clone());
+
+	            // todo remove this block [lazyman] after model is updated - it has
+	            // to remove resource from accountConstruction
+	            removeResourceFromAccConstruction(assignment);
+	        }
+	    }
+
+	    private List<ObjectDelta<? extends ObjectType>> modifyShadows(OperationResult result) {
+	        List<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
+
+	        List<FocusShadowDto> accounts = getFocusShadows();
+	        OperationResult subResult = null;
+	        for (FocusShadowDto account : accounts) {
+	            if(!account.isLoadedOK())
+	                continue;
+
+	            try {
+	                ObjectWrapper accountWrapper = account.getObject();
+	                ObjectDelta delta = accountWrapper.getObjectDelta();
+	                if (LOGGER.isTraceEnabled()) {
+	                    LOGGER.trace("Account delta computed from form:\n{}", new Object[]{delta.debugDump(3)});
+	                }
+
+	                if (!UserDtoStatus.MODIFY.equals(account.getStatus())) {
+	                    continue;
+	                }
+
+	                if (delta.isEmpty() && (accountWrapper.getOldDelta() == null || accountWrapper.getOldDelta().isEmpty())) {
+	                    continue;
+	                }
+
+	                if (accountWrapper.getOldDelta() != null) {
+	                    delta = ObjectDelta.summarize(delta, accountWrapper.getOldDelta());
+	                }
+
+	                //what is this???
+//					subResult = result.createSubresult(OPERATION_MODIFY_ACCOUNT);
+
+	                WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
+	                if (LOGGER.isTraceEnabled()) {
+	                    LOGGER.trace("Modifying account:\n{}", new Object[]{delta.debugDump(3)});
+	                }
+
+	                deltas.add(delta);
+//					subResult.recordSuccess();
+	            } catch (Exception ex) {
+//					if (subResult != null) {
+	                result.recordFatalError("Couldn't compute account delta.", ex);
+//					}
+	                LoggingUtils.logException(LOGGER, "Couldn't compute account delta", ex);
+	            }
+	        }
+
+	        return deltas;
+	    }
+
+	    /**
+	     * remove this method after model is updated - it has to remove resource
+	     * from accountConstruction
+	     */
+	    @Deprecated
+	    private void removeResourceFromAccConstruction(AssignmentType assignment) {
+	        ConstructionType accConstruction = assignment.getConstruction();
+	        if (accConstruction == null || accConstruction.getResource() == null) {
+	            return;
+	        }
+
+	        ObjectReferenceType ref = new ObjectReferenceType();
+	        ref.setOid(assignment.getConstruction().getResource().getOid());
+	        ref.setType(ResourceType.COMPLEX_TYPE);
+	        assignment.getConstruction().setResourceRef(ref);
+	        assignment.getConstruction().setResource(null);
+	    }
+
+	    private ReferenceDelta prepareUserAccountsDeltaForModify(PrismReferenceDefinition refDef) throws SchemaException {
+	        ReferenceDelta refDelta = new ReferenceDelta(refDef, getPrismContext());
+
+	        List<FocusShadowDto> accounts = getFocusShadows();
+	        for (FocusShadowDto accDto : accounts) {
+	            if(accDto.isLoadedOK()){
+	                ObjectWrapper accountWrapper = accDto.getObject();
+	                ObjectDelta delta = accountWrapper.getObjectDelta();
+	                PrismReferenceValue refValue = new PrismReferenceValue(null, OriginType.USER_ACTION, null);
+
+	                PrismObject<ShadowType> account;
+	                switch (accDto.getStatus()) {
+	                    case ADD:
+	                        account = delta.getObjectToAdd();
+	                        WebMiscUtil.encryptCredentials(account, true, getMidpointApplication());
+	                        refValue.setObject(account);
+	                        refDelta.addValueToAdd(refValue);
+	                        break;
+	                    case DELETE:
+	                        account = accountWrapper.getObject();
+	                        refValue.setObject(account);
+	                        refDelta.addValueToDelete(refValue);
+	                        break;
+	                    case MODIFY:
+	                        // nothing to do, account modifications were applied before
+	                        continue;
+	                    case UNLINK:
+	                        refValue.setOid(delta.getOid());
+	                        refValue.setTargetType(ShadowType.COMPLEX_TYPE);
+	                        refDelta.addValueToDelete(refValue);
+	                        break;
+	                    default:
+	                        warn(getString("pageAdminFocus.message.illegalAccountState", accDto.getStatus()));
+	                }
+	            }
+	        }
+
+	        return refDelta;
+	    }
+
+	    private ContainerDelta handleAssignmentDeltas(ObjectDelta<T> focusDelta, PrismContainerDefinition def)
+	            throws SchemaException {
+	        ContainerDelta assDelta = new ContainerDelta(new ItemPath(), FocusType.F_ASSIGNMENT, def, getPrismContext());
+
+	        PrismObject<UserType> user = getFocusWrapper().getObject();
+	        PrismObjectDefinition userDef = user.getDefinition();
+	        PrismContainerDefinition assignmentDef = userDef.findContainerDefinition(UserType.F_ASSIGNMENT);
+
+	        List<AssignmentEditorDto> assignments = getFocusAssignments();
+	        for (AssignmentEditorDto assDto : assignments) {
+	            PrismContainerValue newValue = assDto.getNewValue();
+
+	            switch (assDto.getStatus()) {
+	                case ADD:
+	                    newValue.applyDefinition(assignmentDef, false);
+	                    assDelta.addValueToAdd(newValue.clone());
+	                    break;
+	                case DELETE:
+	                    PrismContainerValue oldValue = assDto.getOldValue();
+	                    oldValue.applyDefinition(assignmentDef);
+	                    assDelta.addValueToDelete(oldValue.clone());
+	                    break;
+	                case MODIFY:
+	                    if (!assDto.isModified()) {
+	                        LOGGER.trace("Assignment '{}' not modified.", new Object[]{assDto.getName()});
+	                        continue;
+	                    }
+
+	                    handleModifyAssignmentDelta(assDto, assignmentDef, newValue, focusDelta);
+	                    break;
+	                default:
+	                    warn(getString("pageAdminUser.message.illegalAssignmentState", assDto.getStatus()));
+	            }
+	        }
+
+	        if (!assDelta.isEmpty()) {
+	        	assDelta = focusDelta.addModification(assDelta);
+	        }
+
+	        // todo remove this block [lazyman] after model is updated - it has to
+	        // remove resource from accountConstruction
+	        Collection<PrismContainerValue> values = assDelta.getValues(PrismContainerValue.class);
+	        for (PrismContainerValue value : values) {
+	            AssignmentType ass = new AssignmentType();
+	            ass.setupContainerValue(value);
+	            removeResourceFromAccConstruction(ass);
+	        }
+
+	        return assDelta;
+	    }
+
+	    private void handleModifyAssignmentDelta(AssignmentEditorDto assDto, PrismContainerDefinition assignmentDef,
+	                                             PrismContainerValue newValue, ObjectDelta<T> focusDelta) throws SchemaException {
+	        LOGGER.debug("Handling modified assignment '{}', computing delta.", new Object[]{assDto.getName()});
+
+	        PrismValue oldValue = assDto.getOldValue();
+	        Collection<? extends ItemDelta> deltas = oldValue.diff(newValue);
+
+	        for (ItemDelta delta : deltas) {
+	            ItemPath deltaPath = delta.getPath().rest();
+	            ItemDefinition deltaDef = assignmentDef.findItemDefinition(deltaPath);
+
+	            delta.setParentPath(joinPath(oldValue.getPath(), delta.getPath().allExceptLast()));
+	            delta.applyDefinition(deltaDef);
+
+	            focusDelta.addModification(delta);
+	        }
+	    }
+
+	    private ItemPath joinPath(ItemPath path, ItemPath deltaPath) {
+	        List<ItemPathSegment> newPath = new ArrayList<ItemPathSegment>();
+
+	        ItemPathSegment firstDeltaSegment = deltaPath != null ? deltaPath.first() : null;
+	        if (path != null) {
+	            for (ItemPathSegment seg : path.getSegments()) {
+	                if (seg.equivalent(firstDeltaSegment)) {
+	                    break;
+	                }
+	                newPath.add(seg);
+	            }
+	        }
+	        if (deltaPath != null) {
+	            newPath.addAll(deltaPath.getSegments());
+	        }
+
+	        return new ItemPath(newPath);
+	    }
+
+	    protected void prepareFocusDeltaForModify(ObjectDelta<T> focusDelta) throws SchemaException {
+	        // handle accounts
+	        SchemaRegistry registry = getPrismContext().getSchemaRegistry();
+	        PrismObjectDefinition<T> objectDefinition = registry.findObjectDefinitionByCompileTimeClass(getCompileTimeClass());
+	        PrismReferenceDefinition refDef = objectDefinition.findReferenceDefinition(FocusType.F_LINK_REF);
+	        ReferenceDelta refDelta = prepareUserAccountsDeltaForModify(refDef);
+	        if (!refDelta.isEmpty()) {
+	        	focusDelta.addModification(refDelta);
+	        }
+
+	        // handle assignments
+	        PrismContainerDefinition def = objectDefinition.findContainerDefinition(UserType.F_ASSIGNMENT);
+	        handleAssignmentDeltas(focusDelta, def);
+	    }
+
+	    private void recomputeAssignmentsPerformed(AjaxRequestTarget target){
+	        LOGGER.debug("Recompute user assignments");
+	        Task task = createSimpleTask(OPERATION_RECOMPUTE_ASSIGNMENTS);
+	        OperationResult result = new OperationResult(OPERATION_RECOMPUTE_ASSIGNMENTS);
+	        ObjectDelta<T> delta;
+	        Set<AssignmentsPreviewDto> assignmentDtoSet = new TreeSet<>();
+
+	        try {
+	            reviveModels();
+
+	            ObjectWrapper userWrapper = getFocusWrapper();
+	            delta = userWrapper.getObjectDelta();
+	            if (userWrapper.getOldDelta() != null) {
+	                delta = ObjectDelta.summarize(userWrapper.getOldDelta(), delta);
+	            }
+
+	            switch (userWrapper.getStatus()) {
+	                case ADDING:
+	                    PrismObject<T> focus = delta.getObjectToAdd();
+	                    prepareFocusForAdd(focus);
+	                    getPrismContext().adopt(focus, getCompileTimeClass());
+
+	                    if (LOGGER.isTraceEnabled()) {
+	                        LOGGER.trace("Delta before add user:\n{}", new Object[]{delta.debugDump(3)});
+	                    }
+
+	                    if (!delta.isEmpty()) {
+	                        delta.revive(getPrismContext());
+	                    } else {
+	                        result.recordSuccess();
+	                    }
+
+	                    break;
+	                case MODIFYING:
+	                    prepareFocusDeltaForModify(delta);
+
+	                    if (LOGGER.isTraceEnabled()) {
+	                        LOGGER.trace("Delta before modify user:\n{}", new Object[]{delta.debugDump(3)});
+	                    }
+
+	                    List<ObjectDelta<? extends ObjectType>> accountDeltas = modifyShadows(result);
+	                    Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
+
+	                    if (!delta.isEmpty()) {
+	                        delta.revive(getPrismContext());
+	                        deltas.add(delta);
+	                    }
+
+	                    for (ObjectDelta accDelta : accountDeltas) {
+	                        if (!accDelta.isEmpty()) {
+	                             accDelta.revive(getPrismContext());
+	                            deltas.add(accDelta);
+	                        }
+	                    }
+
+	                    break;
+	                default:
+	                    error(getString("pageAdminFocus.message.unsupportedState", userWrapper.getStatus()));
+	            }
+
+	            ModelContext<UserType> modelContext = null;
+	            try {
+	                modelContext = getModelInteractionService().previewChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+	            } catch (NoFocusNameSchemaException e) {
+	                info(getString("pageAdminFocus.message.noUserName"));
+	                target.add(getFeedbackPanel());
+	                return;
+	            }
+
+	            DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = modelContext.getEvaluatedAssignmentTriple();
+	            Collection<? extends EvaluatedAssignment> evaluatedAssignments = evaluatedAssignmentTriple.getNonNegativeValues();
+
+	            if (evaluatedAssignments.isEmpty()){
+	                info(getString("pageAdminFocus.message.noAssignmentsAvailable"));
+	                target.add(getFeedbackPanel());
+	                return;
+	            }
+
+	            List<String> directAssignmentsOids = new ArrayList<>();
+	            for (EvaluatedAssignment<UserType> evaluatedAssignment : evaluatedAssignments) {
+	                if (!evaluatedAssignment.isValid()) {
+	                    continue;
+	                }
+	                // roles and orgs
+	                DeltaSetTriple<? extends EvaluatedAbstractRole> evaluatedRolesTriple = evaluatedAssignment.getRoles();
+	                Collection<? extends EvaluatedAbstractRole> evaluatedRoles = evaluatedRolesTriple.getNonNegativeValues();
+	                for (EvaluatedAbstractRole role: evaluatedRoles) {
+	                    if (role.isEvaluateConstructions()) {
+	                        assignmentDtoSet.add(createAssignmentsPreviewDto(role, task, result));
+	                    }
+	                }
+
+	                // all resources
+	                DeltaSetTriple<EvaluatedConstruction> evaluatedConstructionsTriple = evaluatedAssignment.getEvaluatedConstructions(result);
+	                Collection<EvaluatedConstruction> evaluatedConstructions = evaluatedConstructionsTriple.getNonNegativeValues();
+	                for (EvaluatedConstruction construction : evaluatedConstructions) {
+	                    assignmentDtoSet.add(createAssignmentsPreviewDto(construction));
+	                }
+	            }
+
+	            AssignmentPreviewDialog dialog = (AssignmentPreviewDialog) get(MODAL_ID_ASSIGNMENTS_PREVIEW);
+	            dialog.updateData(target, new ArrayList<>(assignmentDtoSet), directAssignmentsOids);
+	            dialog.show(target);
+
+	        } catch (Exception e) {
+	            LoggingUtils.logUnexpectedException(LOGGER, "Could not create assignments preview.", e);
+	            error("Could not create assignments preview. Reason: " + e);
+	            target.add(getFeedbackPanel());
+	        }
+	    }
+
+	    private AssignmentsPreviewDto createAssignmentsPreviewDto(EvaluatedAbstractRole evaluatedAbstractRole, Task task, OperationResult result) {
+	        AssignmentsPreviewDto dto = new AssignmentsPreviewDto();
+	        PrismObject<? extends AbstractRoleType> role = evaluatedAbstractRole.getRole();
+	        dto.setTargetOid(role.getOid());
+	        dto.setTargetName(getNameToDisplay(role));
+	        dto.setTargetDescription(role.asObjectable().getDescription());
+	        dto.setTargetClass(role.getCompileTimeClass());
+	        dto.setDirect(evaluatedAbstractRole.isDirectlyAssigned());
+	        if (evaluatedAbstractRole.getAssignment() != null) {
+	            if (evaluatedAbstractRole.getAssignment().getTenantRef() != null) {
+	                dto.setTenantName(nameFromReference(evaluatedAbstractRole.getAssignment().getTenantRef(), task, result));
+	            }
+	            if (evaluatedAbstractRole.getAssignment().getOrgRef() != null) {
+	                dto.setOrgRefName(nameFromReference(evaluatedAbstractRole.getAssignment().getOrgRef(), task, result));
+	            }
+	        }
+	        return dto;
+	    }
+
+	    private String getNameToDisplay(PrismObject<? extends AbstractRoleType> role) {
+	        String n = PolyString.getOrig(role.asObjectable().getDisplayName());
+	        if (StringUtils.isNotBlank(n)) {
+	            return n;
+	        }
+	        return PolyString.getOrig(role.asObjectable().getName());
+	    }
+
+	    private String nameFromReference(ObjectReferenceType reference, Task task, OperationResult result) {
+	        String oid = reference.getOid();
+	        QName type = reference.getType();
+	        Class<? extends ObjectType> clazz = getPrismContext().getSchemaRegistry().getCompileTimeClass(type);
+	        PrismObject<? extends ObjectType> prismObject;
+	        try {
+	            prismObject = getModelService().getObject(clazz, oid, SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, result);
+	        } catch (ObjectNotFoundException|SchemaException|SecurityViolationException|CommunicationException|ConfigurationException|RuntimeException e) {
+	            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve name for {}: {}", e, clazz.getSimpleName(), oid);
+	            return "Couldn't retrieve name for " + oid;
+	        }
+	        ObjectType object = prismObject.asObjectable();
+	        if (object instanceof AbstractRoleType) {
+	            return getNameToDisplay(object.asPrismObject());
+	        } else {
+	            return PolyString.getOrig(object.getName());
+	        }
+	    }
+
+	    private AssignmentsPreviewDto createAssignmentsPreviewDto(EvaluatedConstruction evaluatedConstruction) {
+	        AssignmentsPreviewDto dto = new AssignmentsPreviewDto();
+	        PrismObject<ResourceType> resource = evaluatedConstruction.getResource();
+	        dto.setTargetOid(resource.getOid());
+	        dto.setTargetName(PolyString.getOrig(resource.asObjectable().getName()));
+	        dto.setTargetDescription(resource.asObjectable().getDescription());
+	        dto.setTargetClass(resource.getCompileTimeClass());
+	        dto.setDirect(evaluatedConstruction.isDirectlyAssigned());
+	        dto.setKind(evaluatedConstruction.getKind());
+	        dto.setIntent(evaluatedConstruction.getIntent());
+	        return dto;
+	    }
+
+	 
 	
 
 	 private void initShadows(final WebMarkupContainer accounts) {
@@ -623,7 +1414,7 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 	 
 	 private List<InlineMenuItem> createAssignmentsMenu() {
 	        List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
-	        InlineMenuItem item = new InlineMenuItem(createStringResource("pageUser.menu.assignShadow"), new InlineMenuItemAction() {
+	        InlineMenuItem item = new InlineMenuItem(createStringResource("pageAdminFocus.menu.assignShadow"), new InlineMenuItemAction() {
 
 	            @Override
 	            public void onClick(AjaxRequestTarget target) {
@@ -631,7 +1422,7 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 	            }
 	        });
 	        items.add(item);
-	        item = new InlineMenuItem(createStringResource("pageUser.menu.assignRole"), new InlineMenuItemAction() {
+	        item = new InlineMenuItem(createStringResource("pageAdminFocus.menu.assignRole"), new InlineMenuItemAction() {
 
 	            @Override
 	            public void onClick(AjaxRequestTarget target) {
@@ -639,7 +1430,7 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 	            }
 	        });
 	        items.add(item);
-	        item = new InlineMenuItem(createStringResource("pageUser.menu.assignOrg"), new InlineMenuItemAction() {
+	        item = new InlineMenuItem(createStringResource("pageAdminFocus.menu.assignOrg"), new InlineMenuItemAction() {
 
 	            @Override
 	            public void onClick(AjaxRequestTarget target) {
@@ -648,7 +1439,7 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 	        });
 	        items.add(item);
 	        items.add(new InlineMenuItem());
-	        item = new InlineMenuItem(createStringResource("pageUser.menu.unassign"), new InlineMenuItemAction() {
+	        item = new InlineMenuItem(createStringResource("pageAdminFocus.menu.unassign"), new InlineMenuItemAction() {
 
 	            @Override
 	            public void onClick(AjaxRequestTarget target) {
@@ -662,7 +1453,7 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 
 	    private List<InlineMenuItem> createShadowMenu() {
 	        List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
-	        InlineMenuItem item = new InlineMenuItem(createStringResource("pageUser.button.addShadow"), new InlineMenuItemAction() {
+	        InlineMenuItem item = new InlineMenuItem(createStringResource("pageAdminFocus.button.addShadow"), new InlineMenuItemAction() {
 
 	            @Override
 	            public void onClick(AjaxRequestTarget target) {
@@ -671,7 +1462,7 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 	        });
 	        items.add(item);
 	        items.add(new InlineMenuItem());
-	        item = new InlineMenuItem(createStringResource("pageUser.button.enable"), new InlineMenuItemAction() {
+	        item = new InlineMenuItem(createStringResource("pageAdminFocus.button.enable"), new InlineMenuItemAction() {
 
 	            @Override
 	            public void onClick(AjaxRequestTarget target) {
@@ -679,7 +1470,7 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 	            }
 	        });
 	        items.add(item);
-	        item = new InlineMenuItem(createStringResource("pageUser.button.disable"), new InlineMenuItemAction() {
+	        item = new InlineMenuItem(createStringResource("pageAdminFocus.button.disable"), new InlineMenuItemAction() {
 
 	            @Override
 	            public void onClick(AjaxRequestTarget target) {
@@ -687,7 +1478,7 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 	            }
 	        });
 	        items.add(item);
-	        item = new InlineMenuItem(createStringResource("pageUser.button.unlink"), new InlineMenuItemAction() {
+	        item = new InlineMenuItem(createStringResource("pageAdminFocus.button.unlink"), new InlineMenuItemAction() {
 
 	            @Override
 	            public void onClick(AjaxRequestTarget target) {
@@ -695,7 +1486,7 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 	            }
 	        });
 	        items.add(item);
-	        item = new InlineMenuItem(createStringResource("pageUser.button.unlock"), new InlineMenuItemAction() {
+	        item = new InlineMenuItem(createStringResource("pageAdminFocus.button.unlock"), new InlineMenuItemAction() {
 
 	            @Override
 	            public void onClick(AjaxRequestTarget target) {
@@ -704,7 +1495,7 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 	        });
 	        items.add(item);
 	        items.add(new InlineMenuItem());
-	        item = new InlineMenuItem(createStringResource("pageUser.button.delete"), new InlineMenuItemAction() {
+	        item = new InlineMenuItem(createStringResource("pageAdminFocus.button.delete"), new InlineMenuItemAction() {
 
 	            @Override
 	            public void onClick(AjaxRequestTarget target) {
@@ -715,7 +1506,7 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 
 	        return items;
 	    }
-
+	    
 	    
 	    private List<FocusShadowDto> getSelectedAccounts() {
 	        List<FocusShadowDto> selected = new ArrayList<FocusShadowDto>();
@@ -761,7 +1552,7 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 	                RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource.asPrismObject(),
 	                        LayerType.PRESENTATION, getPrismContext());
 	                if (refinedSchema == null) {
-	                    error(getString("pageUser.message.couldntCreateAccountNoSchema", resource.getName()));
+	                    error(getString("pageAdminFocus.message.couldntCreateAccountNoSchema", resource.getName()));
 	                    continue;
 	                }
 	                if (LOGGER.isTraceEnabled()) {
@@ -787,7 +1578,7 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 	                shadowModel.getObject().add(new FocusShadowDto(wrapper, UserDtoStatus.ADD));
 	                setResponsePage(getPage());
 	            } catch (Exception ex) {
-	                error(getString("pageUser.message.couldntCreateAccount", resource.getName(), ex.getMessage()));
+	                error(getString("pageAdminFocus.message.couldntCreateAccount", resource.getName(), ex.getMessage()));
 	                LoggingUtils.logException(LOGGER, "Couldn't create account", ex);
 	            }
 	        }
@@ -824,7 +1615,7 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 	        window.close(target);
 
 	        if (newAssignables.isEmpty()) {
-	            warn(getString("pageUser.message.noAssignableSelected"));
+	            warn(getString("pageAdminFocus.message.noAssignableSelected"));
 	            target.add(getFeedbackPanel());
 	            return;
 	        }
@@ -852,7 +1643,7 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 
 	                assignments.add(dto);
 	            } catch (Exception ex) {
-	                error(getString("pageUser.message.couldntAssignObject", object.getName(), ex.getMessage()));
+	                error(getString("pageAdminFocus.message.couldntAssignObject", object.getName(), ex.getMessage()));
 	                LoggingUtils.logException(LOGGER, "Couldn't assign object", ex);
 	            }
 	        }
@@ -877,13 +1668,13 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 	            ContainerWrapper activation = wrapper.findContainerWrapper(new ItemPath(
 	                    ShadowType.F_ACTIVATION));
 	            if (activation == null) {
-	                warn(getString("pageUser.message.noActivationFound", wrapper.getDisplayName()));
+	                warn(getString("pageAdminFocus.message.noActivationFound", wrapper.getDisplayName()));
 	                continue;
 	            }
 
 	            PropertyWrapper enabledProperty = (PropertyWrapper)activation.findPropertyWrapper(ActivationType.F_ADMINISTRATIVE_STATUS);
 	            if (enabledProperty == null || enabledProperty.getValues().size() != 1) {
-	                warn(getString("pageUser.message.noEnabledPropertyFound", wrapper.getDisplayName()));
+	                warn(getString("pageAdminFocus.message.noEnabledPropertyFound", wrapper.getDisplayName()));
 	                continue;
 	            }
 	            ValueWrapper value = enabledProperty.getValues().get(0);
@@ -899,7 +1690,7 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 	    private boolean isAnyAccountSelected(AjaxRequestTarget target) {
 	        List<FocusShadowDto> selected = getSelectedAccounts();
 	        if (selected.isEmpty()) {
-	            warn(getString("pageUser.message.noAccountSelected"));
+	            warn(getString("pageAdminFocus.message.noAccountSelected"));
 	            target.add(getFeedbackPanel());
 	            return false;
 	        }
@@ -974,7 +1765,7 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 	    private void deleteAssignmentPerformed(AjaxRequestTarget target) {
 	        List<AssignmentEditorDto> selected = getSelectedAssignments();
 	        if (selected.isEmpty()) {
-	            warn(getString("pageUser.message.noAssignmentSelected"));
+	            warn(getString("pageAdminFocus.message.noAssignmentSelected"));
 	            target.add(getFeedbackPanel());
 	            return;
 	        }
@@ -1000,7 +1791,7 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 
 	    private void initResourceModal() {
 	        ModalWindow window = createModalWindow(MODAL_ID_RESOURCE,
-	                createStringResource("pageUser.title.selectResource"), 1100, 560);
+	                createStringResource("pageAdminFocus.title.selectResource"), 1100, 560);
 
 	        final SimpleUserResourceProvider provider = new SimpleUserResourceProvider(this, shadowModel){
 
@@ -1026,7 +1817,7 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 
 	    private void initAssignableModal() {
 	        ModalWindow window = createModalWindow(MODAL_ID_ASSIGNABLE,
-	                createStringResource("pageUser.title.selectAssignable"), 1100, 560);
+	                createStringResource("pageAdminFocus.title.selectAssignable"), 1100, 560);
 	        window.setContent(new AssignableRolePopupContent(window.getContentId()) {
 
 	            @Override
@@ -1047,7 +1838,7 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 	        add(window);
 	        
 	        window = createModalWindow(MODAL_ID_ASSIGNABLE_ORG,
-	                createStringResource("pageUser.title.selectAssignable"), 1150, 600);
+	                createStringResource("pageAdminFocus.title.selectAssignable"), 1150, 600);
 	        window.setContent(new AssignableOrgPopupContent(window.getContentId()) {
 
 	            @Override
@@ -1111,17 +1902,17 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 	    private List<IColumn<TaskDto, String>> initTaskColumns() {
 	        List<IColumn<TaskDto, String>> columns = new ArrayList<IColumn<TaskDto, String>>();
 
-	        columns.add(PageTasks.createTaskNameColumn(this, "pageUser.task.name"));
-	        columns.add(PageTasks.createTaskCategoryColumn(this, "pageUser.task.category"));
-	        columns.add(PageTasks.createTaskExecutionStatusColumn(this, "pageUser.task.execution"));
-	        columns.add(PageTasks.createTaskResultStatusColumn(this, "pageUser.task.status"));
+	        columns.add(PageTasks.createTaskNameColumn(this, "pageAdminFocus.task.name"));
+	        columns.add(PageTasks.createTaskCategoryColumn(this, "pageAdminFocus.task.category"));
+	        columns.add(PageTasks.createTaskExecutionStatusColumn(this, "pageAdminFocus.task.execution"));
+	        columns.add(PageTasks.createTaskResultStatusColumn(this, "pageAdminFocus.task.status"));
 	        return columns;
 	    }
 
 
 	    private void initButtons(final Form mainForm) {
 	        AjaxSubmitButton saveButton = new AjaxSubmitButton("save",
-	                createStringResource("pageUser.button.save")) {
+	                createStringResource("pageAdminFocus.button.save")) {
 
 	            @Override
 	            protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
@@ -1138,7 +1929,7 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 	        mainForm.add(saveButton);
 
 	        AjaxSubmitButton abortButton = new AjaxSubmitButton("abort",
-	                createStringResource("pageUser.button.abort")) {
+	                createStringResource("pageAdminFocus.button.abort")) {
 
 	            @Override
 	            protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
@@ -1152,43 +1943,41 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 	        };
 	        progressReporter.registerAbortButton(abortButton);
 	        mainForm.add(abortButton);
+	        
+	        AjaxSubmitButton recomputeAssignments = new AjaxSubmitButton(ID_BUTTON_RECOMPUTE_ASSIGNMENTS,
+	                createStringResource("pageAdminFocus.button.recompute.assignments")) {
 
-//	        AjaxSubmitButton recomputeAssignments = new AjaxSubmitButton(ID_BUTTON_RECOMPUTE_ASSIGNMENTS,
-//	                createStringResource("pageUser.button.recompute.assignments")) {
-//
-//	            @Override
-//	            protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
-//	                recomputeAssignmentsPerformed(target);
-//	            }
-//
-//	            @Override
-//	            protected void onError(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
-//	                target.add(getFeedbackPanel());
-//	            }
-//	        };
-//	        mainForm.add(recomputeAssignments);
+	            @Override
+	            protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+	                recomputeAssignmentsPerformed(target);
+	            }
 
-	        AjaxButton back = new AjaxButton("back", createStringResource("pageUser.button.back")) {
+	            @Override
+	            protected void onError(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+	                target.add(getFeedbackPanel());
+	            }
+	        };
+	        mainForm.add(recomputeAssignments);
+	        
+	        AjaxButton back = new AjaxButton("back", createStringResource("pageAdminFocus.button.back")) {
 
 	            @Override
 	            public void onClick(AjaxRequestTarget target) {
-	                cancelPerformed(target);
+	            	setSpecificResponsePage();
 	            }
 	        };
 	        mainForm.add(back);
-	        
-	        initCustomButtons(mainForm);
-
+	    
 	        mainForm.add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel, true, false));
 	    }
 	    
 	    private void initConfirmationDialogs() {
 	        ConfirmationDialog dialog = new ConfirmationDialog(MODAL_ID_CONFIRM_DELETE_SHADOW,
-	                createStringResource("pageUser.title.confirmDelete"), new AbstractReadOnlyModel<String>() {
+	                createStringResource("pageAdminFocus.title.confirmDelete"), new AbstractReadOnlyModel<String>() {
 
 	            @Override
 	            public String getObject() {
-	                return createStringResource("pageUser.message.deleteAccountConfirm",
+	                return createStringResource("pageAdminFocus.message.deleteAccountConfirm",
 	                        getSelectedAccounts().size()).getString();
 	            }
 	        }) {
@@ -1202,11 +1991,11 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 	        add(dialog);
 
 	        dialog = new ConfirmationDialog(MODAL_ID_CONFIRM_DELETE_ASSIGNMENT,
-	                createStringResource("pageUser.title.confirmDelete"), new AbstractReadOnlyModel<String>() {
+	                createStringResource("pageAdminFocus.title.confirmDelete"), new AbstractReadOnlyModel<String>() {
 
 	            @Override
 	            public String getObject() {
-	                return createStringResource("pageUser.message.deleteAssignmentConfirm",
+	                return createStringResource("pageAdminFocus.message.deleteAssignmentConfirm",
 	                        getSelectedAssignments().size()).getString();
 	            }
 	        }) {
@@ -1242,10 +2031,7 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 	        // add(dialog);
 	    }
 	    
-	    protected abstract void savePerformed(AjaxRequestTarget target);
-	    protected abstract void cancelPerformed(AjaxRequestTarget target);
-	    protected abstract void initCustomButtons(Form mainForm);
 	    
-	 
+	protected abstract void setSpecificResponsePage();
 
 }

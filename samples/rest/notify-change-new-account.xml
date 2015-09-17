@@ -31,6 +31,8 @@
 			<!-- No name here. We expect that it will be generated -->
 			<c:resourceRef oid="ee0a9074-6bcd-4f8d-8a7d-88dca572769c" />
 			<c:objectClass>ri:AccountObjectClass</c:objectClass>
+			<c:kind>account</c:kind>
+            <c:intent>contact</c:intent>
 			<c:attributes>
 				<icfs:uid>23406</icfs:uid>
 				<icfs:name>j.sparrow</icfs:name>

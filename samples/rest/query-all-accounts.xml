@@ -21,8 +21,8 @@
             <q:ref>
                 <q:path>resourceRef</q:path>
                 <q:value>
-                    <oid>ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</oid>
-                    <type>ResourceType</type>
+                    <oid>resource-0000-0000-0000-000000000001</oid>
+                   
                 </q:value>
             </q:ref>
             <q:equal>
