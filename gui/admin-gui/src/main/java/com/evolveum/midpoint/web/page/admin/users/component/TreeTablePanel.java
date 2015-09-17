@@ -144,8 +144,8 @@ public class TreeTablePanel extends SimplePanel<String> {
             TabbedPanel currentTabbedPanel = null;
             MidPointAuthWebSession session = TreeTablePanel.this.getSession();
             SessionStorage storage = session.getSessionStorage();
-            if (getTree().getParent().getParent().getParent().getClass() == TabbedPanel.class) {
-                currentTabbedPanel = (TabbedPanel) getTree().getParent().getParent().getParent();
+            if (getTree().findParent(TabbedPanel.class) != null) {
+                currentTabbedPanel = getTree().findParent(TabbedPanel.class);
                 int tabId = currentTabbedPanel.getSelectedTab();
                 if (storage.getUsers().getSelectedTabId() != -1 && tabId != storage.getUsers().getSelectedTabId()){
                     storage.getUsers().setSelectedItem(null);
