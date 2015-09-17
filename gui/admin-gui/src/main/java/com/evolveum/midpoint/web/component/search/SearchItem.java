@@ -8,6 +8,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.commons.lang.builder.ToStringBuilder;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -103,5 +104,15 @@ public class SearchItem<T extends Serializable> implements Serializable {
         list.addAll(def.getAllowedValues());
 
         return list;
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this)
+                .append("definition", definition)
+                .append("search", search)
+                .append("path", path)
+                .append("values", values)
+                .toString();
     }
 }

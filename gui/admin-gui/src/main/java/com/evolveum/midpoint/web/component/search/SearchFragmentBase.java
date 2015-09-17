@@ -48,7 +48,7 @@ abstract class SearchFragmentBase<T extends Serializable> extends Fragment {
 
     protected void addPerformed(AjaxRequestTarget target) {
         SearchItemPanel panel = findParent(SearchItemPanel.class);
-        panel.getModelObject().getValues().add(new SearchValue());
+        panel.getPopoverModel().getObject().getValues().add(new SearchValue());
         panel.updatePopupBody(target);
     }
 
@@ -56,7 +56,7 @@ abstract class SearchFragmentBase<T extends Serializable> extends Fragment {
         SearchItemPanel panel = findParent(SearchItemPanel.class);
         T val = data.getObject();
 
-        panel.getModelObject().getValues().remove(val);
+        panel.getPopoverModel().getObject().getValues().remove(val);
 
         panel.updatePopupBody(target);
     }

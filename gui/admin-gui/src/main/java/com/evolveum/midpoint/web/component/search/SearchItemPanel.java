@@ -7,6 +7,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.BaseSimplePanel;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypeDialog;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -14,9 +15,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -65,12 +65,22 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
     private static final String ID_BROWSE = "browse";
     private static final String ID_BROWSER_POPUP = "browserPopup";
 
+    private LoadableModel<SearchItemPopoverDto> popoverModel;
+
     public SearchItemPanel(String id, IModel<SearchItem> model) {
         super(id, model);
     }
 
     @Override
     protected void initLayout() {
+        popoverModel = new LoadableModel<SearchItemPopoverDto>(false) {
+
+            @Override
+            protected SearchItemPopoverDto load() {
+                return loadPopoverItems();
+            }
+        };
+
         AjaxLink mainButton = new AjaxLink(ID_MAIN_BUTTON) {
 
             @Override
@@ -94,6 +104,22 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
 
         initPopover();
         initBrowserPopup();
+    }
+
+    private SearchItemPopoverDto loadPopoverItems() {
+        SearchItemPopoverDto dto = new SearchItemPopoverDto();
+
+        SearchItem item = getModelObject();
+        for (DisplayableValue<? extends Serializable> value : (List<DisplayableValue>) item.getValues()) {
+            DisplayableValue itemValue = new SearchValue(value.getValue(), value.getLabel());
+            dto.getValues().add(itemValue);
+        }
+
+        if (dto.getValues().isEmpty()) {
+            dto.getValues().add(new SearchValue());
+        }
+
+        return dto;
     }
 
     private void initBrowserPopup() {
@@ -145,7 +171,7 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
         popover.add(popoverBody);
 
         ListView values = new ListView<DisplayableValue>(ID_VALUES,
-                new PropertyModel<List<DisplayableValue>>(getModel(), SearchItem.F_VALUES)) {
+                new PropertyModel<List<DisplayableValue>>(popoverModel, SearchItem.F_VALUES)) {
 
             @Override
             protected void populateItem(final ListItem<DisplayableValue> item) {
@@ -164,15 +190,14 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
         };
         popoverBody.add(values);
 
-
-        AjaxSubmitButton add = new AjaxSubmitButton(ID_UPDATE, createStringResource("SearchItemPanel.update")) {
+        AjaxSubmitButton update = new AjaxSubmitButton(ID_UPDATE, createStringResource("SearchItemPanel.update")) {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 updateItemPerformed(target);
             }
         };
-        popoverBody.add(add);
+        popoverBody.add(update);
 
         AjaxButton close = new AjaxButton(ID_CLOSE, createStringResource("SearchItemPanel.close")) {
 
@@ -260,11 +285,22 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
 
     private void updateItemPerformed(AjaxRequestTarget target) {
         SearchItem item = getModelObject();
+        item.getValues().clear();
+
+        SearchItemPopoverDto dto = popoverModel.getObject();
+        for (DisplayableValue value : dto.getValues()) {
+            item.getValues().add(value);
+        }
+
         LOG.debug("Update item performed, item {} value is {}", item.getName(), item.getValues());
 
         SearchPanel panel = findParent(SearchPanel.class);
         panel.refreshSearchForm(target);
         panel.searchPerformed(target);
+    }
+
+    public LoadableModel<SearchItemPopoverDto> getPopoverModel() {
+        return popoverModel;
     }
 
     private void closeEditPopoverPerformed(AjaxRequestTarget target) {
@@ -274,6 +310,8 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
     private void editPerformed(AjaxRequestTarget target) {
         LOG.debug("Edit performed");
 
+        popoverModel.reset();
+        target.add(get(createComponentPath(ID_POPOVER, ID_POPOVER_BODY)));
         togglePopover(target);
     }
 
@@ -306,6 +344,13 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
 
             IModel data = new PropertyModel(value, SearchValue.F_VALUE);
             final TextField input = new TextField(ID_TEXT_INPUT, data);
+            input.add(new AjaxFormComponentUpdatingBehavior("onblur") {
+
+                @Override
+                protected void onUpdate(AjaxRequestTarget target) {
+                    //nothing to do, just update model data
+                }
+            });
             input.setOutputMarkupId(true);
             add(input);
         }

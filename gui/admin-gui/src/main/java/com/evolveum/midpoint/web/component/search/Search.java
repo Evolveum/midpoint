@@ -7,7 +7,10 @@ import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.apache.commons.lang.builder.ToStringBuilder;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -22,6 +25,8 @@ public class Search implements Serializable {
 
     public static final String F_AVAILABLE_DEFINITIONS = "availableDefinitions";
     public static final String F_ITEMS = "items";
+
+    private static final Trace LOGGER = TraceManager.getTrace(Search.class);
 
     private Class<? extends ObjectType> type;
     private Map<ItemPath, ItemDefinition> allDefinitions;
@@ -85,6 +90,8 @@ public class Search implements Serializable {
     }
 
     public ObjectQuery createObjectQuery(PrismContext ctx) {
+        LOGGER.debug("Creating query from {}", this);
+
         List<SearchItem> searchItems = getItems();
         if (searchItems.isEmpty()) {
             return null;
@@ -162,5 +169,12 @@ public class Search implements Serializable {
         PolyStringNormalizer normalizer = ctx.getDefaultPolyStringNormalizer();
         String value = normalizer.normalize(text);
         return SubstringFilter.createSubstring(path, propDef, PolyStringNormMatchingRule.NAME, value);
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this)
+                .append("items", items)
+                .toString();
     }
 }
