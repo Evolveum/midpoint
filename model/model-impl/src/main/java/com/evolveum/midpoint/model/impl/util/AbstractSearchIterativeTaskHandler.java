@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.evolveum.midpoint.model.impl.sync.TaskHandlerUtil;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -29,6 +30,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,7 +71,8 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 	private String taskOperationPrefix;
 	private boolean logFinishInfo = false;
     private boolean countObjectsOnStart = true;         // todo make configurable per task instance (if necessary)
-	
+    private boolean preserveStatistics = true;
+
 	// If you need to store fields specific to task instance or task run the ResultHandler is a good place to do that.
 	
 	// This is not ideal, TODO: refactor
@@ -95,19 +98,37 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 		this.taskName = taskName;
 		this.taskOperationPrefix = taskOperationPrefix;
 	}
-	
+
 	public boolean isLogFinishInfo() {
 		return logFinishInfo;
 	}
 
-	public void setLogFinishInfo(boolean logFinishInfo) {
+    public boolean isPreserveStatistics() {
+        return preserveStatistics;
+    }
+
+    public void setPreserveStatistics(boolean preserveStatistics) {
+        this.preserveStatistics = preserveStatistics;
+    }
+
+    public void setLogFinishInfo(boolean logFinishInfo) {
 		this.logFinishInfo = logFinishInfo;
 	}
 
 	@Override
 	public TaskRunResult run(Task coordinatorTask) {
-		LOGGER.trace("{} run starting (coordinator task {})", taskName, coordinatorTask);
-		
+        LOGGER.trace("{} run starting (coordinator task {})", taskName, coordinatorTask);
+        if (isPreserveStatistics()) {
+            TaskHandlerUtil.fetchAllStatistics(coordinatorTask);
+        }
+        try {
+            return runInternal(coordinatorTask);
+        } finally {
+            TaskHandlerUtil.storeAllStatistics(coordinatorTask);
+        }
+    }
+
+    public TaskRunResult runInternal(Task coordinatorTask) {
 		OperationResult opResult = new OperationResult(taskOperationPrefix + ".run");
 		opResult.setStatus(OperationResultStatus.IN_PROGRESS);
 		TaskRunResult runResult = new TaskRunResult();

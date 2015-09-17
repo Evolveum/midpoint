@@ -228,7 +228,13 @@ public class PrismBeanConverter {
 					// Check for "any" method
 					elementMethod = inspector.findAnyMethod(beanClass);
 					if (elementMethod == null) {
-						throw new SchemaException("No field "+propName+" in class "+beanClass+" (and no element method in object factory too)");
+						String m = "No field "+propName+" in class "+beanClass+" (and no element method in object factory too)";
+						if (mode == XNodeProcessorEvaluationMode.COMPAT) {
+							LOGGER.warn("{}", m);
+							continue;
+						} else {
+							throw new SchemaException(m);
+						}
 					}
 					unmarshallToAny(bean, elementMethod, key, xsubnode);
 					continue;
@@ -241,7 +247,13 @@ public class PrismBeanConverter {
 					if (field == null) {
 						elementMethod = inspector.findAnyMethod(beanClass);
 						if (elementMethod == null) {
-							throw new SchemaException("No field "+propName+" in class "+beanClass+" (and no element method in object factory too)");
+							String m = "No field "+propName+" in class "+beanClass+" (and no element method in object factory too)";
+							if (mode == XNodeProcessorEvaluationMode.COMPAT) {
+								LOGGER.warn("{}", m);
+								continue;
+							} else {
+								throw new SchemaException(m);
+							}
 						}
 						unmarshallToAny(bean, elementMethod, key, xsubnode);
 						continue;

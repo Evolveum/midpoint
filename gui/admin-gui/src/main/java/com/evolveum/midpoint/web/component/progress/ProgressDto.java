@@ -29,7 +29,6 @@ public class ProgressDto implements Serializable {
 
     private List<ProgressReportActivityDto> progressReportActivities = new ArrayList<>();
     private List<String> logItems = new ArrayList<>();
-    private List<StatusMessage> logEntries = new ArrayList<>();
 
     public List<ProgressReportActivityDto> getProgressReportActivities() {
         return progressReportActivities;
@@ -69,7 +68,4 @@ public class ProgressDto implements Serializable {
         return true;
     }
 
-    public List<StatusMessage> getLogEntries() {
-        return logEntries;
-    }
 }

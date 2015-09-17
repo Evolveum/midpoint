@@ -19,6 +19,9 @@ package com.evolveum.midpoint.web.component.progress;
 import com.evolveum.midpoint.schema.statistics.GenericStatisticsData;
 import com.evolveum.midpoint.schema.statistics.NotificationsStatisticsKey;
 import com.evolveum.midpoint.schema.statistics.OperationalInformation;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationsStatisticsEntryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationsStatisticsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalInformationType;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
@@ -41,12 +44,30 @@ public class NotificationsLineDto {
     private String transport;
     private int countSuccess;
     private int countFailure;
-    private Integer minTime;
-    private Integer maxTime;
-    private int totalTime;
+    private Long minTime;
+    private Long maxTime;
+    private long totalTime;
 
     public NotificationsLineDto(String transport) {
         this.transport = transport;
+    }
+
+    public NotificationsLineDto(NotificationsStatisticsEntryType entry) {
+        transport = entry.getTransport();
+        countSuccess = entry.getCountSuccess();
+        countFailure = entry.getCountFailure();
+        minTime = entry.getMinTime();
+        maxTime = entry.getMaxTime();
+        totalTime = entry.getTotalTime();
+    }
+
+    public Long getAverageTime() {
+        int count = countSuccess + countFailure;
+        if (count > 0) {
+            return totalTime / count;
+        } else {
+            return null;
+        }
     }
 
     public String getTransport() {
@@ -61,68 +82,57 @@ public class NotificationsLineDto {
         return countFailure;
     }
 
-    public int getAverageTime() {
-        int count = countSuccess + countFailure;
-        if (count > 0) {
-            return totalTime / count;
-        } else {
-            return 0;
-        }
+    public Long getMinTime() {
+        return minTime;
     }
 
-    public int getMinTime() {
-        return minTime != null ? minTime : 0;
+    public Long getMaxTime() {
+        return maxTime;
     }
 
-    public int getMaxTime() {
-        return maxTime != null ? maxTime : 0;
-    }
-
-    public int getTotalTime() {
+    public long getTotalTime() {
         return totalTime;
     }
 
     public static List<NotificationsLineDto> extractFromOperationalInformation(OperationalInformation operationalInformation) {
+        OperationalInformationType operationalInformationType = operationalInformation.getAggregatedValue();
+        NotificationsStatisticsType notificationsStatisticsType = operationalInformationType.getNotificationsStatistics();
+        return extractFromOperationalInformation(notificationsStatisticsType);
+    }
+
+    protected static List<NotificationsLineDto> extractFromOperationalInformation(NotificationsStatisticsType notificationsStatisticsType) {
         List<NotificationsLineDto> retval = new ArrayList<>();
-        Map<NotificationsStatisticsKey, GenericStatisticsData> dataMap = operationalInformation.getNotificationsData();
-        if (dataMap == null) {
+        if (notificationsStatisticsType == null) {
             return retval;
         }
-        for (Map.Entry<NotificationsStatisticsKey, GenericStatisticsData> entry : dataMap.entrySet()) {
-            NotificationsStatisticsKey key = entry.getKey();
-            String transport = key.getTransport();
-            NotificationsLineDto lineDto = findLineDto(retval, transport);
-            if (lineDto == null) {
-                lineDto = new NotificationsLineDto(transport);
-                retval.add(lineDto);
-            }
-            lineDto.setValue(key.isSuccess(), entry.getValue().getCount(), entry.getValue().getMinDuration(),
-                    entry.getValue().getMaxDuration(), entry.getValue().getTotalDuration());
+
+        for (NotificationsStatisticsEntryType entry : notificationsStatisticsType.getEntry()) {
+            retval.add(new NotificationsLineDto(entry));
         }
         return retval;
     }
 
-    private static NotificationsLineDto findLineDto(List<NotificationsLineDto> list, String transport) {
-        for (NotificationsLineDto lineDto : list) {
-            if (StringUtils.equals(lineDto.getTransport(), transport)) {
-                return lineDto;
-            }
-        }
-        return null;
-    }
-
-    private void setValue(boolean success, int count, int min, int max, long totalDuration) {
-        if (success) {
-            this.countSuccess += count;
-        } else {
-            this.countFailure += count;
-        }
-        if (minTime == null || min < minTime) {
-            minTime = min;
-        }
-        if (maxTime == null || max > maxTime) {
-            maxTime = max;
-        }
-        totalTime += totalDuration;
-    }
+//    private static NotificationsLineDto findLineDto(List<NotificationsLineDto> list, String transport) {
+//        for (NotificationsLineDto lineDto : list) {
+//            if (StringUtils.equals(lineDto.getTransport(), transport)) {
+//                return lineDto;
+//            }
+//        }
+//        return null;
+//    }
+//
+//    private void setValue(boolean success, int count, long min, long max, long totalDuration) {
+//        if (success) {
+//            this.countSuccess += count;
+//        } else {
+//            this.countFailure += count;
+//        }
+//        if (minTime == null || min < minTime) {
+//            minTime = min;
+//        }
+//        if (maxTime == null || max > maxTime) {
+//            maxTime = max;
+//        }
+//        totalTime += totalDuration;
+//    }
 }

@@ -54,7 +54,6 @@ public class ProgressPanel extends SimplePanel<ProgressDto> {
 
     private WebMarkupContainer contentsPanel;
     private StatisticsPanel statisticsPanel;
-    private transient Task task;
 
     public ProgressPanel(String id) {
         super(id);
@@ -160,7 +159,7 @@ public class ProgressPanel extends SimplePanel<ProgressDto> {
         };
         contentsPanel.add(statusItemsListView);
 
-        statisticsPanel = new StatisticsPanel(ID_STATISTICS, task);
+        statisticsPanel = new StatisticsPanel(ID_STATISTICS, new StatisticsDtoModel());
         contentsPanel.add(statisticsPanel);
 
         ListView logItemsListView = new ListView(ID_LOG_ITEMS, new AbstractReadOnlyModel<List>() {
@@ -212,13 +211,14 @@ public class ProgressPanel extends SimplePanel<ProgressDto> {
     }
 
     public void setTask(Task task) {
-        this.task = task;
-        if (statisticsPanel != null) {
-            statisticsPanel.setTask(task);
+        if (statisticsPanel != null && statisticsPanel.getModel() instanceof StatisticsDtoModel) {
+            ((StatisticsDtoModel) statisticsPanel.getModel()).setTask(task);
         }
     }
 
-    public Task getTask() {
-        return task;
+    public void invalidateCache() {
+        if (statisticsPanel != null && statisticsPanel.getModel() instanceof StatisticsDtoModel) {
+            ((StatisticsDtoModel) (statisticsPanel.getModel())).invalidateCache();
+        }
     }
 }

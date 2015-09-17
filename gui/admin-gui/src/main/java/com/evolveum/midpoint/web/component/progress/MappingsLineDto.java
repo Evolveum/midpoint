@@ -19,6 +19,9 @@ package com.evolveum.midpoint.web.component.progress;
 import com.evolveum.midpoint.schema.statistics.GenericStatisticsData;
 import com.evolveum.midpoint.schema.statistics.MappingsStatisticsKey;
 import com.evolveum.midpoint.schema.statistics.OperationalInformation;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsStatisticsEntryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsStatisticsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalInformationType;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
@@ -39,12 +42,20 @@ public class MappingsLineDto {
 
     private String object;
     private int count;
-    private Integer minTime;
-    private Integer maxTime;
-    private int totalTime;
+    private Long minTime;
+    private Long maxTime;
+    private long totalTime;
 
-    public MappingsLineDto(String object) {
-        this.object = object;
+//    public MappingsLineDto(String object) {
+//        this.object = object;
+//    }
+
+    public MappingsLineDto(MappingsStatisticsEntryType entry) {
+        object = entry.getObject();
+        count = entry.getCount();
+        minTime = entry.getMinTime();
+        maxTime = entry.getMaxTime();
+        totalTime = entry.getTotalTime();
     }
 
     public String getObject() {
@@ -55,64 +66,60 @@ public class MappingsLineDto {
         return count;
     }
 
-    public int getAverageTime() {
+    public Long getAverageTime() {
         if (count > 0) {
             return totalTime / count;
         } else {
-            return 0;
+            return null;
         }
     }
 
-    public int getMinTime() {
-        return minTime != null ? minTime : 0;
+    public Long getMinTime() {
+        return minTime;
     }
 
-    public int getMaxTime() {
-        return maxTime != null ? maxTime : 0;
+    public Long getMaxTime() {
+        return maxTime;
     }
 
-    public int getTotalTime() {
+    public long getTotalTime() {
         return totalTime;
     }
 
     public static List<MappingsLineDto> extractFromOperationalInformation(OperationalInformation operationalInformation) {
+        OperationalInformationType operationalInformationType = operationalInformation.getAggregatedValue();
+        MappingsStatisticsType mappingsStatisticsType = operationalInformationType.getMappingsStatistics();
+        return extractFromOperationalInformation(mappingsStatisticsType);
+    }
+
+    protected static List<MappingsLineDto> extractFromOperationalInformation(MappingsStatisticsType mappingsStatisticsType) {
         List<MappingsLineDto> retval = new ArrayList<>();
-        Map<MappingsStatisticsKey, GenericStatisticsData> dataMap = operationalInformation.getMappingsData();
-        if (dataMap == null) {
+        if (mappingsStatisticsType == null) {
             return retval;
         }
-        // this is much more generic that needs to be - but useful for future, maybe
-        for (Map.Entry<MappingsStatisticsKey, GenericStatisticsData> entry : dataMap.entrySet()) {
-            MappingsStatisticsKey key = entry.getKey();
-            String object = key.getObjectName() != null ? key.getObjectName() : key.getObjectOid();
-            MappingsLineDto lineDto = findLineDto(retval, object);
-            if (lineDto == null) {
-                lineDto = new MappingsLineDto(object);
-                retval.add(lineDto);
-            }
-            lineDto.setValue(entry.getValue().getCount(), entry.getValue().getMinDuration(),
-                    entry.getValue().getMaxDuration(), entry.getValue().getTotalDuration());
+        for (MappingsStatisticsEntryType entry : mappingsStatisticsType.getEntry()) {
+            retval.add(new MappingsLineDto(entry));
         }
         return retval;
     }
 
-    private static MappingsLineDto findLineDto(List<MappingsLineDto> list, String object) {
-        for (MappingsLineDto lineDto : list) {
-            if (StringUtils.equals(lineDto.getObject(), object)) {
-                return lineDto;
-            }
-        }
-        return null;
-    }
-
-    private void setValue(int count, int min, int max, long totalDuration) {
-        this.count += count;
-        if (minTime == null || min < minTime) {
-            minTime = min;
-        }
-        if (maxTime == null || max > maxTime) {
-            maxTime = max;
-        }
-        totalTime += totalDuration;
-    }
+//    private static MappingsLineDto findLineDto(List<MappingsLineDto> list, String object) {
+//        for (MappingsLineDto lineDto : list) {
+//            if (StringUtils.equals(lineDto.getObject(), object)) {
+//                return lineDto;
+//            }
+//        }
+//        return null;
+//    }
+//
+//    private void setValue(int count, int min, int max, long totalDuration) {
+//        this.count += count;
+//        if (minTime == null || min < minTime) {
+//            minTime = min;
+//        }
+//        if (maxTime == null || max > maxTime) {
+//            maxTime = max;
+//        }
+//        totalTime += totalDuration;
+//    }
 }

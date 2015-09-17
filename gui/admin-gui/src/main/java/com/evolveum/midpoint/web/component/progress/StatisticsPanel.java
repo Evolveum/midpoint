@@ -19,6 +19,11 @@ package com.evolveum.midpoint.web.component.progress;
 import com.evolveum.midpoint.schema.statistics.StatusMessage;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.page.admin.server.currentState.TaskCurrentStateDto;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -33,7 +38,7 @@ import java.util.List;
 /**
  * @author mederly
  */
-public class StatisticsPanel extends SimplePanel<ProgressDto> {
+public class StatisticsPanel extends SimplePanel<StatisticsDto> {
 
     private static final String ID_CONTENTS_PANEL = "contents";
     private static final String ID_PROVISIONING_STATISTICS_LINES = "provisioningStatisticsLines";
@@ -77,25 +82,18 @@ public class StatisticsPanel extends SimplePanel<ProgressDto> {
     private static final String ID_NOTIFICATIONS_MAX_TIME = "Notifications.MaxTime";
     private static final String ID_NOTIFICATIONS_TOTAL_TIME = "Notifications.TotalTime";
 
-
     private static final String ID_LAST_MESSAGE = "lastMessage";
 
+    private static final String ID_SOURCE = "source";
+
     private WebMarkupContainer contentsPanel;
-    private transient Task task;
-    private IModel<Task> taskModel;
 
     public StatisticsPanel(String id) {
         super(id);
     }
 
-    public StatisticsPanel(String id, Task task) {
-        super(id);
-        this.task = task;
-    }
-
-    public StatisticsPanel(String id, IModel<Task> taskModel) {
-        super(id);
-        this.taskModel = taskModel;
+    public StatisticsPanel(String id, IModel<StatisticsDto> model) {
+        super(id, model);
     }
 
     protected void initLayout() {
@@ -103,16 +101,7 @@ public class StatisticsPanel extends SimplePanel<ProgressDto> {
         contentsPanel.setOutputMarkupId(true);
         add(contentsPanel);
 
-        ListView provisioningLines = new ListView<ProvisioningStatisticsLineDto>(ID_PROVISIONING_STATISTICS_LINES, new AbstractReadOnlyModel<List<ProvisioningStatisticsLineDto>>() {
-            @Override
-            public List<ProvisioningStatisticsLineDto> getObject() {
-                Task t = getTask();
-                if (t == null || t.getOperationalInformation() == null) {
-                    return new ArrayList<>();
-                }
-                return ProvisioningStatisticsLineDto.extractFromOperationalInformation(t.getOperationalInformation());
-            }
-        }) {
+        ListView provisioningLines = new ListView<ProvisioningStatisticsLineDto>(ID_PROVISIONING_STATISTICS_LINES, new PropertyModel<List<ProvisioningStatisticsLineDto>>(getModel(), StatisticsDto.F_PROVISIONING_LINES)) {
             protected void populateItem(final ListItem<ProvisioningStatisticsLineDto> item) {
                 item.add(new Label(ID_PROVISIONING_RESOURCE, new PropertyModel<String>(item.getModel(), ProvisioningStatisticsLineDto.F_RESOURCE)));
                 item.add(new Label(ID_PROVISIONING_OBJECT_CLASS, new PropertyModel<String>(item.getModel(), ProvisioningStatisticsLineDto.F_OBJECT_CLASS)));
@@ -140,16 +129,7 @@ public class StatisticsPanel extends SimplePanel<ProgressDto> {
         };
         contentsPanel.add(provisioningLines);
 
-        ListView mappingsLines = new ListView<MappingsLineDto>(ID_MAPPINGS_STATISTICS_LINES, new AbstractReadOnlyModel<List<MappingsLineDto>>() {
-            @Override
-            public List<MappingsLineDto> getObject() {
-                Task t = getTask();
-                if (t == null || t.getOperationalInformation() == null) {
-                    return new ArrayList<>();
-                }
-                return MappingsLineDto.extractFromOperationalInformation(t.getOperationalInformation());
-            }
-        }) {
+        ListView mappingsLines = new ListView<MappingsLineDto>(ID_MAPPINGS_STATISTICS_LINES, new PropertyModel<List<MappingsLineDto>>(getModel(), StatisticsDto.F_MAPPINGS_LINES)) {
             protected void populateItem(final ListItem<MappingsLineDto> item) {
                 item.add(new Label(ID_MAPPINGS_OBJECT, new PropertyModel<String>(item.getModel(), MappingsLineDto.F_OBJECT)));
                 item.add(new Label(ID_MAPPINGS_COUNT, new PropertyModel<String>(item.getModel(), MappingsLineDto.F_COUNT)));
@@ -161,16 +141,7 @@ public class StatisticsPanel extends SimplePanel<ProgressDto> {
         };
         contentsPanel.add(mappingsLines);
 
-        ListView notificationsLines = new ListView<NotificationsLineDto>(ID_NOTIFICATIONS_STATISTICS_LINES, new AbstractReadOnlyModel<List<NotificationsLineDto>>() {
-            @Override
-            public List<NotificationsLineDto> getObject() {
-                Task t = getTask();
-                if (t == null || t.getOperationalInformation() == null) {
-                    return new ArrayList<>();
-                }
-                return NotificationsLineDto.extractFromOperationalInformation(t.getOperationalInformation());
-            }
-        }) {
+        ListView notificationsLines = new ListView<NotificationsLineDto>(ID_NOTIFICATIONS_STATISTICS_LINES, new PropertyModel<List<NotificationsLineDto>>(getModel(), StatisticsDto.F_NOTIFICATIONS_LINES)) {
             protected void populateItem(final ListItem<NotificationsLineDto> item) {
                 item.add(new Label(ID_NOTIFICATIONS_TRANSPORT, new PropertyModel<String>(item.getModel(), NotificationsLineDto.F_TRANSPORT)));
                 item.add(new Label(ID_NOTIFICATIONS_COUNT_SUCCESS, new PropertyModel<String>(item.getModel(), NotificationsLineDto.F_COUNT_SUCCESS)));
@@ -183,22 +154,30 @@ public class StatisticsPanel extends SimplePanel<ProgressDto> {
         };
         contentsPanel.add(notificationsLines);
 
-        Label lastMessage = new Label(ID_LAST_MESSAGE, new AbstractReadOnlyModel<String>() {
+        Label lastMessage = new Label(ID_LAST_MESSAGE, new PropertyModel<>(getModel(), StatisticsDto.F_LAST_MESSAGE));
+        contentsPanel.add(lastMessage);
+
+        Label source = new Label(ID_SOURCE, new AbstractReadOnlyModel<String>() {
             @Override
             public String getObject() {
-                Task t = getTask();
-                if (t == null || t.getOperationalInformation() == null) {
-                    return "(unavailable)";
+                StatisticsDto dto = getModelObject();
+                if (dto == null) {
+                    return null;
                 }
-                List<StatusMessage> messages = t.getOperationalInformation().getMessages();
-                if (messages == null || messages.isEmpty()) {
-                    return "(none)";
+                OperationalInformationType info = dto.getOperationalInformationType();
+                if (info == null) {
+                    return null;
                 }
-                StatusMessage last = messages.get(messages.size() - 1);
-                return last.getDate() + ": " + last.getMessage();
+                if (Boolean.TRUE.equals(info.isFromMemory())) {
+                    return getString("Message.SourceMemory",
+                            WebMiscUtil.formatDate(info.getTimestamp()));
+                } else {
+                    return getString("Message.SourceRepository",
+                            WebMiscUtil.formatDate(info.getTimestamp()));
+                }
             }
         });
-        contentsPanel.add(lastMessage);
+        contentsPanel.add(source);
     }
 
     // Note: do not setVisible(false) on the progress panel itself - it will disable AJAX refresh functionality attached to it.
@@ -212,17 +191,4 @@ public class StatisticsPanel extends SimplePanel<ProgressDto> {
         contentsPanel.setVisible(false);
     }
 
-    public void setTask(Task task) {
-        this.task = task;
-    }
-
-    public Task getTask() {
-        if (task != null) {
-            return task;
-        } else if (taskModel != null) {
-            return taskModel.getObject();
-        } else {
-            return null;
-        }
-    }
 }

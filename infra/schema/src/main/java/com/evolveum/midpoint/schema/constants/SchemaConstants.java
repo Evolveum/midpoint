@@ -178,6 +178,9 @@ public abstract class SchemaConstants {
     public static final QName MODEL_EXTENSION_INTENT = new QName(NS_MODEL_EXTENSION, "intent");
     public static final QName OBJECTCLASS_PROPERTY_NAME = new QName(NS_MODEL_EXTENSION, "objectclass");
 	public static final QName MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME = new QName(NS_MODEL_EXTENSION, "lastScanTimestamp");
+	public static final QName MODEL_EXTENSION_OPERATIONAL_INFORMATION_PROPERTY_NAME = new QName(NS_MODEL_EXTENSION, "operationalInformation");
+	public static final QName MODEL_EXTENSION_SYNCHRONIZATION_INFORMATION_PROPERTY_NAME = new QName(NS_MODEL_EXTENSION, "synchronizationInformation");
+	public static final QName MODEL_EXTENSION_ITERATIVE_TASK_INFORMATION_PROPERTY_NAME = new QName(NS_MODEL_EXTENSION, "iterativeTaskInformation");
 
 	public static final String NS_MODEL_DISABLE_REASON = NS_MODEL + "/disableReason";
 	public static final String MODEL_DISABLE_REASON_EXPLICIT = QNameUtil.qNameToUri(new QName(NS_MODEL_DISABLE_REASON, "explicit"));

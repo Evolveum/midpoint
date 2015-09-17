@@ -12724,6 +12724,8 @@
             <xsd:element name="notificationsStatistics" type="tns:NotificationsStatisticsType" minOccurs="0" />
             <xsd:element name="lastMessageTimestamp" type="xsd:dateTime" minOccurs="0" />
             <xsd:element name="lastMessage" type="xsd:string" minOccurs="0" />
+            <xsd:element name="timestamp" type="xsd:dateTime" />
+            <xsd:element name="fromMemory" type="xsd:boolean" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -12746,27 +12748,27 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="resource" type="xsd:string" minOccurs="0" />
-            <xsd:element name="objectClass" type="xsd:string" minOccurs="0" />
-            <xsd:element name="getSuccess" type="xsd:int" minOccurs="0" />
-            <xsd:element name="getFailure" type="xsd:int" minOccurs="0" />
-            <xsd:element name="searchSuccess" type="xsd:int" minOccurs="0" />
-            <xsd:element name="searchFailure" type="xsd:int" minOccurs="0" />
-            <xsd:element name="createSuccess" type="xsd:int" minOccurs="0" />
-            <xsd:element name="createFailure" type="xsd:int" minOccurs="0" />
-            <xsd:element name="updateSuccess" type="xsd:int" minOccurs="0" />
-            <xsd:element name="updateFailure" type="xsd:int" minOccurs="0" />
-            <xsd:element name="deleteSuccess" type="xsd:int" minOccurs="0" />
-            <xsd:element name="deleteFailure" type="xsd:int" minOccurs="0" />
-            <xsd:element name="syncSuccess" type="xsd:int" minOccurs="0" />
-            <xsd:element name="syncFailure" type="xsd:int" minOccurs="0" />
-            <xsd:element name="scriptSuccess" type="xsd:int" minOccurs="0" />
-            <xsd:element name="scriptFailure" type="xsd:int" minOccurs="0" />
-            <xsd:element name="otherSuccess" type="xsd:int" minOccurs="0" />
-            <xsd:element name="otherFailure" type="xsd:int" minOccurs="0" />
-            <xsd:element name="averageTime" type="xsd:int" minOccurs="0" />
-            <xsd:element name="minTime" type="xsd:int" minOccurs="0" />
-            <xsd:element name="maxTime" type="xsd:int" minOccurs="0" />
-            <xsd:element name="totalTime" type="xsd:int" minOccurs="0" />
+            <xsd:element name="objectClass" type="xsd:QName" minOccurs="0" />
+            <xsd:element name="getSuccess" type="xsd:int" minOccurs="1" />
+            <xsd:element name="getFailure" type="xsd:int" minOccurs="1" />
+            <xsd:element name="searchSuccess" type="xsd:int" minOccurs="1" />
+            <xsd:element name="searchFailure" type="xsd:int" minOccurs="1" />
+            <xsd:element name="createSuccess" type="xsd:int" minOccurs="1" />
+            <xsd:element name="createFailure" type="xsd:int" minOccurs="1" />
+            <xsd:element name="updateSuccess" type="xsd:int" minOccurs="1" />
+            <xsd:element name="updateFailure" type="xsd:int" minOccurs="1" />
+            <xsd:element name="deleteSuccess" type="xsd:int" minOccurs="1" />
+            <xsd:element name="deleteFailure" type="xsd:int" minOccurs="1" />
+            <xsd:element name="syncSuccess" type="xsd:int" minOccurs="1" />
+            <xsd:element name="syncFailure" type="xsd:int" minOccurs="1" />
+            <xsd:element name="scriptSuccess" type="xsd:int" minOccurs="1" />
+            <xsd:element name="scriptFailure" type="xsd:int" minOccurs="1" />
+            <xsd:element name="otherSuccess" type="xsd:int" minOccurs="1" />
+            <xsd:element name="otherFailure" type="xsd:int" minOccurs="1" />
+            <xsd:element name="averageTime" type="xsd:long" minOccurs="0" />
+            <xsd:element name="minTime" type="xsd:long" minOccurs="0" />
+            <xsd:element name="maxTime" type="xsd:long" minOccurs="0" />
+            <xsd:element name="totalTime" type="xsd:long" minOccurs="1" />
         </xsd:sequence>
     </xsd:complexType>
 
@@ -12789,11 +12791,11 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="object" type="xsd:string" minOccurs="0" />
-            <xsd:element name="count" type="xsd:int" minOccurs="0" />
-            <xsd:element name="averageTime" type="xsd:int" minOccurs="0" />
-            <xsd:element name="minTime" type="xsd:int" minOccurs="0" />
-            <xsd:element name="maxTime" type="xsd:int" minOccurs="0" />
-            <xsd:element name="totalTime" type="xsd:int" minOccurs="0" />
+            <xsd:element name="count" type="xsd:int" minOccurs="1" />
+            <xsd:element name="averageTime" type="xsd:long" minOccurs="0" />
+            <xsd:element name="minTime" type="xsd:long" minOccurs="0" />
+            <xsd:element name="maxTime" type="xsd:long" minOccurs="0" />
+            <xsd:element name="totalTime" type="xsd:long" minOccurs="1" />
         </xsd:sequence>
     </xsd:complexType>
 
@@ -12816,57 +12818,72 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="transport" type="xsd:string" minOccurs="0" />
-            <xsd:element name="countSuccess" type="xsd:int" minOccurs="0" />
-            <xsd:element name="countFailure" type="xsd:int" minOccurs="0" />
-            <xsd:element name="averageTime" type="xsd:int" minOccurs="0" />
-            <xsd:element name="minTime" type="xsd:int" minOccurs="0" />
-            <xsd:element name="maxTime" type="xsd:int" minOccurs="0" />
-            <xsd:element name="totalTime" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countSuccess" type="xsd:int" minOccurs="1" />
+            <xsd:element name="countFailure" type="xsd:int" minOccurs="1" />
+            <xsd:element name="averageTime" type="xsd:long" minOccurs="0" />
+            <xsd:element name="minTime" type="xsd:long" minOccurs="0" />
+            <xsd:element name="maxTime" type="xsd:long" minOccurs="0" />
+            <xsd:element name="totalTime" type="xsd:long" minOccurs="1" />
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="AbstractIterativeTaskStatusType">
+    <xsd:complexType name="IterativeTaskInformationType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="lastObjectSuccess" type="xsd:string" minOccurs="0" />
-            <xsd:element name="lastObjectSuccessEndTimestamp" type="xsd:dateTime" minOccurs="0" />
-            <xsd:element name="lastObjectSuccessDuration" type="xsd:long" minOccurs="0" />
-            <xsd:element name="totalSuccessDuration" type="xsd:long" minOccurs="0" />
-            <xsd:element name="successCount" type="xsd:int" minOccurs="0" />
+            <xsd:element name="lastSuccessObjectName" type="xsd:string" minOccurs="0" />
+            <xsd:element name="lastSuccessObjectDisplayName" type="xsd:string" minOccurs="0" />
+            <xsd:element name="lastSuccessObjectType" type="xsd:QName" minOccurs="0" />
+            <xsd:element name="lastSuccessObjectOid" type="xsd:string" minOccurs="0" />
+            <xsd:element name="lastSuccessEndTimestamp" type="xsd:dateTime" minOccurs="0" />
+            <xsd:element name="lastSuccessDuration" type="xsd:long" minOccurs="0" />
+            <xsd:element name="totalSuccessDuration" type="xsd:long" minOccurs="1" />
+            <xsd:element name="totalSuccessCount" type="xsd:int" minOccurs="1" />
 
-            <xsd:element name="lastObjectFailure" type="xsd:string" minOccurs="0" />
-            <xsd:element name="lastObjectFailureEndTimestamp" type="xsd:dateTime" minOccurs="0" />
-            <xsd:element name="lastObjectFailureDuration" type="xsd:long" minOccurs="0" />
-            <xsd:element name="totalFailureDuration" type="xsd:long" minOccurs="0" />
-            <xsd:element name="failureCount" type="xsd:int" minOccurs="0" />
-            <xsd:element name="lastFailure" type="xsd:string" minOccurs="0" />
+            <xsd:element name="lastFailureObjectName" type="xsd:string" minOccurs="0" />
+            <xsd:element name="lastFailureObjectDisplayName" type="xsd:string" minOccurs="0" />
+            <xsd:element name="lastFailureObjectType" type="xsd:QName" minOccurs="0" />
+            <xsd:element name="lastFailureObjectOid" type="xsd:string" minOccurs="0" />
+            <xsd:element name="lastFailureEndTimestamp" type="xsd:dateTime" minOccurs="0" />
+            <xsd:element name="lastFailureDuration" type="xsd:long" minOccurs="0" />
+            <xsd:element name="totalFailureDuration" type="xsd:long" minOccurs="1" />
+            <xsd:element name="totalFailureCount" type="xsd:int" minOccurs="1" />
+            <xsd:element name="lastFailureExceptionMessage" type="xsd:string" minOccurs="0" />
 
-            <xsd:element name="currentObject" type="xsd:string" minOccurs="0" />
+            <xsd:element name="currentObjectName" type="xsd:string" minOccurs="0" />
+            <xsd:element name="currentObjectDisplayName" type="xsd:string" minOccurs="0" />
+            <xsd:element name="currentObjectType" type="xsd:QName" minOccurs="0" />
+            <xsd:element name="currentObjectOid" type="xsd:string" minOccurs="0" />
             <xsd:element name="currentObjectStartTimestamp" type="xsd:dateTime" minOccurs="0" />
+
+            <xsd:element name="timestamp" type="xsd:dateTime" />
+            <xsd:element name="fromMemory" type="xsd:boolean" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="SynchronizationTaskStatusType">
+    <xsd:complexType name="SynchronizationInformationType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO
             </xsd:documentation>
         </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:AbstractIterativeTaskStatusType">
-                <xsd:sequence>
-                    <xsd:element name="countDeleted" type="xsd:int" minOccurs="0" />
-                    <xsd:element name="countLinked" type="xsd:int" minOccurs="0" />
-                    <xsd:element name="countUnlinked" type="xsd:int" minOccurs="0" />
-                    <xsd:element name="countUnmatched" type="xsd:int" minOccurs="0" />
-                    <xsd:element name="countNothing" type="xsd:int" minOccurs="0" />
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
+        <xsd:sequence>
+            <xsd:element name="countProtected" type="xsd:int" minOccurs="1" />
+            <xsd:element name="countNoSynchronizationPolicy" type="xsd:int" minOccurs="1" />
+            <xsd:element name="countSynchronizationDisabled" type="xsd:int" minOccurs="1" />
+            <xsd:element name="countNotApplicableForTask" type="xsd:int" minOccurs="1" />
+            <xsd:element name="countDeleted" type="xsd:int" minOccurs="1" />
+            <xsd:element name="countDisputed" type="xsd:int" minOccurs="1" />
+            <xsd:element name="countLinked" type="xsd:int" minOccurs="1" />
+            <xsd:element name="countUnlinked" type="xsd:int" minOccurs="1" />
+            <xsd:element name="countUnmatched" type="xsd:int" minOccurs="1" />
+
+            <xsd:element name="timestamp" type="xsd:dateTime" />
+            <xsd:element name="fromMemory" type="xsd:boolean" minOccurs="0"/>
+        </xsd:sequence>
     </xsd:complexType>
 
 </xsd:schema>

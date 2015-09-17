@@ -224,6 +224,9 @@ public class ProgressReporter implements Serializable {
                 @Override
                 protected void onPostProcessTarget(AjaxRequestTarget target) {
                     super.onPostProcessTarget(target);
+                    if (progressPanel != null) {
+                        progressPanel.invalidateCache();
+                    }
                     if (asyncOperationResult != null) {         // by checking this we know that async operation has been finished
                         asyncOperationResult.recomputeStatus(); // because we set it to in-progress
 

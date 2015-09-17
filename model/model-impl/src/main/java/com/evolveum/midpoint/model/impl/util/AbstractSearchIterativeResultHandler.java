@@ -16,14 +16,22 @@
 package com.evolveum.midpoint.model.impl.util;
 
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.LightweightTaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -35,6 +43,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -64,6 +73,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 	private boolean stopOnError;
 	private boolean logObjectProgress;
 	private boolean logErrors = true;
+	private boolean recordIterationStatistics = true;				// whether we want to do these ourselves or we let SynchronizationService do that for us
 	private BlockingQueue<ProcessingRequest> requestQueue;
 	private AtomicBoolean stopRequestedByAnyWorker = new AtomicBoolean(false);
 	private final long startTime;
@@ -125,9 +135,17 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		this.logObjectProgress = logObjectProgress;
 	}
 
+	public boolean isRecordIterationStatistics() {
+		return recordIterationStatistics;
+	}
+
+	public void setRecordIterationStatistics(boolean recordIterationStatistics) {
+		this.recordIterationStatistics = recordIterationStatistics;
+	}
+
 	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.schema.ResultHandler#handle(com.evolveum.midpoint.prism.PrismObject, com.evolveum.midpoint.schema.result.OperationResult)
-	 */
+         * @see com.evolveum.midpoint.schema.ResultHandler#handle(com.evolveum.midpoint.prism.PrismObject, com.evolveum.midpoint.schema.result.OperationResult)
+         */
 	@Override
 	public boolean handle(PrismObject<O> object, OperationResult parentResult) {
 		if (object.getOid() == null) {
@@ -255,6 +273,9 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
 		PrismObject<O> object = request.object;
 
+		String objectName = PolyString.getOrig(object.getName());
+		String objectDisplayName = getDisplayName(object);
+
 		OperationResult result = parentResult.createSubresult(taskOperationPrefix + ".handle");
 		result.addParam("object", object);
 
@@ -271,6 +292,11 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 						getProcessShortNameCapitalized(), object, getContextDesc()});
 			}
 
+			if (isRecordIterationStatistics()) {
+				workerTask.recordIterativeOperationStart(objectName, objectDisplayName,
+						null /* TODO */, object.getOid());
+			}
+
 			// The meat
 			cont = handleObject(object, workerTask, result);
 
@@ -281,6 +307,10 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
 			if (result.isError()) {
 				// Alternative way how to indicate an error.
+				if (isRecordIterationStatistics()) {
+					workerTask.recordIterativeOperationEnd(objectName, objectDisplayName,
+							null /* TODO */, object.getOid(), startTime, getException(result));
+				}
 				cont = processError(object, null, result);
 			} else if (result.isSuccess()) {
 				// FIXME: hack. Hardcoded ugly summarization of successes. something like
@@ -289,6 +319,10 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 			}
 
 		} catch (CommonException|RuntimeException e) {
+			if (isRecordIterationStatistics()) {
+				workerTask.recordIterativeOperationEnd(objectName, objectDisplayName,
+						null /* TODO */, object.getOid(), startTime, e);
+			}
 			cont = processError(object, e, result);
 		} finally {
 			RepositoryCache.exit();
@@ -329,6 +363,36 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
 		if (!cont) {
 			stopRequestedByAnyWorker.set(true);
+		}
+	}
+
+	// may be overriden
+	protected String getDisplayName(PrismObject<O> object) {
+		if (object == null) {
+			return null;
+		}
+		O objectable = object.asObjectable();
+		if (objectable instanceof UserType) {
+			return "User " + ((UserType) objectable).getFullName() + " (" + object.getName() + ")";
+		} else if (objectable instanceof RoleType) {
+			return "Role " + ((RoleType) objectable).getDisplayName() + " (" + object.getName() + ")";
+		} else if (objectable instanceof OrgType) {
+			return "Org " + ((OrgType) objectable).getDisplayName() + " (" + object.getName() + ")";
+		} else if (objectable instanceof ShadowType) {
+			ShadowType s = (ShadowType) objectable;
+			String oc = s.getObjectClass() != null ? s.getObjectClass().getLocalPart() : "";
+			return "Shadow " + s.getName() + " (" + s.getKind() + " - " + s.getIntent() + " - " + oc + ")";
+		} else {
+			return objectable.getClass().getSimpleName() + " " + objectable.getName();
+		}
+	}
+
+	// TODO implement better
+	protected Throwable getException(OperationResult result) {
+		if (result.getCause() != null) {
+			return result.getCause();
+		} else {
+			return new SystemException(result.getMessage());
 		}
 	}
 

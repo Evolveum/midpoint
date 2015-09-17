@@ -192,8 +192,9 @@ public class MailTransport implements Transport {
                 LOGGER.info("Message sent successfully to " + mailMessage.getTo() + " via server " + host + ".");
                 resultForServer.recordSuccess();
                 result.recordSuccess();
-                task.recordState("Notification mail sent successfully via " + host);
-                task.recordNotificationOperation(NAME, true, System.currentTimeMillis() - start);
+                long duration = System.currentTimeMillis() - start;
+                task.recordState("Notification mail sent successfully via " + host + ", in " + duration + " ms overall.");
+                task.recordNotificationOperation(NAME, true, duration);
                 return;
             } catch (MessagingException e) {
                 String msg = "Couldn't send mail message to " + mailMessage.getTo() + " via " + host + ", trying another mail server, if there is any";

@@ -25,9 +25,10 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +57,6 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
@@ -91,7 +91,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -160,10 +159,18 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		}
 
 		OperationResult subResult = parentResult.createSubresult(NOTIFY_CHANGE);
+
+		PrismObject<? extends ShadowType> currentShadow = change.getCurrentShadow();
+		PrismObject<? extends ShadowType> applicableShadow = currentShadow;
+		if (applicableShadow == null) {
+			// We need this e.g. in case of delete
+			applicableShadow = change.getOldShadow();
+		}
+
+		SynchronizationEventInformation eventInfo = new SynchronizationEventInformation(applicableShadow, task);
+
 		try {
-			
-			PrismObject<? extends ShadowType> currentShadow = change.getCurrentShadow();
-			
+
 			if (isProtected((PrismObject<ShadowType>) currentShadow)){
 				LOGGER.trace("SYNCHRONIZATION skipping {} because it is protected", currentShadow);
 				// Just make sure there is no misleading synchronization situation in the shadow
@@ -174,13 +181,9 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 							shadowDelta.getModifications(), null, null, task, subResult);
 				}
 				subResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it is protected");
+				eventInfo.setProtected();
+				eventInfo.record(task);
 				return;
-			}
-			
-			PrismObject<? extends ShadowType> applicableShadow = currentShadow;
-			if (applicableShadow == null) {
-				// We need this e.g. in case of delete
-				applicableShadow = change.getOldShadow();
 			}
 			
 			ResourceType resourceType = change.getResource().asObjectable();
@@ -194,6 +197,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 						+ " ignoring change from channel " + change.getSourceChannel();
 				LOGGER.debug(message);
 				subResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, message);
+				eventInfo.setNoSynchronizationPolicy();
+				eventInfo.record(task);
 				return;
 			}
 						
@@ -202,6 +207,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 						+ " ignoring change from channel " + change.getSourceChannel();
 				LOGGER.debug(message);
 				subResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, message);
+				eventInfo.setSynchronizationNotEnabled();
+				eventInfo.record(task);
 				return;
 			}
 			
@@ -210,6 +217,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				LOGGER.trace("SYNCHRONIZATION skipping {} because it does not match kind/intent defined in task",new Object[] {
 						applicableShadow});
 				subResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it does not match objectClass/kind/intent");
+				eventInfo.setDoesNotMatchTaskSpecification();
+				eventInfo.record(task);
 				return;
 			}
 			
@@ -225,6 +234,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			} else {
 				LOGGER.trace("SYNCHRONIZATION: SITUATION: '{}', {}", situation.getSituation().value(), situation.getCorrelatedOwner());
 			}
+			eventInfo.setSituation(situation.getSituation());
 
 			if (Utils.isDryRun(task)){
 				PrismObject object = null;
@@ -242,6 +252,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				}
 				repositoryService.modifyObject(ShadowType.class, object.getOid(), modifications, subResult);
 				subResult.recordSuccess();
+				eventInfo.record(task);
 				return;
 			}
 			
@@ -253,9 +264,11 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			}
 			
 			reactToChange(focusType, change, synchronizationPolicy, situation, resourceType, logDebug, configuration, task, subResult);
-
+			eventInfo.record(task);
 			subResult.computeStatus();
 		} catch (Exception ex) {
+			eventInfo.setException(ex);
+			eventInfo.record(task);
 			subResult.recordFatalError(ex);
 			throw new SystemException(ex);
 		} finally {
@@ -1002,5 +1015,66 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	@Override
 	public String getName() {
 		return "model synchronization service";
+	}
+
+	private static class SynchronizationEventInformation {
+
+		private String objectName;
+		private String objectDisplayName;
+		private String objectOid;
+		private Throwable exception;
+		private long started;
+
+		private SynchronizationInformation increment = new SynchronizationInformation();		// quite a hack TODO replace by something appropriate
+
+		public SynchronizationEventInformation(PrismObject<? extends ShadowType> currentShadow, Task task) {
+			started = System.currentTimeMillis();
+			if (currentShadow != null) {
+				final ShadowType shadow = currentShadow.asObjectable();
+				objectName = PolyString.getOrig(shadow.getName());
+				QName oc = shadow.getObjectClass();
+				String ocName = oc != null ? oc.getLocalPart() : null;
+				objectDisplayName = objectName + " (" + shadow.getKind() + " - " + shadow.getIntent() + " - " + ocName + ")";
+				objectOid = currentShadow.getOid();
+			}
+			task.recordSynchronizationOperationStart(objectName, objectDisplayName, ShadowType.COMPLEX_TYPE, objectOid);
+		}
+
+		public void setProtected() {
+			increment.setCountProtected(1);
+		}
+
+		public void setNoSynchronizationPolicy() {
+			increment.setCountNoSynchronizationPolicy(1);
+		}
+
+		public void setSynchronizationNotEnabled() {
+			increment.setCountSynchronizationDisabled(1);
+		}
+
+		public void setDoesNotMatchTaskSpecification() {
+			increment.setCountNotApplicableForTask(1);
+		}
+
+		public void setSituation(SynchronizationSituationType situation) {
+			switch (situation) {
+				case LINKED: increment.setCountLinked(1); break;
+				case UNLINKED: increment.setCountUnlinked(1); break;
+				case DELETED: increment.setCountDeleted(1); break;
+				case DISPUTED: increment.setCountDisputed(1); break;
+				case UNMATCHED: increment.setCountUnmatched(1); break;
+				default:
+					// noop (or throw exception?)
+			}
+		}
+
+		public void setException(Exception ex) {
+			exception = ex;
+		}
+
+		public void record(Task task) {
+			task.recordSynchronizationOperationEnd(objectName, objectDisplayName, ShadowType.COMPLEX_TYPE, objectOid, started, exception, increment);
+		}
+
 	}
 }

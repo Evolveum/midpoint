@@ -26,6 +26,11 @@ public class StatusMessage implements Serializable {
     private Date date;
     private String message;
 
+    public StatusMessage(Date date, String message) {
+        this.date = date;
+        this.message = message;
+    }
+
     public StatusMessage(String message) {
         this.date = new Date();
         this.message = message;

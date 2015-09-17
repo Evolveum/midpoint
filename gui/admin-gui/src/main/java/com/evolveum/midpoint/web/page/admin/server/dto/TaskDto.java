@@ -924,4 +924,11 @@ public class TaskDto extends Selectable {
         result = 31 * result + (taskType != null ? taskType.hashCode() : 0);
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "TaskDto{" +
+                "taskType=" + taskType +
+                '}';
+    }
 }

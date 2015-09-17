@@ -42,8 +42,10 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
 import com.evolveum.midpoint.schema.statistics.OperationalInformation;
 import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
+import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.task.api.LightweightTaskHandler;
 import com.evolveum.midpoint.task.api.Task;
@@ -64,11 +66,14 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskBindingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskRecurrenceType;
@@ -117,7 +122,9 @@ public class TaskQuartzImpl implements Task {
 
     private PrismObject<UserType> requestee;                                  // temporary information
 
-	private OperationalInformation operationalInformation;
+	private OperationalInformation operationalInformation = new OperationalInformation();
+	private SynchronizationInformation synchronizationInformation = new SynchronizationInformation();
+	private IterativeTaskInformation iterativeTaskInformation = new IterativeTaskInformation();
 
 	/**
 	 * Lightweight asynchronous subtasks.
@@ -175,7 +182,6 @@ public class TaskQuartzImpl implements Task {
 	private TaskQuartzImpl(TaskManagerQuartzImpl taskManager) {
 		this.taskManager = taskManager;
 		this.canRun = true;
-		this.operationalInformation = new OperationalInformation();
 	}
 
 	//region Constructors
@@ -2538,23 +2544,29 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	@Override
+	public SynchronizationInformation getSynchronizationInformation() {
+		return synchronizationInformation;
+	}
+
+	@Override
+	public IterativeTaskInformation getIterativeTaskInformation() {
+		return iterativeTaskInformation;
+	}
+
+	@Override
 	public void recordState(String message) {
-		if (operationalInformation != null) {
-			if (LOGGER.isDebugEnabled()) {		// TODO consider this
-				LOGGER.debug("{}", message);
-			}
-			if (PERFORMANCE_ADVISOR.isDebugEnabled()) {
-				PERFORMANCE_ADVISOR.debug("{}", message);
-			}
-			operationalInformation.recordState(message);
+		if (LOGGER.isDebugEnabled()) {		// TODO consider this
+			LOGGER.debug("{}", message);
 		}
+		if (PERFORMANCE_ADVISOR.isDebugEnabled()) {
+			PERFORMANCE_ADVISOR.debug("{}", message);
+		}
+		operationalInformation.recordState(message);
 	}
 
 	@Override
 	public void recordProvisioningOperation(String resourceOid, String resourceName, QName objectClassName, ProvisioningOperation operation, boolean success, int count, long duration) {
-		if (operationalInformation != null) {
-			operationalInformation.recordProvisioningOperation(resourceOid, resourceName, objectClassName, operation, success, count, duration);
-		}
+		operationalInformation.recordProvisioningOperation(resourceOid, resourceName, objectClassName, operation, success, count, duration);
 	}
 
 	@Override
@@ -2566,8 +2578,43 @@ public class TaskQuartzImpl implements Task {
 
 	@Override
 	public void recordMappingOperation(String objectOid, String objectName, String mappingName, long duration) {
-		if (operationalInformation != null) {
-			operationalInformation.recordMappingOperation(objectOid, objectName, mappingName, duration);
-		}
+		operationalInformation.recordMappingOperation(objectOid, objectName, mappingName, duration);
+	}
+
+	@Override
+	public synchronized void recordSynchronizationOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started, Throwable exception, SynchronizationInformation increment) {
+		recordIterativeOperationEnd(objectName, objectDisplayName, objectType, objectOid, started, exception);
+		synchronizationInformation.recordSynchronizationOperationEnd(objectName, objectDisplayName, objectType, objectOid, started, exception, increment);
+	}
+
+	@Override
+	public synchronized void recordSynchronizationOperationStart(String objectName, String objectDisplayName, QName objectType, String objectOid) {
+		recordIterativeOperationStart(objectName, objectDisplayName, objectType, objectOid);
+		synchronizationInformation.recordSynchronizationOperationStart(objectName, objectDisplayName, objectType, objectOid);
+	}
+
+	@Override
+	public synchronized void recordIterativeOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started, Throwable exception) {
+		iterativeTaskInformation.recordOperationEnd(objectName, objectDisplayName, objectType, objectOid, started, exception);
+	}
+
+	@Override
+	public synchronized void recordIterativeOperationStart(String objectName, String objectDisplayName, QName objectType, String objectOid) {
+		iterativeTaskInformation.recordOperationStart(objectName, objectDisplayName, objectType, objectOid);
+	}
+
+	@Override
+	public void resetOperationalInformation(OperationalInformationType value) {
+		operationalInformation = new OperationalInformation(value);
+	}
+
+	@Override
+	public void resetSynchronizationInformation(SynchronizationInformationType value) {
+		synchronizationInformation = new SynchronizationInformation(value);
+	}
+
+	@Override
+	public void resetIterativeTaskInformation(IterativeTaskInformationType value) {
+		iterativeTaskInformation = new IterativeTaskInformation(value);
 	}
 }

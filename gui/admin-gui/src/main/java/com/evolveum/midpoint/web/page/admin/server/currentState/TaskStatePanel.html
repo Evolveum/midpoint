@@ -17,7 +17,8 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-
+    <p style="font-size: smaller"><wicket:message key="TaskStatePanel.updated"/>
+    <span wicket:id="updated"/></p>
     <table class="table table-condensed table-striped">
         <tr>
             <td><wicket:message key="TaskStatePanel.executionStatus"/></td>
@@ -29,15 +30,25 @@
         </tr>
         <tr>
             <td><wicket:message key="TaskStatePanel.progress"/></td>
-            <td><span wicket:id="progress"/></td>
+            <td><b><span wicket:id="progress"/></b></td>
         </tr>
         <tr>
-            <td><wicket:message key="TaskStatePanel.lastObjectProcessedOk"/></td>
-            <td><span wicket:id="lastObjectProcessedOk"/></td>
+            <td><wicket:message key="TaskStatePanel.objectsProcessedSuccess"/></td>
+            <td><b><span wicket:id="objectsProcessedSuccess"/></b> <span wicket:id="objectsProcessedSuccessTime"/></td>
         </tr>
         <tr>
-            <td><wicket:message key="TaskStatePanel.lastObjectProcessedNotOk"/></td>
-            <td><span wicket:id="lastObjectProcessedNotOk"/></td>
+            <td><wicket:message key="TaskStatePanel.lastObjectProcessedSuccess"/></td>
+            <td><b><span wicket:id="lastObjectProcessedSuccess"/></b><br/>
+            <span wicket:id="lastObjectProcessedSuccessTime"/></td>
+        </tr>
+        <tr>
+            <td><wicket:message key="TaskStatePanel.objectsProcessedFailure"/></td>
+            <td><b><span wicket:id="objectsProcessedFailure"/></b> <span wicket:id="objectsProcessedFailureTime"/></td>
+        </tr>
+        <tr>
+            <td><wicket:message key="TaskStatePanel.lastObjectProcessedFailure"/></td>
+            <td><b><span wicket:id="lastObjectProcessedFailure"/></b><br/>
+                <span wicket:id="lastObjectProcessedFailureTime"/></td>
         </tr>
         <tr>
             <td><wicket:message key="TaskStatePanel.lastError"/></td>
@@ -45,9 +56,17 @@
         </tr>
         <tr>
             <td><wicket:message key="TaskStatePanel.currentObjectProcessed"/></td>
-            <td><span wicket:id="currentObjectProcessed"/></td>
+            <td><b><span wicket:id="currentObjectProcessed"/></b><br/>
+                <span wicket:id="currentObjectProcessedTime"/></td>
+        </tr>
+        <tr>
+            <td><wicket:message key="TaskStatePanel.objectsTotal"/></td>
+            <td><span wicket:id="objectsTotal"/></td>
         </tr>
     </table>
+    <div wicket:id="synchronizationInformationPanel"/>
+    <p style="font-size: smaller"><wicket:message key="TaskStatePanel.countersSource"/>
+        <span wicket:id="countersSource"/></p>
 
     <h3><wicket:message key="TaskStatePanel.statistics"/></h3>
     <div wicket:id="statisticsPanel"/>

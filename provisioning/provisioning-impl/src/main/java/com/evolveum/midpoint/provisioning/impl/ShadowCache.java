@@ -1104,6 +1104,7 @@ public abstract class ShadowCache {
 					PrismProperty<?> newToken = change.getToken();
 					task.setExtensionProperty(newToken);
 					processedChanges++;
+					task.setProgress(task.getProgress()+1);		// because processedChanges are reflected into task only at task run finish
 					LOGGER.debug("Skipping processing change. Can't find appropriate shadow (e.g. the object was deleted on the resource meantime).");
 					continue;
 				}
@@ -1116,6 +1117,7 @@ public abstract class ShadowCache {
 					PrismProperty<?> newToken = change.getToken();
 					task.setExtensionProperty(newToken);
 					processedChanges++;
+					task.setProgress(task.getProgress()+1);		// because processedChanges are reflected into task only at task run finish
 				}
 			}
 			
@@ -1213,8 +1215,8 @@ public abstract class ShadowCache {
 		shadowChangeDescription.setOldShadow(change.getOldShadow());
 		shadowChangeDescription.setCurrentShadow(change.getCurrentShadow());
 		if (null == channel){
-		shadowChangeDescription.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC));
-		} else{
+			shadowChangeDescription.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC));
+		} else {
 			shadowChangeDescription.setSourceChannel(channel);
 		}
 		return shadowChangeDescription;

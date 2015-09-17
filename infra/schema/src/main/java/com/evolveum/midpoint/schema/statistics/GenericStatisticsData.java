@@ -23,8 +23,8 @@ public class GenericStatisticsData {
 
     private int count;
     private long totalDuration;
-    private Integer minDuration = null;
-    private Integer maxDuration = null;
+    private Long minDuration = null;
+    private Long maxDuration = null;
 
     public int getCount() {
         return count;
@@ -34,15 +34,15 @@ public class GenericStatisticsData {
         return totalDuration;
     }
 
-    public int getMinDuration() {
+    public long getMinDuration() {
         return minDuration != null ? minDuration : 0;
     }
 
-    public int getMaxDuration() {
+    public long getMaxDuration() {
         return maxDuration != null ? maxDuration : 0;
     }
 
-    public void recordOperation(int duration, int count) {
+    public void recordOperation(long duration, int count) {
         this.count += count;
         totalDuration += duration;
         if (minDuration == null || minDuration > duration) {
