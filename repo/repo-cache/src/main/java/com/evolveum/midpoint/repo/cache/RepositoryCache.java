@@ -180,6 +180,7 @@ public class RepositoryCache implements RepositoryService {
 			for (PrismObject<T> object : objects) {
 				cacheObject(cache, object);
 			}
+			// TODO cloning before storing into cache?
 			cache.putQueryResult(type, query, objects, prismContext);
 		}
 		return objects;
