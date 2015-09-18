@@ -319,7 +319,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			} else if (midpointEx instanceof Error) {
 				throw (Error) midpointEx;
 			} else {
-				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
+				throw new SystemException("Got unexpected exception: " + ex.getClass().getName() + ": " + ex.getMessage(), ex);
 			}
 		}
 		
@@ -622,7 +622,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw (Error) midpointEx;
 			} else {
 				icfResult.recordFatalError(midpointEx.getMessage(), midpointEx);
-				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
+				throw new SystemException("Got unexpected exception: " + ex.getClass().getName() + ": " + ex.getMessage(), ex);
 			}
 		}
 		
@@ -1435,7 +1435,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			} else if (midpointEx instanceof Error) {
 				throw (Error) midpointEx;
 			} else {
-				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
+				throw new SystemException("Got unexpected exception: " + ex.getClass().getName() + ": " + ex.getMessage(), ex);
 			}
 		}
 		
@@ -1738,7 +1738,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			} else if (midpointEx instanceof Error){
 				throw (Error) midpointEx;
 			}else{
-				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
+				throw new SystemException("Got unexpected exception: " + ex.getClass().getName() + ": " + ex.getMessage(), ex);
 			}
 		}
 
@@ -1816,7 +1816,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					} else if (midpointEx instanceof Error) {
 						throw (Error) midpointEx;
 					} else {
-						throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
+						throw new SystemException("Got unexpected exception: " + ex.getClass().getName() + ": " + ex.getMessage(), ex);
 					}
 				}
 			}
@@ -1871,7 +1871,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			} else if (midpointEx instanceof Error) {
 				throw (Error) midpointEx;
 			} else {
-				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
+				throw new SystemException("Got unexpected exception: " + ex.getClass().getName() + ": " + ex.getMessage(), ex);
 			}
 		}
 		checkAndExecuteAdditionalOperation(reporter, additionalOperations, BeforeAfterType.AFTER, result);
@@ -1973,7 +1973,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			} else if (midpointEx instanceof Error) {
 				throw (Error) midpointEx;
 			} else {
-				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
+				throw new SystemException("Got unexpected exception: " + ex.getClass().getName() + ": " + ex.getMessage(), ex);
 			}
 		}
 		
@@ -2029,7 +2029,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			} else if (midpointEx instanceof Error) {
 				throw (Error) midpointEx;
 			} else {
-				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
+				throw new SystemException("Got unexpected exception: " + ex.getClass().getName() + ": " + ex.getMessage(), ex);
 			}
 		}
 
@@ -2118,7 +2118,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			} else if (midpointEx instanceof Error) {
 				throw (Error) midpointEx;
 			} else {
-				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
+				throw new SystemException("Got unexpected exception: " + ex.getClass().getName() + ": " + ex.getMessage(), ex);
 			}
 		}
 		// convert changes from icf to midpoint Change
@@ -2335,7 +2335,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			} else if (midpointEx instanceof Error) {
 				throw (Error) midpointEx;
 			} else {
-				throw new SystemException("Got unexpected exception: " + ex.getClass().getName() + ": "+ex.getMessage(), ex);
+				throw new SystemException("Got unexpected exception: " + ex.getClass().getName() + ": " + ex.getMessage(), ex);
 			}
 		}
 		
@@ -2459,7 +2459,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
             } else if (midpointEx instanceof Error) {
                 throw (Error) midpointEx;
             } else {
-                throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
+                throw new SystemException("Got unexpected exception: " + ex.getClass().getName() + ": " + ex.getMessage(), ex);
             }
         }
 
@@ -2891,7 +2891,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				} else if (midpointEx instanceof Error) {
 					throw (Error) midpointEx;
 				} else {
-					throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
+					throw new SystemException("Got unexpected exception: " + ex.getClass().getName() + ": " + ex.getMessage(), ex);
 				}
 			}
 			
