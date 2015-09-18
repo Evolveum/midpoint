@@ -286,7 +286,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
     }
 
     private void adjustLoggersTablePage(TablePanel loggersTable, LoggingDto dto){
-        if(loggersTable != null && dto.getLoggers().size() % 10 == 1 && dto.getLoggers().size() != 1){
+        if(loggersTable != null && dto.getLoggers().size() > 10){
             DataTable table = loggersTable.getDataTable();
 
             if(table != null){

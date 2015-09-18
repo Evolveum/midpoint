@@ -845,6 +845,26 @@
 				<artifactId>joda-time</artifactId>
 				<version>2.6</version>
 			</dependency>
+			<dependency>
+				<groupId>org.apache.directory.api</groupId>
+				<artifactId>api-all</artifactId>
+				<version>1.0.0-M32-SNAPSHOT</version>
+				<exclusions>
+	                <exclusion>
+	                    <artifactId>slf4j-api</artifactId>
+	                    <groupId>org.slf4j</groupId>
+	                </exclusion>
+	                <exclusion> <!-- Version conflict with xalan -->
+					    <groupId>xml-apis</groupId>
+	    				<artifactId>xml-apis</artifactId>
+	                </exclusion>
+	            </exclusions>
+			</dependency>
+			<dependency>
+				<groupId>javax.mail</groupId>
+				<artifactId>javax.mail-api </artifactId>
+				<version>1.5.4</version>
+			</dependency>
         </dependencies>
     </dependencyManagement>
 

@@ -475,6 +475,31 @@ public interface RepositoryService {
 			Class<T> resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException,
             SchemaException;
 	
+	/**
+	 * 
+	 * This operations is guaranteed to be atomic. If two threads or even two nodes request a value from
+	 * the same sequence at the same time then different values will be returned.
+	 * 
+	 * @param oid
+	 * @param parentResult
+	 * @return
+	 * @throws ObjectNotFoundException
+	 * @throws SchemaException
+	 */
+	long advanceSequence(String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+	
+	/**
+	 * 
+	 * The sequence may ignore the value, e.g. if value re-use is disabled or when the list of
+	 * unused values if full. In such a case the value will be ignored silently and no error is indicated.
+	 * 
+	 * @param oid
+	 * @param unusedValue
+	 * @param parentResult
+	 * @throws ObjectNotFoundException
+	 */
+	void returnUnusedValueToSequence(String oid, long unusedValue, OperationResult parentResult) throws ObjectNotFoundException;
+	
     /**
 	 * Provide repository run-time configuration and diagnostic information.
 	 */

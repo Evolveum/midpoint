@@ -596,6 +596,10 @@
             <artifactId>servlet-api</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+			<groupId>javax.mail</groupId>
+			<artifactId>javax.mail-api </artifactId>
+		</dependency>
 		
 		<!-- Uncomment following if you want midpoint to be a part of SSO using CAS server-->
 		<!-- SSO CAS Client dependencies -->

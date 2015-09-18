@@ -144,8 +144,8 @@ public class TreeTablePanel extends SimplePanel<String> {
             TabbedPanel currentTabbedPanel = null;
             MidPointAuthWebSession session = TreeTablePanel.this.getSession();
             SessionStorage storage = session.getSessionStorage();
-            if (getTree().getParent().getParent().getParent().getClass() == TabbedPanel.class) {
-                currentTabbedPanel = (TabbedPanel) getTree().getParent().getParent().getParent();
+            if (getTree().findParent(TabbedPanel.class) != null) {
+                currentTabbedPanel = getTree().findParent(TabbedPanel.class);
                 int tabId = currentTabbedPanel.getSelectedTab();
                 if (storage.getUsers().getSelectedTabId() != -1 && tabId != storage.getUsers().getSelectedTabId()){
                     storage.getUsers().setSelectedItem(null);
@@ -303,6 +303,20 @@ public class TreeTablePanel extends SimplePanel<String> {
             }
 
             @Override
+            public void collapse(OrgTreeDto collapsedItem){
+                super.collapse(collapsedItem);
+                MidPointAuthWebSession session = TreeTablePanel.this.getSession();
+                SessionStorage storage = session.getSessionStorage();
+                Set<OrgTreeDto> items  = storage.getUsers().getExpandedItems();
+                if (items != null && items.contains(collapsedItem)){
+                    items.remove(collapsedItem);
+                }
+                storage.getUsers().setExpandedItems((TreeStateSet)items);
+                storage.getUsers().setCollapsedItem(collapsedItem);
+            }
+
+
+            @Override
             protected void onModelChanged() {
                 super.onModelChanged();
 
@@ -348,8 +362,13 @@ public class TreeTablePanel extends SimplePanel<String> {
         form.add(childOrgUnitContainer);
 
         List<IColumn<OrgTableDto, String>> childTableColumns = createChildTableColumns();
+
+        MidPointAuthWebSession session = getSession();
+        SessionStorage storage = session.getSessionStorage();
+        int pageSize = storage.getUserProfile().getPagingSize(UserProfileStorage.TableId.TREE_TABLE_PANEL_CHILD);
+
         final TablePanel childTable = new TablePanel<>(ID_CHILD_TABLE, childTableProvider, childTableColumns,
-                UserProfileStorage.TableId.TREE_TABLE_PANEL_CHILD, UserProfileStorage.DEFAULT_PAGING_SIZE);
+                UserProfileStorage.TableId.TREE_TABLE_PANEL_CHILD, pageSize);
         childTable.setOutputMarkupId(true);
         childTable.getNavigatorPanel().add(new VisibleEnableBehaviour(){
 
@@ -925,11 +944,16 @@ public class TreeTablePanel extends SimplePanel<String> {
             OperationResult subResult = result.createSubresult(OPERATION_DELETE_OBJECT);
             WebModelUtils.deleteObject(object.getType(), object.getOid(), subResult, page);
             subResult.computeStatusIfUnknown();
+
+            MidPointAuthWebSession session = getSession();
+            SessionStorage storage = session.getSessionStorage();
+            storage.getUsers().setExpandedItems(null);
         }
         result.computeStatusComposite();
 
         page.showResult(result);
         target.add(page.getFeedbackPanel());
+        target.add(getTree());
 
         refreshTable(target);
     }
@@ -1432,7 +1456,15 @@ public class TreeTablePanel extends SimplePanel<String> {
             MidPointAuthWebSession session = panel.getSession();
             SessionStorage storage = session.getSessionStorage();
             Set<OrgTreeDto> dtos = storage.getUsers().getExpandedItems();
+            OrgTreeDto collapsedItem = storage.getUsers().getCollapsedItem();
             Iterator<OrgTreeDto> iterator = provider.getRoots();
+
+            if (collapsedItem != null){
+                if (set.contains(collapsedItem)){
+                    set.remove(collapsedItem);
+                    storage.getUsers().setCollapsedItem(null);
+                }
+            }
             if (dtos != null && (dtos instanceof TreeStateSet)) {
                 for (OrgTreeDto orgTreeDto : dtos) {
                     if (!set.contains(orgTreeDto)) {

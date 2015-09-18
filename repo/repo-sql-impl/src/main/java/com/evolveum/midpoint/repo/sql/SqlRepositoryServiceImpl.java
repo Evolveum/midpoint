@@ -38,6 +38,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.Criteria;
@@ -2051,4 +2052,16 @@ main:       while (remaining > 0) {
 
         throw new SystemException("isAnySubordinateAttempt failed somehow, this really should not happen.");
     }
+
+	@Override
+	public long advanceSequence(String oid, OperationResult parentResult) throws ObjectNotFoundException,
+			SchemaException {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void returnUnusedValueToSequence(String oid, long unusedValue, OperationResult parentResult)
+			throws ObjectNotFoundException {
+		throw new UnsupportedOperationException();
+	}
 }

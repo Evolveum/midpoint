@@ -52,6 +52,7 @@ public class UsersStorage extends PageStorage {
     private OrgTreeDto selectedItem;                //selected tree item on the Org. structure page
     private TreeStateSet<OrgTreeDto> expandedItems; //expanded tree items on the Org. structure page
     private int selectedTabId = -1;                 //selected tab id on the Org. structure page
+    private OrgTreeDto collapsedItem = null;                 //selected tab id on the Org. structure page
 
     public ObjectPaging getUsersPaging() {
         return usersPaging;
@@ -107,5 +108,13 @@ public class UsersStorage extends PageStorage {
 
     public void setSelectedTabId(int selectedTabId) {
         this.selectedTabId = selectedTabId;
+    }
+
+    public OrgTreeDto getCollapsedItem() {
+        return collapsedItem;
+    }
+
+    public void setCollapsedItem(OrgTreeDto collapsedItem) {
+        this.collapsedItem = collapsedItem;
     }
 }

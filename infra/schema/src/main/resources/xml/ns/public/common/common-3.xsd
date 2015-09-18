@@ -12886,4 +12886,78 @@
         </xsd:sequence>
     </xsd:complexType>
 
+    
+    <xsd:complexType name="SequenceType">
+        <xsd:annotation>
+            <xsd:documentation>
+            	<p>
+	                Definition of a sequence object that produces unique values. The sequence state is
+	                persistently stored in the repository, therefore it can efficiently produce unique
+	                identifiers in a conrolled and predictable manner.
+                </p>
+                <p>
+                	The sequence is atomic. If two threads or even two nodes request a value from
+	 				the same sequence at the same time then different values will be returned. Therefore the
+	 				use of the sequence has some inherent cost (e.g. database locking overhead).
+                </p>
+                <p>
+                	The sequence produces only values of type "long". If any other type or format is needed
+                	then an expression must be used to transform the value.
+                </p>
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:ObjectType">
+                <xsd:sequence>
+                    <xsd:element name="counter" type="xsd:long" minOccurs="1" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Current state of the sequence. This is the next number that will be assigned
+                                from the sequence when "advance" operation is invoked and there are no unused value
+                                to re-use.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="unusedValues" type="xsd:long" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                List of values that were already assigned by the sequence but they were not used.
+                                The client can return unused values to sequence so the sequence will not advance
+                                too fast. If there are any unused values, these will be assigned from the sequence
+                                before the regular value from the counter.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="maxCounter" type="xsd:long" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Maximum value that the counter can produce. If not specified then
+                                the highest value that the "long" datatype can produce is assumed.
+                                (Please note that this may depend on the range of underlying database type)
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="allowRewind" type="xsd:boolean" minOccurs="0" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Flag that affects the behaviour in case maxCounter is exceeded. If set to true then
+                                the counter is reset to zero. If set to false then an error is produced.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="maxUnusedValues" type="xsd:int" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The number of unused values that the squence will maintain.
+                                If set to zero then no values are maintained and therefore the
+                                use of unused values is effectively pohibited. This will make
+                                the sequence strictly monotonous. 
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="sequence" type="tns:SequenceType" />
 </xsd:schema>
