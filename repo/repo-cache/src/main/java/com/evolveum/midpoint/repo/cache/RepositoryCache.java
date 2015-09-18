@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -352,5 +352,17 @@ public class RepositoryCache implements RepositoryService {
 		if (PERFORMANCE_ADVISOR.isTraceEnabled()) {
 			PERFORMANCE_ADVISOR.trace(message, params);
 		}
+	}
+
+	@Override
+	public long advanceSequence(String oid, OperationResult parentResult) throws ObjectNotFoundException,
+			SchemaException {
+		return repository.advanceSequence(oid, parentResult);
+	}
+
+	@Override
+	public void returnUnusedValueToSequence(String oid, long unusedValue, OperationResult parentResult)
+			throws ObjectNotFoundException {
+		repository.returnUnusedValueToSequence(oid, unusedValue, parentResult);
 	}
 }
