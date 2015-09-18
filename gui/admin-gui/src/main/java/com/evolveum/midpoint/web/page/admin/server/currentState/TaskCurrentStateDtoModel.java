@@ -82,36 +82,36 @@ public class TaskCurrentStateDtoModel extends AbstractReadOnlyModel<TaskCurrentS
         }
         MidPointApplication application = (MidPointApplication) Application.get();
         TaskManager taskManager = application.getTaskManager();
-        LOGGER.info("Trying to find task by identifier {}", taskId);
+        LOGGER.trace("Trying to find task by identifier {}", taskId);
         Task task = taskManager.getLocallyRunningTaskByIdentifier(taskId);
         if (task == null) {
-            LOGGER.info("No task by taskIdentifier, trying analyzing the extension");
+            LOGGER.trace("No task by taskIdentifier, trying analyzing the extension");
             if (taskModel == null || taskModel.getObject() == null) {
-                LOGGER.info("No taskModel or no object in it");
+                LOGGER.trace("No taskModel or no object in it");
                 return new TaskCurrentStateDto(taskModel.getObject());
             }
             TaskType taskType = taskModel.getObject().getTaskType();
             if (taskType == null) {
-                LOGGER.info("No TaskType found");
+                LOGGER.trace("No TaskType found");
                 return new TaskCurrentStateDto(taskModel.getObject());
             }
 
             PrismContainer<?> extension = taskType.asPrismObject().getExtension();
             if (extension == null) {
-                LOGGER.info("No extension in TaskType found");
+                LOGGER.trace("No extension in TaskType found");
                 return new TaskCurrentStateDto(taskModel.getObject());
             }
             SynchronizationInformationType infoPropertyValue = extension.getPropertyRealValue(SchemaConstants.MODEL_EXTENSION_SYNCHRONIZATION_INFORMATION_PROPERTY_NAME, SynchronizationInformationType.class);
             if (infoPropertyValue != null) {
                 infoPropertyValue.setFromMemory(false);
             } else {
-                LOGGER.info("No SynchronizationInformationType in task extension.");
+                LOGGER.trace("No SynchronizationInformationType in task extension.");
             }
             IterativeTaskInformationType ititPropertyValue = extension.getPropertyRealValue(SchemaConstants.MODEL_EXTENSION_ITERATIVE_TASK_INFORMATION_PROPERTY_NAME, IterativeTaskInformationType.class);
             if (ititPropertyValue != null) {
                 ititPropertyValue.setFromMemory(false);
             } else {
-                LOGGER.info("No IterativeTaskInformationType in task extension.");
+                LOGGER.trace("No IterativeTaskInformationType in task extension.");
             }
             return new TaskCurrentStateDto(taskModel.getObject(), infoPropertyValue, ititPropertyValue, null);
         }
@@ -143,7 +143,7 @@ public class TaskCurrentStateDtoModel extends AbstractReadOnlyModel<TaskCurrentS
 
         String oid = taskModel.getObject().getOid();
         try {
-            LOGGER.info("Refreshing task {}", taskModel.getObject());
+            LOGGER.debug("Refreshing task {}", taskModel.getObject());
             Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.createRetrieveAttributesOptions(TaskType.F_SUBTASK, TaskType.F_NODE_AS_OBSERVED);
             PrismObject<TaskType> task = page.getModelService().getObject(TaskType.class, oid, options, operationTask, result);
             TaskDto taskDto = new TaskDto(task.asObjectable(), page.getModelService(), page.getTaskService(),

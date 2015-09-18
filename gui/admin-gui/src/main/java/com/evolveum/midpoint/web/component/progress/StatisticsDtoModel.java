@@ -84,25 +84,25 @@ public class StatisticsDtoModel extends AbstractReadOnlyModel<StatisticsDto> {
         TaskManager taskManager = application.getTaskManager();
         Task task = taskManager.getLocallyRunningTaskByIdentifier(taskId);
         if (task == null) {
-            LOGGER.info("No task by taskIdentifier, trying analyzing the extension");
+            LOGGER.trace("No task by taskIdentifier, trying analyzing the extension");
             if (taskModel == null || taskModel.getObject() == null) {
-                LOGGER.info("No taskModel or no object in it");
+                LOGGER.trace("No taskModel or no object in it");
                 return null;
             }
             TaskType taskType = taskModel.getObject().getTaskType();
             if (taskType == null) {
-                LOGGER.info("No TaskType found");
+                LOGGER.trace("No TaskType found");
                 return null;
             }
 
             PrismContainer<?> extension = taskType.asPrismObject().getExtension();
             if (extension == null) {
-                LOGGER.info("No extension in TaskType found");
+                LOGGER.trace("No extension in TaskType found");
                 return null;
             }
             OperationalInformationType infoPropertyValue = extension.getPropertyRealValue(SchemaConstants.MODEL_EXTENSION_OPERATIONAL_INFORMATION_PROPERTY_NAME, OperationalInformationType.class);
             if (infoPropertyValue == null) {
-                LOGGER.info("No info in task extension either.");
+                LOGGER.trace("No info in task extension either.");
                 return null;
             }
             infoPropertyValue.setFromMemory(false);
