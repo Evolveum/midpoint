@@ -18,9 +18,6 @@ package com.evolveum.midpoint.model.impl.sync;
 
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
-import com.evolveum.midpoint.schema.statistics.OperationalInformation;
-import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -113,17 +110,17 @@ public class TaskHandlerUtil {
     }
 
     public static void storeOperationalInformation(Task task) throws SchemaException {
-        OperationalInformationType operationalInformationType = task.collectOperationalInformation();
+        OperationalInformationType operationalInformationType = task.getAggregateOperationalInformation();
         task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_OPERATIONAL_INFORMATION_PROPERTY_NAME, operationalInformationType);
     }
 
     public static void storeSynchronizationInformation(Task task) throws SchemaException {
-        SynchronizationInformationType synchronizationInformationType = task.collectSynchronizationInformation();
+        SynchronizationInformationType synchronizationInformationType = task.getAggregateSynchronizationInformation();
         task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_SYNCHRONIZATION_INFORMATION_PROPERTY_NAME, synchronizationInformationType);
     }
 
     public static void storeIterativeTaskInformation(Task task) throws SchemaException {
-        IterativeTaskInformationType iterativeTaskInformationType = task.collectIterativeTaskInformation();
+        IterativeTaskInformationType iterativeTaskInformationType = task.getAggregateIterativeTaskInformation();
         task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_ITERATIVE_TASK_INFORMATION_PROPERTY_NAME, iterativeTaskInformationType);
     }
 }

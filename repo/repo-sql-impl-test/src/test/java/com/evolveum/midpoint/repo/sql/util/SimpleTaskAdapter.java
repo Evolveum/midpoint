@@ -674,17 +674,17 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public OperationalInformationType collectOperationalInformation() {
+    public OperationalInformationType getAggregateOperationalInformation() {
         return null;
     }
 
     @Override
-    public IterativeTaskInformationType collectIterativeTaskInformation() {
+    public IterativeTaskInformationType getAggregateIterativeTaskInformation() {
         return null;
     }
 
     @Override
-    public SynchronizationInformationType collectSynchronizationInformation() {
+    public SynchronizationInformationType getAggregateSynchronizationInformation() {
         return null;
     }
 

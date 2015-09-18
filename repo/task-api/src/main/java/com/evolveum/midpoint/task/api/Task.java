@@ -24,10 +24,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
-import com.evolveum.midpoint.schema.statistics.OperationalInformation;
-import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
-import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
+import com.evolveum.midpoint.schema.statistics.StatisticsCollector;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -61,7 +58,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * @author Pavol Mederly
  *
  */
-public interface Task extends DebugDumpable {
+public interface Task extends DebugDumpable, StatisticsCollector {
 
     // =================================================================== Basic information (ID, owner)
 
@@ -937,43 +934,4 @@ public interface Task extends DebugDumpable {
      */
     void startLightweightHandler();
 
-    // =================================================================== Operational data
-
-    OperationalInformation getOperationalInformation();
-
-    SynchronizationInformation getSynchronizationInformation();
-
-    IterativeTaskInformation getIterativeTaskInformation();
-
-    OperationalInformationType collectOperationalInformation();
-
-    IterativeTaskInformationType collectIterativeTaskInformation();
-
-    SynchronizationInformationType collectSynchronizationInformation();
-
-    void recordState(String message);
-
-    void recordProvisioningOperation(String resourceOid, String resourceName, QName objectClassName, ProvisioningOperation operation, boolean success, int count, long duration);
-
-    void recordNotificationOperation(String transportName, boolean success, long duration);
-
-    void recordMappingOperation(String objectOid, String objectName, String mappingName, long duration);
-
-    void recordSynchronizationOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started, Throwable exception, SynchronizationInformation increment);
-
-    void recordSynchronizationOperationStart(String objectName, String objectDisplayName, QName objectType, String objectOid);
-
-    void recordIterativeOperationEnd(ShadowType shadow, long started, Throwable exception);
-
-    void recordIterativeOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started, Throwable exception);
-
-    void recordIterativeOperationStart(ShadowType shadow);
-
-    void recordIterativeOperationStart(String objectName, String objectDisplayName, QName objectType, String objectOid);
-
-    void resetOperationalInformation(OperationalInformationType value);
-
-    void resetSynchronizationInformation(SynchronizationInformationType value);
-
-    void resetIterativeTaskInformation(IterativeTaskInformationType value);
 }

@@ -2558,7 +2558,7 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	@Override
-	public OperationalInformationType collectOperationalInformation() {
+	public OperationalInformationType getAggregateOperationalInformation() {
 		if (operationalInformation == null) {
 			return null;
 		}
@@ -2575,7 +2575,7 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	@Override
-	public IterativeTaskInformationType collectIterativeTaskInformation() {
+	public IterativeTaskInformationType getAggregateIterativeTaskInformation() {
 		if (iterativeTaskInformation == null) {
 			return null;
 		}
@@ -2592,7 +2592,7 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	@Override
-	public SynchronizationInformationType collectSynchronizationInformation() {
+	public SynchronizationInformationType getAggregateSynchronizationInformation() {
 		if (synchronizationInformation == null) {
 			return null;
 		}

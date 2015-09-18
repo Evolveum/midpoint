@@ -17,15 +17,12 @@
 package com.evolveum.midpoint.web.component.progress;
 
 import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.statistics.OperationalInformation;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
-import com.evolveum.midpoint.web.page.admin.users.DefaultGuiProgressListener;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -115,7 +112,7 @@ public class StatisticsDtoModel extends AbstractReadOnlyModel<StatisticsDto> {
     }
 
     protected StatisticsDto getStatisticsFromTask(Task task) {
-        OperationalInformationType operationalInformation = task.collectOperationalInformation();
+        OperationalInformationType operationalInformation = task.getAggregateOperationalInformation();
         if (operationalInformation == null) {
             LOGGER.warn("No operational information in task");
             return null;

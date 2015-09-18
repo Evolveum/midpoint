@@ -22,9 +22,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
-import com.evolveum.midpoint.schema.statistics.OperationalInformation;
-import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -35,21 +32,17 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.progress.StatisticsDto;
 import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.wicket.Application;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
-import java.io.IOException;
 import java.util.Collection;
 
 /**
@@ -122,13 +115,13 @@ public class TaskCurrentStateDtoModel extends AbstractReadOnlyModel<TaskCurrentS
             }
             return new TaskCurrentStateDto(taskModel.getObject(), infoPropertyValue, ititPropertyValue, null);
         }
-        SynchronizationInformationType sit = task.collectSynchronizationInformation();
+        SynchronizationInformationType sit = task.getAggregateSynchronizationInformation();
         if (sit != null) {
             sit.setFromMemory(true);
         } else {
             LOGGER.warn("No synchronization information in task");
         }
-        IterativeTaskInformationType itit = task.collectIterativeTaskInformation();;
+        IterativeTaskInformationType itit = task.getAggregateIterativeTaskInformation();;
         if (itit != null) {
             itit.setFromMemory(true);
         } else {
