@@ -1313,7 +1313,7 @@ public class TestDummy extends AbstractDummyTest {
 		rememberShadowFetchOperationCount();
 
 		// WHEN
-		provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, result);
+		provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, null, result);
 
 		// THEN
 		result.computeStatus();
@@ -1334,7 +1334,7 @@ public class TestDummy extends AbstractDummyTest {
 		rememberShadowFetchOperationCount();
 
 		// WHEN
-		provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, result);
+		provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, null, result);
 
 		// THEN
 
@@ -1385,7 +1385,7 @@ public class TestDummy extends AbstractDummyTest {
 		rememberShadowFetchOperationCount();
 		
 		// WHEN
-		provisioningService.searchObjectsIterative(ShadowType.class, query, options, handler, result);
+		provisioningService.searchObjectsIterative(ShadowType.class, query, options, handler, null, result);
 
 		// THEN
 		result.computeStatus();
@@ -1457,7 +1457,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		List<PrismObject<ShadowType>> allShadows = provisioningService.searchObjects(ShadowType.class,
-				query, null, result);
+				query, null, null, result);
 		
 		// THEN
 		result.computeStatus();
@@ -1486,7 +1486,7 @@ public class TestDummy extends AbstractDummyTest {
 		display("All shadows query", query);
 
 		// WHEN
-		Integer count = provisioningService.countObjects(ShadowType.class, query, null, result);
+		Integer count = provisioningService.countObjects(ShadowType.class, query, null, null, result);
 		
 		// THEN
 		result.computeStatus();
@@ -1510,7 +1510,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		List<PrismObject<ResourceType>> allResources = provisioningService.searchObjects(ResourceType.class,
-				new ObjectQuery(), null, result);
+				new ObjectQuery(), null, null, result);
 		
 		// THEN
 		result.computeStatus();
@@ -1533,7 +1533,7 @@ public class TestDummy extends AbstractDummyTest {
 				+ ".test117CountNullQueryResource");
 
 		// WHEN
-		int count = provisioningService.countObjects(ResourceType.class, new ObjectQuery(), null, result);
+		int count = provisioningService.countObjects(ResourceType.class, new ObjectQuery(), null, null, result);
 		
 		// THEN
 		result.computeStatus();
@@ -2038,7 +2038,7 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.reset();
 
 		// WHEN
-		SearchResultList<PrismObject<ShadowType>> resultList = provisioningService.searchObjects(ShadowType.class, query, null, result);
+		SearchResultList<PrismObject<ShadowType>> resultList = provisioningService.searchObjects(ShadowType.class, query, null, null, result);
 
 		// THEN
 		result.computeStatus();
@@ -2157,7 +2157,7 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.reset();
 
 		// WHEN
-		SearchResultList<PrismObject<ShadowType>> resultList = provisioningService.searchObjects(ShadowType.class, query, null, result);
+		SearchResultList<PrismObject<ShadowType>> resultList = provisioningService.searchObjects(ShadowType.class, query, null, null, result);
 
 		// THEN
 		result.computeStatus();
@@ -2370,7 +2370,7 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.reset();
 
 		// WHEN
-		SearchResultList<PrismObject<ShadowType>> resultList = provisioningService.searchObjects(ShadowType.class, query, null, result);
+		SearchResultList<PrismObject<ShadowType>> resultList = provisioningService.searchObjects(ShadowType.class, query, null, null, result);
 
 		// THEN
 		result.computeStatus();
@@ -2485,7 +2485,7 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.reset();
 
 		// WHEN
-		SearchResultList<PrismObject<ShadowType>> resultList = provisioningService.searchObjects(ShadowType.class, query, null, result);
+		SearchResultList<PrismObject<ShadowType>> resultList = provisioningService.searchObjects(ShadowType.class, query, null, null, result);
 
 		// THEN
 		result.computeStatus();
@@ -2712,7 +2712,7 @@ public class TestDummy extends AbstractDummyTest {
         if (useRepo) {
             repositoryService.searchObjectsIterative(ShadowType.class, query, handler, null, result);
         } else {
-            provisioningService.searchObjectsIterative(ShadowType.class, query, options, handler, result);
+            provisioningService.searchObjectsIterative(ShadowType.class, query, options, handler, null, result);
         }
 
 		// THEN

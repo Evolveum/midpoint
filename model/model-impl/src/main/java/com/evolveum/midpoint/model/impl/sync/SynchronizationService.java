@@ -28,6 +28,7 @@ import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
 import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -1032,9 +1033,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			if (currentShadow != null) {
 				final ShadowType shadow = currentShadow.asObjectable();
 				objectName = PolyString.getOrig(shadow.getName());
-				QName oc = shadow.getObjectClass();
-				String ocName = oc != null ? oc.getLocalPart() : null;
-				objectDisplayName = objectName + " (" + shadow.getKind() + " - " + shadow.getIntent() + " - " + ocName + ")";
+				objectDisplayName = StatisticsUtil.getDisplayName(shadow);
 				objectOid = currentShadow.getOid();
 			}
 			task.recordSynchronizationOperationStart(objectName, objectDisplayName, ShadowType.COMPLEX_TYPE, objectOid);

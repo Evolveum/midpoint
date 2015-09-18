@@ -29,7 +29,6 @@ import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -43,7 +42,6 @@ import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -80,7 +78,7 @@ public class AccCertExpressionHelper {
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition<T> resultDef = new PrismPropertyDefinition(resultName, xsdType, prismContext);
 
-        Expression<PrismPropertyValue<T>,PrismPropertyDefinition<T>> expression = expressionFactory.makeExpression(expressionType, resultDef, shortDesc, result);
+        Expression<PrismPropertyValue<T>,PrismPropertyDefinition<T>> expression = expressionFactory.makeExpression(expressionType, resultDef, shortDesc, task, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task, result);
         ModelExpressionThreadLocalHolder.pushCurrentResult(result);
         ModelExpressionThreadLocalHolder.pushCurrentTask(task);

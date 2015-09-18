@@ -27,6 +27,7 @@ import com.evolveum.midpoint.provisioning.api.ConstraintViolationConfirmer;
 import com.evolveum.midpoint.provisioning.api.ConstraintsCheckingResult;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -103,7 +104,7 @@ public class ShadowConstraintsChecker<F extends FocusType> {
 		return constraintsCheckingResult.getConflictingShadow();
 	}
 
-	public void check(OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+	public void check(Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		
 		RefinedObjectClassDefinition projDef = projectionContext.getStructuralObjectClassDefinition();
 		PrismObject<ShadowType> projectionNew = projectionContext.getObjectNew();
@@ -141,7 +142,7 @@ public class ShadowConstraintsChecker<F extends FocusType> {
 
 		constraintsCheckingResult = provisioningService.checkConstraints(projDef, projectionNew,
 				projectionContext.getResource(), projectionContext.getOid(), projectionContext.getResourceShadowDiscriminator(),
-				confirmer, result);
+				confirmer, task, result);
 
 		if (constraintsCheckingResult.isSatisfiesConstraints()) {
 			satisfiesConstraints = true;

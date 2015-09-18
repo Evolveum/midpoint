@@ -1485,7 +1485,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
                 }
 
                 // all resources
-                DeltaSetTriple<EvaluatedConstruction> evaluatedConstructionsTriple = evaluatedAssignment.getEvaluatedConstructions(result);
+                DeltaSetTriple<EvaluatedConstruction> evaluatedConstructionsTriple = evaluatedAssignment.getEvaluatedConstructions(task, result);
                 Collection<EvaluatedConstruction> evaluatedConstructions = evaluatedConstructionsTriple.getNonNegativeValues();
                 for (EvaluatedConstruction construction : evaluatedConstructions) {
                     assignmentDtoSet.add(createAssignmentsPreviewDto(construction));

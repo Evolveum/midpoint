@@ -36,7 +36,6 @@ import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.expression.Expression;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
@@ -61,12 +60,9 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismUtil;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -98,11 +94,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDependencyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionReturnTypeType;
@@ -110,7 +104,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -148,14 +141,14 @@ public class LensUtil {
 	}
 
 	public static <F extends ObjectType> ResourceType getResource(LensContext<F> context, String resourceOid, ObjectResolver objectResolver,
-																  OperationResult result) throws ObjectNotFoundException,
+																  Task task, OperationResult result) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		ResourceType resourceType = context.getResource(resourceOid);
 		if (resourceType == null) {
 			ObjectReferenceType ref = new ObjectReferenceType();
 			ref.setType(ResourceType.COMPLEX_TYPE);
 			ref.setOid(resourceOid);
-			resourceType = objectResolver.resolve(ref, ResourceType.class, null, "resource fetch in lens", result);
+			resourceType = objectResolver.resolve(ref, ResourceType.class, null, "resource fetch in lens", task, result);
 			context.rememberResource(resourceType);
 		}
 		return resourceType;
@@ -613,7 +606,7 @@ public class LensUtil {
         ModelExpressionThreadLocalHolder.pushCurrentResult(parentResult);
         ModelExpressionThreadLocalHolder.pushCurrentTask(task);
         try {
-            scriptExpression.evaluate(variables, ScriptExpressionReturnTypeType.SCALAR, false, shortDesc, parentResult);
+            scriptExpression.evaluate(variables, ScriptExpressionReturnTypeType.SCALAR, false, shortDesc, task, parentResult);
         } finally {
             ModelExpressionThreadLocalHolder.popLensContext();
             ModelExpressionThreadLocalHolder.popCurrentResult();
@@ -846,7 +839,7 @@ public class LensUtil {
 		}
 		PrismPropertyDefinition<String> outputDefinition = new PrismPropertyDefinition<String>(ExpressionConstants.VAR_ITERATION_TOKEN,
 				DOMUtil.XSD_STRING, context.getPrismContext());
-		Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(tokenExpressionType, outputDefinition , "iteration token expression in "+accountContext.getHumanReadableName(), result);
+		Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(tokenExpressionType, outputDefinition , "iteration token expression in "+accountContext.getHumanReadableName(), task, result);
 		
 		Collection<Source<?,?>> sources = new ArrayList<>();
 		PrismPropertyDefinition<Integer> inputDefinition = new PrismPropertyDefinition<Integer>(ExpressionConstants.VAR_ITERATION,
@@ -904,7 +897,7 @@ public class LensUtil {
 		}
 		PrismPropertyDefinition<Boolean> outputDefinition = new PrismPropertyDefinition<Boolean>(ExpressionConstants.OUTPUT_ELMENT_NAME,
 				DOMUtil.XSD_BOOLEAN, context.getPrismContext());
-		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, outputDefinition , desc, result);
+		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, outputDefinition , desc, task, result);
 		
 		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION, iteration);
 		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken);
@@ -939,7 +932,7 @@ public class LensUtil {
     public static <V extends PrismValue, D extends ItemDefinition , F extends FocusType> Mapping<V, D> createFocusMapping(final MappingFactory mappingFactory,
     		final LensContext<F> context, final MappingType mappingType, ObjectType originObject, 
 			ObjectDeltaObject<F> focusOdo, AssignmentPathVariables assignmentPathVariables, PrismObject<SystemConfigurationType> configuration,
-			XMLGregorianCalendar now, String contextDesc, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			XMLGregorianCalendar now, String contextDesc, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
     	Integer iteration = null;
     	String iterationToken = null;
     	if (focusOdo.getNewObject() != null) {
@@ -952,14 +945,14 @@ public class LensUtil {
     		iterationToken = focusOldType.getIterationToken();
     	}
     	return createFocusMapping(mappingFactory, context, mappingType, originObject, focusOdo, assignmentPathVariables,
-    			iteration, iterationToken, configuration, now, contextDesc, result);
+    			iteration, iterationToken, configuration, now, contextDesc, task, result);
     }
     
     public static <V extends PrismValue, D extends ItemDefinition, F extends FocusType> Mapping<V, D> createFocusMapping(final MappingFactory mappingFactory,
     		final LensContext<F> context, final MappingType mappingType, ObjectType originObject, 
 			ObjectDeltaObject<F> focusOdo, AssignmentPathVariables assignmentPathVariables, 
 			Integer iteration, String iterationToken, PrismObject<SystemConfigurationType> configuration,
-			XMLGregorianCalendar now, String contextDesc, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			XMLGregorianCalendar now, String contextDesc, final Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		Mapping<V,D> mapping = mappingFactory.createMapping(mappingType, contextDesc);
 		
 		if (!mapping.isApplicableToChannel(context.getChannel())) {
@@ -1027,7 +1020,7 @@ public class LensUtil {
 								ObjectReferenceType ref = ((GenerateExpressionEvaluatorType) object).getValuePolicyRef();
 								try{
 								ValuePolicyType valuePolicyType = mappingFactory.getObjectResolver().resolve(ref, ValuePolicyType.class, 
-										null, "resolving value policy for generate attribute "+ outputDefinition.getName()+" value", new OperationResult("Resolving value policy"));
+										null, "resolving value policy for generate attribute "+ outputDefinition.getName()+" value", task, new OperationResult("Resolving value policy"));
 								if (valuePolicyType != null){
 									return valuePolicyType.getStringPolicy();
 								}

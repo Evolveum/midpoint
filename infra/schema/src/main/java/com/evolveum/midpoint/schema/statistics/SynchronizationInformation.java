@@ -75,7 +75,7 @@ public class SynchronizationInformation {
         return rv;
     }
 
-    private static void addTo(SynchronizationInformationType sum, SynchronizationInformationType delta) {
+    public static void addTo(SynchronizationInformationType sum, SynchronizationInformationType delta) {
         sum.setCountProtected(sum.getCountProtected() + delta.getCountProtected());
         sum.setCountNoSynchronizationPolicy(sum.getCountNoSynchronizationPolicy() + delta.getCountNoSynchronizationPolicy());
         sum.setCountSynchronizationDisabled(sum.getCountSynchronizationDisabled() + delta.getCountSynchronizationDisabled());

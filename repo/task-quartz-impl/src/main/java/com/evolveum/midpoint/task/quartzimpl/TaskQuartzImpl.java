@@ -35,6 +35,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -45,6 +46,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
 import com.evolveum.midpoint.schema.statistics.OperationalInformation;
 import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
+import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
 import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.task.api.LightweightTaskHandler;
@@ -73,6 +75,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskBindingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
@@ -93,6 +96,7 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -123,8 +127,8 @@ public class TaskQuartzImpl implements Task {
     private PrismObject<UserType> requestee;                                  // temporary information
 
 	private OperationalInformation operationalInformation = new OperationalInformation();
-	private SynchronizationInformation synchronizationInformation = new SynchronizationInformation();
-	private IterativeTaskInformation iterativeTaskInformation = new IterativeTaskInformation();
+	private SynchronizationInformation synchronizationInformation;				// has to be explicitly enabled
+	private IterativeTaskInformation iterativeTaskInformation;					// has to be explicitly enabled
 
 	/**
 	 * Lightweight asynchronous subtasks.
@@ -2554,6 +2558,57 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	@Override
+	public OperationalInformationType collectOperationalInformation() {
+		if (operationalInformation == null) {
+			return null;
+		}
+		OperationalInformationType rv = new OperationalInformationType();
+		OperationalInformation.addTo(rv, operationalInformation.getAggregatedValue());
+		for (Task subtask : getLightweightAsynchronousSubtasks()) {
+			OperationalInformation info = subtask.getOperationalInformation();
+			if (info != null) {
+				OperationalInformation.addTo(rv, info.getAggregatedValue());
+			}
+		}
+		rv.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
+		return rv;
+	}
+
+	@Override
+	public IterativeTaskInformationType collectIterativeTaskInformation() {
+		if (iterativeTaskInformation == null) {
+			return null;
+		}
+		IterativeTaskInformationType rv = new IterativeTaskInformationType();
+		IterativeTaskInformation.addTo(rv, iterativeTaskInformation.getAggregatedValue(), false);
+		for (Task subtask : getLightweightAsynchronousSubtasks()) {
+			IterativeTaskInformation info = subtask.getIterativeTaskInformation();
+			if (info != null) {
+				IterativeTaskInformation.addTo(rv, info.getAggregatedValue(), false);
+			}
+		}
+		rv.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
+		return rv;
+	}
+
+	@Override
+	public SynchronizationInformationType collectSynchronizationInformation() {
+		if (synchronizationInformation == null) {
+			return null;
+		}
+		SynchronizationInformationType rv = new SynchronizationInformationType();
+		SynchronizationInformation.addTo(rv, synchronizationInformation.getAggregatedValue());
+		for (Task subtask : getLightweightAsynchronousSubtasks()) {
+			SynchronizationInformation info = subtask.getSynchronizationInformation();
+			if (info != null) {
+				SynchronizationInformation.addTo(rv, info.getAggregatedValue());
+			}
+		}
+		rv.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
+		return rv;
+	}
+
+	@Override
 	public void recordState(String message) {
 		if (LOGGER.isDebugEnabled()) {		// TODO consider this
 			LOGGER.debug("{}", message);
@@ -2571,9 +2626,7 @@ public class TaskQuartzImpl implements Task {
 
 	@Override
 	public void recordNotificationOperation(String transportName, boolean success, long duration) {
-		if (operationalInformation != null) {
-			operationalInformation.recordNotificationOperation(transportName, success, duration);
-		}
+		operationalInformation.recordNotificationOperation(transportName, success, duration);
 	}
 
 	@Override
@@ -2584,23 +2637,43 @@ public class TaskQuartzImpl implements Task {
 	@Override
 	public synchronized void recordSynchronizationOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started, Throwable exception, SynchronizationInformation increment) {
 		recordIterativeOperationEnd(objectName, objectDisplayName, objectType, objectOid, started, exception);
-		synchronizationInformation.recordSynchronizationOperationEnd(objectName, objectDisplayName, objectType, objectOid, started, exception, increment);
+		if (synchronizationInformation != null) {
+			synchronizationInformation.recordSynchronizationOperationEnd(objectName, objectDisplayName, objectType, objectOid, started, exception, increment);
+		}
 	}
 
 	@Override
 	public synchronized void recordSynchronizationOperationStart(String objectName, String objectDisplayName, QName objectType, String objectOid) {
 		recordIterativeOperationStart(objectName, objectDisplayName, objectType, objectOid);
-		synchronizationInformation.recordSynchronizationOperationStart(objectName, objectDisplayName, objectType, objectOid);
+		if (synchronizationInformation != null) {
+			synchronizationInformation.recordSynchronizationOperationStart(objectName, objectDisplayName, objectType, objectOid);
+		}
 	}
 
 	@Override
 	public synchronized void recordIterativeOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started, Throwable exception) {
-		iterativeTaskInformation.recordOperationEnd(objectName, objectDisplayName, objectType, objectOid, started, exception);
+		if (iterativeTaskInformation != null) {
+			iterativeTaskInformation.recordOperationEnd(objectName, objectDisplayName, objectType, objectOid, started, exception);
+		}
+	}
+
+	@Override
+	public void recordIterativeOperationEnd(ShadowType shadow, long started, Throwable exception) {
+		recordIterativeOperationEnd(PolyString.getOrig(shadow.getName()), StatisticsUtil.getDisplayName(shadow),
+				ShadowType.COMPLEX_TYPE, shadow.getOid(), started, exception);
+	}
+
+	@Override
+	public void recordIterativeOperationStart(ShadowType shadow) {
+		recordIterativeOperationStart(PolyString.getOrig(shadow.getName()), StatisticsUtil.getDisplayName(shadow),
+				ShadowType.COMPLEX_TYPE, shadow.getOid());
 	}
 
 	@Override
 	public synchronized void recordIterativeOperationStart(String objectName, String objectDisplayName, QName objectType, String objectOid) {
-		iterativeTaskInformation.recordOperationStart(objectName, objectDisplayName, objectType, objectOid);
+		if (iterativeTaskInformation != null) {
+			iterativeTaskInformation.recordOperationStart(objectName, objectDisplayName, objectType, objectOid);
+		}
 	}
 
 	@Override

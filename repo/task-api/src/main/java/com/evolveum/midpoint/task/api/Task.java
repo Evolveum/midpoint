@@ -945,6 +945,12 @@ public interface Task extends DebugDumpable {
 
     IterativeTaskInformation getIterativeTaskInformation();
 
+    OperationalInformationType collectOperationalInformation();
+
+    IterativeTaskInformationType collectIterativeTaskInformation();
+
+    SynchronizationInformationType collectSynchronizationInformation();
+
     void recordState(String message);
 
     void recordProvisioningOperation(String resourceOid, String resourceName, QName objectClassName, ProvisioningOperation operation, boolean success, int count, long duration);
@@ -957,7 +963,11 @@ public interface Task extends DebugDumpable {
 
     void recordSynchronizationOperationStart(String objectName, String objectDisplayName, QName objectType, String objectOid);
 
+    void recordIterativeOperationEnd(ShadowType shadow, long started, Throwable exception);
+
     void recordIterativeOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started, Throwable exception);
+
+    void recordIterativeOperationStart(ShadowType shadow);
 
     void recordIterativeOperationStart(String objectName, String objectDisplayName, QName objectType, String objectOid);
 

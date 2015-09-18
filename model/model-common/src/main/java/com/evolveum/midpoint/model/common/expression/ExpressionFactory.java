@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
@@ -58,23 +59,23 @@ public class ExpressionFactory {
 		}
 	}
 
-	public <V extends PrismValue,D extends ItemDefinition> Expression<V,D> makeExpression(ExpressionType expressionType, 
-			D outputDefinition, String shortDesc, OperationResult result) 
+	public <V extends PrismValue,D extends ItemDefinition> Expression<V,D> makeExpression(ExpressionType expressionType,
+																						  D outputDefinition, String shortDesc, Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException {
 		ExpressionIdentifier eid = new ExpressionIdentifier(expressionType, outputDefinition);
 		Expression<V,D> expression = (Expression<V,D>) cache.get(eid);
 		if (expression == null) {
-			expression = createExpression(expressionType, outputDefinition, shortDesc, result);
+			expression = createExpression(expressionType, outputDefinition, shortDesc, task, result);
 			cache.put(eid, expression);
 		}
 		return expression;
 	}
 
-	private <V extends PrismValue,D extends ItemDefinition> Expression<V,D> createExpression(ExpressionType expressionType, 
-			D outputDefinition, String shortDesc, OperationResult result) 
+	private <V extends PrismValue,D extends ItemDefinition> Expression<V,D> createExpression(ExpressionType expressionType,
+																							 D outputDefinition, String shortDesc, Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException {
 		Expression<V,D> expression = new Expression<V,D>(expressionType, outputDefinition, objectResolver, prismContext);
-		expression.parse(this, shortDesc, result);
+		expression.parse(this, shortDesc, task, result);
 		return expression;
 	}
 	

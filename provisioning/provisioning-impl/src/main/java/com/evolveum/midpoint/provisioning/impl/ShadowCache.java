@@ -702,12 +702,12 @@ public abstract class ShadowCache {
 	
 
 	public SearchResultMetadata searchObjectsIterative(ObjectQuery query,
-			Collection<SelectorOptions<GetOperationOptions>> options, final ShadowHandler<ShadowType> handler,
-			final boolean readFromRepository, final OperationResult parentResult) throws SchemaException,
+													   Collection<SelectorOptions<GetOperationOptions>> options, final ShadowHandler<ShadowType> handler,
+													   final boolean readFromRepository, Task task, final OperationResult parentResult) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		ResourceShadowDiscriminator coordinates = ObjectQueryUtil.getCoordinates(query.getFilter());
-		final ProvisioningContext ctx = ctxFactory.create(coordinates, null, parentResult);
+		final ProvisioningContext ctx = ctxFactory.create(coordinates, task, parentResult);
 		ctx.assertDefinition();
 		applyDefinition(ctx, query);
 		
@@ -934,7 +934,7 @@ public abstract class ShadowCache {
 		return repoShadow;
 	}
 	
-	public Integer countObjects(ObjectQuery query, final OperationResult result) throws SchemaException,
+	public Integer countObjects(ObjectQuery query, Task task, final OperationResult result) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		ResourceShadowDiscriminator coordinates = ObjectQueryUtil.getCoordinates(query.getFilter());
@@ -999,7 +999,7 @@ public abstract class ShadowCache {
 						SelectorOptions.createCollection(new ItemPath(ShadowType.F_ASSOCIATION), GetOperationOptions.createRetrieve(RetrieveOption.EXCLUDE));
 				SearchResultMetadata resultMetadata;
 				try {
-					resultMetadata = searchObjectsIterative(query, options, handler, false, result);
+					resultMetadata = searchObjectsIterative(query, options, handler, false, task, result);
 				} catch (SchemaException | ObjectNotFoundException | ConfigurationException | SecurityViolationException e) {
 					result.recordFatalError(e);
                     throw e;
@@ -1026,7 +1026,7 @@ public abstract class ShadowCache {
 	
 				Collection<SelectorOptions<GetOperationOptions>> options =
 						SelectorOptions.createCollection(new ItemPath(ShadowType.F_ASSOCIATION), GetOperationOptions.createRetrieve(RetrieveOption.EXCLUDE));
-	            searchObjectsIterative(query, options, handler, false, result);
+	            searchObjectsIterative(query, options, handler, false, task, result);
 	            // TODO: better error handling
 	            result.computeStatus();
 	            result.cleanupResult();

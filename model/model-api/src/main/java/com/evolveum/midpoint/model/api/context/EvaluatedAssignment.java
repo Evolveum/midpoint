@@ -6,6 +6,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.Authorization;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -20,7 +21,7 @@ public interface EvaluatedAssignment<F extends FocusType> extends DebugDumpable 
 	
 	DeltaSetTriple<? extends EvaluatedAbstractRole> getRoles();
 
-	DeltaSetTriple<EvaluatedConstruction> getEvaluatedConstructions(OperationResult result) throws SchemaException, ObjectNotFoundException;
+	DeltaSetTriple<EvaluatedConstruction> getEvaluatedConstructions(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException;
 
 	PrismObject<?> getTarget();
 

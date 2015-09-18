@@ -30,7 +30,6 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +71,8 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 	private boolean logFinishInfo = false;
     private boolean countObjectsOnStart = true;         // todo make configurable per task instance (if necessary)
     private boolean preserveStatistics = true;
+    private boolean enableIterationStatistics = true;   // beware, this controls whether task stores these statistics; see also recordIterationStatistics in AbstractSearchIterativeResultHandler
+    private boolean enableSynchronizationStatistics = false;
 
 	// If you need to store fields specific to task instance or task run the ResultHandler is a good place to do that.
 	
@@ -107,6 +108,22 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
         return preserveStatistics;
     }
 
+    public boolean isEnableIterationStatistics() {
+        return enableIterationStatistics;
+    }
+
+    public void setEnableIterationStatistics(boolean enableIterationStatistics) {
+        this.enableIterationStatistics = enableIterationStatistics;
+    }
+
+    public boolean isEnableSynchronizationStatistics() {
+        return enableSynchronizationStatistics;
+    }
+
+    public void setEnableSynchronizationStatistics(boolean enableSynchronizationStatistics) {
+        this.enableSynchronizationStatistics = enableSynchronizationStatistics;
+    }
+
     public void setPreserveStatistics(boolean preserveStatistics) {
         this.preserveStatistics = preserveStatistics;
     }
@@ -118,13 +135,11 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 	@Override
 	public TaskRunResult run(Task coordinatorTask) {
         LOGGER.trace("{} run starting (coordinator task {})", taskName, coordinatorTask);
-        if (isPreserveStatistics()) {
-            TaskHandlerUtil.fetchAllStatistics(coordinatorTask);
-        }
+        TaskHandlerUtil.fetchAllStatistics(coordinatorTask, isPreserveStatistics(), isEnableIterationStatistics(), isEnableSynchronizationStatistics());
         try {
             return runInternal(coordinatorTask);
         } finally {
-            TaskHandlerUtil.storeAllStatistics(coordinatorTask);
+            TaskHandlerUtil.storeAllStatistics(coordinatorTask, isEnableIterationStatistics(), isEnableSynchronizationStatistics());
         }
     }
 
@@ -139,6 +154,9 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 			// the error should already be in the runResult
 			return runResult;
 		}
+        // copying relevant configuration items from task to handler
+        resultHandler.setEnableIterationStatistics(isEnableIterationStatistics());
+        resultHandler.setEnableSynchronizationStatistics(isEnableSynchronizationStatistics());
 		
 		boolean cont = initializeRun(resultHandler, runResult, coordinatorTask, opResult);
 		if (!cont) {
@@ -179,7 +197,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
             Long expectedTotal = null;
             if (countObjectsOnStart) {
                 if (!useRepository) {
-                    Integer expectedTotalInt = modelObjectResolver.countObjects(type, query, queryOptions, opResult);
+                    Integer expectedTotalInt = modelObjectResolver.countObjects(type, query, queryOptions, coordinatorTask, opResult);
                     if (expectedTotalInt != null) {
                         expectedTotal = (long) expectedTotalInt;        // conversion would fail on null
                     }
@@ -202,7 +220,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 
             resultHandler.createWorkerThreads(coordinatorTask, opResult);
             if (!useRepository) {
-                modelObjectResolver.searchIterative((Class<O>) type, query, queryOptions, resultHandler, opResult);
+                modelObjectResolver.searchIterative((Class<O>) type, query, queryOptions, resultHandler, coordinatorTask, opResult);
             } else {
                 repositoryService.searchObjectsIterative(type, query, (ResultHandler) resultHandler, null, opResult);
             }

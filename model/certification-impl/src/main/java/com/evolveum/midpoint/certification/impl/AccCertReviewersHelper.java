@@ -171,7 +171,7 @@ public class AccCertReviewersHelper {
         if (_case.getTargetRef() == null) {
             return null;
         }
-        ObjectType target = objectResolver.resolve(_case.getTargetRef(), ObjectType.class, null, "resolving cert case target", result);
+        ObjectType target = objectResolver.resolve(_case.getTargetRef(), ObjectType.class, null, "resolving cert case target", task, result);
         if (target instanceof AbstractRoleType) {
             ObjectReferenceType ownerRef = ((AbstractRoleType) target).getOwnerRef();
             if (ownerRef != null) {
@@ -190,7 +190,7 @@ public class AccCertReviewersHelper {
         if (_case.getObjectRef() == null) {
             return null;
         }
-        ObjectType object = objectResolver.resolve(_case.getObjectRef(), ObjectType.class, null, "resolving cert case object", result);
+        ObjectType object = objectResolver.resolve(_case.getObjectRef(), ObjectType.class, null, "resolving cert case object", task, result);
         if (object instanceof AbstractRoleType) {
             ObjectReferenceType ownerRef = ((AbstractRoleType) object).getOwnerRef();
             if (ownerRef != null) {
@@ -207,7 +207,7 @@ public class AccCertReviewersHelper {
         if (_case.getTargetRef() == null) {
             return null;
         }
-        ObjectType target = objectResolver.resolve(_case.getTargetRef(), ObjectType.class, null, "resolving cert case target", result);
+        ObjectType target = objectResolver.resolve(_case.getTargetRef(), ObjectType.class, null, "resolving cert case target", task, result);
         if (target instanceof AbstractRoleType) {
             return ((AbstractRoleType) target).getApproverRef();
         } else if (target instanceof ResourceType) {
@@ -221,7 +221,7 @@ public class AccCertReviewersHelper {
         if (_case.getObjectRef() == null) {
             return null;
         }
-        ObjectType object = objectResolver.resolve(_case.getObjectRef(), ObjectType.class, null, "resolving cert case object", result);
+        ObjectType object = objectResolver.resolve(_case.getObjectRef(), ObjectType.class, null, "resolving cert case object", task, result);
         if (object instanceof AbstractRoleType) {
             return ((AbstractRoleType) object).getApproverRef();
         } else {

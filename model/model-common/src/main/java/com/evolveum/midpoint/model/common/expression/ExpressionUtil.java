@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.query.ExpressionWrapper;
@@ -31,19 +30,13 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-import org.springframework.expression.ExpressionException;
-import org.w3c.dom.Element;
-
-import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctionsXPath;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.functions.LogExpressionFunctions;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -53,7 +46,6 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.Recomputable;
 import com.evolveum.midpoint.prism.Structured;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
@@ -65,15 +57,12 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.LogicalFilter;
 import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
-import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.prism.util.PrismUtil;
@@ -96,8 +85,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author semancik
@@ -193,8 +180,8 @@ public class ExpressionUtil {
 		return convertedVal;
     }
 
-	public static Object resolvePath(ItemPath path, ExpressionVariables variables, Object defaultContext, 
-			ObjectResolver objectResolver, String shortDesc, OperationResult result) throws SchemaException, ObjectNotFoundException {
+	public static Object resolvePath(ItemPath path, ExpressionVariables variables, Object defaultContext,
+									 ObjectResolver objectResolver, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		
 		Object root = defaultContext;
 		ItemPath relativePath = path;
@@ -218,7 +205,7 @@ public class ExpressionUtil {
 		}
 		
 		if (root instanceof ObjectReferenceType) {
-			root = resolveReference((ObjectReferenceType)root, objectResolver, varDesc, shortDesc, result);
+			root = resolveReference((ObjectReferenceType)root, objectResolver, varDesc, shortDesc, task, result);
 		}
 
         if (root instanceof Objectable) {
@@ -241,14 +228,14 @@ public class ExpressionUtil {
 		}
 	}
 	
-	private static PrismObject<?> resolveReference(ObjectReferenceType ref, ObjectResolver objectResolver, String varDesc, String contextDescription, 
-			OperationResult result) throws SchemaException, ObjectNotFoundException {
+	private static PrismObject<?> resolveReference(ObjectReferenceType ref, ObjectResolver objectResolver, String varDesc, String contextDescription,
+												   Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		if (ref.getOid() == null) {
     		throw new SchemaException("Null OID in reference in variable "+varDesc+" in "+contextDescription);
     	} else {
 	    	try {
 	    		
-				ObjectType objectType = objectResolver.resolve(ref, ObjectType.class, null, contextDescription, result);
+				ObjectType objectType = objectResolver.resolve(ref, ObjectType.class, null, contextDescription, task, result);
 				if (objectType == null) {
 					throw new IllegalArgumentException("Resolve returned null for "+ref+" in "+contextDescription);
 				}
@@ -531,7 +518,7 @@ public class ExpressionUtil {
 			String shortDesc, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		
 		Expression<V,D> expression = expressionFactory.makeExpression(expressionType,
-				outputDefinition, shortDesc, parentResult);
+				outputDefinition, shortDesc, task, parentResult);
 
 		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task, parentResult);
 		PrismValueDeltaSetTriple<V> outputTriple = expression.evaluate(params);
@@ -561,7 +548,7 @@ public class ExpressionUtil {
 				DOMUtil.XSD_STRING, prismContext);
     	outputDefinition.setMaxOccurs(-1);
 		Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType,
-				outputDefinition, shortDesc, parentResult);
+				outputDefinition, shortDesc, task, parentResult);
 
 		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task, parentResult);
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(params);

@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AsIsExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
@@ -58,8 +59,8 @@ public class AsIsExpressionEvaluatorFactory implements ExpressionEvaluatorFactor
 	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluatorFactory#createEvaluator(javax.xml.bind.JAXBElement)
 	 */
 	@Override
-	public <V extends PrismValue,D extends ItemDefinition> AsIsExpressionEvaluator<V,D> createEvaluator(Collection<JAXBElement<?>> evaluatorElements, 
-			D outputDefinition, String contextDescription, OperationResult result) throws SchemaException {
+	public <V extends PrismValue,D extends ItemDefinition> AsIsExpressionEvaluator<V,D> createEvaluator(Collection<JAXBElement<?>> evaluatorElements,
+																										D outputDefinition, String contextDescription, Task task, OperationResult result) throws SchemaException {
 
         Validate.notNull(outputDefinition, "output definition must be specified for asIs expression evaluator");
 		

@@ -257,9 +257,6 @@ public class PageTaskEdit extends PageAdminTasks {
     private TaskDto prepareTaskDto(TaskType task, OperationResult result) throws SchemaException, ObjectNotFoundException {
         TaskDto taskDto = new TaskDto(task, getModelService(), getTaskService(), getModelInteractionService(),
                 getTaskManager(), TaskDtoProviderOptions.fullOptions(), result, this);
-        for (TaskType child : task.getSubtask()) {
-            taskDto.addChildTaskDto(prepareTaskDto(child, result));
-        }
         return taskDto;
     }
 

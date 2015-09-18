@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -97,8 +98,8 @@ public class ScriptExpression {
 		this.functions = functions;
 	}
 
-	public <V extends PrismValue> List<V> evaluate(ExpressionVariables variables, ScriptExpressionReturnTypeType suggestedReturnType, 
-			boolean useNew, String contextDescription, OperationResult result) 
+	public <V extends PrismValue> List<V> evaluate(ExpressionVariables variables, ScriptExpressionReturnTypeType suggestedReturnType,
+												   boolean useNew, String contextDescription, Task task, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
 		ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext(variables, contextDescription, result, this);
@@ -107,7 +108,7 @@ public class ScriptExpression {
 		try {
 			context.setupThreadLocal();
 			
-			List<V> expressionResult = evaluator.evaluate(scriptType, variables, outputDefinition, suggestedReturnType, objectResolver, functions, contextDescription, result);
+			List<V> expressionResult = evaluator.evaluate(scriptType, variables, outputDefinition, suggestedReturnType, objectResolver, functions, contextDescription, task, result);
 			
 			traceExpressionSuccess(variables, contextDescription, expressionResult);
 	        return expressionResult;

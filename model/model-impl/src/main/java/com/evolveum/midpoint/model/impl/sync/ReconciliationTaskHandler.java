@@ -157,7 +157,15 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	@Override
 	public TaskRunResult run(Task coordinatorTask) {
 		LOGGER.trace("ReconciliationTaskHandler.run starting");
+		TaskHandlerUtil.initAllStatistics(coordinatorTask);
+		try {
+			return runInternal(coordinatorTask);
+		} finally {
+			TaskHandlerUtil.storeAllStatistics(coordinatorTask);
+		}
+	}
 
+	public TaskRunResult runInternal(Task coordinatorTask) {
 		ReconciliationTaskResult reconResult = new ReconciliationTaskResult();
 		
 		OperationResult opResult = new OperationResult(OperationConstants.RECONCILIATION);
@@ -259,7 +267,6 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		} catch (SecurityViolationException ex) {
 			processErrorPartial(runResult, "Security violation", ex, TaskRunResultStatus.PERMANENT_ERROR, resource, coordinatorTask, opResult);
 		}
-
 
 		long beforeResourceReconTimestamp = clock.currentTimeMillis();
 		long afterResourceReconTimestamp;
@@ -448,7 +455,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
         boolean interrupted;
 
-		OperationResult opResult = result.createSubresult(OperationConstants.RECONCILIATION+".ResourceReconciliation");
+		OperationResult opResult = result.createSubresult(OperationConstants.RECONCILIATION+".resourceReconciliation");
 
 		// Instantiate result handler. This will be called with every search
 		// result in the following iterative search
@@ -457,6 +464,8 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		handler.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_RECON);
 		handler.setStopOnError(false);
 
+		coordinatorTask.setExpectedTotal(null);
+
 		try {
 			
 			ObjectQuery query = createObjectclassSearchQuery(resource, objectclassDef);
@@ -464,7 +473,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			OperationResult searchResult = new OperationResult(OperationConstants.RECONCILIATION+".searchIterative");
 
 			handler.createWorkerThreads(coordinatorTask, searchResult);
-			provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, searchResult);               // note that progress is incremented within the handler, as it extends AbstractSearchIterativeResultHandler
+			provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, coordinatorTask, searchResult);               // note that progress is incremented within the handler, as it extends AbstractSearchIterativeResultHandler
 			handler.completeProcessing(searchResult);
 
 			interrupted = !coordinatorTask.canRun();
@@ -473,10 +482,10 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 			String message = "Processed " + handler.getProgress() + " account(s), got " + handler.getErrors() + " error(s)";
             if (interrupted) {
-                message += "; was interrupted during processing.";
+                message += "; was interrupted during processing";
             }
 			if (handler.getProgress() > 0) {
-				message += " Average time for one object: " + handler.getAverageTime() + " ms (wall clock time average: " + handler.getWallAverageTime() + " ms).";
+				message += ". Average time for one object: " + handler.getAverageTime() + " ms (wall clock time average: " + handler.getWallAverageTime() + " ms).";
 			}
 
 			OperationResultStatus resultStatus = OperationResultStatus.SUCCESS;
@@ -531,6 +540,8 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Shadow recon query:\n{}", query.debugDump());
 		}
+
+		long started = System.currentTimeMillis();
 		
 		final Holder<Long> countHolder = new Holder<Long>(0L);
 
@@ -549,6 +560,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
                 return task.canRun();
 			}
 		};
+
 		Utils.searchIterative(repositoryService, ShadowType.class, query, handler , BLOCK_SIZE, opResult);
         interrupted = !task.canRun();
 		
@@ -562,8 +574,9 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		reconResult.setShadowReconCount(countHolder.getValue());
 
         result.createSubresult(OperationConstants.RECONCILIATION+".shadowReconciliation.statistics")
-                .recordStatus(OperationResultStatus.SUCCESS, "Processed " + countHolder.getValue() + " shadow(s)"
-                    + (interrupted ? "; was interrupted during processing" : ""));
+                .recordStatus(OperationResultStatus.SUCCESS, "Processed " + countHolder.getValue() + " shadow(s) in "
+						+ (System.currentTimeMillis() - started) + " ms."
+                    + (interrupted ? " Was interrupted during processing." : ""));
 
         return !interrupted;
 	}
@@ -633,9 +646,8 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException,
 			ConfigurationException, SecurityViolationException {
 		LOGGER.trace("Scan for unfinished operations starting");
-		OperationResult opResult = result.createSubresult(OperationConstants.RECONCILIATION+".RepoReconciliation");
+		OperationResult opResult = result.createSubresult(OperationConstants.RECONCILIATION+".repoReconciliation");
 		opResult.addParam("reconciled", true);
-
 
 		NotFilter notNull = NotFilter.createNot(createFailedOpFilter(null));
 		AndFilter andFilter = AndFilter.createAnd(notNull, RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class,
@@ -645,10 +657,19 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		List<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(
 				ShadowType.class, query, null, opResult);
 
+		task.setExpectedTotal((long) shadows.size());		// for this phase, obviously
+
 		LOGGER.trace("Found {} accounts that were not successfully processed.", shadows.size());
 		reconResult.setUnOpsCount(shadows.size());
+
+		long startedAll = System.currentTimeMillis();
+		int processedSuccess = 0, processedFailure = 0;
 		
 		for (PrismObject<ShadowType> shadow : shadows) {
+
+			long started = System.currentTimeMillis();
+			task.recordIterativeOperationStart(shadow.asObjectable());
+
 			OperationResult provisioningResult = new OperationResult(OperationConstants.RECONCILIATION+".finishOperation");
 			try {
 				RepositoryCache.enter();
@@ -657,7 +678,12 @@ public class ReconciliationTaskHandler implements TaskHandler {
                 Utils.clearRequestee(task);
 				provisioningService.finishOperation(shadow, options, task, provisioningResult);
 //				retryFailedOperation(shadow.asObjectable(), opResult);
-			} catch (Exception ex) {
+
+				task.recordIterativeOperationEnd(shadow.asObjectable(), started, null);
+				processedSuccess++;
+			} catch (Throwable ex) {
+				task.recordIterativeOperationEnd(shadow.asObjectable(), started, ex);
+				processedFailure++;
 				opResult.recordFatalError("Failed to finish operation with shadow: " + ObjectTypeUtil.toShortString(shadow.asObjectable()) +". Reason: " + ex.getMessage(), ex);
 				Collection<? extends ItemDelta> modifications = PropertyDelta
 						.createModificationReplacePropertyCollection(ShadowType.F_ATTEMPT_NUMBER,
@@ -672,19 +698,26 @@ public class ReconciliationTaskHandler implements TaskHandler {
 				RepositoryCache.exit();
 			}
 
+			// TODO record statistics as well
             incrementAndRecordProgress(task, opResult);
 
             if (!task.canRun()) {
-                return false;
+                break;
             }
 		}
 
 		// for each try the operation again
-		
+
+		String message = "Processing unfinished operations done. Out of " + shadows.size() + " objects, "
+				+ processedSuccess + " were processed successfully and processing of " + processedFailure + " resulted in failure. " +
+				"Total time spent: " + (System.currentTimeMillis() - startedAll) + " ms. " +
+				(!task.canRun() ? "Was interrupted during processing." : "");
+
 		opResult.computeStatus();
-		
-		LOGGER.trace("Scan for unfinished operations finished, processed {} accounts, result: {}", shadows.size(), opResult.getStatus());
-        return true;
+		result.createSubresult(opResult.getOperation()+".statistics").recordStatus(opResult.getStatus(), message);
+
+		LOGGER.debug("{}. Result: {}", message, opResult.getStatus());
+        return task.canRun();
 	}
 
 	private ObjectFilter createFailedOpFilter(FailedOperationTypeType failedOp) throws SchemaException{

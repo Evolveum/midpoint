@@ -46,6 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
@@ -673,6 +674,21 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
+    public OperationalInformationType collectOperationalInformation() {
+        return null;
+    }
+
+    @Override
+    public IterativeTaskInformationType collectIterativeTaskInformation() {
+        return null;
+    }
+
+    @Override
+    public SynchronizationInformationType collectSynchronizationInformation() {
+        return null;
+    }
+
+    @Override
     public Long getExpectedTotal() {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
@@ -729,5 +745,13 @@ public class SimpleTaskAdapter implements Task {
 
     @Override
     public void recordIterativeOperationStart(String objectName, String objectDisplayName, QName objectType, String objectOid) {
+    }
+
+    @Override
+    public void recordIterativeOperationEnd(ShadowType shadow, long started, Throwable exception) {
+    }
+
+    @Override
+    public void recordIterativeOperationStart(ShadowType shadow) {
     }
 }

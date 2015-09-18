@@ -23,7 +23,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -40,8 +39,6 @@ import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.api.hooks.ReadHook;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
-import com.evolveum.midpoint.prism.ConsistencyCheckScope;
-import com.evolveum.midpoint.prism.parser.XNodeSerializer;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -65,8 +62,6 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.common.InternalsConfig;
-import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.common.refinery.LayerRefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.LayerRefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -89,18 +84,12 @@ import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.DisplayableValueImpl;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -116,7 +105,6 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.TypeFilter;
-import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
@@ -134,7 +122,6 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultRunner;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.ObjectSecurityConstraints;
@@ -144,7 +131,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.util.exception.AuthorizationException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -166,17 +152,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateItemDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyLimitationsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
@@ -1174,7 +1154,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	}
 	
 	@Override
-	public CredentialsPolicyType getCredentialsPolicy(PrismObject<UserType> user, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+	public CredentialsPolicyType getCredentialsPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		// TODO: check for user membership in an organization (later versions)
 		
 		OperationResult result = parentResult.createMinorSubresult(GET_CREDENTIALS_POLICY);
@@ -1190,7 +1170,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 				return null;			
 			}
 			SecurityPolicyType securityPolicyType;
-			securityPolicyType = objectResolver.resolve(secPolicyRef, SecurityPolicyType.class, null, "security policy referred from system configuration", result);
+			securityPolicyType = objectResolver.resolve(secPolicyRef, SecurityPolicyType.class, null, "security policy referred from system configuration", task, result);
 			if (securityPolicyType == null) {
 				result.recordNotApplicableIfUnknown();
 				return null;			
@@ -1267,7 +1247,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
                 }
                 switch (searchProvider) {
                     case REPOSITORY: list = cacheRepositoryService.searchObjects(type, query, options, result); break;
-                    case PROVISIONING: list = provisioning.searchObjects(type, query, options, result); break;
+                    case PROVISIONING: list = provisioning.searchObjects(type, query, options, null, result); break;
                     case TASK_MANAGER: list = taskManager.searchObjects(type, query, options, result); break;
                     case WORKFLOW: throw new UnsupportedOperationException();
                     default: throw new AssertionError("Unexpected search provider: " + searchProvider);
@@ -1389,7 +1369,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			try {
                 switch (searchProvider) {
                     case REPOSITORY: metadata = cacheRepositoryService.searchObjectsIterative(type, query, internalHandler, options, result); break;
-                    case PROVISIONING: metadata = provisioning.searchObjectsIterative(type, query, options, internalHandler, result); break;
+                    case PROVISIONING: metadata = provisioning.searchObjectsIterative(type, query, options, internalHandler, task, result); break;
                     case TASK_MANAGER: throw new UnsupportedOperationException("searchIterative in task manager is currently not supported");
                     case WORKFLOW: throw new UnsupportedOperationException("searchIterative in task manager is currently not supported");
                     default: throw new AssertionError("Unexpected search provider: " + searchProvider);
@@ -1469,7 +1449,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
                 objectManager = ObjectTypes.ObjectManager.REPOSITORY;
             }
             switch (objectManager) {
-                case PROVISIONING: count = provisioning.countObjects(type, query, null, parentResult); break;
+                case PROVISIONING: count = provisioning.countObjects(type, query, null, task, parentResult); break;
                 case REPOSITORY: count = cacheRepositoryService.countObjects(type, query, parentResult); break;
                 case TASK_MANAGER: count = taskManager.countObjects(type, query, parentResult); break;
                 default: throw new AssertionError("Unexpected objectManager: " + objectManager);
@@ -1587,7 +1567,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 
 			try {
 
-				list = provisioning.listResourceObjects(resourceOid, objectClass, paging, result);
+				list = provisioning.listResourceObjects(resourceOid, objectClass, paging, task, result);
 
 			} catch (SchemaException ex) {
 				ModelUtils.recordFatalError(result, ex);

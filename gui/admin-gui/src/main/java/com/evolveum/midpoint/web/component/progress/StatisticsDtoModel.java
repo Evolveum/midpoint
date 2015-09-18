@@ -115,14 +115,13 @@ public class StatisticsDtoModel extends AbstractReadOnlyModel<StatisticsDto> {
     }
 
     protected StatisticsDto getStatisticsFromTask(Task task) {
-        OperationalInformation operationalInformation = task.getOperationalInformation();
+        OperationalInformationType operationalInformation = task.collectOperationalInformation();
         if (operationalInformation == null) {
             LOGGER.warn("No operational information in task");
             return null;
         }
-        OperationalInformationType infoType = operationalInformation.getAggregatedValue();
-        infoType.setFromMemory(true);
-        StatisticsDto dto = new StatisticsDto(infoType);
+        operationalInformation.setFromMemory(true);
+        StatisticsDto dto = new StatisticsDto(operationalInformation);
         return dto;
     }
 

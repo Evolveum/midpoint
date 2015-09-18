@@ -39,17 +39,46 @@ public class TaskHandlerUtil {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(TaskHandlerUtil.class);
 
+    public static void initAllStatistics(Task task) {
+        fetchAllStatistics(task, false, true, true);
+    }
+
     public static void fetchAllStatistics(Task task) {
-        fetchOperationalInformation(task);
-        fetchIterativeTaskInformation(task);
-        fetchSynchronizationInformation(task);
+        fetchAllStatistics(task, true, true, true);
+    }
+
+    public static void fetchAllStatistics(Task task, boolean preserveStatistics, boolean enableIterationStatistics, boolean enableSynchronizationStatistics) {
+        if (preserveStatistics) {
+            fetchOperationalInformation(task);
+            if (enableIterationStatistics) {
+                fetchIterativeTaskInformation(task);
+            }
+            if (enableSynchronizationStatistics) {
+                fetchSynchronizationInformation(task);
+            }
+        } else {
+            if (enableIterationStatistics) {
+                task.resetIterativeTaskInformation(null);
+            }
+            if (enableSynchronizationStatistics) {
+                task.resetSynchronizationInformation(null);
+            }
+        }
     }
 
     public static void storeAllStatistics(Task task) {
+        storeAllStatistics(task, true, true);
+    }
+
+    public static void storeAllStatistics(Task task, boolean enableIterationStatistics, boolean enableSynchronizationStatistics) {
         try {
             storeOperationalInformation(task);
-            storeIterativeTaskInformation(task);
-            storeSynchronizationInformation(task);
+            if (enableIterationStatistics) {
+                storeIterativeTaskInformation(task);
+            }
+            if (enableSynchronizationStatistics) {
+                storeSynchronizationInformation(task);
+            }
             task.savePendingModifications(task.getResult());
         } catch (SchemaException|ObjectNotFoundException |ObjectAlreadyExistsException |RuntimeException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't store statistical information into task {}", e, task);
@@ -84,30 +113,17 @@ public class TaskHandlerUtil {
     }
 
     public static void storeOperationalInformation(Task task) throws SchemaException {
-        OperationalInformation operationalInformation = task.getOperationalInformation();
-        if (operationalInformation == null) {
-            return;
-        }
-        OperationalInformationType operationalInformationType = operationalInformation.getAggregatedValue();
+        OperationalInformationType operationalInformationType = task.collectOperationalInformation();
         task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_OPERATIONAL_INFORMATION_PROPERTY_NAME, operationalInformationType);
     }
 
     public static void storeSynchronizationInformation(Task task) throws SchemaException {
-        SynchronizationInformation synchronizationInformation = task.getSynchronizationInformation();
-        if (synchronizationInformation == null) {
-            return;
-        }
-        SynchronizationInformationType synchronizationInformationType = synchronizationInformation.getAggregatedValue();
+        SynchronizationInformationType synchronizationInformationType = task.collectSynchronizationInformation();
         task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_SYNCHRONIZATION_INFORMATION_PROPERTY_NAME, synchronizationInformationType);
     }
 
     public static void storeIterativeTaskInformation(Task task) throws SchemaException {
-        IterativeTaskInformation iterativeTaskInformation = task.getIterativeTaskInformation();
-        if (iterativeTaskInformation == null) {
-            return;
-        }
-        IterativeTaskInformationType iterativeTaskInformationType = iterativeTaskInformation.getAggregatedValue();
+        IterativeTaskInformationType iterativeTaskInformationType = task.collectIterativeTaskInformation();
         task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_ITERATIVE_TASK_INFORMATION_PROPERTY_NAME, iterativeTaskInformationType);
     }
-
 }

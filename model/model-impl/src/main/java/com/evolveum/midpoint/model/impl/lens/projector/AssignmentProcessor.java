@@ -21,7 +21,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -45,8 +44,6 @@ import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.controller.ModelUtils;
 import com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator;
-import com.evolveum.midpoint.model.impl.lens.AssignmentPath;
-import com.evolveum.midpoint.model.impl.lens.AssignmentPathSegment;
 import com.evolveum.midpoint.model.impl.lens.Construction;
 import com.evolveum.midpoint.model.impl.lens.ConstructionPack;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAbstractRoleImpl;
@@ -56,7 +53,6 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -115,7 +111,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -555,7 +550,7 @@ public class AssignmentProcessor {
 		// because there may be interaction from focusMappings of some roles to outbound mappings of other roles.
 		// Now we have complete focus with all the focusMappings so we can evaluate the constructions
 		evaluateConstructions(context, evaluatedAssignmentTriple, task, result);
-		collectToConstructionMaps(context, evaluatedAssignmentTriple, constructionMapTriple, result);
+		collectToConstructionMaps(context, evaluatedAssignmentTriple, constructionMapTriple, task, result);
         
         if (LOGGER.isTraceEnabled()) {
             // Dump the maps
@@ -921,35 +916,35 @@ public class AssignmentProcessor {
     
     private <F extends FocusType> void collectToConstructionMaps(LensContext<F> context,
     		DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, 
-    		DeltaMapTriple<ResourceShadowDiscriminator, ConstructionPack> constructionMapTriple,
+    		DeltaMapTriple<ResourceShadowDiscriminator, ConstructionPack> constructionMapTriple, Task task,
     		OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
     	
-    	collectToConstructionMapFromEvaluatedAssignments(context, evaluatedAssignmentTriple.getZeroSet(), constructionMapTriple, PlusMinusZero.ZERO, result);
-    	collectToConstructionMapFromEvaluatedAssignments(context, evaluatedAssignmentTriple.getPlusSet(), constructionMapTriple, PlusMinusZero.PLUS, result);
-    	collectToConstructionMapFromEvaluatedAssignments(context, evaluatedAssignmentTriple.getMinusSet(), constructionMapTriple, PlusMinusZero.MINUS, result);
+    	collectToConstructionMapFromEvaluatedAssignments(context, evaluatedAssignmentTriple.getZeroSet(), constructionMapTriple, PlusMinusZero.ZERO, task, result);
+    	collectToConstructionMapFromEvaluatedAssignments(context, evaluatedAssignmentTriple.getPlusSet(), constructionMapTriple, PlusMinusZero.PLUS, task, result);
+    	collectToConstructionMapFromEvaluatedAssignments(context, evaluatedAssignmentTriple.getMinusSet(), constructionMapTriple, PlusMinusZero.MINUS, task, result);
     }
     
     private <F extends FocusType> void collectToConstructionMapFromEvaluatedAssignments(LensContext<F> context,
     		Collection<EvaluatedAssignmentImpl<F>> evaluatedAssignments,
-    		DeltaMapTriple<ResourceShadowDiscriminator, ConstructionPack> constructionMapTriple, PlusMinusZero mode,
+    		DeltaMapTriple<ResourceShadowDiscriminator, ConstructionPack> constructionMapTriple, PlusMinusZero mode, Task task,
     		OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		for (EvaluatedAssignmentImpl<F> evaluatedAssignment: evaluatedAssignments) {
 	    	if (LOGGER.isTraceEnabled()) {
 	    		LOGGER.trace("Collecting constructions from evaluated assignment:\n{}", evaluatedAssignment.debugDump());
 	    	}
 	    	DeltaSetTriple<Construction<F>> constructionTriple = evaluatedAssignment.getConstructions();
-	    	collectToConstructionMapFromEvaluatedConstructions(context, evaluatedAssignment, constructionTriple.getZeroSet(), constructionMapTriple, mode, PlusMinusZero.ZERO, result);
-	    	collectToConstructionMapFromEvaluatedConstructions(context, evaluatedAssignment, constructionTriple.getPlusSet(), constructionMapTriple, mode, PlusMinusZero.PLUS, result);
-	    	collectToConstructionMapFromEvaluatedConstructions(context, evaluatedAssignment, constructionTriple.getMinusSet(), constructionMapTriple, mode, PlusMinusZero.MINUS, result);
+	    	collectToConstructionMapFromEvaluatedConstructions(context, evaluatedAssignment, constructionTriple.getZeroSet(), constructionMapTriple, mode, PlusMinusZero.ZERO, task, result);
+	    	collectToConstructionMapFromEvaluatedConstructions(context, evaluatedAssignment, constructionTriple.getPlusSet(), constructionMapTriple, mode, PlusMinusZero.PLUS, task, result);
+	    	collectToConstructionMapFromEvaluatedConstructions(context, evaluatedAssignment, constructionTriple.getMinusSet(), constructionMapTriple, mode, PlusMinusZero.MINUS, task, result);
 		}
     }
     
     private <F extends FocusType> void collectToConstructionMapFromEvaluatedConstructions(LensContext<F> context,
-    		EvaluatedAssignmentImpl<F> evaluatedAssignment,
-    		Collection<Construction<F>> evaluatedConstructions,
-    		DeltaMapTriple<ResourceShadowDiscriminator, ConstructionPack> constructionMapTriple, 
-    		PlusMinusZero mode1, PlusMinusZero mode2,
-    		OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+																						  EvaluatedAssignmentImpl<F> evaluatedAssignment,
+																						  Collection<Construction<F>> evaluatedConstructions,
+																						  DeltaMapTriple<ResourceShadowDiscriminator, ConstructionPack> constructionMapTriple,
+																						  PlusMinusZero mode1, PlusMinusZero mode2,
+																						  Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
     	
         for (Construction<F> construction : evaluatedConstructions) {
         	
@@ -959,7 +954,7 @@ public class AssignmentProcessor {
         		continue;
         	}
         	
-            String resourceOid = construction.getResource(result).getOid();
+            String resourceOid = construction.getResource(task, result).getOid();
             String intent = construction.getIntent();
             ShadowKindType kind = construction.getKind();
             ResourceType resource = LensUtil.getResource(context, resourceOid, provisioningService, result);
@@ -1014,7 +1009,7 @@ public class AssignmentProcessor {
         	// Evaluate assignment. This follows to the assignment targets, follows to the inducements, 
         	// evaluates all the expressions, etc. 
         	EvaluatedAssignmentImpl<F> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, evaluateOld, source, assignmentPlacementDesc, task, result);
-        	context.rememberResources(evaluatedAssignment.getResources(result));
+        	context.rememberResources(evaluatedAssignment.getResources(task, result));
         	result.recordSuccess();
         	return evaluatedAssignment;
         } catch (ObjectNotFoundException ex) {

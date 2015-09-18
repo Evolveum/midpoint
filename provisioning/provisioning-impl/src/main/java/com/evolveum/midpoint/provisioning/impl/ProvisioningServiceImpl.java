@@ -483,8 +483,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 	
 	@Override
-	public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, 
-			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException,
+	public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
+																				 Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException,
 			ConfigurationException, SecurityViolationException {
 
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".searchObjects");
@@ -512,7 +512,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				}
 			};
 		
-			metadata = searchObjectsIterative(type, query, options, handler, result);
+			metadata = searchObjectsIterative(type, query, options, handler, task, result);
 			
 		} catch (ConfigurationException e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, "Could not search objects: configuration problem: " + e.getMessage(), e);
@@ -641,7 +641,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	}
 
-	public <T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
+	public <T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
 
@@ -676,7 +676,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		Integer count;
 		try {
-			count = getShadowCache(Mode.STANDARD).countObjects(query, result);
+			count = getShadowCache(Mode.STANDARD).countObjects(query, task, result);
 			result.computeStatus();
 		} catch (ConfigurationException e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
@@ -929,7 +929,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public List<PrismObject<? extends ShadowType>> listResourceObjects(String resourceOid,
-			QName objectClass, ObjectPaging paging, OperationResult parentResult) throws SchemaException,
+																	   QName objectClass, ObjectPaging paging, Task task, OperationResult parentResult) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		final OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
@@ -962,7 +962,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		};
 
 		try {
-			getShadowCache(Mode.STANDARD).searchObjectsIterative(query, null, shadowHandler, false, result);
+			getShadowCache(Mode.STANDARD).searchObjectsIterative(query, null, shadowHandler, false, task, result);
 		} catch (ConfigurationException ex) {
 			result.recordFatalError(ex.getMessage(), ex);
 			result.cleanupResult(ex);
@@ -1023,9 +1023,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
-	public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(final Class<T> type, ObjectQuery query, 
-			Collection<SelectorOptions<GetOperationOptions>> options, 
-			final ResultHandler<T> handler, final OperationResult parentResult) throws SchemaException,
+	public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(final Class<T> type, ObjectQuery query,
+																			  Collection<SelectorOptions<GetOperationOptions>> options,
+																			  final ResultHandler<T> handler, Task task, final OperationResult parentResult) throws SchemaException,
 				ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(parentResult, "Operation result must not be null.");
@@ -1189,7 +1189,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		SearchResultMetadata metadata;
 		try {
-			metadata = getShadowCache(Mode.STANDARD).searchObjectsIterative(query, options, shadowHandler, true, result);
+			metadata = getShadowCache(Mode.STANDARD).searchObjectsIterative(query, options, shadowHandler, true, task, result);
 			result.computeStatus();
 		} catch (ConfigurationException e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
@@ -1433,7 +1433,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 													  String shadowOid,
 													  ResourceShadowDiscriminator resourceShadowDiscriminator,
 													  ConstraintViolationConfirmer constraintViolationConfirmer,
-													  OperationResult parentResult) throws CommunicationException, ObjectAlreadyExistsException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+													  Task task, OperationResult parentResult) throws CommunicationException, ObjectAlreadyExistsException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".checkConstraints");
 		ConstraintsChecker checker = new ConstraintsChecker();
 		checker.setCacheRepositoryService(cacheRepositoryService);
@@ -1446,7 +1446,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		checker.setResourceShadowDiscriminator(resourceShadowDiscriminator);
 		checker.setConstraintViolationConfirmer(constraintViolationConfirmer);
 		try {
-			ConstraintsCheckingResult retval = checker.check(result);
+			ConstraintsCheckingResult retval = checker.check(task, result);
 			result.computeStatus();
 			return retval;
 		} catch (CommunicationException|ObjectAlreadyExistsException|SchemaException|SecurityViolationException|ConfigurationException|ObjectNotFoundException|RuntimeException e) {

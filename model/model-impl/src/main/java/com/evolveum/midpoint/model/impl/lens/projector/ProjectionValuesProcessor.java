@@ -283,7 +283,7 @@ public class ProjectionValuesProcessor {
 			        checker.setPrismContext(prismContext);
 			        checker.setContext(context);
 			        checker.setProvisioningService(provisioningService);
-			        checker.check(result);
+			        checker.check(task, result);
 			        if (checker.isSatisfiesConstraints()) {
 			        	LOGGER.trace("Current shadow satisfies uniqueness constraints. Iteration {}, token '{}'", iteration, iterationToken);
 			        	conflict = false;

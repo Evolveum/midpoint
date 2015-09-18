@@ -18,6 +18,8 @@ package com.evolveum.midpoint.web.page.admin.server.currentState;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
@@ -48,6 +50,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import java.io.IOException;
+import java.util.Collection;
 
 /**
  * @author Pavol Mederly
@@ -117,27 +120,21 @@ public class TaskCurrentStateDtoModel extends AbstractReadOnlyModel<TaskCurrentS
             } else {
                 LOGGER.info("No IterativeTaskInformationType in task extension.");
             }
-            return new TaskCurrentStateDto(taskModel.getObject(), infoPropertyValue, ititPropertyValue);
+            return new TaskCurrentStateDto(taskModel.getObject(), infoPropertyValue, ititPropertyValue, null);
         }
-        SynchronizationInformation info = task.getSynchronizationInformation();
-        SynchronizationInformationType sit;
-        if (info != null) {
-            sit = info.getAggregatedValue();
+        SynchronizationInformationType sit = task.collectSynchronizationInformation();
+        if (sit != null) {
             sit.setFromMemory(true);
         } else {
-            sit = null;
             LOGGER.warn("No synchronization information in task");
         }
-        IterativeTaskInformation iter = task.getIterativeTaskInformation();
-        IterativeTaskInformationType itit;
-        if (iter != null) {
-            itit = iter.getAggregatedValue();
+        IterativeTaskInformationType itit = task.collectIterativeTaskInformation();;
+        if (itit != null) {
             itit.setFromMemory(true);
         } else {
-            itit = null;
             LOGGER.warn("No synchronization information in task");
         }
-        return new TaskCurrentStateDto(taskModel.getObject(), sit, itit);
+        return new TaskCurrentStateDto(taskModel.getObject(), sit, itit, task.getProgress());
     }
 
     public void refresh(PageBase page) {
@@ -145,6 +142,7 @@ public class TaskCurrentStateDtoModel extends AbstractReadOnlyModel<TaskCurrentS
 
         if (taskModel == null || taskModel.getObject() == null) {
             LOGGER.warn("Null or empty taskModel");
+            return;
         }
         TaskManager taskManager = page.getTaskManager();
         OperationResult result = new OperationResult("refresh");
@@ -153,7 +151,8 @@ public class TaskCurrentStateDtoModel extends AbstractReadOnlyModel<TaskCurrentS
         String oid = taskModel.getObject().getOid();
         try {
             LOGGER.info("Refreshing task {}", taskModel.getObject());
-            PrismObject<TaskType> task = page.getModelService().getObject(TaskType.class, oid, null, operationTask, result);
+            Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.createRetrieveAttributesOptions(TaskType.F_SUBTASK, TaskType.F_NODE_AS_OBSERVED);
+            PrismObject<TaskType> task = page.getModelService().getObject(TaskType.class, oid, options, operationTask, result);
             TaskDto taskDto = new TaskDto(task.asObjectable(), page.getModelService(), page.getTaskService(),
                     page.getModelInteractionService(), taskManager, TaskDtoProviderOptions.minimalOptions(), result, page);
             taskModel.setObject(taskDto);

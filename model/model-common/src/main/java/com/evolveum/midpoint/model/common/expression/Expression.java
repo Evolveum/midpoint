@@ -17,32 +17,24 @@ package com.evolveum.midpoint.model.common.expression;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -79,10 +71,10 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 		this.prismContext = prismContext;
 	}
 	
-	public void parse(ExpressionFactory factory, String contextDescription, OperationResult result) 
+	public void parse(ExpressionFactory factory, String contextDescription, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException {
 		if (expressionType == null) {
-			evaluators.add(createDefaultEvaluator(factory, contextDescription, result));
+			evaluators.add(createDefaultEvaluator(factory, contextDescription, task, result));
 			return;
 		}
 		if (expressionType.getExpressionEvaluator() == null /* && expressionType.getSequence() == null */) {
@@ -90,16 +82,16 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 		}
 		if (expressionType.getExpressionEvaluator() != null) {
 			ExpressionEvaluator evaluator = createEvaluator(expressionType.getExpressionEvaluator(), factory, 
-					contextDescription, result);
+					contextDescription, task, result);
 			evaluators.add(evaluator);
 		}
 		if (evaluators.isEmpty()) {
-			evaluators.add(createDefaultEvaluator(factory, contextDescription, result));
+			evaluators.add(createDefaultEvaluator(factory, contextDescription, task, result));
 		}
 	}
 
 	private ExpressionEvaluator<V,D> createEvaluator(Collection<JAXBElement<?>> evaluatorElements, ExpressionFactory factory,
-			String contextDescription, OperationResult result) 
+													 String contextDescription, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException {
 		if (evaluatorElements.isEmpty()) {
 			throw new SchemaException("Empty evaluator list in "+contextDescription);
@@ -109,16 +101,16 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 		if (evaluatorFactory == null) {
 			throw new SchemaException("Unknown expression evaluator element "+fistEvaluatorElement.getName()+" in "+contextDescription);
 		}
-		return evaluatorFactory.createEvaluator(evaluatorElements, outputDefinition, contextDescription, result);
+		return evaluatorFactory.createEvaluator(evaluatorElements, outputDefinition, contextDescription, task, result);
 	}
 
-	private ExpressionEvaluator<V,D> createDefaultEvaluator(ExpressionFactory factory, String contextDescription, 
-			OperationResult result) throws SchemaException, ObjectNotFoundException {
+	private ExpressionEvaluator<V,D> createDefaultEvaluator(ExpressionFactory factory, String contextDescription,
+															Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		ExpressionEvaluatorFactory evaluatorFactory = factory.getDefaultEvaluatorFactory();
 		if (evaluatorFactory == null) {
 			throw new SystemException("Internal error: No default expression evaluator factory");
 		}
-		return evaluatorFactory.createEvaluator(null, outputDefinition, contextDescription, result);
+		return evaluatorFactory.createEvaluator(null, outputDefinition, contextDescription, task, result);
 	}
 	
 	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context) throws SchemaException,
@@ -129,7 +121,7 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 		try {
 		
 			processedVariables = processInnerVariables(context.getVariables(), context.getContextDescription(),
-					context.getResult());
+					context.getTask(), context.getResult());
 			
 			ExpressionEvaluationContext processedParameters = context.shallowClone();
 			processedParameters.setVariables(processedVariables);
@@ -219,7 +211,7 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 	}
 
 	private ExpressionVariables processInnerVariables(ExpressionVariables variables, String contextDescription,
-			OperationResult result) throws SchemaException, ObjectNotFoundException {
+													  Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		if (expressionType == null || expressionType.getVariable() == null || expressionType.getVariable().isEmpty()) {
 			// shortcut
 			return variables;
@@ -236,7 +228,7 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 			if (variableDefType.getObjectRef() != null) {
                 ObjectReferenceType ref = variableDefType.getObjectRef();
                 ref.setType(prismContext.getSchemaRegistry().qualifyTypeName(ref.getType()));
-				ObjectType varObject = objectResolver.resolve(ref, ObjectType.class, null, "variable "+varName+" in "+contextDescription, result);
+				ObjectType varObject = objectResolver.resolve(ref, ObjectType.class, null, "variable "+varName+" in "+contextDescription, task, result);
 				newVariables.addVariableDefinition(varName, varObject);
 			} else if (variableDefType.getValue() != null) {
 				// Only string is supported now
@@ -252,7 +244,7 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 				}
 			} else if (variableDefType.getPath() != null) {
 				ItemPath itemPath = variableDefType.getPath().getItemPath();
-				Object resolvedValue = ExpressionUtil.resolvePath(itemPath, variables, null, objectResolver, contextDescription, result);
+				Object resolvedValue = ExpressionUtil.resolvePath(itemPath, variables, null, objectResolver, contextDescription, task, result);
 				newVariables.addVariableDefinition(varName, resolvedValue);
 			} else {
 				throw new SchemaException("No value for variable "+varName+" in "+contextDescription);

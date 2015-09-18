@@ -22,12 +22,16 @@ import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
+import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.progress.StatisticsDtoModel;
 import com.evolveum.midpoint.web.component.progress.StatisticsPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -35,18 +39,23 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInforma
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.ResourceModel;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+
+import static com.evolveum.midpoint.web.page.PageTemplate.createStringResourceStatic;
 
 /**
  * @author mederly
@@ -80,7 +89,12 @@ public class TaskStatePanel extends SimplePanel<TaskCurrentStateDto> {
     private static final String ID_SYNCHRONIZATION_INFORMATION_PANEL = "synchronizationInformationPanel";
     private static final String ID_STATISTICS_PANEL = "statisticsPanel";
 
+    private static final String ID_WORKER_THREADS_TABLE = "workerThreadsTable";
+    private static final String ID_WORKER_THREADS_TABLE_LABEL = "workerThreadsTableLabel";
+
     private static final String ID_OPERATION_RESULT = "operationResult";
+
+    // ugly hack - TODO replace with something serious
     private static final Collection<String> WALL_CLOCK_AVG_CATEGORIES = Arrays.asList(
             TaskCategory.BULK_ACTIONS, TaskCategory.IMPORTING_ACCOUNTS, TaskCategory.RECOMPUTATION, TaskCategory.RECONCILIATION
     );
@@ -97,7 +111,7 @@ public class TaskStatePanel extends SimplePanel<TaskCurrentStateDto> {
         Label updated = new Label(ID_UPDATED, new AbstractReadOnlyModel<String>() {
             @Override
             public String getObject() {
-                return WebMiscUtil.formatDate(new Date());
+                return formatDate(new Date());
             }
         });
         add(updated);
@@ -136,11 +150,11 @@ public class TaskStatePanel extends SimplePanel<TaskCurrentStateDto> {
                     return null;
                 }
                 if (TaskDtoExecutionStatus.RUNNING.equals(dto.getExecution()) || finished == null || finished < started) {
-                    return getString("TaskStatePanel.message.executionTime.notFinished", WebMiscUtil.formatDate(new Date(started)),
+                    return getString("TaskStatePanel.message.executionTime.notFinished", formatDate(new Date(started)),
                             DurationFormatUtils.formatDurationHMS(System.currentTimeMillis() - started));
                 } else {
                     return getString("TaskStatePanel.message.executionTime.finished",
-                            WebMiscUtil.formatDate(new Date(started)), WebMiscUtil.formatDate(new Date(finished)),
+                            formatDate(new Date(started)), formatDate(new Date(finished)),
                             DurationFormatUtils.formatDurationHMS(finished - started));
                 }
             }
@@ -150,8 +164,13 @@ public class TaskStatePanel extends SimplePanel<TaskCurrentStateDto> {
         Label progress = new Label(ID_PROGRESS, new AbstractReadOnlyModel<String>() {
             @Override
             public String getObject() {
-                TaskDto dto = getModel().getObject().getTaskDto();
-                return dto.getProgressDescription();        // TODO implement using live task + implement stalled since
+                TaskCurrentStateDto dto = getModelObject();
+                TaskDto taskDto = dto.getTaskDto();
+                if (taskDto == null) {
+                    return null;
+                } else {
+                    return taskDto.getProgressDescription(dto.getCurrentProgress());        // TODO implement stalled since
+                }
             }
         });
         add(progress);
@@ -233,11 +252,17 @@ public class TaskStatePanel extends SimplePanel<TaskCurrentStateDto> {
                 if (info.getLastSuccessEndTimestamp() == null) {
                     return null;
                 } else {
-                    return getString("TaskStatePanel.message.timeInfoWithDuration",
-                            WebMiscUtil.formatDate(info.getLastSuccessEndTimestamp()),
-                            DurationFormatUtils.formatDurationWords(System.currentTimeMillis() -
-                                    XmlTypeConverter.toMillis(info.getLastSuccessEndTimestamp()), true, true),
-                            info.getLastSuccessDuration());
+                    if (showAgo(dto)) {
+                        return getString("TaskStatePanel.message.timeInfoWithDurationAndAgo",
+                                formatDate(info.getLastSuccessEndTimestamp()),
+                                DurationFormatUtils.formatDurationWords(System.currentTimeMillis() -
+                                        XmlTypeConverter.toMillis(info.getLastSuccessEndTimestamp()), true, true),
+                                info.getLastSuccessDuration());
+                    } else {
+                        return getString("TaskStatePanel.message.timeInfoWithDuration",
+                                formatDate(info.getLastSuccessEndTimestamp()),
+                                info.getLastSuccessDuration());
+                    }
                 }
             }
         });
@@ -321,11 +346,17 @@ public class TaskStatePanel extends SimplePanel<TaskCurrentStateDto> {
                 if (info.getLastFailureEndTimestamp() == null) {
                     return null;
                 } else {
-                    return getString("TaskStatePanel.message.timeInfoWithDuration",
-                            WebMiscUtil.formatDate(info.getLastFailureEndTimestamp()),
-                            DurationFormatUtils.formatDurationWords(System.currentTimeMillis() -
-                                    XmlTypeConverter.toMillis(info.getLastFailureEndTimestamp()), true, true),
-                            info.getLastFailureDuration());
+                    if (showAgo(dto)) {
+                        return getString("TaskStatePanel.message.timeInfoWithDurationAndAgo",
+                                formatDate(info.getLastFailureEndTimestamp()),
+                                DurationFormatUtils.formatDurationWords(System.currentTimeMillis() -
+                                        XmlTypeConverter.toMillis(info.getLastFailureEndTimestamp()), true, true),
+                                info.getLastFailureDuration());
+                    } else {
+                        return getString("TaskStatePanel.message.timeInfoWithDuration",
+                                formatDate(info.getLastFailureEndTimestamp()),
+                                info.getLastFailureDuration());
+                    }
                 }
             }
         });
@@ -377,8 +408,8 @@ public class TaskStatePanel extends SimplePanel<TaskCurrentStateDto> {
                 if (info.getCurrentObjectStartTimestamp() == null) {
                     return null;
                 } else {
-                    return getString("TaskStatePanel.message.timeInfo",
-                            WebMiscUtil.formatDate(info.getCurrentObjectStartTimestamp()),
+                    return getString("TaskStatePanel.message.timeInfoWithAgo",
+                            formatDate(info.getCurrentObjectStartTimestamp()),
                             DurationFormatUtils.formatDurationWords(System.currentTimeMillis() -
                                     XmlTypeConverter.toMillis(info.getCurrentObjectStartTimestamp()), true, true));
                 }
@@ -425,6 +456,13 @@ public class TaskStatePanel extends SimplePanel<TaskCurrentStateDto> {
                         return new SynchronizationInformationDto(dto.getSynchronizationInformationType());
                     }
                 });
+        synchronizationInformationPanel.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                TaskCurrentStateDto dto = getModelObject();
+                return dto != null && dto.getSynchronizationInformationType() != null;
+            }
+        });
         add(synchronizationInformationPanel);
 
         Label countersSource = new Label(ID_COUNTERS_SOURCE, new AbstractReadOnlyModel<String>() {
@@ -434,16 +472,16 @@ public class TaskStatePanel extends SimplePanel<TaskCurrentStateDto> {
                 if (dto == null) {
                     return null;
                 }
-                SynchronizationInformationType info = dto.getSynchronizationInformationType();
+                IterativeTaskInformationType info = dto.getIterativeTaskInformationType();
                 if (info == null) {
                     return null;
                 }
                 if (Boolean.TRUE.equals(info.isFromMemory())) {
                     return getString("TaskStatePanel.message.countersSourceMemory",
-                            WebMiscUtil.formatDate(info.getTimestamp()));
+                            formatDate(info.getTimestamp()));
                 } else {
                     return getString("TaskStatePanel.message.countersSourceRepository",
-                            WebMiscUtil.formatDate(info.getTimestamp()));
+                            formatDate(info.getTimestamp()));
                 }
             }
         });
@@ -458,6 +496,39 @@ public class TaskStatePanel extends SimplePanel<TaskCurrentStateDto> {
         StatisticsPanel statisticsPanel = new StatisticsPanel(ID_STATISTICS_PANEL, statisticsDtoModel);
         add(statisticsPanel);
 
+        VisibleEnableBehaviour hiddenWhenNoSubtasks = new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                TaskDto taskDto = getModelObject().getTaskDto();
+                return taskDto != null && !taskDto.getTransientSubtasks().isEmpty();
+            }
+        };
+
+        Label workerThreadsTableLabel = new Label(ID_WORKER_THREADS_TABLE_LABEL, new ResourceModel("TaskStatePanel.workerThreads"));
+        workerThreadsTableLabel.add(hiddenWhenNoSubtasks);
+        add(workerThreadsTableLabel);
+        List<IColumn<WorkerThreadDto, String>> columns = new ArrayList<>();
+        columns.add(new PropertyColumn(createStringResourceStatic(this, "TaskStatePanel.subtaskName"), WorkerThreadDto.F_NAME));
+        columns.add(new EnumPropertyColumn<WorkerThreadDto>(createStringResourceStatic(this, "TaskStatePanel.subtaskState"), WorkerThreadDto.F_EXECUTION_STATUS));
+        columns.add(new PropertyColumn(createStringResourceStatic(this, "TaskStatePanel.subtaskObjectsProcessed"), WorkerThreadDto.F_PROGRESS));
+        ISortableDataProvider<WorkerThreadDto, String> threadsProvider = new ListDataProvider<>(this,
+                new AbstractReadOnlyModel<List<WorkerThreadDto>>() {
+                    @Override
+                    public List<WorkerThreadDto> getObject() {
+                        List<WorkerThreadDto> rv = new ArrayList<>();
+                        TaskDto taskDto = getModelObject().getTaskDto();
+                        if (taskDto != null) {
+                            for (TaskDto subtaskDto : taskDto.getTransientSubtasks()) {
+                                rv.add(new WorkerThreadDto(subtaskDto));
+                            }
+                        }
+                        return rv;
+                    }
+                });
+        TablePanel<WorkerThreadDto> workerThreadsTablePanel = new TablePanel<>(ID_WORKER_THREADS_TABLE, threadsProvider , columns);
+        workerThreadsTablePanel.add(hiddenWhenNoSubtasks);
+        add(workerThreadsTablePanel);
+
         SortableDataProvider<OperationResult, String> provider = new ListDataProvider<>(this,
                 new PropertyModel<List<OperationResult>>(getModel(), "taskDto.opResult"));
         TablePanel result = new TablePanel<>(ID_OPERATION_RESULT, provider, initResultColumns());
@@ -465,6 +536,32 @@ public class TaskStatePanel extends SimplePanel<TaskCurrentStateDto> {
         result.setShowPaging(false);
         result.setOutputMarkupId(true);
         add(result);
+    }
+
+    private String formatDate(XMLGregorianCalendar date) {
+        return formatDate(XmlTypeConverter.toDate(date));
+    }
+
+    private String formatDate(Date date) {
+        if (date == null) {
+            return null;
+        }
+        return date.toLocaleString();
+    }
+
+    protected boolean showAgo(TaskCurrentStateDto dto) {
+        boolean showAgo = false;
+        TaskDto taskDto = dto.getTaskDto();
+        if (taskDto != null) {
+            Long started = taskDto.getLastRunStartTimestampLong();
+            Long finished = taskDto.getLastRunFinishTimestampLong();
+            if (started != null && (finished == null || finished < started)) {
+                showAgo = true;     // for all running tasks
+            } else if (finished != null && (System.currentTimeMillis()-finished < 60000L)) {
+                showAgo = true;     // for tasks finished just a while ago
+            }
+        }
+        return showAgo;
     }
 
     private Long getWallClockAverage(TaskCurrentStateDto dto, int objectsTotal) {
@@ -500,6 +597,7 @@ public class TaskStatePanel extends SimplePanel<TaskCurrentStateDto> {
         IModel<TaskCurrentStateDto> model = getModel();
         if (!(model instanceof TaskCurrentStateDtoModel)) {
             LOGGER.warn("Unexpected or null model for TaskCurrentStateDto object: {}", model);
+            return;
         }
         ((TaskCurrentStateDtoModel) model).refresh(page);
         if (statisticsDtoModel != null) {

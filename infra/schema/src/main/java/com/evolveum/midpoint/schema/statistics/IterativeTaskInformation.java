@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
 
+import javax.xml.datatype.DatatypeConstants;
 import javax.xml.namespace.QName;
 import java.util.Date;
 
@@ -86,8 +87,8 @@ public class IterativeTaskInformation {
             return delta;
         }
         IterativeTaskInformationType rv = new IterativeTaskInformationType();
-        addTo(rv, startValue);
-        addTo(rv, delta);
+        addTo(rv, startValue, true);
+        addTo(rv, delta, true);
         return rv;
     }
 
@@ -162,8 +163,11 @@ public class IterativeTaskInformation {
     }
 
     // sum != null, delta != null
-    public static void addTo(IterativeTaskInformationType sum, IterativeTaskInformationType delta) {
-        if (delta.getLastSuccessObjectName() != null) {
+    // overrideCurrent should be TRUE if the delta is chronologically later (i.e. if delta is meant as an update to sum)
+    // if it is simply an aggregation of various (parallel) sources, overrideCurrent should be FALSE
+    public static void addTo(IterativeTaskInformationType sum, IterativeTaskInformationType delta, boolean overrideCurrent) {
+        if (sum.getLastSuccessEndTimestamp() == null || (delta.getLastSuccessEndTimestamp() != null &&
+                delta.getLastSuccessEndTimestamp().compare(sum.getLastSuccessEndTimestamp()) == DatatypeConstants.GREATER)) {
             sum.setLastSuccessObjectName(delta.getLastSuccessObjectName());
             sum.setLastSuccessObjectDisplayName(delta.getLastSuccessObjectDisplayName());
             sum.setLastSuccessObjectType(delta.getLastSuccessObjectType());
@@ -174,7 +178,8 @@ public class IterativeTaskInformation {
         sum.setTotalSuccessDuration(sum.getTotalSuccessDuration() + delta.getTotalSuccessDuration());
         sum.setTotalSuccessCount(sum.getTotalSuccessCount() + delta.getTotalSuccessCount());
 
-        if (delta.getLastFailureObjectName() != null) {
+        if (sum.getLastFailureEndTimestamp() == null || (delta.getLastFailureEndTimestamp() != null &&
+                delta.getLastFailureEndTimestamp().compare(sum.getLastFailureEndTimestamp()) == DatatypeConstants.GREATER)) {
             sum.setLastFailureObjectName(delta.getLastFailureObjectName());
             sum.setLastFailureObjectDisplayName(delta.getLastFailureObjectDisplayName());
             sum.setLastFailureObjectType(delta.getLastFailureObjectType());
@@ -186,10 +191,13 @@ public class IterativeTaskInformation {
         sum.setTotalFailureDuration(sum.getTotalFailureDuration() + delta.getTotalFailureDuration());
         sum.setTotalFailureCount(sum.getTotalFailureCount() + delta.getTotalFailureCount());
 
-        sum.setCurrentObjectName(delta.getCurrentObjectName());
-        sum.setCurrentObjectDisplayName(delta.getCurrentObjectDisplayName());
-        sum.setCurrentObjectType(delta.getCurrentObjectType());
-        sum.setCurrentObjectOid(delta.getCurrentObjectOid());
-        sum.setCurrentObjectStartTimestamp(delta.getCurrentObjectStartTimestamp());
+        if (overrideCurrent || sum.getCurrentObjectStartTimestamp() == null || (delta.getCurrentObjectStartTimestamp() != null &&
+                delta.getCurrentObjectStartTimestamp().compare(sum.getCurrentObjectStartTimestamp()) == DatatypeConstants.GREATER)) {
+            sum.setCurrentObjectName(delta.getCurrentObjectName());
+            sum.setCurrentObjectDisplayName(delta.getCurrentObjectDisplayName());
+            sum.setCurrentObjectType(delta.getCurrentObjectType());
+            sum.setCurrentObjectOid(delta.getCurrentObjectOid());
+            sum.setCurrentObjectStartTimestamp(delta.getCurrentObjectStartTimestamp());
+        }
     }
 }

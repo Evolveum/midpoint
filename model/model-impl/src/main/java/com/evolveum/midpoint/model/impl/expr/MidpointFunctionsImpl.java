@@ -707,21 +707,21 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	public <T> Integer countAccounts(String resourceOid, QName attributeName, T attributeValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
     	OperationResult result = getCurrentResult(MidpointFunctions.class.getName()+".countAccounts");
     	ResourceType resourceType = modelObjectResolver.getObjectSimple(ResourceType.class, resourceOid, null, null, result);
-    	return countAccounts(resourceType, attributeName, attributeValue, result);
+    	return countAccounts(resourceType, attributeName, attributeValue, getCurrentTask(), result);
     }
     
     public <T> Integer countAccounts(ResourceType resourceType, QName attributeName, T attributeValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
     	OperationResult result = getCurrentResult(MidpointFunctions.class.getName()+".countAccounts");
-    	return countAccounts(resourceType, attributeName, attributeValue, result);
+    	return countAccounts(resourceType, attributeName, attributeValue, getCurrentTask(), result);
     }
     
     public <T> Integer countAccounts(ResourceType resourceType, String attributeName, T attributeValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
     	OperationResult result = getCurrentResult(MidpointFunctions.class.getName()+".countAccounts");
     	QName attributeQName = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), attributeName);
-		return countAccounts(resourceType, attributeQName, attributeValue, result);
+		return countAccounts(resourceType, attributeQName, attributeValue, getCurrentTask(), result);
     }
     
-    private <T> Integer countAccounts(ResourceType resourceType, QName attributeName, T attributeValue, OperationResult result)
+    private <T> Integer countAccounts(ResourceType resourceType, QName attributeName, T attributeValue, Task task, OperationResult result)
     		throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, 
     		SecurityViolationException {
     	RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resourceType);
@@ -733,20 +733,20 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resourceType);
         AndFilter filter = AndFilter.createAnd(idFilter, ocFilter, resourceRefFilter);
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-		return modelObjectResolver.countObjects(ShadowType.class, query, null, result);
+		return modelObjectResolver.countObjects(ShadowType.class, query, null, task, result);
     }
 
     public <T> boolean isUniquePropertyValue(ObjectType objectType, String propertyPathString, T propertyValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
         Validate.notEmpty(propertyPathString, "Empty property path");
         OperationResult result = getCurrentResult(MidpointFunctions.class.getName()+".isUniquePropertyValue");
         ItemPath propertyPath = new XPathHolder(propertyPathString).toItemPath();
-        return isUniquePropertyValue(objectType, propertyPath, propertyValue, result);
+        return isUniquePropertyValue(objectType, propertyPath, propertyValue, getCurrentTask(), result);
     }
 
-    private <T> boolean isUniquePropertyValue(final ObjectType objectType, ItemPath propertyPath, T propertyValue, OperationResult result)
+    private <T> boolean isUniquePropertyValue(final ObjectType objectType, ItemPath propertyPath, T propertyValue, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException {
-        List<? extends ObjectType> conflictingObjects = getObjectsInConflictOnPropertyValue(objectType, propertyPath, propertyValue, DefaultMatchingRule.NAME, false, result);
+        List<? extends ObjectType> conflictingObjects = getObjectsInConflictOnPropertyValue(objectType, propertyPath, propertyValue, DefaultMatchingRule.NAME, false, task, result);
         return conflictingObjects.isEmpty();
     }
 
@@ -759,10 +759,10 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         OperationResult result = getCurrentResult(MidpointFunctions.class.getName()+".getObjectsInConflictOnPropertyValue");
         ItemPath propertyPath = new XPathHolder(propertyPathString).toItemPath();
         QName matchingRuleQName = new QName(matchingRuleName);      // no namespace for now
-        return getObjectsInConflictOnPropertyValue(objectType, propertyPath, propertyValue, matchingRuleQName, getAllConflicting, result);
+        return getObjectsInConflictOnPropertyValue(objectType, propertyPath, propertyValue, matchingRuleQName, getAllConflicting, getCurrentTask(), result);
     }
 
-    private <O extends ObjectType, T> List<O> getObjectsInConflictOnPropertyValue(final O objectType, ItemPath propertyPath, T propertyValue, QName matchingRule, final boolean getAllConflicting, OperationResult result)
+    private <O extends ObjectType, T> List<O> getObjectsInConflictOnPropertyValue(final O objectType, ItemPath propertyPath, T propertyValue, QName matchingRule, final boolean getAllConflicting, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException {
         Validate.notNull(objectType, "Null object");
@@ -796,7 +796,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             }
         };
 
-        modelObjectResolver.searchIterative((Class) objectType.getClass(), query, null, handler, result);
+        modelObjectResolver.searchIterative((Class) objectType.getClass(), query, null, handler, task, result);
 
         return conflictingObjects;
     }
@@ -805,11 +805,11 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     	Validate.notEmpty(attributeName,"Empty attribute name");
     	OperationResult result = getCurrentResult(MidpointFunctions.class.getName()+".isUniqueAccountValue");
     	QName attributeQName = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), attributeName);
-		return isUniqueAccountValue(resourceType, shadowType, attributeQName, attributeValue, result);
+		return isUniqueAccountValue(resourceType, shadowType, attributeQName, attributeValue, getCurrentTask(), result);
     }
 
     private <T> boolean isUniqueAccountValue(ResourceType resourceType, final ShadowType shadowType,
-    		QName attributeName, T attributeValue, OperationResult result) 
+    		QName attributeName, T attributeValue, Task task, OperationResult result)
     		throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, 
     		SecurityViolationException {
     	Validate.notNull(resourceType, "Null resource");
@@ -848,7 +848,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			}
 		};
         
-		modelObjectResolver.searchIterative(ShadowType.class, query, null, handler, result);
+		modelObjectResolver.searchIterative(ShadowType.class, query, null, handler, task, result);
 		
 		return isUniqueHolder.getValue();
     }

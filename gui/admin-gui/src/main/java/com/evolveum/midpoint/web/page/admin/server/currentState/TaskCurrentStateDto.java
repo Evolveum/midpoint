@@ -32,15 +32,23 @@ public class TaskCurrentStateDto {
     private TaskDto taskDto;
     private SynchronizationInformationType synchronizationInformationType;
     private IterativeTaskInformationType iterativeTaskInformationType;
+    private Long currentProgress;
 
     public TaskCurrentStateDto(TaskDto taskDto) {
         this.taskDto = taskDto;
     }
 
-    public TaskCurrentStateDto(TaskDto taskDto, SynchronizationInformationType sit, IterativeTaskInformationType itit) {
+    public TaskCurrentStateDto(TaskDto taskDto, SynchronizationInformationType sit, IterativeTaskInformationType itit, Long currentProgress) {
         this.taskDto = taskDto;
         this.synchronizationInformationType = sit;
         this.iterativeTaskInformationType = itit;
+        if (currentProgress != null) {
+            this.currentProgress = currentProgress;
+        } else {
+            if (taskDto != null) {
+                this.currentProgress = taskDto.getProgress();
+            }
+        }
     }
 
     public TaskDto getTaskDto() {
@@ -53,5 +61,9 @@ public class TaskCurrentStateDto {
 
     public IterativeTaskInformationType getIterativeTaskInformationType() {
         return iterativeTaskInformationType;
+    }
+
+    public Long getCurrentProgress() {
+        return currentProgress;
     }
 }

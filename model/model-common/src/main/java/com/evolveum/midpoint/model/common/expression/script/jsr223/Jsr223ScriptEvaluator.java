@@ -17,11 +17,9 @@ package com.evolveum.midpoint.model.common.expression.script.jsr223;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.script.Bindings;
@@ -32,18 +30,14 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.xml.namespace.QName;
 
-import org.w3c.dom.Element;
-
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.model.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.script.ScriptEvaluator;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -52,25 +46,22 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionReturnTypeType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Expression evaluator that is using javax.script (JSR-223) engine.
@@ -101,12 +92,12 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 	
 	@Override
 	public <T, V extends PrismValue> List<V> evaluate(ScriptExpressionEvaluatorType expressionType,
-			ExpressionVariables variables, ItemDefinition outputDefinition, ScriptExpressionReturnTypeType suggestedReturnType, 
-			ObjectResolver objectResolver, Collection<FunctionLibrary> functions,
-			String contextDescription, OperationResult result) throws ExpressionEvaluationException,
+													  ExpressionVariables variables, ItemDefinition outputDefinition, ScriptExpressionReturnTypeType suggestedReturnType,
+													  ObjectResolver objectResolver, Collection<FunctionLibrary> functions,
+													  String contextDescription, Task task, OperationResult result) throws ExpressionEvaluationException,
 			ObjectNotFoundException, ExpressionSyntaxException {
 		
-		Bindings bindings = convertToBindings(variables, objectResolver, functions, contextDescription, result);
+		Bindings bindings = convertToBindings(variables, objectResolver, functions, contextDescription, task, result);
 		
 		String codeString = expressionType.getCode();
 		if (codeString == null) {
@@ -205,7 +196,7 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 			String contextDescription, OperationResult result) throws ExpressionEvaluationException,
 			ObjectNotFoundException, ExpressionSyntaxException {
 		
-		Bindings bindings = convertToBindings(variables, objectResolver, functions, contextDescription, result);
+		Bindings bindings = convertToBindings(variables, objectResolver, functions, contextDescription, (Task) null, result);
 		
 //		String codeString = code;
 		if (codeString == null) {
@@ -269,9 +260,9 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 		return false;
 	}
 	
-	private Bindings convertToBindings(ExpressionVariables variables, ObjectResolver objectResolver, 
-			Collection<FunctionLibrary> functions,
-			String contextDescription, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException {
+	private Bindings convertToBindings(ExpressionVariables variables, ObjectResolver objectResolver,
+									   Collection<FunctionLibrary> functions,
+									   String contextDescription, Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException {
 		Bindings bindings = scriptEngine.createBindings();
 		// Functions
 		if (functions != null) {
@@ -287,7 +278,7 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 					continue;
 				}
 				String variableName = variableEntry.getKey().getLocalPart();
-				Object variableValue = convertVariableValue(variableEntry.getValue(), variableName, objectResolver, contextDescription, result);
+				Object variableValue = convertVariableValue(variableEntry.getValue(), variableName, objectResolver, contextDescription, task, result);
 				bindings.put(variableName, variableValue);
 			}
 		}
@@ -295,10 +286,10 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 	}
 
 	private Object convertVariableValue(Object originalValue, String variableName, ObjectResolver objectResolver,
-			String contextDescription, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException {
+										String contextDescription, Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException {
 		if (originalValue instanceof ObjectReferenceType) {
 			originalValue = resolveReference((ObjectReferenceType)originalValue, objectResolver, variableName, 
-					contextDescription, result);
+					contextDescription, task, result);
 		}
 		if (originalValue instanceof PrismObject<?>) {
 			return ((PrismObject<?>)originalValue).asObjectable();
@@ -325,14 +316,14 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 		return originalValue;
 	}
 
-	private Object resolveReference(ObjectReferenceType ref, ObjectResolver objectResolver, String name, String contextDescription, 
-			OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException {
+	private Object resolveReference(ObjectReferenceType ref, ObjectResolver objectResolver, String name, String contextDescription,
+									Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException {
 		if (ref.getOid() == null) {
     		throw new ExpressionSyntaxException("Null OID in reference in variable "+name+" in "+contextDescription);
     	} else {
 	    	try {
 	    		
-				return objectResolver.resolve(ref, ObjectType.class, null, contextDescription, result);
+				return objectResolver.resolve(ref, ObjectType.class, null, contextDescription, task, result);
 				
 			} catch (ObjectNotFoundException e) {
 				throw new ObjectNotFoundException("Object not found during variable "+name+" resolution in "+contextDescription+": "+e.getMessage(),e, ref.getOid());

@@ -18,29 +18,18 @@ package com.evolveum.midpoint.model.common.expression;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 
 import org.testng.annotations.Test;
-import org.testng.AssertJUnit;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
 
 import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
-import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -209,7 +198,7 @@ public class TestExpressionUtil {
 		ItemPath itemPath = toItemPath(path);
 		
 		// WHEN
-    	Object resolved = ExpressionUtil.resolvePath(itemPath, variables, null, null, TEST_NAME, result);
+    	Object resolved = ExpressionUtil.resolvePath(itemPath, variables, null, null, TEST_NAME, null, result);
     	
     	// THEN
     	System.out.println("Resolved:");

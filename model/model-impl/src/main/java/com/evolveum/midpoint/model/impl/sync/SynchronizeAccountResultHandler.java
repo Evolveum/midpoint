@@ -20,6 +20,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.impl.importer.ImportAccountsFromResourceTaskHandler;
 import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeResultHandler;
+import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeTaskHandler;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -72,6 +73,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 		this.resourceOid = resource.getOid();
 		this.objectClass = objectClass;
 		forceAdd = false;
+		setRecordIterationStatistics(false);
 	}
 
 	public boolean isForceAdd() {

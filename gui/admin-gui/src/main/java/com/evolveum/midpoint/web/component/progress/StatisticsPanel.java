@@ -60,6 +60,7 @@ public class StatisticsPanel extends SimplePanel<StatisticsDto> {
     private static final String ID_PROVISIONING_SCRIPT_FAILURE = "Provisioning.ScriptFailure";
     private static final String ID_PROVISIONING_OTHER_SUCCESS = "Provisioning.OtherSuccess";
     private static final String ID_PROVISIONING_OTHER_FAILURE = "Provisioning.OtherFailure";
+    private static final String ID_PROVISIONING_TOTAL_OPERATIONS_COUNT = "Provisioning.TotalOperationsCount";
     private static final String ID_PROVISIONING_AVERAGE_TIME = "Provisioning.AverageTime";
     private static final String ID_PROVISIONING_MIN_TIME = "Provisioning.MinTime";
     private static final String ID_PROVISIONING_MAX_TIME = "Provisioning.MaxTime";
@@ -121,6 +122,7 @@ public class StatisticsPanel extends SimplePanel<StatisticsDto> {
                 item.add(new Label(ID_PROVISIONING_SCRIPT_FAILURE, new PropertyModel<String>(item.getModel(), ProvisioningStatisticsLineDto.F_SCRIPT_FAILURE)));
                 item.add(new Label(ID_PROVISIONING_OTHER_SUCCESS, new PropertyModel<String>(item.getModel(), ProvisioningStatisticsLineDto.F_OTHER_SUCCESS)));
                 item.add(new Label(ID_PROVISIONING_OTHER_FAILURE, new PropertyModel<String>(item.getModel(), ProvisioningStatisticsLineDto.F_OTHER_FAILURE)));
+                item.add(new Label(ID_PROVISIONING_TOTAL_OPERATIONS_COUNT, new PropertyModel<String>(item.getModel(), ProvisioningStatisticsLineDto.F_TOTAL_OPERATIONS_COUNT)));
                 item.add(new Label(ID_PROVISIONING_AVERAGE_TIME, new PropertyModel<String>(item.getModel(), ProvisioningStatisticsLineDto.F_AVERAGE_TIME)));
                 item.add(new Label(ID_PROVISIONING_MIN_TIME, new PropertyModel<String>(item.getModel(), ProvisioningStatisticsLineDto.F_MIN_TIME)));
                 item.add(new Label(ID_PROVISIONING_MAX_TIME, new PropertyModel<String>(item.getModel(), ProvisioningStatisticsLineDto.F_MAX_TIME)));

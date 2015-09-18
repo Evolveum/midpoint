@@ -38,8 +38,8 @@ public class ProvisioningStatisticsLineDto {
 
     public static final String F_RESOURCE = "resource";
     public static final String F_OBJECT_CLASS = "objectClass";
-    public static final String F_GET_SUCCESS = "searchSuccess";
-    public static final String F_GET_FAILURE = "searchFailure";
+    public static final String F_GET_SUCCESS = "getSuccess";
+    public static final String F_GET_FAILURE = "getFailure";
     public static final String F_SEARCH_SUCCESS = "searchSuccess";
     public static final String F_SEARCH_FAILURE = "searchFailure";
     public static final String F_CREATE_SUCCESS = "createSuccess";
@@ -54,6 +54,7 @@ public class ProvisioningStatisticsLineDto {
     public static final String F_SCRIPT_FAILURE = "scriptFailure";
     public static final String F_OTHER_SUCCESS = "otherSuccess";
     public static final String F_OTHER_FAILURE = "otherFailure";
+    public static final String F_TOTAL_OPERATIONS_COUNT = "totalOperationsCount";
     public static final String F_AVERAGE_TIME = "averageTime";
     public static final String F_MIN_TIME = "minTime";
     public static final String F_MAX_TIME = "maxTime";
@@ -184,10 +185,14 @@ public class ProvisioningStatisticsLineDto {
         return otherFailure;
     }
 
-    public Long getAverageTime() {
-        int totalCount = getSuccess + getFailure + searchSuccess + searchFailure +
+    public int getTotalOperationsCount() {
+        return getSuccess + getFailure + searchSuccess + searchFailure +
                 createSuccess + createFailure + updateSuccess + updateFailure + deleteSuccess + deleteFailure +
                 syncSuccess + syncFailure + scriptSuccess + scriptFailure + otherSuccess + otherFailure;
+    }
+
+    public Long getAverageTime() {
+        int totalCount = getTotalOperationsCount();
         if (totalCount > 0) {
             return totalTime / totalCount;
         } else {

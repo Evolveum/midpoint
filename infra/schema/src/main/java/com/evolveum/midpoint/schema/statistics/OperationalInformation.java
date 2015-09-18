@@ -27,6 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningStatisti
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningStatisticsType;
 import org.apache.commons.lang.StringUtils;
 
+import javax.xml.datatype.DatatypeConstants;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Date;
@@ -278,17 +279,19 @@ public class OperationalInformation {
         return rv;
     }
 
-    private void addTo(OperationalInformationType rv, OperationalInformationType delta) {
+    public static void addTo(OperationalInformationType rv, OperationalInformationType delta) {
         addProvisioningTo(rv, delta.getProvisioningStatistics());
         addMappingsTo(rv, delta.getMappingsStatistics());
         addNotificationsTo(rv, delta.getNotificationsStatistics());
         if (delta.getLastMessageTimestamp() != null) {
-            rv.setLastMessageTimestamp(delta.getLastMessageTimestamp());
-            rv.setLastMessage(delta.getLastMessage());
+            if (rv.getLastMessageTimestamp() == null || rv.getLastMessageTimestamp().compare(delta.getLastMessageTimestamp()) == DatatypeConstants.LESSER) {
+                rv.setLastMessageTimestamp(delta.getLastMessageTimestamp());
+                rv.setLastMessage(delta.getLastMessage());
+            }
         }
     }
 
-    private void addNotificationsTo(OperationalInformationType rv, NotificationsStatisticsType delta) {
+    private static void addNotificationsTo(OperationalInformationType rv, NotificationsStatisticsType delta) {
         if (delta == null) {
             return;
         }
@@ -330,7 +333,7 @@ public class OperationalInformation {
     }
 
 
-    private void addMappingsTo(OperationalInformationType rv, MappingsStatisticsType delta) {
+    private static void addMappingsTo(OperationalInformationType rv, MappingsStatisticsType delta) {
         if (delta == null) {
             return;
         }
@@ -369,7 +372,7 @@ public class OperationalInformation {
         return null;
     }
 
-    private void addProvisioningTo(OperationalInformationType rv, ProvisioningStatisticsType delta) {
+    private static void addProvisioningTo(OperationalInformationType rv, ProvisioningStatisticsType delta) {
         if (delta == null) {
             return;
         }
@@ -427,7 +430,7 @@ public class OperationalInformation {
         }
     }
 
-    private Long min(Long a, Long b) {
+    private static Long min(Long a, Long b) {
         if (a == null) {
             return b;
         }
@@ -437,7 +440,7 @@ public class OperationalInformation {
         return Math.min(a, b);
     }
 
-    private Long max(Long a, Long b) {
+    private static Long max(Long a, Long b) {
         if (a == null) {
             return b;
         }

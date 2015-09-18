@@ -111,7 +111,7 @@ public class CredentialsProcessor {
         
         processFocusCredentialsCommon(context, new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD), now, task, result);
         
-        passwordPolicyProcessor.processPasswordPolicy(focusContext, context, result);
+        passwordPolicyProcessor.processPasswordPolicy(focusContext, context, task, result);
     }
     
     public <F extends ObjectType> void processProjectionCredentials(LensContext<F> context, LensProjectionContext projectionContext, 
@@ -122,7 +122,7 @@ public class CredentialsProcessor {
     		processProjectionPassword((LensContext<? extends FocusType>)context, projectionContext, now, task, result);
     	}
     	
-    	passwordPolicyProcessor.processPasswordPolicy(projectionContext, context, result);
+    	passwordPolicyProcessor.processPasswordPolicy(projectionContext, context, task, result);
     }
     
     private <F extends FocusType> void processProjectionPassword(LensContext<F> context,
