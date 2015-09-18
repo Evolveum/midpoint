@@ -87,7 +87,6 @@
 		<dependency> 
             <groupId>org.jvnet.jaxb2_commons</groupId>
             <artifactId>jaxb2-basics-runtime</artifactId>
-            <version>0.6.3</version>
         </dependency>
         <!-- Test -->
 		<dependency>
@@ -101,16 +100,6 @@
 			<version>3.3-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>jetty-jndi</artifactId>
-			<version>8.1.14.v20131031</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.eclipse.jetty.orbit</groupId>
-					<artifactId>javax.servlet</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
+		
 	</dependencies>
 </project>
