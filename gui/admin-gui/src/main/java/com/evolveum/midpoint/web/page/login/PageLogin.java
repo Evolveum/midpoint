@@ -57,10 +57,6 @@ public class PageLogin extends PageBase {
 
 	
     public PageLogin() {
-        TopMenuBar menuBar = getTopMenuBar();
-        menuBar.addOrReplace(new LocalePanel(TopMenuBar.ID_RIGHT_PANEL));        
-        
-       
         Form form = new Form(ID_LOGIN_FORM) {
         
   	

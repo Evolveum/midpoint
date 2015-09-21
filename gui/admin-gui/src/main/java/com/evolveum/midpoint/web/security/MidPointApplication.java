@@ -45,6 +45,7 @@ import org.apache.wicket.core.request.handler.PageProvider;
 import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
 import org.apache.wicket.core.request.mapper.MountedMapper;
 import org.apache.wicket.markup.head.PriorityFirstComparator;
+import org.apache.wicket.markup.html.SecurePackageResourceGuard;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.IRequestHandler;
 import org.apache.wicket.request.cycle.AbstractRequestCycleListener;
@@ -121,6 +122,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
         IResourceSettings resourceSettings = getResourceSettings();
         resourceSettings.setHeaderItemComparator(new PriorityFirstComparator(true));
+        SecurePackageResourceGuard guard = (SecurePackageResourceGuard) resourceSettings.getPackageResourceGuard();
+        guard.addPattern("+*.woff2");
 
         resourceSettings.setThrowExceptionOnMissingResource(false);
         getMarkupSettings().setStripWicketTags(true);

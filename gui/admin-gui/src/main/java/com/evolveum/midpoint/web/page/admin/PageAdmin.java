@@ -18,21 +18,13 @@ package com.evolveum.midpoint.web.page.admin;
 
 import com.evolveum.midpoint.common.SystemConfigurationHolder;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.web.component.menu.top.MenuBarItem;
-import com.evolveum.midpoint.web.component.menu.top.MenuItem;
-import com.evolveum.midpoint.web.component.menu.top.TopMenuBar;
-import com.evolveum.midpoint.web.component.menu.top.UserMenuPanel;
+import com.evolveum.midpoint.web.component.menu.MainMenuItem;
+import com.evolveum.midpoint.web.component.menu.MenuItem;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertCampaigns;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinitions;
-import com.evolveum.midpoint.web.page.admin.configuration.PageAbout;
-import com.evolveum.midpoint.web.page.admin.configuration.PageAccounts;
-import com.evolveum.midpoint.web.page.admin.configuration.PageBulkAction;
-import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
-import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
-import com.evolveum.midpoint.web.page.admin.configuration.PageInternals;
-import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
+import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
 import com.evolveum.midpoint.web.page.admin.reports.PageNewReport;
@@ -47,16 +39,11 @@ import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
-import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstancesAll;
-import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstancesRequestedBy;
-import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstancesRequestedFor;
-import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItems;
-import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItemsClaimable;
+import com.evolveum.midpoint.web.page.admin.workflow.*;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -68,19 +55,16 @@ public class PageAdmin extends PageBase {
         this(null);
     }
 
-    public PageAdmin(PageParameters parameters){
+    public PageAdmin(PageParameters parameters) {
         super(parameters);
-
-        TopMenuBar menuBar = getTopMenuBar();
-        menuBar.addOrReplace(new UserMenuPanel(TopMenuBar.ID_RIGHT_PANEL));
     }
 
     @Override
-    protected List<MenuBarItem> createMenuItems() {
+    protected List<MainMenuItem> createMenuItems() {
         //todo enable, disabled descriptor loader until finished [lazyman]
 //        return DescriptorLoader.getMenuBarItems();
 
-        List<MenuBarItem> items = new ArrayList<MenuBarItem>();
+        List<MainMenuItem> items = new ArrayList<>();
 
         // todo fix with visible behaviour [lazyman]
         if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
@@ -91,6 +75,12 @@ public class PageAdmin extends PageBase {
         if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_USERS_URL,
                 AuthorizationConstants.AUTZ_UI_USERS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
             items.add(createUsersItems());
+        }
+
+        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ORG_STRUCT_URL,
+                AuthorizationConstants.AUTZ_UI_ORG_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
+            items.add(createOrganizationsMenu());
         }
 
         if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ROLES_URL,
@@ -111,7 +101,7 @@ public class PageAdmin extends PageBase {
         }
 
         if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CERTIFICATION_URL,
-        		AuthorizationConstants.AUTZ_GUI_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)
+                AuthorizationConstants.AUTZ_GUI_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)
                 && SystemConfigurationHolder.isExperimentalCodeEnabled()) {
             items.add(createCertificationItems());
         }
@@ -134,162 +124,202 @@ public class PageAdmin extends PageBase {
         return items;
     }
 
-    private MenuBarItem createWorkItemsItems() {
-        MenuBarItem workItems = new MenuBarItem(createStringResource("PageAdmin.menu.top.workItems"), null);
-        workItems.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.workItems.list"),
-                PageWorkItems.class));
-        workItems.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.workItems.listClaimable"),
-                PageWorkItemsClaimable.class));
+    private MainMenuItem createWorkItemsItems() {
+        MainMenuItem item = new MainMenuItem("fa fa-inbox",
+                createStringResource("PageAdmin.menu.top.workItems"), null);
 
-        MenuItem processAll = new MenuItem(createStringResource("PageAdmin.menu.top.workItems.listProcessInstancesAll"),
+        List<MenuItem> submenu = item.getItems();
+
+        MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.workItems.list"),
+                PageWorkItems.class);
+        submenu.add(menu);
+        menu = new MenuItem(createStringResource("PageAdmin.menu.top.workItems.listClaimable"),
+                PageWorkItemsClaimable.class);
+        submenu.add(menu);
+
+        menu = new MenuItem(createStringResource("PageAdmin.menu.top.workItems.listProcessInstancesAll"),
                 PageProcessInstancesAll.class);
-        MenuItem processBy = new MenuItem(createStringResource("PageAdmin.menu.top.workItems.listProcessInstancesRequestedBy"),
+        submenu.add(menu);
+        menu = new MenuItem(createStringResource("PageAdmin.menu.top.workItems.listProcessInstancesRequestedBy"),
                 PageProcessInstancesRequestedBy.class);
-        MenuItem processFor = new MenuItem(createStringResource("PageAdmin.menu.top.workItems.listProcessInstancesRequestedFor"),
+        submenu.add(menu);
+        menu = new MenuItem(createStringResource("PageAdmin.menu.top.workItems.listProcessInstancesRequestedFor"),
                 PageProcessInstancesRequestedFor.class);
-        MenuItem divider = new MenuItem(null);
-        divider.setDependsOn(Arrays.asList(new MenuItem[]{processAll, processBy, processFor}));
+        submenu.add(menu);
 
-        workItems.addMenuItem(divider);
-        workItems.addMenuItem(processAll);
-        workItems.addMenuItem(processBy);
-        workItems.addMenuItem(processFor);
-
-        return workItems;
+        return item;
     }
 
-    private MenuBarItem createServerTasksItems() {
-        MenuBarItem serverTasks = new MenuBarItem(createStringResource("PageAdmin.menu.top.serverTasks"), null);
-        serverTasks.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.serverTasks.list"), PageTasks.class));
-        serverTasks.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.serverTasks.new"), PageTaskAdd.class));
+    private MainMenuItem createServerTasksItems() {
+        MainMenuItem item = new MainMenuItem("fa fa-tasks",
+                createStringResource("PageAdmin.menu.top.serverTasks"), null);
 
-        return serverTasks;
+        List<MenuItem> submenu = item.getItems();
+
+        MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.serverTasks.list"),
+                PageTasks.class);
+        submenu.add(list);
+        MenuItem n = new MenuItem(createStringResource("PageAdmin.menu.top.serverTasks.new"),
+                PageTaskAdd.class);
+        submenu.add(n);
+
+        return item;
     }
 
-    private MenuBarItem createResourcesItems() {
-        MenuBarItem resources = new MenuBarItem(createStringResource("PageAdmin.menu.top.resources"), null);
-        resources.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.resources.list"), PageResources.class));
-        resources.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.resources.new"), PageResourceWizard.class));
-        resources.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.resources.import"), PageImportObject.class));
+    private MainMenuItem createResourcesItems() {
+        MainMenuItem item = new MainMenuItem("fa fa-laptop",
+                createStringResource("PageAdmin.menu.top.resources"), null);
 
-        return resources;
+        List<MenuItem> submenu = item.getItems();
+
+        MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.resources.list"),
+                PageResources.class);
+        submenu.add(list);
+        MenuItem created = new MenuItem(createStringResource("PageAdmin.menu.top.resources.new"),
+                PageResourceWizard.class);
+        submenu.add(created);
+        MenuItem n = new MenuItem(createStringResource("PageAdmin.menu.top.resources.import"),
+                PageImportObject.class);
+        submenu.add(n);
+
+        return item;
     }
 
-    private MenuBarItem createReportsItems() {
-        MenuBarItem reports = new MenuBarItem(createStringResource("PageAdmin.menu.top.reports"), null);        
-        reports.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.reports.list"), PageReports.class));
-        reports.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.reports.created"), PageCreatedReports.class));
-        reports.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.reports.new"), PageNewReport.class));
+    private MainMenuItem createReportsItems() {
+        MainMenuItem item = new MainMenuItem("fa fa-pie-chart",
+                createStringResource("PageAdmin.menu.top.reports"), null);
 
-        return reports;
+        List<MenuItem> submenu = item.getItems();
+
+        MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.reports.list"),
+                PageReports.class);
+        submenu.add(list);
+        MenuItem created = new MenuItem(createStringResource("PageAdmin.menu.top.reports.created"),
+                PageCreatedReports.class);
+        submenu.add(created);
+        MenuItem n = new MenuItem(createStringResource("PageAdmin.menu.top.reports.new"),
+                PageNewReport.class);
+        submenu.add(n);
+
+        return item;
     }
 
-    private MenuBarItem createCertificationItems() {
-        MenuBarItem certification = new MenuBarItem(createStringResource("PageAdmin.menu.top.certification"), null);
-        certification.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.certification.definitions"), PageCertDefinitions.class));
-        certification.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.certification.newDefinition"), PageImportObject.class));
+    private MainMenuItem createCertificationItems() {
 
+        MainMenuItem item = new MainMenuItem("fa fa-certificate",
+                createStringResource("PageAdmin.menu.top.certification"), null);
 
-        MenuItem campaigns = new MenuItem(createStringResource("PageAdmin.menu.top.certification.campaigns"), PageCertCampaigns.class);
-        MenuItem divider = new MenuItem(null);
-        divider.addDependsOn(campaigns);
+        List<MenuItem> submenu = item.getItems();
 
-        certification.addMenuItem(divider);
-        certification.addMenuItem(campaigns);
+        MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.certification.definitions"),
+                PageCertDefinitions.class);
+        submenu.add(menu);
+        menu = new MenuItem(createStringResource("PageAdmin.menu.top.certification.newDefinition"),
+                PageImportObject.class);
+        submenu.add(menu);
+        menu = new MenuItem(createStringResource("PageAdmin.menu.top.certification.campaigns"),
+                PageCertCampaigns.class);
+        submenu.add(menu);
+        menu = new MenuItem(createStringResource("PageAdmin.menu.top.certification.decisions"),
+                PageCertDecisions.class);
+        submenu.add(menu);
 
-        MenuItem decisions = new MenuItem(createStringResource("PageAdmin.menu.top.certification.decisions"), PageCertDecisions.class);
-        divider = new MenuItem(null);
-        divider.addDependsOn(decisions);
-
-        certification.addMenuItem(divider);
-        certification.addMenuItem(decisions);
-
-        return certification;
+        return item;
     }
 
-    private MenuBarItem createConfigurationItems() {
-        MenuBarItem configuration = new MenuBarItem(createStringResource("PageAdmin.menu.top.configuration"), null);
-        configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.bulkActions"), PageBulkAction.class));
-        configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.importObject"), PageImportObject.class));
-        configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.repositoryObjects"), PageDebugList.class));
+    private MainMenuItem createConfigurationItems() {
+        MainMenuItem item = new MainMenuItem("fa fa-cog",
+                createStringResource("PageAdmin.menu.top.configuration"), null);
+
+        List<MenuItem> submenu = item.getItems();
+
+        MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.bulkActions"),
+                PageBulkAction.class);
+        submenu.add(menu);
+        menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.importObject"),
+                PageImportObject.class);
+        submenu.add(menu);
+        menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.repositoryObjects"),
+                PageDebugList.class);
+        submenu.add(menu);
 
         PageParameters params = new PageParameters();
         params.add(PageSystemConfiguration.SELECTED_TAB_INDEX, PageSystemConfiguration.CONFIGURATION_TAB_BASIC);
-        MenuItem basic = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.basic"), PageSystemConfiguration.class, params);
+        menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.basic"),
+                PageSystemConfiguration.class, params, null);
+        submenu.add(menu);
 
         params = new PageParameters();
         params.add(PageSystemConfiguration.SELECTED_TAB_INDEX, PageSystemConfiguration.CONFIGURATION_TAB_LOGGING);
-        MenuItem logging = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.logging"), PageSystemConfiguration.class, params);
+        menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.logging"),
+                PageSystemConfiguration.class, params, null);
+        submenu.add(menu);
 
-        MenuItem header = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.configuration"), true, null, null);
-        header.setDependsOn(Arrays.asList(new MenuItem[]{basic, logging}));
-        MenuItem divider = new MenuItem(null);
-        divider.setDependsOn(Arrays.asList(new MenuItem[]{basic, logging}));
 
-        configuration.addMenuItem(divider);
-        configuration.addMenuItem(header);
-        configuration.addMenuItem(basic);
-        configuration.addMenuItem(logging);
+        menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.shadowsDetails"),
+                PageAccounts.class);
+        submenu.add(menu);
+        menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.internals"),
+                PageInternals.class);
+        submenu.add(menu);
 
-        MenuItem details = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.shadowsDetails"), PageAccounts.class);
-        MenuItem internals = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.internals"), PageInternals.class);
 
-        header = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.development"), true, null, null);
-        header.setDependsOn(Arrays.asList(new MenuItem[]{details, internals}));
-        divider = new MenuItem(null);
-        divider.setDependsOn(Arrays.asList(new MenuItem[]{details, internals}));
+        menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.about"),
+                PageAbout.class);
+        submenu.add(menu);
 
-//        configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.security"), PageDashboard.class));
-        configuration.addMenuItem(divider);
-        configuration.addMenuItem(header);
-        configuration.addMenuItem(details);
-        configuration.addMenuItem(internals);
-//        configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.expressionEvaluator"), PageDashboard.class));
-
-        MenuItem about = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.about"), PageAbout.class);
-        divider = new MenuItem(null);
-        divider.addDependsOn(about);
-
-        configuration.addMenuItem(divider);
-        configuration.addMenuItem(about);
-
-        return configuration;
+        return item;
     }
 
-    private MenuBarItem createHomeItems() {
-        MenuBarItem home = new MenuBarItem(createStringResource("PageAdmin.menu.top.home"), PageDashboard.class);
+    private MainMenuItem createHomeItems() {
+        MainMenuItem item = new MainMenuItem("fa fa-dashboard",
+                createStringResource("PageAdmin.menu.dashboard"), PageDashboard.class);
 
-        return home;
+        return item;
     }
 
-    private MenuBarItem createUsersItems() {
-        MenuBarItem users = new MenuBarItem(createStringResource("PageAdmin.menu.top.users"), null);
-        users.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.users.list"), PageUsers.class));
-//        users.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.users.find"), PageFindUsers.class));
-        users.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.users.new"), PageUser.class));
+    private MainMenuItem createUsersItems() {
+        MainMenuItem item = new MainMenuItem("fa fa-user",
+                createStringResource("PageAdmin.menu.top.users"), null);
 
-        MenuItem orgTree = new MenuItem(createStringResource("PageAdmin.menu.top.users.org.tree"), PageOrgTree.class);
-        MenuItem orgNew = new MenuItem(createStringResource("PageAdmin.menu.top.users.org.new"), PageOrgUnit.class);
-        List<MenuItem> orgs = Arrays.asList(new MenuItem[]{orgTree, orgNew});
+        List<MenuItem> submenu = item.getItems();
 
-        MenuItem divider = new MenuItem(null);
-        divider.setDependsOn(orgs);
-        MenuItem org = new MenuItem(createStringResource("PageAdmin.menu.top.users.org"), true, null, null);
-        org.setDependsOn(orgs);
+        MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.users.list"), PageUsers.class);
+        submenu.add(list);
+        MenuItem newUser = new MenuItem(createStringResource("PageAdmin.menu.top.users.new"), PageUser.class);
+        submenu.add(newUser);
+//        MenuItem search = new MenuItem(createStringResource("PageAdmin.menu.users.search"),
+//        PageUsersSearch.class);
+//        submenu.add(search);
 
-        users.addMenuItem(divider);
-        users.addMenuItem(org);
-        users.addMenuItem(orgTree);
-        users.addMenuItem(orgNew);
-
-        return users;
+        return item;
     }
 
-    private MenuBarItem createRolesItems() {
-        MenuBarItem roles = new MenuBarItem(createStringResource("PageAdmin.menu.top.roles"), null);
-        roles.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.roles.list"), PageRoles.class));
-        roles.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.roles.new"), PageRole.class));
+    private MainMenuItem createOrganizationsMenu() {
+        MainMenuItem item = new MainMenuItem("fa fa-building",
+                createStringResource("PageAdmin.menu.top.users.org"), null);
 
-        return roles;
+        List<MenuItem> submenu = item.getItems();
+
+        MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.users.org.tree"), PageOrgTree.class);
+        submenu.add(list);
+        MenuItem n = new MenuItem(createStringResource("PageAdmin.menu.top.users.org.new"), PageOrgUnit.class);
+        submenu.add(n);
+
+        return item;
+    }
+
+    private MainMenuItem createRolesItems() {
+        MainMenuItem item = new MainMenuItem("fa fa-bookmark",
+                createStringResource("PageAdmin.menu.top.roles"), null);
+
+        List<MenuItem> submenu = item.getItems();
+
+        MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.roles.list"), PageRoles.class);
+        submenu.add(list);
+        MenuItem n = new MenuItem(createStringResource("PageAdmin.menu.top.roles.new"), PageRole.class);
+        submenu.add(n);
+
+        return item;
     }
 }

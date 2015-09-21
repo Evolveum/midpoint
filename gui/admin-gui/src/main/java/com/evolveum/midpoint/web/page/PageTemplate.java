@@ -21,8 +21,8 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.menu.top.MenuBarItem;
-import com.evolveum.midpoint.web.component.menu.top.TopMenuBar;
+import com.evolveum.midpoint.web.component.menu.MainMenuItem;
+import com.evolveum.midpoint.web.component.menu.SideBarMenu;
 import com.evolveum.midpoint.web.component.message.MainFeedback;
 import com.evolveum.midpoint.web.component.message.OpResult;
 import com.evolveum.midpoint.web.component.message.TempFeedback;
@@ -57,6 +57,7 @@ import org.apache.wicket.resource.CoreLibrariesContributor;
 import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -74,7 +75,6 @@ public abstract class PageTemplate extends WebPage {
     private static final String ID_PAGE_TITLE = "pageTitle";
     private static final String ID_PAGE_SUBTITLE = "pageSubtitle";
     private static final String ID_DEBUG_PANEL = "debugPanel";
-    private static final String ID_TOP_MENU = "topMenu";
     private static final String ID_VERSION = "version";
     private static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
     private static final String ID_FEEDBACK = "feedback";
@@ -83,6 +83,7 @@ public abstract class PageTemplate extends WebPage {
     private static final String ID_CLEAR_CACHE = "clearCssCache";
     private static final String ID_FEEDBACK_LIST = "feedbackList";
     private static final String ID_FEEDBACK_DETAILS = "feedbackDetails";
+    private static final String ID_SIDEBAR_MENU = "sidebarMenu";
 
     private PageTemplate previousPage;                  // experimental -- where to return e.g. when 'Back' button is clicked [NOT a class, in order to eliminate reinitialization when it is not needed]
     private boolean reinitializePreviousPages;      // experimental -- should we reinitialize all the chain of previous pages?
@@ -136,8 +137,9 @@ public abstract class PageTemplate extends WebPage {
         DebugBar debugPanel = new DebugBar(ID_DEBUG_PANEL);
         add(debugPanel);
 
-        TopMenuBar topMenu = new TopMenuBar(ID_TOP_MENU, createMenuItems());
-        add(topMenu);
+        List<MainMenuItem> menuItems = createMenuItems();
+        SideBarMenu sidebar = new SideBarMenu(ID_SIDEBAR_MENU, new Model((Serializable) menuItems));
+        add(sidebar);
 
         WebMarkupContainer version = new WebMarkupContainer(ID_VERSION) {
 
@@ -236,11 +238,7 @@ public abstract class PageTemplate extends WebPage {
         }
     }
 
-    protected TopMenuBar getTopMenuBar() {
-        return (TopMenuBar) get(ID_TOP_MENU);
-    }
-
-    protected List<MenuBarItem> createMenuItems() {
+    protected List<MainMenuItem> createMenuItems() {
         return new ArrayList<>();
     }
 
