@@ -21,6 +21,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.menu.MainMenu;
 import com.evolveum.midpoint.web.component.menu.MainMenuItem;
 import com.evolveum.midpoint.web.component.menu.SideBarMenu;
 import com.evolveum.midpoint.web.component.message.MainFeedback;
@@ -137,7 +138,7 @@ public abstract class PageTemplate extends WebPage {
         DebugBar debugPanel = new DebugBar(ID_DEBUG_PANEL);
         add(debugPanel);
 
-        List<MainMenuItem> menuItems = createMenuItems();
+        List<MainMenu> menuItems = createMenuItems();
         SideBarMenu sidebar = new SideBarMenu(ID_SIDEBAR_MENU, new Model((Serializable) menuItems));
         add(sidebar);
 
@@ -238,7 +239,7 @@ public abstract class PageTemplate extends WebPage {
         }
     }
 
-    protected List<MainMenuItem> createMenuItems() {
+    protected List<MainMenu> createMenuItems() {
         return new ArrayList<>();
     }
 

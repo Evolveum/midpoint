@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.web.component.menu;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import org.apache.wicket.model.IModel;
 
@@ -18,7 +19,7 @@ public class MainMenuItem implements Serializable {
 
     private String iconClass;
     private IModel<String> name;
-    private Class<? extends PageAdmin> page;
+    private Class<? extends PageBase> page;
     private VisibleEnableBehaviour visibleEnable;
     private List<MenuItem> items;
 
@@ -26,15 +27,15 @@ public class MainMenuItem implements Serializable {
         this(iconClass, name, null, null);
     }
 
-    public MainMenuItem(String iconClass, IModel<String> name, Class<? extends PageAdmin> page) {
+    public MainMenuItem(String iconClass, IModel<String> name, Class<? extends PageBase> page) {
         this(iconClass, name, page, null);
     }
 
-    public MainMenuItem(String iconClass, IModel<String> name, Class<? extends PageAdmin> page, List<MenuItem> items) {
+    public MainMenuItem(String iconClass, IModel<String> name, Class<? extends PageBase> page, List<MenuItem> items) {
         this(iconClass, name, page, items, null);
     }
 
-    public MainMenuItem(String iconClass, IModel<String> name, Class<? extends PageAdmin> page,
+    public MainMenuItem(String iconClass, IModel<String> name, Class<? extends PageBase> page,
                         List<MenuItem> items, VisibleEnableBehaviour visibleEnable) {
         this.iconClass = iconClass;
         this.items = items;
@@ -62,7 +63,7 @@ public class MainMenuItem implements Serializable {
         return visibleEnable;
     }
 
-    public Class<? extends PageAdmin> getPage() {
+    public Class<? extends PageBase> getPage() {
         return page;
     }
 }

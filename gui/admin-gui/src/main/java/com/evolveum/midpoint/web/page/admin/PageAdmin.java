@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin;
 
 import com.evolveum.midpoint.common.SystemConfigurationHolder;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.web.component.menu.MainMenu;
 import com.evolveum.midpoint.web.component.menu.MainMenuItem;
 import com.evolveum.midpoint.web.component.menu.MenuItem;
 import com.evolveum.midpoint.web.page.PageBase;
@@ -40,6 +41,10 @@ import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.workflow.*;
+import com.evolveum.midpoint.web.page.self.PageSelfAssignments;
+import com.evolveum.midpoint.web.page.self.PageSelfCredentials;
+import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
+import com.evolveum.midpoint.web.page.self.PageSelfProfile;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -60,11 +65,19 @@ public class PageAdmin extends PageBase {
     }
 
     @Override
-    protected List<MainMenuItem> createMenuItems() {
+    protected List<MainMenu> createMenuItems() {
         //todo enable, disabled descriptor loader until finished [lazyman]
 //        return DescriptorLoader.getMenuBarItems();
 
-        List<MainMenuItem> items = new ArrayList<>();
+        List<MainMenu> menus = new ArrayList<>();
+
+        MainMenu menu = new MainMenu(createStringResource("PageAdmin.menu.selfService"));
+        menus.add(menu);
+        createSelfServiceMenu(menu);
+
+        menu = new MainMenu(createStringResource("PageAdmin.menu.mainNavigation"));
+        menus.add(menu);
+        List<MainMenuItem> items = menu.getItems();
 
         // todo fix with visible behaviour [lazyman]
         if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
@@ -121,7 +134,7 @@ public class PageAdmin extends PageBase {
             items.add(createConfigurationItems());
         }
 
-        return items;
+        return menus;
     }
 
     private MainMenuItem createWorkItemsItems() {
@@ -271,6 +284,21 @@ public class PageAdmin extends PageBase {
         return item;
     }
 
+    private void createSelfServiceMenu(MainMenu menu) {
+        MainMenuItem item = new MainMenuItem("fa fa-dashboard",
+                createStringResource("PageAdmin.menu.dashboard"), PageSelfDashboard.class);
+        menu.getItems().add(item);
+        item = new MainMenuItem("fa fa-user",
+                createStringResource("PageAdmin.menu.profile"), PageSelfProfile.class);
+        menu.getItems().add(item);
+        item = new MainMenuItem("fa fa-star",
+                createStringResource("PageAdmin.menu.assignments"), PageSelfAssignments.class);
+        menu.getItems().add(item);
+        item = new MainMenuItem("fa fa-shield",
+                createStringResource("PageAdmin.menu.credentials"), PageSelfCredentials.class);
+        menu.getItems().add(item);
+    }
+
     private MainMenuItem createHomeItems() {
         MainMenuItem item = new MainMenuItem("fa fa-dashboard",
                 createStringResource("PageAdmin.menu.dashboard"), PageDashboard.class);
@@ -279,7 +307,7 @@ public class PageAdmin extends PageBase {
     }
 
     private MainMenuItem createUsersItems() {
-        MainMenuItem item = new MainMenuItem("fa fa-user",
+        MainMenuItem item = new MainMenuItem("fa fa-group",
                 createStringResource("PageAdmin.menu.top.users"), null);
 
         List<MenuItem> submenu = item.getItems();
