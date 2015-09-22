@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.component.menu.top;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -44,14 +45,14 @@ import java.util.*;
 public class LocalePanel extends Panel {
 
     private static final Trace LOGGER = TraceManager.getTrace(LocalePanel.class);
-    private static final String LOCALIZATION_DESCRIPTOR = "Messages.localization";
+    private static final String LOCALIZATION_DESCRIPTOR = "/localization/Messages.localization";
     private static final List<LocaleDescriptor> AVAILABLE_LOCALES;
 
     private static final String ID_SELECT = "select";
     private static final String ID_OPTIONS = "options";
 
     static {
-        List<LocaleDescriptor> locales = new ArrayList<LocaleDescriptor>();
+        List<LocaleDescriptor> locales = new ArrayList<>();
         try {
             ClassLoader classLoader = LocalePanel.class.getClassLoader();
             Enumeration<URL> urls = classLoader.getResources(LOCALIZATION_DESCRIPTOR);
@@ -65,8 +66,32 @@ public class LocalePanel extends Panel {
                     reader = new InputStreamReader(url.openStream(), "utf-8");
                     properties.load(reader);
 
-                    LocaleDescriptor descriptor = new LocaleDescriptor(properties);
-                    if (descriptor != null) {
+                    Map<String, Map<String, String>> localeMap = new HashMap<>();
+                    Set<String> keys = (Set) properties.keySet();
+                    for (String key : keys) {
+                        String[] array = key.split("\\.");
+                        if (array.length != 2) {
+                            continue;
+                        }
+
+                        String locale = array[0];
+                        Map<String, String> map = localeMap.get(locale);
+                        if (map == null) {
+                            map = new HashMap<>();
+                            localeMap.put(locale, map);
+                        }
+
+                        map.put(key, properties.getProperty(key));
+                    }
+
+                    for (String key : localeMap.keySet()) {
+                        Map<String, String> localeDefinition = localeMap.get(key);
+
+                        LocaleDescriptor descriptor = new LocaleDescriptor(
+                                localeDefinition.get(key + ".name"),
+                                localeDefinition.get(key + ".flag"),
+                                WebMiscUtil.getLocaleFromString(key)
+                        );
                         locales.add(descriptor);
                     }
                 } catch (Exception ex) {

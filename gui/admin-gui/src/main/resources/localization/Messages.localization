@@ -1,0 +1,20 @@
+en_GB.name=English
+en_GB.flag=gb
+
+#Czech language support for MidPoint
+#Čeština pro MidPoint
+#Contributed by AMI Praha
+cs.name=Čeština
+cs.flag=cz
+
+en_US.name=English (US)
+en_US.flag=us
+
+es_ES.name=Español
+es_ES.flag=es
+
+sk_SK.name=Slovenčina
+sk_SK.flag=sk
+
+tr_TR.name=Türkçe
+tr_TR.flag=tr
