@@ -268,7 +268,7 @@ public class InboundProcessor {
 	                	if (!projContext.isFullShadow()) {
 	                		LOGGER.warn("Attempted to execute inbound expression on account shadow {} WITHOUT full account. Trying to load the account now.", projContext.getOid());      // todo change to trace level eventually
                             try {
-                                contextLoader.loadFullShadow(context, projContext, result);
+                                contextLoader.loadFullShadow(context, projContext, task, result);
                                 if (projContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
                                 	return;
                                 }

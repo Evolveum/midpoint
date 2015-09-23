@@ -252,7 +252,7 @@ public class Projector {
 		        	LOGGER.trace("WAVE {} PROJECTION {}", context.getProjectionWave(), projectionDesc);
 
 		        	// Some projections may not be loaded at this point, e.g. high-order dependency projections
-		        	contextLoader.makeSureProjectionIsLoaded(context, projectionContext, result);
+		        	contextLoader.makeSureProjectionIsLoaded(context, projectionContext, task, result);
 		        	
 		        	if (consistencyChecks) context.checkConsistence();
 		        	
@@ -280,7 +280,7 @@ public class Projector {
 		        	LensUtil.traceContext(LOGGER, activityDescription, "projection values and credentials of "+projectionDesc, false, context, true);
 			        if (consistencyChecks) context.checkConsistence();
 			
-			        reconciliationProcessor.processReconciliation(context, projectionContext, result);
+			        reconciliationProcessor.processReconciliation(context, projectionContext, task, result);
 			        projectionContext.recompute();
 			        LensUtil.traceContext(LOGGER, activityDescription, "projection reconciliation of "+projectionDesc, false, context, false);
 			        if (consistencyChecks) context.checkConsistence();

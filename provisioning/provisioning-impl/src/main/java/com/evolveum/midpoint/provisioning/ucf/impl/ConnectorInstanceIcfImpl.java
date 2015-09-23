@@ -3256,42 +3256,56 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	private void recordIcfOperationStart(StateReporter reporter, ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDefinition, Uid uid) {
 		if (reporter != null) {
 			reporter.recordIcfOperationStart(operation, objectClassDefinition, uid);
+		} else {
+			LOGGER.warn("Couldn't record ICF operation start as reporter is null.");
 		}
 	}
 
 	private void recordIcfOperationStart(StateReporter reporter, ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDefinition) {
 		if (reporter != null) {
 			reporter.recordIcfOperationStart(operation, objectClassDefinition, null);
+		} else {
+			LOGGER.warn("Couldn't record ICF operation start as reporter is null.");
 		}
 	}
 
 	private void recordIcfOperationResume(StateReporter reporter, ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDefinition) {
 		if (reporter != null) {
 			reporter.recordIcfOperationResume(operation, objectClassDefinition);
+		} else {
+			LOGGER.warn("Couldn't record ICF operation resume as reporter is null.");
 		}
 	}
 
 	private void recordIcfOperationSuspend(StateReporter reporter, ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDefinition) {
 		if (reporter != null) {
 			reporter.recordIcfOperationSuspend(operation, objectClassDefinition);
+		} else {
+			LOGGER.warn("Couldn't record ICF operation suspension as reporter is null.");
 		}
 	}
 
 	private void recordIcfOperationEnd(StateReporter reporter, ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDefinition, Uid uid) {
 		if (reporter != null) {
 			reporter.recordIcfOperationEnd(operation, objectClassDefinition, null, uid);
+		} else {
+			LOGGER.warn("Couldn't record ICF operation end as reporter is null.");
 		}
 	}
 
 	private void recordIcfOperationEnd(StateReporter reporter, ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDefinition, Throwable ex) {
 		if (reporter != null) {
 			reporter.recordIcfOperationEnd(operation, objectClassDefinition, ex, null);
+		} else {
+			LOGGER.warn("Couldn't record ICF operation end as reporter is null.");
 		}
 	}
 
 	private void recordIcfOperationEnd(StateReporter reporter, ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDefinition, Throwable ex, Uid uid) {
 		if (reporter != null) {
 			reporter.recordIcfOperationEnd(operation, objectClassDefinition, ex, uid);
+		} else {
+			LOGGER.warn("Couldn't record ICF operation end as reporter is null.");
 		}
 	}
 
@@ -3299,6 +3313,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	private void recordIcfOperationEnd(StateReporter reporter, ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDefinition) {
 		if (reporter != null) {
 			reporter.recordIcfOperationEnd(operation, objectClassDefinition, null, null);
+		} else {
+			LOGGER.warn("Couldn't record ICF operation end as reporter is null.");
 		}
 	}
 
