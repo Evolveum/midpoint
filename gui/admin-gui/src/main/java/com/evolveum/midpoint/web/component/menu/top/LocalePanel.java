@@ -45,8 +45,11 @@ import java.util.*;
 public class LocalePanel extends Panel {
 
     private static final Trace LOGGER = TraceManager.getTrace(LocalePanel.class);
-    private static final String LOCALIZATION_DESCRIPTOR = "/localization/Messages.localization";
+    private static final String LOCALIZATION_DESCRIPTOR = "/localization/locale.properties";
     private static final List<LocaleDescriptor> AVAILABLE_LOCALES;
+
+    private static final String PROP_NAME = ".name";
+    private static final String PROP_FLAG = ".flag";
 
     private static final String ID_SELECT = "select";
     private static final String ID_OPTIONS = "options";
@@ -86,10 +89,14 @@ public class LocalePanel extends Panel {
 
                     for (String key : localeMap.keySet()) {
                         Map<String, String> localeDefinition = localeMap.get(key);
+                        if (!localeDefinition.containsKey(key + PROP_NAME)
+                                || !localeDefinition.containsKey(key + PROP_FLAG)) {
+                            continue;
+                        }
 
                         LocaleDescriptor descriptor = new LocaleDescriptor(
-                                localeDefinition.get(key + ".name"),
-                                localeDefinition.get(key + ".flag"),
+                                localeDefinition.get(key + PROP_NAME),
+                                localeDefinition.get(key + PROP_FLAG),
                                 WebMiscUtil.getLocaleFromString(key)
                         );
                         locales.add(descriptor);
