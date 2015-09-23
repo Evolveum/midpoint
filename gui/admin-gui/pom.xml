@@ -41,6 +41,14 @@
                     <exclude>**/org.identityconnectors.common.logging</exclude>
                 </excludes>
             </resource>
+            <!-- LOCALIZATION -->
+            <resource>
+                <filtering>true</filtering>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>localization/Midpoint*.properties</include>
+                </includes>
+            </resource>
             <!--  ICF LOGGING CONFIGURATION -->
             <resource>
             	<targetPath>../midpoint/META-INF/services</targetPath>
@@ -193,33 +201,6 @@
                     <artifactId>gson</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-
-        <!-- MIDPOINT LOCALIZATION -->
-        <dependency>
-            <groupId>com.evolveum.midpoint.gui</groupId>
-            <artifactId>admin-gui-en-US</artifactId>
-            <version>3.3-SNAPSHOT</version>
-        </dependency>
-	    <dependency>
-            <groupId>com.evolveum.midpoint.gui</groupId>
-            <artifactId>admin-gui-sk-SK</artifactId>
-            <version>3.3-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.gui</groupId>
-            <artifactId>admin-gui-tr-TR</artifactId>
-            <version>3.3-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.gui</groupId>
-            <artifactId>admin-gui-es-ES</artifactId>
-            <version>3.3-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.gui</groupId>
-            <artifactId>admin-gui-cs-CZ</artifactId>
-            <version>3.3-SNAPSHOT</version>
         </dependency>
 
         <!-- JDBC DRIVERS -->

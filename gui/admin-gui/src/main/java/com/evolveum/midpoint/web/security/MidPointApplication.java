@@ -51,6 +51,8 @@ import org.apache.wicket.request.IRequestHandler;
 import org.apache.wicket.request.cycle.AbstractRequestCycleListener;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.resource.SharedResourceReference;
+import org.apache.wicket.resource.loader.BundleStringResourceLoader;
+import org.apache.wicket.resource.loader.IStringResourceLoader;
 import org.apache.wicket.settings.IApplicationSettings;
 import org.apache.wicket.settings.IResourceSettings;
 import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
@@ -124,6 +126,9 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         resourceSettings.setHeaderItemComparator(new PriorityFirstComparator(true));
         SecurePackageResourceGuard guard = (SecurePackageResourceGuard) resourceSettings.getPackageResourceGuard();
         guard.addPattern("+*.woff2");
+
+        List<IStringResourceLoader> resourceLoaders = resourceSettings.getStringResourceLoaders();
+        resourceLoaders.add(0, new BundleStringResourceLoader("localization/Midpoint"));
 
         resourceSettings.setThrowExceptionOnMissingResource(false);
         getMarkupSettings().setStripWicketTags(true);
