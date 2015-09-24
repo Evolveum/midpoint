@@ -52,6 +52,7 @@ import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
@@ -423,12 +424,17 @@ public class AssignmentEvaluator<F extends FocusType> {
 		if (targetType instanceof AbstractRoleType) {
 			boolean roleConditionTrue = evaluateAbstractRole(assignment, assignmentPathSegment, evaluateOld, mode, isValid, (AbstractRoleType)targetType, source, sourceDescription, 
 					assignmentPath, task, result);
-			if (roleConditionTrue && mode != PlusMinusZero.MINUS && targetType instanceof OrgType && assignmentPath.getEvaluationOrder() == 1) {
+			if (roleConditionTrue && mode != PlusMinusZero.MINUS && assignmentPath.getEvaluationOrder() == 1) {
 				PrismReferenceValue refVal = new PrismReferenceValue();
 				refVal.setObject(targetType.asPrismObject());
+				refVal.setTargetType(ObjectTypes.getObjectType(targetType.getClass()).getTypeQName());
 				refVal.setRelation(relation);
-				assignment.addOrgRefVal(refVal);
-			} 
+				refVal.setTargetName(targetType.getName().toPolyString());
+				assignment.addMembershipRefVal(refVal);
+				if (targetType instanceof OrgType) {
+					assignment.addOrgRefVal(refVal);
+				}
+			}
 		} else {
 			throw new SchemaException("Unknown assignment target type "+ObjectTypeUtil.toShortString(targetType)+" in "+sourceDescription);
 		}

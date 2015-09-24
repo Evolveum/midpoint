@@ -1893,6 +1893,64 @@
             			</xsd:annotation>
                     </xsd:element>
 
+                    <xsd:element name="roleMembershipRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                  References to abstract roles (roles and orgs) that this focus currently belongs to - directly
+                                  or indirectly. This reference points to all the roles in the role hierarchy. It only points to
+                                  the roles that were evaluted as active during last recompute (conditions were true, validity
+                                  constaints not violated).
+                                </p>
+                                <p>
+                                  Note: the value of this reference is only updated when a focal object is recomputed.
+                                  Therefore if a role definition changes then all the affected focal objects must be recomputed
+                                  for this reference to be consistent.
+                                </p>
+                                <p>
+                                  This is an operational property. It is set and managed by the system. It is used
+                                  for efficient search of all current role members, e.g. for the purpose of displaying this
+                                  information in the GUI.
+                                </p>
+                                <p>
+                                	TODO. NOT IMPLEMENTED YET.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:objectReferenceTargetType>tns:AbstractRoleType</a:objectReferenceTargetType>
+                    			<a:operational>true</a:operational>
+                    		</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="roleInfluenceRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                  References to abstract roles (roles and orgs) that this focus may directly belong to. 
+                                  This reference only points to the next role in the hierarchy. However, it is backed by
+                                  a "closure" index in the repository subsystem. Therefore it can efficiently support tree-like
+                                  queries. This reference points to the roles for whose the condition is not true. 
+                                  Therefore it does not reliably show
+                                  who actually has a role. It shows potential role members - all the object that are possibly
+                                  influenced when a role definition changes.
+                                </p>
+                                <p>
+                                  This is an operational property. It is set and managed by the system. It is used
+                                  for efficient search of all possible role members, e.g. for the purpose of recomputing
+                                  all role members after the role definition is changed.
+                                </p>
+                                <p>
+                                	TODO. NOT IMPLEMENTED YET. EXPERIMENAL. UNSTABLE.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:objectReferenceTargetType>tns:AbstractRoleType</a:objectReferenceTargetType>
+                    			<a:operational>true</a:operational>
+                    		</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
