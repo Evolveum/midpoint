@@ -661,6 +661,8 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
             // TODO report the duplicates that remain
         }
 
+        result.summarize();         // there can be many 'search owner' subresults
+
         return stat.toString() + "\n" + details.toString();
     }
 
