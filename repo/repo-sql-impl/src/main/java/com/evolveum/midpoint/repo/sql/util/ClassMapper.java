@@ -63,6 +63,7 @@ public final class ClassMapper {
         types.put(ObjectTypes.LOOKUP_TABLE, RObjectType.LOOKUP_TABLE);
         types.put(ObjectTypes.ACCESS_CERTIFICATION_DEFINITION, RObjectType.ACCESS_CERTIFICATION_DEFINITION);
         types.put(ObjectTypes.ACCESS_CERTIFICATION_CAMPAIGN, RObjectType.ACCESS_CERTIFICATION_CAMPAIGN);
+        types.put(ObjectTypes.SEQUENCE, RObjectType.SEQUENCE);
 
         for (ObjectTypes type : ObjectTypes.values()) {
             if (!types.containsKey(type)) {

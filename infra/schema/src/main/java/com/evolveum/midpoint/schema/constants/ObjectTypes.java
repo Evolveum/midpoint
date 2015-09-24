@@ -86,6 +86,8 @@ public enum ObjectTypes {
     ACCESS_CERTIFICATION_CAMPAIGN(AccessCertificationCampaignType.COMPLEX_TYPE, SchemaConstantsGenerated.C_ACCESS_CERTIFICATION_CAMPAIGN, AccessCertificationCampaignType.class,
             ObjectManager.MODEL, "accessCertificationCampaigns"),
 
+    SEQUENCE(SequenceType.COMPLEX_TYPE, SchemaConstantsGenerated.C_SEQUENCE, SequenceType.class, ObjectManager.MODEL, "sequences"),
+
     // as for now, this has to remain disabled (they could be used e.g. in audit logs, when the repo will support them)
     //WORK_ITEM(WorkItemType.COMPLEX_TYPE, SchemaConstants.C_WORK_ITEM, WorkItemType.class, ObjectManager.WORKFLOW, "workItems"),
     //WF_PROCESS_INSTANCE(WfProcessInstanceType.COMPLEX_TYPE, SchemaConstants.C_WF_PROCESS_INSTANCE, WfProcessInstanceType.class, ObjectManager.WORKFLOW, "wfProcessInstances"),

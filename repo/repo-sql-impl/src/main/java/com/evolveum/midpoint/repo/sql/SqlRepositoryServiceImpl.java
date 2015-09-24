@@ -39,6 +39,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SequenceType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.Criteria;
@@ -2056,12 +2057,207 @@ main:       while (remaining > 0) {
 	@Override
 	public long advanceSequence(String oid, OperationResult parentResult) throws ObjectNotFoundException,
 			SchemaException {
-		throw new UnsupportedOperationException();
+
+        Validate.notEmpty(oid, "Oid must not null or empty.");
+        Validate.notNull(parentResult, "Operation result must not be null.");
+
+        OperationResult result = parentResult.createSubresult(ADVANCE_SEQUENCE);
+        result.addParam("oid", oid);
+
+        if (LOGGER.isTraceEnabled())
+            LOGGER.trace("Advancing sequence {}", oid);
+
+        int attempt = 1;
+
+        SqlPerformanceMonitor pm = getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart("advanceSequence");
+        try {
+            while (true) {
+                try {
+                    return advanceSequenceAttempt(oid, result);
+                } catch (RuntimeException ex) {
+                    attempt = logOperationAttempt(oid, "advanceSequence", attempt, ex, null);
+                    pm.registerOperationNewTrial(opHandle, attempt);
+                }
+            }
+        } finally {
+            pm.registerOperationFinish(opHandle, attempt);
+        }
 	}
 
+    private long advanceSequenceAttempt(String oid, OperationResult result) throws ObjectNotFoundException,
+            SchemaException, SerializationRelatedException {
+
+        long returnValue;
+
+        LOGGER.debug("Advancing sequence with oid '{}'.", oid);
+        LOGGER_PERFORMANCE.debug("> advance sequence, oid={}", oid);
+
+        Session session = null;
+        try {
+            session = beginTransaction();
+
+            PrismObject<SequenceType> prismObject = getObject(session, SequenceType.class, oid, null, true);
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("OBJECT before:\n{}", prismObject.debugDump());
+            }
+            SequenceType sequence = prismObject.asObjectable();
+
+            if (!sequence.getUnusedValues().isEmpty()) {
+                returnValue = sequence.getUnusedValues().remove(0);
+            } else {
+                long counter = sequence.getCounter() != null ? sequence.getCounter() : 0L;
+                long maxCounter = sequence.getMaxCounter() != null ? sequence.getMaxCounter() : Long.MAX_VALUE;
+                boolean allowRewind = Boolean.TRUE.equals(sequence.isAllowRewind());
+
+                if (counter < maxCounter) {
+                    returnValue = counter;
+                    sequence.setCounter(counter + 1);
+                } else if (counter == maxCounter) {
+                    returnValue = counter;
+                    if (allowRewind) {
+                        sequence.setCounter(0L);
+                    } else {
+                        sequence.setCounter(counter + 1);       // will produce exception during next run
+                    }
+                } else {        // i.e. counter > maxCounter
+                    if (allowRewind) {          // shouldn't occur but...
+                        LOGGER.warn("Sequence {} overflown with allowRewind set to true. Rewinding.", oid);
+                        returnValue = 0;
+                        sequence.setCounter(1L);
+                    } else {
+                        // TODO some better exception...
+                        throw new SystemException("No (next) value available from sequence " + oid + ". Current counter = " + sequence.getCounter() + ", max value = " + sequence.getMaxCounter());
+                    }
+                }
+            }
+
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Return value = {}, OBJECT after:\n{}", returnValue, prismObject.debugDump());
+            }
+
+            // merge and update object
+            LOGGER.trace("Translating JAXB to data type.");
+            RObject rObject = createDataObjectFromJAXB(prismObject, PrismIdentifierGenerator.Operation.MODIFY);
+            rObject.setVersion(rObject.getVersion() + 1);
+
+            updateFullObject(rObject, prismObject);
+            session.merge(rObject);
+
+            LOGGER.trace("Before commit...");
+            session.getTransaction().commit();
+            LOGGER.trace("Committed!");
+
+            return returnValue;
+        } catch (ObjectNotFoundException ex) {
+            rollbackTransaction(session, ex, result, true);
+            throw ex;
+        } catch (SchemaException ex) {
+            rollbackTransaction(session, ex, result, true);
+            throw ex;
+        } catch (QueryException | DtoTranslationException | RuntimeException ex) {
+            handleGeneralException(ex, session, result);                                            // should always throw an exception
+            throw new SystemException("Exception " + ex + " was not handled correctly", ex);        // ...so this shouldn't occur at all
+        } finally {
+            cleanupSessionAndResult(session, result);
+            LOGGER.trace("Session cleaned up.");
+        }
+    }
+
+
 	@Override
-	public void returnUnusedValueToSequence(String oid, long unusedValue, OperationResult parentResult)
-			throws ObjectNotFoundException {
-		throw new UnsupportedOperationException();
+	public void returnUnusedValuesToSequence(String oid, Collection<Long> unusedValues, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException {
+        Validate.notEmpty(oid, "Oid must not null or empty.");
+        Validate.notNull(parentResult, "Operation result must not be null.");
+
+        OperationResult result = parentResult.createSubresult(RETURN_UNUSED_VALUES_TO_SEQUENCE);
+        result.addParam("oid", oid);
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Returning unused values of {} to sequence {}", unusedValues, oid);
+        }
+        if (unusedValues == null || unusedValues.isEmpty()) {
+            result.recordSuccess();
+            return;
+        }
+
+        int attempt = 1;
+
+        SqlPerformanceMonitor pm = getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart("returnUnusedValuesToSequence");
+        try {
+            while (true) {
+                try {
+                    returnUnusedValuesToSequenceAttempt(oid, unusedValues, result);
+                    return;
+                } catch (RuntimeException ex) {
+                    attempt = logOperationAttempt(oid, "returnUnusedValuesToSequence", attempt, ex, null);
+                    pm.registerOperationNewTrial(opHandle, attempt);
+                }
+            }
+        } finally {
+            pm.registerOperationFinish(opHandle, attempt);
+        }
 	}
+
+    private void returnUnusedValuesToSequenceAttempt(String oid, Collection<Long> unusedValues, OperationResult result) throws ObjectNotFoundException,
+            SchemaException, SerializationRelatedException {
+
+        LOGGER.debug("Returning unused values of {} to a sequence with oid '{}'.", unusedValues, oid);
+        LOGGER_PERFORMANCE.debug("> return unused values, oid={}, values={}", oid, unusedValues);
+
+        Session session = null;
+        try {
+            session = beginTransaction();
+
+            PrismObject<SequenceType> prismObject = getObject(session, SequenceType.class, oid, null, true);
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("OBJECT before:\n{}", prismObject.debugDump());
+            }
+            SequenceType sequence = prismObject.asObjectable();
+            int maxUnusedValues = sequence.getMaxUnusedValues() != null ? sequence.getMaxUnusedValues() : 0;
+            Iterator<Long> valuesToReturnIterator = unusedValues.iterator();
+            while (valuesToReturnIterator.hasNext() && sequence.getUnusedValues().size() < maxUnusedValues) {
+                Long valueToReturn = valuesToReturnIterator.next();
+                if (valueToReturn == null) {        // sanity check
+                    continue;
+                }
+                if (!sequence.getUnusedValues().contains(valueToReturn)) {
+                    sequence.getUnusedValues().add(valueToReturn);
+                } else {
+                    LOGGER.warn("UnusedValues in sequence {} already contains value of {} - ignoring the return request", oid, valueToReturn);
+                }
+            }
+
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("OBJECT after:\n{}", prismObject.debugDump());
+            }
+
+            // merge and update object
+            LOGGER.trace("Translating JAXB to data type.");
+            RObject rObject = createDataObjectFromJAXB(prismObject, PrismIdentifierGenerator.Operation.MODIFY);
+            rObject.setVersion(rObject.getVersion() + 1);
+
+            updateFullObject(rObject, prismObject);
+            session.merge(rObject);
+
+            LOGGER.trace("Before commit...");
+            session.getTransaction().commit();
+            LOGGER.trace("Committed!");
+        } catch (ObjectNotFoundException ex) {
+            rollbackTransaction(session, ex, result, true);
+            throw ex;
+        } catch (SchemaException ex) {
+            rollbackTransaction(session, ex, result, true);
+            throw ex;
+        } catch (QueryException | DtoTranslationException | RuntimeException ex) {
+            handleGeneralException(ex, session, result);                                            // should always throw an exception
+            throw new SystemException("Exception " + ex + " was not handled correctly", ex);        // ...so this shouldn't occur at all
+        } finally {
+            cleanupSessionAndResult(session, result);
+            LOGGER.trace("Session cleaned up.");
+        }
+    }
+
 }

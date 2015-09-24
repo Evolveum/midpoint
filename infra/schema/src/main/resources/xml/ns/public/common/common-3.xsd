@@ -12951,7 +12951,7 @@
             	<p>
 	                Definition of a sequence object that produces unique values. The sequence state is
 	                persistently stored in the repository, therefore it can efficiently produce unique
-	                identifiers in a conrolled and predictable manner.
+	                identifiers in a controlled and predictable manner.
                 </p>
                 <p>
                 	The sequence is atomic. If two threads or even two nodes request a value from
@@ -12967,11 +12967,11 @@
         <xsd:complexContent>
             <xsd:extension base="c:ObjectType">
                 <xsd:sequence>
-                    <xsd:element name="counter" type="xsd:long" minOccurs="1" maxOccurs="1">
+                    <xsd:element name="counter" type="xsd:long" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Current state of the sequence. This is the next number that will be assigned
-                                from the sequence when "advance" operation is invoked and there are no unused value
+                                from the sequence when "advance" operation is invoked and there are no unused values
                                 to re-use.
                             </xsd:documentation>
                         </xsd:annotation>
@@ -13006,9 +13006,9 @@
                     <xsd:element name="maxUnusedValues" type="xsd:int" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                The number of unused values that the squence will maintain.
+                                The number of unused values that the sequence will maintain.
                                 If set to zero then no values are maintained and therefore the
-                                use of unused values is effectively pohibited. This will make
+                                use of unused values is effectively prohibited. This will make
                                 the sequence strictly monotonous. 
                             </xsd:documentation>
                         </xsd:annotation>
@@ -13019,7 +13019,7 @@
     </xsd:complexType>
     <xsd:element name="sequence" type="tns:SequenceType" />
     
-    	<xsd:complexType name="FormType">
+    <xsd:complexType name="FormType">
 		<xsd:annotation>
 			<xsd:documentation>
 				<p>

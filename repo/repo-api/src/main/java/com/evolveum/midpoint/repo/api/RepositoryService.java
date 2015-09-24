@@ -144,6 +144,8 @@ public interface RepositoryService {
     String SEARCH_OBJECTS_ITERATIVE = CLASS_NAME_WITH_DOT + "searchObjectsIterative";
     String CLEANUP_TASKS = CLASS_NAME_WITH_DOT + "cleanupTasks";
     String SEARCH_SHADOW_OWNER = CLASS_NAME_WITH_DOT + "searchShadowOwner";
+	String ADVANCE_SEQUENCE = CLASS_NAME_WITH_DOT + "advanceSequence";
+	String RETURN_UNUSED_VALUES_TO_SEQUENCE = CLASS_NAME_WITH_DOT + "returnUnusedValuesToSequence";
 
 	/**
 	 * Returns object for provided OID.
@@ -477,7 +479,7 @@ public interface RepositoryService {
 	
 	/**
 	 * 
-	 * This operations is guaranteed to be atomic. If two threads or even two nodes request a value from
+	 * This operation is guaranteed to be atomic. If two threads or even two nodes request a value from
 	 * the same sequence at the same time then different values will be returned.
 	 * 
 	 * @param oid
@@ -490,15 +492,15 @@ public interface RepositoryService {
 	
 	/**
 	 * 
-	 * The sequence may ignore the value, e.g. if value re-use is disabled or when the list of
-	 * unused values if full. In such a case the value will be ignored silently and no error is indicated.
+	 * The sequence may ignore the values, e.g. if value re-use is disabled or when the list of
+	 * unused values is full. In such a case the values will be ignored silently and no error is indicated.
 	 * 
 	 * @param oid
-	 * @param unusedValue
+	 * @param unusedValues
 	 * @param parentResult
 	 * @throws ObjectNotFoundException
 	 */
-	void returnUnusedValueToSequence(String oid, long unusedValue, OperationResult parentResult) throws ObjectNotFoundException;
+	void returnUnusedValuesToSequence(String oid, Collection<Long> unusedValues, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 	
     /**
 	 * Provide repository run-time configuration and diagnostic information.
