@@ -19,14 +19,12 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
@@ -131,7 +129,7 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
 		ExpressionVariables variables = null;
 		
 		// WHEN
-		List<PrismPropertyValue<String>> scriptOutputs = scriptExpression.evaluate(variables, null, false, TEST_NAME, result);
+		List<PrismPropertyValue<String>> scriptOutputs = scriptExpression.evaluate(variables, null, false, TEST_NAME, null, result);
 		
 		// THEN
 		display("Script output", scriptOutputs);
@@ -172,7 +170,7 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
         variables.addVariableDefinition(new QName(SchemaConstants.NS_C, "user"), chef);
 
         // WHEN
-        List<PrismPropertyValue<String>> scriptOutputs = scriptExpression.evaluate(variables, null, false, TEST_NAME, result);
+        List<PrismPropertyValue<String>> scriptOutputs = scriptExpression.evaluate(variables, null, false, TEST_NAME, null, result);
 
         // THEN
         display("Script output", scriptOutputs);
@@ -200,7 +198,7 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
         variables.addVariableDefinition(new QName(SchemaConstants.NS_C, "user"), chef);
 
         // WHEN
-        List<PrismPropertyValue<String>> scriptOutputs = scriptExpression.evaluate(variables, null, false, TEST_NAME, result);
+        List<PrismPropertyValue<String>> scriptOutputs = scriptExpression.evaluate(variables, null, false, TEST_NAME, null, result);
 
         // THEN
         display("Script output", scriptOutputs);
@@ -229,7 +227,7 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
         ExpressionVariables variables = new ExpressionVariables();
 
         // WHEN
-        List<PrismPropertyValue<String>> scriptOutputs = scriptExpression.evaluate(variables, null, false, TEST_NAME, result);
+        List<PrismPropertyValue<String>> scriptOutputs = scriptExpression.evaluate(variables, null, false, TEST_NAME, null, result);
 
         // THEN
         display("Script output", scriptOutputs);

@@ -82,8 +82,8 @@ public class ResourceObjectReferenceResolver {
 			}
 			
 			ResourceObjectIdentification identification = new ResourceObjectIdentification(objectClassDefinition, identifiers);
-			return connector.fetchObject(ShadowType.class, identification,
-					attributesToReturn, parentResult);
+			return connector.fetchObject(ShadowType.class, identification, attributesToReturn, ctx,
+					parentResult);
 		} catch (ObjectNotFoundException e) {
 			parentResult.recordFatalError(
 					"Object not found. Identifiers: " + identifiers + ". Reason: " + e.getMessage(), e);

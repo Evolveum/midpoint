@@ -79,6 +79,7 @@ public class ShadowIntegrityCheckTaskHandler extends AbstractSearchIterativeTask
     public ShadowIntegrityCheckTaskHandler() {
         super("Shadow integrity check", OperationConstants.CHECK_SHADOW_INTEGRITY);
         setLogFinishInfo(true);
+        setPreserveStatistics(false);
     }
 
     @PostConstruct

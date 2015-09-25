@@ -23,9 +23,10 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Item;
+
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.identityconnectors.framework.spi.operations.CreateOp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -33,9 +34,6 @@ import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.CompositeRefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -76,7 +74,6 @@ import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler.FailedOperation;
 import com.evolveum.midpoint.provisioning.consistency.impl.ErrorHandlerFactory;
-import com.evolveum.midpoint.provisioning.impl.ShadowCacheFactory.Mode;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
@@ -86,6 +83,7 @@ import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -95,7 +93,6 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -104,7 +101,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -122,7 +118,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
@@ -596,7 +591,7 @@ public abstract class ShadowCache {
 	}
 
 	public void applyDefinition(final ObjectQuery query, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
-		ResourceShadowDiscriminator coordinates = ProvisioningUtil.getCoordinates(query.getFilter());
+		ResourceShadowDiscriminator coordinates = ObjectQueryUtil.getCoordinates(query.getFilter());
 		ProvisioningContext ctx = ctxFactory.create(coordinates, null, result);
 		ctx.assertDefinition();
 		applyDefinition(ctx, query);
@@ -707,12 +702,12 @@ public abstract class ShadowCache {
 	
 
 	public SearchResultMetadata searchObjectsIterative(ObjectQuery query,
-			Collection<SelectorOptions<GetOperationOptions>> options, final ShadowHandler<ShadowType> handler,
-			final boolean readFromRepository, final OperationResult parentResult) throws SchemaException,
+													   Collection<SelectorOptions<GetOperationOptions>> options, final ShadowHandler<ShadowType> handler,
+													   final boolean readFromRepository, Task task, final OperationResult parentResult) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-		ResourceShadowDiscriminator coordinates = ProvisioningUtil.getCoordinates(query.getFilter());
-		final ProvisioningContext ctx = ctxFactory.create(coordinates, null, parentResult);
+		ResourceShadowDiscriminator coordinates = ObjectQueryUtil.getCoordinates(query.getFilter());
+		final ProvisioningContext ctx = ctxFactory.create(coordinates, task, parentResult);
 		ctx.assertDefinition();
 		applyDefinition(ctx, query);
 		
@@ -939,10 +934,10 @@ public abstract class ShadowCache {
 		return repoShadow;
 	}
 	
-	public Integer countObjects(ObjectQuery query, final OperationResult result) throws SchemaException,
+	public Integer countObjects(ObjectQuery query, Task task, final OperationResult result) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-		ResourceShadowDiscriminator coordinates = ProvisioningUtil.getCoordinates(query.getFilter());
+		ResourceShadowDiscriminator coordinates = ObjectQueryUtil.getCoordinates(query.getFilter());
 		final ProvisioningContext ctx = ctxFactory.create(coordinates, null, result);
 		ctx.assertDefinition();
 		applyDefinition(ctx, query);
@@ -964,7 +959,7 @@ public abstract class ShadowCache {
                     ObjectQuery attributeQuery = createAttributeQuery(query);
                     int count;
                     try {
-                    	count = connector.count(objectClassDef.getObjectClassDefinition(), attributeQuery, objectClassDef.getPagedSearches(), result);
+                    	count = connector.count(objectClassDef.getObjectClassDefinition(), attributeQuery, objectClassDef.getPagedSearches(), ctx, result);
                     } catch (CommunicationException | GenericFrameworkException| SchemaException | UnsupportedOperationException e) {
                     	result.recordFatalError(e);
                         throw e;
@@ -1004,7 +999,7 @@ public abstract class ShadowCache {
 						SelectorOptions.createCollection(new ItemPath(ShadowType.F_ASSOCIATION), GetOperationOptions.createRetrieve(RetrieveOption.EXCLUDE));
 				SearchResultMetadata resultMetadata;
 				try {
-					resultMetadata = searchObjectsIterative(query, options, handler, false, result);
+					resultMetadata = searchObjectsIterative(query, options, handler, false, task, result);
 				} catch (SchemaException | ObjectNotFoundException | ConfigurationException | SecurityViolationException e) {
 					result.recordFatalError(e);
                     throw e;
@@ -1031,7 +1026,7 @@ public abstract class ShadowCache {
 	
 				Collection<SelectorOptions<GetOperationOptions>> options =
 						SelectorOptions.createCollection(new ItemPath(ShadowType.F_ASSOCIATION), GetOperationOptions.createRetrieve(RetrieveOption.EXCLUDE));
-	            searchObjectsIterative(query, options, handler, false, result);
+	            searchObjectsIterative(query, options, handler, false, task, result);
 	            // TODO: better error handling
 	            result.computeStatus();
 	            result.cleanupResult();
@@ -1109,6 +1104,7 @@ public abstract class ShadowCache {
 					PrismProperty<?> newToken = change.getToken();
 					task.setExtensionProperty(newToken);
 					processedChanges++;
+					task.setProgress(task.getProgress()+1);		// because processedChanges are reflected into task only at task run finish
 					LOGGER.debug("Skipping processing change. Can't find appropriate shadow (e.g. the object was deleted on the resource meantime).");
 					continue;
 				}
@@ -1121,6 +1117,7 @@ public abstract class ShadowCache {
 					PrismProperty<?> newToken = change.getToken();
 					task.setExtensionProperty(newToken);
 					processedChanges++;
+					task.setProgress(task.getProgress()+1);		// because processedChanges are reflected into task only at task run finish
 				}
 			}
 			
@@ -1218,8 +1215,8 @@ public abstract class ShadowCache {
 		shadowChangeDescription.setOldShadow(change.getOldShadow());
 		shadowChangeDescription.setCurrentShadow(change.getCurrentShadow());
 		if (null == channel){
-		shadowChangeDescription.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC));
-		} else{
+			shadowChangeDescription.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC));
+		} else {
 			shadowChangeDescription.setSourceChannel(channel);
 		}
 		return shadowChangeDescription;

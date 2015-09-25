@@ -17,7 +17,6 @@ import javax.mail.internet.MimeMessage;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -85,7 +84,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionAnswerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
@@ -561,13 +559,13 @@ public class PageSecurityQuestions extends PageBase {
 			try {
 
 				// System.out.println("try");
-				if (getModelInteractionService().getCredentialsPolicy(null, parentResult)
+				if (getModelInteractionService().getCredentialsPolicy(null, null, parentResult)
 						.getSecurityQuestions().getResetMethod().getResetType()
 						.equals(CredentialsResetTypeType.SECURITY_QUESTIONS)) {
 					// System.out.println("ifff");
 					getSession().setAttribute("pwdReset", newPassword);
 					setResponsePage(PageShowPassword.class);
-				} else if (getModelInteractionService().getCredentialsPolicy(null, parentResult)
+				} else if (getModelInteractionService().getCredentialsPolicy(null, null, parentResult)
 						.getSecurityQuestions().getResetMethod().getResetType()
 						.equals(CredentialsResetTypeType.SECURITY_QUESTIONS_EMAIL)) {
 					// System.out.println("ifff2");

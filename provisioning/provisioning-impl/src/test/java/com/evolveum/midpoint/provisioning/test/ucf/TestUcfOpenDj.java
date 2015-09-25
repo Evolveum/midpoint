@@ -31,16 +31,13 @@ import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
-import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -72,10 +69,8 @@ import org.testng.Assert;
 import org.testng.AssertJUnit;
 import org.testng.annotations.*;
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
@@ -297,7 +292,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		PrismObject<ShadowType> shadow = wrapInShadow(ShadowType.class, resourceObject);
 
 		Set<Operation> operation = new HashSet<Operation>();
-		Collection<ResourceAttribute<?>> resourceAttributes = cc.addObject(shadow, operation, result);
+		Collection<ResourceAttribute<?>> resourceAttributes = cc.addObject(shadow, operation, null, result);
 		return resourceAttributes;
 	}
 
@@ -330,12 +325,12 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(ProvisioningTestUtil.OBJECT_CLASS_INETORGPERSON_NAME);
 
-		cc.deleteObject(accountDefinition, null, identifiers, result);
+		cc.deleteObject(accountDefinition, null, identifiers, null, result);
 		
 		ResourceObjectIdentification identification = new ResourceObjectIdentification(accountDefinition, identifiers);
 		PrismObject<ShadowType> resObj = null;
 		try {
-			resObj = cc.fetchObject(ShadowType.class, identification, null,
+			resObj = cc.fetchObject(ShadowType.class, identification, null, null,
 					result);
 			Assert.fail();
 		} catch (ObjectNotFoundException ex) {
@@ -362,10 +357,10 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(ProvisioningTestUtil.OBJECT_CLASS_INETORGPERSON_NAME);
 
-		cc.modifyObject(accountDefinition, identifiers, changes, result);
+		cc.modifyObject(accountDefinition, identifiers, changes, null, result);
 
 		ResourceObjectIdentification identification = new ResourceObjectIdentification(accountDefinition, identifiers);
-		PrismObject<ShadowType> shadow = cc.fetchObject(ShadowType.class, identification, null, result);
+		PrismObject<ShadowType> shadow = cc.fetchObject(ShadowType.class, identification, null, null, result);
 		ResourceAttributeContainer resObj = ShadowUtil.getAttributesContainer(shadow);
 
 		AssertJUnit.assertNull(resObj.findAttribute(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "givenName")));
@@ -395,7 +390,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(ProvisioningTestUtil.OBJECT_CLASS_INETORGPERSON_NAME);
-		PrismProperty<Integer> lastToken = cc.fetchCurrentToken(accountDefinition, result);
+		PrismProperty<Integer> lastToken = cc.fetchCurrentToken(accountDefinition, null, result);
 
 		System.out.println("Property:");
 		System.out.println(SchemaDebugUtil.prettyPrint(lastToken));
@@ -404,7 +399,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		assertNotNull("No last token", lastToken);
 		assertNotNull("No last token value", lastToken.getRealValue());
 
-		List<Change<ShadowType>> changes = cc.fetchChanges(accountDefinition, lastToken, null, result);
+		List<Change<ShadowType>> changes = cc.fetchChanges(accountDefinition, lastToken, null, null, result);
 		AssertJUnit.assertEquals(0, changes.size());
 	}
 
@@ -610,7 +605,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		PrismObject<ShadowType> shadow = wrapInShadow(ShadowType.class, resourceObject);
 		// Add a testing object
-		cc.addObject(shadow, null, addResult);
+		cc.addObject(shadow, null, null, addResult);
 
 		ObjectClassComplexTypeDefinition accountDefinition = resourceObject.getDefinition().getComplexTypeDefinition();
 
@@ -621,7 +616,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
 
 		// WHEN
-		PrismObject<ShadowType> ro = cc.fetchObject(ShadowType.class, identification, null, result);
+		PrismObject<ShadowType> ro = cc.fetchObject(ShadowType.class, identification, null, null, result);
 
 		// THEN
 
@@ -652,7 +647,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
 
 		// WHEN
-		cc.search(accountDefinition, new ObjectQuery(), handler, null, null, null, result);
+		cc.search(accountDefinition, new ObjectQuery(), handler, null, null, null, null, result);
 
 		// THEN
 
@@ -683,7 +678,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		shadow.asObjectable().setCredentials(credentials);
 		
 		// WHEN
-		cc.addObject(shadow, additionalOperations, addResult);
+		cc.addObject(shadow, additionalOperations, null, addResult);
 
 		// THEN
 
@@ -711,7 +706,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		OperationResult addResult = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
 		
 		// Add a testing object
-		cc.addObject(shadow, null, addResult);
+		cc.addObject(shadow, null, null, addResult);
 
 		String entryUuid = (String) resourceObject.getIdentifier().getValue().getValue();
 		SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(entryUuid);
@@ -754,7 +749,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		
 //		PasswordChangeOperation passwordChange = new PasswordChangeOperation(passPs);
 //		changes.add(passwordChange);
-		cc.modifyObject(accountDefinition, identifiers, changes, result);
+		cc.modifyObject(accountDefinition, identifiers, changes, null, result);
 
 		// THEN
 

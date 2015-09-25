@@ -22,7 +22,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
@@ -57,6 +56,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
@@ -111,7 +111,7 @@ public class CredentialsProcessor {
         
         processFocusCredentialsCommon(context, new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD), now, task, result);
         
-        passwordPolicyProcessor.processPasswordPolicy(focusContext, context, result);
+        passwordPolicyProcessor.processPasswordPolicy(focusContext, context, task, result);
     }
     
     public <F extends ObjectType> void processProjectionCredentials(LensContext<F> context, LensProjectionContext projectionContext, 
@@ -122,7 +122,7 @@ public class CredentialsProcessor {
     		processProjectionPassword((LensContext<? extends FocusType>)context, projectionContext, now, task, result);
     	}
     	
-    	passwordPolicyProcessor.processPasswordPolicy(projectionContext, context, result);
+    	passwordPolicyProcessor.processPasswordPolicy(projectionContext, context, task, result);
     }
     
     private <F extends FocusType> void processProjectionPassword(LensContext<F> context,

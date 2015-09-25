@@ -20,14 +20,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import javax.xml.namespace.QName;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
@@ -157,7 +154,7 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 
 		};
 
-		provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, parentResult);
+		provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, task, parentResult);
 
 		return foundAccount;
 	}

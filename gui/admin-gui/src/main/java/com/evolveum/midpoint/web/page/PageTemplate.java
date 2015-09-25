@@ -266,11 +266,13 @@ public abstract class PageTemplate extends WebPage {
     }
 
     protected IModel<String> createPageSubTitleModel() {
-        return new StringResourceModel("page.subTitle", this, new Model<String>(), "");
+        String key = getClass().getSimpleName() + ".subTitle";
+        return new StringResourceModel(key, this, new Model<String>(), "");
     }
 
     protected IModel<String> createPageTitleModel() {
-        return createStringResource("page.title");
+        String key = getClass().getSimpleName() + ".title";
+        return createStringResource(key);
     }
 
     public String getString(String resourceKey, Object... objects) {

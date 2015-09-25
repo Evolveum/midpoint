@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -409,6 +410,25 @@ public class ShadowUtil {
 		}
 		return MiscUtil.equals(intent, shadowType.getIntent());
 	}
+
+	public static boolean matches(PrismObject<ShadowType> shadow, ResourceShadowDiscriminator discr) {
+		return matches(shadow.asObjectable(), discr);
+	}
+	
+	public static boolean matches(ShadowType shadowType, ResourceShadowDiscriminator discr) {
+		if (shadowType == null) {
+			return false;
+		}
+		if (!discr.getResourceOid().equals(shadowType.getResourceRef().getOid())) {
+			return false;
+		}
+		if (!MiscUtil.equals(discr.getKind(), shadowType.getKind())) {
+			return false;
+		}
+		return ResourceShadowDiscriminator.equalsIntent(shadowType.getIntent(), discr.getIntent());
+	}
+
+	
 	
 	public static String getHumanReadableName(PrismObject<? extends ShadowType> shadow) {
 		if (shadow == null) {

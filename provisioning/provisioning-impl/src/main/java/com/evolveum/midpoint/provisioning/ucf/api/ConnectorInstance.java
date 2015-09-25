@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.provisioning.impl.StateReporter;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -158,10 +159,8 @@ public interface ConnectorInstance {
 	 *				- nothing was fetched.
 	 * @throws SchemaException error converting object from native (connector) format
 	 */
-	public <T extends ShadowType> PrismObject<T> fetchObject(Class<T> type,
-                                                             ResourceObjectIdentification resourceObjectIdentification,
-                                                             AttributesToReturn attributesToReturn, 
-                                                             OperationResult parentResult)
+	public <T extends ShadowType> PrismObject<T> fetchObject(Class<T> type, ResourceObjectIdentification resourceObjectIdentification, AttributesToReturn attributesToReturn, StateReporter reporter,
+															 OperationResult parentResult)
 		throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, 
 		SecurityViolationException, ConfigurationException;
 
@@ -182,19 +181,14 @@ public interface ConnectorInstance {
 	 *  
 	 * @param objectClass
 	 * @param handler
-	 * @return 
+	 * @return
 	 * @throws CommunicationException 
 	 * @throws SchemaException error converting object from the native (connector) format
 	 * @throws ObjectNotFoundException if something from the search parameters refers non-existent object.
 	 * 									e.g. if search base points to an non-existent object.
 	 */
-    public <T extends ShadowType> SearchResultMetadata search(ObjectClassComplexTypeDefinition objectClassDefinition, 
-                                                              ObjectQuery query,
-                                                              ResultHandler<T> handler,
-                                                              AttributesToReturn attributesToReturn,
-                                                              PagedSearchCapabilityType pagedSearchConfigurationType,
-                                                              SearchHierarchyConstraints searchHierarchyConstraints,
-                                                              OperationResult parentResult)
+    public <T extends ShadowType> SearchResultMetadata search(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query, ResultHandler<T> handler, AttributesToReturn attributesToReturn, PagedSearchCapabilityType pagedSearchConfigurationType, SearchHierarchyConstraints searchHierarchyConstraints, StateReporter reporter,
+															  OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, SecurityViolationException,
             		ObjectNotFoundException;
 
@@ -214,9 +208,8 @@ public interface ConnectorInstance {
      * @throws SchemaException
      * @throws java.lang.UnsupportedOperationException
      */
-    public int count(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
-                     PagedSearchCapabilityType pagedSearchConfigurationType,
-                     OperationResult parentResult)
+    public int count(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query, PagedSearchCapabilityType pagedSearchConfigurationType, StateReporter reporter,
+					 OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, UnsupportedOperationException;
 
     /**
@@ -235,7 +228,7 @@ public interface ConnectorInstance {
 	 * was returned (e.g. due to a limiting configuration). Returning null means that connector does not support
 	 * returning of new object state and the caller should explicitly invoke fetchObject() in case that the
 	 * information is needed.
-	 * 
+	 *
 	 * @param object
 	 * @param additionalOperations
 	 * @throws CommunicationException
@@ -243,8 +236,8 @@ public interface ConnectorInstance {
 	 * @return created object attributes. May be null.
 	 * @throws ObjectAlreadyExistsException object already exists on the resource
 	 */
-	public Collection<ResourceAttribute<?>> addObject(PrismObject<? extends ShadowType> object, Collection<Operation> additionalOperations, 
-			OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, 
+	public Collection<ResourceAttribute<?>> addObject(PrismObject<? extends ShadowType> object, Collection<Operation> additionalOperations, StateReporter reporter,
+													  OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException,
 			ObjectAlreadyExistsException, ConfigurationException;
 	
 	/**
@@ -258,23 +251,23 @@ public interface ConnectorInstance {
 	 * The exception should be thrown only if the connector is sure that nothing was done on the resource.
 	 * E.g. in case of connect timeout or connection refused. Timeout during operation should not cause the
 	 * exception as something might have been done already. 
-	 * 
+	 *
 	 * @param identifiers The set of identifiers. Their values may change as a result of the operation, e.g. when the resource object is renamed.
 	 * @param changes
 	 * @throws CommunicationException
 	 * @throws SchemaException 
 	 * @throws ObjectAlreadyExistsException in case that the modified object conflicts with another existing object (e.g. while renaming an object)
 	 */
-	public Collection<PropertyModificationOperation> modifyObject(ObjectClassComplexTypeDefinition objectClass, 
-			Collection<? extends ResourceAttribute<?>> identifiers, Collection<Operation> changes, OperationResult parentResult)
+	public Collection<PropertyModificationOperation> modifyObject(ObjectClassComplexTypeDefinition objectClass, Collection<? extends ResourceAttribute<?>> identifiers, Collection<Operation> changes, StateReporter reporter,
+																  OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, 
 			SecurityViolationException, ObjectAlreadyExistsException;
 	
-	public void deleteObject(ObjectClassComplexTypeDefinition objectClass, Collection<Operation> additionalOperations, 
-			Collection<? extends ResourceAttribute<?>> identifiers, OperationResult parentResult)
+	public void deleteObject(ObjectClassComplexTypeDefinition objectClass, Collection<Operation> additionalOperations, Collection<? extends ResourceAttribute<?>> identifiers, StateReporter reporter,
+							 OperationResult parentResult)
 					throws ObjectNotFoundException, CommunicationException, GenericFrameworkException;
 	
-	public Object executeScript(ExecuteProvisioningScriptOperation scriptOperation, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
+	public Object executeScript(ExecuteProvisioningScriptOperation scriptOperation, StateReporter reporter, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
 	
 	/**
 	 * Creates a live Java object from a token previously serialized to string.
@@ -297,16 +290,16 @@ public interface ConnectorInstance {
 	 * @return
 	 * @throws CommunicationException
 	 */
-	public <T> PrismProperty<T> fetchCurrentToken(ObjectClassComplexTypeDefinition objectClass, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
+	public <T> PrismProperty<T> fetchCurrentToken(ObjectClassComplexTypeDefinition objectClass, StateReporter reporter, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
 	
 	/**
 	 * Token may be null. That means "from the beginning of history".
-	 * 
+	 *
 	 * @param lastToken
 	 * @return
 	 */
-	public <T extends ShadowType> List<Change<T>> fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken, 
-			AttributesToReturn attrsToReturn, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
+	public <T extends ShadowType> List<Change<T>> fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken, AttributesToReturn attrsToReturn, StateReporter reporter,
+															   OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
 	
 	//public ValidationResult validateConfiguration(ResourceConfiguration newConfiguration);
 	

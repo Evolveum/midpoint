@@ -21,6 +21,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.SerializationContext;
+import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.commons.lang.StringUtils;
@@ -32,8 +34,6 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContainerable;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -41,24 +41,16 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.prism.xnode.SchemaXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.prism.xml.ns._public.types_3.EncryptedDataType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedDataType;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
-import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
 /**
  * @author semancik
@@ -69,9 +61,6 @@ public class XNodeSerializer {
 	private PrismBeanConverter beanConverter;
 	private boolean serializeCompositeObjects = false;
 
-    // TODO think out where to put this key
-//    public static final String USER_DATA_KEY_COMMENT = XNodeSerializer.class.getName()+".comment";
-	
 	public XNodeSerializer(PrismBeanConverter beanConverter) {
 		super();
 		this.beanConverter = beanConverter;
@@ -86,16 +75,20 @@ public class XNodeSerializer {
 	}
 
     //region Serializing objects
-	public <O extends Objectable> RootXNode serializeObject(PrismObject<O> object) throws SchemaException {
+    public <O extends Objectable> RootXNode serializeObject(PrismObject<O> object) throws SchemaException {
+        return serializeObject(object, null);
+    }
+
+    public <O extends Objectable> RootXNode serializeObject(PrismObject<O> object, SerializationContext ctx) throws SchemaException {
 		RootXNode xroot = new RootXNode();
-		xroot.setSubnode(serializeObjectContent(object));
+		xroot.setSubnode(serializeObjectContent(object, ctx));
 		xroot.setTypeQName(object.getDefinition().getTypeName());
 		QName elementName = object.getElementName();
 		xroot.setRootElementName(elementName);
 		return xroot;
 	}
 	
-	private <O extends Objectable> MapXNode serializeObjectContent(PrismObject<O> object) throws SchemaException {
+	private <O extends Objectable> MapXNode serializeObjectContent(PrismObject<O> object, SerializationContext ctx) throws SchemaException {
 		MapXNode xmap = new MapXNode();
 		if (object.getOid() != null) {
 			xmap.put(XNode.KEY_OID, createPrimitiveXNodeStringAttr(object.getOid()));
@@ -104,19 +97,23 @@ public class XNodeSerializer {
 			xmap.put(XNode.KEY_VERSION, createPrimitiveXNodeStringAttr(object.getVersion()));
 		}
 		PrismObjectDefinition<O> objectDefinition = object.getDefinition();
-		serializeContainerValue(xmap, object.getValue(), objectDefinition);
+		serializeContainerValue(xmap, object.getValue(), objectDefinition, ctx);
 		return xmap;
 	}
     //endregion
 
     //region Serializing (any) items
-    public <IV extends PrismValue,ID extends ItemDefinition> XNode serializeItem(Item<IV,ID> item) throws SchemaException {
+    public <IV extends PrismValue,ID extends ItemDefinition> XNode serializeItem(Item<IV, ID> item) throws SchemaException {
+        return serializeItem(item, null);
+    }
+
+    public <IV extends PrismValue,ID extends ItemDefinition> XNode serializeItem(Item<IV, ID> item, SerializationContext ctx) throws SchemaException {
         ListXNode xlist = new ListXNode();
         List<IV> values = item.getValues();
         ItemDefinition definition = item.getDefinition();
 
         for (IV val: values) {
-            XNode xsubnode = serializeItemValue(val, definition);
+            XNode xsubnode = serializeItemValue(val, definition, ctx);
             xlist.add(xsubnode);
         }
 
@@ -137,17 +134,6 @@ public class XNodeSerializer {
             }
         }
     }
-
-//    public <T> RootXNode serializePropertyValueAsRoot(PrismPropertyValue<T> propval, QName elementName) throws SchemaException {
-//        Validate.notNull(propval, "Property value to be serialized cannot be null");
-//        Validate.notNull(propval.getParent(), "Property value to be serialized must have a parent");
-//        // maybe this condition could be relaxed in the future
-//        Validate.notNull(propval.getParent().getDefinition(), "Property value to be serialized must have a parent with a definition");
-//
-//        ItemDefinition definition = propval.getParent().getDefinition();
-//        XNode valueNode = serializeItemValue(propval, definition);
-//        return new RootXNode(elementName, valueNode);
-//    }
 
     public RootXNode serializeItemValueAsRoot(PrismValue value, QName elementName) throws SchemaException {
         Validate.notNull(value, "Item value to be serialized cannot be null");
@@ -175,8 +161,16 @@ public class XNodeSerializer {
         return new RootXNode(item.getDefinition().getName(), valueNode);
     }
 
-    // definition may be null
     public <V extends PrismValue> XNode serializeItemValue(V itemValue, ItemDefinition definition) throws SchemaException {
+        return serializeItemValue(itemValue, definition, (SerializationContext) null);
+    }
+
+    public <V extends PrismValue> XNode serializeItemValue(V itemValue, ItemDefinition definition, SerializationOptions options) throws SchemaException {
+        return serializeItemValue(itemValue, definition, new SerializationContext(options));
+    }
+
+    // definition may be null
+    private <V extends PrismValue> XNode serializeItemValue(PrismValue itemValue, ItemDefinition definition, SerializationContext ctx) throws SchemaException {
         XNode xnode;
         if (definition == null) {
             if (itemValue.getParent() != null) {
@@ -187,34 +181,20 @@ public class XNodeSerializer {
             throw new IllegalStateException("No prismContext in beanConverter!");
         }
         if (definition == null && itemValue instanceof PrismPropertyValue){
-//        	if (itemValue instanceof PrismPropertyValue && beanConverter.canProcess(((PrismPropertyValue) itemValue).getValue().getClass())){
-//        		xnode = beanConverter.marshall(((PrismPropertyValue)itemValue).getValue());
-//                xnode.setExplicitTypeDeclaration(true);
-//                return xnode;
-//        	}
             return serializePropertyRawValue((PrismPropertyValue<?>) itemValue);
         }
         if (itemValue instanceof PrismReferenceValue) {
-            xnode = serializeReferenceValue((PrismReferenceValue)itemValue, (PrismReferenceDefinition) definition);
-            PolyString commentValue = ((PrismReferenceValue) itemValue).getTargetName();
-            if (commentValue != null) {
-                xnode.setComment(commentValue.getOrig());
-            }
+            xnode = serializeReferenceValue((PrismReferenceValue)itemValue, (PrismReferenceDefinition) definition, ctx);
         } else if (itemValue instanceof PrismPropertyValue<?>) {
             xnode = serializePropertyValue((PrismPropertyValue<?>)itemValue, (PrismPropertyDefinition)definition);
         } else if (itemValue instanceof PrismContainerValue<?>) {
-            xnode = serializeContainerValue((PrismContainerValue<?>)itemValue, (PrismContainerDefinition)definition);
+            xnode = serializeContainerValue((PrismContainerValue<?>)itemValue, (PrismContainerDefinition)definition, ctx);
         } else {
             throw new IllegalArgumentException("Unsupported value type "+itemValue.getClass());
         }
         if (definition != null && definition.isDynamic()) {
             xnode.setExplicitTypeDeclaration(true);
         }
-//        Object commentValue = itemValue.getUserData(USER_DATA_KEY_COMMENT);
-//        if (commentValue != null) {
-//            xnode.setComment(commentValue.toString());
-//        }
-//		System.out.println("item value serialization: \n" + xnode.debugDump());
         return xnode;
     }
     //endregion
@@ -231,13 +211,13 @@ public class XNodeSerializer {
 //        return serializeItemValueAsRootInternal(containerVal, elementName);
 //    }
 
-    private <C extends Containerable> MapXNode serializeContainerValue(PrismContainerValue<C> containerVal, PrismContainerDefinition<C> containerDefinition) throws SchemaException {
+    private <C extends Containerable> MapXNode serializeContainerValue(PrismContainerValue<C> containerVal, PrismContainerDefinition<C> containerDefinition, SerializationContext ctx) throws SchemaException {
 		MapXNode xmap = new MapXNode();
-		serializeContainerValue(xmap, containerVal, containerDefinition);
+		serializeContainerValue(xmap, containerVal, containerDefinition, ctx);
 		return xmap;
 	}
 	
-	private <C extends Containerable> void serializeContainerValue(MapXNode xmap, PrismContainerValue<C> containerVal, PrismContainerDefinition<C> containerDefinition) throws SchemaException {
+	private <C extends Containerable> void serializeContainerValue(MapXNode xmap, PrismContainerValue<C> containerVal, PrismContainerDefinition<C> containerDefinition, SerializationContext ctx) throws SchemaException {
 		Long id = containerVal.getId();
 		if (id != null) {
 			xmap.put(XNode.KEY_CONTAINER_ID, createPrimitiveXNodeAttr(id, DOMUtil.XSD_LONG));
@@ -256,7 +236,7 @@ public class XNodeSerializer {
 				QName elementName = itemDef.getName();
 				Item<?,?> item = containerVal.findItem(elementName);
 				if (item != null) {
-					XNode xsubnode = serializeItem(item);
+					XNode xsubnode = serializeItem(item, ctx);
 					xmap.put(elementName, xsubnode);
 					serializedItems.add(elementName);
 				}
@@ -270,7 +250,7 @@ public class XNodeSerializer {
 				if (serializedItems.contains(elementName)) {
 					continue;
 				}
-				XNode xsubnode = serializeItem(item);
+				XNode xsubnode = serializeItem(item, ctx);
 				xmap.put(elementName, xsubnode);
 			}
 		}
@@ -278,7 +258,7 @@ public class XNodeSerializer {
     //endregion
 
     //region Serializing references - specific functionality
-    private XNode serializeReferenceValue(PrismReferenceValue value, PrismReferenceDefinition definition) throws SchemaException {
+    private XNode serializeReferenceValue(PrismReferenceValue value, PrismReferenceDefinition definition, SerializationContext ctx) throws SchemaException {
         MapXNode xmap = new MapXNode();
         boolean containsOid = false;
         String namespace = definition != null ? definition.getNamespace() : null;           // namespace for filter and description
@@ -303,13 +283,22 @@ public class XNodeSerializer {
             XNode xsubnode = filter.serializeToXNode();
             xmap.put(createReferenceQName(XNode.KEY_REFERENCE_FILTER, namespace), xsubnode);
         }
-      
+        if (value.getTargetName() != null) {
+            if (SerializationContext.isSerializeReferenceNames(ctx)) {
+                XNode xsubnode = createPrimitiveXNode(value.getTargetName(), PolyStringType.COMPLEX_TYPE);
+                xmap.put(createReferenceQName(XNode.KEY_REFERENCE_TARGET_NAME, namespace), xsubnode);
+            } else {
+                String commentValue = " " + value.getTargetName().getOrig() + " ";
+                xmap.setComment(commentValue);
+            }
+        }
+
         boolean isComposite = false;
         if (definition != null) {
             isComposite = definition.isComposite();
         }
         if ((serializeCompositeObjects || isComposite || !containsOid) && value.getObject() != null) {
-            XNode xobjnode = serializeObjectContent(value.getObject());
+            XNode xobjnode = serializeObjectContent(value.getObject(), ctx);
             xmap.put(createReferenceQName(XNode.KEY_REFERENCE_OBJECT, namespace), xobjnode);
         }
 

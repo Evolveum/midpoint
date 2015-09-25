@@ -95,13 +95,14 @@ public class MailTransport implements Transport {
         }
 
         MailConfigurationType mailConfigurationType = systemConfiguration.getNotificationConfiguration().getMail();
-        if (mailConfigurationType.getRedirectToFile() != null) {
+        String redirectToFile = mailConfigurationType.getRedirectToFile();
+        if (redirectToFile != null) {
             try {
-                TransportUtil.appendToFile(mailConfigurationType.getRedirectToFile(), formatToFile(mailMessage));
+                TransportUtil.appendToFile(redirectToFile, formatToFile(mailMessage));
                 result.recordSuccess();
             } catch (IOException e) {
-                LoggingUtils.logException(LOGGER, "Couldn't write to mail redirect file {}", e, mailConfigurationType.getRedirectToFile());
-                result.recordPartialError("Couldn't write to mail redirect file " + mailConfigurationType.getRedirectToFile(), e);
+                LoggingUtils.logException(LOGGER, "Couldn't write to mail redirect file {}", e, redirectToFile);
+                result.recordPartialError("Couldn't write to mail redirect file " + redirectToFile, e);
             }
             return;
         }
@@ -113,16 +114,19 @@ public class MailTransport implements Transport {
             return;
         }
 
+        long start = System.currentTimeMillis();
+
         String from = mailConfigurationType.getDefaultFrom() != null ? mailConfigurationType.getDefaultFrom() : "nobody@nowhere.org";
 
         for (MailServerConfigurationType mailServerConfigurationType : mailConfigurationType.getServer()) {
 
             OperationResult resultForServer = result.createSubresult(DOT_CLASS + "send.forServer");
-            resultForServer.addContext("server", mailServerConfigurationType.getHost());
+            final String host = mailServerConfigurationType.getHost();
+            resultForServer.addContext("server", host);
             resultForServer.addContext("port", mailServerConfigurationType.getPort());
 
             Properties properties = System.getProperties();
-            properties.setProperty("mail.smtp.host", mailServerConfigurationType.getHost());
+            properties.setProperty("mail.smtp.host", host);
             if (mailServerConfigurationType.getPort() != null) {
                 properties.setProperty("mail.smtp.port", String.valueOf(mailServerConfigurationType.getPort()));
             }
@@ -150,6 +154,8 @@ public class MailTransport implements Transport {
                 }
             }
 
+            task.recordState("Sending notification mail via " + host);
+
             Session session = Session.getInstance(properties);
 
             try {
@@ -172,7 +178,7 @@ public class MailTransport implements Transport {
                         try {
                             password = protector.decryptString(passwordProtected);
                         } catch (EncryptionException e) {
-                            String msg = "Couldn't send mail message to " + mailMessage.getTo() + " via " + mailServerConfigurationType.getHost() + ", because the plaintext password value couldn't be obtained. Trying another mail server, if there is any.";
+                            String msg = "Couldn't send mail message to " + mailMessage.getTo() + " via " + host + ", because the plaintext password value couldn't be obtained. Trying another mail server, if there is any.";
                             LoggingUtils.logException(LOGGER, msg, e);
                             resultForServer.recordFatalError(msg, e);
                             continue;
@@ -183,18 +189,23 @@ public class MailTransport implements Transport {
                     t.connect();
                 }
                 t.sendMessage(mimeMessage, mimeMessage.getAllRecipients());
-                LOGGER.info("Message sent successfully to " + mailMessage.getTo() + " via server " + mailServerConfigurationType.getHost() + ".");
+                LOGGER.info("Message sent successfully to " + mailMessage.getTo() + " via server " + host + ".");
                 resultForServer.recordSuccess();
                 result.recordSuccess();
+                long duration = System.currentTimeMillis() - start;
+                task.recordState("Notification mail sent successfully via " + host + ", in " + duration + " ms overall.");
+                task.recordNotificationOperation(NAME, true, duration);
                 return;
             } catch (MessagingException e) {
-                String msg = "Couldn't send mail message to " + mailMessage.getTo() + " via " + mailServerConfigurationType.getHost() + ", trying another mail server, if there is any";
+                String msg = "Couldn't send mail message to " + mailMessage.getTo() + " via " + host + ", trying another mail server, if there is any";
                 LoggingUtils.logException(LOGGER, msg, e);
                 resultForServer.recordFatalError(msg, e);
+                task.recordState("Error sending notification mail via " + host);
             }
         }
         LOGGER.warn("No more mail servers to try, mail notification to " + mailMessage.getTo() + " will not be sent.") ;
         result.recordWarning("Mail notification to " + mailMessage.getTo() + " could not be sent.");
+        task.recordNotificationOperation(NAME, false, System.currentTimeMillis() - start);
     }
 
 

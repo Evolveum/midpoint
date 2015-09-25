@@ -3,8 +3,6 @@ package com.evolveum.midpoint.report.impl;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
-import java.io.Serializable;
-import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -14,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
-import javax.xml.bind.JAXBElement;
 
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRTemplate;
@@ -24,7 +21,6 @@ import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.export.JRCsvExporter;
 import net.sf.jasperreports.engine.export.JRRtfExporter;
-import net.sf.jasperreports.engine.export.JRXhtmlExporter;
 import net.sf.jasperreports.engine.export.JRXlsExporter;
 import net.sf.jasperreports.engine.export.oasis.JROdsExporter;
 import net.sf.jasperreports.engine.export.oasis.JROdtExporter;
@@ -38,12 +34,10 @@ import net.sf.jasperreports.export.ExporterOutput;
 import net.sf.jasperreports.export.SimpleExporterInput;
 import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
 import net.sf.jasperreports.export.SimpleWriterExporterOutput;
-import net.sf.jasperreports.export.WriterExporterOutput;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
-import org.hibernate.param.ParameterSpecification;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -54,23 +48,13 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.parser.QueryConvertor;
-import com.evolveum.midpoint.prism.parser.XNodeSerializer;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.util.RawTypeUtil;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
-import com.evolveum.midpoint.schema.util.ParamsTypeUtil;
 import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
@@ -86,14 +70,11 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ParamsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SubreportType;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 @Component
 public class ReportCreateTaskHandler implements TaskHandler{
@@ -156,8 +137,8 @@ public class ReportCreateTaskHandler implements TaskHandler{
     	long progress = task.getProgress();
 		
 		try {
-			ReportType parentReport = objectResolver.resolve(task.getObjectRef(), ReportType.class, null, "resolving report", result);
-			Map<String, Object> parameters = completeReport(parentReport, result);
+			ReportType parentReport = objectResolver.resolve(task.getObjectRef(), ReportType.class, null, "resolving report", task, result);
+			Map<String, Object> parameters = completeReport(parentReport, task, result);
 			
 			PrismContainer<ReportParameterType> reportParams = (PrismContainer) task.getExtensionItem(ReportConstants.REPORT_PARAMS_PROPERTY_NAME);
 			if (reportParams != null) {
@@ -205,11 +186,11 @@ public class ReportCreateTaskHandler implements TaskHandler{
     	return runResult;
 	}
 	
-	private Map<String, Object> completeReport(ReportType parentReport, OperationResult result) throws SchemaException, ObjectNotFoundException{
-		return completeReport(parentReport, null, null, result);
+	private Map<String, Object> completeReport(ReportType parentReport, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException{
+		return completeReport(parentReport, null, null, task, result);
 	}
 	
-	private Map<String, Object> completeReport(ReportType parentReport, JasperReport subReport, String subReportName, OperationResult result) throws SchemaException, ObjectNotFoundException{
+	private Map<String, Object> completeReport(ReportType parentReport, JasperReport subReport, String subReportName, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException{
 		Map<String, Object> params =  new HashMap<String, Object>();
 		
 		if (subReport != null && StringUtils.isNotBlank(subReportName)){
@@ -220,7 +201,7 @@ public class ReportCreateTaskHandler implements TaskHandler{
 		params.putAll(parameters);
 		LOGGER.trace("create report params : {}", parameters);
 		
-		Map<String, Object> subreportParameters = processSubreportParameters(parentReport, result);
+		Map<String, Object> subreportParameters = processSubreportParameters(parentReport, task, result);
 		params.putAll(subreportParameters);
 		return params;
 	}
@@ -287,11 +268,11 @@ public class ReportCreateTaskHandler implements TaskHandler{
 			return params;
 	    }
 	    
-	    private Map<String, Object> processSubreportParameters(ReportType reportType, OperationResult subreportResult) throws SchemaException, ObjectNotFoundException{
+	    private Map<String, Object> processSubreportParameters(ReportType reportType, Task task, OperationResult subreportResult) throws SchemaException, ObjectNotFoundException{
 	    	Map<String, Object> subreportParameters = new HashMap<String, Object>();
 	    	for(SubreportType subreport : reportType.getSubreport())
 			{
-				Map<String, Object> subreportParam = getSubreportParameters(subreport, subreportResult);
+				Map<String, Object> subreportParam = getSubreportParameters(subreport, task, subreportResult);
 				LOGGER.trace("create subreport params : {}", subreportParam);
 				subreportParameters.putAll(subreportParam);
 					
@@ -299,11 +280,11 @@ public class ReportCreateTaskHandler implements TaskHandler{
 	    	return subreportParameters;
 	    }
 	    
-	private Map<String, Object> getSubreportParameters(SubreportType subreportType, OperationResult subResult)
+	private Map<String, Object> getSubreportParameters(SubreportType subreportType, Task task, OperationResult subResult)
 			throws SchemaException, ObjectNotFoundException {
 		Map<String, Object> reportParams = new HashMap<String, Object>();
 		ReportType reportType = objectResolver.resolve(subreportType.getReportRef(), ReportType.class, null,
-				"resolve subreport", subResult);
+				"resolve subreport", task, subResult);
 
 		Map<String, Object> parameters = prepareReportParameters(reportType, subResult);
 		reportParams.putAll(parameters);
@@ -311,7 +292,7 @@ public class ReportCreateTaskHandler implements TaskHandler{
 		JasperReport jasperReport = ReportTypeUtil.loadJasperReport(reportType);
 		reportParams.put(subreportType.getName(), jasperReport);
 
-		Map<String, Object> subReportParams = processSubreportParameters(reportType, subResult);
+		Map<String, Object> subReportParams = processSubreportParameters(reportType, task, subResult);
 		reportParams.putAll(subReportParams);
 
 		return reportParams;

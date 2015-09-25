@@ -48,45 +48,76 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.DateInput;
-import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationStatusDto;
 import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationStatusPanel;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.PageTemplate;
-import com.evolveum.midpoint.web.page.admin.server.dto.*;
+import com.evolveum.midpoint.web.page.admin.server.currentState.TaskCurrentStateDtoModel;
+import com.evolveum.midpoint.web.page.admin.server.currentState.TaskStatePanel;
+import com.evolveum.midpoint.web.page.admin.server.dto.ScheduleValidator;
+import com.evolveum.midpoint.web.page.admin.server.dto.StartEndDateValidator;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskAddResourcesDto;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
 import com.evolveum.midpoint.web.page.admin.server.subtasks.SubtasksPanel;
 import com.evolveum.midpoint.web.page.admin.server.workflowInformation.WorkflowInformationPanel;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MisfireActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
+import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteSettings;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTextField;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
+import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.*;
+import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.markup.html.form.RequiredTextField;
+import org.apache.wicket.markup.html.form.TextArea;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.*;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.apache.wicket.util.string.Strings;
+import org.apache.wicket.util.time.Duration;
 
 import javax.xml.namespace.QName;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -126,6 +157,7 @@ public class PageTaskEdit extends PageAdminTasks {
     private static final String ID_SUBTASKS_PANEL = "subtasksPanel";
     private static final String ID_WORKFLOW_INFORMATION_LABEL = "workflowInformationLabel";
     private static final String ID_WORKFLOW_INFORMATION_PANEL = "workflowInformationPanel";
+    private static final String ID_TASK_STATE_PANEL = "taskStatePanel";
     private static final String ID_NAME = "name";
     private static final String ID_NAME_LABEL = "nameLabel";
     private static final String ID_DESCRIPTION = "description";
@@ -225,9 +257,6 @@ public class PageTaskEdit extends PageAdminTasks {
     private TaskDto prepareTaskDto(TaskType task, OperationResult result) throws SchemaException, ObjectNotFoundException {
         TaskDto taskDto = new TaskDto(task, getModelService(), getTaskService(), getModelInteractionService(),
                 getTaskManager(), TaskDtoProviderOptions.fullOptions(), result, this);
-        for (TaskType child : task.getSubtask()) {
-            taskDto.addChildTaskDto(prepareTaskDto(child, result));
-        }
         return taskDto;
     }
 
@@ -287,14 +316,17 @@ public class PageTaskEdit extends PageAdminTasks {
         panel.add(modelOpBehaviour);
         mainForm.add(panel);
 
-		SortableDataProvider<OperationResult, String> provider = new ListDataProvider<>(this,
-				new PropertyModel<List<OperationResult>>(model, "opResult"));
-		TablePanel result = new TablePanel<>("operationResult", provider, initResultColumns());
-		result.setStyle("padding-top: 0px;");
-		result.setShowPaging(false);
-		result.setOutputMarkupId(true);
-        result.add(hiddenWhenEditing);
-		mainForm.add(result);
+        final TaskStatePanel taskStatePanel = new TaskStatePanel(ID_TASK_STATE_PANEL, new TaskCurrentStateDtoModel(model), this);
+        taskStatePanel.add(hiddenWhenEditing);
+        AjaxSelfUpdatingTimerBehavior refreshingBehavior = new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(1000)) {
+            @Override
+            protected void onPostProcessTarget(AjaxRequestTarget target) {
+                taskStatePanel.refreshModel(PageTaskEdit.this);
+            }
+        };
+        taskStatePanel.add(refreshingBehavior);
+
+        mainForm.add(taskStatePanel);
 
 		DropDownChoice threadStop = new DropDownChoice<>("threadStop", new Model<ThreadStopActionType>() {
 
@@ -960,16 +992,6 @@ public class PageTaskEdit extends PageAdminTasks {
         });
         mainForm.add(runNow);
     }
-
-	private List<IColumn<OperationResult, String>> initResultColumns() {
-		List<IColumn<OperationResult, String>> columns = new ArrayList<IColumn<OperationResult, String>>();
-
-		columns.add(new PropertyColumn(createStringResource("pageTaskEdit.opResult.token"), "token"));
-		columns.add(new PropertyColumn(createStringResource("pageTaskEdit.opResult.operation"), "operation"));
-		columns.add(new PropertyColumn(createStringResource("pageTaskEdit.opResult.status"), "status"));
-		columns.add(new PropertyColumn(createStringResource("pageTaskEdit.opResult.message"), "message"));
-		return columns;
-	}
 
     private List<TaskAddResourcesDto> createResourceList() {
         OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCES);

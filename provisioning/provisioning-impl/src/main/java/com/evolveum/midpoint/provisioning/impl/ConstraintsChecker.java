@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.provisioning.impl;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -34,9 +33,11 @@ import com.evolveum.midpoint.provisioning.api.ConstraintsCheckingResult;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.caching.AbstractCache;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -52,6 +53,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import javax.xml.namespace.QName;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -122,7 +124,7 @@ public class ConstraintsChecker {
 
 	private ConstraintsCheckingResult constraintsCheckingResult;
 
-	public ConstraintsCheckingResult check(OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+	public ConstraintsCheckingResult check(Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		constraintsCheckingResult = new ConstraintsCheckingResult();
 		constraintsCheckingResult.setSatisfiesConstraints(true);
@@ -144,7 +146,7 @@ public class ConstraintsChecker {
 				continue;
 			}
 			constraintsCheckingResult.getCheckedAttributes().add(attr.getElementName());
-			boolean unique = checkAttributeUniqueness(attr, shadowDefinition, resourceType, shadowOid, result);
+			boolean unique = checkAttributeUniqueness(attr, shadowDefinition, resourceType, shadowOid, task, result);
 			if (!unique) {
 				LOGGER.debug("Attribute {} conflicts with existing object (in {})", attr, resourceShadowDiscriminator);
 				constraintsCheckingResult.getConflictingAttributes().add(attr.getElementName());
@@ -156,7 +158,7 @@ public class ConstraintsChecker {
 	}
 	
 	private boolean checkAttributeUniqueness(PrismProperty identifier, RefinedObjectClassDefinition accountDefinition,
-			ResourceType resourceType, String oid, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+											 ResourceType resourceType, String oid, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		List<PrismPropertyValue<?>> identifierValues = identifier.getValues();
 		if (identifierValues.isEmpty()) {
@@ -174,11 +176,11 @@ public class ConstraintsChecker {
 						EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifier.getDefinition().getName()), identifier.getDefinition(), identifierValues),
 						isNotDead));
 
-		boolean unique = checkUniqueness(oid, identifier, query, result);
+		boolean unique = checkUniqueness(oid, identifier, query, task, result);
 		return unique;
 	}
 
-	private boolean checkUniqueness(String oid, PrismProperty identifier, ObjectQuery query, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+	private boolean checkUniqueness(String oid, PrismProperty identifier, ObjectQuery query, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 
 		if (Cache.isOk(resourceType.getOid(), oid, shadowDefinition.getTypeName(), identifier.getDefinition().getName(), identifier.getValues())) {
 			return true;
@@ -189,7 +191,7 @@ public class ConstraintsChecker {
 		// because there could be a matching rule; see ShadowManager.processQueryMatchingRuleFilter.
 		// Besides that, now the constraint checking is cached at a higher level, so this is not a big issue any more.
 		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
-		List<PrismObject<ShadowType>> foundObjects = provisioningService.searchObjects(ShadowType.class, query, options, result);
+		List<PrismObject<ShadowType>> foundObjects = provisioningService.searchObjects(ShadowType.class, query, options, task, result);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Uniqueness check of {} resulted in {} results, using query:\n{}",
 				new Object[]{identifier, foundObjects.size(), query.debugDump()});

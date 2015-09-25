@@ -20,6 +20,7 @@ import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
 import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeResultHandler;
+import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeTaskHandler;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -659,6 +660,8 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
             stat.append(", deleted: ").append(duplicateShadowsDeleted.size());
             // TODO report the duplicates that remain
         }
+
+        result.summarize();         // there can be many 'search owner' subresults
 
         return stat.toString() + "\n" + details.toString();
     }

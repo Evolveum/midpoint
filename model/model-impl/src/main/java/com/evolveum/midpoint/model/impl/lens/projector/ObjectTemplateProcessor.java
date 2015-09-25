@@ -36,7 +36,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.ActivationComputer;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
@@ -70,7 +69,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingTargetDeclarationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateItemDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingEvaluationPhaseType;
@@ -190,7 +188,7 @@ public class ObjectTemplateProcessor {
 			PrismObject<ObjectTemplateType> includeObject = includeRef.asReferenceValue().getObject();
 			if (includeObject == null) {
 				ObjectTemplateType includeObjectType = modelObjectResolver.resolve(includeRef, ObjectTemplateType.class,
-						null, "include reference in "+objectTemplateType + " in " + contextDesc, result);
+						null, "include reference in "+objectTemplateType + " in " + contextDesc, task, result);
 				includeObject = includeObjectType.asPrismObject();
 				// Store resolved object for future use (e.g. next waves).
 				includeRef.asReferenceValue().setObject(includeObject);
@@ -296,7 +294,7 @@ public class ObjectTemplateProcessor {
 			PrismObject<ObjectTemplateType> includeObject = includeRef.asReferenceValue().getObject();
 			if (includeObject == null) {
 				ObjectTemplateType includeObjectType = modelObjectResolver.resolve(includeRef, ObjectTemplateType.class, 
-						null, "include reference in "+objectTemplateType + " in " + contextDesc, result);
+						null, "include reference in "+objectTemplateType + " in " + contextDesc, task, result);
 				includeObject = includeObjectType.asPrismObject();
 				// Store resolved object for future use (e.g. next waves).
 				includeRef.asReferenceValue().setObject(includeObject);
@@ -362,12 +360,12 @@ public class ObjectTemplateProcessor {
 				continue;
 			}
 			Mapping<V,D> mapping = LensUtil.createFocusMapping(mappingFactory, context, mappingType, objectTemplateType, userOdo, 
-					null, iteration, iterationToken, context.getSystemConfiguration(), now, contextDesc, result);
+					null, iteration, iterationToken, context.getSystemConfiguration(), now, contextDesc, task, result);
 			if (mapping == null) {
 				continue;
 			}
 			
-			Boolean timeConstraintValid = mapping.evaluateTimeConstraintValid(result);
+			Boolean timeConstraintValid = mapping.evaluateTimeConstraintValid(task, result);
 			
 			if (timeConstraintValid != null && !timeConstraintValid) {
 				// Delayed mapping. Just schedule recompute time

@@ -108,6 +108,9 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
     public ImportAccountsFromResourceTaskHandler() {
         super("Import from resource", OperationConstants.IMPORT_ACCOUNTS_FROM_RESOURCE);
         setLogFinishInfo(true);
+        setPreserveStatistics(false);
+        setEnableIterationStatistics(true);
+        setEnableSynchronizationStatistics(true);
     }
 
     @PostConstruct

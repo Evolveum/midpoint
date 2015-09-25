@@ -1404,6 +1404,13 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     }
 
     @Override
+    public Task getLocallyRunningTaskByIdentifier(String lightweightIdentifier) {
+        synchronized (locallyRunningTaskInstancesMap) {
+            return locallyRunningTaskInstancesMap.get(lightweightIdentifier);
+        }
+    }
+
+    @Override
     public void stopScheduler(String nodeIdentifier, OperationResult parentResult) {
         executionManager.stopScheduler(nodeIdentifier, parentResult);
     }

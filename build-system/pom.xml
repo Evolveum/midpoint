@@ -58,7 +58,7 @@
         <mockito.version>1.10.8</mockito.version>
         <quartz.version>2.1.3</quartz.version>
         <selenium.version>1.0.1</selenium.version>
-        <slf4j.version>1.7.10</slf4j.version>
+        <slf4j.version>1.7.12</slf4j.version>
         <spring.version>4.0.6.RELEASE</spring.version>
         <spring.security.version>3.2.5.RELEASE</spring.security.version>
         <testng.version>6.8.8</testng.version>
@@ -77,6 +77,8 @@
         <connid.version>1.4.1.23</connid.version>
         <jasper.version>6.0.0</jasper.version>
         <derby.version>10.11.1.1</derby.version>
+        <wro4j.version>1.7.1</wro4j.version>
+        <jackson.version>2.3.3</jackson.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -121,17 +123,39 @@
                 <groupId>org.apache.wicket</groupId>
                 <artifactId>wicket-datetime</artifactId>
                 <version>${wicket.version}</version>
+                <exclusions>
+					<exclusion> <!-- Conflicting version with activiti -->
+                        <groupId>joda-time</groupId>
+                        <artifactId>joda-time</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
-
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-email</artifactId>
                 <version>${commons-email.version}</version>
+                <exclusions>
+					<exclusion> <!-- Conflicting version with itself! -->
+                        <groupId>javax.activation</groupId>
+                        <artifactId>activation</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency> <!-- Explicit version -->
+                <groupId>javax.activation</groupId>
+                <artifactId>activation</artifactId>
+                <version>1.1.1</version>
             </dependency>
             <dependency>
                 <groupId>org.activiti</groupId>
                 <artifactId>activiti-engine</artifactId>
                 <version>${activiti-engine.version}</version>
+                <exclusions>
+					<exclusion> <!-- Conflicting version with direct dependency -->
+                        <groupId>com.fasterxml.jackson.core</groupId>
+                        <artifactId>jackson-databind</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.activiti</groupId>
@@ -167,6 +191,12 @@
                 <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-core</artifactId>
                 <version>${hibernate.version}</version>
+                <exclusions>
+					<exclusion> <!-- Version conflict with xalan -->
+                        <groupId>xml-apis</groupId>
+                        <artifactId>xml-apis</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.hibernate</groupId>
@@ -228,6 +258,16 @@
                 <groupId>commons-configuration</groupId>
                 <artifactId>commons-configuration</artifactId>
                 <version>1.6</version>
+                <exclusions>
+					<exclusion> <!-- Conflicting version with Spring core -->
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                    <exclusion> <!-- Conflicting version with Jasper Reports -->
+                        <groupId>commons-digester</groupId>
+                        <artifactId>commons-digester</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>commons-io</groupId>
@@ -357,6 +397,16 @@
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-rt-ws-security</artifactId>
                 <version>${cxf.version}</version>
+                <exclusions>
+					<exclusion> <!-- Version in dependency of org.apache.neethi:neethi conflicts with cxf-core -->
+                        <groupId>org.codehaus.woodstox</groupId>
+                        <artifactId>woodstox-core-asl</artifactId>
+                    </exclusion>
+                    <exclusion> <!-- Version in dependency of org.opensaml:opensaml conflicts with activiti-engine -->
+                        <groupId>joda-time</groupId>
+                        <artifactId>joda-time</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
 	  			<groupId>org.apache.cxf</groupId>
@@ -413,6 +463,12 @@
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-ldap</artifactId>
                 <version>1.4.2.0-SNAPSHOT</version>
+                <exclusions>
+					<exclusion> <!-- Version in dependency of org.apache.servicemix.bundles:org.apache.servicemix.bundles.dom4j conflicts with xalan -->
+                        <groupId>xml-apis</groupId>
+                        <artifactId>xml-apis</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
@@ -467,10 +523,6 @@
 				<artifactId>xmlsec</artifactId>
 				<version>${xmlsec.version}</version>
 			</dependency>
-            
-
-
-
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-aspects</artifactId>
@@ -618,6 +670,10 @@
                         <groupId>com.fasterxml.jackson.core</groupId>
                         <artifactId>jackson-annotations</artifactId>
                     </exclusion>
+                    <exclusion> <!-- Conflicting version with Spring core -->
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
                     <!-- use in midPoint 3.2
                     <exclusion>
                         <groupId>org.apache.lucene</groupId>
@@ -637,15 +693,178 @@
                     </exclusion> -->
                 </exclusions>
             </dependency>
-
- <!-- report dependency (needed for microsoft office formats) -->
+ 			<!-- report dependency (needed for microsoft office formats) -->
             <dependency>
 				<groupId>org.apache.poi</groupId>
 				<artifactId>poi</artifactId>
 				<version>3.10.1</version>
 			</dependency>
-			            
-
+			<dependency>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-core</artifactId>
+				<version>${jackson.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-annotations</artifactId>
+				<version>${jackson.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-databind</artifactId>
+				<version>${jackson.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.module</groupId>
+				<artifactId>jackson-module-jaxb-annotations</artifactId>
+				<version>${jackson.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.dataformat</groupId>
+				<artifactId>jackson-dataformat-yaml</artifactId>
+				<version>${jackson.version}</version>
+			</dependency>
+			<dependency>
+	            <groupId>org.apache.ws.xmlschema</groupId>
+	            <artifactId>xmlschema-core</artifactId>
+	            <version>2.1.0</version>
+	        </dependency>
+	        <dependency>
+	            <groupId>org.jvnet.jaxb2_commons</groupId>
+	            <artifactId>jaxb2-basics-runtime</artifactId>
+	            <version>0.6.3</version>
+	        </dependency>
+			<dependency>
+				<groupId>org.apache.maven</groupId>
+				<artifactId>maven-plugin-api</artifactId>
+				<version>2.0</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.maven</groupId>
+				<artifactId>maven-project</artifactId>
+				<version>2.2.1</version>
+				<exclusions>
+                    <exclusion>
+                        <groupId>org.codehaus.plexus</groupId>
+						<artifactId>plexus-container-default</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.codehaus.plexus</groupId>
+						<artifactId>plexus-interpolation</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.codehaus.plexus</groupId>
+						<artifactId>plexus-interactivity-api</artifactId>
+                    </exclusion>
+                </exclusions>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.maven</groupId>
+				<artifactId>maven-archiver</artifactId>
+				<version>2.6</version>
+				<exclusions>
+                    <exclusion>
+                        <groupId>org.codehaus.plexus</groupId>
+						<artifactId>plexus-container-default</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.slf4j</groupId> <!-- We do not want multiple SLF4J implementations -->
+						<artifactId>slf4j-jdk14</artifactId>
+                    </exclusion>
+                </exclusions>
+			</dependency>
+			<dependency>
+				<groupId>org.codehaus.plexus</groupId>
+				<artifactId>plexus-utils</artifactId>
+				<version>3.0.20</version>
+			</dependency>
+			<dependency>
+				<groupId>org.codehaus.plexus</groupId>
+				<artifactId>plexus-container-default</artifactId>
+				<version>1.0-alpha-30</version>
+			</dependency>
+			<dependency>
+				<groupId>org.codehaus.plexus</groupId>
+				<artifactId>plexus-interactivity-api</artifactId>
+				<version>1.0-alpha-6</version>
+				<exclusions>
+                    <exclusion>
+                        <groupId>org.codehaus.plexus</groupId>
+						<artifactId>plexus-classworlds</artifactId>
+                    </exclusion>
+                </exclusions>
+			</dependency>
+			<dependency>
+	        	<groupId>org.webjars</groupId>
+	    		<artifactId>webjars-locator</artifactId>
+	    		<version>0.15</version>
+	        </dependency>
+	        <dependency>
+	            <groupId>ro.isdc.wro4j</groupId>
+	            <artifactId>wro4j-core</artifactId>
+	            <version>${wro4j.version}</version>
+	            <exclusions>
+	                <exclusion>
+	                    <artifactId>slf4j-api</artifactId>
+	                    <groupId>org.slf4j</groupId>
+	                </exclusion>
+	                <exclusion> <!-- Version conflict with direct dependency -->
+					    <groupId>org.webjars</groupId>
+	    				<artifactId>webjars-locator</artifactId>
+	                </exclusion>
+	            </exclusions>
+	        </dependency>
+	        <dependency>
+	            <groupId>ro.isdc.wro4j</groupId>
+	            <artifactId>wro4j-extensions</artifactId>
+	            <version>${wro4j.version}</version>
+	            <exclusions>
+	                <exclusion>
+	                    <groupId>org.slf4j</groupId>
+	                    <artifactId>slf4j-api</artifactId>
+	                </exclusion>
+	                <exclusion>
+	                    <groupId>org.slf4j</groupId>
+	                    <artifactId>slf4j-log4j12</artifactId>
+	                </exclusion>
+	            </exclusions>
+	        </dependency>
+	        <dependency>
+				<groupId>org.codehaus.groovy.modules.http-builder</groupId>
+				<artifactId>http-builder</artifactId>
+				<version>0.7</version>
+				 <exclusions>
+	                <exclusion> <!-- Version conflict -->
+	                    <groupId>commons-logging</groupId>
+	                    <artifactId>commons-logging</artifactId>
+	                </exclusion>
+	            </exclusions>
+			</dependency>
+			<dependency>
+				<groupId>joda-time</groupId>
+				<artifactId>joda-time</artifactId>
+				<version>2.6</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.directory.api</groupId>
+				<artifactId>api-all</artifactId>
+				<version>1.0.0-M32-SNAPSHOT</version>
+				<exclusions>
+	                <exclusion>
+	                    <artifactId>slf4j-api</artifactId>
+	                    <groupId>org.slf4j</groupId>
+	                </exclusion>
+	                <exclusion> <!-- Version conflict with xalan -->
+					    <groupId>xml-apis</groupId>
+	    				<artifactId>xml-apis</artifactId>
+	                </exclusion>
+	            </exclusions>
+			</dependency>
+			<dependency>
+				<groupId>javax.mail</groupId>
+				<artifactId>javax.mail-api </artifactId>
+				<version>1.5.4</version>
+			</dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -919,6 +1138,24 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-shade-plugin</artifactId>
                         <version>2.3</version>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-enforcer-plugin</artifactId>
+                        <version>1.4.1</version>
+						<executions>
+							<execution>
+								<id>enforce</id>
+								<configuration>
+									<rules>
+										<dependencyConvergence />
+									</rules>
+								</configuration>
+								<goals>
+									<goal>enforce</goal>
+								</goals>
+							</execution>
+						</executions>
                     </plugin>
                 </plugins>
             </build>

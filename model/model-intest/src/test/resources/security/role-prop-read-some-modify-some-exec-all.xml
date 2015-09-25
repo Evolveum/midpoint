@@ -1,0 +1,50 @@
+<!--
+  ~ Copyright (c) 2014-2015 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<role oid="00000000-0000-0000-0000-00000000ad08"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <name>Prop Read Some Modify Some Exec All</name>    
+    <authorization>
+    	<name>a1</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    	<phase>request</phase>
+    	<item>c:name</item>
+    	<item>c:fullName</item>
+    	<item>c:activation/c:administrativeStatus</item>
+    	<item>c:assignment</item>
+    	<item>c:familyName</item>
+    </authorization>
+    <authorization>
+    	<name>a2</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    	<phase>execution</phase>
+    </authorization>
+    <authorization>
+    	<name>a3</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+    	<phase>request</phase>
+    	<item>c:fullName</item>
+    	<item>c:additionalName</item>
+    	<item>c:description</item>
+    	<item>c:costCenter</item>
+    </authorization>
+    <authorization>
+    	<name>a4</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+    	<phase>execution</phase>
+    </authorization>
+</role>
