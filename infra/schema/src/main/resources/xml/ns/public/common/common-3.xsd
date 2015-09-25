@@ -8547,7 +8547,6 @@
 						</xsd:annotation>
                     </xsd:element>
                     
-
                     <xsd:element name="connectorFramework" minOccurs="0" maxOccurs="1" type="tns:ConnectorFrameworkType">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -8599,6 +8598,13 @@
                         </xsd:annotation>
                     </xsd:element>
 
+					<xsd:element name="adminGuiConfiguration" type="tns:AdminGuiConfigurationType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Administration GUI configuration.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -8629,7 +8635,107 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    
+    <xsd:complexType name="AdminGuiConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Administration GUI configuration.
+                Note: This complexType is NOT a container. We need to guarantee ordering of some sub-items (e.g. links)
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="additionalMenuLink" type="tns:RichHyperlinkType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Extra menu item that will appear in addition to standard menu items.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="userDashboardLink" type="tns:RichHyperlinkType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Application or shortcut links placed on end-user dashboard.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
 
+	<xsd:complexType name="RichHyperlinkType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Hyperlink with a label, menu and other data that control a rich presentation of the link.
+                Not all parameters that are present in this data strucutre might be supported in all the places
+                where a link is used. Which parameter will be used depends on where exactly is the link used and
+                how it is rendered (as an menu item, application launch button, etc.)
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="targetUrl" type="xsd:string" minOccurs="1" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                    	URL of the link target. It can be absolute URL with method specification or it can be relative URL.
+                    	If the URL is relative, it is assumed that it is relative to the application root URL context.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="label" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                    	Human-readable label to display with the link (or a key to the localization file).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="icon" type="tns:IconType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                    	Icon to display for this link.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="color" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                    	Primary color that will be used to render this link in case that multiple color options are supported.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="authorization" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Authorization needed to display this link. If specified, the the link will be displayed
+                        only if the active user has the authorization. If not specified then the link will be
+                        always displayed.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+	<xsd:complexType name="IconType">
+        <xsd:annotation>
+            <xsd:documentation>
+                User interface icon specification.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="imageUrl" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                    	URL of the image to use as an icon. It is expected that this will be a relative URL
+                    	that is relative to the application root URL context.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="cssClass" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                    	CSS class to use for icon representation.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
 
     <xsd:complexType name="ObjectPolicyConfigurationType">
 		<xsd:annotation>
