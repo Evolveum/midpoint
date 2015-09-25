@@ -299,11 +299,12 @@ public class PageUser extends PageAdminFocus {
     protected void setSpecificResponsePage() {
         StringValue orgReturn = getPageParameters().get(PARAM_RETURN_PAGE);
         if (PageOrgTree.PARAM_ORG_RETURN.equals(orgReturn.toString())) {
-            setResponsePage(PageOrgTree.class);
+        	
+            setResponsePage(getSessionStorage().getPreviousPage());
         } else if (getPreviousPage() != null) {
             goBack(PageDashboard.class);        // the class parameter is not necessary, is previousPage is set
         } else {
-            setResponsePage(new PageUsers(false));
+            setResponsePage(getSessionStorage().getPreviousPage());
         }
     }
 
@@ -362,5 +363,11 @@ public class PageUser extends PageAdminFocus {
 	@Override
 	protected Class getCompileTimeClass() {
 		return UserType.class;
+	}
+
+	@Override
+	protected void initTabs(List tabs) {
+		// TODO Auto-generated method stub
+		
 	}
 }

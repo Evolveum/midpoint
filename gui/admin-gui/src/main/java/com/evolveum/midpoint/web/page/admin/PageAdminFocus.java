@@ -16,8 +16,11 @@ import org.apache.wicket.Page;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.Image;
@@ -85,6 +88,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorPanel;
@@ -108,6 +112,7 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.reports.component.ReportConfigurationPanel;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
@@ -183,6 +188,7 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 	    private static final String OPERATION_LOAD_SHADOW = DOT_CLASS + "loadShadow";
 	    
 	    protected static final String ID_MAIN_FORM = "mainForm";
+	    private static final String ID_TAB_PANEL = "tabPanel";
 	    private static final String ID_ASSIGNMENT_EDITOR = "assignmentEditor";
 	    private static final String ID_ASSIGNMENT_LIST = "assignmentList";
 	    private static final String ID_TASK_TABLE = "taskTable";
@@ -261,6 +267,8 @@ public LoadableModel<ObjectWrapper> getFocusModel() {
 	 
 	 protected abstract void initCustomLayout(Form mainForm);
 	 
+	 protected abstract void initTabs(List<ITab> tabs);
+	 
 	 private void initLayout(){
 		 final Form mainForm = new Form(ID_MAIN_FORM, true);
 	        mainForm.setMaxSize(MidPointApplication.USER_PHOTO_MAX_FILE_SIZE);
@@ -269,38 +277,107 @@ public LoadableModel<ObjectWrapper> getFocusModel() {
 
 	        progressReporter = ProgressReporter.create(this, mainForm, "progressPanel");
 
-	        PrismObjectPanel userForm = new PrismObjectPanel(ID_FOCUS_FORM, focusModel, new PackageResourceReference(
-	                ImgResources.class, ImgResources.USER_PRISM), mainForm, this) {
+//	        PrismObjectPanel userForm = new PrismObjectPanel(ID_FOCUS_FORM, focusModel, new PackageResourceReference(
+//	                ImgResources.class, ImgResources.USER_PRISM), mainForm, this) {
+//
+//	            @Override
+//	            protected IModel<String> createDescription(IModel<ObjectWrapper> model) {
+//	                return createStringResource("pageAdminFocus.description");
+//	            }
+//	        };
+//	        mainForm.add(userForm);
+	        
+	        List<ITab> tabs = new ArrayList<>();
+	        tabs.add(new AbstractTab(createStringResource("pageAdminFocus.basic")) {
 
 	            @Override
-	            protected IModel<String> createDescription(IModel<ObjectWrapper> model) {
-	                return createStringResource("pageAdminFocus.description");
+	            public WebMarkupContainer getPanel(String panelId) {
+	                return new BaseFocusPanel<T>(panelId, mainForm, focusModel, shadowModel, assignmentsModel, PageAdminFocus.this) {
+	                	
+	                	@Override
+	                	protected T createNewFocus() {
+	                		return PageAdminFocus.this.createNewFocus();
+	                	}
+
+						@Override
+						protected void initCustomLayout(Form mainForm) {
+							PageAdminFocus.this.initCustomLayout(mainForm);
+							
+						}
+
+						@Override
+						protected void reviveCustomModels() throws SchemaException {
+							PageAdminFocus.this.reviveCustomModels();
+							
+						}
+
+						@Override
+						protected Class<T> getCompileTimeClass() {
+							return PageAdminFocus.this.getCompileTimeClass();
+						}
+
+						@Override
+						protected Class getRestartResponsePage() {
+							return PageAdminFocus.this.getRestartResponsePage();
+						}
+					};
+	            }
+	        });
+	        
+	        initTabs(tabs);
+	        
+	        TabbedPanel focusTabPanel = new TabbedPanel(ID_TAB_PANEL, tabs){
+	            @Override
+	            protected WebMarkupContainer newLink(String linkId, final int index) {
+	                return new AjaxSubmitLink(linkId) {
+
+	                	@Override
+	                	protected void onError(AjaxRequestTarget target,
+	                			org.apache.wicket.markup.html.form.Form<?> form) {
+	                		super.onError(target, form);
+	                		 target.add(getFeedbackPanel());
+	                	}
+	                  
+	                	@Override
+	                	protected void onSubmit(AjaxRequestTarget target,
+	                			org.apache.wicket.markup.html.form.Form<?> form) {
+	                		 super.onSubmit(target, form);
+
+		                        setSelectedTab(index);
+		                        if (target != null) {
+		                            target.add(findParent(TabbedPanel.class));
+		                        }
+	                	}
+
+	                };
 	            }
 	        };
-	        mainForm.add(userForm);
+	        focusTabPanel.setOutputMarkupId(true);
 
-	        WebMarkupContainer shadows = new WebMarkupContainer(ID_SHADOWS);
-	        shadows.setOutputMarkupId(true);
-	        mainForm.add(shadows);
-	        initShadows(shadows);
+	        mainForm.add(focusTabPanel);
 
-	        WebMarkupContainer assignments = new WebMarkupContainer(ID_ASSIGNMENTS);
-	        assignments.setOutputMarkupId(true);
-	        mainForm.add(assignments);
-	        initAssignments(assignments);
-
-	        WebMarkupContainer tasks = new WebMarkupContainer(ID_TASKS);
-	        tasks.setOutputMarkupId(true);
-	        mainForm.add(tasks);
-	        initTasks(tasks);
-
+//	        WebMarkupContainer shadows = new WebMarkupContainer(ID_SHADOWS);
+//	        shadows.setOutputMarkupId(true);
+//	        mainForm.add(shadows);
+//	        initShadows(shadows);
+//
+//	        WebMarkupContainer assignments = new WebMarkupContainer(ID_ASSIGNMENTS);
+//	        assignments.setOutputMarkupId(true);
+//	        mainForm.add(assignments);
+//	        initAssignments(assignments);
+//
+//	        WebMarkupContainer tasks = new WebMarkupContainer(ID_TASKS);
+//	        tasks.setOutputMarkupId(true);
+//	        mainForm.add(tasks);
+//	        initTasks(tasks);
+//
 	        initButtons(mainForm);
-
-	        initResourceModal();
-	        initAssignableModal();
-	        initConfirmationDialogs();
-	        
-	        initCustomLayout(mainForm);
+//
+//	        initResourceModal();
+//	        initAssignableModal();
+//	        initConfirmationDialogs();
+//	        
+//	        initCustomLayout(mainForm);
 	 }
 	 public ObjectWrapper getFocusWrapper() {
 		return focusModel.getObject();
@@ -701,7 +778,7 @@ public LoadableModel<ObjectWrapper> getFocusModel() {
 	                    }
 
 	                    if (delta.isEmpty() && ModelExecuteOptions.isReconcile(options)) {
-	                        ObjectDelta emptyDelta = ObjectDelta.createEmptyModifyDelta(UserType.class,
+	                        ObjectDelta emptyDelta = ObjectDelta.createEmptyModifyDelta(getCompileTimeClass(),
 	                                userWrapper.getObject().getOid(), getPrismContext());
 	                        deltas.add(emptyDelta);
 

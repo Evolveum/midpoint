@@ -17,58 +17,11 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-<div wicket:id="resourcePopup" />
-	<div wicket:id="assignablePopup" />
-	<div wicket:id="assignableOrgPopup" />
-
-	<div wicket:id="confirmDeleteShadowPopup"/>
-    <div wicket:id="confirmDeleteAssignmentPopup"/>
-
    
     <form wicket:id="mainForm" autocomplete="off" class="form-horizontal">
 
-        <div class="row">
-            <div class="col-md-6">
-                <div wicket:id="focusForm"/>
-                <div class="form-group" wicket:id="minAssignmentsConfig" /> 
-                <div class="form-group" wicket:id="maxAssignmentsConfig" />
-            </div>
-            <div class="col-md-6">
-                <div wicket:id="shadows">
-                    <div class="row assignable-header">
-                        <div class="col-xs-10">
-                            <input type="checkbox" wicket:id="shadowCheckAll"/>
-                            <h3><wicket:message key="pageRole.shadows"/></h3>
-                        </div>
-                        <div class="col-xs-2 cog" wicket:id="shadowMenu" about="shadowMenu" />
-                    </div>
-                    <div wicket:id="shadowList">
-                        <div wicket:id="shadow" />
-                    </div>
-                </div>
-                
-<!--                  <div wicket:id="inducementsPanel" /> -->
-
-                <div wicket:id="assignments" style="margin-top: 30px;">
-                    <div class="row assignable-header">
-                        <div class="col-xs-10">
-                            <input type="checkbox" wicket:id="assignmentCheckAll"/>
-                            <h3><wicket:message key="pageRole.assignments"/></h3>
-                        </div>
-                        <div class="col-xs-2 cog" wicket:id="assignmentMenu"/>
-                    </div>
-                    <div wicket:id="assignmentList">
-                        <div wicket:id="assignmentEditor" class="assignment-item" />
-                    </div>
-                </div>
-
-                <div wicket:id="tasks">
-                    <h3><wicket:message key="pageRole.tasks"/></h3>
-                    <div wicket:id="taskTable"/>
-                </div>
-            </div>
-        </div>
-
+          <div wicket:id="tabPanel" class="tabbable" />
+          
         <div style="margin: 20px 0;" class="form-group" wicket:id="executeOptions" />
 
         <div wicket:id="progressPanel">[Status indicator here]</div>

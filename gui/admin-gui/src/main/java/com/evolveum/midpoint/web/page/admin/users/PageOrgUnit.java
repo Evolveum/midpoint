@@ -24,6 +24,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -212,7 +213,6 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 
 
 
-
 	private PrismObjectDefinition getOrgTypeDefinition() {
 		return getFocusWrapper().getObject().getDefinition();
 	}
@@ -250,6 +250,12 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 	@Override
 	protected Class getRestartResponsePage() {
 		return PageOrgTree.class;
+	}
+
+	@Override
+	protected void initTabs(List<ITab> tabs) {
+		super.initTabs(tabs);
+		
 	}
 
 }

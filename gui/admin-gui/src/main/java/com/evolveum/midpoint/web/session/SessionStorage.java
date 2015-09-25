@@ -47,6 +47,8 @@ public class SessionStorage implements Serializable {
     private static final String KEY_REPORTS = "reports";
     private static final String KEY_RESOURCES = "resources";
     private static final String KEY_ROLES = "roles";
+    private static final String KEY_ROLE_MEMBERS = "roleMembers";
+    
     private static final String KEY_TASKS = "tasks";
 
     /**
@@ -96,6 +98,13 @@ public class SessionStorage implements Serializable {
             pageStorageMap.put(KEY_ROLES, new RolesStorage());
         }
         return (RolesStorage)pageStorageMap.get(KEY_ROLES);
+    }
+    
+    public RoleMembersStorage getRoleMembers() {
+    	if (pageStorageMap.get(KEY_ROLE_MEMBERS) == null) {
+            pageStorageMap.put(KEY_ROLE_MEMBERS, new RoleMembersStorage());
+        }
+        return (RoleMembersStorage)pageStorageMap.get(KEY_ROLE_MEMBERS);
     }
 
     public TasksStorage getTasks() {

@@ -2,6 +2,9 @@ package com.evolveum.midpoint.web.page.admin;
 
 import java.util.List;
 
+import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -33,11 +36,11 @@ super.prepareFocusDeltaForModify(focusDelta);
 		PrismObjectDefinition objectDefinition = registry
 				.findObjectDefinitionByCompileTimeClass(getCompileTimeClass());
 		
-		PrismContainerDefinition inducementDef = objectDefinition
-				.findContainerDefinition(OrgType.F_INDUCEMENT);
-		AssignmentTablePanel inducementPanel = (AssignmentTablePanel) get(createComponentPath(ID_MAIN_FORM,
-				ID_INDUCEMENTS_TABLE));
-		inducementPanel.handleAssignmentDeltas(focusDelta, inducementDef, AbstractRoleType.F_INDUCEMENT);
+//		PrismContainerDefinition inducementDef = objectDefinition
+//				.findContainerDefinition(OrgType.F_INDUCEMENT);
+//		AssignmentTablePanel inducementPanel = (AssignmentTablePanel) get(createComponentPath(ID_MAIN_FORM,
+//				ID_INDUCEMENTS_TABLE));
+//		inducementPanel.handleAssignmentDeltas(focusDelta, inducementDef, AbstractRoleType.F_INDUCEMENT);
 	}
 	
 	@Override
@@ -47,36 +50,59 @@ super.prepareFocusDeltaForModify(focusDelta);
 		SchemaRegistry registry = getPrismContext().getSchemaRegistry();
 		PrismObjectDefinition orgDef = registry
 				.findObjectDefinitionByCompileTimeClass(getCompileTimeClass());
-		PrismContainerDefinition inducementDef = orgDef.findContainerDefinition(AbstractRoleType.F_INDUCEMENT);
-		AssignmentTablePanel inducementPanel = (AssignmentTablePanel) get(createComponentPath(ID_MAIN_FORM,
-				ID_INDUCEMENTS_TABLE));
-		inducementPanel.handleAssignmentsWhenAdd(focus, inducementDef, focus.asObjectable()
-				.getInducement());
+//		PrismContainerDefinition inducementDef = orgDef.findContainerDefinition(AbstractRoleType.F_INDUCEMENT);
+//		AssignmentTablePanel inducementPanel = (AssignmentTablePanel) get(createComponentPath(ID_MAIN_FORM,
+//				ID_INDUCEMENTS_TABLE));
+//		inducementPanel.handleAssignmentsWhenAdd(focus, inducementDef, focus.asObjectable()
+//				.getInducement());
 
 	}
 	
 	@Override
 	protected void initCustomLayout(Form mainForm) {
-		AssignmentTablePanel inducements = initInducements();
-		mainForm.add(inducements);
+//		AssignmentTablePanel inducements = initInducements();
+//		mainForm.add(inducements);
 		
 	}
-
-
-	private AssignmentTablePanel initInducements() {
-		AssignmentTablePanel inducements = new AssignmentTablePanel(ID_INDUCEMENTS_TABLE,
-				new Model<AssignmentTableDto>(), createStringResource("PageOrgUnit.title.inducements")) {
-
+	
+	@Override
+	protected void initTabs(List<ITab> tabs) {
+		tabs.add(new AbstractTab(createStringResource("pageAbstractRole.inducements")) {
+			
 			@Override
-			public List<AssignmentType> getAssignmentTypeList() {
-				return ((AbstractRoleType) getFocusWrapper().getObject().asObjectable()).getInducement();
-			}
+			public WebMarkupContainer getPanel(String panelId) {
+				return new AssignmentTablePanel(panelId,
+						new Model<AssignmentTableDto>(), createStringResource("pageAbstractRole.inducements")) {
 
-			@Override
-			public String getExcludeOid() {
-				return getFocusWrapper().getObject().asObjectable().getOid();
+					@Override
+					public List<AssignmentType> getAssignmentTypeList() {
+						return ((AbstractRoleType) getFocusWrapper().getObject().asObjectable()).getInducement();
+					}
+
+					@Override
+					public String getExcludeOid() {
+						return getFocusWrapper().getObject().asObjectable().getOid();
+					}
+				};
 			}
-		};
-		return inducements;
+		});
 	}
+
+
+//	private AssignmentTablePanel initInducements() {
+//		AssignmentTablePanel inducements = new AssignmentTablePanel(ID_INDUCEMENTS_TABLE,
+//				new Model<AssignmentTableDto>(), createStringResource("PageOrgUnit.title.inducements")) {
+//
+//			@Override
+//			public List<AssignmentType> getAssignmentTypeList() {
+//				return ((AbstractRoleType) getFocusWrapper().getObject().asObjectable()).getInducement();
+//			}
+//
+//			@Override
+//			public String getExcludeOid() {
+//				return getFocusWrapper().getObject().asObjectable().getOid();
+//			}
+//		};
+//		return inducements;
+//	}
 }

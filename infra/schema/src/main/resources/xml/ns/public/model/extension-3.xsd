@@ -21,6 +21,7 @@
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             elementFormDefault="qualified">
 
@@ -38,6 +39,15 @@
         <xsd:annotation>
             <xsd:documentation>
                 Query-related schema.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:import>
+    
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"
+                schemaLocation="http://prism.evolveum.com/xml/ns/public/types-3">
+        <xsd:annotation>
+            <xsd:documentation>
+                Types-related schema, e.g. ObjectDeltaType, ...
             </xsd:documentation>
         </xsd:annotation>
     </xsd:import>
@@ -108,6 +118,18 @@
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
+    
+    <xsd:element name="objectDelta" type="t:ObjectDeltaType">
+        <xsd:annotation>
+            <xsd:documentation>
+                QName of an object class to process in the import task.
+                E.g. during import from resource.
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
 
     <xsd:element name="workerThreads" type="xsd:int">
         <xsd:annotation>
@@ -124,6 +146,7 @@
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
+
 
     <xsd:element name="objectclass" type="xsd:QName">
         <xsd:annotation>
