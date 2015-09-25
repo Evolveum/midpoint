@@ -2039,7 +2039,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		// There may be metadata modification, we tolerate that
 		Collection<? extends ItemDelta<?,?>> metadataDelta = focusDelta.findItemDeltasSubPath(new ItemPath(UserType.F_METADATA));
 		if (metadataDelta != null && !metadataDelta.isEmpty()) {
-			expectedModifications++;
+			expectedModifications+=metadataDelta.size();
 		}
 		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ENABLE_TIMESTAMP)) != null) {
 			expectedModifications++;
@@ -2094,6 +2094,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		if (effectiveStatusDelta != null) {
 			expectedModifications++;
 			PrismAsserts.assertReplace(effectiveStatusDelta, expectedEfficientActivation);
+		}
+		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ROLE_MEMBERSHIP_REF)) != null) {
+			expectedModifications++;
 		}
 		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ITERATION)) != null) {
 			expectedModifications++;

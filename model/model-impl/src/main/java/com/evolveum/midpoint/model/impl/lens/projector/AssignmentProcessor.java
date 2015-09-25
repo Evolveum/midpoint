@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -63,6 +64,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -1620,6 +1622,10 @@ public class AssignmentProcessor {
 		}
 		Collection<PrismReferenceValue> newValues = new ArrayList<>();
 		DeltaSetTriple<EvaluatedAssignmentImpl> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
+		if (evaluatedAssignmentTriple == null) {
+			return;
+		}
+
 		for (EvaluatedAssignmentImpl<?> evalAssignment: evaluatedAssignmentTriple.getNonNegativeValues()) {
 			for (PrismReferenceValue membershipRefVal: evalAssignment.getMembershipRefVals()) {
 				boolean found = false;
@@ -1638,10 +1644,26 @@ public class AssignmentProcessor {
 		}
 		
 		PrismObject<F> focusOld = focusContext.getObjectOld();
-		if (focusOld != null) {
-			List<ObjectReferenceType> roleMembershipRefsOld = ((FocusType)focusOld.asObjectable()).getRoleMembershipRef();
-			if (MiscUtil.unorderedCollectionEquals(newValues, roleMembershipRefsOld)) {
+		if (focusOld == null) {
+			if (newValues.isEmpty()) {
 				return;
+			}
+		} else {
+			PrismReference roleMemPrismRef = focusOld.findReference(FocusType.F_ROLE_MEMBERSHIP_REF);
+			if (roleMemPrismRef == null || roleMemPrismRef.isEmpty()) {
+				if (newValues.isEmpty()) {
+					return;
+				}	
+			} else {				
+				Comparator<PrismReferenceValue> comparator = new Comparator<PrismReferenceValue>() {
+					@Override
+					public int compare(PrismReferenceValue a, PrismReferenceValue b) {
+						return a.getOid().compareTo(b.getOid());
+					}
+				};
+				if (MiscUtil.unorderedCollectionEquals(newValues, roleMemPrismRef.getValues(), comparator)) {
+					return;
+				}
 			}
 		}
 		
