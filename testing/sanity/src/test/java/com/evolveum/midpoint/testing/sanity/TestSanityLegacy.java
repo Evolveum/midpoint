@@ -35,11 +35,6 @@ import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -127,7 +122,6 @@ import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ObjectChecker;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
-import com.evolveum.midpoint.test.util.DerbyController;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -137,7 +131,6 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaListType;
@@ -1107,7 +1100,7 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
 
         // WHEN
 
-        provisioningService.searchObjectsIterative(ShadowType.class, q, null, handler, result);
+        provisioningService.searchObjectsIterative(ShadowType.class, q, null, handler, null, result);
 
         // THEN
 

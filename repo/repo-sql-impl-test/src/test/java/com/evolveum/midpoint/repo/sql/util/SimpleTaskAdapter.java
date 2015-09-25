@@ -26,22 +26,28 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
+import com.evolveum.midpoint.schema.statistics.OperationalInformation;
+import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
+import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.task.api.LightweightTaskHandler;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskBinding;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
 import com.evolveum.midpoint.task.api.TaskRecurrence;
-import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskWaitingReason;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UriStack;
@@ -653,6 +659,36 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
+    public OperationalInformation getOperationalInformation() {
+        return null;
+    }
+
+    @Override
+    public SynchronizationInformation getSynchronizationInformation() {
+        return null;
+    }
+
+    @Override
+    public IterativeTaskInformation getIterativeTaskInformation() {
+        return null;
+    }
+
+    @Override
+    public OperationalInformationType getAggregateOperationalInformation() {
+        return null;
+    }
+
+    @Override
+    public IterativeTaskInformationType getAggregateIterativeTaskInformation() {
+        return null;
+    }
+
+    @Override
+    public SynchronizationInformationType getAggregateSynchronizationInformation() {
+        return null;
+    }
+
+    @Override
     public Long getExpectedTotal() {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
@@ -665,5 +701,57 @@ public class SimpleTaskAdapter implements Task {
     @Override
     public void setExpectedTotalImmediate(Long value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
         //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public void recordState(String message) {
+    }
+
+    @Override
+    public void recordProvisioningOperation(String resourceOid, String resourceName, QName objectClassName, ProvisioningOperation operation, boolean success, int count, long duration) {
+    }
+
+    @Override
+    public void recordNotificationOperation(String transportName, boolean success, long duration) {
+    }
+
+    @Override
+    public void recordMappingOperation(String objectOid, String objectName, String mappingName, long duration) {
+    }
+
+    @Override
+    public void recordSynchronizationOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started, Throwable exception, SynchronizationInformation increment) {
+    }
+
+    @Override
+    public void recordSynchronizationOperationStart(String objectName, String objectDisplayName, QName objectType, String objectOid) {
+    }
+
+    @Override
+    public void resetOperationalInformation(OperationalInformationType value) {
+    }
+
+    @Override
+    public void resetSynchronizationInformation(SynchronizationInformationType value) {
+    }
+
+    @Override
+    public void resetIterativeTaskInformation(IterativeTaskInformationType value) {
+    }
+
+    @Override
+    public void recordIterativeOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started, Throwable exception) {
+    }
+
+    @Override
+    public void recordIterativeOperationStart(String objectName, String objectDisplayName, QName objectType, String objectOid) {
+    }
+
+    @Override
+    public void recordIterativeOperationEnd(ShadowType shadow, long started, Throwable exception) {
+    }
+
+    @Override
+    public void recordIterativeOperationStart(ShadowType shadow) {
     }
 }

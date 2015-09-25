@@ -285,7 +285,7 @@ class EntitlementConverter {
 						ShadowUtil.getHumanReadableName(resourceObject), query);
 			}
 			try {
-				connector.search(entitlementDef, query, handler, attributesToReturn, null, searchHierarchyConstraints, parentResult);
+				connector.search(entitlementDef, query, handler, attributesToReturn, null, searchHierarchyConstraints, subjectCtx, parentResult);
 			} catch (GenericFrameworkException e) {
 				throw new GenericConnectorException("Generic error in the connector " + connector + ". Reason: "
 						+ e.getMessage(), e);
@@ -499,7 +499,7 @@ class EntitlementConverter {
 				};
 				try {
 					LOGGER.trace("Searching for associations in deleted shadow, query: {}", query);
-					subjectCtx.getConnector(parentResult).search(entitlementOcDef, query, handler, attributesToReturn, null, searchHierarchyConstraints, parentResult);
+					subjectCtx.getConnector(parentResult).search(entitlementOcDef, query, handler, attributesToReturn, null, searchHierarchyConstraints, subjectCtx, parentResult);
 				} catch (TunnelException e) {
 					throw (SchemaException)e.getCause();
 				} catch (GenericFrameworkException e) {

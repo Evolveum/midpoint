@@ -20,7 +20,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;

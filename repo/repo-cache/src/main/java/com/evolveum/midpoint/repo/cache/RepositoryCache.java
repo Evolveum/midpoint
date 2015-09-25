@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SequenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -180,6 +181,7 @@ public class RepositoryCache implements RepositoryService {
 			for (PrismObject<T> object : objects) {
 				cacheObject(cache, object);
 			}
+			// TODO cloning before storing into cache?
 			cache.putQueryResult(type, query, objects, prismContext);
 		}
 		return objects;
@@ -215,9 +217,16 @@ public class RepositoryCache implements RepositoryService {
 	@Override
 	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-		repository.modifyObject(type, oid, modifications, parentResult);
-		// this changes the object. We are too lazy to apply changes ourselves, so just invalidate
-		// the object in cache
+		try {
+			repository.modifyObject(type, oid, modifications, parentResult);
+		} finally {
+			// this changes the object. We are too lazy to apply changes ourselves, so just invalidate
+			// the object in cache
+			invalidateCacheEntry(type, oid);
+		}
+	}
+
+	protected <T extends ObjectType> void invalidateCacheEntry(Class<T> type, String oid) {
 		Cache cache = getCache();
 		if (cache != null) {
 			cache.removeObject(oid);
@@ -228,11 +237,10 @@ public class RepositoryCache implements RepositoryService {
 	@Override
 	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult parentResult)
 			throws ObjectNotFoundException {
-		repository.deleteObject(type, oid, parentResult);
-		Cache cache = getCache();
-		if (cache != null) {
-			cache.removeObject(oid);
-			cache.clearQueryResults(type);
+		try {
+			repository.deleteObject(type, oid, parentResult);
+		} finally {
+			invalidateCacheEntry(type, oid);
 		}
 	}
 	
@@ -350,6 +358,26 @@ public class RepositoryCache implements RepositoryService {
 		}
 		if (PERFORMANCE_ADVISOR.isTraceEnabled()) {
 			PERFORMANCE_ADVISOR.trace(message, params);
+		}
+	}
+
+	@Override
+	public long advanceSequence(String oid, OperationResult parentResult) throws ObjectNotFoundException,
+			SchemaException {
+		try {
+			return repository.advanceSequence(oid, parentResult);
+		} finally {
+			invalidateCacheEntry(SequenceType.class, oid);
+		}
+	}
+
+	@Override
+	public void returnUnusedValuesToSequence(String oid, Collection<Long> unusedValues, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException {
+		try {
+			repository.returnUnusedValuesToSequence(oid, unusedValues, parentResult);
+		} finally {
+			invalidateCacheEntry(SequenceType.class, oid);
 		}
 	}
 }

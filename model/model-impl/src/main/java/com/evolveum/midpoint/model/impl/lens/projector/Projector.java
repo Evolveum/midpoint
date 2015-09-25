@@ -24,17 +24,18 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.model.api.ProgressInformation;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -207,8 +208,11 @@ public class Projector {
 		        focusProcessor.processFocus(context, activityDescription, now, task, result);
 		        context.recomputeFocus();
 		        if (consistencyChecks) context.checkConsistence();
-		        
-		        // Process activation of all resources, regardless of the waves. This is needed to properly
+
+				LensUtil.traceContext(LOGGER, activityDescription, "focus processing", false, context, false);
+				LensUtil.checkContextSanity(context, "focus processing", result);
+
+				// Process activation of all resources, regardless of the waves. This is needed to properly
 		        // sort projections to waves as deprovisioning will reverse the dependencies. And we know whether
 		        // a projection is provisioned or deprovisioned only after the activation is processed.
 		        if (fromStart && inFirstWave) {
@@ -224,16 +228,12 @@ public class Projector {
 					assignmentProcessor.removeIgnoredContexts(context);		// TODO move implementation of this method elsewhere; but it has to be invoked here, as activationProcessor sets the IGNORE flag
 		        }
 		        LensUtil.traceContext(LOGGER, activityDescription, "projection activation of all resources", true, context, true);
-		
+				if (consistencyChecks) context.checkConsistence();
+
 		        dependencyProcessor.sortProjectionsToWaves(context);
 		        maxWaves = dependencyProcessor.computeMaxWaves(context);
 		        LOGGER.trace("Continuing wave {}, maxWaves={}", context.getProjectionWave(), maxWaves);
 
-		        LensUtil.traceContext(LOGGER, activityDescription,"focus processing", false, context, false);
-		        if (consistencyChecks) context.checkConsistence();
-		        LensUtil.checkContextSanity(context, "focus processing", result);
-		
-		        // Focus-related processing is over. Now we will process projections in a loop.
 		        for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
 
                     context.checkAbortRequested();
@@ -252,7 +252,7 @@ public class Projector {
 		        	LOGGER.trace("WAVE {} PROJECTION {}", context.getProjectionWave(), projectionDesc);
 
 		        	// Some projections may not be loaded at this point, e.g. high-order dependency projections
-		        	contextLoader.makeSureProjectionIsLoaded(context, projectionContext, result);
+		        	contextLoader.makeSureProjectionIsLoaded(context, projectionContext, task, result);
 		        	
 		        	if (consistencyChecks) context.checkConsistence();
 		        	
@@ -280,7 +280,7 @@ public class Projector {
 		        	LensUtil.traceContext(LOGGER, activityDescription, "projection values and credentials of "+projectionDesc, false, context, true);
 			        if (consistencyChecks) context.checkConsistence();
 			
-			        reconciliationProcessor.processReconciliation(context, projectionContext, result);
+			        reconciliationProcessor.processReconciliation(context, projectionContext, task, result);
 			        projectionContext.recompute();
 			        LensUtil.traceContext(LOGGER, activityDescription, "projection reconciliation of "+projectionDesc, false, context, false);
 			        if (consistencyChecks) context.checkConsistence();

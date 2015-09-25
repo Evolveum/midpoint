@@ -56,9 +56,13 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
@@ -297,16 +301,17 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		this.assignmentPath = assignmentPath;
 	}
 
-	public ResourceType getResource(OperationResult result) throws ObjectNotFoundException, SchemaException {
+	public ResourceType getResource(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		if (resource == null) {
 			if (constructionType.getResource() != null) {
 				resource = constructionType.getResource();
 			} else if (constructionType.getResourceRef() != null) {
 				try {
-					resource = objectResolver.resolve(constructionType.getResourceRef(), ResourceType.class,
-							null, "account construction in "+ source , result);
+					resource = LensUtil.getResource(lensContext, constructionType.getResourceRef().getOid(), objectResolver, task, result);
 				} catch (ObjectNotFoundException e) {
 					throw new ObjectNotFoundException("Resource reference seems to be invalid in account construction in " + source + ": "+e.getMessage(), e);
+				} catch (SecurityViolationException|CommunicationException|ConfigurationException e) {
+					throw new SystemException("Couldn't fetch the resource in account construction in " + source + ": " + e.getMessage(), e);
 				}
 			}
 			if (resource == null) {
@@ -317,13 +322,13 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 	}
 	
 	public void evaluate(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
-		evaluateKindIntentObjectClass(result);
+		evaluateKindIntentObjectClass(task, result);
 		assignmentPathVariables = LensUtil.computeAssignmentPathVariables(assignmentPath);
 		evaluateAttributes(task, result);
 		evaluateAssociations(task, result);
 	}
 	
-	private void evaluateKindIntentObjectClass(OperationResult result) throws SchemaException, ObjectNotFoundException {
+	private void evaluateKindIntentObjectClass(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		String resourceOid = null;
 		if (constructionType.getResourceRef() != null) {
 			resourceOid = constructionType.getResourceRef().getOid();
@@ -331,7 +336,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		if (constructionType.getResource() != null) {
 			resourceOid = constructionType.getResource().getOid();
 		}
-		ResourceType resource = getResource(result);
+		ResourceType resource = getResource(task, result);
 		if (!resource.getOid().equals(resourceOid)) {
 			throw new IllegalStateException("The specified resource and the resource in construction does not match");
 		}
@@ -350,7 +355,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		
 		if (refinedObjectClassDefinition == null) {
 			if (constructionType.getIntent() != null) {
-				throw new SchemaException("No "+kind+" type '"+constructionType.getIntent()+"' found in "+getResource(result)+" as specified in construction in "+source);
+				throw new SchemaException("No "+kind+" type '"+constructionType.getIntent()+"' found in "+getResource(task, result)+" as specified in construction in "+source);
 			} else {
 				throw new SchemaException("No default "+kind+" type found in " + resource + " as specified in construction in "+source);
 			}
@@ -360,7 +365,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		for (QName auxiliaryObjectClassName: constructionType.getAuxiliaryObjectClass()) {
 			RefinedObjectClassDefinition auxOcDef = refinedSchema.getRefinedDefinition(auxiliaryObjectClassName);
 			if (auxOcDef == null) {
-				throw new SchemaException("No auxiliary object class "+auxiliaryObjectClassName+" found in "+getResource(result)+" as specified in construction in "+source);
+				throw new SchemaException("No auxiliary object class "+auxiliaryObjectClassName+" found in "+getResource(task, result)+" as specified in construction in "+source);
 			}
 			auxiliaryObjectClassDefinitions.add(auxOcDef);
 		}
@@ -405,7 +410,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		}
 		ResourceAttributeDefinition<T> outputDefinition = findAttributeDefinition(attrName);
 		if (outputDefinition == null) {
-			throw new SchemaException("Attribute "+attrName+" not found in schema for account type "+getIntent()+", "+ObjectTypeUtil.toShortString(getResource(result))+" as definied in "+ObjectTypeUtil.toShortString(source), attrName);
+			throw new SchemaException("Attribute "+attrName+" not found in schema for account type "+getIntent()+", "+ObjectTypeUtil.toShortString(getResource(task, result))+" as definied in "+ObjectTypeUtil.toShortString(source), attrName);
 		}
 		Mapping<PrismPropertyValue<T>,ResourceAttributeDefinition<T>> mapping = mappingFactory.createMapping(outboundMappingType,
 				"for attribute " + PrettyPrinter.prettyPrint(attrName)  + " in "+source);

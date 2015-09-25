@@ -666,7 +666,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 					}
 
 					if (delta.isEmpty() && ModelExecuteOptions.isReconcile(options)) {
-						ObjectDelta emptyDelta = ObjectDelta.createEmptyModifyDelta(UserType.class,
+						ObjectDelta emptyDelta = ObjectDelta.createEmptyModifyDelta(OrgType.class,
 								orgWrapper.getObject().getOid(), getPrismContext());
 						deltas.add(emptyDelta);
 
@@ -705,7 +705,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 			OperationResult result = parentResult.createSubresult("Force delete operation");
 
 			try {
-				ObjectDelta<UserType> forceDeleteDelta = getChange(orgWrapper);
+				ObjectDelta<OrgType> forceDeleteDelta = getChange(orgWrapper);
 				forceDeleteDelta.revive(getPrismContext());
 
 				if (forceDeleteDelta != null && !forceDeleteDelta.isEmpty()) {

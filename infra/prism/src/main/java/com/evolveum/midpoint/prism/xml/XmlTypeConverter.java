@@ -463,6 +463,14 @@ public class XmlTypeConverter {
     public static XMLGregorianCalendar createXMLGregorianCalendar(GregorianCalendar cal) {
         return getDatatypeFactory().newXMLGregorianCalendar(cal);
     }
+
+    // in some environments, XMLGregorianCalendar.clone does not work
+    public static XMLGregorianCalendar createXMLGregorianCalendar(XMLGregorianCalendar cal) {
+        if (cal == null) {
+            return null;
+        }
+        return getDatatypeFactory().newXMLGregorianCalendar(cal.toGregorianCalendar()); // TODO find a better way
+    }
     
     public static XMLGregorianCalendar createXMLGregorianCalendar(int year, int month, int day, int hour, int minute,
     		int second, int millisecond, int timezone) {

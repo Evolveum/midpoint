@@ -137,7 +137,6 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaListType;
@@ -1338,7 +1337,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // WHEN
 
-        provisioningService.searchObjectsIterative(ShadowType.class, q, null, handler, result);
+        provisioningService.searchObjectsIterative(ShadowType.class, q, null, handler, null, result);
 
         // THEN
 

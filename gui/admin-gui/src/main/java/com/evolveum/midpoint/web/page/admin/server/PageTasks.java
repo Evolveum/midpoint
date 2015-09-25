@@ -35,6 +35,7 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.*;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
@@ -55,6 +56,7 @@ import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -110,6 +112,7 @@ public class PageTasks extends PageAdminTasks {
     private static final String ID_TASK_TABLE = "taskTable";
     private static final String ID_NODE_TABLE = "nodeTable";
     private static final String ID_SEARCH_CLEAR = "searchClear";
+    private static final String ID_DELETE_TASKS_POPUP = "deleteTasksPopup";
 
     private IModel<TasksSearchDto> searchModel;
 
@@ -185,6 +188,19 @@ public class PageTasks extends PageAdminTasks {
         nodeTable.setOutputMarkupId(true);
         nodeTable.setShowPaging(false);
         mainForm.add(nodeTable);
+
+        add(new ConfirmationDialog(ID_DELETE_TASKS_POPUP,
+                createStringResource("pageTasks.dialog.title.confirmDelete"),
+                createDeleteConfirmString("pageTasks.message.deleteTaskConfirm",
+                        "pageTasks.message.deleteTasksConfirm", true)) {
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                close(target);
+                deleteTaskConfirmedPerformed(target);
+            }
+        });
+
 
         initDiagnosticButtons();
     }
@@ -852,26 +868,9 @@ public class PageTasks extends PageAdminTasks {
         if (!isSomeTaskSelected(taskDtoList, target)) {
             return;
         }
+        ModalWindow dialog = (ModalWindow) get(ID_DELETE_TASKS_POPUP);
+        dialog.show(target);
 
-        OperationResult result = new OperationResult(OPERATION_DELETE_TASKS);
-        try {
-            getTaskService().suspendAndDeleteTasks(TaskDto.getOids(taskDtoList), WAIT_FOR_TASK_STOP, true, result);
-            result.computeStatus();
-            if (result.isSuccess()) {
-                result.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully deleted.");
-            }
-        } catch (ObjectNotFoundException|SchemaException|SecurityViolationException|RuntimeException e) {
-            result.recordFatalError("Couldn't delete the task(s)", e);
-        }
-        showResult(result);
-
-        TaskDtoProvider provider = (TaskDtoProvider) getTaskTable().getDataTable().getDataProvider();
-        provider.clearCache();
-
-        //refresh feedback and table
-        target.add(getFeedbackPanel());
-        target.add(getTaskTable());
-        target.add(getNodeTable());
     }
 
     private void scheduleTasksPerformed(AjaxRequestTarget target) {
@@ -1163,4 +1162,53 @@ public class PageTasks extends PageAdminTasks {
         target.add(get(ID_SEARCH_FORM));
         target.add(panel);
     }
+
+    private IModel<String> createDeleteConfirmString(final String oneDeleteKey, final String moreDeleteKey,
+                                                     final boolean resources) {
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                TablePanel table = getTaskTable();
+                List<TaskDto> selected = WebMiscUtil.getSelectedData(table);
+
+                switch (selected.size()) {
+                    case 1:
+                        TaskDto first = selected.get(0);
+                        String name = first.getName();
+                        return createStringResource(oneDeleteKey, name).getString();
+                    default:
+                        return createStringResource(moreDeleteKey, selected.size()).getString();
+                }
+            }
+        };
+    }
+
+    private void deleteTaskConfirmedPerformed(AjaxRequestTarget target) {
+        List<TaskDto> taskDtoList = WebMiscUtil.getSelectedData(getTaskTable());
+        if (!isSomeTaskSelected(taskDtoList, target)) {
+            return;
+        }
+
+        OperationResult result = new OperationResult(OPERATION_DELETE_TASKS);
+        try {
+            getTaskService().suspendAndDeleteTasks(TaskDto.getOids(taskDtoList), WAIT_FOR_TASK_STOP, true, result);
+            result.computeStatus();
+            if (result.isSuccess()) {
+                result.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully deleted.");
+            }
+        } catch (ObjectNotFoundException|SchemaException|SecurityViolationException|RuntimeException e) {
+            result.recordFatalError("Couldn't delete the task(s)", e);
+        }
+        showResult(result);
+
+        TaskDtoProvider provider = (TaskDtoProvider) getTaskTable().getDataTable().getDataProvider();
+        provider.clearCache();
+
+        //refresh feedback and table
+        target.add(getFeedbackPanel());
+        target.add(getTaskTable());
+        target.add(getNodeTable());
+    }
+
 }

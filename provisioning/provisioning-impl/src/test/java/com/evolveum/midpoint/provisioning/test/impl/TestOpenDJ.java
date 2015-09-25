@@ -96,7 +96,6 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
@@ -569,7 +568,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()+"." + TEST_NAME);
 		// WHEN
 		List<PrismObject<? extends ShadowType>> objectList = provisioningService.listResourceObjects(
-				RESOURCE_OPENDJ_OID, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS, null, result);
+				RESOURCE_OPENDJ_OID, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS, null, null, result);
 		// THEN
 		assertNotNull(objectList);
 		assertFalse("Empty list returned",objectList.isEmpty());
@@ -1120,7 +1119,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
         };
 
         // WHEN
-        provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, result);
+        provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, null, result);
 
         // THEN
         display("Count", objects.size());
@@ -1406,7 +1405,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 				return objectTypeList.add(object.asObjectable());
 			}
-		}, result);
+		}, null, result);
 
 		// TODO: check result
 		System.out.println("ObjectType list size: " + objectTypeList.size());
@@ -1441,7 +1440,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		rememberConnectorSimulatedPagingSearchCount();
 
 		// WHEN
-		SearchResultList<PrismObject<ShadowType>> searchResults = provisioningService.searchObjects(ShadowType.class, query, null, result);
+		SearchResultList<PrismObject<ShadowType>> searchResults = provisioningService.searchObjects(ShadowType.class, query, null, null, result);
 		
 		// THEN
 		result.computeStatus();
@@ -1471,7 +1470,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		// WHEN
 		List<PrismObject<ShadowType>> objListType = 
-			provisioningService.searchObjects(ShadowType.class, query, null, result);
+			provisioningService.searchObjects(ShadowType.class, query, null, null, result);
 		
 		// THEN
 		for (PrismObject<ShadowType> objType : objListType) {
@@ -1503,7 +1502,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		// WHEN
 		List<PrismObject<ShadowType>> searchResults = 
-			provisioningService.searchObjects(ShadowType.class, query, null, result);
+			provisioningService.searchObjects(ShadowType.class, query, null, null, result);
 		
 		// THEN
 		result.computeStatus();
@@ -1534,7 +1533,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		// WHEN
 		List<PrismObject<ShadowType>> searchResults = 
-			provisioningService.searchObjects(ShadowType.class, query, null, result);
+			provisioningService.searchObjects(ShadowType.class, query, null, null, result);
 		
 		// THEN
 		result.computeStatus();
@@ -1564,7 +1563,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		rememberConnectorSimulatedPagingSearchCount();
 
 		// WHEN
-		SearchResultList<PrismObject<ShadowType>> searchResults = provisioningService.searchObjects(ShadowType.class, query, null, result);
+		SearchResultList<PrismObject<ShadowType>> searchResults = provisioningService.searchObjects(ShadowType.class, query, null, null, result);
 		
 		// THEN
 		result.computeStatus();
@@ -1604,7 +1603,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 
 		// WHEN
-		Integer count = provisioningService.countObjects(ShadowType.class, query, null, result);
+		Integer count = provisioningService.countObjects(ShadowType.class, query, null, null, result);
 		
 		// THEN
 		result.computeStatus();
@@ -1834,7 +1833,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		// WHEN
 		List<PrismObject<ShadowType>> objListType = 
-			provisioningService.searchObjects(ShadowType.class, query, null, result);
+			provisioningService.searchObjects(ShadowType.class, query, null, null, result);
 		
 		// THEN
 		for (PrismObject<ShadowType> objType : objListType) {
@@ -2001,7 +2000,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		SearchResultList<PrismObject<ShadowType>> resultList = provisioningService.searchObjects(ShadowType.class, query, null, result);
+		SearchResultList<PrismObject<ShadowType>> resultList = provisioningService.searchObjects(ShadowType.class, query, null, null, result);
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);

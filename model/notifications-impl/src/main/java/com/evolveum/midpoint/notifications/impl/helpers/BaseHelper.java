@@ -123,7 +123,7 @@ public abstract class BaseHelper {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition<Boolean> resultDef = new PrismPropertyDefinition(resultName, DOMUtil.XSD_BOOLEAN, prismContext);
-        Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, resultDef, shortDesc, result);
+        Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, resultDef, shortDesc, task, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task, result);
 
         ModelExpressionThreadLocalHolder.pushCurrentResult(result);
@@ -171,7 +171,7 @@ public abstract class BaseHelper {
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition<String> resultDef = new PrismPropertyDefinition(resultName, DOMUtil.XSD_STRING, prismContext);
 
-        Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType, resultDef, shortDesc, result);
+        Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType, resultDef, shortDesc, task, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task, result);
 
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult;

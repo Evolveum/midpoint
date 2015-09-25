@@ -80,7 +80,7 @@ public class PageLogin extends PageBase {
         OperationResult parentResult = new OperationResult(OPERATION_LOAD_RESET_PASSWORD_POLICY);
         
         try {
-		 CredentialsPolicyType creds=	getModelInteractionService().getCredentialsPolicy(null, parentResult);
+		 CredentialsPolicyType creds=	getModelInteractionService().getCredentialsPolicy(null, (Task) null, parentResult);
 		 BookmarkablePageLink<String> link = new BookmarkablePageLink<String>("forgetpassword", PageForgetPassword.class);
 		 boolean linkIsVisible=false;
 		 if(creds!=null ){

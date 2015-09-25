@@ -116,7 +116,8 @@ public class TaskDto extends Selectable {
     private ObjectTypes objectRefType;
     private String objectRefName;
 
-    private List<TaskDto> subtasks = new ArrayList<TaskDto>();
+    private List<TaskDto> subtasks = new ArrayList<>();          // only persistent subtasks are here
+    private List<TaskDto> transientSubtasks = new ArrayList<>();        // transient ones are here
 
     private Long lastRunStartTimestampLong;
     private Long lastRunFinishTimestampLong;
@@ -171,6 +172,11 @@ public class TaskDto extends Selectable {
 
         //dryRun, intent, kind, objectCLass, workerThreads
         fillFromExtension(taskType);
+
+        for (TaskType child : taskType.getSubtask()) {
+            addChildTaskDto(new TaskDto(child, modelService, taskService, modelInteractionService, taskManager,
+                    options, parentResult, pageBase));
+        }
     }
 
     private void fillInResourceReference(TaskType task, TaskManager manager, OperationResult result, ModelService service, PageBase pageBase){
@@ -518,18 +524,30 @@ public class TaskDto extends Selectable {
         return taskType.getNodeAsObserved();
     }
 
+    public Long getProgress() {
+        return taskType.getProgress();
+    }
+
+    public Long getExpectedTotal() {
+        return taskType.getExpectedTotal();
+    }
+
     public String getProgressDescription() {
-        if (taskType.getProgress() == null && taskType.getExpectedTotal() == null) {
+        return getProgressDescription(taskType.getProgress());
+    }
+
+    public String getProgressDescription(Long currentProgress) {
+        if (currentProgress == null && taskType.getExpectedTotal() == null) {
             return "";      // the task handler probably does not report progress at all
         } else {
             StringBuilder sb = new StringBuilder();
-            if (taskType.getProgress() != null){
-                sb.append(taskType.getProgress());
+            if (currentProgress != null){
+                sb.append(currentProgress);
             } else {
                 sb.append("0");
             }
             if (taskType.getExpectedTotal() != null) {
-                sb.append("/" + taskType.getExpectedTotal());
+                sb.append("/").append(taskType.getExpectedTotal());
             }
             return sb.toString();
         }
@@ -681,11 +699,19 @@ public class TaskDto extends Selectable {
     }
 
     public void addChildTaskDto(TaskDto taskDto) {
-        subtasks.add(taskDto);
+        if (taskDto.getOid() != null) {
+            subtasks.add(taskDto);
+        } else {
+            transientSubtasks.add(taskDto);
+        }
     }
 
     public List<TaskDto> getSubtasks() {
         return subtasks;
+    }
+
+    public List<TaskDto> getTransientSubtasks() {
+        return transientSubtasks;
     }
 
     public boolean isWorkflowShadowTask() {
@@ -915,5 +941,12 @@ public class TaskDto extends Selectable {
         result = 31 * result + (workerThreads != null ? workerThreads.hashCode() : 0);
         result = 31 * result + (taskType != null ? taskType.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "TaskDto{" +
+                "taskType=" + taskType +
+                '}';
     }
 }

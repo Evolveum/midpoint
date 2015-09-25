@@ -31,9 +31,6 @@
         <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
         <url>https://fisheye.evolveum.com/browse/midPoint</url>
     </scm>
-    <properties>
-        <wro4j.version>1.7.1</wro4j.version>
-    </properties>
     <build>
         <finalName>midpoint</finalName>
         <resources>
@@ -43,6 +40,14 @@
                 <excludes>
                     <exclude>**/org.identityconnectors.common.logging</exclude>
                 </excludes>
+            </resource>
+            <!-- LOCALIZATION -->
+            <resource>
+                <filtering>true</filtering>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>localization/Midpoint*.properties</include>
+                </includes>
             </resource>
             <!--  ICF LOGGING CONFIGURATION -->
             <resource>
@@ -96,27 +101,14 @@
         <dependency>
             <groupId>ro.isdc.wro4j</groupId>
             <artifactId>wro4j-core</artifactId>
-            <version>${wro4j.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>slf4j-api</artifactId>
-                    <groupId>org.slf4j</groupId>
-                </exclusion>
-                <exclusion>
-				    <groupId>org.webjars</groupId>
-    				<artifactId>webjars-locator</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
         	<groupId>org.webjars</groupId>
     		<artifactId>webjars-locator</artifactId>
-    		<version>0.15</version>
         </dependency>
         <dependency>
             <groupId>ro.isdc.wro4j</groupId>
             <artifactId>wro4j-extensions</artifactId>
-            <version>${wro4j.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -184,33 +176,6 @@
             </exclusions>
         </dependency>
 
-        <!-- MIDPOINT LOCALIZATION -->
-        <dependency>
-            <groupId>com.evolveum.midpoint.gui</groupId>
-            <artifactId>admin-gui-en-US</artifactId>
-            <version>3.3-SNAPSHOT</version>
-        </dependency>
-	    <dependency>
-            <groupId>com.evolveum.midpoint.gui</groupId>
-            <artifactId>admin-gui-sk-SK</artifactId>
-            <version>3.3-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.gui</groupId>
-            <artifactId>admin-gui-tr-TR</artifactId>
-            <version>3.3-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.gui</groupId>
-            <artifactId>admin-gui-es-ES</artifactId>
-            <version>3.3-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.gui</groupId>
-            <artifactId>admin-gui-cs-CZ</artifactId>
-            <version>3.3-SNAPSHOT</version>
-        </dependency>
-
         <!-- JDBC DRIVERS -->
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -276,10 +241,13 @@
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
-  <groupId>org.codehaus.groovy.modules.http-builder</groupId>
-  <artifactId>http-builder</artifactId>
-  <version>0.7</version>
-</dependency>
+			<groupId>org.codehaus.groovy.modules.http-builder</groupId>
+			<artifactId>http-builder</artifactId>
+		</dependency>
+		<dependency>
+				<groupId>joda-time</groupId>
+				<artifactId>joda-time</artifactId>
+			</dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-cache</artifactId>
@@ -609,6 +577,10 @@
             <artifactId>servlet-api</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+			<groupId>javax.mail</groupId>
+			<artifactId>javax.mail-api </artifactId>
+		</dependency>
 		
 		<!-- Uncomment following if you want midpoint to be a part of SSO using CAS server-->
 		<!-- SSO CAS Client dependencies -->

@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.model.api;
 
-import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugDumpable;
 

@@ -50,6 +50,8 @@ import org.apache.wicket.request.IRequestHandler;
 import org.apache.wicket.request.cycle.AbstractRequestCycleListener;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.resource.SharedResourceReference;
+import org.apache.wicket.resource.loader.BundleStringResourceLoader;
+import org.apache.wicket.resource.loader.IStringResourceLoader;
 import org.apache.wicket.settings.IApplicationSettings;
 import org.apache.wicket.settings.IResourceSettings;
 import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
@@ -122,6 +124,9 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         IResourceSettings resourceSettings = getResourceSettings();
         resourceSettings.setHeaderItemComparator(new PriorityFirstComparator(true));
 
+        List<IStringResourceLoader> resourceLoaders = resourceSettings.getStringResourceLoaders();
+        resourceLoaders.add(0, new BundleStringResourceLoader("localization/Midpoint"));
+
         resourceSettings.setThrowExceptionOnMissingResource(false);
         getMarkupSettings().setStripWicketTags(true);
         getMarkupSettings().setDefaultBeforeDisabledLink("");
@@ -150,9 +155,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
             @Override
             public IRequestHandler onException(RequestCycle cycle, Exception ex) {
-                LOGGER.error("Error occurred during page rendering, reason: {} (more on DEBUG level)", ex.getMessage());
-                LOGGER.debug("Error occurred during page rendering", ex);
-
+                LoggingUtils.logUnexpectedException(LOGGER, "Error occurred during page rendering", ex);
                 return new RenderPageRequestHandler(new PageProvider(new PageError(ex)));
             }
         });

@@ -19,6 +19,7 @@ package com.evolveum.midpoint.model.impl.lens;
 import com.evolveum.midpoint.model.api.context.EvaluatedConstruction;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -60,8 +61,8 @@ public class EvaluatedConstructionImpl implements EvaluatedConstruction {
         this.directlyAssigned = directlyAssigned;
     }
 
-    public <F extends FocusType> EvaluatedConstructionImpl(Construction<F> construction, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        resource = construction.getResource(result).asPrismObject();
+    public <F extends FocusType> EvaluatedConstructionImpl(Construction<F> construction, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        resource = construction.getResource(task, result).asPrismObject();
         kind = construction.getKind();
         intent = construction.getIntent();
         directlyAssigned = construction.getAssignmentPath() == null || construction.getAssignmentPath().size() == 1;

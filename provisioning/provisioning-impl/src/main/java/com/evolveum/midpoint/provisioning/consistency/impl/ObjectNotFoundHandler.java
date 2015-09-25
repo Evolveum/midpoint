@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.provisioning.impl.ConstraintsChecker;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -48,10 +49,12 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -125,11 +128,16 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 		ObjectDelta delta = null;
 		switch (op) {
 		case DELETE:
+			LOGGER.debug("DISCOVERY: cannot find object {}. The operation in progress is DELETE, therefore just deleting the shadow", shadow);
 			LOGGER.trace("Deleting shadow from the repository.");
 			for (OperationResult subResult : parentResult.getSubresults()){
 				subResult.muteError();
 			}
-			cacheRepositoryService.deleteObject(ShadowType.class, shadow.getOid(), result);
+			try {
+				cacheRepositoryService.deleteObject(ShadowType.class, shadow.getOid(), result);
+			} catch (ObjectNotFoundException e) {
+				LOGGER.debug("Cannot delete {} in consistency compensation (discovery): {} - this is probably harmless", shadow, e.getMessage());
+			}
 			parentResult.recordHandledError("Object was not found on the "
 							+ ObjectTypeUtil.toShortString(shadow.getResource())
 							+ ". Shadow deleted from the repository to equalize the state on the resource and in the repository.");
@@ -138,8 +146,10 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			delta = ObjectDelta.createDeleteDelta(shadow.getClass(), shadow.getOid(), prismContext);
 			ResourceOperationDescription operationDescritpion = createOperationDescription(shadow, ex, shadow.getResource(), delta, task, result);
 			changeNotificationDispatcher.notifySuccess(operationDescritpion, task, result);
+			LOGGER.debug("DISCOVERY: cannot find object {}: DELETE operation handler done", shadow);
 			return shadow;
 		case MODIFY:
+			LOGGER.debug("DISCOVERY: cannot find object {}. The operation in progress is MODIFY, therefore initiating synchronization", shadow);
 			LOGGER.trace("Starting discovery to find out if the object should exist or not.");
 			OperationResult handleErrorResult = result.createSubresult("Discovery for situation: Object not found on the " + ObjectTypeUtil.toShortString(shadow.getResource()));
 			
@@ -166,13 +176,11 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			changeNotificationDispatcher.notifyChange(change, task, handleErrorResult);
 			handleErrorResult.computeStatus();
 			String oidVal = null;
-			foundReturnedValue(handleErrorResult, oidVal);
+			findReturnedValue(handleErrorResult, oidVal);
 			if (oid != null){
 				LOGGER.trace("Found new oid {} as a return param from model. Probably the new shadow was created.", oid);
-			}
-			
-			if (oid != null ) {
-				LOGGER.trace("Modifying re-created object according to given changes.");
+				LOGGER.debug("DISCOVERY: object {} re-created, applying pending changes", shadow);
+				LOGGER.trace("Modifying re-created object by applying pending changes:\n{}", DebugUtil.debugDump(modifications));
 				try {
 					ProvisioningOperationOptions options = new ProvisioningOperationOptions();
 					options.setCompletePostponed(false);
@@ -184,34 +192,36 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 					parentResult.recordHandledError(
 							"Modifications were not applied, because shadow was deleted by discovery. Repository state were refreshed and unused shadow was deleted.");
 				}
-//				return shadow;
 				
 			} else{
+				LOGGER.debug("DISCOVERY: object {} deleted, application of pending changes skipped", shadow);
 				parentResult.recordHandledError(
 						"Object was deleted by discovery. Modification were not applied.");
 			}
-		
-//				LOGGER.trace("Shadow was probably unlinked from the user, so the discovery decided that the account should not exist. Deleting also unused shadow from the repo.");
-				try {
-					cacheRepositoryService.deleteObject(ShadowType.class, shadow.getOid(), parentResult);
-				} catch (ObjectNotFoundException e) {
-					// delete the old shadow that was probably deleted from
-					// the
-					// user, or the new one was assigned
-					//TODO: log this
 
-				}
-				result.computeStatus();
-				if (oid != null){
-					shadowModifications.setOid(oid);
-					shadow.setOid(oid);
-				}
+			// We do not need the old shadow any more. Even if the object was re-created it has a new shadow now.
+			try {
+				cacheRepositoryService.deleteObject(ShadowType.class, shadow.getOid(), parentResult);
+			} catch (ObjectNotFoundException e) {
+				// delete the old shadow that was probably deleted from the
+				// user, or the new one was assigned
+				LOGGER.debug("Cannot delete {} in consistency compensation (discovery): {} - this is probably harmless", shadow, e.getMessage());
+
+			}
+			result.computeStatus();
+			if (oid != null){
+				shadowModifications.setOid(oid);
+				shadow.setOid(oid);
+			}
+			LOGGER.debug("DISCOVERY: cannot find object {}: MODIFY operation handler done", shadow);
 			return shadow;
 		case GET:
 			if (!compensate){
+				LOGGER.trace("DISCOVERY: cannot find object {}, GET operation: handling skipped", shadow);
 				result.recordFatalError(ex.getMessage(), ex);
 				throw new ObjectNotFoundException(ex.getMessage(), ex);
 			}
+			LOGGER.debug("DISCOVERY: cannot find object {}. The operation in progress is GET, therefore initiating synchronization", shadow);
 			OperationResult handleGetErrorResult = result.createSubresult("Discovery for situation: Object not found on the " + ObjectTypeUtil.toShortString(shadow.getResource()));
 			
 			Collection<? extends ItemDelta> deadModification = PropertyDelta.createModificationReplacePropertyCollection(ShadowType.F_DEAD, shadow.asPrismObject().getDefinition(), true);
@@ -234,37 +244,34 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			changeNotificationDispatcher.notifyChange(getChange, task, handleGetErrorResult);
 			// String oidVal = null;
 			handleGetErrorResult.computeStatus();
-			foundReturnedValue(handleGetErrorResult, null);
+			findReturnedValue(handleGetErrorResult, null);
 			
-//			if (oid != null && !shadow.getOid().equals(oid)){
-				try {
-					cacheRepositoryService.deleteObject(ShadowType.class, shadow.getOid(), result);
-
-				} catch (ObjectNotFoundException e) {
-					// delete the old shadow that was probably deleted from
-					// the
-					// user, or the new one was assigned
-					//TODO: log this
-
-				}
-//			}
+			try {
+				cacheRepositoryService.deleteObject(ShadowType.class, shadow.getOid(), result);
+			} catch (ObjectNotFoundException e) {
+				// delete the old shadow that was probably deleted from the
+				// user, or the new one was assigned
+				LOGGER.debug("Cannot delete {} in consistency compensation (discovery): {} - this is probably harmless", shadow, e.getMessage());
+			}
 			
 			for (OperationResult subResult : parentResult.getSubresults()){
 				subResult.muteError();
 			}
 			if (oid != null) {
-                PrismObject prismShadow;
+                PrismObject newShadow;
                 try {
-				    prismShadow = provisioningService.getObject(shadow.getClass(), oid, null, task, result);
+				    newShadow = provisioningService.getObject(shadow.getClass(), oid, null, task, result);
                 } finally {
                     result.computeStatus();
                 }
-				shadow = (T) prismShadow.asObjectable();
+                LOGGER.debug("DISCOVERY: object {} re-created as {}. GET operation handler done.", shadow, newShadow);
+				shadow = (T) newShadow.asObjectable();
 				parentResult.recordHandledError("Object was re-created by the discovery.");
 				return shadow;
 			} else {
 				parentResult.recordHandledError("Object was deleted by the discovery and the invalid link was removed from the user.");
 				result.computeStatus();
+				LOGGER.debug("DISCOVERY: object {} was deleted. GET operation handler done.", shadow);
 				throw new ObjectNotFoundException(ex.getMessage(), ex);
 			}
 			
@@ -290,7 +297,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 		return change;
 	}
 
-	private void foundReturnedValue(OperationResult handleErrorResult, String oidVal) {
+	private void findReturnedValue(OperationResult handleErrorResult, String oidVal) {
 		if (oidVal != null) {
 			oid = oidVal;
 			return;
@@ -298,7 +305,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 		List<OperationResult> subresults = handleErrorResult.getSubresults();
 		for (OperationResult subresult : subresults) {
 			String oidValue = (String) subresult.getReturn("createdAccountOid");
-			foundReturnedValue(subresult, oidValue);
+			findReturnedValue(subresult, oidValue);
 		}
 		return;
 	}

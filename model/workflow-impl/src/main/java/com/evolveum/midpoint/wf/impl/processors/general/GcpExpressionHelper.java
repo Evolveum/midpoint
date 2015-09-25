@@ -44,8 +44,6 @@ import org.springframework.stereotype.Component;
 import javax.xml.namespace.QName;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author mederly
@@ -82,7 +80,7 @@ public class GcpExpressionHelper {
         PrismContext prismContext = expressionFactory.getPrismContext();
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition<Boolean> resultDef = new PrismPropertyDefinition(resultName, DOMUtil.XSD_BOOLEAN, prismContext);
-        Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, resultDef, opContext, result);
+        Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, resultDef, opContext, taskFromModel, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, opContext, taskFromModel, result);
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple = expression.evaluate(params);
 

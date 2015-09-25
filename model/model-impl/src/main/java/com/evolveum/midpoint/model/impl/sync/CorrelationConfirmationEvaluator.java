@@ -24,7 +24,6 @@ import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.model.common.expression.Expression;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
@@ -383,7 +382,7 @@ private <F extends FocusType> boolean matchUserCorrelationRule(Class<F> focusTyp
 		PrismPropertyDefinition<Boolean> outputDefinition = new PrismPropertyDefinition<>(ExpressionConstants.OUTPUT_ELMENT_NAME, 
 				DOMUtil.XSD_BOOLEAN, prismContext);
 		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, 
-				outputDefinition, shortDesc, result);
+				outputDefinition, shortDesc, task, result);
 
 		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = expression.evaluate(params);

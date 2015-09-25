@@ -113,7 +113,7 @@ public abstract class PageBase extends PageTemplate {
         return getMidpointApplication().getPrismContext();
     }
 
-    protected TaskManager getTaskManager() {
+    public TaskManager getTaskManager() {
         return taskManager;
     }
 

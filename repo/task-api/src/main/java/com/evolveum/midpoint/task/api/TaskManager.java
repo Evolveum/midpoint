@@ -378,6 +378,20 @@ public interface TaskManager {
      * @return tasks that currently run on this node.
      */
     public Set<Task> getLocallyRunningTasks(OperationResult parentResult) throws TaskManagerException;
+
+    /**
+     * Returns locally-run task by identifier. Returned instance is the same as is being used to carrying out
+     * operations. SO USE WITH CARE.
+     *
+     * EXPERIMENTAL. Should be replaced by something like "get operational information".
+     *
+     * @param lightweightIdentifier
+     * @param parentResult
+     * @return
+     * @throws TaskManagerException
+     */
+    public Task getLocallyRunningTaskByIdentifier(String lightweightIdentifier);
+
     //endregion
 
     //region Suspending, resuming and scheduling the tasks

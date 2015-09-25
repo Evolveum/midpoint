@@ -19,6 +19,7 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,14 +27,11 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.policy.PasswordPolicyUtils;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensObjectDeltaOperation;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -51,7 +49,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -92,7 +89,7 @@ public class PasswordPolicyProcessor {
 	}
 	
 	<F extends FocusType> void processPasswordPolicy(LensFocusContext<F> focusContext, 
-			LensContext<F> context, OperationResult result)
+			LensContext<F> context, Task task, OperationResult result)
 			throws PolicyViolationException, SchemaException {
 		
 		if (!UserType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
@@ -150,7 +147,7 @@ public class PasswordPolicyProcessor {
 		
 		ValuePolicyType passwordPolicy;
 		if (focusContext.getOrgPasswordPolicy() == null){
-			passwordPolicy = determineValuePolicy(userDelta, focusContext.getObjectAny(), context, result);
+			passwordPolicy = determineValuePolicy(userDelta, focusContext.getObjectAny(), context, task, result);
 			focusContext.setOrgPasswordPolicy(passwordPolicy);
 		} else {
 			passwordPolicy = focusContext.getOrgPasswordPolicy();
@@ -175,13 +172,13 @@ public class PasswordPolicyProcessor {
 	}
 	
 	//TODO: maybe some caching of orgs?????
-	private <T extends ObjectType, F extends ObjectType> ValuePolicyType determineValuePolicy(ObjectDelta<UserType> userDelta, PrismObject<T> object, LensContext<F> context, OperationResult result) throws SchemaException{
+	private <T extends ObjectType, F extends ObjectType> ValuePolicyType determineValuePolicy(ObjectDelta<UserType> userDelta, PrismObject<T> object, LensContext<F> context, Task task, OperationResult result) throws SchemaException{
 		//check the modification of organization first
-		ValuePolicyType valuePolicy = determineValuePolicy(userDelta, result);
+		ValuePolicyType valuePolicy = determineValuePolicy(userDelta, task, result);
 		
 		//if null, check the existing organization
 		if (valuePolicy == null){
-			valuePolicy = determineValuePolicy(object, result);
+			valuePolicy = determineValuePolicy(object, task, result);
 		}
 		
 		//if still null, just use global policy
@@ -196,7 +193,7 @@ public class PasswordPolicyProcessor {
 		return valuePolicy;
 	}
 	
-	private ValuePolicyType determineValuePolicy(ObjectDelta<UserType> userDelta, OperationResult result)
+	private ValuePolicyType determineValuePolicy(ObjectDelta<UserType> userDelta, Task task, OperationResult result)
 			throws SchemaException {
 		ReferenceDelta orgDelta = userDelta.findReferenceModification(UserType.F_PARENT_ORG_REF);
 		ValuePolicyType passwordPolicy = null;
@@ -212,12 +209,12 @@ public class PasswordPolicyProcessor {
 				if (ref != null) {
 					LOGGER.trace("Org {} has specified password policy.", orgType);
 					passwordPolicy = resolver.resolve(ref, ValuePolicyType.class, null,
-							"resolving password policy for organization", result);
+							"resolving password policy for organization", task, result);
 					LOGGER.trace("Resolved password policy {}", passwordPolicy);
 				}
 
 				if (passwordPolicy == null) {
-					passwordPolicy = determineValuePolicy(org, result);
+					passwordPolicy = determineValuePolicy(org, task, result);
 				}
 
 			} catch (ObjectNotFoundException e) {
@@ -229,7 +226,7 @@ public class PasswordPolicyProcessor {
 		return passwordPolicy;
 	}
 	
-	private ValuePolicyType determineValuePolicy(PrismObject object, OperationResult result)
+	private ValuePolicyType determineValuePolicy(PrismObject object, Task task, OperationResult result)
 			throws SchemaException {
 		LOGGER.trace("Determining password policies from object", object);
 		PrismReference orgRef = object.findReference(ObjectType.F_PARENT_ORG_REF);
@@ -251,7 +248,7 @@ public class PasswordPolicyProcessor {
 					PrismObject<OrgType> org = resolver.resolve(orgRefValue,
 							"resolving parent org ref", null, null, result);
 					orgs.add(org);
-					valuePolicy = resolvePolicy(org, result);
+					valuePolicy = resolvePolicy(org, task, result);
 
 				}
 			}
@@ -261,7 +258,7 @@ public class PasswordPolicyProcessor {
 		// go deeper
 		if (valuePolicy == null) {
 			for (PrismObject<OrgType> orgType : orgs) {
-				valuePolicy = determineValuePolicy(orgType, result);
+				valuePolicy = determineValuePolicy(orgType, task, result);
 				if (valuePolicy != null){
 					return valuePolicy;
 				}
@@ -270,7 +267,7 @@ public class PasswordPolicyProcessor {
 		return valuePolicy;
 	}
 	
-	private ValuePolicyType resolvePolicy(PrismObject<OrgType> org, OperationResult result)
+	private ValuePolicyType resolvePolicy(PrismObject<OrgType> org, Task task, OperationResult result)
 			throws SchemaException {
 		try {
 			OrgType orgType = org.asObjectable();
@@ -280,7 +277,7 @@ public class PasswordPolicyProcessor {
 			}
 
 			return resolver.resolve(ref, ValuePolicyType.class, null,
-					"resolving password policy for organization", result);
+					"resolving password policy for organization", task, result);
 
 		} catch (ObjectNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -291,7 +288,7 @@ public class PasswordPolicyProcessor {
 	}
 	
 	<F extends ObjectType> void processPasswordPolicy(LensProjectionContext projectionContext, 
-			LensContext<F> context, OperationResult result) throws SchemaException, PolicyViolationException{
+			LensContext<F> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException{
 		
 		ObjectDelta accountDelta = projectionContext.getDelta();
 		
@@ -333,7 +330,7 @@ public class PasswordPolicyProcessor {
 //		PrismProperty<PasswordType> password = getPassword(projectionContext);
 		ValuePolicyType passwordPolicy = null;
 		if (isCheckOrgPolicy(context)){
-			passwordPolicy = determineValuePolicy(context.getFocusContext().getObjectAny(), result);
+			passwordPolicy = determineValuePolicy(context.getFocusContext().getObjectAny(), task, result);
 			context.getFocusContext().setOrgPasswordPolicy(passwordPolicy);
 		} else {
 			passwordPolicy = projectionContext.getEffectivePasswordPolicy();

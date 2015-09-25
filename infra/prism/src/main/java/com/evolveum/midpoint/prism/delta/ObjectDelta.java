@@ -1417,25 +1417,30 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
         DebugUtil.indentDebugDump(sb, indent);
         sb.append(debugName());
         sb.append("<").append(objectTypeClass.getSimpleName()).append(">(");
-        sb.append(debugIdentifiers()).append(",").append(changeType).append("):\n");
-        if (objectToAdd == null) {
-        	if (changeType == ChangeType.ADD) {
-	        	DebugUtil.indentDebugDump(sb, indent + 1);
-	            sb.append("null");
-        	}
+        sb.append(debugIdentifiers()).append(",").append(changeType);
+        if (changeType == ChangeType.DELETE) {
+            // Nothing to print for delete
+        	sb.append(")");
         } else {
-            sb.append(objectToAdd.debugDump(indent + 1));
+	        sb.append("):\n");
+	        if (objectToAdd == null) {
+	        	if (changeType == ChangeType.ADD) {
+		        	DebugUtil.indentDebugDump(sb, indent + 1);
+		            sb.append("null");
+	        	}
+	        } else {
+	            sb.append(objectToAdd.debugDump(indent + 1));
+	        }
+	        if (modifications != null) {
+	            Iterator<? extends ItemDelta> i = modifications.iterator();
+	            while (i.hasNext()) {
+	                sb.append(i.next().debugDump(indent + 1));
+	                if (i.hasNext()) {
+	                    sb.append("\n");
+	                }
+	            }
+	        }
         }
-        if (modifications != null) {
-            Iterator<? extends ItemDelta> i = modifications.iterator();
-            while (i.hasNext()) {
-                sb.append(i.next().debugDump(indent + 1));
-                if (i.hasNext()) {
-                    sb.append("\n");
-                }
-            }
-        }
-        // Nothing to print for delete
         return sb.toString();
     }
 

@@ -46,7 +46,7 @@
 
         <jcommander.version>1.47</jcommander.version>
         <testng.version>6.8.8</testng.version>
-        <staxmate.version>2.2.1</staxmate.version>
+        <staxmate.version>2.3.0</staxmate.version>
         <slf4j.version>1.6.4</slf4j.version>
         <logback.version>0.9.29</logback.version>
     </properties>

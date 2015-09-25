@@ -42,6 +42,6 @@ public class ModelConstants {
 	public static final QName INTENT_PROPERTY_NAME = new QName(ModelConstants.NS_EXTENSION, "intent");
 
 	public static final QName FILENAME_PROPERTY_NAME = new QName(ModelConstants.NS_EXTENSION, "filename");
-	
-	
+
+
 }

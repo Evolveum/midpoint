@@ -95,6 +95,7 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<Foc
 	public RecomputeTaskHandler() {
         super("Recompute", OperationConstants.RECOMPUTE);
 		setLogFinishInfo(true);
+		setPreserveStatistics(false);
     }
 
 	@PostConstruct

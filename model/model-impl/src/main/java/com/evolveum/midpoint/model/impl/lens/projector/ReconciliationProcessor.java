@@ -28,6 +28,7 @@ import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 
@@ -105,7 +106,7 @@ public class ReconciliationProcessor {
 	private static final Trace LOGGER = TraceManager.getTrace(ReconciliationProcessor.class);
 
 	<F extends ObjectType> void processReconciliation(LensContext<F> context,
-			LensProjectionContext projectionContext, OperationResult result) throws SchemaException,
+													  LensProjectionContext projectionContext, Task task, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
@@ -116,11 +117,11 @@ public class ReconciliationProcessor {
 			// We can do this only for focal types.
 			return;
 		}
-		processReconciliationFocus(context, projectionContext, result);
+		processReconciliationFocus(context, projectionContext, task, result);
 	}
 
 	<F extends ObjectType> void processReconciliationFocus(LensContext<F> context,
-                                                           LensProjectionContext projCtx, OperationResult result) throws SchemaException,
+                                                           LensProjectionContext projCtx, Task task, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
 
@@ -155,8 +156,8 @@ public class ReconciliationProcessor {
 			if (!projCtx.isFullShadow()) {
 				// We need to load the object
 				PrismObject<ShadowType> objectOld = provisioningService.getObject(ShadowType.class,
-						projCtx.getOid(), SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery())
-						, null, result);
+						projCtx.getOid(), SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()),
+						task, result);
 				ShadowType oldShadow = objectOld.asObjectable();
 				projCtx.determineFullShadowFlag(oldShadow.getFetchResult());
 				projCtx.setLoadedObject(objectOld);

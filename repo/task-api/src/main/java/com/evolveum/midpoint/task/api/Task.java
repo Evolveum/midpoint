@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.StatisticsCollector;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -57,7 +58,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * @author Pavol Mederly
  *
  */
-public interface Task extends DebugDumpable {
+public interface Task extends DebugDumpable, StatisticsCollector {
 
     // =================================================================== Basic information (ID, owner)
 
@@ -932,4 +933,5 @@ public interface Task extends DebugDumpable {
      * (just a shortcut to analogous call in TaskManager)
      */
     void startLightweightHandler();
+
 }

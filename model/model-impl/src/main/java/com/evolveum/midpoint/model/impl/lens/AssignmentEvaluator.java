@@ -377,7 +377,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 		for (MappingType mappingType: mappingsType.getMapping()) {
 			Mapping mapping = LensUtil.createFocusMapping(mappingFactory, lensContext, mappingType, source, focusOdo, 
-					assignmentPathVariables, systemConfiguration, now, sourceDescription, result);
+					assignmentPathVariables, systemConfiguration, now, sourceDescription, task, result);
 			if (mapping == null) {
 				continue;
 			}

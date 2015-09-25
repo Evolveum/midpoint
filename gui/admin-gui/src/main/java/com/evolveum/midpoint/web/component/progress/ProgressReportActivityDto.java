@@ -16,9 +16,9 @@
 
 package com.evolveum.midpoint.web.component.progress;
 
-import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 

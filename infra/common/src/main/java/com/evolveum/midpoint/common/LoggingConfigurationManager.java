@@ -278,7 +278,7 @@ public class LoggingConfigurationManager {
 			sb.append("\"");
 			//if logger specific appender is defined
 			if (null != logger.getAppender() && !logger.getAppender().isEmpty()) {
-				sb.append(">\n");
+				sb.append(" additivity=\"false\">\n");
 				for (String appenderName : logger.getAppender()) {
 					sb.append("\t\t<appender-ref ref=\"");
 					sb.append(appenderName);
@@ -328,7 +328,7 @@ public class LoggingConfigurationManager {
 		sb.append("\"");
 		//if logger specific appender is defined
 		if (auditing != null && auditing.getAppender() != null && !auditing.getAppender().isEmpty()) {
-			sb.append(">\n");
+			sb.append(" additivity=\"false\">\n");
 			for (String appenderName : auditing.getAppender()) {
 				sb.append("\t\t<appender-ref ref=\"");
 				sb.append(appenderName);

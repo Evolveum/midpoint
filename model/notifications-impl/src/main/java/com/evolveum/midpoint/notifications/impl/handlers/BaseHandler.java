@@ -21,7 +21,6 @@ import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.notifications.api.EventHandler;
-import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.impl.NotificationManagerImpl;
 import com.evolveum.midpoint.notifications.impl.NotificationsUtil;
@@ -129,7 +128,7 @@ public abstract class BaseHandler implements EventHandler {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition<Boolean> resultDef = new PrismPropertyDefinition<>(resultName, DOMUtil.XSD_BOOLEAN, prismContext);
-        Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, resultDef, shortDesc, result);
+        Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, resultDef, shortDesc, task, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task, result);
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple = expression.evaluate(params);
 
@@ -168,7 +167,7 @@ public abstract class BaseHandler implements EventHandler {
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition<String> resultDef = new PrismPropertyDefinition<>(resultName, DOMUtil.XSD_STRING, prismContext);
 
-        Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType, resultDef, shortDesc, result);
+        Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType, resultDef, shortDesc, task, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task, result);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult = expression.evaluate(params);
 

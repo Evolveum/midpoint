@@ -136,10 +136,10 @@ public interface ModelInteractionService {
      * security questions, etc).
      * 
      * @param user user for who the policy should apply
-     * @param parentResult
-     * @return applicable credentials policy or null
+     * @param task
+     *@param parentResult  @return applicable credentials policy or null
      * @throws ObjectNotFoundException No system configuration or other major system inconsistency
      * @throws SchemaException Wrong schema or content of security policy
      */
-    CredentialsPolicyType getCredentialsPolicy(PrismObject<UserType> user, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+    CredentialsPolicyType getCredentialsPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 }
