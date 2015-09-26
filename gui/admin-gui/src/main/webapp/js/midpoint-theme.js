@@ -77,3 +77,63 @@ function initInlineMenu(menuId, hideByDefault) {
 function isCogInTable(inlineMenuDiv) {
     return inlineMenuDiv.hasClass('cog') && inlineMenuDiv[0].tagName.toLowerCase() == 'td';
 }
+
+function updateHeight(elementId, add, substract) {
+    updateHeightReal(elementId, add, substract);
+    $(window).resize(function() {
+        updateHeightReal(elementId, add, substract);
+    });
+}
+
+function updateHeightReal(elementId, add, substract) {
+    $('#' + elementId).css("height","0px");
+
+    var documentHeight = $(document).innerHeight();
+    var elementHeight = $('#' + elementId).outerHeight(true);
+    var mainContainerHeight = $('section.content-header').outerHeight(true)
+        + $('section.content').outerHeight(true) + $('footer.main-footer').outerHeight(true)
+        + $('header.main-header').outerHeight(true);
+
+    console.log("Document height: " + documentHeight + ", mainContainer: " + mainContainerHeight);
+
+    var height = documentHeight - mainContainerHeight - elementHeight;
+    console.log("Height clean: " + height);
+
+    if (substract instanceof Array) {
+        for (var i = 0; i < substract.length; i++) {
+            console.log("Substract height: " + $(substract[i]).outerHeight(true));
+            height -= $(substract[i]).outerHeight(true);
+        }
+    }
+    if (add instanceof Array) {
+        for (var i = 0; i < add.length; i++) {
+            console.log("Add height: " + $(add[i]).outerHeight(true));
+            height += $(add[i]).outerHeight(true);
+        }
+    }
+    console.log("New css height: " + height);
+    $('#' + elementId).css("height", height + "px");
+}
+
+/**
+ * Used in PageSizePopover class, in table panel.
+ *
+ * @param buttonId
+ * @param popoverId
+ */
+function initPageSizePopover(buttonId, popoverId) {
+    var button = $('#' + buttonId);
+    button.click(function () {
+        var popover = $('#' + popoverId);
+
+        var position = button.position();
+
+        var left = position.left - popover.outerWidth();
+        var top = position.top + button.outerHeight() / 2 - popover.outerHeight() / 2;
+
+        popover.css("top", top);
+        popover.css("left", left);
+
+        popover.toggle();
+    });
+}

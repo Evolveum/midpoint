@@ -47,7 +47,8 @@ function initEditor(textAreaId, readonly, minSize) {
     $(document).ready(function () {
         //38 + 1 + 21 is menu outer height
         var newHeight = $(document).innerHeight() - $('section.content-header').outerHeight(true)
-            - $('section.content').outerHeight(true) - $('footer.main-footer').outerHeight(true);
+            - $('section.content').outerHeight(true) - $('footer.main-footer').outerHeight(true)
+            - $('header.main-header').outerHeight(true);
         if (newHeight < minSize) {
             newHeight = minSize;
         }
