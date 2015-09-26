@@ -16,13 +16,20 @@
 
 package com.evolveum.midpoint.web.page.admin.home.component;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.util.FutureUpdateBehavior;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.util.time.Duration;
 
 import javax.management.Attribute;
 import javax.management.AttributeList;
@@ -31,12 +38,17 @@ import javax.management.ObjectName;
 import javax.management.openmbean.CompositeData;
 import java.io.Serializable;
 import java.lang.management.ManagementFactory;
+import java.util.concurrent.Callable;
+import java.util.concurrent.FutureTask;
 
 /**
  * @author Viliam Repan (lazyman)
  */
 public class SystemInfoPanel extends SimplePanel<SystemInfoPanel.SystemInfoDto> {
 
+    private static final Trace LOGGER = TraceManager.getTrace(SystemInfoPanel.class);
+
+    private static final String ID_TABLE = "table";
     private static final String ID_CPU_USAGE = "cpuUsage";
     private static final String ID_HEAP_MEMORY = "heapMemory";
     private static final String ID_NON_HEAP_MEMORY = "nonHeapMemory";
@@ -58,8 +70,7 @@ public class SystemInfoPanel extends SimplePanel<SystemInfoPanel.SystemInfoDto> 
                     fillMemoryUsage(dto);
                     fillThreads(dto);
                 } catch (Exception ex) {
-                    //todo fix
-                    ex.printStackTrace();
+                    LOGGER.debug("Couldn't load jmx data", ex);
                 }
 
                 return dto;
@@ -115,17 +126,22 @@ public class SystemInfoPanel extends SimplePanel<SystemInfoPanel.SystemInfoDto> 
 
     @Override
     protected void initLayout() {
+        final WebMarkupContainer table = new WebMarkupContainer(ID_TABLE);
+        table.setOutputMarkupId(true);
+        add(table);
+        table.add(new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(1500)));
+
         Label cpuUsage = new Label(ID_CPU_USAGE, new PropertyModel<>(getModel(), SystemInfoDto.F_CPU_USAGE));
-        add(cpuUsage);
+        table.add(cpuUsage);
 
         Label heapMemory = new Label(ID_HEAP_MEMORY, createMemoryModel(true));
-        add(heapMemory);
+        table.add(heapMemory);
 
         Label nonHeapMemory = new Label(ID_NON_HEAP_MEMORY, createMemoryModel(false));
-        add(nonHeapMemory);
+        table.add(nonHeapMemory);
 
         Label threads = new Label(ID_THREADS, createThreadModel());
-        add(threads);
+        table.add(threads);
     }
 
     private IModel<String> createMemoryModel(final boolean heap) {
