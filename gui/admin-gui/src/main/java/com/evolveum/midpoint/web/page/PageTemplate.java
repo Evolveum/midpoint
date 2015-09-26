@@ -22,15 +22,16 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.menu.MainMenu;
-import com.evolveum.midpoint.web.component.menu.MainMenuItem;
 import com.evolveum.midpoint.web.component.menu.SideBarMenu;
 import com.evolveum.midpoint.web.component.menu.UserMenuPanel;
+import com.evolveum.midpoint.web.component.menu.top.LocalePanel;
 import com.evolveum.midpoint.web.component.message.MainFeedback;
 import com.evolveum.midpoint.web.component.message.OpResult;
 import com.evolveum.midpoint.web.component.message.TempFeedback;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
+import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -87,6 +88,8 @@ public abstract class PageTemplate extends WebPage {
     private static final String ID_FEEDBACK_DETAILS = "feedbackDetails";
     private static final String ID_SIDEBAR_MENU = "sidebarMenu";
     private static final String ID_RIGHT_MENU = "rightMenu";
+    private static final String ID_LOCALE = "locale";
+    private static final String ID_MENU_TOGGLE = "menuToggle";
 
     private PageTemplate previousPage;                  // experimental -- where to return e.g. when 'Back' button is clicked [NOT a class, in order to eliminate reinitialization when it is not needed]
     private boolean reinitializePreviousPages;      // experimental -- should we reinitialize all the chain of previous pages?
@@ -138,12 +141,22 @@ public abstract class PageTemplate extends WebPage {
         DebugBar debugPanel = new DebugBar(ID_DEBUG_PANEL);
         add(debugPanel);
 
+        WebMarkupContainer menuToggle = new WebMarkupContainer(ID_MENU_TOGGLE);
+        menuToggle.add(createUserStatusBehaviour(true));
+        add(menuToggle);
+
         List<MainMenu> menuItems = createMenuItems();
-        SideBarMenu sidebar = new SideBarMenu(ID_SIDEBAR_MENU, new Model((Serializable) menuItems));
-        add(sidebar);
+        SideBarMenu sidebarMenu = new SideBarMenu(ID_SIDEBAR_MENU, new Model((Serializable) menuItems));
+        sidebarMenu.add(createUserStatusBehaviour(true));
+        add(sidebarMenu);
 
         UserMenuPanel rightMenu = new UserMenuPanel(ID_RIGHT_MENU);
+        rightMenu.add(createUserStatusBehaviour(true));
         add(rightMenu);
+
+        LocalePanel locale = new LocalePanel(ID_LOCALE);
+        locale.add(createUserStatusBehaviour(false));
+        add(locale);
 
         WebMarkupContainer version = new WebMarkupContainer(ID_VERSION) {
 
@@ -162,13 +175,7 @@ public abstract class PageTemplate extends WebPage {
         add(version);
 
         WebMarkupContainer pageTitleContainer = new WebMarkupContainer(ID_PAGE_TITLE_CONTAINER);
-        pageTitleContainer.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return StringUtils.isNotEmpty(createPageTitleModel().getObject());
-            }
-        });
+        pageTitleContainer.add(createUserStatusBehaviour(true));
         add(pageTitleContainer);
 
         WebMarkupContainer pageTitle = new WebMarkupContainer(ID_PAGE_TITLE);
@@ -193,6 +200,16 @@ public abstract class PageTemplate extends WebPage {
 //        add(feedbackList);
 
         initDebugBar();
+    }
+
+    private VisibleEnableBehaviour createUserStatusBehaviour(final boolean visibleIfLoggedIn) {
+        return new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return SecurityUtils.getPrincipalUser() != null ? visibleIfLoggedIn : !visibleIfLoggedIn;
+            }
+        };
     }
 
     private void initDebugBar() {

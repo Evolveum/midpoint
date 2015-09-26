@@ -17,47 +17,42 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <ul class="nav navbar-nav">
-        <!-- User Account: style can be found in dropdown.less -->
-        <li class="dropdown user user-menu">
-            <a data-toggle="dropdown" class="dropdown-toggle" href="#">
-                <!-- todo image -->
-                <wicket:link>
-                    <img src="webjars/adminlte/2.3.0/dist/img/user2-160x160.jpg"
-                         class="user-image" alt="User Image"/>
-                </wicket:link>
-                <span class="hidden-xs" wicket:id="usernameLink">Alexander Pierce</span>
-            </a>
-            <ul class="dropdown-menu">
-                <!-- User image -->
-                <li class="user-header">
-                    <!-- todo image -->
-                    <wicket:link>
-                        <img src="webjars/adminlte/2.3.0/dist/img/user2-160x160.jpg"
-                             class="img-circle" alt="User Image"/>
-                    </wicket:link>
-                    <p>
-                        <span wicket:id="username"/>
-                         <!-- todo improve this label (user/admin/whatever description you like) -->
-                        <small><wicket:message key="PageTemplate.user"/></small>
-                    </p>
-                </li>
-                <!-- Menu Body -->
-                <li class="user-body">
-                    <div class="col-xs-12 text-center">
-                        <a wicket:id="passwordQuestions"/>
-                    </div>
-                </li>
-                <!-- Menu Footer-->
-                <li class="user-footer">
-                    <div class="pull-left">
-                        <a class="btn btn-default btn-flat" wicket:id="resetPassword"/>
-                    </div>
-                    <div class="pull-right">
-                        <a class="btn btn-default btn-flat" wicket:id="logoutLink"/>
-                    </div>
-                </li>
-            </ul>
+    <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+        <!-- todo image -->
+        <wicket:link>
+            <img src="webjars/adminlte/2.3.0/dist/img/user2-160x160.jpg"
+                 class="user-image" alt="User Image"/>
+        </wicket:link>
+        <span class="hidden-xs" wicket:id="usernameLink"/>
+    </a>
+    <ul class="dropdown-menu">
+        <!-- User image -->
+        <li class="user-header">
+            <!-- todo image -->
+            <wicket:link>
+                <img src="webjars/adminlte/2.3.0/dist/img/user2-160x160.jpg"
+                     class="img-circle" alt="User Image"/>
+            </wicket:link>
+            <p>
+                <span wicket:id="username"/>
+                 <!-- todo improve this label (user/admin/whatever description you like) -->
+                <small><wicket:message key="PageTemplate.user"/></small>
+            </p>
+        </li>
+        <!-- Menu Body -->
+        <li class="user-body">
+            <div class="col-xs-12 text-center">
+                <a wicket:id="passwordQuestions"/>
+            </div>
+        </li>
+        <!-- Menu Footer-->
+        <li class="user-footer">
+            <div class="pull-left">
+                <a class="btn btn-default btn-flat" wicket:id="resetPassword"/>
+            </div>
+            <div class="pull-right">
+                <a class="btn btn-default btn-flat" wicket:id="logoutLink"/>
+            </div>
         </li>
     </ul>
 </wicket:panel>

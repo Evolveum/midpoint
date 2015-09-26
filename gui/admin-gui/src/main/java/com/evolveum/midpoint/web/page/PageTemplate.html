@@ -96,6 +96,9 @@
     </wicket:link>
 
     <!-- OBSOLETE START -->
+    <link type="text/css" rel="stylesheet" href="css/silk.css"/>
+    <link type="text/css" rel="stylesheet" href="css/flag.css"/>
+    <link rel="stylesheet" type="text/css" href="css/bootstrap-select/bootstrap-select.css"/>
     <link type="text/css" rel="stylesheet" href="wro/all.css"/>
     <link type="text/css" rel="stylesheet" href="wro/midpoint.css"/>
     <!-- OBSOLETE END -->
@@ -105,26 +108,36 @@
     <div class="wrapper">
         <header class="main-header">
             <!-- Logo -->
-            <a class="logo" href="index2.html">
-                <span style="height: 100%; width: 100%; display: inline-block; background: url('./img/midpoint_logo_white_300.png') no-repeat scroll 0px 3px / 200px 50px;">&nbsp;</span>
+            <a class="logo" href="#">
+                <img src="img/midpoint_logo_white_180.png" />
             </a>
             <!-- Header Navbar: style can be found in header.less -->
             <nav role="navigation" class="navbar navbar-static-top">
                 <!-- Sidebar toggle button-->
-                <a role="button" data-toggle="offcanvas" class="sidebar-toggle" href="#">
+                <a wicket:id="menuToggle" role="button" data-toggle="offcanvas" class="sidebar-toggle" href="#">
                     <span class="sr-only"><wicket:message key="PageTemplate.toggleNavigation"/></span>
                 </a>
                 <!-- Navbar Right Menu -->
-                <div class="navbar-custom-menu" wicket:id="rightMenu"/>
+                <div class="navbar-custom-menu">
+                    <ul class="nav navbar-nav">
+                        <!-- User Account: style can be found in dropdown.less -->
+                        <li class="dropdown user user-menu" wicket:id="rightMenu"/>
+                        <li>
+                            <div wicket:id="locale"/>
+                        </li>
+                    </ul>
+                </div>
             </nav>
         </header>
-        <aside class="main-sidebar">
-            <!-- sidebar: style can be found in sidebar.less -->
-            <section class="sidebar" style="height: auto;">
-                <wicket:container wicket:id="sidebarMenu"/>
-            </section>
-            <!-- /.sidebar -->
-        </aside>
+        <wicket:enclosure child="sidebarMenu">
+            <aside class="main-sidebar">
+                <!-- sidebar: style can be found in sidebar.less -->
+                <section class="sidebar" style="height: auto;">
+                    <wicket:container wicket:id="sidebarMenu"/>
+                </section>
+                <!-- /.sidebar -->
+            </aside>
+        </wicket:enclosure>
         <div class="content-wrapper" style="min-height: 916px;">
             <!-- Content Header (Page header) -->
             <section class="content-header" wicket:id="pageTitleContainer">
@@ -174,6 +187,7 @@
         <script src="../../../../../webjars/adminlte/2.3.0/dist/js/app.min.js" type="text/javascript"></script>
     </wicket:link>
     <!-- OBSOLETE START -->
+    <script type="text/javascript" src="js/bootstrap-select/bootstrap-select.js"></script>
     <script type="text/javascript" src="js/ace/ace.js" charset="utf-8"></script>
     <script type="text/javascript" src="wro/midpoint.js"></script>
     <!-- OBSOLETE END-->
