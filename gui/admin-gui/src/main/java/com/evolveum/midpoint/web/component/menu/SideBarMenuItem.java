@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * @author Viliam Repan (lazyman)
  */
-public class MainMenu implements Serializable {
+public class SideBarMenuItem implements Serializable {
 
     public static final String F_NAME = "name";
     public static final String F_ITEMS = "items";
@@ -18,7 +18,7 @@ public class MainMenu implements Serializable {
     private IModel<String> name;
     private List<MainMenuItem> items;
 
-    public MainMenu(IModel<String> name) {
+    public SideBarMenuItem(IModel<String> name) {
         this.name = name;
     }
 

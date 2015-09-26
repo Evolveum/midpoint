@@ -2,6 +2,7 @@ package com.evolveum.midpoint.web.component.menu;
 
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.security.SecurityUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -104,7 +105,7 @@ public class MainMenuPanel extends SimplePanel<MainMenuItem> {
         };
     }
 
-    private void createSubmenu(ListItem<MenuItem> listItem) {
+    private void createSubmenu(final ListItem<MenuItem> listItem) {
         final MenuItem menu = listItem.getModelObject();
 
         listItem.add(AttributeModifier.replace("class", new AbstractReadOnlyModel<String>() {
@@ -123,5 +124,13 @@ public class MainMenuPanel extends SimplePanel<MainMenuItem> {
 
         Label subLabel = new Label(ID_SUB_LABEL, menu.getName());
         subLink.add(subLabel);
+
+        listItem.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return SecurityUtils.isMenuAuthorized(listItem.getModelObject());
+            }
+        });
     }
 }

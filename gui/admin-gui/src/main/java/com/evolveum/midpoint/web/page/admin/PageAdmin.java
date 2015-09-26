@@ -18,7 +18,7 @@ package com.evolveum.midpoint.web.page.admin;
 
 import com.evolveum.midpoint.common.SystemConfigurationHolder;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.web.component.menu.MainMenu;
+import com.evolveum.midpoint.web.component.menu.SideBarMenuItem;
 import com.evolveum.midpoint.web.component.menu.MainMenuItem;
 import com.evolveum.midpoint.web.component.menu.MenuItem;
 import com.evolveum.midpoint.web.page.PageBase;
@@ -65,17 +65,14 @@ public class PageAdmin extends PageBase {
     }
 
     @Override
-    protected List<MainMenu> createMenuItems() {
-        //todo enable, disabled descriptor loader until finished [lazyman]
-//        return DescriptorLoader.getMenuBarItems();
+    protected List<SideBarMenuItem> createMenuItems() {
+        List<SideBarMenuItem> menus = new ArrayList<>();
 
-        List<MainMenu> menus = new ArrayList<>();
-
-        MainMenu menu = new MainMenu(createStringResource("PageAdmin.menu.selfService"));
+        SideBarMenuItem menu = new SideBarMenuItem(createStringResource("PageAdmin.menu.selfService"));
         menus.add(menu);
         createSelfServiceMenu(menu);
 
-        menu = new MainMenu(createStringResource("PageAdmin.menu.mainNavigation"));
+        menu = new SideBarMenuItem(createStringResource("PageAdmin.menu.mainNavigation"));
         menus.add(menu);
         List<MainMenuItem> items = menu.getItems();
 
@@ -284,7 +281,7 @@ public class PageAdmin extends PageBase {
         return item;
     }
 
-    private void createSelfServiceMenu(MainMenu menu) {
+    private void createSelfServiceMenu(SideBarMenuItem menu) {
         MainMenuItem item = new MainMenuItem("fa fa-dashboard",
                 createStringResource("PageAdmin.menu.dashboard"), PageSelfDashboard.class);
         menu.getItems().add(item);

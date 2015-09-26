@@ -21,8 +21,8 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.menu.MainMenu;
-import com.evolveum.midpoint.web.component.menu.SideBarMenu;
+import com.evolveum.midpoint.web.component.menu.SideBarMenuItem;
+import com.evolveum.midpoint.web.component.menu.SideBarMenuPanel;
 import com.evolveum.midpoint.web.component.menu.UserMenuPanel;
 import com.evolveum.midpoint.web.component.menu.top.LocalePanel;
 import com.evolveum.midpoint.web.component.message.MainFeedback;
@@ -145,8 +145,8 @@ public abstract class PageTemplate extends WebPage {
         menuToggle.add(createUserStatusBehaviour(true));
         add(menuToggle);
 
-        List<MainMenu> menuItems = createMenuItems();
-        SideBarMenu sidebarMenu = new SideBarMenu(ID_SIDEBAR_MENU, new Model((Serializable) menuItems));
+        List<SideBarMenuItem> menuItems = createMenuItems();
+        SideBarMenuPanel sidebarMenu = new SideBarMenuPanel(ID_SIDEBAR_MENU, new Model((Serializable) menuItems));
         sidebarMenu.add(createUserStatusBehaviour(true));
         add(sidebarMenu);
 
@@ -259,7 +259,7 @@ public abstract class PageTemplate extends WebPage {
         }
     }
 
-    protected List<MainMenu> createMenuItems() {
+    protected List<SideBarMenuItem> createMenuItems() {
         return new ArrayList<>();
     }
 
