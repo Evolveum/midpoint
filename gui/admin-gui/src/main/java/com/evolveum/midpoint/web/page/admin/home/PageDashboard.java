@@ -209,41 +209,14 @@ public class PageDashboard extends PageAdminHome {
     }
 
     private void initSystemInfo() {
-        AsyncDashboardPanel<Object, SystemInfoDto> systemInfo =
-                new AsyncDashboardPanel<Object, SystemInfoDto>(ID_SYSTEM_INFO, createStringResource("PageDashboard.systemInfo"),
-                        "fa fa-fw fa-tachometer", DashboardColor.GREEN) {
+        DashboardPanel systemInfo = new DashboardPanel(ID_SYSTEM_INFO, null,
+                createStringResource("PageDashboard.systemInfo"), "fa fa-tachometer", DashboardColor.GREEN) {
 
-                    @Override
-                    protected SecurityContextAwareCallable<CallableResult<SystemInfoDto>> createCallable(
-                            Authentication auth, IModel callableParameterModel) {
-
-                        return new SecurityContextAwareCallable<CallableResult<SystemInfoDto>>(
-                                getSecurityEnforcer(), auth) {
-
-                            @Override
-                            public CallableResult<SystemInfoDto> callWithContextPrepared() throws Exception {
-                                CallableResult callableResult = new CallableResult();
-
-                                //TODO - fill correct data in users and tasks graphs[shood]
-                                SimplePieChartDto usersDto = new SimplePieChartDto("PageDashboard.activeUsers", 100, 25);
-                                SimplePieChartDto tasksDto = new SimplePieChartDto("PageDashboard.activeTasks", 100, 35);
-                                SimplePieChartDto loadDto = new SimplePieChartDto("PageDashboard.serverLoad", 100, WebMiscUtil.getSystemLoad(), "%");
-                                SimplePieChartDto memDto = new SimplePieChartDto("PageDashboard.usedRam",
-                                        WebMiscUtil.getMaxRam(), WebMiscUtil.getRamUsage(), "%");
-
-                                SystemInfoDto sysInfoDto = new SystemInfoDto(usersDto, tasksDto, loadDto, memDto);
-
-                                callableResult.setValue(sysInfoDto);
-                                return callableResult;
-                            }
-                        };
-                    }
-
-                    @Override
-                    protected Component getMainComponent(String markupId) {
-                        return new SystemInfoPanel(markupId, new PropertyModel<SystemInfoDto>(getModel(), CallableResult.F_VALUE));
-                    }
-                };
+            @Override
+            protected Component getMainComponent(String componentId) {
+                return new SystemInfoPanel(componentId);
+            }
+        };
         add(systemInfo);
     }
 

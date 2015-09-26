@@ -98,7 +98,7 @@ public final class WebMiscUtil {
     private static final Trace LOGGER = TraceManager.getTrace(WebMiscUtil.class);
     private static DatatypeFactory df = null;
 
-    public static enum Channel{
+    public static enum Channel {
         LIVE_SYNC("http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#liveSync"),
         RECONCILIATION("http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#reconciliation"),
         DISCOVERY("http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#discovery"),
@@ -108,7 +108,7 @@ public final class WebMiscUtil {
 
         private String channel;
 
-        Channel(String channel){
+        Channel(String channel) {
             this.channel = channel;
         }
 
@@ -190,10 +190,10 @@ public final class WebMiscUtil {
 //    }
 
     public static <E extends Enum> DropDownChoicePanel createEnumPanel(Class clazz, String id, final IModel<E> model,
-                                                              final Component component){
+                                                                       final Component component) {
 //        final Class clazz = model.getObject().getClass();
         final Object o = model.getObject();
-    	return new DropDownChoicePanel(id, model,
+        return new DropDownChoicePanel(id, model,
                 WebMiscUtil.createReadonlyModelFromEnum(clazz),
                 new IChoiceRenderer<E>() {
 
@@ -208,70 +208,69 @@ public final class WebMiscUtil {
                     }
                 }, true);
     }
-    
-	public static DropDownChoicePanel createEnumPanel(final PrismPropertyDefinition def,
-			String id, final IModel model, final Component component) {
-		// final Class clazz = model.getObject().getClass();
-		final Object o = model.getObject();
-		
-		final IModel<List<DisplayableValue>> enumModelValues = new AbstractReadOnlyModel<List<DisplayableValue>>() {
-			@Override
-			public List<DisplayableValue> getObject() {
-				List<DisplayableValue> values = null;
-				if (def.getAllowedValues() != null){
-					values = new ArrayList<>(def.getAllowedValues().size());
-					for (Object v : def.getAllowedValues()){
-						if (v instanceof DisplayableValue){
-							values.add(((DisplayableValue) v));
-						}
-					}
-				}
-				return values;
-			}
-			
-			
-		};
-		
-		return new DropDownChoicePanel(id, model, enumModelValues,
-				new IChoiceRenderer() {
-			
-					
 
-					@Override
-					public Object getDisplayValue(Object object) {
-						if (object instanceof DisplayableValue){
-							return ((DisplayableValue)object).getLabel();
-						}
-						for (DisplayableValue v : enumModelValues.getObject()){
-							if (object.equals(v.getValue())){
-								return v.getLabel();
-							}
-						}
-						return object;
-						
-					}
+    public static DropDownChoicePanel createEnumPanel(final PrismPropertyDefinition def,
+                                                      String id, final IModel model, final Component component) {
+        // final Class clazz = model.getObject().getClass();
+        final Object o = model.getObject();
 
-					@Override
-					public String getIdValue(Object object, int index) {
-						if (object instanceof DisplayableValue){
-							return ((DisplayableValue)object).getValue().toString();
-						}
-						return object.toString();
+        final IModel<List<DisplayableValue>> enumModelValues = new AbstractReadOnlyModel<List<DisplayableValue>>() {
+            @Override
+            public List<DisplayableValue> getObject() {
+                List<DisplayableValue> values = null;
+                if (def.getAllowedValues() != null) {
+                    values = new ArrayList<>(def.getAllowedValues().size());
+                    for (Object v : def.getAllowedValues()) {
+                        if (v instanceof DisplayableValue) {
+                            values.add(((DisplayableValue) v));
+                        }
+                    }
+                }
+                return values;
+            }
+
+
+        };
+
+        return new DropDownChoicePanel(id, model, enumModelValues,
+                new IChoiceRenderer() {
+
+
+                    @Override
+                    public Object getDisplayValue(Object object) {
+                        if (object instanceof DisplayableValue) {
+                            return ((DisplayableValue) object).getLabel();
+                        }
+                        for (DisplayableValue v : enumModelValues.getObject()) {
+                            if (object.equals(v.getValue())) {
+                                return v.getLabel();
+                            }
+                        }
+                        return object;
+
+                    }
+
+                    @Override
+                    public String getIdValue(Object object, int index) {
+                        if (object instanceof DisplayableValue) {
+                            return ((DisplayableValue) object).getValue().toString();
+                        }
+                        return object.toString();
 //						for (DisplayableValue v : enumModelValues.getObject()){
 //							if (object.equals(v.getValue())){
 //								return v.getLabel();
 //							}
 //						}
 //						return object.getValue().toString();//Integer.toString(index);
-					}
-					
-					
-				}, true);
-	}
+                    }
 
-	public static String getName(ObjectType object) {
-		if (object == null) {
-			return null;
+
+                }, true);
+    }
+
+    public static String getName(ObjectType object) {
+        if (object == null) {
+            return null;
         }
 
         return getName(object.asPrismObject());
@@ -564,7 +563,7 @@ public final class WebMiscUtil {
         }
 
         ActivationType activation = user.getActivation();
-        if (activation != null && ActivationStatusType.DISABLED.equals(activation.getEffectiveStatus())){
+        if (activation != null && ActivationStatusType.DISABLED.equals(activation.getEffectiveStatus())) {
             return "fa fa-male text-muted";
         }
 
@@ -586,7 +585,7 @@ public final class WebMiscUtil {
         }
 
         ActivationType activation = user.getActivation();
-        if (activation != null && ActivationStatusType.DISABLED.equals(activation.getEffectiveStatus())){
+        if (activation != null && ActivationStatusType.DISABLED.equals(activation.getEffectiveStatus())) {
             return "User.disabled";
         }
 
@@ -721,17 +720,17 @@ public final class WebMiscUtil {
         }
     }
 
-    public static List<String> getChannelList(){
+    public static List<String> getChannelList() {
         List<String> channels = new ArrayList<>();
 
-        for(Channel channel: Channel.values()){
+        for (Channel channel : Channel.values()) {
             channels.add(channel.getChannel());
         }
 
         return channels;
     }
 
-    public static List<QName> getMatchingRuleList(){
+    public static List<QName> getMatchingRuleList() {
         List<QName> list = new ArrayList<>();
 
         String NS_MATCHING_RULE = "http://prism.evolveum.com/xml/ns/public/matching-rule-3";
@@ -745,20 +744,28 @@ public final class WebMiscUtil {
         return list;
     }
 
-    public static boolean isObjectOrgManager(PrismObject<? extends ObjectType> object){
-        if(object == null || object.asObjectable() == null){
+    public static boolean isObjectOrgManager(PrismObject<? extends ObjectType> object) {
+        if (object == null || object.asObjectable() == null) {
             return false;
         }
 
         ObjectType objectType = object.asObjectable();
         List<ObjectReferenceType> parentOrgRefs = objectType.getParentOrgRef();
 
-        for(ObjectReferenceType ref: parentOrgRefs){
-            if(ref.getRelation() != null && ref.getRelation().equals(SchemaConstants.ORG_MANAGER)){
+        for (ObjectReferenceType ref : parentOrgRefs) {
+            if (ref.getRelation() != null && ref.getRelation().equals(SchemaConstants.ORG_MANAGER)) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    public static String createHumanReadableByteCount(long bytes) {
+        int unit = 1024;
+        if (bytes < unit) return bytes + "B";
+        int exp = (int) (Math.log(bytes) / Math.log(unit));
+        char pre = "KMGTPE".charAt(exp - 1);
+        return String.format("%.1f%sB", bytes / Math.pow(unit, exp), pre);
     }
 }
