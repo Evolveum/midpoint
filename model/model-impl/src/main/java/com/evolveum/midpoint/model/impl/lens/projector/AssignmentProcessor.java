@@ -18,9 +18,11 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -62,6 +64,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -72,6 +75,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
@@ -89,6 +93,7 @@ import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -957,7 +962,7 @@ public class AssignmentProcessor {
             String resourceOid = construction.getResource(task, result).getOid();
             String intent = construction.getIntent();
             ShadowKindType kind = construction.getKind();
-            ResourceType resource = LensUtil.getResource(context, resourceOid, provisioningService, result);
+            ResourceType resource = LensUtil.getResource(context, resourceOid, provisioningService, task, result);
             intent = LensUtil.refineProjectionIntent(kind, intent, resource, prismContext);
             ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, kind, intent);
             ConstructionPack constructionPack = null;
@@ -1608,5 +1613,65 @@ public class AssignmentProcessor {
 		
 		return nextRecomputeTime;
 	}
+    
+    public <F extends ObjectType> void processMembershipRef(LensContext<F> context, 
+			OperationResult result) throws SchemaException {
+		LensFocusContext<F> focusContext = context.getFocusContext();
+		if (focusContext == null || !FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
+			return;
+		}
+		Collection<PrismReferenceValue> newValues = new ArrayList<>();
+		DeltaSetTriple<EvaluatedAssignmentImpl> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
+		if (evaluatedAssignmentTriple == null) {
+			return;
+		}
 
+		for (EvaluatedAssignmentImpl<?> evalAssignment: evaluatedAssignmentTriple.getNonNegativeValues()) {
+			for (PrismReferenceValue membershipRefVal: evalAssignment.getMembershipRefVals()) {
+				boolean found = false;
+				for (PrismReferenceValue exVal: newValues) {
+					if (exVal.getOid().equals(membershipRefVal.getOid())) {
+						found = true;
+						break;
+					}
+				}
+				if (!found) {
+					PrismReferenceValue ref = membershipRefVal.clone();
+					ref.setRelation(null);
+					newValues.add(ref);
+				}
+			}
+		}
+		
+		PrismObject<F> focusOld = focusContext.getObjectOld();
+		if (focusOld == null) {
+			if (newValues.isEmpty()) {
+				return;
+			}
+		} else {
+			PrismReference roleMemPrismRef = focusOld.findReference(FocusType.F_ROLE_MEMBERSHIP_REF);
+			if (roleMemPrismRef == null || roleMemPrismRef.isEmpty()) {
+				if (newValues.isEmpty()) {
+					return;
+				}	
+			} else {				
+				Comparator<PrismReferenceValue> comparator = new Comparator<PrismReferenceValue>() {
+					@Override
+					public int compare(PrismReferenceValue a, PrismReferenceValue b) {
+						return a.getOid().compareTo(b.getOid());
+					}
+				};
+				if (MiscUtil.unorderedCollectionEquals(newValues, roleMemPrismRef.getValues(), comparator)) {
+					return;
+				}
+			}
+		}
+		
+		PrismReferenceDefinition membershipRefDef = focusContext.getObjectDefinition().findItemDefinition(FocusType.F_ROLE_MEMBERSHIP_REF, 
+				PrismReferenceDefinition.class);
+    	ReferenceDelta membershipRefDelta = new ReferenceDelta(FocusType.F_ROLE_MEMBERSHIP_REF, membershipRefDef, 
+    			focusContext.getObjectDefinition().getPrismContext());
+		membershipRefDelta.setValuesToReplace(newValues);
+		focusContext.swallowToSecondaryDelta(membershipRefDelta);
+    }
 }

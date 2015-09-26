@@ -127,13 +127,13 @@ public class LensUtil {
     }
 
 	public static <F extends ObjectType> ResourceType getResource(LensContext<F> context,
-			String resourceOid, ProvisioningService provisioningService, OperationResult result) throws ObjectNotFoundException,
+																  String resourceOid, ProvisioningService provisioningService, Task task, OperationResult result) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		ResourceType resourceType = context.getResource(resourceOid);
 		if (resourceType == null) {
 			// Fetching from provisioning to take advantage of caching and
 			// pre-parsed schema
-			resourceType = provisioningService.getObject(ResourceType.class, resourceOid, null, null, result)
+			resourceType = provisioningService.getObject(ResourceType.class, resourceOid, null, task, result)
 					.asObjectable();
 			context.rememberResource(resourceType);
 		}
@@ -163,20 +163,23 @@ public class LensUtil {
 		return rObjClassDef.getIntent();
 	}
 	
-	public static <F extends FocusType> LensProjectionContext getProjectionContext(LensContext<F> context,
-			PrismObject<ShadowType> equivalentAccount, ProvisioningService provisioningService, PrismContext prismContext, OperationResult result) throws ObjectNotFoundException,
+	public static <F extends FocusType> LensProjectionContext getProjectionContext(LensContext<F> context, PrismObject<ShadowType> equivalentAccount,
+																				   ProvisioningService provisioningService, PrismContext prismContext,
+																				   Task task, OperationResult result) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		ShadowType equivalentAccountType = equivalentAccount.asObjectable();
 		ShadowKindType kind = ShadowUtil.getKind(equivalentAccountType);
 		return getProjectionContext(context, ShadowUtil.getResourceOid(equivalentAccountType),
 				kind, equivalentAccountType.getIntent(), provisioningService,
-				prismContext, result);
+				prismContext, task, result);
 	}
 	
-	public static <F extends FocusType> LensProjectionContext getProjectionContext(LensContext<F> context,
-			String resourceOid, ShadowKindType kind, String intent, ProvisioningService provisioningService, PrismContext prismContext, OperationResult result) throws ObjectNotFoundException,
+	public static <F extends FocusType> LensProjectionContext getProjectionContext(LensContext<F> context, String resourceOid,
+																				   ShadowKindType kind, String intent,
+																				   ProvisioningService provisioningService, PrismContext prismContext,
+																				   Task task, OperationResult result) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
-		ResourceType resource = getResource(context, resourceOid, provisioningService, result);
+		ResourceType resource = getResource(context, resourceOid, provisioningService, task, result);
 		String refinedIntent = refineProjectionIntent(kind, intent, resource, prismContext);
 		ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(resourceOid, kind, refinedIntent);
 		return context.findProjectionContext(rsd);

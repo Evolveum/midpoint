@@ -99,6 +99,8 @@ public class StateReporter {
             long duration = System.currentTimeMillis() - lastStarted.getTime();
             if (task != null) {
                 task.recordProvisioningOperation(resourceOid, getResourceName(), objectClassDef.getTypeName(), lastOperation, true, 0, duration);
+            } else {
+                reportNoTask(resourceOid, lastOperation);
             }
         }
         lastOperation = null;
@@ -152,10 +154,18 @@ public class StateReporter {
             object = " " + uid.getUidValue();
         }
         recordState(finished + " " + operation + " of " + getObjectClassName(objectClassDef) + object + " on " + getResourceName() + durationString);
-        if (task != null && duration >= 0) {
-            task.recordProvisioningOperation(resourceOid, getResourceName(), getObjectClassQName(objectClassDef), lastOperation, ex == null, 1, duration);
+        if (task != null) {
+            if (duration >= 0) {
+                task.recordProvisioningOperation(resourceOid, getResourceName(), getObjectClassQName(objectClassDef), lastOperation, ex == null, 1, duration);
+            }
+        } else {
+            reportNoTask(resourceOid, lastOperation);
         }
         lastOperation = null;
+    }
+
+    private void reportNoTask(String resourceOid, ProvisioningOperation operation) {
+        LOGGER.warn("Couldn't report execution of ICF operation {} on resource {} because there is no task assigned.", operation, resourceOid);
     }
 
     private void recordState(String message) {

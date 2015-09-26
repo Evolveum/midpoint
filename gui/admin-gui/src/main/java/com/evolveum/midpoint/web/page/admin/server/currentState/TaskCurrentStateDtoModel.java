@@ -77,7 +77,7 @@ public class TaskCurrentStateDtoModel extends AbstractReadOnlyModel<TaskCurrentS
         }
 
         if (taskId == null) {
-            LOGGER.warn("taskIdentifier not available");
+            LOGGER.trace("taskIdentifier not available");
             return new TaskCurrentStateDto(taskModel.getObject());
         }
         MidPointApplication application = (MidPointApplication) Application.get();
@@ -119,13 +119,13 @@ public class TaskCurrentStateDtoModel extends AbstractReadOnlyModel<TaskCurrentS
         if (sit != null) {
             sit.setFromMemory(true);
         } else {
-            LOGGER.warn("No synchronization information in task");
+            LOGGER.trace("No synchronization information in task");
         }
         IterativeTaskInformationType itit = task.getAggregateIterativeTaskInformation();;
         if (itit != null) {
             itit.setFromMemory(true);
         } else {
-            LOGGER.warn("No synchronization information in task");
+            LOGGER.trace("No iterative task information in task");
         }
         return new TaskCurrentStateDto(taskModel.getObject(), sit, itit, task.getProgress());
     }

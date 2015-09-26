@@ -18,7 +18,6 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 
 import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
 
-import com.evolveum.midpoint.common.refinery.PropertyLimitations;
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
@@ -29,13 +28,9 @@ import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProduc
 import com.evolveum.midpoint.model.impl.lens.Construction;
 import com.evolveum.midpoint.model.impl.lens.ItemValueWithOrigin;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -54,13 +49,9 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -72,9 +63,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -88,7 +76,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -122,8 +109,8 @@ public class ConsolidationProcessor {
     /**
      * Converts delta set triples to a secondary account deltas.
      */
-    <F extends FocusType> void consolidateValues(LensContext<F> context, LensProjectionContext accCtx, 
-    		OperationResult result) 
+    <F extends FocusType> void consolidateValues(LensContext<F> context, LensProjectionContext accCtx,
+												 Task task, OperationResult result)
     				throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
     				ConfigurationException, SecurityViolationException, PolicyViolationException {
     		//todo filter changes which were already in account sync delta
@@ -141,7 +128,7 @@ public class ConsolidationProcessor {
             // Nothing to do
         } else {
             // This is ADD, KEEP, UNLINK or null. All are in fact the same as KEEP
-            consolidateValuesModifyProjection(context, accCtx, result);
+            consolidateValuesModifyProjection(context, accCtx, task, result);
             if (consistencyChecks) context.checkConsistence();
         }
         if (consistencyChecks) context.checkConsistence();
@@ -162,7 +149,7 @@ public class ConsolidationProcessor {
     }
 
     private <F extends FocusType> ObjectDelta<ShadowType> consolidateValuesToModifyDelta(LensContext<F> context,
-    		LensProjectionContext projCtx, boolean addUnchangedValues, OperationResult result) 
+																						 LensProjectionContext projCtx, boolean addUnchangedValues, Task task, OperationResult result)
             		throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             		ConfigurationException, SecurityViolationException, PolicyViolationException {
     	
@@ -271,7 +258,7 @@ public class ConsolidationProcessor {
  	 		// resource availability. We need to know, if the account was read full
  	 		// or we have only the shadow from the repository. If we have only
  	 		// shadow, the weak mappings may applied even if they should not be. 
- 			contextLoader.loadFullShadow(context, projCtx, result);
+ 			contextLoader.loadFullShadow(context, projCtx, task, result);
  			if (projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
  				return null;
  			}
@@ -596,8 +583,8 @@ public class ConsolidationProcessor {
 		return false;
 	}
 
-    private <F extends FocusType> void consolidateValuesModifyProjection(LensContext<F> context, 
-    		LensProjectionContext accCtx, OperationResult result) 
+    private <F extends FocusType> void consolidateValuesModifyProjection(LensContext<F> context,
+																		 LensProjectionContext accCtx, Task task, OperationResult result)
     				throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, 
     				CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
 
@@ -606,7 +593,7 @@ public class ConsolidationProcessor {
         	addUnchangedValues = true;
         }
         
-		ObjectDelta<ShadowType> modifyDelta = consolidateValuesToModifyDelta(context, accCtx, addUnchangedValues, result);
+		ObjectDelta<ShadowType> modifyDelta = consolidateValuesToModifyDelta(context, accCtx, addUnchangedValues, task, result);
         if (modifyDelta == null || modifyDelta.isEmpty()) {
         	return;
         }

@@ -911,7 +911,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			String resourceOid = ShadowUtil.getResourceOid(shadow);
 			PrismObject<ResourceType> resource;
 			try {
-				resource = provisioning.getObject(ResourceType.class, resourceOid, null, null, result);
+				resource = provisioning.getObject(ResourceType.class, resourceOid, null, null, result);			// TODO include task here
 			} catch (CommunicationException | SecurityViolationException e) {
 				throw new ConfigurationException(e.getMessage(), e);
 			}
@@ -1247,7 +1247,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
                 }
                 switch (searchProvider) {
                     case REPOSITORY: list = cacheRepositoryService.searchObjects(type, query, options, result); break;
-                    case PROVISIONING: list = provisioning.searchObjects(type, query, options, null, result); break;
+                    case PROVISIONING: list = provisioning.searchObjects(type, query, options, task, result); break;
                     case TASK_MANAGER: list = taskManager.searchObjects(type, query, options, result); break;
                     case WORKFLOW: throw new UnsupportedOperationException();
                     default: throw new AssertionError("Unexpected search provider: " + searchProvider);
