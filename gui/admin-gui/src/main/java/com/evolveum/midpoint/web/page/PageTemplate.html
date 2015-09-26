@@ -178,6 +178,7 @@
                 <h1 wicket:id="pageTitle">
                     <span wicket:id="pageTitleReal"></span>
                     <small wicket:id="pageSubtitle"></small>
+                    <img id="ajax_busy" src="img/ajax-loader.gif"/>
                 </h1>
                 <ol class="breadcrumb">
                     <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
@@ -193,8 +194,6 @@
                 </div>
                 <wicket:child/>
 
-                <!-- todo fix position for these elements -->
-                <img id="ajax_busy" class="pull-right version-info" src="img/ajax-loader.gif"/>
                 <div class="wicket-debug-buttons" wicket:id="debugBar">
                     <a wicket:id="clearCssCache">Clear css cache</a>
                 </div>
@@ -202,28 +201,20 @@
             </section>
         </div>
         <footer class="main-footer">
-            <div class="pull-right hidden-xs">
-                <b>Version</b> <wicket:message key="pageBase.midPointVersion"/>
+            <div class="pull-right hidden-xs" wicket:id="version">
+                <b><wicket:message key="PageTemplate.version"/></b> <wicket:message key="pageBase.midPointVersion"/>
             </div>
-            <strong>Copyright &copy; 2010-2015 <a href="https://www.evolveum.com/">Evolveum</a> and partners.</strong> Thank you for using <a href="http://midpoint.evolveum.com">midPoint</a>.
+            <wicket:message key="PageTemplate.copy"/>
         </footer>
     </div>
 
-    <div id="blackWindow"></div>
+     <!-- todo fix results -->
+    <div id="blackWindow"/>
     <div id="xmlExport">
-        <span id="xmlExportContent"></span>
-    </div>
-
-    <div style="display: none;">
-
-    <div wicket:id="version" class="pull-right version-info">
-        <wicket:message key="pageBase.midPointVersion"/>
-    </div>
-
+        <span id="xmlExportContent"/>
     </div>
 
     <wicket:link>
-        <script src="../../../../../webjars/adminlte/2.3.0/plugins/jQuery/jQuery-2.1.4.min.js"/>
         <script src="../../../../../webjars/adminlte/2.3.0/bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
         <script src="../../../../../webjars/adminlte/2.3.0/plugins/slimScroll/jquery.slimscroll.min.js" type="text/javascript"></script>
         <script src='../../../../../webjars/adminlte/2.3.0/plugins/fastclick/fastclick.min.js'></script>

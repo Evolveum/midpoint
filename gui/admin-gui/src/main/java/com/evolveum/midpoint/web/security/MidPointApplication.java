@@ -50,6 +50,7 @@ import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.IRequestHandler;
 import org.apache.wicket.request.cycle.AbstractRequestCycleListener;
 import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.request.resource.SharedResourceReference;
 import org.apache.wicket.resource.loader.BundleStringResourceLoader;
 import org.apache.wicket.resource.loader.IStringResourceLoader;
@@ -117,6 +118,10 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     @Override
     public void init() {
         super.init();
+
+        getJavaScriptLibrarySettings().setJQueryReference(
+                new PackageResourceReference(MidPointApplication.class,
+                        "../../../../../webjars/adminlte/2.3.0/plugins/jQuery/jQuery-2.1.4.min.js"));
 
         GuiComponents.init();
 
