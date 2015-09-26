@@ -23,11 +23,6 @@ function initEditor(textAreaId, readonly, minSize) {
     var editorId = textAreaId + ACE_EDITOR_POSTFIX;
     var jqEditor = '#' + editorId;
 
-    if (!isIE9OrNewer()) {
-        //todo handle readonly for text area [lazyman]
-        return;
-    }
-
     $('<div id="' + editorId + '" class="aceEditor"></div>').insertAfter($('#' + textAreaId));
 
     $(jqEditor).text($(jqTextArea).val());
@@ -51,7 +46,8 @@ function initEditor(textAreaId, readonly, minSize) {
 
     $(document).ready(function () {
         //38 + 1 + 21 is menu outer height
-        var newHeight = $(document).innerHeight() - $('div.mainContainer').outerHeight(true) - 60;
+        var newHeight = $(document).innerHeight() - $('section.content-header').outerHeight(true)
+            - $('section.content').outerHeight(true) - $('footer.main-footer').outerHeight(true);
         if (newHeight < minSize) {
             newHeight = minSize;
         }
@@ -65,19 +61,6 @@ function initEditor(textAreaId, readonly, minSize) {
 
 function refreshReadonly(textAreaId, readonly) {
     var jqTextArea = '#' + textAreaId;
-    if (!isIE9OrNewer()) {
-        var area = $(jqTextArea);
-        area.attr('readonly', readonly);
-        area.focus();
-
-        if (readonly) {
-            area.addClass(DISABLED_CLASS);
-        } else {
-            area.removeClass(DISABLED_CLASS);
-        }
-
-        return;
-    }
 
     var editorId = textAreaId + ACE_EDITOR_POSTFIX;
     var jqEditor = '#' + editorId;

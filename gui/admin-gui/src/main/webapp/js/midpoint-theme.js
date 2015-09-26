@@ -14,6 +14,36 @@
  * limitations under the License.
  */
 
+window.onload = initAjaxStatusSigns;
+function clickFuncWicket6(eventData) {
+    var clickedElement = (window.event) ? event.srcElement : eventData.target;
+    if ((clickedElement.tagName.toUpperCase() == 'BUTTON' || clickedElement.tagName.toUpperCase() == 'A' || clickedElement.parentNode.tagName.toUpperCase() == 'A'
+        || (clickedElement.tagName.toUpperCase() == 'INPUT' && (clickedElement.type.toUpperCase() == 'BUTTON' || clickedElement.type.toUpperCase() == 'SUBMIT')))
+        && clickedElement.parentNode.id.toUpperCase() != 'NOBUSY' ) {
+        showAjaxStatusSign();
+    }
+}
+
+function initAjaxStatusSigns() {
+    document.getElementsByTagName('body')[0].onclick = clickFuncWicket6;
+    hideAjaxStatusSign();
+    Wicket.Event.subscribe('/ajax/call/beforeSend', function( attributes, jqXHR, settings ) {
+        showAjaxStatusSign();
+    });
+    Wicket.Event.subscribe('/ajax/call/complete', function( attributes, jqXHR, textStatus) {
+        hideAjaxStatusSign();
+    });
+}
+
+function showAjaxStatusSign() {
+    document.getElementById('ajax_busy').style.display = 'inline';
+}
+
+function hideAjaxStatusSign() {
+    document.getElementById('ajax_busy').style.display = 'none';
+}
+
+
 /**
  * InlineMenu initialization function
  */

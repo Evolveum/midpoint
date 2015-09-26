@@ -38,7 +38,7 @@
 
         <div wicket:id="loggersTable"/>
 
-        <div class="main-button-bar" style="margin-left: 20px;">
+        <div class="main-button-bar">
             <span class="button-group">
                 <a class="btn btn-success" wicket:id="addStandardLogger" />
                 <a class="btn btn-success" wicket:id="addComponentLogger"/>
@@ -49,6 +49,7 @@
         </div>
 
         <!-- Audit configuration -->
+        <hr/>
         <h3><wicket:message key="LoggingConfigPanel.audit"/></h3>
 
         <div class="form-group">
@@ -126,6 +127,7 @@
         </div>
 
         <!-- Subsystem profiling section -->
+        <hr/>
         <h3><wicket:message key="LoggingConfigPanel.profiling.subsystems"/></h3>
 
         <div class="form-group">
@@ -214,6 +216,7 @@
         </div>
 
         <!-- Profiling - Entry/Exit level -->
+        <hr/>
         <h3><wicket:message key="LoggingConfigPanel.profiling.entryExit"/></h3>
 
         <div class="form-group">
