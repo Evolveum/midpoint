@@ -112,57 +112,10 @@
             <nav role="navigation" class="navbar navbar-static-top">
                 <!-- Sidebar toggle button-->
                 <a role="button" data-toggle="offcanvas" class="sidebar-toggle" href="#">
-                    <span class="sr-only">Toggle navigation</span>
+                    <span class="sr-only"><wicket:message key="PageTemplate.toggleNavigation"/></span>
                 </a>
                 <!-- Navbar Right Menu -->
-                <div class="navbar-custom-menu">
-                    <ul class="nav navbar-nav">
-                        <!-- User Account: style can be found in dropdown.less -->
-                        <li class="dropdown user user-menu">
-                            <a data-toggle="dropdown" class="dropdown-toggle" href="#">
-                                <wicket:link>
-                                    <img src="../../../../../webjars/adminlte/2.3.0/dist/img/user2-160x160.jpg"
-                                         class="user-image" alt="User Image"/>
-                                </wicket:link>
-                                <span class="hidden-xs">Alexander Pierce</span>
-                            </a>
-                            <ul class="dropdown-menu">
-                                <!-- User image -->
-                                <li class="user-header">
-                                    <wicket:link>
-                                        <img src="../../../../../webjars/adminlte/2.3.0/dist/img/user2-160x160.jpg"
-                                             class="img-circle" alt="User Image"/>
-                                    </wicket:link>
-                                    <p>
-                                        Alexander Pierce - Web Developer
-                                        <small>Member since Nov. 2012</small>
-                                    </p>
-                                </li>
-                                <!-- Menu Body -->
-                                <li class="user-body">
-                                    <div class="col-xs-4 text-center">
-                                        <a href="#">Followers</a>
-                                    </div>
-                                    <div class="col-xs-4 text-center">
-                                        <a href="#">Sales</a>
-                                    </div>
-                                    <div class="col-xs-4 text-center">
-                                        <a href="#">Friends</a>
-                                    </div>
-                                </li>
-                                <!-- Menu Footer-->
-                                <li class="user-footer">
-                                    <div class="pull-left">
-                                        <a class="btn btn-default btn-flat" href="#">Profile</a>
-                                    </div>
-                                    <div class="pull-right">
-                                        <a class="btn btn-default btn-flat" href="#">Sign out</a>
-                                    </div>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
-                </div>
+                <div class="navbar-custom-menu" wicket:id="rightMenu"/>
             </nav>
         </header>
         <aside class="main-sidebar">

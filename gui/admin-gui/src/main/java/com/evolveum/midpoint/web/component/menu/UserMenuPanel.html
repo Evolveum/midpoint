@@ -1,0 +1,64 @@
+<!--
+  ~ Copyright (c) 2010-2015 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <ul class="nav navbar-nav">
+        <!-- User Account: style can be found in dropdown.less -->
+        <li class="dropdown user user-menu">
+            <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                <!-- todo image -->
+                <wicket:link>
+                    <img src="webjars/adminlte/2.3.0/dist/img/user2-160x160.jpg"
+                         class="user-image" alt="User Image"/>
+                </wicket:link>
+                <span class="hidden-xs" wicket:id="usernameLink">Alexander Pierce</span>
+            </a>
+            <ul class="dropdown-menu">
+                <!-- User image -->
+                <li class="user-header">
+                    <!-- todo image -->
+                    <wicket:link>
+                        <img src="webjars/adminlte/2.3.0/dist/img/user2-160x160.jpg"
+                             class="img-circle" alt="User Image"/>
+                    </wicket:link>
+                    <p>
+                        <span wicket:id="username"/>
+                         <!-- todo improve this label (user/admin/whatever description you like) -->
+                        <small><wicket:message key="PageTemplate.user"/></small>
+                    </p>
+                </li>
+                <!-- Menu Body -->
+                <li class="user-body">
+                    <div class="col-xs-12 text-center">
+                        <a wicket:id="passwordQuestions"/>
+                    </div>
+                </li>
+                <!-- Menu Footer-->
+                <li class="user-footer">
+                    <div class="pull-left">
+                        <a class="btn btn-default btn-flat" wicket:id="resetPassword"/>
+                    </div>
+                    <div class="pull-right">
+                        <a class="btn btn-default btn-flat" wicket:id="logoutLink"/>
+                    </div>
+                </li>
+            </ul>
+        </li>
+    </ul>
+</wicket:panel>
+</html>

@@ -24,6 +24,7 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.menu.MainMenu;
 import com.evolveum.midpoint.web.component.menu.MainMenuItem;
 import com.evolveum.midpoint.web.component.menu.SideBarMenu;
+import com.evolveum.midpoint.web.component.menu.UserMenuPanel;
 import com.evolveum.midpoint.web.component.message.MainFeedback;
 import com.evolveum.midpoint.web.component.message.OpResult;
 import com.evolveum.midpoint.web.component.message.TempFeedback;
@@ -85,6 +86,7 @@ public abstract class PageTemplate extends WebPage {
     private static final String ID_FEEDBACK_LIST = "feedbackList";
     private static final String ID_FEEDBACK_DETAILS = "feedbackDetails";
     private static final String ID_SIDEBAR_MENU = "sidebarMenu";
+    private static final String ID_RIGHT_MENU = "rightMenu";
 
     private PageTemplate previousPage;                  // experimental -- where to return e.g. when 'Back' button is clicked [NOT a class, in order to eliminate reinitialization when it is not needed]
     private boolean reinitializePreviousPages;      // experimental -- should we reinitialize all the chain of previous pages?
@@ -139,6 +141,9 @@ public abstract class PageTemplate extends WebPage {
         List<MainMenu> menuItems = createMenuItems();
         SideBarMenu sidebar = new SideBarMenu(ID_SIDEBAR_MENU, new Model((Serializable) menuItems));
         add(sidebar);
+
+        UserMenuPanel rightMenu = new UserMenuPanel(ID_RIGHT_MENU);
+        add(rightMenu);
 
         WebMarkupContainer version = new WebMarkupContainer(ID_VERSION) {
 
