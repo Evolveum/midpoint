@@ -107,7 +107,6 @@ public class PageUsers extends PageAdminUsers {
     private static final String ID_TABLE = "table";
     private static final String ID_SEARCH_FORM = "searchForm";
     private static final String ID_BASIC_SEARCH = "basicSearch";
-    private static final String ID_SEARCH_TYPE = "searchType";
 
     private UserListItemDto singleDelete;
     private LoadableModel<UsersDto> model;
@@ -415,24 +414,6 @@ public class PageUsers extends PageAdminUsers {
         final Form searchForm = new Form(ID_SEARCH_FORM);
         add(searchForm);
         searchForm.setOutputMarkupId(true);
-
-        IModel<Map<String, String>> options = new Model(null);
-        DropDownMultiChoice searchType = new DropDownMultiChoice<UsersDto.SearchType>(ID_SEARCH_TYPE,
-                new PropertyModel<List<UsersDto.SearchType>>(model, UsersDto.F_TYPE),
-                WebMiscUtil.createReadonlyModelFromEnum(UsersDto.SearchType.class),
-                new IChoiceRenderer<UsersDto.SearchType>() {
-
-                    @Override
-                    public Object getDisplayValue(UsersDto.SearchType object) {
-                        return WebMiscUtil.createLocalizedModelForEnum(object, PageUsers.this).getObject();
-                    }
-
-                    @Override
-                    public String getIdValue(UsersDto.SearchType object, int index) {
-                        return Integer.toString(index);
-                    }
-                }, options);
-        searchForm.add(searchType);
 
         BasicSearchPanel<UsersDto> basicSearch = new BasicSearchPanel<UsersDto>(ID_BASIC_SEARCH, model) {
 
