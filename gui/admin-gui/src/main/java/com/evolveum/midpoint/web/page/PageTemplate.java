@@ -105,8 +105,6 @@ public abstract class PageTemplate extends WebPage {
 
         //this attaches jquery.js as first header item, which is used in our scripts.
         CoreLibrariesContributor.contribute(getApplication(), response);
-
-        response.render(OnDomReadyHeaderItem.forScript("updateBodyTopPadding()"));
     }
 
     @Override
