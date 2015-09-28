@@ -53,7 +53,7 @@ import java.util.Set;
  * @author lazyman
  */
 @NamedQueries({
-        @NamedQuery(name = "get.userPhoto", query = "select p.photo from RUserPhoto p where p.ownerOid = :oid"),
+        @NamedQuery(name = "get.focusPhoto", query = "select p.photo from RFocusPhoto p where p.ownerOid = :oid"),
         @NamedQuery(name = "get.object", query = "select o.fullObject, o.stringsCount, o.longsCount, o.datesCount, o.referencesCount, o.polysCount, o.booleansCount from RObject as o where o.oid=:oid"),
         @NamedQuery(name = "searchShadowOwner.getShadow", query = "select s.oid from RShadow as s where s.oid = :oid"),
         @NamedQuery(name = "searchShadowOwner.getOwner", query = "select o.fullObject, o.stringsCount, o.longsCount, o.datesCount, o.referencesCount, o.polysCount, o.booleansCount from RFocus as o left join o.linkRef as ref where ref.targetOid = :oid"),
