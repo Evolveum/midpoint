@@ -639,7 +639,6 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		} else if (auxiliaryObjectClassDefinitions.isEmpty()) {
 			sb.append(" (empty)");
 		} else {
-			sb.append("\n");
 			for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
 				sb.append("\n");
 				DebugUtil.indentDebugDump(sb, indent+2);

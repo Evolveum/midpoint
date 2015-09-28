@@ -68,25 +68,25 @@ public class DropDownFormGroup<T> extends SimplePanel<T> {
         }
         labelContainer.add(l);
 
-        Label tooltipLabel = new Label(ID_TOOLTIP, new Model<>());
+		Label tooltipLabel = new Label(ID_TOOLTIP, new Model<>());
         tooltipLabel.add(new AttributeAppender("data-original-title", new AbstractReadOnlyModel<String>() {
 
             @Override
             public String getObject() {
                 return getString(tooltipKey);
-            }
+		}
         }));
-        tooltipLabel.add(new InfoTooltipBehavior(isTooltipInModal));
-        tooltipLabel.add(new VisibleEnableBehaviour(){
+		tooltipLabel.add(new InfoTooltipBehavior(isTooltipInModal));
+		tooltipLabel.add(new VisibleEnableBehaviour() {
 
-            @Override
-            public boolean isVisible() {
-                return tooltipKey != null;
-            }
-        });
-        tooltipLabel.setOutputMarkupId(true);
-        tooltipLabel.setOutputMarkupPlaceholderTag(true);
-        labelContainer.add(tooltipLabel);
+			@Override
+			public boolean isVisible() {
+				return tooltipKey != null;
+			}
+		});
+		tooltipLabel.setOutputMarkupId(true);
+		tooltipLabel.setOutputMarkupPlaceholderTag(true);
+		labelContainer.add(tooltipLabel);
 
         WebMarkupContainer selectWrapper = new WebMarkupContainer(ID_SELECT_WRAPPER);
         if (StringUtils.isNotEmpty(textSize)) {

@@ -36,6 +36,7 @@ import com.evolveum.midpoint.web.page.error.PageError403;
 import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
+import com.evolveum.midpoint.web.util.Utf8BundleStringResourceLoader;
 import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
 import org.apache.commons.configuration.Configuration;
 import org.apache.wicket.RuntimeConfigurationType;
@@ -52,7 +53,6 @@ import org.apache.wicket.request.cycle.AbstractRequestCycleListener;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.request.resource.SharedResourceReference;
-import org.apache.wicket.resource.loader.BundleStringResourceLoader;
 import org.apache.wicket.resource.loader.IStringResourceLoader;
 import org.apache.wicket.settings.IApplicationSettings;
 import org.apache.wicket.settings.IResourceSettings;
@@ -79,7 +79,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     /**
      * Max. photo size for user/jpegPhoto
      */
-    public static final Bytes USER_PHOTO_MAX_FILE_SIZE = Bytes.kilobytes(192);
+    public static final Bytes FOCUS_PHOTO_MAX_FILE_SIZE = Bytes.kilobytes(192);
 
     public static final String WEB_APP_CONFIGURATION = "midpoint.webApplication";
 
@@ -133,7 +133,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         guard.addPattern("+*.woff2");
 
         List<IStringResourceLoader> resourceLoaders = resourceSettings.getStringResourceLoaders();
-        resourceLoaders.add(0, new BundleStringResourceLoader("localization/Midpoint"));
+        resourceLoaders.add(0, new Utf8BundleStringResourceLoader("localization/Midpoint"));
 
         resourceSettings.setThrowExceptionOnMissingResource(false);
         getMarkupSettings().setStripWicketTags(true);

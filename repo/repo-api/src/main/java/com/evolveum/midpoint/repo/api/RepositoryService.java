@@ -482,11 +482,11 @@ public interface RepositoryService {
 	 * This operation is guaranteed to be atomic. If two threads or even two nodes request a value from
 	 * the same sequence at the same time then different values will be returned.
 	 * 
-	 * @param oid
+	 * @param oid sequence OID
 	 * @param parentResult
-	 * @return
-	 * @throws ObjectNotFoundException
-	 * @throws SchemaException
+	 * @return next unallocated counter value
+	 * @throws ObjectNotFoundException the sequence does not exist
+	 * @throws SchemaException the sequence cannot produce a value (e.g. maximum counter reached)
 	 */
 	long advanceSequence(String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 	

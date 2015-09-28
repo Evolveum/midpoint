@@ -70,6 +70,8 @@ public class RecomputeExecutor extends BaseActionExecutor {
         for (Item item : input.getData()) {
             if (item instanceof PrismObject && FocusType.class.isAssignableFrom(((PrismObject) item).getCompileTimeClass())) {
                 PrismObject<FocusType> focalPrismObject = (PrismObject) item;
+                FocusType focusType = focalPrismObject.asObjectable();
+                long started = operationsHelper.recordStart(context, focusType);
                 try {
                     LensContext<FocusType> syncContext = contextFactory.createRecomputeContext(focalPrismObject, context.getTask(), result);
                     if (LOGGER.isTraceEnabled()) {
@@ -77,7 +79,9 @@ public class RecomputeExecutor extends BaseActionExecutor {
                     }
                     clockwork.run(syncContext, context.getTask(), result);
                     LOGGER.trace("Recomputing of object {}: {}", focalPrismObject, result.getStatus());
-                } catch (ObjectNotFoundException|ConfigurationException|SecurityViolationException|PolicyViolationException|ExpressionEvaluationException|ObjectAlreadyExistsException|CommunicationException|SchemaException e) {
+                    operationsHelper.recordEnd(context, focusType, started, null);
+                } catch (ObjectNotFoundException|ConfigurationException|SecurityViolationException|PolicyViolationException|ExpressionEvaluationException|ObjectAlreadyExistsException|CommunicationException|SchemaException|RuntimeException e) {
+                    operationsHelper.recordEnd(context, focusType, started, e);
                     throw new ScriptExecutionException("Couldn't recompute object " + focalPrismObject + ": " + e.getMessage(), e);
                 }
                 context.println("Recomputed " + item.toString());

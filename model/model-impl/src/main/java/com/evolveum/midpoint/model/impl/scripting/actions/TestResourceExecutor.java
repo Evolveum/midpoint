@@ -71,10 +71,14 @@ public class TestResourceExecutor extends BaseActionExecutor {
         for (Item item : input.getData()) {
             if (item instanceof PrismObject && ((PrismObject) item).asObjectable() instanceof ResourceType) {
                 PrismObject<ResourceType> resourceTypePrismObject = (PrismObject) item;
+                ResourceType resourceType = resourceTypePrismObject.asObjectable();
+                long started = operationsHelper.recordStart(context, resourceType);
                 OperationResult testResult;
                 try {
                     testResult = modelService.testResource(resourceTypePrismObject.getOid(), context.getTask());
-                } catch (ObjectNotFoundException e) {
+                    operationsHelper.recordEnd(context, resourceType, started, null);
+                } catch (ObjectNotFoundException|RuntimeException e) {
+                    operationsHelper.recordEnd(context, resourceType, started, e);
                     throw new ScriptExecutionException("Couldn't test resource " + resourceTypePrismObject, e);
                 }
                 result.addSubresult(testResult);

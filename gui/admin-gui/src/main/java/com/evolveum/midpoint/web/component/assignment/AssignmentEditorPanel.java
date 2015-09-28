@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -505,8 +506,9 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
             protected ObjectQuery getChooseQuery(){
                 ObjectQuery query = new ObjectQuery();
 
-                ObjectFilter filter = NotFilter.createNot(EqualFilter.createEqual(OrgType.F_TENANT, OrgType.class,
-                        getPageBase().getPrismContext(), null, true));
+                ObjectFilter filter = OrFilter.createOr(
+                		EqualFilter.createEqual(OrgType.F_TENANT, OrgType.class, getPageBase().getPrismContext(), null, false),
+                		EqualFilter.createEqual(OrgType.F_TENANT, OrgType.class, getPageBase().getPrismContext(), null, null));
                 query.setFilter(filter);
 
                 return query;

@@ -28,6 +28,7 @@ public class TaskCategory {
     public static final String BULK_ACTIONS = "BulkActions";
     public static final String MOCK = "Mock";
     public static final String RECOMPUTATION = "Recomputation";
+    public static final String EXECUTE_CHANGES = "ExecuteChanges";
     public static final String RECONCILIATION = "Reconciliation";
     public static final String WORKFLOW = "Workflow";
     public static final String SYSTEM = "System";

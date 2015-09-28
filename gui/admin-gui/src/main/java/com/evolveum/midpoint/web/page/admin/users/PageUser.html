@@ -1,6 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -14,22 +13,13 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-	<div wicket:id="resourcePopup" />
-	<div wicket:id="assignablePopup" />
-	<div wicket:id="assignableOrgPopup" />
 
-	<div wicket:id="confirmDeleteAccountPopup"/>
-    <div wicket:id="confirmDeleteAssignmentPopup"/>
-
-    <div wicket:id="assignmentsPreviewPopup" />
-
-    <form wicket:id="mainForm" autocomplete="off" class="form-horizontal">
-
-        <div class="row" wicket:id="summaryPanel">
+    <form wicket:id="mainForm" class="form-horizontal">
+    <div class="row" wicket:id="summaryPanel">
             <div class="col-xs-6 col-md-2 col-md-offset-4" style="text-align: right;">
                 <img wicket:id="summaryPhoto" class="user-thumbnail" src="img/placeholder.png">
             </div>
@@ -54,46 +44,9 @@
                 </table>
             </div>
         </div>
+        <div wicket:id="tabPanel" class="tabbable" />
 
-        <div class="row">
-            <div class="col-md-6">
-                <div wicket:id="userForm"/>
-            </div>
-            <div class="col-md-6">
-                <div wicket:id="accounts">
-                    <div class="row assignable-header">
-                        <div class="col-xs-10">
-                            <input type="checkbox" wicket:id="accountCheckAll"/>
-                            <h3><wicket:message key="pageUser.accounts"/></h3>
-                        </div>
-                        <div class="col-xs-2 cog" wicket:id="accountMenu" about="accountMenu" />
-                    </div>
-                    <div wicket:id="accountList">
-                        <div wicket:id="account" />
-                    </div>
-                </div>
-
-                <div wicket:id="assignments" style="margin-top: 30px;">
-                    <div class="row assignable-header">
-                        <div class="col-xs-10">
-                            <input type="checkbox" wicket:id="assignmentCheckAll"/>
-                            <h3><wicket:message key="pageUser.assignments"/></h3>
-                        </div>
-                        <div class="col-xs-2 cog" wicket:id="assignmentMenu"/>
-                    </div>
-                    <div wicket:id="assignmentList">
-                        <div wicket:id="assignmentEditor" class="assignment-item" />
-                    </div>
-                </div>
-
-                <div wicket:id="tasks">
-                    <h3><wicket:message key="pageUser.tasks"/></h3>
-                    <div wicket:id="taskTable"/>
-                </div>
-            </div>
-        </div>
-
-        <div style="margin: 20px 0;" class="form-group" wicket:id="executeOptions" />
+       <div style="margin: 20px 0;" class="form-group" wicket:id="executeOptions" />
 
         <div wicket:id="progressPanel">[Status indicator here]</div>
 
@@ -106,7 +59,6 @@
             <a class="btn btn-primary" wicket:id="save"/>
             <a class="btn btn-danger" wicket:id="abort"/>
         </div>
-
     </form>
 </wicket:extend>
 </body>
