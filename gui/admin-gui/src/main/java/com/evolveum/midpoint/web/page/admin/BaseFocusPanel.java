@@ -53,6 +53,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorPanel;
+import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.form.Form;
@@ -141,7 +142,8 @@ public abstract class BaseFocusPanel<T extends FocusType> extends Panel{
 //	    private static final String ID_ACCOUNTS_DELTAS = "accountsDeltas";
 	    private static final String ID_SHADOW_LIST = "shadowList";
 	    private static final String ID_SHADOWS = "shadows";
-	    private static final String ID_ASSIGNMENTS = "assignments";
+	    private static final String ID_ASSIGNMENTS = "assignmentsContainer";
+	    private static final String ID_ASSIGNMENTS_PANEL = "assignmentsPanel";
 	    private static final String ID_TASKS = "tasks";
 	    private static final String ID_SHADOW_MENU = "shadowMenu";
 	    private static final String ID_ASSIGNMENT_MENU = "assignmentMenu";
@@ -193,7 +195,7 @@ public LoadableModel<ObjectWrapper> getFocusModel() {
 }
 	
 
-	 protected abstract void initCustomLayout(Form mainForm);
+//	 protected abstract void initCustomLayout(Form mainForm);
 	 
 	 protected abstract T createNewFocus();
 	 
@@ -224,6 +226,7 @@ public LoadableModel<ObjectWrapper> getFocusModel() {
 	        assignments.setOutputMarkupId(true);
 	        add(assignments);
 	        initAssignments(assignments);
+//	        add(assi);
 
 	        WebMarkupContainer tasks = new WebMarkupContainer(ID_TASKS);
 	        tasks.setOutputMarkupId(true);
@@ -235,7 +238,7 @@ public LoadableModel<ObjectWrapper> getFocusModel() {
 	        initAssignableModal();
 	        initConfirmationDialogs();
 	        
-	        initCustomLayout(mainForm);
+//	        initCustomLayout(mainForm);
 	 }
 	 public ObjectWrapper getFocusWrapper() {
 		return focusModel.getObject();
@@ -434,36 +437,38 @@ public LoadableModel<ObjectWrapper> getFocusModel() {
 	        accounts.add(accountList);
 	    }
 	 
-	 private void initAssignments(final WebMarkupContainer assignments) {
-	        InlineMenu accountMenu = new InlineMenu(ID_ASSIGNMENT_MENU, new Model((Serializable) createAssignmentsMenu()));
-	        assignments.add(accountMenu);
-
-	        final ListView<AssignmentEditorDto> assignmentList = new ListView<AssignmentEditorDto>(ID_ASSIGNMENT_LIST,
-	                assignmentsModel) {
-
-	            @Override
-	            protected void populateItem(final ListItem<AssignmentEditorDto> item) {
-	                AssignmentEditorPanel assignmentEditor = new AssignmentEditorPanel(ID_ASSIGNMENT_EDITOR,
-	                        item.getModel());
-	                item.add(assignmentEditor);
-	            }
-	        };
-	        assignmentList.setOutputMarkupId(true);
-	        assignments.add(assignmentList);
-
-	        AjaxCheckBox assignmentCheckAll = new AjaxCheckBox(ID_ASSIGNMENT_CHECK_ALL, new Model()) {
-
-	            @Override
-	            protected void onUpdate(AjaxRequestTarget target) {
-	                for(AssignmentEditorDto item: assignmentList.getModelObject()){
-	                    item.setSelected(this.getModelObject());
-	                }
-
-	                target.add(assignments);
-	            }
-	        };
-	        assignmentCheckAll.setOutputMarkupId(true);
-	        assignments.add(assignmentCheckAll);
+	 private void initAssignments(WebMarkupContainer assignments) {
+		 AssignmentTablePanel panel = new AssignmentTablePanel<>(ID_ASSIGNMENTS_PANEL, assignmentsModel);
+		 assignments.add(panel);
+//	        InlineMenu accountMenu = new InlineMenu(ID_ASSIGNMENT_MENU, new Model((Serializable) createAssignmentsMenu()));
+//	        assignments.add(accountMenu);
+//
+//	        final ListView<AssignmentEditorDto> assignmentList = new ListView<AssignmentEditorDto>(ID_ASSIGNMENT_LIST,
+//	                assignmentsModel) {
+//
+//	            @Override
+//	            protected void populateItem(final ListItem<AssignmentEditorDto> item) {
+//	                AssignmentEditorPanel assignmentEditor = new AssignmentEditorPanel(ID_ASSIGNMENT_EDITOR,
+//	                        item.getModel());
+//	                item.add(assignmentEditor);
+//	            }
+//	        };
+//	        assignmentList.setOutputMarkupId(true);
+//	        assignments.add(assignmentList);
+//
+//	        AjaxCheckBox assignmentCheckAll = new AjaxCheckBox(ID_ASSIGNMENT_CHECK_ALL, new Model()) {
+//
+//	            @Override
+//	            protected void onUpdate(AjaxRequestTarget target) {
+//	                for(AssignmentEditorDto item: assignmentList.getModelObject()){
+//	                    item.setSelected(this.getModelObject());
+//	                }
+//
+//	                target.add(assignments);
+//	            }
+//	        };
+//	        assignmentCheckAll.setOutputMarkupId(true);
+//	        assignments.add(assignmentCheckAll);
 	    }
 	 
 	 private List<InlineMenuItem> createAssignmentsMenu() {
@@ -656,8 +661,7 @@ public LoadableModel<ObjectWrapper> getFocusModel() {
 	        construction.setResource(resource);
 
 	        List<AssignmentEditorDto> assignments = assignmentsModel.getObject();
-	        AssignmentEditorDto dto = new AssignmentEditorDto(resource, AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION,
-	                UserDtoStatus.ADD, assignment, page);
+	        AssignmentEditorDto dto = new AssignmentEditorDto(UserDtoStatus.ADD, assignment, page);
 	        assignments.add(dto);
 
 	        dto.setMinimized(false);
@@ -691,7 +695,7 @@ public LoadableModel<ObjectWrapper> getFocusModel() {
 	                AssignmentType assignment = new AssignmentType();
 	                assignment.setTargetRef(targetRef);
 
-	                AssignmentEditorDto dto = new AssignmentEditorDto(object, aType, UserDtoStatus.ADD, assignment, page);
+	                AssignmentEditorDto dto = new AssignmentEditorDto(UserDtoStatus.ADD, assignment, page);
 	                dto.setMinimized(false);
 	                dto.setShowEmpty(true);
 

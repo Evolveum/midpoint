@@ -7,6 +7,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
+
 import org.apache.cxf.common.util.StringUtils;
 
 import java.util.*;
@@ -108,6 +110,13 @@ public class PrismIdentifierGenerator {
             containers.add(parent.findContainer(AbstractRoleType.F_INDUCEMENT));
             containers.add(parent.findContainer(AbstractRoleType.F_EXCLUSION));
             containers.add(parent.findContainer(AbstractRoleType.F_AUTHORIZATION));
+            PrismContainer policyConstraints = parent.findContainer(AbstractRoleType.F_POLICY_CONSTRAINTS);
+            if (policyConstraints != null){
+            	containers.add(policyConstraints.findContainer(PolicyConstraintsType.F_MAX_ASSIGNEES));
+            	containers.add(policyConstraints.findContainer(PolicyConstraintsType.F_MIN_ASSIGNEES));
+            }
+            
+            
         }
 
         return containers;

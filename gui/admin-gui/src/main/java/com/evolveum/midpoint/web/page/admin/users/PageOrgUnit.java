@@ -153,41 +153,7 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 
 
 
-	@Override
-	protected IModel<String> createPageTitleModel() {
-		return new LoadableModel<String>(false) {
-
-			@Override
-			protected String load() {
-				if (!isEditingOrgUnit()) {
-					return PageOrgUnit.super.createPageTitleModel().getObject();
-				}
-
-				String name = WebMiscUtil.getName(getFocusWrapper().getObject());
-				return new StringResourceModel("page.title.edit", PageOrgUnit.this, null, null, name)
-						.getString();
-			}
-		};
-	}
-
-
-	private AssignmentTablePanel initInducements() {
-		AssignmentTablePanel inducements = new AssignmentTablePanel(ID_INDUCEMENTS_TABLE,
-				new Model<AssignmentTableDto>(), createStringResource("PageOrgUnit.title.inducements")) {
-
-			@Override
-			public List<AssignmentType> getAssignmentTypeList() {
-				return ((AbstractRoleType) getFocusWrapper().getObject().asObjectable()).getInducement();
-			}
-
-			@Override
-			public String getExcludeOid() {
-				return getFocusWrapper().getObject().asObjectable().getOid();
-			}
-		};
-		return inducements;
-	}
-
+	
 
 
 	private IModel<String> createStyleClassModel(final IModel<PropertyWrapper> wrapper) {
@@ -202,11 +168,7 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 	}
 
 
-	private boolean isEditingOrgUnit() {
-		StringValue oid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
-		return oid != null && StringUtils.isNotEmpty(oid.toString());
-	}
-
+	
 	protected void setSpecificResponsePage() {
 		goBack(PageOrgTree.class);
 	}

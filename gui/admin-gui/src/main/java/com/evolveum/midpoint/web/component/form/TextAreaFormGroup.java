@@ -73,19 +73,22 @@ public class TextAreaFormGroup extends SimplePanel<String> {
         }
         labelContainer.add(l);
 
-        Label tooltipLabel = new Label(ID_TOOLTIP, new Model<>());
-        tooltipLabel.add(new AttributeAppender("data-original-title", getString(tooltipKey)));
-        tooltipLabel.add(new InfoTooltipBehavior(isTooltipInModal));
-        tooltipLabel.add(new VisibleEnableBehaviour(){
+		
+		Label tooltipLabel = new Label(ID_TOOLTIP, new Model<>());
+		if (StringUtils.isNotBlank(tooltipKey)) {
+			tooltipLabel.add(new AttributeAppender("data-original-title", getString(tooltipKey)));
+		}
+		tooltipLabel.add(new InfoTooltipBehavior(isTooltipInModal));
+		tooltipLabel.add(new VisibleEnableBehaviour() {
 
-            @Override
-            public boolean isVisible() {
-                return tooltipKey != null;
-            }
-        });
-        tooltipLabel.setOutputMarkupId(true);
-        tooltipLabel.setOutputMarkupPlaceholderTag(true);
-        labelContainer.add(tooltipLabel);
+			@Override
+			public boolean isVisible() {
+				return tooltipKey != null;
+			}
+		});
+		tooltipLabel.setOutputMarkupId(true);
+		tooltipLabel.setOutputMarkupPlaceholderTag(true);
+		labelContainer.add(tooltipLabel);		
 
         WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
         if (StringUtils.isNotEmpty(textSize)) {

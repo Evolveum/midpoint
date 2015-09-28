@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
@@ -35,6 +36,7 @@ import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -314,8 +316,10 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 	private List<OrgType> createProjectList() {
 		ObjectQuery query;
 		try {
-			query = ObjectQuery.createObjectQuery(NotFilter
-					.createNot(EqualFilter.createEqual(OrgType.F_TENANT, OrgType.class, getPrismContext(), true)));
+			query = ObjectQuery.createObjectQuery(
+					OrFilter.createOr(
+							EqualFilter.createEqual(OrgType.F_TENANT, OrgType.class, getPrismContext(), true),
+							EqualFilter.createEqual(OrgType.F_TENANT, OrgType.class, getPrismContext(), null)));
 			List<PrismObject<OrgType>> orgs = WebModelUtils.searchObjects(OrgType.class, query,
 					new OperationResult("Tenant search"), pageBase);
 			List<OrgType> orgTypes = new ArrayList<>();
@@ -427,9 +431,12 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 	private ObjectQuery createQuery() {
 		ObjectQuery query;
 		try {
+			PrismReferenceValue roleRef = new PrismReferenceValue();
+			roleRef.setOid(roleId);
+			roleRef.setTargetType(RoleType.COMPLEX_TYPE);
 			ObjectFilter roleFilter = RefFilter.createReferenceEqual(
 					new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), UserType.class,
-					getPrismContext(), roleId);
+					getPrismContext(), roleRef);
 			if (searchModel.getObject().getTenant() != null) {
 				ObjectFilter tenantFilter = RefFilter.createReferenceEqual(
 						new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TENANT_REF), UserType.class,
@@ -446,39 +453,7 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 			error(getString("pageUsers.message.queryError") + " " + e.getMessage());
 		}
 		return null;
-		// RoleMemberSearchDto dto = searchModel.getObject();
-		// ObjectQuery query = null;
-		// if (StringUtils.isEmpty(dto.getText())) {
-		// return null;
-		// }
-		//
-		// try {
-		// List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
-		//
-		// PolyStringNormalizer normalizer =
-		// getPrismContext().getDefaultPolyStringNormalizer();
-		// String normalizedString = normalizer.normalize(dto.getText());
-		//
-		// if (dto.hasType(UsersDto.SearchType.NAME)) {
-		// filters.add(SubstringFilter.createSubstring(UserType.F_NAME,
-		// UserType.class, getPrismContext(),
-		// PolyStringNormMatchingRule.NAME, normalizedString));
-		// }
-		//
-		//
-		// if (filters.size() == 1) {
-		// query = ObjectQuery.createObjectQuery(filters.get(0));
-		// } else if (filters.size() > 1) {
-		// query = ObjectQuery.createObjectQuery(OrFilter.createOr(filters));
-		// }
-		// } catch (Exception ex) {
-		// error(getString("pageUsers.message.queryError") + " " +
-		// ex.getMessage());
-		// LoggingUtils.logException(LOGGER, "Couldn't create query filter.",
-		// ex);
-		// }
-		//
-		// return query;
+		
 	}
 
 	private List<IColumn<RoleType, String>> initRoleColumns() {

@@ -80,12 +80,12 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
     private AssignmentType newAssignment;
     private List<ACAttributeDto> attributes;
 
-    public AssignmentEditorDto(ObjectType targetObject, AssignmentEditorDtoType type, UserDtoStatus status, AssignmentType assignment, PageBase pageBase) {
+    public AssignmentEditorDto(UserDtoStatus status, AssignmentType assignment, PageBase pageBase) {
         Validate.notNull(status, "User dto status must not be null.");
-        Validate.notNull(type, "Type must not be null.");
         Validate.notNull(assignment, "Assignment must not be null.");
 
-        this.type = type;
+        this.type = getType(assignment);
+        Validate.notNull(type, "Type must not be null.");
         this.status = status;
         this.oldAssignment = assignment;
 
@@ -101,16 +101,29 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 //            ConstructionType construction = oldAssignment.getConstruction();
 //            newAssignment.setConstruction(construction.clone());
 //        }
+        
+        
 
-        this.tenantRef = loadTenantReference(targetObject, assignment, pageBase);
-        this.orgRef = loadOrgReference(targetObject, assignment, pageBase);
+        this.tenantRef = loadTenantOrgReference(assignment, assignment.getTenantRef());
+        this.orgRef = loadTenantOrgReference(assignment, assignment.getOrgRef());
 
-        this.name = getNameForTargetObject(targetObject);
+        this.name = getNameForTargetObject(assignment);
         this.altName = getAlternativeName(assignment);
 
         this.attributes = prepareAssignmentAttributes(assignment, pageBase);
         this.isOrgUnitManager = determineUserOrgRelation(assignment);
     }
+    
+   private AssignmentEditorDtoType getType(AssignmentType assignment){
+	   if (assignment.getTarget() != null) {
+           // object assignment
+           return AssignmentEditorDtoType.getType(assignment.getTarget().getClass());
+       } else if (assignment.getTargetRef() != null) {
+           return AssignmentEditorDtoType.getType(assignment.getTargetRef().getType());
+       }   // account assignment through account construction
+           return AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION;
+       
+   }
 
     private Boolean determineUserOrgRelation(AssignmentType assignment){
         if(!AssignmentEditorDtoType.ORG_UNIT.equals(getType())){
@@ -212,55 +225,42 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
         return target;
     }
 
-    private ObjectViewDto loadTenantReference(ObjectType object, AssignmentType assignment, PageBase page){
-        ObjectViewDto dto;
-
-        if(object instanceof RoleType){
-            if(assignment.getTenantRef() != null){
-                ObjectReferenceType ref = assignment.getTenantRef();
-
-                OperationResult result = new OperationResult(OPERATION_LOAD_ORG_TENANT);
-                PrismObject<OrgType> org = WebModelUtils.loadObject(OrgType.class, ref.getOid(), result, page);
-
-                //TODO - show user some error about not loading role tenants of OrgType
-                if(org == null){
-                    dto = new ObjectViewDto(ObjectViewDto.BAD_OID);
-                    dto.setType(OrgType.class);
-                    return dto;
-                }
-
-                dto = new ObjectViewDto(ref.getOid(), WebMiscUtil.getName(org.asObjectable()));
-                dto.setType(OrgType.class);
-                return dto;
-            }
+    private boolean isRole(AssignmentType assignment){
+    	if (assignment.getTarget() != null) {
+            // object assignment
+            return RoleType.class.equals(assignment.getTarget().getClass());
+        } else if (assignment.getTargetRef() != null) {
+            // object assignment through reference
+        	if (assignment.getTargetRef().getType() != null){
+        		return RoleType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType());
+        	}
+            return false; 
+        } else if (assignment.getConstruction() != null) {
+            // account assignment through account construction
+            return false;
         }
+    	
+    	return false;
 
-        dto = new ObjectViewDto();
-        dto.setType(OrgType.class);
-        return dto;
     }
     
-    private ObjectViewDto loadOrgReference(ObjectType object, AssignmentType assignment, PageBase page){
+   
+    
+    private ObjectViewDto loadTenantOrgReference(AssignmentType assignment, ObjectReferenceType ref){
         ObjectViewDto dto;
 
-        if(object instanceof RoleType){
-            if(assignment.getOrgRef() != null){
-                ObjectReferenceType ref = assignment.getOrgRef();
-
-                OperationResult result = new OperationResult(OPERATION_LOAD_ORG_TENANT);
-                PrismObject<OrgType> org = WebModelUtils.loadObject(OrgType.class, ref.getOid(), result, page);
-
-                //TODO - show user some error about not loading role tenants of OrgType
-                if(org == null){
-                    dto = new ObjectViewDto(ObjectViewDto.BAD_OID);
-                    dto.setType(OrgType.class);
-                    return dto;
-                }
-
-                dto = new ObjectViewDto(ref.getOid(), WebMiscUtil.getName(org.asObjectable()));
-                dto.setType(OrgType.class);
-                return dto;
-            }
+        if (isRole(assignment)){
+        	 if(ref != null){
+        		 if(ref.getTargetName() == null){
+                     dto = new ObjectViewDto(ObjectViewDto.BAD_OID);
+                     dto.setType(OrgType.class);
+                     return dto;
+                 }
+        		 
+                 dto = new ObjectViewDto(ref.getOid(), WebMiscUtil.getOrigStringFromPoly(ref.getTargetName()));
+                 dto.setType(OrgType.class);
+                 return dto;
+        	 }
         }
 
         dto = new ObjectViewDto();
@@ -268,52 +268,25 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
         return dto;
     }
 
-    private String getNameForTargetObject(ObjectType object) {
-        if (object == null) {
-            return null;
-        }
-
-        String name = WebMiscUtil.getName(object);
-
-        PolyStringType display = object instanceof OrgType ? ((OrgType)object).getDisplayName() : null;
-        String displayName = WebMiscUtil.getOrigStringFromPoly(display);
-
-        StringBuilder builder = new StringBuilder();
-        if (StringUtils.isNotEmpty(name)) {
-            builder.append(name);
-        }
-
-        if (StringUtils.isNotEmpty(name) && StringUtils.isNotEmpty(displayName)) {
-            builder.append(", ");
-        }
-
-        if (StringUtils.isNotEmpty(displayName)) {
-            builder.append(displayName);
-        }
-
-        if (StringUtils.isNotEmpty(getRelation())) {
-            builder.append(" (").append(getRelation()).append(')');
-        }
-
-        if(object instanceof RoleType){
-            if(tenantRef != null){
-                if(ObjectViewDto.BAD_OID.equals(tenantRef.getOid())){
-                    builder.append(" - ").append("(tenant not found)");
-                } else if(tenantRef.getOid() != null){
-                    builder.append(" - ").append(tenantRef.getName());
-                }
+    private String getNameForTargetObject(AssignmentType assignment) {
+    	if (assignment == null){
+    		return null;
+    	}
+    	if (assignment.getTarget() != null) {
+            // object assignment
+            return WebMiscUtil.getName(assignment.getTarget());
+        } else if (assignment.getTargetRef() != null) {
+            return WebMiscUtil.getName(assignment.getTargetRef());
+        } else if (assignment.getConstruction() != null) {
+            // account assignment through account construction
+            ConstructionType construction = assignment.getConstruction();
+            if (construction.getResource() != null) {
+                return WebMiscUtil.getName(construction.getResource());
+            } else if (construction.getResourceRef() != null) {
+            	return WebMiscUtil.getName(construction.getResourceRef());
             }
-            if(orgRef != null){
-                if(ObjectViewDto.BAD_OID.equals(orgRef.getOid())){
-                    builder.append(" - ").append("(org not found)");
-                } else if(orgRef.getOid() != null){
-                    builder.append(" - ").append(orgRef.getName());
-                }
-            }
-
         }
-
-        return builder.toString();
+	    return null;
     }
 
     private String getAlternativeName(AssignmentType assignment){

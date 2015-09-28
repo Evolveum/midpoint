@@ -184,44 +184,6 @@ public class PageUser extends PageAdminFocus {
         initialize(userToEdit);
     }
 
-
-    @Override
-    protected IModel<String> createPageTitleModel(){
-        return new LoadableModel<String>() {
-
-            @Override
-            protected String load() {
-                if(!isEditingUser()){
-                    return createStringResource("pageUser.title.newUser").getObject();
-                }
-
-                return createStringResource("pageUser.title.editUser").getObject();
-            }
-        };
-    }
-
-    @Override
-    protected IModel<String> createPageSubTitleModel(){
-        return new LoadableModel<String>() {
-
-            @Override
-            protected String load() {
-                if(!isEditingUser()){
-                    return createStringResource("pageUser.subTitle.newUser").getObject();
-                }
-
-                String name = null;
-                if(getFocusWrapper() != null && getFocusWrapper().getObject() != null){
-                    name = WebMiscUtil.getName(getFocusWrapper().getObject());
-                }
-
-                return createStringResource("pageUser.subTitle.edituser", name).getObject();
-            }
-        };
-    }
-
-
-
     private void initSummaryInfo(Form mainForm){
 
         WebMarkupContainer summaryContainer = new WebMarkupContainer(ID_SUMMARY_PANEL);

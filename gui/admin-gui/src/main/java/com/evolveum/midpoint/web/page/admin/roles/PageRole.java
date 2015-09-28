@@ -27,9 +27,16 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
+import org.hibernate.cfg.PropertyData;
 
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -69,16 +76,7 @@ public class PageRole extends PageAdminAbstractRole<RoleType> implements Progres
 
     private static final Trace LOGGER = TraceManager.getTrace(PageRole.class);
 
-    private static final String ID_MIN_ASSIGNMENTS = "minAssignmentsConfig";
-    private static final String ID_MAX_ASSIGNMENTS = "maxAssignmentsConfig";
-
-    private static final String ID_LABEL_SIZE = "col-md-4";
-    private static final String ID_INPUT_SIZE = "col-md-6";
-
-    private IModel<List<MultiplicityPolicyConstraintType>> minAssignmentModel;
-    private IModel<List<MultiplicityPolicyConstraintType>> maxAssignmentsModel;
-
-
+ 
     public PageRole() {
         initialize(null);
     }
@@ -92,188 +90,23 @@ public class PageRole extends PageAdminAbstractRole<RoleType> implements Progres
   
     @Override
 	protected void performCustomInitialization(){
-        minAssignmentModel = new LoadableModel<List<MultiplicityPolicyConstraintType>>(false) {
-
-            @Override
-            protected List<MultiplicityPolicyConstraintType> load() {
-                RoleType role = (RoleType) getFocusWrapper().getObject().asObjectable();
-
-                if(role.getPolicyConstraints() == null){
-                    role.setPolicyConstraints(new PolicyConstraintsType());
-                }
-
-                return role.getPolicyConstraints().getMinAssignees();
-            }
-        };
-
-        maxAssignmentsModel = new LoadableModel<List<MultiplicityPolicyConstraintType>>(false) {
-
-            @Override
-            protected List<MultiplicityPolicyConstraintType> load() {
-                RoleType role = (RoleType) getFocusWrapper().getObject().asObjectable();
-
-                if(role.getPolicyConstraints() == null){
-                    role.setPolicyConstraints(new PolicyConstraintsType());
-                }
-
-                return role.getPolicyConstraints().getMaxAssignees();
-            }
-        };
+    	super.performCustomInitialization();
+    	
+        
 
     }
 
-    @Override
-    protected IModel<String> createPageTitleModel(){
-        return new LoadableModel<String>() {
 
-            @Override
-            protected String load() {
-                if(!isEditingRole()){
-                    return createStringResource("PageRoleEditor.title.newRole").getObject();
-                }
-
-                return createStringResource("PageRoleEditor.title.editingRole").getObject();
-            }
-        };
-    }
-
-    @Override
-    protected IModel<String> createPageSubTitleModel(){
-        return new LoadableModel<String>() {
-
-            @Override
-            protected String load() {
-                if(!isEditingRole()){
-                    return createStringResource("PageRoleEditor.subtitle.newRole").getObject();
-                }
-
-                String roleName = getFocusWrapper().getDisplayName();
-                return createStringResource("PageRoleEditor.subtitle.editingRole", roleName).getString();
-            }
-        };
-    }
-
-  
-    private boolean isEditingRole(){
-        StringValue oid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
-        return oid != null && StringUtils.isNotEmpty(oid.toString());
-    }
 
     protected void initCustomLayout(Form mainForm) {
-//    	super.initCustomLayout(mainForm);
-//    	GenericMultiValueLabelEditPanel minAssignments = new GenericMultiValueLabelEditPanel<MultiplicityPolicyConstraintType>(ID_MIN_ASSIGNMENTS,
-//                minAssignmentModel, createStringResource("PageRoleEditor.label.minAssignments"), ID_LABEL_SIZE, ID_INPUT_SIZE){
-//
-//            @Override
-//            protected void initDialog() {
-//                ModalWindow dialog = new MultiplicityPolicyDialog(ID_MODAL_EDITOR, null){
-//
-//                    @Override
-//                    protected void savePerformed(AjaxRequestTarget target) {
-//                        closeModalWindow(target);
-//                        target.add(getMinAssignmentsContainer());
-//                    }
-//                };
-//                add(dialog);
-//            }
-//
-//            @Override
-//            protected IModel<String> createTextModel(IModel<MultiplicityPolicyConstraintType> model) {
-//                return createMultiplicityPolicyLabel(model);
-//            }
-//
-//            @Override
-//            protected void editValuePerformed(AjaxRequestTarget target, IModel<MultiplicityPolicyConstraintType> rowModel) {
-//                MultiplicityPolicyDialog window = (MultiplicityPolicyDialog) get(ID_MODAL_EDITOR);
-//                window.updateModel(target, rowModel.getObject());
-//                window.show(target);
-//            }
-//
-//            @Override
-//            protected MultiplicityPolicyConstraintType createNewEmptyItem() {
-//                return new MultiplicityPolicyConstraintType();
-//            }
-//        };
-//        minAssignments.setOutputMarkupId(true);
-//        mainForm.add(minAssignments);
-//
-//        GenericMultiValueLabelEditPanel maxAssignments = new GenericMultiValueLabelEditPanel<MultiplicityPolicyConstraintType>(ID_MAX_ASSIGNMENTS,
-//                maxAssignmentsModel, createStringResource("PageRoleEditor.label.maxAssignments"), ID_LABEL_SIZE, ID_INPUT_SIZE){
-//
-//            @Override
-//            protected void initDialog() {
-//                ModalWindow dialog = new MultiplicityPolicyDialog(ID_MODAL_EDITOR, null){
-//
-//                    @Override
-//                    protected void savePerformed(AjaxRequestTarget target) {
-//                        closeModalWindow(target);
-//                        target.add(getMaxAssignmentsContainer());
-//                    }
-//                };
-//                add(dialog);
-//            }
-//
-//            @Override
-//            protected IModel<String> createTextModel(IModel<MultiplicityPolicyConstraintType> model) {
-//                return createMultiplicityPolicyLabel(model);
-//            }
-//
-//            @Override
-//            protected void editValuePerformed(AjaxRequestTarget target, IModel<MultiplicityPolicyConstraintType> rowModel) {
-//                MultiplicityPolicyDialog window = (MultiplicityPolicyDialog) get(ID_MODAL_EDITOR);
-//                window.updateModel(target, rowModel.getObject());
-//                window.show(target);
-//            }
-//
-//            @Override
-//            protected MultiplicityPolicyConstraintType createNewEmptyItem() {
-//                return new MultiplicityPolicyConstraintType();
-//            }
-//        };
-//        maxAssignments.setOutputMarkupId(true);
-//        mainForm.add(maxAssignments);
-
-     
+super.initCustomLayout(mainForm);
     };
        
       
-    private IModel<String> createMultiplicityPolicyLabel(final IModel<MultiplicityPolicyConstraintType> model){
-        return new AbstractReadOnlyModel<String>() {
-
-            @Override
-            public String getObject() { 
-                StringBuilder sb = new StringBuilder();
-
-                if(model == null || model.getObject() == null || model.getObject().getMultiplicity() == null
-                        || model.getObject().getMultiplicity().isEmpty()){
-                    return getString("PageRoleEditor.label.assignmentConstraint.placeholder");
-                }
-
-                MultiplicityPolicyConstraintType policy = model.getObject();
-
-                sb.append(policy.getMultiplicity());
-
-                if(policy.getEnforcement() != null){
-                    sb.append(" (");
-                    sb.append(policy.getEnforcement());
-                    sb.append(")");
-                }
-
-                return sb.toString();
-           }
-        };
-    }
+    
 
    
  
-
-    private WebMarkupContainer getMinAssignmentsContainer(){
-        return (WebMarkupContainer) get(StringUtils.join(new String[]{ID_MAIN_FORM, ID_MIN_ASSIGNMENTS}, ":"));
-    }
-
-    private WebMarkupContainer getMaxAssignmentsContainer(){
-        return (WebMarkupContainer) get(StringUtils.join(new String[]{ID_MAIN_FORM, ID_MAX_ASSIGNMENTS}, ":"));
-    }
 
   
 
@@ -300,14 +133,63 @@ public class PageRole extends PageAdminAbstractRole<RoleType> implements Progres
     
     @Override
     protected void prepareFocusDeltaForModify(ObjectDelta<RoleType> focusDelta) throws SchemaException {
-    	// TODO policy constraints
     	super.prepareFocusDeltaForModify(focusDelta);
+    	
+    	//TODO: this should be not here - remove after there will be custom implementation for policyConstraints.
+		ItemDelta.removeItemDelta(focusDelta.getModifications(), new ItemPath(RoleType.F_POLICY_CONSTRAINTS,
+				PolicyConstraintsType.F_MAX_ASSIGNEES, MultiplicityPolicyConstraintType.F_ENFORCEMENT),
+				PropertyDelta.class);
+		
+		ItemDelta.removeItemDelta(focusDelta.getModifications(), new ItemPath(RoleType.F_POLICY_CONSTRAINTS,
+				PolicyConstraintsType.F_MIN_ASSIGNEES, MultiplicityPolicyConstraintType.F_ENFORCEMENT),
+				PropertyDelta.class);
+    	//TODO end of TODO section :)
+		
+    	
+    	ObjectDelta delta = getFocusWrapper().getObjectOld().diff(getFocusWrapper().getObject());
+    	
+    	ContainerDelta<PolicyConstraintsType> policyConstraintsDelta = delta.findContainerDelta(new ItemPath(RoleType.F_POLICY_CONSTRAINTS));
+    	if (policyConstraintsDelta != null){
+    		focusDelta.addModification(policyConstraintsDelta);
+    		return;
+    	} 
+    	
+    	ContainerDelta maxAssignes = delta.findContainerDelta(new ItemPath(RoleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_MAX_ASSIGNEES));
+    	if (maxAssignes != null){
+    		focusDelta.addModification(maxAssignes);
+    	}
+    	
+    	ContainerDelta minAssignes = delta.findContainerDelta(new ItemPath(RoleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_MIN_ASSIGNEES));
+    	if (minAssignes != null){
+    		focusDelta.addModification(minAssignes);
+    	}
+    	
     }
     
     @Override
     protected void prepareFocusForAdd(PrismObject<RoleType> focus) throws SchemaException {
     	// TODO policyConstraints
     	super.prepareFocusForAdd(focus);
+    	
+    	getFocusWrapper().getObjectOld().findOrCreateContainer(RoleType.F_POLICY_CONSTRAINTS);
+    	ObjectDelta delta = getFocusWrapper().getObjectOld().diff(getFocusWrapper().getObject());
+    	
+    	ContainerDelta<PolicyConstraintsType> policyConstraintsDelta = delta.findContainerDelta(new ItemPath(RoleType.F_POLICY_CONSTRAINTS));
+    	if (policyConstraintsDelta != null){
+    		policyConstraintsDelta.applyTo(focus);
+    		return;
+    	}
+    	
+    	ContainerDelta maxAssignes = delta.findContainerDelta(new ItemPath(RoleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_MAX_ASSIGNEES));
+    	if (maxAssignes != null){
+    		maxAssignes.applyTo(focus);
+    	}
+    	
+    	ContainerDelta minAssignes = delta.findContainerDelta(new ItemPath(RoleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_MIN_ASSIGNEES));
+    	if (minAssignes != null){
+    		minAssignes.applyTo(focus);
+    	}
+    	
     }
 
 
@@ -345,13 +227,17 @@ public class PageRole extends PageAdminAbstractRole<RoleType> implements Progres
 		super.initTabs(tabs);
 		
 		tabs.add(new AbstractTab(createStringResource("Members")) {
-			
-			
-
-			@Override
+				@Override
 			public WebMarkupContainer getPanel(String panelId) {
 				return new RoleMemberPanel<UserType>(panelId, getFocusWrapper().getObject().getOid(), PageRole.this);
 			}
 		});
+		
+		tabs.add(new AbstractTab(createStringResource("Policy constraints")) {
+			@Override
+		public WebMarkupContainer getPanel(String panelId) {
+			return new RolePolicyPanel(panelId, getFocusWrapper().getObject());
+		}
+	});
 	}
 }

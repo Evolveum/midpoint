@@ -41,6 +41,7 @@ import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignableOrgPopupContent;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignableRolePopupContent;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
@@ -63,7 +64,7 @@ import java.util.List;
 /**
  *  @author shood
  * */
-public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<AssignmentTableDto>{
+public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<List<AssignmentEditorDto>>{
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentTablePanel.class);
 
@@ -82,66 +83,67 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
     
     private static final String ID_MODAL_DELETE_ASSIGNMENT = "deleteAssignmentPopup";
 
-    private LoadableModel<List<AssignmentEditorDto>> assignmentModel;
+//    private LoadableModel<List<AssignmentEditorDto>> assignmentModel;
 
-    public AssignmentTablePanel(String id, IModel<AssignmentTableDto> model, IModel<String> label){
-        super(id, model);
+    public AssignmentTablePanel(String id, IModel<List<AssignmentEditorDto>> assignmentModel){
+        super(id, assignmentModel);
 
-        assignmentModel = new LoadableModel<List<AssignmentEditorDto>>(false) {
+//        this.assignmentModel = assignmentModel;
+//        assignmentModel = new LoadableModel<List<AssignmentEditorDto>>(false) {
+//
+//            @Override
+//            protected List<AssignmentEditorDto> load() {
+//                return loadFromAssignmentTypeList(getAssignmentTypeList(), new OperationResult(OPERATION_LOAD_ASSIGNMENTS));
+//            }
+//        };
 
-            @Override
-            protected List<AssignmentEditorDto> load() {
-                return loadFromAssignmentTypeList(getAssignmentTypeList(), new OperationResult(OPERATION_LOAD_ASSIGNMENTS));
-            }
-        };
-
-        initPanelLayout(label);
+        initPanelLayout();
     }
 
     public List<AssignmentType> getAssignmentTypeList(){
         return null;
     }
 
-    public List<AssignmentEditorDto> loadFromAssignmentTypeList(List<AssignmentType> asgList, OperationResult result){
-        List<AssignmentEditorDto> list = new ArrayList<>();
-
-        for (AssignmentType assignment : asgList) {
-            ObjectType targetObject = null;
-            AssignmentEditorDtoType type = AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION;
-            if (assignment.getTarget() != null) {
-                // object assignment
-                targetObject = assignment.getTarget();
-                type = AssignmentEditorDtoType.getType(targetObject.getClass());
-            } else if (assignment.getTargetRef() != null) {
-                // object assignment through reference
-                ObjectReferenceType ref = assignment.getTargetRef();
-                PrismObject target = getReference(ref, result);
-
-                if (target != null) {
-                    targetObject = (ObjectType) target.asObjectable();
-                    type = AssignmentEditorDtoType.getType(target.getCompileTimeClass());
-                }
-            } else if (assignment.getConstruction() != null) {
-                // account assignment through account construction
-                ConstructionType construction = assignment.getConstruction();
-                if (construction.getResource() != null) {
-                    targetObject = construction.getResource();
-                } else if (construction.getResourceRef() != null) {
-                    ObjectReferenceType ref = construction.getResourceRef();
-                    PrismObject target = getReference(ref, result);
-                    if (target != null) {
-                        targetObject = (ObjectType) target.asObjectable();
-                    }
-                }
-            }
-
-            list.add(new AssignmentEditorDto(targetObject, type, UserDtoStatus.MODIFY, assignment, getPageBase()));
-        }
-
-        Collections.sort(list);
-
-        return list;
-    }
+//    public List<AssignmentEditorDto> loadFromAssignmentTypeList(List<AssignmentType> asgList, OperationResult result){
+//        List<AssignmentEditorDto> list = new ArrayList<>();
+//
+//        for (AssignmentType assignment : asgList) {
+//            ObjectType targetObject = null;
+//            AssignmentEditorDtoType type = AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION;
+//            if (assignment.getTarget() != null) {
+//                // object assignment
+//                targetObject = assignment.getTarget();
+//                type = AssignmentEditorDtoType.getType(targetObject.getClass());
+//            } else if (assignment.getTargetRef() != null) {
+//                // object assignment through reference
+//                ObjectReferenceType ref = assignment.getTargetRef();
+//                PrismObject target = getReference(ref, result);
+//
+//                if (target != null) {
+//                    targetObject = (ObjectType) target.asObjectable();
+//                    type = AssignmentEditorDtoType.getType(target.getCompileTimeClass());
+//                }
+//            } else if (assignment.getConstruction() != null) {
+//                // account assignment through account construction
+//                ConstructionType construction = assignment.getConstruction();
+//                if (construction.getResource() != null) {
+//                    targetObject = construction.getResource();
+//                } else if (construction.getResourceRef() != null) {
+//                    ObjectReferenceType ref = construction.getResourceRef();
+//                    PrismObject target = getReference(ref, result);
+//                    if (target != null) {
+//                        targetObject = (ObjectType) target.asObjectable();
+//                    }
+//                }
+//            }
+//
+//            list.add(new AssignmentEditorDto(targetObject, type, UserDtoStatus.MODIFY, assignment, getPageBase()));
+//        }
+//
+//        Collections.sort(list);
+//
+//        return list;
+//    }
 
     public String getExcludeOid(){
         return null;
@@ -171,18 +173,22 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
         return target;
     }
 
-    private void initPanelLayout(IModel<String> labelModel){
+    private IModel<List<AssignmentEditorDto>> getAssignmentModel(){
+    	return getModel();
+    }
+    
+    private void initPanelLayout(){
         final WebMarkupContainer assignments = new WebMarkupContainer(ID_ASSIGNMENTS);
         assignments.setOutputMarkupId(true);
         add(assignments);
 
-        Label label = new Label(ID_HEADER, labelModel);
+        Label label = new Label(ID_HEADER, createStringResource("FocusType.assignment"));
         assignments.add(label);
 
         InlineMenu assignmentMenu = new InlineMenu(ID_MENU, new Model((Serializable) createAssignmentMenu()));
         assignments.add(assignmentMenu);
 
-        ListView<AssignmentEditorDto> list = new ListView<AssignmentEditorDto>(ID_LIST, assignmentModel) {
+        ListView<AssignmentEditorDto> list = new ListView<AssignmentEditorDto>(ID_LIST, getModel()) {
 
             @Override
                 protected void populateItem(ListItem<AssignmentEditorDto> item) {
@@ -197,7 +203,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                List<AssignmentEditorDto> assignmentEditors = assignmentModel.getObject();
+                List<AssignmentEditorDto> assignmentEditors = getAssignmentModel().getObject();
 
                 for(AssignmentEditorDto dto: assignmentEditors){
                     dto.setSelected(this.getModelObject());
@@ -355,7 +361,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
     private List<AssignmentEditorDto> getSelectedAssignments(){
         List<AssignmentEditorDto> selected = new ArrayList<>();
 
-        List<AssignmentEditorDto> all = assignmentModel.getObject();
+        List<AssignmentEditorDto> all = getAssignmentModel().getObject();
 
         for(AssignmentEditorDto dto: all){
             if(dto.isSelected()){
@@ -400,7 +406,7 @@ showModalWindow(ID_MODAL_ASSIGN_ORG, target);
     }
 
     private void deleteAssignmentConfirmedPerformed(AjaxRequestTarget target, List<AssignmentEditorDto> toDelete){
-        List<AssignmentEditorDto> assignments = assignmentModel.getObject();
+        List<AssignmentEditorDto> assignments = getAssignmentModel().getObject();
 
         for(AssignmentEditorDto assignment: toDelete){
             if(UserDtoStatus.ADD.equals(assignment.getStatus())){
@@ -424,7 +430,7 @@ showModalWindow(ID_MODAL_ASSIGN_ORG, target);
             return;
         }
 
-        List<AssignmentEditorDto> assignments = assignmentModel.getObject();
+        List<AssignmentEditorDto> assignments = getAssignmentModel().getObject();
 
         for(ObjectType object: newAssignments){
             try {
@@ -439,11 +445,12 @@ showModalWindow(ID_MODAL_ASSIGN_ORG, target);
                 ObjectReferenceType targetRef = new ObjectReferenceType();
                 targetRef.setOid(object.getOid());
                 targetRef.setType(aType.getQname());
+                targetRef.setTargetName(object.getName());
 
                 AssignmentType assignment = new AssignmentType();
                 assignment.setTargetRef(targetRef);
 
-                AssignmentEditorDto dto = new AssignmentEditorDto(object, aType, UserDtoStatus.ADD, assignment, getPageBase());
+                AssignmentEditorDto dto = new AssignmentEditorDto(UserDtoStatus.ADD, assignment, getPageBase());
                 dto.setMinimized(false);
                 dto.setShowEmpty(true);
 
@@ -472,9 +479,8 @@ showModalWindow(ID_MODAL_ASSIGN_ORG, target);
 
         construction.setResource(resource);
 
-        List<AssignmentEditorDto> assignments = assignmentModel.getObject();
-        AssignmentEditorDto dto = new AssignmentEditorDto(resource, AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION,
-                UserDtoStatus.ADD, assignment, getPageBase());
+        List<AssignmentEditorDto> assignments = getAssignmentModel().getObject();
+        AssignmentEditorDto dto = new AssignmentEditorDto(UserDtoStatus.ADD, assignment, getPageBase());
         assignments.add(dto);
 
         dto.setMinimized(false);
@@ -484,7 +490,7 @@ showModalWindow(ID_MODAL_ASSIGN_ORG, target);
     public void handleAssignmentsWhenAdd(PrismObject<T> object, PrismContainerDefinition assignmentDef,
                                           List<AssignmentType> objectAssignments) throws SchemaException{
 
-        List<AssignmentEditorDto> assignments = assignmentModel.getObject();
+        List<AssignmentEditorDto> assignments = getAssignmentModel().getObject();
         for (AssignmentEditorDto assDto : assignments) {
             if (!UserDtoStatus.ADD.equals(assDto.getStatus())) {
                 warn(getString("AssignmentTablePanel.message.illegalAssignmentState", assDto.getStatus()));
@@ -511,7 +517,7 @@ showModalWindow(ID_MODAL_ASSIGN_ORG, target);
         //PrismObjectDefinition orgDef = org.getDefinition();
         //PrismContainerDefinition assignmentDef = def.findContainerDefinition(assignmentPath);
 
-        List<AssignmentEditorDto> assignments = assignmentModel.getObject();
+        List<AssignmentEditorDto> assignments = getAssignmentModel().getObject();
         for (AssignmentEditorDto assDto : assignments) {
             PrismContainerValue newValue = assDto.getNewValue();
             switch (assDto.getStatus()) {

@@ -12,7 +12,6 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
-import org.apache.wicket.Page;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
@@ -22,8 +21,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -31,9 +28,6 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.resource.AbstractResource;
-import org.apache.wicket.request.resource.ByteArrayResource;
-import org.apache.wicket.request.resource.ContextRelativeResource;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
@@ -110,15 +104,11 @@ import com.evolveum.midpoint.web.component.progress.ProgressReporter;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
-import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.reports.component.ReportConfigurationPanel;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
-import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignableOrgPopupContent;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignablePopupContent;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignableRolePopupContent;
@@ -219,12 +209,48 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 	    
 	    private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel
         = new LoadableModel<ExecuteChangeOptionsDto>(false) {
-
+	    	
     @Override
     protected ExecuteChangeOptionsDto load() {
         return new ExecuteChangeOptionsDto();
     }
 };
+
+
+@Override
+protected IModel<String> createPageTitleModel(){
+    return new LoadableModel<String>() {
+
+        @Override
+        protected String load() {
+            if(!isEditingFocus()){
+                return createStringResource("pageAdminFocus.title.newFocusType").getObject();
+            }
+
+            return createStringResource("pageAdminFocus.title.editFocusType").getObject();
+        }
+    };
+}
+
+@Override
+protected IModel<String> createPageSubTitleModel(){
+    return new LoadableModel<String>() {
+
+        @Override
+        protected String load() {
+            if(!isEditingFocus()){
+                return createStringResource("pageAdminFocus.subTitle.new"+getCompileTimeClass().getSimpleName()).getObject();
+            }
+
+            String name = null;
+            if(getFocusWrapper() != null && getFocusWrapper().getObject() != null){
+                name = WebMiscUtil.getName(getFocusWrapper().getObject());
+            }
+
+            return createStringResource("pageAdminFocus.subTitle.edit"+getCompileTimeClass().getSimpleName(), name).getObject();
+        }
+    };
+}
 
 public LoadableModel<ObjectWrapper> getFocusModel() {
 	return focusModel;
@@ -299,12 +325,7 @@ public LoadableModel<ObjectWrapper> getFocusModel() {
 	                		return PageAdminFocus.this.createNewFocus();
 	                	}
 
-						@Override
-						protected void initCustomLayout(Form mainForm) {
-							PageAdminFocus.this.initCustomLayout(mainForm);
-							
-						}
-
+						
 						@Override
 						protected void reviveCustomModels() throws SchemaException {
 							PageAdminFocus.this.reviveCustomModels();
@@ -372,6 +393,7 @@ public LoadableModel<ObjectWrapper> getFocusModel() {
 //	        initTasks(tasks);
 //
 	        initButtons(mainForm);
+	        initCustomLayout(mainForm);
 //
 //	        initResourceModal();
 //	        initAssignableModal();
@@ -619,36 +641,8 @@ public LoadableModel<ObjectWrapper> getFocusModel() {
 	        PrismObject<T> focus = focusWrapper.getObject();
 	        List<AssignmentType> assignments = focus.asObjectable().getAssignment();
 	        for (AssignmentType assignment : assignments) {
-	            ObjectType targetObject = null;
-	            AssignmentEditorDtoType type = AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION;
-	            if (assignment.getTarget() != null) {
-	                // object assignment
-	                targetObject = assignment.getTarget();
-	                type = AssignmentEditorDtoType.getType(targetObject.getClass());
-	            } else if (assignment.getTargetRef() != null) {
-	                // object assignment through reference
-	                ObjectReferenceType ref = assignment.getTargetRef();
-	                PrismObject target = getReference(ref, result);
-
-	                if (target != null) {
-	                    targetObject = (ObjectType) target.asObjectable();
-	                    type = AssignmentEditorDtoType.getType(target.getCompileTimeClass());
-	                }
-	            } else if (assignment.getConstruction() != null) {
-	                // account assignment through account construction
-	                ConstructionType construction = assignment.getConstruction();
-	                if (construction.getResource() != null) {
-	                    targetObject = construction.getResource();
-	                } else if (construction.getResourceRef() != null) {
-	                    ObjectReferenceType ref = construction.getResourceRef();
-	                    PrismObject target = getReference(ref, result);
-	                    if (target != null) {
-	                        targetObject = (ObjectType) target.asObjectable();
-	                    }
-	                }
-	            }
-
-	            list.add(new AssignmentEditorDto(targetObject, type, UserDtoStatus.MODIFY, assignment, this));
+	           
+	            list.add(new AssignmentEditorDto(UserDtoStatus.MODIFY, assignment, this));
 	        }
 
 	        Collections.sort(list);
@@ -883,7 +877,7 @@ return true;
 return false;
 	}
 
-	private ObjectDelta getChange(ObjectWrapper userWrapper) throws SchemaException {
+	private ObjectDelta getChange(ObjectWrapper focusWrapper) throws SchemaException {
 
 		List<FocusShadowDto> accountDtos = getFocusShadows();
 		List<ReferenceDelta> refDeltas = new ArrayList<ReferenceDelta>();
@@ -896,27 +890,27 @@ return false;
 			if (accDto.getStatus() == UserDtoStatus.DELETE) {
 				ObjectWrapper accWrapper = accDto.getObject();
 				ReferenceDelta refDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF,
-						userWrapper.getObject().getDefinition(), accWrapper.getObject());
+						focusWrapper.getObject().getDefinition(), accWrapper.getObject());
 				refDeltas.add(refDelta);
 			} else if (accDto.getStatus() == UserDtoStatus.UNLINK) {
 				ObjectWrapper accWrapper = accDto.getObject();
 				ReferenceDelta refDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF,
-						userWrapper.getObject().getDefinition(), accWrapper.getObject().getOid());
+						focusWrapper.getObject().getDefinition(), accWrapper.getObject().getOid());
 				refDeltas.add(refDelta);
 			}
 		}
 		if (!refDeltas.isEmpty()) {
-			forceDeleteDelta = ObjectDelta.createModifyDelta(userWrapper.getObject().getOid(), refDeltas,
+			forceDeleteDelta = ObjectDelta.createModifyDelta(focusWrapper.getObject().getOid(), refDeltas,
 					getCompileTimeClass(), getPrismContext());
 		}
-		PrismContainerDefinition def = userWrapper.getObject().findContainer(UserType.F_ASSIGNMENT)
+		PrismContainerDefinition def = focusWrapper.getObject().findContainer(UserType.F_ASSIGNMENT)
 				.getDefinition();
 		if (forceDeleteDelta == null) {
-			forceDeleteDelta = ObjectDelta.createEmptyModifyDelta(getCompileTimeClass(), userWrapper.getObject()
+			forceDeleteDelta = ObjectDelta.createEmptyModifyDelta(getCompileTimeClass(), focusWrapper.getObject()
 					.getOid(), getPrismContext());
 		}
 
-		handleAssignmentDeltas(forceDeleteDelta, def);
+		handleAssignmentDeltas(forceDeleteDelta, getFocusAssignments(), def);
 		return forceDeleteDelta;
 	}
 
@@ -980,31 +974,58 @@ return false;
 
 	            focusType.getLink().add(account.asObjectable());
 	        }
+	        
+	        handleAssignmentForAdd(focus, UserType.F_ASSIGNMENT, focusType.getAssignment());
 
-	        PrismObjectDefinition userDef = focus.getDefinition();
-	        PrismContainerDefinition assignmentDef = userDef.findContainerDefinition(UserType.F_ASSIGNMENT);
-
-	        // handle added assignments
-	        // existing user assignments are not relevant -> delete them
-	        focusType.getAssignment().clear();
-	        List<AssignmentEditorDto> assignments = getFocusAssignments();
-	        for (AssignmentEditorDto assDto : assignments) {
-	            if (UserDtoStatus.DELETE.equals(assDto.getStatus())) {
-	                continue;
-	            }
-
-	            AssignmentType assignment = new AssignmentType();
-	            PrismContainerValue value = assDto.getNewValue();
-	            assignment.setupContainerValue(value);
-	            value.applyDefinition(assignmentDef, false);
-	            focusType.getAssignment().add(assignment.clone());
-
-	            // todo remove this block [lazyman] after model is updated - it has
-	            // to remove resource from accountConstruction
-	            removeResourceFromAccConstruction(assignment);
-	        }
+//	        PrismObjectDefinition userDef = focus.getDefinition();
+//	        PrismContainerDefinition assignmentDef = userDef.findContainerDefinition(UserType.F_ASSIGNMENT);
+//
+//	        // handle added assignments
+//	        // existing user assignments are not relevant -> delete them
+//	        focusType.getAssignment().clear();
+//	        List<AssignmentEditorDto> assignments = getFocusAssignments();
+//	        for (AssignmentEditorDto assDto : assignments) {
+//	            if (UserDtoStatus.DELETE.equals(assDto.getStatus())) {
+//	                continue;
+//	            }
+//
+//	            AssignmentType assignment = new AssignmentType();
+//	            PrismContainerValue value = assDto.getNewValue();
+//	            assignment.setupContainerValue(value);
+//	            value.applyDefinition(assignmentDef, false);
+//	            focusType.getAssignment().add(assignment.clone());
+//
+//	            // todo remove this block [lazyman] after model is updated - it has
+//	            // to remove resource from accountConstruction
+//	            removeResourceFromAccConstruction(assignment);
+//	        }
 	    }
 
+	    protected void handleAssignmentForAdd(PrismObject<T> focus, QName containerName, List<AssignmentType> assignmentTypes) throws SchemaException{
+	    	 PrismObjectDefinition userDef = focus.getDefinition();
+		        PrismContainerDefinition assignmentDef = userDef.findContainerDefinition(containerName);
+
+		        // handle added assignments
+		        // existing user assignments are not relevant -> delete them
+		        assignmentTypes.clear();
+		        List<AssignmentEditorDto> assignments = getFocusAssignments();
+		        for (AssignmentEditorDto assDto : assignments) {
+		            if (UserDtoStatus.DELETE.equals(assDto.getStatus())) {
+		                continue;
+		            }
+
+		            AssignmentType assignment = new AssignmentType();
+		            PrismContainerValue value = assDto.getNewValue();
+		            assignment.setupContainerValue(value);
+		            value.applyDefinition(assignmentDef, false);
+		            assignmentTypes.add(assignment.clone());
+
+		            // todo remove this block [lazyman] after model is updated - it has
+		            // to remove resource from accountConstruction
+		            removeResourceFromAccConstruction(assignment);
+		        }
+	    }
+	    
 	    private List<ObjectDelta<? extends ObjectType>> modifyShadows(OperationResult result) {
 	        List<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
 
@@ -1112,26 +1133,26 @@ return false;
 	        return refDelta;
 	    }
 
-	    private ContainerDelta handleAssignmentDeltas(ObjectDelta<T> focusDelta, PrismContainerDefinition def)
+	    protected ContainerDelta handleAssignmentDeltas(ObjectDelta<T> focusDelta, List<AssignmentEditorDto> assignments, PrismContainerDefinition def)
 	            throws SchemaException {
-	        ContainerDelta assDelta = new ContainerDelta(new ItemPath(), FocusType.F_ASSIGNMENT, def, getPrismContext());
+	        ContainerDelta assDelta = new ContainerDelta(new ItemPath(), def.getName(), def, getPrismContext());
 
-	        PrismObject<UserType> user = getFocusWrapper().getObject();
-	        PrismObjectDefinition userDef = user.getDefinition();
-	        PrismContainerDefinition assignmentDef = userDef.findContainerDefinition(UserType.F_ASSIGNMENT);
+//	        PrismObject<UserType> user = getFocusWrapper().getObject();
+//	        PrismObjectDefinition userDef = user.getDefinition();
+//	        PrismContainerDefinition assignmentDef = userDef.findContainerDefinition(UserType.F_ASSIGNMENT);
 
-	        List<AssignmentEditorDto> assignments = getFocusAssignments();
+//	        List<AssignmentEditorDto> assignments = getFocusAssignments();
 	        for (AssignmentEditorDto assDto : assignments) {
 	            PrismContainerValue newValue = assDto.getNewValue();
 
 	            switch (assDto.getStatus()) {
 	                case ADD:
-	                    newValue.applyDefinition(assignmentDef, false);
+	                    newValue.applyDefinition(def, false);
 	                    assDelta.addValueToAdd(newValue.clone());
 	                    break;
 	                case DELETE:
 	                    PrismContainerValue oldValue = assDto.getOldValue();
-	                    oldValue.applyDefinition(assignmentDef);
+	                    oldValue.applyDefinition(def);
 	                    assDelta.addValueToDelete(oldValue.clone());
 	                    break;
 	                case MODIFY:
@@ -1140,7 +1161,7 @@ return false;
 	                        continue;
 	                    }
 
-	                    handleModifyAssignmentDelta(assDto, assignmentDef, newValue, focusDelta);
+	                    handleModifyAssignmentDelta(assDto, def, newValue, focusDelta);
 	                    break;
 	                default:
 	                    warn(getString("pageAdminUser.message.illegalAssignmentState", assDto.getStatus()));
@@ -1212,7 +1233,7 @@ return false;
 
 	        // handle assignments
 	        PrismContainerDefinition def = objectDefinition.findContainerDefinition(UserType.F_ASSIGNMENT);
-	        handleAssignmentDeltas(focusDelta, def);
+	        handleAssignmentDeltas(focusDelta, getFocusAssignments(), def);
 	    }
 
 	    private void recomputeAssignmentsPerformed(AjaxRequestTarget target){
@@ -1308,7 +1329,7 @@ return false;
 	                }
 
 	                // all resources
-	                DeltaSetTriple<EvaluatedConstruction> evaluatedConstructionsTriple = evaluatedAssignment.getEvaluatedConstructions(result);
+	                DeltaSetTriple<EvaluatedConstruction> evaluatedConstructionsTriple = evaluatedAssignment.getEvaluatedConstructions(task, result);
 	                Collection<EvaluatedConstruction> evaluatedConstructions = evaluatedConstructionsTriple.getNonNegativeValues();
 	                for (EvaluatedConstruction construction : evaluatedConstructions) {
 	                    assignmentDtoSet.add(createAssignmentsPreviewDto(construction));
@@ -1679,8 +1700,7 @@ return false;
 	        construction.setResource(resource);
 
 	        List<AssignmentEditorDto> assignments = assignmentsModel.getObject();
-	        AssignmentEditorDto dto = new AssignmentEditorDto(resource, AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION,
-	                UserDtoStatus.ADD, assignment, this);
+	        AssignmentEditorDto dto = new AssignmentEditorDto(UserDtoStatus.ADD, assignment, this);
 	        assignments.add(dto);
 
 	        dto.setMinimized(false);
@@ -1710,11 +1730,12 @@ return false;
 	                ObjectReferenceType targetRef = new ObjectReferenceType();
 	                targetRef.setOid(object.getOid());
 	                targetRef.setType(aType.getQname());
+	                targetRef.setTargetName(object.getName());
 
 	                AssignmentType assignment = new AssignmentType();
 	                assignment.setTargetRef(targetRef);
 
-	                AssignmentEditorDto dto = new AssignmentEditorDto(object, aType, UserDtoStatus.ADD, assignment, this);
+	                AssignmentEditorDto dto = new AssignmentEditorDto(UserDtoStatus.ADD, assignment, this);
 	                dto.setMinimized(false);
 	                dto.setShowEmpty(true);
 
