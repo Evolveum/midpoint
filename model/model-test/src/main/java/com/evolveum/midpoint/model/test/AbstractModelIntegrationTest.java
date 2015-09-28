@@ -1233,10 +1233,29 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
 		assertAssignedRole(user, roleOid);
 	}
-	
+
+	protected <F extends FocusType> void assertAssignedRole(PrismObject<F> focus, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		assertAssignedRole(focus, roleOid);
+	}
+
 	protected <F extends FocusType> void assertAssignedRole(PrismObject<F> user, String roleOid) {
 		MidPointAsserts.assertAssignedRole(user, roleOid);
 	}
+	
+	protected <F extends FocusType> void assertRoleMembershipRef(PrismObject<F> focus, String... roleOids) {
+		List<String> refOids = new ArrayList<String>();
+		for (ObjectReferenceType ref: focus.asObjectable().getRoleMembershipRef()) {
+			refOids.add(ref.getOid());
+			assertNotNull("Missing type in roleMembershipRef "+ref.getOid()+" in "+focus, ref.getType());
+			// Name is not stored now
+//			assertNotNull("Missing name in roleMembershipRef "+ref.getOid()+" in "+focus, ref.getTargetName());
+		}
+		PrismAsserts.assertSets("Wrong values in roleMembershipRef in "+focus, refOids, roleOids);
+	}
+
+    protected <F extends FocusType> void assertNotAssignedRole(PrismObject<F> focus, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+        MidPointAsserts.assertNotAssignedRole(focus, roleOid);
+    }
 
     protected void assertNotAssignedRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
         PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
@@ -1395,17 +1414,21 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertAssignedNo(user, OrgType.COMPLEX_TYPE);
 	}
 	
+	protected <F extends FocusType> void assertAssignedNoRole(PrismObject<F> focus, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		assertAssignedNoRole(focus);
+	}
+	
 	protected void assertAssignedNoRole(String userOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
 		assertAssignedNoRole(user);
 	}
 	
-	protected void assertAssignedNoRole(PrismObject<UserType> user) {
+	protected <F extends FocusType> void assertAssignedNoRole(PrismObject<F> user) {
 		assertAssignedNo(user, RoleType.COMPLEX_TYPE);
 	}
 		
-	protected void assertAssignedNo(PrismObject<UserType> user, QName refType) {
-		UserType userType = user.asObjectable();
+	protected <F extends FocusType> void assertAssignedNo(PrismObject<F> user, QName refType) {
+		F userType = user.asObjectable();
 		for (AssignmentType assignmentType: userType.getAssignment()) {
 			ObjectReferenceType targetRef = assignmentType.getTargetRef();
 			if (targetRef != null) {
@@ -2016,7 +2039,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		// There may be metadata modification, we tolerate that
 		Collection<? extends ItemDelta<?,?>> metadataDelta = focusDelta.findItemDeltasSubPath(new ItemPath(UserType.F_METADATA));
 		if (metadataDelta != null && !metadataDelta.isEmpty()) {
-			expectedModifications++;
+			expectedModifications+=metadataDelta.size();
 		}
 		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ENABLE_TIMESTAMP)) != null) {
 			expectedModifications++;
@@ -2032,6 +2055,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			expectedModifications++;
 		}
 		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ITERATION)) != null) {
+			expectedModifications++;
+		}
+		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ROLE_MEMBERSHIP_REF)) != null) {
 			expectedModifications++;
 		}
 		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ITERATION_TOKEN)) != null) {
@@ -2068,6 +2094,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		if (effectiveStatusDelta != null) {
 			expectedModifications++;
 			PrismAsserts.assertReplace(effectiveStatusDelta, expectedEfficientActivation);
+		}
+		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ROLE_MEMBERSHIP_REF)) != null) {
+			expectedModifications++;
 		}
 		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ITERATION)) != null) {
 			expectedModifications++;

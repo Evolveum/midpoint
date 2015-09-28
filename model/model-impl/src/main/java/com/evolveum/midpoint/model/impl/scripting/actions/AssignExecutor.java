@@ -93,7 +93,14 @@ public class AssignExecutor extends BaseActionExecutor {
             if (item instanceof PrismObject && ((PrismObject) item).asObjectable() instanceof FocusType) {
                 PrismObject<? extends ObjectType> prismObject = (PrismObject) item;
                 ObjectType objectType = prismObject.asObjectable();
-                operationsHelper.applyDelta(createDelta(objectType, resources, roles), operationsHelper.createExecutionOptions(raw), context, result);
+                long started = operationsHelper.recordStart(context, objectType);
+                try {
+                    operationsHelper.applyDelta(createDelta(objectType, resources, roles), operationsHelper.createExecutionOptions(raw), context, result);
+                    operationsHelper.recordEnd(context, objectType, started, null);
+                } catch (Throwable ex) {
+                    operationsHelper.recordEnd(context, objectType, started, ex);
+                    throw ex;       // TODO reconsider this
+                }
                 context.println("Modified " + item.toString() + rawSuffix(raw));
             } else {
                 throw new ScriptExecutionException("Item could not be modified, because it is not a PrismObject of FocusType: " + item.toString());
