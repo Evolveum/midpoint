@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import com.evolveum.midpoint.repo.sql.data.common.id.RUserPhotoId;
+import com.evolveum.midpoint.repo.sql.data.common.id.RFocusPhotoId;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
 
@@ -27,21 +27,21 @@ import java.util.Arrays;
 /**
  * @author lazyman
  */
-@IdClass(RUserPhotoId.class)
+@IdClass(RFocusPhotoId.class)
 @Entity
-@Table(name = "m_user_photo")
-public class RUserPhoto implements Serializable {
+@Table(name = "m_focus_photo")
+public class RFocusPhoto implements Serializable {
 
-    private RUser owner;
+    private RFocus owner;
     private String ownerOid;
 
     private byte[] photo;
 
     @Id
-    @ForeignKey(name = "fk_user_photo")
+    @ForeignKey(name = "fk_focus_photo")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
-    public RUser getOwner() {
+    public RFocus getOwner() {
         return owner;
     }
 
@@ -59,7 +59,7 @@ public class RUserPhoto implements Serializable {
         return photo;
     }
 
-    public void setOwner(RUser owner) {
+    public void setOwner(RFocus owner) {
         this.owner = owner;
     }
 
@@ -76,7 +76,7 @@ public class RUserPhoto implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RUserPhoto that = (RUserPhoto) o;
+        RFocusPhoto that = (RFocusPhoto) o;
 
         if (!Arrays.equals(photo, that.photo)) return false;
 

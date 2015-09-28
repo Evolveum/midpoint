@@ -1951,6 +1951,19 @@
                         </xsd:annotation>
                     </xsd:element>
 
+                    <xsd:element name="jpegPhoto" type="xsd:base64Binary" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Photo corresponding to the user / org / role.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>Jpeg photo</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -2404,20 +2417,6 @@
                             <xsd:appinfo>
                                 <a:displayName>Locality</a:displayName>
                                 <a:displayOrder>450</a:displayOrder>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="jpegPhoto" type="xsd:base64Binary" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	<p>
-                                	Photo of the user.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>Jpeg photo</a:displayName>
-                                <a:displayOrder>460</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
