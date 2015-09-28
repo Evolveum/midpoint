@@ -297,7 +297,7 @@ public LoadableModel<ObjectWrapper> getFocusModel() {
 	 
 	 private void initLayout(){
 		 final Form mainForm = new Form(ID_MAIN_FORM, true);
-	        mainForm.setMaxSize(MidPointApplication.USER_PHOTO_MAX_FILE_SIZE);
+	        mainForm.setMaxSize(MidPointApplication.FOCUS_PHOTO_MAX_FILE_SIZE);
 	        mainForm.setMultiPart(true);
 	        add(mainForm);
 
