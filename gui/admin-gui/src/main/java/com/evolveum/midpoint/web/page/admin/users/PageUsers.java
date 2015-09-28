@@ -39,6 +39,7 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.DropDownMultiChoice;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.*;
@@ -324,12 +325,16 @@ public class PageUsers extends PageAdminUsers {
                 GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
         provider.setOptions(options);
 
-        TablePanel table = new TablePanel(ID_TABLE, provider, columns,
-                UserProfileStorage.TableId.PAGE_USERS_PANEL, getItemsPerPage(UserProfileStorage.TableId.PAGE_USERS_PANEL));
+        BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider, columns,
+                UserProfileStorage.TableId.PAGE_USERS_PANEL,
+                        (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_USERS_PANEL));
+
+//        TablePanel table = new TablePanel(ID_TABLE, provider, columns,
+//                UserProfileStorage.TableId.PAGE_USERS_PANEL, getItemsPerPage(UserProfileStorage.TableId.PAGE_USERS_PANEL));
         table.setOutputMarkupId(true);
 
         UsersStorage storage = getSessionStorage().getUsers();
-        table.setCurrentPage(storage.getUsersPaging());
+//        table.setCurrentPage(storage.getUsersPaging());
 
         mainForm.add(table);
     }
