@@ -296,7 +296,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertNotNull("No resulting context (as seen by debug listener)", context);
         
         assertNull("Unexpected user primary delta", context.getFocusContext().getPrimaryDelta());
-        assertNull("Unexpected user secondary delta", context.getFocusContext().getSecondaryDelta());
+        assertSideEffectiveDeltasOnly("user secondary delta", context.getFocusContext().getSecondaryDelta());
         
         ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceDummy.getOid(), 
         		ShadowKindType.ACCOUNT, null);
@@ -350,7 +350,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertNotNull("No resulting context (as seen by debug listener)", context);
         
         assertNull("Unexpected user primary delta", context.getFocusContext().getPrimaryDelta());
-        assertNull("Unexpected user secondary delta", context.getFocusContext().getSecondaryDelta());
+        assertSideEffectiveDeltasOnly("user secondary delta", context.getFocusContext().getSecondaryDelta());
         
         ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceDummy.getOid(), 
         		ShadowKindType.ACCOUNT, null, true);

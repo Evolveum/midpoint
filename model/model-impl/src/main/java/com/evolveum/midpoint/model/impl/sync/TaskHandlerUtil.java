@@ -40,6 +40,10 @@ public class TaskHandlerUtil {
         fetchAllStatistics(task, false, true, true);
     }
 
+    public static void initAllStatistics(Task task, boolean enableIterationStatistics, boolean enableSynchronizationStatistics) {
+        fetchAllStatistics(task, false, enableIterationStatistics, enableSynchronizationStatistics);
+    }
+
     public static void fetchAllStatistics(Task task) {
         fetchAllStatistics(task, true, true, true);
     }

@@ -224,6 +224,7 @@ public class FocusProcessor {
 		        
 		        assignmentProcessor.processAssignmentsProjections(context, now, task, result);
 		        assignmentProcessor.processOrgAssignments(context, result);
+		        assignmentProcessor.processMembershipRef(context, result);
 		        context.recompute();
 		        
 		        assignmentProcessor.checkForAssignmentConflicts(context, result);

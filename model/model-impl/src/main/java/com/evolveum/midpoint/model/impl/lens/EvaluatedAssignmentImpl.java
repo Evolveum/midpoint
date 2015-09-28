@@ -60,6 +60,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	private DeltaSetTriple<Construction<F>> constructions;
 	private DeltaSetTriple<EvaluatedAbstractRoleImpl> roles;
 	private Collection<PrismReferenceValue> orgRefVals;
+	private Collection<PrismReferenceValue> membershipRefVals;
 	private Collection<Authorization> authorizations;
 	private Collection<Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>>> focusMappings;
 	private PrismObject<?> target;
@@ -72,6 +73,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		constructions = new DeltaSetTriple<>();
 		roles = new DeltaSetTriple<>();
 		orgRefVals = new ArrayList<>();
+		membershipRefVals = new ArrayList<>();
 		authorizations = new ArrayList<>();
 		focusMappings = new ArrayList<>();
 	}
@@ -153,6 +155,14 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 
 	public void addOrgRefVal(PrismReferenceValue org) {
 		orgRefVals.add(org);
+	}
+	
+	public Collection<PrismReferenceValue> getMembershipRefVals() {
+		return membershipRefVals;
+	}
+
+	public void addMembershipRefVal(PrismReferenceValue org) {
+		membershipRefVals.add(org);
 	}
 
 	/* (non-Javadoc)
