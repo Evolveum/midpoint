@@ -19,8 +19,7 @@ package com.evolveum.midpoint.schema.util;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
@@ -32,19 +31,19 @@ import java.util.Collection;
 public class SelectorOptionsTest {
 
     @Test
-    public void testUserPhoto() throws Exception {
-        AssertJUnit.assertFalse(SelectorOptions.hasToLoadPath(UserType.F_JPEG_PHOTO, null));
+    public void testFocusPhoto() throws Exception {
+        AssertJUnit.assertFalse(SelectorOptions.hasToLoadPath(FocusType.F_JPEG_PHOTO, null));
 
-        Collection o = SelectorOptions.createCollection(UserType.F_JPEG_PHOTO,
+        Collection o = SelectorOptions.createCollection(FocusType.F_JPEG_PHOTO,
                 GetOperationOptions.createRetrieve(RetrieveOption.DEFAULT));
-        AssertJUnit.assertFalse(SelectorOptions.hasToLoadPath(UserType.F_JPEG_PHOTO, o));
+        AssertJUnit.assertFalse(SelectorOptions.hasToLoadPath(FocusType.F_JPEG_PHOTO, o));
 
-        o = SelectorOptions.createCollection(UserType.F_JPEG_PHOTO,
+        o = SelectorOptions.createCollection(FocusType.F_JPEG_PHOTO,
                 GetOperationOptions.createRetrieve(RetrieveOption.EXCLUDE));
-        AssertJUnit.assertFalse(SelectorOptions.hasToLoadPath(UserType.F_JPEG_PHOTO, o));
+        AssertJUnit.assertFalse(SelectorOptions.hasToLoadPath(FocusType.F_JPEG_PHOTO, o));
 
-        o = SelectorOptions.createCollection(UserType.F_JPEG_PHOTO,
+        o = SelectorOptions.createCollection(FocusType.F_JPEG_PHOTO,
                 GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
-        AssertJUnit.assertTrue(SelectorOptions.hasToLoadPath(UserType.F_JPEG_PHOTO, o));
+        AssertJUnit.assertTrue(SelectorOptions.hasToLoadPath(FocusType.F_JPEG_PHOTO, o));
     }
 }
