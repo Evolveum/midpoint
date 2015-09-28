@@ -248,7 +248,7 @@ public class LensUtil {
         // a single item (e.g. attribute). But this loop iterates over every potential value of that item.
         for (V value : allValues) {
         	
-        	LOGGER.trace("item existing: {}, value: {}", itemExisting, value);
+        	LOGGER.trace("item existing: {}, consolidating value: {}", itemExisting, value);
         	// Check what to do with the value using the usual "triple routine". It means that if a value is
         	// in zero set than we need no delta, plus set means add delta and minus set means delete delta.
         	// The first set that the value is present determines the result.
@@ -393,7 +393,7 @@ public class LensUtil {
                     continue;
                 }
                 if (filterExistingValues && !hasValue(itemExisting, value, valueMatcher, comparator)) {
-                	LOGGER.trace("Value {} NOT deleted to delta for item {} the item does not have that value in {} (matcher: {})",
+                	LOGGER.trace("Value {} NOT deleted from delta for item {} the item does not have that value in {} (matcher: {})",
                 			new Object[]{value, itemPath, contextDescription, valueMatcher});
                 	continue;
                 }
