@@ -170,19 +170,12 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 
 	
 	protected void setSpecificResponsePage() {
-		goBack(PageOrgTree.class);
+		if (getSessionStorage().getPreviousPage() != null){
+			goBack(getSessionStorage().getPreviousPage());
+		} else {
+			goBack(PageOrgTree.class);
+		}
 	}
-
-
-
-	private PrismObjectDefinition getOrgTypeDefinition() {
-		return getFocusWrapper().getObject().getDefinition();
-	}
-
-
-
-	
-
 
 
 	protected void reviveCustomModels() throws SchemaException {

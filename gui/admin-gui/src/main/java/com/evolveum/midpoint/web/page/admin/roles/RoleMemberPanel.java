@@ -105,7 +105,6 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 	private static String MODAL_ID_MEMBER = "addMemberPopup";
 
 	private IModel<RoleMemberSearchDto> searchModel;
-	private IModel<List<OrgType>> tenantModel;
 
 	private PageBase pageBase;
 	private String roleId;
@@ -132,15 +131,7 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 			}
 		};
 
-		tenantModel = new LoadableModel<List<OrgType>>(false) {
-
-			@Override
-			protected List<OrgType> load() {
-				// TODO Auto-generated method stub
-				return createTenantList();
-			}
-		};
-
+	
 		initCustomLayout();
 	}
 
@@ -155,28 +146,27 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 	private Component getFeedbackPanel() {
 		return pageBase.getFeedbackPanel();
 	}
-
-	private void initCustomLayout() {
-
-		DropDownChoice listSelect = new DropDownChoice(ID_OBJECT_TYPE,
-				new PropertyModel(searchModel, RoleMemberSearchDto.F_TYPE), new AbstractReadOnlyModel<List<QName>>() {
+	
+	private <V> DropDownChoice createDropDown(String id, String field, final List<V> values){
+		DropDownChoice listSelect = new DropDownChoice(id,
+				new PropertyModel(searchModel, field), new AbstractReadOnlyModel<List<V>>() {
 
 					@Override
-					public List<QName> getObject() {
-						return createTypeList();
+					public List<V> getObject() {
+						return values;
 					}
 				},
 
-		new IChoiceRenderer<QName>() {
+		new IChoiceRenderer<V>() {
 
 			@Override
-			public Object getDisplayValue(QName object) {
-				return object.getLocalPart();
+			public String getDisplayValue(V object) {
+				return getStringValue(object);
 			}
 
 			@Override
-			public String getIdValue(QName object, int index) {
-				return object.toString();
+			public String getIdValue(V object, int index) {
+				return getValueForId(object);
 			};
 		});
 		listSelect.add(new OnChangeAjaxBehavior() {
@@ -189,72 +179,37 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 			}
 		});
 
-		add(listSelect);
+		return listSelect;
+	}
+	
+	private <V> String getStringValue(V value){
+		if (value instanceof QName){
+			return ((QName) value).getLocalPart();
+		} else if (value instanceof OrgType){
+			return ((OrgType) value).getName().getOrig();
+		} else 
+			return "unknown value: " + value;  
+	}
+	
+	private <V> String getValueForId(V value){
+		if (value instanceof QName){
+			return ((QName) value).toString();
+		} else if (value instanceof OrgType){
+			return ((OrgType) value).getName().getOrig();
+		} else 
+			return "unknown value: " + value;  
+		
+	}
 
-		DropDownChoice tenant = new DropDownChoice(ID_TENANT,
-				new PropertyModel(searchModel, RoleMemberSearchDto.F_TENANT),
-				new AbstractReadOnlyModel<List<OrgType>>() {
+	private void initCustomLayout() {
+		
+		DropDownChoice typeSelect = createDropDown(ID_OBJECT_TYPE, RoleMemberSearchDto.F_TYPE, createTypeList());
+		add(typeSelect);
 
-					@Override
-					public List<OrgType> getObject() {
-						return tenantModel.getObject();
-					}
-				},
-
-		new IChoiceRenderer<OrgType>() {
-
-			@Override
-			public Object getDisplayValue(OrgType object) {
-				return object.getName().getOrig();
-			}
-
-			@Override
-			public String getIdValue(OrgType object, int index) {
-				return object.getName().getOrig();
-			};
-		});
-		tenant.add(new OnChangeAjaxBehavior() {
-
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				TablePanel table = initTable();
-				target.add(table);
-				addOrReplace(table);
-			}
-		});
+		DropDownChoice tenant = createDropDown(ID_TENANT, RoleMemberSearchDto.F_TENANT, createTenantList());
 		add(tenant);
 
-		DropDownChoice project = new DropDownChoice(ID_PROJECT,
-				new PropertyModel(searchModel, RoleMemberSearchDto.F_PROJECT),
-				new AbstractReadOnlyModel<List<OrgType>>() {
-
-					@Override
-					public List<OrgType> getObject() {
-						return createProjectList();
-					}
-				},
-
-		new IChoiceRenderer<OrgType>() {
-
-			@Override
-			public Object getDisplayValue(OrgType object) {
-				return object.getName().getOrig();
-			}
-
-			@Override
-			public String getIdValue(OrgType object, int index) {
-				return object.getName().getOrig();
-			};
-		});
-		project.add(new OnChangeAjaxBehavior() {
-
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				TablePanel table = initTable();
-				target.add(table);
-				addOrReplace(table);
-			}
-		});
+		DropDownChoice project = createDropDown(ID_PROJECT, RoleMemberSearchDto.F_PROJECT, createProjectList());
 		add(project);
 
 		addOrReplace(initTable());
@@ -264,17 +219,8 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 
 	 private void initDialog() {
 		 
-		 QName typeName = searchModel.getObject().getType();
-		 Class typeClass = null;
-		 if (UserType.COMPLEX_TYPE.equals(typeName)){
-			 typeClass = UserType.class;
-		 } else if (RoleType.COMPLEX_TYPE.equals(typeName)){
-			 typeClass = RoleType.class;
-		 } else {
-			 typeClass = OrgType.class;
-		 }
-		 
-	        UserBrowserDialog<T> dialog = new UserBrowserDialog<T>(MODAL_ID_MEMBER, typeClass) {
+		  
+	        UserBrowserDialog<T> dialog = new UserBrowserDialog<T>(MODAL_ID_MEMBER, getClassFromType()) {
 
 	        	@Override
 	        	public void addPerformed(AjaxRequestTarget target, List<T> selected) {

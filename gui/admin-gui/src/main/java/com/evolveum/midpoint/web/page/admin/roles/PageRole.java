@@ -46,6 +46,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorPanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.form.multivalue.GenericMultiValueLabelEditPanel;
+import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.PageTemplate;
@@ -59,148 +60,123 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
- *  @author shood
- * */
+ * @author shood
+ */
 @PageDescriptor(url = "/admin/role", encoder = OnePageParameterEncoder.class, action = {
-        @AuthorizationAction(actionUri = PageAdminRoles.AUTH_ROLE_ALL,
-                label = PageAdminRoles.AUTH_ROLE_ALL_LABEL,
-                description = PageAdminRoles.AUTH_ROLE_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLE_URL,
-                label = "PageRole.auth.role.label",
-                description = "PageRole.auth.role.description")})
-public class PageRole extends PageAdminAbstractRole<RoleType> implements ProgressReportingAwarePage {
-	
+		@AuthorizationAction(actionUri = PageAdminRoles.AUTH_ROLE_ALL, label = PageAdminRoles.AUTH_ROLE_ALL_LABEL, description = PageAdminRoles.AUTH_ROLE_ALL_DESCRIPTION),
+		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLE_URL, label = "PageRole.auth.role.label", description = "PageRole.auth.role.description") })
+public class PageRole extends PageAdminAbstractRole<RoleType>implements ProgressReportingAwarePage {
+
 	public static final String AUTH_ROLE_ALL = AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL;
-    public static final String AUTH_ROLE_ALL_LABEL = "PageAdminRoles.auth.roleAll.label";
-    public static final String AUTH_ROLE_ALL_DESCRIPTION = "PageAdminRoles.auth.roleAll.description";
+	public static final String AUTH_ROLE_ALL_LABEL = "PageAdminRoles.auth.roleAll.label";
+	public static final String AUTH_ROLE_ALL_DESCRIPTION = "PageAdminRoles.auth.roleAll.description";
 
-    private static final Trace LOGGER = TraceManager.getTrace(PageRole.class);
+	private static final Trace LOGGER = TraceManager.getTrace(PageRole.class);
 
- 
-    public PageRole() {
-        initialize(null);
-    }
+	public PageRole() {
+		initialize(null);
+	}
 
-    public PageRole(PageParameters parameters, PageTemplate previousPage) {
-        getPageParameters().overwriteWith(parameters);
-        setPreviousPage(previousPage);
-        initialize(null);
-    }
-    
-  
-    @Override
-	protected void performCustomInitialization(){
-    	super.performCustomInitialization();
-    	
-        
+	public PageRole(PageParameters parameters, PageTemplate previousPage) {
+		getPageParameters().overwriteWith(parameters);
+		setPreviousPage(previousPage);
+		initialize(null);
+	}
 
-    }
+	@Override
+	protected void performCustomInitialization() {
+		super.performCustomInitialization();
 
+	}
 
+	protected void initCustomLayout(Form mainForm) {
+		super.initCustomLayout(mainForm);
+	};
 
-    protected void initCustomLayout(Form mainForm) {
-super.initCustomLayout(mainForm);
-    };
-       
-      
-    
+	/**
+	 * Removes empty policy constraints from role. It was created when loading
+	 * model (not very good model implementation). MID-2366
+	 *
+	 * TODO improve
+	 *
+	 * @param prism
+	 */
+	private void removeEmptyPolicyConstraints(PrismObject<RoleType> prism) {
+		RoleType role = prism.asObjectable();
+		PolicyConstraintsType pc = role.getPolicyConstraints();
+		if (pc == null) {
+			return;
+		}
 
-   
- 
+		if (pc.getExclusion().isEmpty() && pc.getMinAssignees().isEmpty() && pc.getMaxAssignees().isEmpty()) {
+			role.setPolicyConstraints(null);
+		}
+	}
 
-  
+	@Override
+	protected void prepareFocusDeltaForModify(ObjectDelta<RoleType> focusDelta) throws SchemaException {
+		super.prepareFocusDeltaForModify(focusDelta);
 
-    /**
-     * Removes empty policy constraints from role.
-     * It was created when loading model (not very good model implementation).
-     * MID-2366
-     *
-     * TODO improve
-     *
-     * @param prism
-     */
-    private void removeEmptyPolicyConstraints(PrismObject<RoleType> prism) {
-        RoleType role = prism.asObjectable();
-        PolicyConstraintsType pc =role.getPolicyConstraints();
-        if (pc == null) {
-            return;
-        }
+		ObjectDelta delta = getFocusWrapper().getObjectOld().diff(getFocusWrapper().getObject());
 
-        if (pc.getExclusion().isEmpty() && pc.getMinAssignees().isEmpty() && pc.getMaxAssignees().isEmpty()) {
-            role.setPolicyConstraints(null);
-        }
-    }
-    
-    @Override
-    protected void prepareFocusDeltaForModify(ObjectDelta<RoleType> focusDelta) throws SchemaException {
-    	super.prepareFocusDeltaForModify(focusDelta);
-    	
-    	//TODO: this should be not here - remove after there will be custom implementation for policyConstraints.
-		ItemDelta.removeItemDelta(focusDelta.getModifications(), new ItemPath(RoleType.F_POLICY_CONSTRAINTS,
-				PolicyConstraintsType.F_MAX_ASSIGNEES, MultiplicityPolicyConstraintType.F_ENFORCEMENT),
-				PropertyDelta.class);
-		
-		ItemDelta.removeItemDelta(focusDelta.getModifications(), new ItemPath(RoleType.F_POLICY_CONSTRAINTS,
-				PolicyConstraintsType.F_MIN_ASSIGNEES, MultiplicityPolicyConstraintType.F_ENFORCEMENT),
-				PropertyDelta.class);
-    	//TODO end of TODO section :)
-		
-    	
-    	ObjectDelta delta = getFocusWrapper().getObjectOld().diff(getFocusWrapper().getObject());
-    	
-    	ContainerDelta<PolicyConstraintsType> policyConstraintsDelta = delta.findContainerDelta(new ItemPath(RoleType.F_POLICY_CONSTRAINTS));
-    	if (policyConstraintsDelta != null){
-    		focusDelta.addModification(policyConstraintsDelta);
-    		return;
-    	} 
-    	
-    	ContainerDelta maxAssignes = delta.findContainerDelta(new ItemPath(RoleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_MAX_ASSIGNEES));
-    	if (maxAssignes != null){
-    		focusDelta.addModification(maxAssignes);
-    	}
-    	
-    	ContainerDelta minAssignes = delta.findContainerDelta(new ItemPath(RoleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_MIN_ASSIGNEES));
-    	if (minAssignes != null){
-    		focusDelta.addModification(minAssignes);
-    	}
-    	
-    }
-    
-    @Override
-    protected void prepareFocusForAdd(PrismObject<RoleType> focus) throws SchemaException {
-    	// TODO policyConstraints
-    	super.prepareFocusForAdd(focus);
-    	
-    	getFocusWrapper().getObjectOld().findOrCreateContainer(RoleType.F_POLICY_CONSTRAINTS);
-    	ObjectDelta delta = getFocusWrapper().getObjectOld().diff(getFocusWrapper().getObject());
-    	
-    	ContainerDelta<PolicyConstraintsType> policyConstraintsDelta = delta.findContainerDelta(new ItemPath(RoleType.F_POLICY_CONSTRAINTS));
-    	if (policyConstraintsDelta != null){
-    		policyConstraintsDelta.applyTo(focus);
-    		return;
-    	}
-    	
-    	ContainerDelta maxAssignes = delta.findContainerDelta(new ItemPath(RoleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_MAX_ASSIGNEES));
-    	if (maxAssignes != null){
-    		maxAssignes.applyTo(focus);
-    	}
-    	
-    	ContainerDelta minAssignes = delta.findContainerDelta(new ItemPath(RoleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_MIN_ASSIGNEES));
-    	if (minAssignes != null){
-    		minAssignes.applyTo(focus);
-    	}
-    	
-    }
+		ContainerDelta<PolicyConstraintsType> policyConstraintsDelta = delta
+				.findContainerDelta(new ItemPath(RoleType.F_POLICY_CONSTRAINTS));
+		if (policyConstraintsDelta != null) {
+			focusDelta.addModification(policyConstraintsDelta);
+			return;
+		}
 
+		ContainerDelta maxAssignes = delta.findContainerDelta(
+				new ItemPath(RoleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_MAX_ASSIGNEES));
+		if (maxAssignes != null) {
+			focusDelta.addModification(maxAssignes);
+		}
 
-    @Override
-    protected void setSpecificResponsePage() {
-        if (getPreviousPage() != null) {
-            goBack(PageDashboard.class);            // parameter is not used
-        } else {
-            setResponsePage(new PageRoles(false));
-        }
-    }
+		ContainerDelta minAssignes = delta.findContainerDelta(
+				new ItemPath(RoleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_MIN_ASSIGNEES));
+		if (minAssignes != null) {
+			focusDelta.addModification(minAssignes);
+		}
+
+	}
+
+	@Override
+	protected void prepareFocusForAdd(PrismObject<RoleType> focus) throws SchemaException {
+		// TODO policyConstraints
+		super.prepareFocusForAdd(focus);
+
+		getFocusWrapper().getObjectOld().findOrCreateContainer(RoleType.F_POLICY_CONSTRAINTS);
+		ObjectDelta delta = getFocusWrapper().getObjectOld().diff(getFocusWrapper().getObject());
+
+		ContainerDelta<PolicyConstraintsType> policyConstraintsDelta = delta
+				.findContainerDelta(new ItemPath(RoleType.F_POLICY_CONSTRAINTS));
+		if (policyConstraintsDelta != null) {
+			policyConstraintsDelta.applyTo(focus);
+			return;
+		}
+
+		ContainerDelta maxAssignes = delta.findContainerDelta(
+				new ItemPath(RoleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_MAX_ASSIGNEES));
+		if (maxAssignes != null) {
+			maxAssignes.applyTo(focus);
+		}
+
+		ContainerDelta minAssignes = delta.findContainerDelta(
+				new ItemPath(RoleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_MIN_ASSIGNEES));
+		if (minAssignes != null) {
+			minAssignes.applyTo(focus);
+		}
+
+	}
+
+	@Override
+	protected void setSpecificResponsePage() {
+		if (getPreviousPage() != null) {
+			goBack(PageDashboard.class); // parameter is not used
+		} else {
+			setResponsePage(new PageRoles(false));
+		}
+	}
 
 	@Override
 	protected RoleType createNewFocus() {
@@ -209,7 +185,7 @@ super.initCustomLayout(mainForm);
 
 	@Override
 	protected void reviveCustomModels() throws SchemaException {
-		//TODO revivie max min assignments?
+		// TODO revivie max min assignments?
 	}
 
 	@Override
@@ -225,19 +201,22 @@ super.initCustomLayout(mainForm);
 	@Override
 	protected void initTabs(List<ITab> tabs) {
 		super.initTabs(tabs);
-		
-		tabs.add(new AbstractTab(createStringResource("Members")) {
-				@Override
+
+		tabs.add(new AbstractTab(createStringResource("AbstractRoleType.policyConstraints")) {
+			@Override
 			public WebMarkupContainer getPanel(String panelId) {
-				return new RoleMemberPanel<UserType>(panelId, getFocusWrapper().getObject().getOid(), PageRole.this);
+				return new RolePolicyPanel(panelId, getFocusWrapper().getObject());
 			}
 		});
+
 		
-		tabs.add(new AbstractTab(createStringResource("Policy constraints")) {
-			@Override
-		public WebMarkupContainer getPanel(String panelId) {
-			return new RolePolicyPanel(panelId, getFocusWrapper().getObject());
-		}
-	});
+			tabs.add(new AbstractTab(createStringResource("pageRole.members")) {
+				@Override
+				public WebMarkupContainer getPanel(String panelId) {
+					return new RoleMemberPanel<UserType>(panelId, getFocusWrapper().getObject().getOid(),
+							PageRole.this);
+				}
+			});
+		
 	}
 }

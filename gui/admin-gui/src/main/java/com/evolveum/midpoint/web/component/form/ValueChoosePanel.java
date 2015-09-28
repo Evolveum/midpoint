@@ -32,6 +32,7 @@ import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypeDialog;
+import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.roles.component.UserOrgReferenceChoosePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -203,9 +204,16 @@ public class ValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
 
 			@Override
 			public String getObject() {
-				PrismReferenceValue ort = (PrismReferenceValue) model.getObject();
-
-				return ort == null ? null : (ort.getTargetName() != null ? ort.getTargetName().getOrig() : ort.getOid());
+				T ort = (T) model.getObject();
+				
+				if (ort instanceof PrismReferenceValue){
+					PrismReferenceValue prv = (PrismReferenceValue) ort;
+					return prv == null ? null : (prv.getTargetName() != null ? prv.getTargetName().getOrig() : prv.getOid());
+				} else if (ort instanceof ObjectViewDto) {
+					return ((ObjectViewDto) ort).getName();
+				}
+				return ort.toString();
+				
 			}
 		};
 	}

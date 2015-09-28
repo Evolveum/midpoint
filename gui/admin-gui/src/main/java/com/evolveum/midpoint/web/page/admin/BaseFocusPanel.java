@@ -438,76 +438,8 @@ public LoadableModel<ObjectWrapper> getFocusModel() {
 	    }
 	 
 	 private void initAssignments(WebMarkupContainer assignments) {
-		 AssignmentTablePanel panel = new AssignmentTablePanel<>(ID_ASSIGNMENTS_PANEL, assignmentsModel);
+		 AssignmentTablePanel panel = new AssignmentTablePanel<>(ID_ASSIGNMENTS_PANEL, createStringResource("FocusType.assignment"), assignmentsModel);
 		 assignments.add(panel);
-//	        InlineMenu accountMenu = new InlineMenu(ID_ASSIGNMENT_MENU, new Model((Serializable) createAssignmentsMenu()));
-//	        assignments.add(accountMenu);
-//
-//	        final ListView<AssignmentEditorDto> assignmentList = new ListView<AssignmentEditorDto>(ID_ASSIGNMENT_LIST,
-//	                assignmentsModel) {
-//
-//	            @Override
-//	            protected void populateItem(final ListItem<AssignmentEditorDto> item) {
-//	                AssignmentEditorPanel assignmentEditor = new AssignmentEditorPanel(ID_ASSIGNMENT_EDITOR,
-//	                        item.getModel());
-//	                item.add(assignmentEditor);
-//	            }
-//	        };
-//	        assignmentList.setOutputMarkupId(true);
-//	        assignments.add(assignmentList);
-//
-//	        AjaxCheckBox assignmentCheckAll = new AjaxCheckBox(ID_ASSIGNMENT_CHECK_ALL, new Model()) {
-//
-//	            @Override
-//	            protected void onUpdate(AjaxRequestTarget target) {
-//	                for(AssignmentEditorDto item: assignmentList.getModelObject()){
-//	                    item.setSelected(this.getModelObject());
-//	                }
-//
-//	                target.add(assignments);
-//	            }
-//	        };
-//	        assignmentCheckAll.setOutputMarkupId(true);
-//	        assignments.add(assignmentCheckAll);
-	    }
-	 
-	 private List<InlineMenuItem> createAssignmentsMenu() {
-	        List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
-	        InlineMenuItem item = new InlineMenuItem(createStringResource("pageAdminFocus.menu.assignShadow"), new InlineMenuItemAction() {
-
-	            @Override
-	            public void onClick(AjaxRequestTarget target) {
-	                showAssignablePopup(target, ResourceType.class);
-	            }
-	        });
-	        items.add(item);
-	        item = new InlineMenuItem(createStringResource("pageAdminFocus.menu.assignRole"), new InlineMenuItemAction() {
-
-	            @Override
-	            public void onClick(AjaxRequestTarget target) {
-	                showAssignablePopup(target, RoleType.class);
-	            }
-	        });
-	        items.add(item);
-	        item = new InlineMenuItem(createStringResource("pageAdminFocus.menu.assignOrg"), new InlineMenuItemAction() {
-
-	            @Override
-	            public void onClick(AjaxRequestTarget target) {
-	                showAssignableOrgPopup(target);
-	            }
-	        });
-	        items.add(item);
-	        items.add(new InlineMenuItem());
-	        item = new InlineMenuItem(createStringResource("pageAdminFocus.menu.unassign"), new InlineMenuItemAction() {
-
-	            @Override
-	            public void onClick(AjaxRequestTarget target) {
-	                deleteAssignmentPerformed(target);
-	            }
-	        });
-	        items.add(item);
-
-	        return items;
 	    }
 
 	    private List<InlineMenuItem> createShadowMenu() {
@@ -820,32 +752,7 @@ public LoadableModel<ObjectWrapper> getFocusModel() {
 	        }
 	    }
 
-	    private void deleteAssignmentPerformed(AjaxRequestTarget target) {
-	        List<AssignmentEditorDto> selected = getSelectedAssignments();
-	        if (selected.isEmpty()) {
-	            warn(getString("pageAdminFocus.message.noAssignmentSelected"));
-	            target.add(getFeedbackPanel());
-	            return;
-	        }
-
-	        showModalWindow(MODAL_ID_CONFIRM_DELETE_ASSIGNMENT, target);
-	    }
-	    
-	    private void showAssignablePopup(AjaxRequestTarget target, Class<? extends ObjectType> type) {
-	        ModalWindow modal = (ModalWindow) get(MODAL_ID_ASSIGNABLE);
-	        AssignablePopupContent content =  (AssignableRolePopupContent) modal.get(modal.getContentId());
-	        content.setType(type);
-	        showModalWindow(MODAL_ID_ASSIGNABLE, target);
-	        target.add(getFeedbackPanel());
-	    }
-	    
-	    private void showAssignableOrgPopup(AjaxRequestTarget target) {
-	        ModalWindow modal = (ModalWindow) get(MODAL_ID_ASSIGNABLE_ORG);
-	        AssignablePopupContent content =  (AssignableOrgPopupContent) modal.get(modal.getContentId());
-	        content.setType(OrgType.class);
-	        showModalWindow(MODAL_ID_ASSIGNABLE_ORG, target);
-	        target.add(getFeedbackPanel());
-	    }
+	   
 
 	    private void initResourceModal() {
 	        ModalWindow window = createModalWindow(MODAL_ID_RESOURCE,

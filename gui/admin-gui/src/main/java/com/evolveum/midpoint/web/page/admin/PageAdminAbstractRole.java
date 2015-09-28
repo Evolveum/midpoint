@@ -46,155 +46,142 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-public abstract class PageAdminAbstractRole <T extends AbstractRoleType> extends PageAdminFocus<T> {
-	
-	
-	 private static final String ID_SUMMARY_PANEL = "summaryPanel";
-	    private static final String ID_SUMMARY_NAME = "summaryName";
-	    private static final String ID_SUMMARY_DISPLAY_NAME = "summaryDisplayName";
-	    private static final String ID_SUMMARY_IDENTIFIER = "summaryIdentifier";
-//	    private static final String ID_SUMMARY_FAMILY_NAME = "summaryFamilyName";
-	    private static final String ID_SUMMARY_PHOTO = "summaryPhoto";
-	    
-	    private static final String ID_INDUCEMENT_MENU = "assignmentMenu";
-	    private static final String ID_SHADOW_CHECK_ALL = "shadowCheckAll";
-	    private static final String ID_INDUCEMENT_CHECK_ALL = "assignmentCheckAll";
-	    private static final String OPERATION_LOAD_INDUCEMENTS = "loadInducements";
-	
-	    private IModel<PrismObject<T>> summaryObject;
-	    private LoadableModel<List<AssignmentEditorDto>> inducementsModel;
-	    
+public abstract class PageAdminAbstractRole<T extends AbstractRoleType> extends PageAdminFocus<T> {
+
+	private static final String ID_SUMMARY_PANEL = "summaryPanel";
+	private static final String ID_SUMMARY_NAME = "summaryName";
+	private static final String ID_SUMMARY_DISPLAY_NAME = "summaryDisplayName";
+	private static final String ID_SUMMARY_IDENTIFIER = "summaryIdentifier";
+	// private static final String ID_SUMMARY_FAMILY_NAME = "summaryFamilyName";
+	private static final String ID_SUMMARY_PHOTO = "summaryPhoto";
+
+	private static final String ID_INDUCEMENT_MENU = "assignmentMenu";
+	private static final String ID_SHADOW_CHECK_ALL = "shadowCheckAll";
+	private static final String ID_INDUCEMENT_CHECK_ALL = "assignmentCheckAll";
+	private static final String OPERATION_LOAD_INDUCEMENTS = "loadInducements";
+
+	private IModel<PrismObject<T>> summaryObject;
+	private LoadableModel<List<AssignmentEditorDto>> inducementsModel;
+
 	@Override
 	protected void prepareFocusDeltaForModify(ObjectDelta<T> focusDelta) throws SchemaException {
-super.prepareFocusDeltaForModify(focusDelta);
+		super.prepareFocusDeltaForModify(focusDelta);
 
-PrismObject<T> abstractRole = getFocusWrapper().getObject();
-PrismContainerDefinition<AssignmentType> def = abstractRole.getDefinition().findContainerDefinition(AbstractRoleType.F_INDUCEMENT);
-handleAssignmentDeltas(focusDelta, inducementsModel.getObject(), def);
+		PrismObject<T> abstractRole = getFocusWrapper().getObject();
+		PrismContainerDefinition<AssignmentType> def = abstractRole.getDefinition()
+				.findContainerDefinition(AbstractRoleType.F_INDUCEMENT);
+		handleAssignmentDeltas(focusDelta, inducementsModel.getObject(), def);
 
-		// handle inducements
-//		SchemaRegistry registry = getPrismContext().getSchemaRegistry();
-//		PrismObjectDefinition objectDefinition = registry
-//				.findObjectDefinitionByCompileTimeClass(getCompileTimeClass());
-		
-//		PrismContainerDefinition inducementDef = objectDefinition
-//				.findContainerDefinition(OrgType.F_INDUCEMENT);
-//		AssignmentTablePanel inducementPanel = (AssignmentTablePanel) get(createComponentPath(ID_MAIN_FORM,
-//				ID_INDUCEMENTS_TABLE));
-//		inducementPanel.handleAssignmentDeltas(focusDelta, inducementDef, AbstractRoleType.F_INDUCEMENT);
-	}
-	
+		}
+
 	@Override
 	protected void prepareFocusForAdd(PrismObject<T> focus) throws SchemaException {
 		super.prepareFocusForAdd(focus);
 		handleAssignmentForAdd(focus, AbstractRoleType.F_INDUCEMENT, focus.asObjectable().getInducement());
-		// handle inducements
-//		SchemaRegistry registry = getPrismContext().getSchemaRegistry();
-//		PrismObjectDefinition orgDef = registry
-//				.findObjectDefinitionByCompileTimeClass(getCompileTimeClass());
-//		PrismContainerDefinition inducementDef = orgDef.findContainerDefinition(AbstractRoleType.F_INDUCEMENT);
-//		AssignmentTablePanel inducementPanel = (AssignmentTablePanel) get(createComponentPath(ID_MAIN_FORM,
-//				ID_INDUCEMENTS_TABLE));
-//		inducementPanel.handleAssignmentsWhenAdd(focus, inducementDef, focus.asObjectable()
-//				.getInducement());
-
-	}
 	
-	 private void initSummaryInfo(Form mainForm){
+	}
 
-	        WebMarkupContainer summaryContainer = new WebMarkupContainer(ID_SUMMARY_PANEL);
-	        summaryContainer.setOutputMarkupId(true);
+	private void initSummaryInfo(Form mainForm) {
 
-	        summaryContainer.add(new VisibleEnableBehaviour(){
+		WebMarkupContainer summaryContainer = new WebMarkupContainer(ID_SUMMARY_PANEL);
+		summaryContainer.setOutputMarkupId(true);
 
-	            @Override
-	            public boolean isVisible(){
-	                if(getPageParameters().get(OnePageParameterEncoder.PARAMETER).isEmpty()){
-	                    return false;
-	                } else {
-	                    return true;
-	                }
-	            }
-	        });
+		summaryContainer.add(new VisibleEnableBehaviour() {
 
-	        mainForm.add(summaryContainer);
+			@Override
+			public boolean isVisible() {
+				if (getPageParameters().get(OnePageParameterEncoder.PARAMETER).isEmpty()) {
+					return false;
+				} else {
+					return true;
+				}
+			}
+		});
 
-	        summaryObject = new AbstractReadOnlyModel<PrismObject<T>>() {
+		mainForm.add(summaryContainer);
 
-	            @Override
-	            public PrismObject<T> getObject() {
-	                ObjectWrapper object = getFocusWrapper();
-	                return object.getObject();
-	            }
-	        };
+		summaryObject = new AbstractReadOnlyModel<PrismObject<T>>() {
 
-	        summaryContainer.add(new Label(ID_SUMMARY_DISPLAY_NAME, new PrismPropertyModel<>(summaryObject, AbstractRoleType.F_DISPLAY_NAME)));
-	        summaryContainer.add(new Label(ID_SUMMARY_NAME, new PrismPropertyModel<>(summaryObject, AbstractRoleType.F_NAME)));
-	        
-	        summaryContainer.add(new Label(ID_SUMMARY_IDENTIFIER, new PrismPropertyModel<>(summaryObject, AbstractRoleType.F_IDENTIFIER)));
-	    
-	        Image img = new Image(ID_SUMMARY_PHOTO, new AbstractReadOnlyModel<AbstractResource>() {
+			@Override
+			public PrismObject<T> getObject() {
+				ObjectWrapper object = getFocusWrapper();
+				return object.getObject();
+			}
+		};
 
-	            @Override
-	            public AbstractResource getObject() {
-//	                if(summaryObject.getObject().asObjectable().getJpegPhoto() != null){
-//	                    return new ByteArrayResource("image/jpeg", summaryObject.getObject().asObjectable().getJpegPhoto());
-//	                } else {
-	                    return new ContextRelativeResource("img/placeholder.png");
-//	                }
+		summaryContainer.add(new Label(ID_SUMMARY_DISPLAY_NAME,
+				new PrismPropertyModel<>(summaryObject, AbstractRoleType.F_DISPLAY_NAME)));
+		summaryContainer.add(
+				new Label(ID_SUMMARY_NAME, new PrismPropertyModel<>(summaryObject, AbstractRoleType.F_NAME)));
 
-	            }
-	        });
-	        summaryContainer.add(img);
-	    }
+		summaryContainer.add(new Label(ID_SUMMARY_IDENTIFIER,
+				new PrismPropertyModel<>(summaryObject, AbstractRoleType.F_IDENTIFIER)));
 
-	 @Override
+		Image img = new Image(ID_SUMMARY_PHOTO, new AbstractReadOnlyModel<AbstractResource>() {
+
+			@Override
+			public AbstractResource getObject() {
+				// if(summaryObject.getObject().asObjectable().getJpegPhoto() !=
+				// null){
+				// return new ByteArrayResource("image/jpeg",
+				// summaryObject.getObject().asObjectable().getJpegPhoto());
+				// } else {
+				return new ContextRelativeResource("img/placeholder.png");
+				// }
+
+			}
+		});
+		summaryContainer.add(img);
+	}
+
+	@Override
 	protected void performCustomInitialization() {
-		 inducementsModel = new LoadableModel<List<AssignmentEditorDto>>(false) {
+		inducementsModel = new LoadableModel<List<AssignmentEditorDto>>(false) {
 
-	            @Override
-	            protected List<AssignmentEditorDto> load() {
-	                return loadInducements();
-	            }
-	        };
-		
+			@Override
+			protected List<AssignmentEditorDto> load() {
+				return loadInducements();
+			}
+		};
+
 	}
-	
-	 // TODO unify with loadAssignments
-	 private List<AssignmentEditorDto> loadInducements(){
-		 
-		        List<AssignmentEditorDto> list = new ArrayList<AssignmentEditorDto>();
 
-		        ObjectWrapper focusWrapper = getFocusWrapper();
-		        PrismObject<T> focus = focusWrapper.getObject();
-		        List<AssignmentType> inducements = focus.asObjectable().getInducement();
-		        for (AssignmentType inducement : inducements) {
-		            list.add(new AssignmentEditorDto(UserDtoStatus.MODIFY, inducement, this));
-		        }
+	// TODO unify with loadAssignments
+	private List<AssignmentEditorDto> loadInducements() {
 
-		        Collections.sort(list);
+		List<AssignmentEditorDto> list = new ArrayList<AssignmentEditorDto>();
 
-		        return list;
-	 }
-	 
+		ObjectWrapper focusWrapper = getFocusWrapper();
+		PrismObject<T> focus = focusWrapper.getObject();
+		List<AssignmentType> inducements = focus.asObjectable().getInducement();
+		for (AssignmentType inducement : inducements) {
+			list.add(new AssignmentEditorDto(UserDtoStatus.MODIFY, inducement, this));
+		}
+
+		Collections.sort(list);
+
+		return list;
+	}
+
 	@Override
 	protected void initCustomLayout(Form mainForm) {
-			
+
 		initSummaryInfo(mainForm);
-		
+
 	}
-	
+
 	@Override
 	protected void initTabs(List<ITab> tabs) {
 		tabs.add(new AbstractTab(createStringResource("FocusType.inducement")) {
-			
+
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
-				return new AssignmentTablePanel(panelId, inducementsModel) {
+				return new AssignmentTablePanel(panelId, createStringResource("FocusType.inducement"), inducementsModel) {
 
 					@Override
 					public List<AssignmentType> getAssignmentTypeList() {
-						return ((AbstractRoleType) getFocusWrapper().getObject().asObjectable()).getInducement();
+						return ((AbstractRoleType) getFocusWrapper().getObject().asObjectable())
+								.getInducement();
 					}
 
 					@Override
@@ -205,23 +192,24 @@ handleAssignmentDeltas(focusDelta, inducementsModel.getObject(), def);
 			}
 		});
 	}
-	
-	
 
-//	private AssignmentTablePanel initInducements() {
-//		AssignmentTablePanel inducements = new AssignmentTablePanel(ID_INDUCEMENTS_TABLE,
-//				new Model<AssignmentTableDto>(), createStringResource("PageOrgUnit.title.inducements")) {
-//
-//			@Override
-//			public List<AssignmentType> getAssignmentTypeList() {
-//				return ((AbstractRoleType) getFocusWrapper().getObject().asObjectable()).getInducement();
-//			}
-//
-//			@Override
-//			public String getExcludeOid() {
-//				return getFocusWrapper().getObject().asObjectable().getOid();
-//			}
-//		};
-//		return inducements;
-//	}
+	// private AssignmentTablePanel initInducements() {
+	// AssignmentTablePanel inducements = new
+	// AssignmentTablePanel(ID_INDUCEMENTS_TABLE,
+	// new Model<AssignmentTableDto>(),
+	// createStringResource("PageOrgUnit.title.inducements")) {
+	//
+	// @Override
+	// public List<AssignmentType> getAssignmentTypeList() {
+	// return ((AbstractRoleType)
+	// getFocusWrapper().getObject().asObjectable()).getInducement();
+	// }
+	//
+	// @Override
+	// public String getExcludeOid() {
+	// return getFocusWrapper().getObject().asObjectable().getOid();
+	// }
+	// };
+	// return inducements;
+	// }
 }
