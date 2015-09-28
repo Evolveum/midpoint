@@ -35,12 +35,10 @@ import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.apache.wicket.Component;
-import org.apache.wicket.Page;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.RuntimeConfigurationType;
+import org.apache.wicket.*;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.devutils.debugbar.DebugBar;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.feedback.FeedbackMessage;
@@ -51,6 +49,8 @@ import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
@@ -61,6 +61,7 @@ import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 import java.io.Serializable;
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -90,6 +91,11 @@ public abstract class PageTemplate extends WebPage {
     private static final String ID_RIGHT_MENU = "rightMenu";
     private static final String ID_LOCALE = "locale";
     private static final String ID_MENU_TOGGLE = "menuToggle";
+    private static final String ID_BREADCRUMBS="breadcrumbs";
+    private static final String ID_BREADCRUMB="breadcrumb";
+    private static final String ID_BC_LINK="bcLink";
+    private static final String ID_BC_ICON="bcIcon";
+    private static final String ID_BC_NAME="bcName";
 
     private PageTemplate previousPage;                  // experimental -- where to return e.g. when 'Back' button is clicked [NOT a class, in order to eliminate reinitialization when it is not needed]
     private boolean reinitializePreviousPages;      // experimental -- should we reinitialize all the chain of previous pages?
@@ -133,22 +139,10 @@ public abstract class PageTemplate extends WebPage {
         }
     }
 
-    private void initLayout() {
-        Label title = new Label(ID_TITLE, createPageTitleModel());
-        title.setRenderBodyOnly(true);
-        add(title);
-
-        DebugBar debugPanel = new DebugBar(ID_DEBUG_PANEL);
-        add(debugPanel);
-
+    private void initHeaderLayout() {
         WebMarkupContainer menuToggle = new WebMarkupContainer(ID_MENU_TOGGLE);
         menuToggle.add(createUserStatusBehaviour(true));
         add(menuToggle);
-
-        List<SideBarMenuItem> menuItems = createMenuItems();
-        SideBarMenuPanel sidebarMenu = new SideBarMenuPanel(ID_SIDEBAR_MENU, new Model((Serializable) menuItems));
-        sidebarMenu.add(createUserStatusBehaviour(true));
-        add(sidebarMenu);
 
         UserMenuPanel rightMenu = new UserMenuPanel(ID_RIGHT_MENU);
         rightMenu.add(createUserStatusBehaviour(true));
@@ -157,6 +151,67 @@ public abstract class PageTemplate extends WebPage {
         LocalePanel locale = new LocalePanel(ID_LOCALE);
         locale.add(createUserStatusBehaviour(false));
         add(locale);
+    }
+
+    private void initTitleLayout() {
+        WebMarkupContainer pageTitleContainer = new WebMarkupContainer(ID_PAGE_TITLE_CONTAINER);
+        pageTitleContainer.add(createUserStatusBehaviour(true));
+        add(pageTitleContainer);
+
+        WebMarkupContainer pageTitle = new WebMarkupContainer(ID_PAGE_TITLE);
+        pageTitleContainer.add(pageTitle);
+        Label pageTitleReal = new Label(ID_PAGE_TITLE_REAL, createPageTitleModel());
+        pageTitleReal.setRenderBodyOnly(true);
+        pageTitle.add(pageTitleReal);
+        pageTitle.add(new Label(ID_PAGE_SUBTITLE, createPageSubTitleModel()));
+
+        ListView breadcrumbs = new ListView<BreadcrumbItem>(ID_BREADCRUMB,
+                new Model((Serializable) createBreadcrumbs())) {
+
+            @Override
+            protected void populateItem(ListItem<BreadcrumbItem> item) {
+                final BreadcrumbItem dto = item.getModelObject();
+
+                AjaxLink bcLink = new AjaxLink(ID_BC_LINK) {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        navigateTo(target, dto);
+                    }
+                };
+                item.add(bcLink);
+
+                WebMarkupContainer bcIcon = new WebMarkupContainer(ID_BC_ICON);
+                bcIcon.add(new VisibleEnableBehaviour() {
+
+                    @Override
+                    public boolean isVisible() {
+                        return dto.getIcon() != null && dto.getIcon().getObject() != null;
+                    }
+                });
+                bcIcon.add(AttributeModifier.replace("class", dto.getIcon()));
+                bcLink.add(bcIcon);
+
+                Label bcName = new Label(ID_BC_NAME, dto.getName());
+                bcLink.add(bcName);
+            }
+        };
+        pageTitleContainer.add(breadcrumbs);
+    }
+
+    private void initLayout() {
+        Label title = new Label(ID_TITLE, createPageTitleModel());
+        title.setRenderBodyOnly(true);
+        add(title);
+
+        initHeaderLayout();
+        initTitleLayout();
+        initDebugBarLayout();
+
+        List<SideBarMenuItem> menuItems = createMenuItems();
+        SideBarMenuPanel sidebarMenu = new SideBarMenuPanel(ID_SIDEBAR_MENU, new Model((Serializable) menuItems));
+        sidebarMenu.add(createUserStatusBehaviour(true));
+        add(sidebarMenu);
 
         WebMarkupContainer version = new WebMarkupContainer(ID_VERSION) {
 
@@ -174,17 +229,6 @@ public abstract class PageTemplate extends WebPage {
         });
         add(version);
 
-        WebMarkupContainer pageTitleContainer = new WebMarkupContainer(ID_PAGE_TITLE_CONTAINER);
-        pageTitleContainer.add(createUserStatusBehaviour(true));
-        add(pageTitleContainer);
-
-        WebMarkupContainer pageTitle = new WebMarkupContainer(ID_PAGE_TITLE);
-        pageTitleContainer.add(pageTitle);
-        Label pageTitleReal = new Label(ID_PAGE_TITLE_REAL, createPageTitleModel());
-        pageTitleReal.setRenderBodyOnly(true);
-        pageTitle.add(pageTitleReal);
-        pageTitle.add(new Label(ID_PAGE_SUBTITLE, createPageSubTitleModel()));
-
         WebMarkupContainer feedbackContainer = new WebMarkupContainer(ID_FEEDBACK_CONTAINER);
         feedbackContainer.setOutputMarkupId(true);
         add(feedbackContainer);
@@ -198,8 +242,6 @@ public abstract class PageTemplate extends WebPage {
 //        FeedbackAlerts feedbackList = new FeedbackAlerts(ID_FEEDBACK_LIST);
 //        feedbackList.setOutputMarkupId(true);
 //        add(feedbackList);
-
-        initDebugBar();
     }
 
     private VisibleEnableBehaviour createUserStatusBehaviour(final boolean visibleIfLoggedIn) {
@@ -212,7 +254,10 @@ public abstract class PageTemplate extends WebPage {
         };
     }
 
-    private void initDebugBar() {
+    private void initDebugBarLayout() {
+        DebugBar debugPanel = new DebugBar(ID_DEBUG_PANEL);
+        add(debugPanel);
+
         WebMarkupContainer debugBar = new WebMarkupContainer(ID_DEBUG_BAR);
         debugBar.add(new VisibleEnableBehaviour() {
 
@@ -502,5 +547,28 @@ public abstract class PageTemplate extends WebPage {
             LOGGER.trace("...going to default back page {}", defaultBackPageClass);
             return new RestartResponseException(defaultBackPageClass);
         }
+    }
+
+    private void navigateTo(AjaxRequestTarget target, BreadcrumbItem dto) {
+        if (dto.getPageParameters() == null) {
+            setResponsePage(dto.getPage());
+        }
+
+        try {
+            Class clazz = dto.getPage();
+            Constructor constr = clazz.getConstructor(PageParameters.class);
+            WebPage page = (WebPage) constr.newInstance(dto.getPageParameters());
+
+            setResponsePage(page);
+        } catch (Exception ex) {
+            LOGGER.debug("Couldn't navigate to breadcrumb item " + dto,  ex);
+            error(getString("PageTemplate.couldntNavigateBreadcrumb", ex.getMessage()));
+            target.add(getFeedbackPanel());
+        }
+    }
+
+    public List<BreadcrumbItem> createBreadcrumbs() {
+        //todo implement breadcrumb algorithm [lazyman]
+        return new ArrayList<>();
     }
 }

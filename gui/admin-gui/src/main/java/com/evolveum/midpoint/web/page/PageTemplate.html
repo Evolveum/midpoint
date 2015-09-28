@@ -148,8 +148,12 @@
                     <img id="ajax_busy" src="img/ajax-loader.gif"/>
                 </h1>
                 <ol class="breadcrumb">
-                    <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
-                    <li class="active">Dashboard</li>
+                    <li wicket:id="breadcrumb">
+                        <a wicket:id="bcLink">
+                            <i wicket:id="bcIcon"></i>&nbsp;
+                            <span wicket:id="bcName"/>
+                        </a>
+                    </li>
                 </ol>
             </section>
 

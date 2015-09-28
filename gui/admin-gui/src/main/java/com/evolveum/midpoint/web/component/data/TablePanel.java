@@ -54,7 +54,7 @@ public class TablePanel<T> extends Panel {
     }
 
     public TablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
-                      UserProfileStorage.TableId tableId, long pageSize){
+                      UserProfileStorage.TableId tableId, long pageSize) {
         super(id);
         Validate.notNull(provider, "Object type must not be null.");
         Validate.notNull(columns, "Columns must not be null.");
@@ -64,13 +64,8 @@ public class TablePanel<T> extends Panel {
         initLayout(columns, provider, pageSize);
     }
 
-    @Override
-    protected void onInitialize() {
-        super.onInitialize();
-    }
-
     private void initLayout(List<IColumn<T, String>> columns, ISortableDataProvider provider, long pageSize) {
-        DataTable<T, String> table = new SelectableDataTable<>(ID_TABLE, columns, provider, (int)pageSize);
+        DataTable<T, String> table = new SelectableDataTable<>(ID_TABLE, columns, provider, (int) pageSize);
 
         table.setOutputMarkupId(true);
 
