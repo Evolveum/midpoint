@@ -61,7 +61,14 @@ public class AddExecutor extends BaseActionExecutor {
             if (item instanceof PrismObject) {
                 PrismObject<? extends ObjectType> prismObject = (PrismObject) item;
                 ObjectType objectType = prismObject.asObjectable();
-                operationsHelper.applyDelta(createAddDelta(objectType), operationsHelper.createExecutionOptions(raw), context, result);
+                long started = operationsHelper.recordStart(context, objectType);
+                try {
+                    operationsHelper.applyDelta(createAddDelta(objectType), operationsHelper.createExecutionOptions(raw), context, result);
+                    operationsHelper.recordEnd(context, objectType, started, null);
+                } catch (Throwable ex) {
+                    operationsHelper.recordEnd(context, objectType, started, ex);
+                    throw ex;   // TODO think about this
+                }
                 context.println("Added " + item.toString() + rawSuffix(raw));
             } else {
                 throw new ScriptExecutionException("Item couldn't be added, because it is not a PrismObject: " + item.toString());

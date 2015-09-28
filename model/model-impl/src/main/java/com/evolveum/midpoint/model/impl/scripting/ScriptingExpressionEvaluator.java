@@ -175,6 +175,7 @@ public class ScriptingExpressionEvaluator {
         return evaluateExpression(executeScript.getScriptingExpression().getValue(), task, result);
     }
 
+    // use in tests only (we need the task at least to report progress/statistics)
     public ExecutionContext evaluateExpression(ScriptingExpressionType expression, OperationResult result) throws ScriptExecutionException {
         Task task = taskManager.createTaskInstance();
         return evaluateExpression(expression, task, result);
