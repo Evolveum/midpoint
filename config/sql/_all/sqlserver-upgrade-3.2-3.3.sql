@@ -13,7 +13,7 @@ alter table m_sequence
     foreign key (oid)
     references m_object;
 
-sp_rename m_user_photo, m_focus_photo;
+exec sp_rename m_user_photo, m_focus_photo;
 
 alter table m_focus add hasPhoto bit not null constraint default_constraint default 0;
 
