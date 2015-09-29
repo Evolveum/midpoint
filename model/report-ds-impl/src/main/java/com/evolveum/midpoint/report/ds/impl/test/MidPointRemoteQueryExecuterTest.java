@@ -63,7 +63,8 @@ public class MidPointRemoteQueryExecuterTest {
 		QueryType q = new QueryType();
 		q.setFilter(filterType);
 		
-		return reportPort.parseQuery(prismContext.serializeAtomicValue(filterType, SearchFilterType.COMPLEX_TYPE, PrismContext.LANG_XML), reportParameters);
+		return null;
+//		return reportPort.parseQuery(prismContext.serializeAtomicValue(filterType, SearchFilterType.COMPLEX_TYPE, PrismContext.LANG_XML), reportParameters);
 //		return getStringQuery();
 	}
 	

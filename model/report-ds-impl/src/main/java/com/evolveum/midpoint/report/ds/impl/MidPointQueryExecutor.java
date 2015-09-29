@@ -106,31 +106,7 @@ public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter{
 		return normalized.replace("</code>", "");
 	}
 	
-	@Override
-	protected void parseQuery() {
-		String s = dataset.getQuery().getText();
-
-		Map<QName, Object> expressionParameters = getParameters();
-		LOGGER.trace("query: " + s);
-		if (StringUtils.isEmpty(s)) {
-			query = null;
-		} else {
-			try {
-				if (s.startsWith("<filter")) {
-
-					query = getParsedQuery(s, expressionParameters);
-				} else if (s.startsWith("<code")) {
-					script = getParsedScript(s);
-				}
-			} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-
-	}
-
-	protected MidPointQueryExecutor(JasperReportsContext jasperReportsContext, JRDataset dataset,
+		protected MidPointQueryExecutor(JasperReportsContext jasperReportsContext, JRDataset dataset,
 			Map<String, ? extends JRValueParameter> parametersMap) {
 		super(jasperReportsContext, dataset, parametersMap);
 	}
