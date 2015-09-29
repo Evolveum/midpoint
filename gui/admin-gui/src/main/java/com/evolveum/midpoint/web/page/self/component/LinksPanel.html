@@ -16,57 +16,20 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="row">
-        <div class="col-sm-6 col-xs-12">
-            <a href="#" wicket:id="credentialsLink">
-                <div class="info-box">
-                    <span class="info-box-icon bg-blue"><i class="fa fa-shield"></i></span>
+    <table width="100%">
+        <tr wicket:id="linksRow" class="row">
+            <td wicket:id="linksColumn" class="col-sm-6">
+                <a href="#" wicket:id="link">
+                    <div class="info-box">
+                        <div class="info-box-icon bg-blue fa fa-tasks" wicket:id="imageId"/>
 
-                    <div class="info-box-content">
-                        <span wicket:id="credentialsLabel"/>
+                        <div class="info-box-content">
+                            <span wicket:id="labelId"/>
+                        </div>
                     </div>
-
-                </div>
-            </a>
-        </div>
-        <div class="col-sm-6 col-xs-12">
-            <a href="#" wicket:id="tasksLink">
-                <div class="info-box">
-                    <span class="info-box-icon bg-green"><i class="fa fa-tasks"></i></span>
-
-                    <div class="info-box-content">
-                        <span wicket:id="tasksLabel"/>
-                    </div>
-
-                </div>
-            </a>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-sm-6 col-xs-12">
-            <a href="#" wicket:id="organizationsLink">
-                <div class="info-box">
-                    <span class="info-box-icon bg-yellow"><i class="fa fa-bank"></i></span>
-
-                    <div class="info-box-content">
-                        <span wicket:id="organizationsLabel"/>
-                    </div>
-
-                </div>
-            </a>
-        </div>
-        <div class="col-sm-6 col-xs-12">
-            <a href="#" wicket:id="rolesLink">
-                <div class="info-box">
-                    <span class="info-box-icon bg-orange"><i class="fa  fa-user-secret"></i></span>
-
-                    <div class="info-box-content">
-                        <span wicket:id="rolesLabel"/>
-                    </div>
-
-                </div>
-            </a>
-        </div>
-    </div>
+                </a>
+            </td>
+        </tr>
+    </table>
 </wicket:panel>
 </html>

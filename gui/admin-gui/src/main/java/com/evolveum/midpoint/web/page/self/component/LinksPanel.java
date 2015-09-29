@@ -1,14 +1,12 @@
 package com.evolveum.midpoint.web.page.self.component;
 
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.page.admin.home.PageMyPasswords;
-import com.evolveum.midpoint.web.page.admin.home.dto.AssignmentItemDto;
-import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
-import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
-import com.evolveum.midpoint.web.page.self.dto.LinkDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.wicket.markup.ComponentTag;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.Link;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -17,82 +15,83 @@ import java.util.List;
 /**
  * Created by Kate on 23.09.2015.
  */
-public class LinksPanel extends SimplePanel<LinkDto> {
-    private static final String ID_CREDENTIALS_LINK = "credentialsLink";
-    private static final String ID_CREDENTIALS_LABEL = "credentialsLabel";
-    private static final String ID_ASSIGNMENTS_LINK = "assignmentsLink";
-    private static final String ID_ROLES_LINK = "rolesLink";
-    private static final String ID_ROLES_LABEL = "rolesLabel";
-    private static final String ID_ORGANIZATIONS_LINK = "organizationsLink";
-    private static final String ID_ORGANIZATIONS_LABEL = "organizationsLabel";
-    private static final String ID_CONFIGURATION_LINK = "configurationLink";
-    private static final String ID_TASKS_LINK = "tasksLink";
-    private static final String ID_TASKS_LABEL = "tasksLabel";
+public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
+    private static final String DOT_CLASS = LinksPanel.class.getName() + ".";
+    private static final String ID_IMAGE = "imageId";
+    private static final String ID_LINK = "link";
+    private static final String ID_LABEL = "labelId";
+    private static final String OPERATION_LOAD_LINKS = DOT_CLASS + "loadLinks";
 
-    public LinksPanel(String id){
+    public LinksPanel(String id) {
         super(id, null);
     }
 
-    public LinksPanel(String id, IModel<LinkDto> model) {
+    public LinksPanel(String id, IModel<List<RichHyperlinkType>> model) {
         super(id, model);
     }
+
     @Override
     protected void initLayout() {
-        Link credentialsLink = new Link(ID_CREDENTIALS_LINK) {
-            @Override
-            public void onClick() {
-                setResponsePage(PageMyPasswords.class);
-            }
 
-        };
-        credentialsLink.add(new Label(ID_CREDENTIALS_LABEL, new Model<String>() {
-            public String getObject() {
-                return createStringResource("LinksPanel.credentialsLabel").getString();
-            }
-        }));
-        add(credentialsLink);
+        final List<RichHyperlinkType> linksList = getModel().getObject();
+        RepeatingView rowView = new RepeatingView("linksRow");
 
-        Link tasksLink = new Link(ID_TASKS_LINK) {
-            @Override
-            public void onClick() {
-                setResponsePage(PageTasks.class);
-            }
+        int linksListSize = linksList == null ? 0 : linksList.size();
+        if (linksListSize > 0) {
+            int currentColumn = 0;
+            RepeatingView columnView = null;
+            WebMarkupContainer row = null;
+            for (int i = 0; i < linksListSize; i++) {
+                final RichHyperlinkType link = linksList.get(i);
+                if (currentColumn == 0) {
+                    row = new WebMarkupContainer(rowView.newChildId());
+                    columnView = new RepeatingView("linksColumn");
+                }
 
-        };
-        tasksLink.add(new Label(ID_TASKS_LABEL, new Model<String>() {
-            public String getObject() {
-                return createStringResource("LinksPanel.tasksLabel").getString();
-            }
-        }));
-        add(tasksLink);
+                WebMarkupContainer column = new WebMarkupContainer(columnView.newChildId());
 
-        Link organizationsLink = new Link(ID_ORGANIZATIONS_LINK) {
-            @Override
-            public void onClick() {
-                setResponsePage(PageOrgTree.class);
-            }
 
-        };
-        organizationsLink.add(new Label(ID_ORGANIZATIONS_LABEL, new Model<String>() {
-            public String getObject() {
-                return createStringResource("LinksPanel.organizationsLabel").getString();
-            }
-        }));
-        add(organizationsLink);
+                Link linkItem = new Link(ID_LINK) {
+                    @Override
+                    public void onClick() {
 
-        Link rolesLink = new Link(ID_ROLES_LINK) {
-            @Override
-            public void onClick() {
-                setResponsePage(PageRoles.class);
-            }
+                    }
 
-        };
-        rolesLink.add(new Label(ID_ROLES_LABEL, new Model<String>() {
-            public String getObject() {
-                return createStringResource("LinksPanel.rolesLabel").getString();
-            }
-        }));
-        add(rolesLink);
+                    @Override
+                    protected void onComponentTag(final ComponentTag tag) {
+                        super.onComponentTag(tag);
+                        tag.put("href", link.getTargetUrl());
+                    }
+                };
+                linkItem.add(new Label(ID_IMAGE) {
+                    @Override
+                    protected void onComponentTag(final ComponentTag tag) {
+                        super.onComponentTag(tag);
+                        tag.put("class", "info-box-icon " + (link.getColor() != null ?
+                                (link.getColor().startsWith("bg-") ? link.getColor() : "bg-" + link.getColor()) : "") + " "
+                                + link.getIcon().getCssClass());
+                    }
+                });
 
+                linkItem.add(new Label(ID_LABEL, new Model<String>() {
+                    public String getObject() {
+                        return link.getLabel();
+                    }
+                }));
+
+                column.add(linkItem);
+                columnView.add(column);
+                if (currentColumn == 1 || (i == (linksListSize - 1))) {
+                    row.add(columnView);
+                    rowView.add(row);
+                    currentColumn = 0;
+                } else {
+                    currentColumn++;
+                }
+            }
+        }
+        add(rowView);
     }
+
+
 }

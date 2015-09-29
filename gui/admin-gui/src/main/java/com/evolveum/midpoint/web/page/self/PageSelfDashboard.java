@@ -1,9 +1,13 @@
 package com.evolveum.midpoint.web.page.self;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
@@ -12,10 +16,9 @@ import com.evolveum.midpoint.web.component.SecurityContextAwareCallable;
 import com.evolveum.midpoint.web.component.util.CallableResult;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wf.WorkItemsPanel;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.SystemConfigurationDto;
 import com.evolveum.midpoint.web.page.admin.home.component.AsyncDashboardPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.DashboardColor;
-import com.evolveum.midpoint.web.page.admin.home.component.DashboardPanel;
-import com.evolveum.midpoint.web.page.admin.home.component.PersonalInfoPanel;
 import com.evolveum.midpoint.web.page.admin.home.dto.AccountCallableResult;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.page.self.component.LinksPanel;
@@ -23,17 +26,17 @@ import com.evolveum.midpoint.web.page.self.component.SearchPanel;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
-import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.springframework.security.core.Authentication;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -58,6 +61,7 @@ public class PageSelfDashboard extends PageSelf {
     private static final int MAX_WORK_ITEMS = 1000;
     private final Model<PrismObject<UserType>> principalModel = new Model<PrismObject<UserType>>();
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
+    private static final String TASK_GET_SYSTEM_CONFIG = DOT_CLASS + "getSystemConfiguration";
 
     public PageSelfDashboard() {
         principalModel.setObject(loadUser());
@@ -67,10 +71,34 @@ public class PageSelfDashboard extends PageSelf {
     private void initLayout(){
         SearchPanel searchPanel = new SearchPanel(ID_SEARCH_PANEL, null);
         add(searchPanel);
+        final AsyncDashboardPanel<Object, List<RichHyperlinkType>> linksPanel =
+                new AsyncDashboardPanel<Object, List<RichHyperlinkType>>(ID_LINKS_PANEL, null,
+                        "", DashboardColor.GRAY) {
 
+                   @Override
+                    protected SecurityContextAwareCallable<CallableResult<List<RichHyperlinkType>>> createCallable(
+                            Authentication auth, IModel callableParameterModel) {
 
+                        return new SecurityContextAwareCallable<CallableResult<List<RichHyperlinkType>>>(
+                                getSecurityEnforcer(), auth) {
 
-        LinksPanel linksPanel = new LinksPanel(ID_LINKS_PANEL, null);
+                            @Override
+                            public CallableResult<List<RichHyperlinkType>> callWithContextPrepared() throws Exception {
+                                return loadLinksList();
+                            }
+                        };
+                    }
+
+                    @Override
+                    protected Component getMainComponent(String markupId) {
+                        LinksPanel panel = new LinksPanel(markupId, new PropertyModel<List<RichHyperlinkType>>(getModel(), CallableResult.F_VALUE));
+                        WebMarkupContainer dashboardTitle = (WebMarkupContainer) get(
+                                createComponentPath(AsyncDashboardPanel.ID_DASHBOARD_PARENT, AsyncDashboardPanel.ID_DASHBOARD_TITLE));
+                        dashboardTitle.setVisible(false);
+
+                        return panel;
+                    }
+                };
         add(linksPanel);
 
         AsyncDashboardPanel<Object, List<WorkItemDto>> workItemsPanel =
@@ -162,6 +190,38 @@ public class PageSelfDashboard extends PageSelf {
         }
 
         return user;
+    }
+
+    private CallableResult<List<RichHyperlinkType>> loadLinksList(){
+        CallableResult callableResult = new CallableResult();
+        List<RichHyperlinkType> list = new ArrayList<RichHyperlinkType>();
+
+        PrismObject<UserType> user = principalModel.getObject();
+        if (user == null) {
+            return callableResult;
+        }
+
+        OperationResult result = new OperationResult(OPERATION_LOAD_WORK_ITEMS);
+        callableResult.setResult(result);
+
+        Task task = createSimpleTask(TASK_GET_SYSTEM_CONFIG);
+        Collection<SelectorOptions<GetOperationOptions>> options =
+                SelectorOptions.createCollection(GetOperationOptions.createResolve(),
+                        SystemConfigurationType.F_DEFAULT_USER_TEMPLATE ,SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY);
+        SystemConfigurationDto dto = null;
+        try{
+            PrismObject<SystemConfigurationType> systemConfig = getModelService().getObject(SystemConfigurationType.class,
+                    SystemObjectsType.SYSTEM_CONFIGURATION.value(), options, task, result);
+
+            dto = new SystemConfigurationDto(systemConfig);
+            list = dto.getUserDashboardLink();
+            callableResult.setValue(list);
+            result.recordSuccess();
+        } catch(Exception ex){
+            LoggingUtils.logException(LOGGER, "Couldn't load system configuration", ex);
+            result.recordFatalError("Couldn't load system configuration.", ex);
+        }
+        return callableResult;
     }
 
 }
