@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.impl.sync;
 
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -80,7 +81,7 @@ public class TaskHandlerUtil {
             if (enableSynchronizationStatistics) {
                 storeSynchronizationInformation(task);
             }
-            task.savePendingModifications(task.getResult());
+            task.savePendingModifications(new OperationResult(TaskHandlerUtil.class.getSimpleName()+".storeAllStatistics"));    // TODO fixme
         } catch (SchemaException|ObjectNotFoundException |ObjectAlreadyExistsException |RuntimeException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't store statistical information into task {}", e, task);
         }
