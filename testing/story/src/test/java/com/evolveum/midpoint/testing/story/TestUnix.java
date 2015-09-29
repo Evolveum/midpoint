@@ -140,11 +140,13 @@ public class TestUnix extends AbstractStoryTest {
 	private static final String ROLE_MONKEY_ISLAND_NAME = "Monkey Island";
 	
 	private static final String ROLE_VILLAINS_NAME = "villains";
-	private static final Integer ROLE_VILLAINS_GID = 666;
+	private static final Integer ROLE_VILLAINS_GID = 999;
 	
 	public static final File SEQUENCE_UIDNUMBER_FILE = new File(TEST_DIR, "sequence-uidnumber.xml");
 	public static final String SEQUENCE_UIDNUMBER_OID = "7d4acb8c-65e3-11e5-9ef4-6382ba96fe6c";
 
+	public static final File SEQUENCE_GIDNUMBER_FILE = new File(TEST_DIR, "sequence-gidnumber.xml");
+	public static final String SEQUENCE_GIDNUMBER_OID = "02cb7caa-6618-11e5-87a5-7b6c6776a63e";
 	
 	
 	
@@ -246,6 +248,7 @@ public class TestUnix extends AbstractStoryTest {
 		
 		// Sequence
 		importObjectFromFile(SEQUENCE_UIDNUMBER_FILE, initResult);
+		importObjectFromFile(SEQUENCE_GIDNUMBER_FILE, initResult);
 		
 		DebugUtil.setDetailedDebugDump(true);
 	}
@@ -581,7 +584,7 @@ public class TestUnix extends AbstractStoryTest {
         Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        PrismObject<RoleType> role = createUnixGroupRole(ROLE_VILLAINS_NAME, ROLE_VILLAINS_GID);
+        PrismObject<RoleType> role = createUnixGroupRole(ROLE_VILLAINS_NAME);
         
         // WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -755,7 +758,7 @@ public class TestUnix extends AbstractStoryTest {
 		return role;
 	}
 	
-	private PrismObject<RoleType> createUnixGroupRole(String name, Integer gidNumber) throws SchemaException {
+	private PrismObject<RoleType> createUnixGroupRole(String name) throws SchemaException {
 		PrismObject<RoleType> role = getRoleDefinition().instantiate();
 		RoleType roleType = role.asObjectable();
 		roleType.setName(new PolyStringType(name));
@@ -767,13 +770,13 @@ public class TestUnix extends AbstractStoryTest {
 		roleAssignemnt.setTargetRef(roleTargetRef);
 		roleType.getAssignment().add(roleAssignemnt);
 		
-		if (gidNumber != null) {
-			PrismPropertyDefinition<String> gidNumberPropertyDef = new PrismPropertyDefinition<>(EXTENSION_GID_NUMBER_NAME, 
-					DOMUtil.XSD_STRING, prismContext);
-			PrismProperty<String> gidNumberProperty = gidNumberPropertyDef.instantiate();
-			gidNumberProperty.setRealValue(gidNumber.toString());
-			role.createExtension().add(gidNumberProperty);
-		}
+//		if (gidNumber != null) {
+//			PrismPropertyDefinition<String> gidNumberPropertyDef = new PrismPropertyDefinition<>(EXTENSION_GID_NUMBER_NAME, 
+//					DOMUtil.XSD_STRING, prismContext);
+//			PrismProperty<String> gidNumberProperty = gidNumberPropertyDef.instantiate();
+//			gidNumberProperty.setRealValue(gidNumber.toString());
+//			role.createExtension().add(gidNumberProperty);
+//		}
 		
 		return role;
 	}
@@ -800,6 +803,8 @@ public class TestUnix extends AbstractStoryTest {
 		PrismAsserts.assertEqualsCollectionUnordered("Wrong auxiliary objectclasses in "+shadow, 
 				shadowType.getAuxiliaryObjectClass(), OPENDJ_GROUP_POSIX_AUXILIARY_OBJECTCLASS_NAME);
 		String dn = (String) ShadowUtil.getSecondaryIdentifiers(shadow).iterator().next().getRealValue();
+		ResourceAttribute<Integer> gidNumberAttr = ShadowUtil.getAttribute(shadow, new QName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_GIDNUMBER_ATTRIBUTE_NAME));
+		PrismAsserts.assertPropertyValue(gidNumberAttr, expectedGidNumber);
 
 		SearchResultEntry entry = openDJController.fetchEntry(dn);
 		assertNotNull("No group LDAP entry for "+dn);

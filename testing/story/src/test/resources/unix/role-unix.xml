@@ -68,11 +68,9 @@
 				<name>sequenceUID</name>
 				<strength>weak</strength>
 				<expression>
-					<script>
-						<code>
-							midpoint.getSequenceCounter("7d4acb8c-65e3-11e5-9ef4-6382ba96fe6c")
-						</code>
-					</script>
+					<sequentialValue>
+						<sequenceRef oid="7d4acb8c-65e3-11e5-9ef4-6382ba96fe6c"/>
+					</sequentialValue>
 				</expression>
 				<target>
 					<path>extension/uidNumber</path>
