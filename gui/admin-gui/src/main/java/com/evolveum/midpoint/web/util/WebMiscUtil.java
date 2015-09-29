@@ -275,6 +275,17 @@ public final class WebMiscUtil {
 
         return getName(object.asPrismObject());
     }
+	
+	public static String getName(ObjectReferenceType ref) {
+		if (ref == null){
+			return null;
+		}
+		
+		if (ref.getTargetName() != null){
+			return getOrigStringFromPoly(ref.getTargetName());
+		} 
+        return ref.getOid();
+    }
 
     public static String getName(PrismObject object) {
         if (object == null) {

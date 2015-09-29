@@ -107,6 +107,9 @@ public class JavaTypeConverter {
 		if (expectedType == String.class && rawValue instanceof Integer) {
 			return (T) rawValue.toString();
 		}
+		if (expectedType == int.class && rawValue instanceof Long) {
+			return (T)(Integer)((Long)rawValue).intValue();
+		}
 		
 		if (expectedType == long.class && rawValue instanceof Long) {
 			return (T)((Long)rawValue);

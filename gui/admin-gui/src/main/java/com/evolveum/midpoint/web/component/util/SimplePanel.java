@@ -16,7 +16,9 @@
 
 package com.evolveum.midpoint.web.component.util;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.web.page.PageBase;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -24,6 +26,7 @@ import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -43,6 +46,13 @@ public class SimplePanel<T> extends BaseSimplePanel<T> {
         return (PageBase) getPage();
     }
 
+//    public PrismContext getPrismContext(){
+//    	return getPageBase().getPrismContext();
+//    }
+    
+//    public WebMarkupContainer getFeedbackPanel(){
+//    	return getPageBase().getFeedbackPanel();
+//    }
     /*
     *   TODO - this is the exact copy method as the one on PageBase. Refactor if possible.
     * */

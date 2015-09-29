@@ -158,7 +158,7 @@ public class PageContentAccounts extends PageAdminResources {
     }
 
     private void initDialog() {
-        UserBrowserDialog dialog = new UserBrowserDialog(MODAL_ID_OWNER_CHANGE) {
+        UserBrowserDialog<UserType> dialog = new UserBrowserDialog<UserType>(MODAL_ID_OWNER_CHANGE, UserType.class) {
 
             @Override
             public void userDetailsPerformed(AjaxRequestTarget target, UserType user) {

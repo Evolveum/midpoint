@@ -61,6 +61,9 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
     private Set<RObjectReference> linkRef;
     private Set<RAssignment> assignments;
     private RActivation activation;
+    //photo
+    private boolean hasPhoto;
+    private Set<RFocusPhoto> jpegPhoto;
 
     @Where(clause = RObjectReference.REFERENCE_TYPE + "= 1")
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
@@ -168,5 +171,40 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
             repo.setActivation(activation);
 
         }
+
+        if (jaxb.getJpegPhoto() != null) {
+            RFocusPhoto photo = new RFocusPhoto();
+            photo.setOwner(repo);
+            photo.setPhoto(jaxb.getJpegPhoto());
+
+            repo.getJpegPhoto().add(photo);
+            repo.setHasPhoto(true);
+        }
     }
+
+    public boolean isHasPhoto() {
+        return hasPhoto;
+    }
+
+    // setting orphanRemoval = false prevents:
+    //   (1) deletion of photos for RUsers that have no photos fetched (because fetching is lazy)
+    //   (2) even querying of m_focus_photo table on RFocus merge
+    // (see comments in SqlRepositoryServiceImpl.modifyObjectAttempt)
+    @OneToMany(mappedBy = "owner", orphanRemoval = false)
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<RFocusPhoto> getJpegPhoto() {
+        if (jpegPhoto == null) {
+            jpegPhoto = new HashSet<>();
+        }
+        return jpegPhoto;
+    }
+
+    public void setHasPhoto(boolean hasPhoto) {
+        this.hasPhoto = hasPhoto;
+    }
+
+    public void setJpegPhoto(Set<RFocusPhoto> jpegPhoto) {
+        this.jpegPhoto = jpegPhoto;
+    }
+
 }

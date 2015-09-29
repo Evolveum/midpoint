@@ -453,6 +453,12 @@
             <artifactId>wicket-datetime</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.ocpsoft.prettytime</groupId>
+            <artifactId>prettytime</artifactId>
+            <version>4.0.0.Final</version>
+        </dependency>
+
         <!-- Xtext DSL
         <dependency>
             <groupId>com.evolveum.midpoint.msl</groupId>

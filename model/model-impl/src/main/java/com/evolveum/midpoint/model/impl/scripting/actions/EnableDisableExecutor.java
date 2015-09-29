@@ -68,14 +68,21 @@ public class EnableDisableExecutor extends BaseActionExecutor {
             if (item instanceof PrismObject) {
                 PrismObject<? extends ObjectType> prismObject = (PrismObject) item;
                 ObjectType objectType = prismObject.asObjectable();
-                if (objectType instanceof FocusType) {
-                    operationsHelper.applyDelta(createEnableDisableDelta((FocusType) objectType, isEnable), context, result);
-                    context.println((isEnable ? "Enabled " : "Disabled ") + item.toString());
-                } else if (objectType instanceof ShadowType) {
-                    operationsHelper.applyDelta(createEnableDisableDelta((ShadowType) objectType, isEnable), context, result);
-                    context.println((isEnable ? "Enabled " : "Disabled ") + item.toString());
-                } else {
-                    throw new ScriptExecutionException("Item could not be enabled/disabled, because it is not a FocusType nor ShadowType: " + item.toString());
+                long started = operationsHelper.recordStart(context, objectType);
+                try {
+                    if (objectType instanceof FocusType) {
+                        operationsHelper.applyDelta(createEnableDisableDelta((FocusType) objectType, isEnable), context, result);
+                        context.println((isEnable ? "Enabled " : "Disabled ") + item.toString());
+                    } else if (objectType instanceof ShadowType) {
+                        operationsHelper.applyDelta(createEnableDisableDelta((ShadowType) objectType, isEnable), context, result);
+                        context.println((isEnable ? "Enabled " : "Disabled ") + item.toString());
+                    } else {
+                        throw new ScriptExecutionException("Item could not be enabled/disabled, because it is not a FocusType nor ShadowType: " + item.toString());
+                    }
+                    operationsHelper.recordEnd(context, objectType, started, null);
+                } catch (Throwable ex) {
+                    operationsHelper.recordEnd(context, objectType, started, ex);
+                    throw ex;
                 }
             } else {
                 throw new ScriptExecutionException("Item could not be enabled/disabled, because it is not a PrismObject: " + item.toString());

@@ -21,11 +21,15 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -53,6 +57,9 @@ public class OperationsHelper {
 
     @Autowired
     private ModelService modelService;
+
+    @Autowired
+    private PrismContext prismContext;
 
     public void applyDelta(ObjectDelta delta, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
         applyDelta(delta, null, context, result);
@@ -83,5 +90,36 @@ public class OperationsHelper {
         ModelExecuteOptions options = new ModelExecuteOptions();
         options.setRaw(raw);
         return options;
+    }
+
+    public long recordStart(ExecutionContext context, ObjectType objectType) {
+        long started = System.currentTimeMillis();
+        if (context.getTask() != null && objectType != null) {
+            context.getTask().recordIterativeOperationStart(PolyString.getOrig(objectType.getName()),
+                    StatisticsUtil.getDisplayName(objectType.asPrismObject()),
+                    StatisticsUtil.getObjectType(objectType, prismContext),
+                    objectType.getOid());
+        } else {
+            LOGGER.warn("Couldn't record operation start in script execution; task = {}, objectType = {}",
+                    context.getTask(), objectType);
+        }
+        return started;
+    }
+
+    public void recordEnd(ExecutionContext context, ObjectType objectType, long started, Throwable ex) {
+        if (context.getTask() != null && objectType != null) {
+            context.getTask().recordIterativeOperationEnd(
+                    PolyString.getOrig(objectType.getName()),
+                    StatisticsUtil.getDisplayName(objectType.asPrismObject()),
+                    StatisticsUtil.getObjectType(objectType, prismContext),
+                    objectType.getOid(),
+                    started, ex);
+        } else {
+            LOGGER.warn("Couldn't record operation end in script execution; task = {}, objectType = {}",
+                    context.getTask(), objectType);
+        }
+        if (context.getTask() != null) {
+            context.getTask().setProgress(context.getTask().getProgress() + 1);
+        }
     }
 }

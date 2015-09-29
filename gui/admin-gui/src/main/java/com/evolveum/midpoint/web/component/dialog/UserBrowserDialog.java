@@ -16,6 +16,24 @@
 
 package com.evolveum.midpoint.web.component.dialog;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.StringResourceModel;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
@@ -30,36 +48,23 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.CheckBox;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author lazyman
  */
-public class UserBrowserDialog extends ModalWindow {
+public class UserBrowserDialog<T extends FocusType> extends ModalWindow {
 
     private static final String ID_SEARCH_FORM = "searchForm";
     private static final String ID_MAIN_FORM = "mainForm";
@@ -69,15 +74,32 @@ public class UserBrowserDialog extends ModalWindow {
     private static final String ID_CHECK_FAMILY_NAME = "familyNameCheck";
     private static final String ID_BASIC_SEARCH = "basicSearch";
     private static final String ID_BUTTON_CANCEL = "cancelButton";
+    private static final String ID_BUTTON_ADD = "addButton";
     private static final String ID_TABLE = "table";
 
     private static final Trace LOGGER = TraceManager.getTrace(UserBrowserDialog.class);
     private IModel<UserBrowserDto> model;
     private boolean initialized;
+    private Class type;
 
-    public UserBrowserDialog(String id) {
+    public void setType(Class type) {
+		this.type = type;
+		
+		TablePanel table = (TablePanel) getTable();
+
+        if (table != null) {
+	        ObjectDataProvider provider = (ObjectDataProvider) table.getDataTable().getDataProvider();
+	        provider.setType(type);
+
+	        Form mainForm = (Form) getContent().get(ID_MAIN_FORM);
+	        //replace table with table with proper columns
+	        mainForm.replace(createTable());
+	    }
+	}
+    
+    public UserBrowserDialog(String id, Class<T> type) {
         super(id);
-
+        this.type = type;
         setTitle(createStringResource("userBrowserDialog.title"));
         showUnloadConfirmation(false);
         setCssClassName(ModalWindow.CSS_CLASS_GRAY);
@@ -96,6 +118,10 @@ public class UserBrowserDialog extends ModalWindow {
 
         WebMarkupContainer content = new WebMarkupContainer(getContentId());
         setContent(content);
+    }
+    
+    protected boolean isCheckBoxVisible(){
+    	return false;
     }
 
     @Override
@@ -125,11 +151,14 @@ public class UserBrowserDialog extends ModalWindow {
         searchForm.add(nameCheck);
         CheckBox fullNameCheck = new CheckBox(ID_CHECK_FULL_NAME, new PropertyModel<Boolean>(model, UserBrowserDto.F_FULL_NAME));
         searchForm.add(fullNameCheck);
+        fullNameCheck.setVisible(UserType.class.equals(type));
         CheckBox givenNameCheck = new CheckBox(ID_CHECK_GIVEN_NAME, new PropertyModel<Boolean>(model, UserBrowserDto.F_GIVEN_NAME));
         searchForm.add(givenNameCheck);
+        givenNameCheck.setVisible(UserType.class.equals(type));
         CheckBox familyNameCheck = new CheckBox(ID_CHECK_FAMILY_NAME, new PropertyModel<Boolean>(model, UserBrowserDto.F_FAMILY_NAME));
         searchForm.add(familyNameCheck);
-
+        familyNameCheck.setVisible(UserType.class.equals(type));
+        
         BasicSearchPanel<UserBrowserDto> basicSearch = new BasicSearchPanel<UserBrowserDto>(ID_BASIC_SEARCH) {
 
             @Override
@@ -149,10 +178,7 @@ public class UserBrowserDialog extends ModalWindow {
         };
         searchForm.add(basicSearch);
 
-        List<IColumn<SelectableBean<UserType>, String>> columns = initColumns();
-        TablePanel table = new TablePanel<>(ID_TABLE,
-                new ObjectDataProvider(getPageBase(), UserType.class), columns);
-        table.setOutputMarkupId(true);
+        TablePanel table = createTable();
         mainForm.add(table);
 
         AjaxButton cancelButton = new AjaxButton(ID_BUTTON_CANCEL,
@@ -164,8 +190,40 @@ public class UserBrowserDialog extends ModalWindow {
             }
         };
         mainForm.add(cancelButton);
+        
+            AjaxButton addButton = new AjaxButton(ID_BUTTON_ADD,
+	                createStringResource("userBrowserDialog.button.addButton")) {
+	
+	            @Override
+	            public void onClick(AjaxRequestTarget target) {
+	            	DataTable table = getTable().getDataTable();
+	            	List<SelectableBean> availableData = ((ObjectDataProvider)table.getDataProvider()).getAvailableData();
+	            	List<T> selected = new ArrayList<>();
+	            	for (SelectableBean o : availableData){
+	            		if (o.isSelected()){
+	            			selected.add((T)o.getValue());
+	            		}
+	            	}
+	                addPerformed(target, selected);
+	            }
+	        };
+        addButton.add(new VisibleEnableBehaviour(){
+        	@Override
+        	public boolean isVisible() {
+        		// TODO Auto-generated method stub
+        		return isCheckBoxVisible();
+        	}
+        });
+        mainForm.add(addButton);
     }
 
+    private TablePanel createTable(){
+    	List<IColumn<SelectableBean<T>, String>> columns = initColumns();
+        TablePanel table = new TablePanel<>(ID_TABLE,
+                new ObjectDataProvider(getPageBase(), type), columns);
+        table.setOutputMarkupId(true);
+        return table;
+    }
     private PageBase getPageBase() {
         return (PageBase) getPage();
     }
@@ -174,35 +232,54 @@ public class UserBrowserDialog extends ModalWindow {
         return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
     }
 
-    private List<IColumn<SelectableBean<UserType>, String>> initColumns() {
-        List<IColumn<SelectableBean<UserType>, String>> columns = new ArrayList<IColumn<SelectableBean<UserType>, String>>();
+    private List<IColumn<SelectableBean<T>, String>> initColumns() {
+        List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<IColumn<SelectableBean<T>, String>>();
 
-        columns.add(new IconColumn<SelectableBean<UserType>>(createStringResource("userBrowserDialog.type")) {
+        if (isCheckBoxVisible()){
+        	columns.add(new CheckBoxHeaderColumn());
+        	IColumn column = new PropertyColumn(createStringResource("userBrowserDialog.name"), UserBrowserDto.F_NAME, "value.name");
+            columns.add(column);
+        } 
+        
+        if (UserType.class.equals(type)){
+        	initUserColumns(columns);
+        } else if (RoleType.class.equals(type) || OrgType.class.equals(type)){
+        	initAbstractRoleColumns(columns);
+        }
+        
+        return columns;
+    }
+    
+    private void initUserColumns(List<IColumn<SelectableBean<T>, String>> columns){
+    	columns.add(new IconColumn<SelectableBean<T>>(createStringResource("userBrowserDialog.type")) {
 
             @Override
-            protected IModel<String> createIconModel(final IModel<SelectableBean<UserType>> rowModel) {
+            protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
                 return new AbstractReadOnlyModel<String>() {
 
                     @Override
                     public String getObject() {
-                        UserType user = rowModel.getObject().getValue();
+                        T user = rowModel.getObject().getValue();
                         return WebMiscUtil.createUserIcon(user.asPrismContainer());
                     }
                 };
             }
         });
 
-        IColumn column = new LinkColumn<SelectableBean<UserType>>(createStringResource("userBrowserDialog.name"), UserBrowserDto.F_NAME, "value.name") {
+        if (!isCheckBoxVisible()){
+        IColumn column = new LinkColumn<SelectableBean<T>>(createStringResource("userBrowserDialog.name"), UserBrowserDto.F_NAME, "value.name") {
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<UserType>> rowModel) {
-                UserType user = rowModel.getObject().getValue();
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<T>> rowModel) {
+                T user = rowModel.getObject().getValue();
                 userDetailsPerformed(target, user);
             }
         };
         columns.add(column);
+        }
+        
 
-        column = new PropertyColumn(createStringResource("userBrowserDialog.givenName"), UserBrowserDto.F_GIVEN_NAME, SelectableBean.F_VALUE + ".givenName");
+        IColumn column = new PropertyColumn(createStringResource("userBrowserDialog.givenName"), UserBrowserDto.F_GIVEN_NAME, SelectableBean.F_VALUE + ".givenName");
         columns.add(column);
 
         column = new PropertyColumn(createStringResource("userBrowserDialog.familyName"), UserBrowserDto.F_FAMILY_NAME, SelectableBean.F_VALUE + ".familyName");
@@ -211,19 +288,46 @@ public class UserBrowserDialog extends ModalWindow {
         column = new PropertyColumn(createStringResource("userBrowserDialog.fullName"), UserBrowserDto.F_FULL_NAME, SelectableBean.F_VALUE + ".fullName.orig");
         columns.add(column);
 
-        column = new AbstractColumn<SelectableBean<UserType>, String>(createStringResource("userBrowserDialog.email")) {
+//        column = new AbstractColumn<SelectableBean<T>, String>(createStringResource("userBrowserDialog.email")) {
+//
+//            @Override
+//            public void populateItem(Item<ICellPopulator<SelectableBean<T>>> cellItem, String componentId,
+//                                     IModel<SelectableBean<T>> rowModel) {
+//
+//                String email = rowModel.getObject().getValue().getEmailAddress();
+//                cellItem.add(new Label(componentId, new Model<String>(email)));
+//            }
+//        };
+//        columns.add(column);
+
+    }
+    
+    private void initAbstractRoleColumns(List<IColumn<SelectableBean<T>, String>> columns){
+    	        if (!isCheckBoxVisible()){
+        IColumn column = new LinkColumn<SelectableBean<T>>(createStringResource("userBrowserDialog.name"), UserBrowserDto.F_NAME, "value.name") {
 
             @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<UserType>>> cellItem, String componentId,
-                                     IModel<SelectableBean<UserType>> rowModel) {
-
-                String email = rowModel.getObject().getValue().getEmailAddress();
-                cellItem.add(new Label(componentId, new Model<String>(email)));
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<T>> rowModel) {
+                T user = rowModel.getObject().getValue();
+                userDetailsPerformed(target, user);
             }
         };
         columns.add(column);
+        }
+        
 
-        return columns;
+        
+    	        IColumn column = new PropertyColumn(createStringResource("userBrowserDialog.displayName"), null, SelectableBean.F_VALUE + ".displayName");
+    	        columns.add(column);
+    	        column = new PropertyColumn(createStringResource("userBrowserDialog.description"), null, SelectableBean.F_VALUE + ".description");
+        columns.add(column);
+
+        
+
+        column = new PropertyColumn(createStringResource("userBrowserDialog.identifier"), null, SelectableBean.F_VALUE + ".identifier");
+        columns.add(column);
+
+
     }
 
     private void searchPerformed(AjaxRequestTarget target) {
@@ -263,7 +367,7 @@ public class UserBrowserDialog extends ModalWindow {
             String normalizedString = normalizer.normalize(dto.getSearchText());
 
 			if (dto.isName()) {
-				filters.add(SubstringFilter.createSubstring(UserType.F_NAME, UserType.class, prismContext, 
+				filters.add(SubstringFilter.createSubstring(T.F_NAME, type, prismContext, 
 						normalizedString));
 			}
 
@@ -306,8 +410,12 @@ public class UserBrowserDialog extends ModalWindow {
     private void cancelPerformed(AjaxRequestTarget target) {
         close(target);
     }
+    
+    public void addPerformed(AjaxRequestTarget target, List<T> selected) {
+        close(target);
+    }
 
-    public void userDetailsPerformed(AjaxRequestTarget target, UserType user) {
+    public void userDetailsPerformed(AjaxRequestTarget target, T user) {
         close(target);
     }
 }

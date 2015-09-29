@@ -45,7 +45,7 @@ DETERMINISTIC
     DELETE FROM m_user_employee_type;
     DELETE FROM m_user_organization;
     DELETE FROM m_user_organizational_unit;
-    DELETE FROM m_user_photo;
+    DELETE FROM m_focus_photo;
     DELETE FROM m_user;
     DELETE FROM m_report;
     DELETE FROM m_report_output;

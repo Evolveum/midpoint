@@ -30,6 +30,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.time.Duration;
+import org.ocpsoft.prettytime.PrettyTime;
 
 import javax.management.Attribute;
 import javax.management.AttributeList;
@@ -38,6 +39,8 @@ import javax.management.ObjectName;
 import javax.management.openmbean.CompositeData;
 import java.io.Serializable;
 import java.lang.management.ManagementFactory;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 
@@ -53,6 +56,8 @@ public class SystemInfoPanel extends SimplePanel<SystemInfoPanel.SystemInfoDto> 
     private static final String ID_HEAP_MEMORY = "heapMemory";
     private static final String ID_NON_HEAP_MEMORY = "nonHeapMemory";
     private static final String ID_THREADS = "threads";
+    private static final String ID_START_TIME = "startTime";
+    private static final String ID_UPTIME = "uptime";
 
     public SystemInfoPanel(String id) {
         super(id);
@@ -69,6 +74,7 @@ public class SystemInfoPanel extends SimplePanel<SystemInfoPanel.SystemInfoDto> 
                     fillCpuUsage(dto);
                     fillMemoryUsage(dto);
                     fillThreads(dto);
+                    fillUptime(dto);
                 } catch (Exception ex) {
                     LOGGER.debug("Couldn't load jmx data", ex);
                 }
@@ -76,6 +82,14 @@ public class SystemInfoPanel extends SimplePanel<SystemInfoPanel.SystemInfoDto> 
                 return dto;
             }
         };
+    }
+
+    private void fillUptime(SystemInfoDto dto) throws Exception {
+        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+        ObjectName name = ObjectName.getInstance("java.lang:type=Runtime");
+
+        dto.uptime = (long) mbs.getAttribute(name, "Uptime");
+        dto.starttime = (long) mbs.getAttribute(name, "StartTime");
     }
 
     private void fillCpuUsage(SystemInfoDto dto) throws Exception {
@@ -142,6 +156,42 @@ public class SystemInfoPanel extends SimplePanel<SystemInfoPanel.SystemInfoDto> 
 
         Label threads = new Label(ID_THREADS, createThreadModel());
         table.add(threads);
+
+        Label startTime = new Label(ID_START_TIME, createStartTimeModel());
+        table.add(startTime);
+
+        Label uptime = new Label(ID_UPTIME, createUptimeModel());
+        table.add(uptime);
+    }
+
+    private IModel<String> createUptimeModel() {
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                SystemInfoDto dto = getModelObject();
+
+                PrettyTime time = new PrettyTime();
+                return time.format(new Date(System.currentTimeMillis() - dto.uptime));
+            }
+        };
+    }
+
+    private IModel<String> createStartTimeModel() {
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                SystemInfoDto dto = getModelObject();
+
+                if (dto.starttime == 0) {
+                    return null;
+                }
+
+                SimpleDateFormat df = new SimpleDateFormat();
+                return df.format(new Date(dto.starttime));
+            }
+        };
     }
 
     private IModel<String> createMemoryModel(final boolean heap) {
@@ -192,5 +242,8 @@ public class SystemInfoPanel extends SimplePanel<SystemInfoPanel.SystemInfoDto> 
         Long[] nonHeapMemory = new Long[3];
         //ThreadCount, PeakThreadCount, TotalStartedThreadCount
         Number[] threads = new Number[3];
+
+        long starttime = 0;
+        long uptime = 0;
     }
 }

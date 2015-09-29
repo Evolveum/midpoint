@@ -1225,4 +1225,19 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         ObjectDelta<ShadowType> sum = ObjectDelta.summarize(deltas);
         return DeltaConvertor.toObjectDeltaType(sum);
     }
+    
+    public long getSequenceCounter(String sequenceOid) throws ObjectNotFoundException, SchemaException {
+    	LensContext<? extends FocusType> ctx = ModelExpressionThreadLocalHolder.getLensContext();
+    	if (ctx == null) {
+    		throw new IllegalStateException("No lens context");
+    	}
+    	
+    	Long counter = ctx.getSequenceCounter(sequenceOid);
+    	if (counter == null) {
+    		counter = repositoryService.advanceSequence(sequenceOid, getCurrentResult());
+    		ctx.setSequenceCounter(sequenceOid, counter);
+    	}
+    	
+    	return counter;
+    }
 }

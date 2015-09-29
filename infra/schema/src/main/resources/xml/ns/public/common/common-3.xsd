@@ -1951,6 +1951,19 @@
                         </xsd:annotation>
                     </xsd:element>
 
+                    <xsd:element name="jpegPhoto" type="xsd:base64Binary" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Photo corresponding to the user / org / role.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>Jpeg photo</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -2404,20 +2417,6 @@
                             <xsd:appinfo>
                                 <a:displayName>Locality</a:displayName>
                                 <a:displayOrder>450</a:displayOrder>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="jpegPhoto" type="xsd:base64Binary" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	<p>
-                                	Photo of the user.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>Jpeg photo</a:displayName>
-                                <a:displayOrder>460</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -5691,6 +5690,28 @@
 			<xsd:element name="target" type="tns:MappingTargetDeclarationType"/>
 		</xsd:sequence>
 	</xsd:complexType>
+	
+	<xsd:complexType name="SequentialValueExpressionEvaluatorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Get a sequential value from a named sequence.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="sequenceRef" type="tns:ObjectReferenceType" minOccurs="0">
+        		<xsd:annotation>
+	                <xsd:documentation>
+	                    Reference to the sequence from which the value is taken.
+	                </xsd:documentation>
+	                <xsd:appinfo>
+	        			<a:objectReferenceTargetType>tns:SequenceType</a:objectReferenceTargetType>
+	        		</xsd:appinfo>
+	            </xsd:annotation>
+        	</xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="sequentialValue" type="tns:SequentialValueExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 
     <xsd:element name="synchronization" type="tns:SynchronizationType"/>
 

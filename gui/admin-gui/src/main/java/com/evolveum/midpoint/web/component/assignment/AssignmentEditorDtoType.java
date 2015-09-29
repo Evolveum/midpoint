@@ -62,4 +62,18 @@ public enum AssignmentEditorDtoType {
 
         throw new IllegalArgumentException("Unknown assignment type '" + type.getName() + "'.");
     }
+    
+    public static AssignmentEditorDtoType getType(QName type) {
+        if (type == null) {
+            return ACCOUNT_CONSTRUCTION;
+        }
+
+        for (AssignmentEditorDtoType e : AssignmentEditorDtoType.values()) {
+            if (type.equals(e.getQname())) {
+                return e;
+            }
+        }
+
+        throw new IllegalArgumentException("Unknown assignment type '" + type + "'.");
+    }
 }

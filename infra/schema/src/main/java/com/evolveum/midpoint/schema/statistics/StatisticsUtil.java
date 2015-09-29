@@ -16,7 +16,10 @@
 
 package com.evolveum.midpoint.schema.statistics;
 
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
@@ -54,5 +57,23 @@ public class StatisticsUtil {
         } else {
             return objectable.getClass().getSimpleName() + " " + objectable.getName();
         }
+    }
+
+    public static QName getObjectType(ObjectType objectType, PrismContext prismContext) {
+        if (objectType == null) {
+            return null;
+        }
+        PrismObjectDefinition def = objectType.asPrismObject().getDefinition();
+        if (def == null) {
+            Class<? extends Objectable> clazz = objectType.asPrismObject().getCompileTimeClass();
+            if (clazz == null) {
+                return null;
+            }
+            def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz);
+            if (def == null) {
+                return ObjectType.COMPLEX_TYPE;
+            }
+        }
+        return def.getTypeName();
     }
 }

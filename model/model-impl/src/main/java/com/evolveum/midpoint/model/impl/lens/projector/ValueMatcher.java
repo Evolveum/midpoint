@@ -30,12 +30,16 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * @author semancik
  *
  */
 public class ValueMatcher<T> {
+	
+	private static final Trace LOGGER = TraceManager.getTrace(ValueMatcher.class);
 	
 	MatchingRule<T> matchingRule;
 
@@ -61,8 +65,12 @@ public class ValueMatcher<T> {
 		for (T existingRealValue: property.getRealValues()) {
 			try {
 				if (matchingRule.match(existingRealValue, pValue.getValue())) {
+//					LOGGER.trace("MATCH: {} ({}) <-> {} ({}) (rule: {})", new Object[]{
+//							existingRealValue, existingRealValue.getClass(), pValue.getValue(), pValue.getValue().getClass(), matchingRule});
 					return true;
 				}
+//				LOGGER.trace("NO match: {} ({}) <-> {} ({}) (rule: {})", new Object[]{
+//						existingRealValue, existingRealValue.getClass(), pValue.getValue(), pValue.getValue().getClass(), matchingRule});
 			} catch (SchemaException e) {
 				// At least one of the values is invalid. But we do not want to throw exception from
 				// a comparison operation. That will make the system very fragile. Let's fall back to
@@ -82,8 +90,12 @@ public class ValueMatcher<T> {
 		for (PrismPropertyValue<T> existingPValue: delta.getValuesToAdd()) {
 			try {
 				if (matchingRule.match(existingPValue.getValue(), pValue.getValue())) {
+//					LOGGER.trace("MATCH: {} ({}) <-> {} ({}) (rule: {})", new Object[]{
+//							existingPValue.getValue(), existingPValue.getValue().getClass(), pValue.getValue(), pValue.getValue().getClass(), matchingRule});
 					return true;
 				}
+//				LOGGER.trace("NO match: {} ({}) <-> {} ({}) (rule: {})", new Object[]{
+//						existingPValue.getValue(), existingPValue.getValue().getClass(), pValue.getValue(), pValue.getValue().getClass(), matchingRule});
 			} catch (SchemaException e) {
 				// At least one of the values is invalid. But we do not want to throw exception from
 				// a comparison operation. That will make the system very fragile. Let's fall back to
@@ -94,5 +106,11 @@ public class ValueMatcher<T> {
 			}
 		}
 		return false;
-	} 
+	}
+
+	@Override
+	public String toString() {
+		return "ValueMatcher(" + matchingRule + ")";
+	}
+	
 }
