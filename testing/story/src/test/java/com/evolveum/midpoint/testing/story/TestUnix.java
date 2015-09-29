@@ -463,6 +463,35 @@ public class TestUnix extends AbstractStoryTest {
 	}
 	
 	@Test
+    public void test125RecomputeUserLargo() throws Exception {
+		final String TEST_NAME = "test125RecomputeUserLargo";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		recomputeUser(userBefore.getOid(), task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
+        assertNotNull("No user after", userAfter);
+        display("User after", userAfter);
+        assertUserPosix(userAfter, USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME, USER_LARGO_UID_NUMBER);
+        
+        String accountOid = getSingleLinkOid(userAfter);
+        
+        PrismObject<ShadowType> shadow = getShadowModel(accountOid);
+        display("Shadow (model)", shadow);
+        assertPosixAccount(shadow, USER_LARGO_UID_NUMBER);
+	}
+	
+	@Test
     public void test126UnAssignUserLargoUnix() throws Exception {
 		final String TEST_NAME = "test126UnAssignUserLargoUnix";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -474,6 +503,35 @@ public class TestUnix extends AbstractStoryTest {
         // WHEN
 		TestUtil.displayWhen(TEST_NAME);
         unassignRole(userBefore.getOid(), ROLE_UNIX_OID);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
+        assertNotNull("No user after", userAfter);
+        display("User after", userAfter);
+        assertUserPosix(userAfter, USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME, USER_LARGO_UID_NUMBER);
+        
+        String accountOid = getSingleLinkOid(userAfter);
+        
+        PrismObject<ShadowType> shadow = getShadowModel(accountOid);
+        display("Shadow (model)", shadow);
+        assertBasicAccount(shadow);
+	}
+	
+	@Test
+    public void test127RecomputeUserLargo() throws Exception {
+		final String TEST_NAME = "test127RecomputeUserLargo";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		recomputeUser(userBefore.getOid(), task, result);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -511,7 +569,35 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
         assertNotNull("No user after", userAfter);
         display("User after", userAfter);
-        assertUser(userAfter, USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME);
+        assertUserPosix(userAfter, USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME, USER_LARGO_UID_NUMBER);
+        assertLinks(userAfter, 0);
+        
+        assertNoObject(ShadowType.class, accountLargoOid, task, result);
+        
+        openDJController.assertNoEntry(accountLargoDn);
+	}
+	
+	@Test
+    public void test129RecomputeUserLargo() throws Exception {
+		final String TEST_NAME = "test129RecomputeUserLargo";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		recomputeUser(userBefore.getOid(), task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
+        assertNotNull("No user after", userAfter);
+        display("User after", userAfter);
+        assertUserPosix(userAfter, USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME, USER_LARGO_UID_NUMBER);
         assertLinks(userAfter, 0);
         
         assertNoObject(ShadowType.class, accountLargoOid, task, result);
@@ -675,18 +761,6 @@ public class TestUnix extends AbstractStoryTest {
 			roleAssignemnt.setTargetRef(roleTargetRef);
 			user.asObjectable().getAssignment().add(roleAssignemnt);
 		}
-//		if (uidNumber != null) {
-//			PrismPropertyDefinition<String> uidNumberPropertyDef = new PrismPropertyDefinition<>(EXTENSION_UID_NUMBER_NAME, 
-//					DOMUtil.XSD_STRING, prismContext);
-//			PrismProperty<String> uidNumberProperty = uidNumberPropertyDef.instantiate();
-//			uidNumberProperty.setRealValue(uidNumber.toString());
-//			user.createExtension().add(uidNumberProperty);
-//			PrismPropertyDefinition<String> gidNumberPropertyDef = new PrismPropertyDefinition<>(EXTENSION_GID_NUMBER_NAME, 
-//					DOMUtil.XSD_STRING, prismContext);
-//			PrismProperty<String> gidNumberProperty = gidNumberPropertyDef.instantiate();
-//			gidNumberProperty.setRealValue(uidNumber.toString());
-//			user.getExtension().add(gidNumberProperty);
-//		}
 		return user;
 	}
 
@@ -769,14 +843,6 @@ public class TestUnix extends AbstractStoryTest {
         roleTargetRef.setType(RoleType.COMPLEX_TYPE);
 		roleAssignemnt.setTargetRef(roleTargetRef);
 		roleType.getAssignment().add(roleAssignemnt);
-		
-//		if (gidNumber != null) {
-//			PrismPropertyDefinition<String> gidNumberPropertyDef = new PrismPropertyDefinition<>(EXTENSION_GID_NUMBER_NAME, 
-//					DOMUtil.XSD_STRING, prismContext);
-//			PrismProperty<String> gidNumberProperty = gidNumberPropertyDef.instantiate();
-//			gidNumberProperty.setRealValue(gidNumber.toString());
-//			role.createExtension().add(gidNumberProperty);
-//		}
 		
 		return role;
 	}
