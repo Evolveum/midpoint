@@ -18,7 +18,6 @@ package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.EvaluatedAbstractRole;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedConstruction;
@@ -38,9 +37,7 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.NoFocusNameSchemaException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -118,7 +115,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -336,7 +332,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
 
     private void initLayout() {
         final Form mainForm = new Form(ID_MAIN_FORM, true);
-        mainForm.setMaxSize(MidPointApplication.USER_PHOTO_MAX_FILE_SIZE);
+        mainForm.setMaxSize(MidPointApplication.FOCUS_PHOTO_MAX_FILE_SIZE);
         mainForm.setMultiPart(true);
         add(mainForm);
 

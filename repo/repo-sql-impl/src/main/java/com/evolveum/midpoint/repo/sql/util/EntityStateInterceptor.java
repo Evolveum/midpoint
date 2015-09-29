@@ -1,7 +1,7 @@
 package com.evolveum.midpoint.repo.sql.util;
 
+import com.evolveum.midpoint.repo.sql.data.common.RFocusPhoto;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
-import com.evolveum.midpoint.repo.sql.data.common.RUserPhoto;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAExtValue;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAssignmentExtension;
 import com.evolveum.midpoint.repo.sql.data.common.any.ROExtValue;
@@ -35,8 +35,8 @@ public class EntityStateInterceptor extends EmptyInterceptor {
         } else if (entity instanceof ROExtValue) {
             ROExtValue val = (ROExtValue) entity;
             return isTransient(val.getOwner());
-        } else if (entity instanceof RUserPhoto) {
-            RUserPhoto photo = (RUserPhoto) entity;
+        } else if (entity instanceof RFocusPhoto) {
+            RFocusPhoto photo = (RFocusPhoto) entity;
             return isTransient(photo.getOwner());
         }
 

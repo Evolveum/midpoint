@@ -77,7 +77,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     /**
      * Max. photo size for user/jpegPhoto
      */
-    public static final Bytes USER_PHOTO_MAX_FILE_SIZE = Bytes.kilobytes(192);
+    public static final Bytes FOCUS_PHOTO_MAX_FILE_SIZE = Bytes.kilobytes(192);
 
     public static final String WEB_APP_CONFIGURATION = "midpoint.webApplication";
 

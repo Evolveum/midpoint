@@ -642,8 +642,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         LOGGER.debug("Updating full object xml column start.");
         savedObject.setVersion(Integer.toString(object.getVersion()));
 
-        if (UserType.class.equals(savedObject.getCompileTimeClass())) {
-            savedObject.removeProperty(UserType.F_JPEG_PHOTO);
+        if (FocusType.class.isAssignableFrom(savedObject.getCompileTimeClass())) {
+            savedObject.removeProperty(FocusType.F_JPEG_PHOTO);
         } else if (LookupTableType.class.equals(savedObject.getCompileTimeClass())) {
             PrismContainer table = savedObject.findContainer(LookupTableType.F_ROW);
             savedObject.remove(table);
@@ -1048,15 +1048,15 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             throw e;
         }
 
-        if (UserType.class.equals(prismObject.getCompileTimeClass())) {
-            if (SelectorOptions.hasToLoadPath(UserType.F_JPEG_PHOTO, options)) {
+        if (FocusType.class.isAssignableFrom(prismObject.getCompileTimeClass())) {
+            if (SelectorOptions.hasToLoadPath(FocusType.F_JPEG_PHOTO, options)) {
                 //todo improve, use user.hasPhoto flag and take options into account [lazyman]
                 //this is called only when options contains INCLUDE user/jpegPhoto
-                Query query = session.getNamedQuery("get.userPhoto");
+                Query query = session.getNamedQuery("get.focusPhoto");
                 query.setString("oid", prismObject.getOid());
                 byte[] photo = (byte[]) query.uniqueResult();
                 if (photo != null) {
-                    PrismProperty property = prismObject.findOrCreateProperty(UserType.F_JPEG_PHOTO);
+                    PrismProperty property = prismObject.findOrCreateProperty(FocusType.F_JPEG_PHOTO);
                     property.setRealValue(photo);
                 }
             }
@@ -1369,23 +1369,23 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
             Collection<? extends ItemDelta> lookupTableModifications = filterLookupTableModifications(type, modifications);
 
-            // JpegPhoto (RUserPhoto) is a special kind of entity. First of all, it is lazily loaded, because photos are really big.
-            // Each RUserPhoto naturally belongs to one RUser, so it would be appropriate to set orphanRemoval=true for user-photo
-            // association. However, this leads to a strange problem when merging in-memory RUser object with the database state:
-            // If in-memory RUser object has no photo associated (because of lazy loading), then the associated RUserPhoto is deleted.
+            // JpegPhoto (RFocusPhoto) is a special kind of entity. First of all, it is lazily loaded, because photos are really big.
+            // Each RFocusPhoto naturally belongs to one RFocus, so it would be appropriate to set orphanRemoval=true for focus-photo
+            // association. However, this leads to a strange problem when merging in-memory RFocus object with the database state:
+            // If in-memory RFocus object has no photo associated (because of lazy loading), then the associated RFocusPhoto is deleted.
             //
-            // To prevent this behavior, we've set orphanRemoval to false. Fortunately, the remove operation on RUser
-            // seems to be still cascaded to RUserPhoto. What we have to implement ourselves, however, is removal of RUserPhoto
-            // _without_ removing of RUser. In order to know whether the photo has to be removed, we have to retrieve
+            // To prevent this behavior, we've set orphanRemoval to false. Fortunately, the remove operation on RFocus
+            // seems to be still cascaded to RFocusPhoto. What we have to implement ourselves, however, is removal of RFocusPhoto
+            // _without_ removing of RFocus. In order to know whether the photo has to be removed, we have to retrieve
             // its value, apply the delta (e.g. if the delta is a DELETE VALUE X, we have to know whether X matches current
-            // value of the photo), and if the resulting value is empty, we have to manually delete the RUserPhoto instance.
+            // value of the photo), and if the resulting value is empty, we have to manually delete the RFocusPhoto instance.
             //
             // So the first step is to retrieve the current value of photo - we obviously do this only if the modifications
             // deal with the jpegPhoto property.
             Collection<SelectorOptions<GetOperationOptions>> options;
-            boolean containsUserPhotoModification = UserType.class.equals(type) && containsPhotoModification(modifications);
-            if (containsUserPhotoModification) {
-                options = Arrays.asList(SelectorOptions.create(UserType.F_JPEG_PHOTO, GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+            boolean containsFocusPhotoModification = FocusType.class.isAssignableFrom(type) && containsPhotoModification(modifications);
+            if (containsFocusPhotoModification) {
+                options = Arrays.asList(SelectorOptions.create(FocusType.F_JPEG_PHOTO, GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
             } else {
                 options = null;
             }
@@ -1405,9 +1405,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 LOGGER.trace("OBJECT after:\n{}", prismObject.debugDump());
             }
 
-            // Continuing the photo treatment: should we remove the (now obsolete) user photo?
+            // Continuing the photo treatment: should we remove the (now obsolete) focus photo?
             // We have to test prismObject at this place, because updateFullObject (below) removes photo property from the prismObject.
-            boolean shouldPhotoBeRemoved = containsUserPhotoModification && ((UserType) prismObject.asObjectable()).getJpegPhoto() == null;
+            boolean shouldPhotoBeRemoved = containsFocusPhotoModification && ((FocusType) prismObject.asObjectable()).getJpegPhoto() == null;
 
             // merge and update object
             LOGGER.trace("Translating JAXB to data type.");
@@ -1423,13 +1423,13 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 getClosureManager().updateOrgClosure(originalObject, modifications, session, oid, type, OrgClosureManager.Operation.MODIFY, closureContext);
             }
 
-            // JpegPhoto cleanup: As said before, if a user has to have no photo (after modifications are applied),
+            // JpegPhoto cleanup: As said before, if a focus has to have no photo (after modifications are applied),
             // we have to remove the photo manually.
             if (shouldPhotoBeRemoved) {
-                Query query = session.createQuery("delete RUserPhoto where ownerOid = :oid");
+                Query query = session.createQuery("delete RFocusPhoto where ownerOid = :oid");
                 query.setParameter("oid", prismObject.getOid());
                 query.executeUpdate();
-                LOGGER.trace("User photo for {} was deleted", prismObject.getOid());
+                LOGGER.trace("Focus photo for {} was deleted", prismObject.getOid());
             }
 
             LOGGER.trace("Before commit...");
@@ -1486,11 +1486,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     private <T extends ObjectType> boolean containsPhotoModification(Collection<? extends ItemDelta> modifications) {
-        ItemPath photoPath = new ItemPath(UserType.F_JPEG_PHOTO);
+        ItemPath photoPath = new ItemPath(FocusType.F_JPEG_PHOTO);
         for (ItemDelta delta : modifications) {
             ItemPath path = delta.getPath();
             if (path.isEmpty()) {
-                throw new UnsupportedOperationException("User cannot be modified via empty-path modification");
+                throw new UnsupportedOperationException("Focus cannot be modified via empty-path modification");
             } else if (photoPath.isSubPathOrEquivalent(path)) { // actually, "subpath" variant should not occur
                 return true;
             }

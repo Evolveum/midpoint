@@ -21,7 +21,7 @@ import java.io.Serializable;
 /**
  * @author lazyman
  */
-public class RUserPhotoId implements Serializable {
+public class RFocusPhotoId implements Serializable {
 
     private String ownerOid;
 
@@ -38,7 +38,7 @@ public class RUserPhotoId implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RUserPhotoId that = (RUserPhotoId) o;
+        RFocusPhotoId that = (RFocusPhotoId) o;
 
         if (ownerOid != null ? !ownerOid.equals(that.ownerOid) : that.ownerOid != null) return false;
 

@@ -12,3 +12,9 @@ alter table m_sequence
     add constraint fk_sequence
     foreign key (oid)
     references m_object;
+
+rename m_user_photo to m_focus_photo;
+
+alter table m_focus add hasPhoto bit not null;
+
+alter table m_user drop column hasPhoto;
