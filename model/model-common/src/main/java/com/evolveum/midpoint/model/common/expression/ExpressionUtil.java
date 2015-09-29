@@ -29,7 +29,6 @@ import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctionsXPath;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
@@ -66,6 +65,7 @@ import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -668,6 +668,47 @@ public class ExpressionUtil {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get principal information - the 'actor' variable is set to null", e);
         }
         scriptVariables.addVariableDefinition(ExpressionConstants.VAR_ACTOR, actor);
+    }
+    
+    public static <D extends ItemDefinition> Object convertToOutputValue(Long longValue, D outputDefinition, Protector protector) throws ExpressionEvaluationException, SchemaException {
+    	if (longValue == null) {
+    		return null;
+    	}
+    	QName outputType = outputDefinition.getTypeName();
+    	if (outputType.equals(DOMUtil.XSD_INT)) {
+    		return longValue.intValue();
+    	} else if (outputType.equals(DOMUtil.XSD_LONG)) {
+    		return longValue;
+    	} else {
+    		return convertToOutputValue(longValue.toString(), outputDefinition, protector);
+    	}
+    }
+    
+    public static <D extends ItemDefinition> Object convertToOutputValue(String stringValue, D outputDefinition, Protector protector) throws ExpressionEvaluationException, SchemaException {
+    	if (stringValue == null) {
+    		return null;
+    	}
+        QName outputType = outputDefinition.getTypeName();
+        if (outputType.equals(DOMUtil.XSD_STRING)) {
+        	return stringValue;
+        } else if (outputType.equals(ProtectedStringType.COMPLEX_TYPE)) {
+        	try {
+				return protector.encryptString(stringValue);
+			} catch (EncryptionException e) {
+				throw new ExpressionEvaluationException("Crypto error: "+e.getMessage(),e);
+			}
+        } else if (XmlTypeConverter.canConvert(outputType)) {
+        	Class<?> outputJavaType = XsdTypeMapper.toJavaType(outputType);
+        	try {
+        		return XmlTypeConverter.toJavaValue(stringValue, outputJavaType, true);
+        	} catch (NumberFormatException e) {
+        		throw new SchemaException("Cannot convert string '"+stringValue+"' to data type "+outputType+": invalid number format", e);
+        	} catch (IllegalArgumentException e) {
+        		throw new SchemaException("Cannot convert string '"+stringValue+"' to data type "+outputType+": "+e.getMessage(), e);
+        	}
+		} else {
+        	throw new IllegalArgumentException("Expression cannot generate values for properties of type " + outputType);
+        }
     }
 
 }

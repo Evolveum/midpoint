@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.web.component.form;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -20,6 +21,9 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.query.InOidFilter;
+import com.evolveum.midpoint.prism.query.NotFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -28,6 +32,7 @@ import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypeDialog;
+import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.roles.component.UserOrgReferenceChoosePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -53,14 +58,14 @@ public class ValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
 
 	private static final String CLASS_MULTI_VALUE = "multivalue-form";
 
-	public ValueChoosePanel(String id, IModel<T> value, boolean required, Class<C> type) {
+	public ValueChoosePanel(String id, IModel<T> value, List<PrismReferenceValue> values, boolean required, Class<C> type) {
 		super(id, value);
 		setOutputMarkupId(true);
 
-		initLayout(value, required, type);
+		initLayout(value, values, required, type);
 	}
 
-	private void initLayout(final IModel<T> value, final boolean required, Class<C> type) {
+	private void initLayout(final IModel<T> value, final List<PrismReferenceValue> values, final boolean required, Class<C> type) {
 
 		
 		WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
@@ -82,19 +87,19 @@ public class ValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				editValuePerformed(target);
+				editValuePerformed(values, target);
 			}
 		};
 		textWrapper.add(edit);
 		add(textWrapper);
 
-		initDialog(type);
+		initDialog(type, values);
 
 	}
 	
-	  protected T createNewEmptyItem() throws InstantiationException, IllegalAccessException {
-	        return null;
-	    }
+//	  protected T createNewEmptyItem() throws InstantiationException, IllegalAccessException {
+//	        return ty;
+//	    }
 	  
 	  protected void replaceIfEmpty(Object object) {
 		  boolean added = false;
@@ -104,18 +109,18 @@ public class ValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
 		 
 	  }
 
-	protected void initDialog(final Class<C> type) {
+	protected void initDialog(final Class<C> type, List<PrismReferenceValue> values) {
 		
 		if (FocusType.class.equals(type)){
 			 initUserOrgDialog();
          } else {
-        	 initGenericDialog(type);
+        	 initGenericDialog(type, values);
 		
 		
          }
 	}
 	
-	private void initGenericDialog(Class<C> type){
+	private void initGenericDialog(Class<C> type, final List<PrismReferenceValue> values){
 		ModalWindow dialog = new ChooseTypeDialog(MODAL_ID_CHOOSE_PANEL, type) {
 
 			@Override
@@ -125,7 +130,7 @@ public class ValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
 
 			@Override
 			protected ObjectQuery getDataProviderQuery() {
-				return createChooseQuery();
+				return createChooseQuery(values);
 			}
 			
 			@Override
@@ -160,8 +165,30 @@ public class ValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
 
 
 	
-	protected ObjectQuery createChooseQuery() {
-		return null;
+	protected ObjectQuery createChooseQuery(List<PrismReferenceValue> values) {
+		ArrayList<String> oidList = new ArrayList<>();
+		ObjectQuery query = new ObjectQuery();
+
+		for (PrismReferenceValue ref : values) {
+			if (ref != null) {
+				if (ref.getOid() != null && !ref.getOid().isEmpty()) {
+					oidList.add(ref.getOid());
+				}
+			}
+		}
+
+//		if (isediting) {
+//			oidList.add(orgModel.getObject().getObject().asObjectable().getOid());
+//		}
+
+		if (oidList.isEmpty()) {
+			return null;
+		}
+
+		ObjectFilter oidFilter = InOidFilter.createInOid(oidList);
+		query.setFilter(NotFilter.createNot(oidFilter));
+
+		return query;
 	}
 
 	/**
@@ -177,17 +204,24 @@ public class ValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
 
 			@Override
 			public String getObject() {
-				PrismReferenceValue ort = (PrismReferenceValue) model.getObject();
-
-				return ort == null ? null : (ort.getTargetName() != null ? ort.getTargetName().getOrig() : ort.getOid());
+				T ort = (T) model.getObject();
+				
+				if (ort instanceof PrismReferenceValue){
+					PrismReferenceValue prv = (PrismReferenceValue) ort;
+					return prv == null ? null : (prv.getTargetName() != null ? prv.getTargetName().getOrig() : prv.getOid());
+				} else if (ort instanceof ObjectViewDto) {
+					return ((ObjectViewDto) ort).getName();
+				}
+				return ort.toString();
+				
 			}
 		};
 	}
 
-	protected void editValuePerformed(AjaxRequestTarget target) {
+	protected void editValuePerformed(List<PrismReferenceValue> values, AjaxRequestTarget target) {
 		ModalWindow window = (ModalWindow) get(MODAL_ID_CHOOSE_PANEL);
 		ChooseTypeDialog dialog = (ChooseTypeDialog) window;
-		dialog.updateTablePerformed(target, createChooseQuery());
+		dialog.updateTablePerformed(target, createChooseQuery(values));
 		window.show(target);
 	}
 

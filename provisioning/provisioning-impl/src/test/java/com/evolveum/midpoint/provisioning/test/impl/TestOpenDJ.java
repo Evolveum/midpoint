@@ -1710,7 +1710,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertAttribute(provisioningShadowType, "cn", "Haggis McMutton");
 		assertAttribute(provisioningShadowType, "sn", "McMutton");
 		assertAttribute(provisioningShadowType, "homeDirectory", "/home/scotland");
-		assertAttribute(provisioningShadowType, "uidNumber", "1001");
+		assertAttribute(provisioningShadowType, "uidNumber", 1001);
 		
 		String uid = ShadowUtil.getSingleStringAttributeValue(repoShadowType, getPrimaryIdentifierQName());
 		assertNotNull(uid);
@@ -1760,7 +1760,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertAttribute(accountType, "cn", "Haggis McMutton");
 		assertAttribute(accountType, "homeDirectory", "/home/caribbean");
 		assertAttribute(accountType, "roomNumber", "Barber Shop");
-		assertAttribute(accountType, "uidNumber", "1001");
+		assertAttribute(accountType, "uidNumber", 1001);
 		
 		// Check if object was modified in LDAP
 		
@@ -1846,7 +1846,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		PrismObject<ShadowType> provisioningShadow = objListType.get(0);
 		assertAttribute(provisioningShadow, "cn", "Edward Van Helgen");
 		assertAttribute(provisioningShadow, "homeDirectory", "/home/vanhelgen");
-		assertAttribute(provisioningShadow, "uidNumber", "1002");
+		assertAttribute(provisioningShadow, "uidNumber", 1002);
 		
 		assertConnectorOperationIncrement(1);
 		assertConnectorSimulatedPagingSearchIncrement(0);

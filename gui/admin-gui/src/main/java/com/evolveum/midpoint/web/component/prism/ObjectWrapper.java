@@ -100,6 +100,7 @@ public class ObjectWrapper implements Serializable, Revivable {
 	private static final String CREATE_CONTAINERS = DOT_CLASS + "createContainers";
 
 	private PrismObject object;
+	private PrismObject objectOld;
 	private ObjectDelta oldDelta;
 	private ContainerStatus status;
 	private HeaderStatus headerStatus;
@@ -149,6 +150,7 @@ public class ObjectWrapper implements Serializable, Revivable {
 		this.displayName = displayName;
 		this.description = description;
 		this.object = object;
+		this.objectOld = object.clone();
 		this.status = status;
 		this.objectDefinitionForEditing = objectDefinitionForEditing;
 		this.objectClassDefinitionForEditing = objectClassDefinitionForEditing;
@@ -221,6 +223,10 @@ public class ObjectWrapper implements Serializable, Revivable {
 
 	public PrismObject getObject() {
 		return object;
+	}
+	
+	public PrismObject getObjectOld() {
+		return objectOld;
 	}
 
 	public String getDisplayName() {
@@ -374,6 +380,7 @@ public class ObjectWrapper implements Serializable, Revivable {
 				containers.addAll(createContainerWrapper(object, null, pageBase));
 			}
 		} catch (Exception ex) {
+			//TODO: shouldn't be this exception thrown????
 			LoggingUtils.logUnexpectedException(LOGGER, "Error occurred during container wrapping", ex);
 			result.recordFatalError("Error occurred during container wrapping, reason: " + ex.getMessage(),
 					ex);

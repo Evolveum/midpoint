@@ -29,6 +29,7 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.common.policy.ValuePolicyGenerator;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluator;
+import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.common.expression.Source;
 import com.evolveum.midpoint.model.common.expression.StringPolicyResolver;
 import com.evolveum.midpoint.prism.Item;
@@ -82,10 +83,6 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 		this.elementStringPolicy = elementStringPolicy;
 		this.prismContext = prismContext;
 	}
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#evaluate(java.util.Collection, java.util.Map, boolean, java.lang.String, com.evolveum.midpoint.schema.result.OperationResult)
-	 */
 	
 	private boolean isNotEmptyMinLength(StringPolicyType policy){
 		Integer minLength = policy.getLimitations().getMinLength();
@@ -97,10 +94,13 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 		}
 		return  false;
 	}
+	
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#evaluate(java.util.Collection, java.util.Map, boolean, java.lang.String, com.evolveum.midpoint.schema.result.OperationResult)
+	 */
 	@Override
 	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext params) throws SchemaException,
 			ExpressionEvaluationException, ObjectNotFoundException {
-				
         
         StringPolicyType stringPolicyType = null;
         
@@ -149,28 +149,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 	    	throw new ExpressionEvaluationException("Unknown mode for generate expression: "+mode);
 	    }
         
-        Object value;
-        QName outputType = outputDefinition.getTypeName();
-        if (outputType.equals(DOMUtil.XSD_STRING)) {
-        	value  = stringValue;
-        } else if (outputType.equals(ProtectedStringType.COMPLEX_TYPE)) {
-        	try {
-				value = protector.encryptString(stringValue);
-			} catch (EncryptionException e) {
-				throw new ExpressionEvaluationException("Crypto error: "+e.getMessage(),e);
-			}
-        } else if (XmlTypeConverter.canConvert(outputType)) {
-        	Class<?> outputJavaType = XsdTypeMapper.toJavaType(outputType);
-        	try {
-        		value = XmlTypeConverter.toJavaValue(stringValue, outputJavaType, true);
-        	} catch (NumberFormatException e) {
-        		throw new SchemaException("Cannot convert generated string '"+stringValue+"' to data type "+outputType+": invalid number format", e);
-        	} catch (IllegalArgumentException e) {
-        		throw new SchemaException("Cannot convert generated string '"+stringValue+"' to data type "+outputType+": "+e.getMessage(), e);
-        	}
-		} else {
-        	throw new IllegalArgumentException("Generate value constructor cannot generate values for properties of type " + outputType);
-        }
+        Object value = ExpressionUtil.convertToOutputValue(stringValue, outputDefinition, protector);
                 
 		Item<V,D> output = outputDefinition.instantiate();
 		if (output instanceof PrismProperty) {

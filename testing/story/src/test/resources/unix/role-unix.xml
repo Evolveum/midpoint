@@ -26,7 +26,7 @@
     		<!-- OpenDJ resource -->
     		<resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
     		<kind>account</kind>
-    		<c:auxiliaryObjectClass>ri:posixAccount</c:auxiliaryObjectClass>
+    		<auxiliaryObjectClass>ri:posixAccount</auxiliaryObjectClass>
     		<attribute>
                 <ref>ri:uidNumber</ref>
                 <outbound>
@@ -61,5 +61,21 @@
             </attribute>
     	</construction>
     </inducement>
-    
+
+	<inducement>
+		<focusMappings>
+			<mapping>
+				<name>sequenceUID</name>
+				<strength>weak</strength>
+				<expression>
+					<sequentialValue>
+						<sequenceRef oid="7d4acb8c-65e3-11e5-9ef4-6382ba96fe6c"/>
+					</sequentialValue>
+				</expression>
+				<target>
+					<path>extension/uidNumber</path>
+				</target>
+			</mapping>
+		</focusMappings>
+	</inducement>
 </role>

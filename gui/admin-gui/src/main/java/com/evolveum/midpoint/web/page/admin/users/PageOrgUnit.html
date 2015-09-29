@@ -18,92 +18,49 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <form class="form-horizontal" wicket:id="form">
-        <!--
-            name,description,requestable,displayName,identifier,costCenter,locality,parentOrgRef
-            assignment,inducement,orgType,activation,authorization,exclusion, approverRef, approverExpression
-        -->
-
-        <div class="row">
-         <div class="col-md-6">
-         <h3><wicket:message key="PageOrgUnit.title.parentOrgUnit"/></h3>
-<!--          <div wicket:id="parentOrgUnits" /> -->
-         	
-                <div wicket:id="orgForm"/>
+ 
+    <form wicket:id="mainForm" autocomplete="off" class="form-horizontal">
+    
+    <div class="row" wicket:id="summaryPanel">
+            <div class="col-xs-6 col-md-2 col-md-offset-4" style="text-align: right;">
+                <img wicket:id="summaryPhoto" class="user-thumbnail" src="img/placeholder.png">
             </div>
-<!--             <div class="col-md-6"> -->
-<!--                 <h3><wicket:message key="PageOrgUnit.title.basic"/></h3> -->
-<!--                 <div class="form-group" wicket:id="name" /> -->
-<!--                 <div class="form-group" wicket:id="displayName"/> -->
-<!--                 <div class="form-group" wicket:id="description"/> -->
-
-                
-
-<!--                 <div class="form-group" wicket:id="orgType"/> -->
-
-<!--                 <div class="form-group" wicket:id="requestable"/> -->
-<!--                 <div class="form-group" wicket:id="tenant"/> -->
-<!--                 <div class="form-group" wicket:id="identifier"/> -->
-<!--                 <div class="form-group" wicket:id="costCenter"/> -->
-<!--                 <div class="form-group" wicket:id="locality"/> -->
-<!--                 <div class="form-group" wicket:id="mailDomain"/> -->
-
-<!--                 <h3><wicket:message key="FocusType.activation"/></h3> -->
-<!--                 <div class="form-group" wicket:id="administrativeStatus"/> -->
-<!--                 <div class="form-group" wicket:id="validFrom"/> -->
-<!--                 <div class="form-group" wicket:id="validTo"/> -->
-
-<!--                 Extension -->
-<!--                 <h3 wicket:id="extensionLabel" style="margin-left: 20px;"></h3> -->
-<!--                 <div class="form-group" wicket:id="extension"> -->
-<!--                     <div wicket:id="property"/> -->
-<!--                 </div> -->
-
-<!--             </div> -->
-            <div class="col-md-6">
-            
-             <div wicket:id="accounts">
-                    <div class="row assignable-header">
-                        <div class="col-xs-10">
-<!--                             <input type="checkbox" wicket:id="accountCheckAll"/> -->
-                            <h3><wicket:message key="pageOrgUnit.accounts"/></h3>
-                        </div>
-                    </div>
-                    <div wicket:id="accountList">
-                        <div wicket:id="account" />
-                    </div>
-                </div>
-            	
-                <div wicket:id="inducementsPanel" />
-                <div wicket:id="assignmentsPanel" style="margin-top: 30px;" />
-                <!--
-                <h3><wicket:message key="PageOrgUnit.title.assignments"/></h3>
-                todo
-                <h3><wicket:message key="PageOrgUnit.title.inducements"/></h3>
-                todo
-                <h3><wicket:message key="PageOrgUnit.title.authorizations"/></h3>
-                todo
-                <h3><wicket:message key="PageOrgUnit.title.exclusions"/></h3>
-                todo
-                <h3><wicket:message key="PageOrgUnit.title.approvers"/></h3>
-                todo
-                -->
+            <div class="col-xs-6 col-md-4">
+                <table class="table" style="width: auto; min-width: 300px;">
+                    <tr>
+                        <td><h4><wicket:message key="ObjectType.name"/></h4></td>
+                        <td><h4><span wicket:id="summaryName" /></h4></td>
+                    </tr>
+                    <tr>
+                        <td><strong><wicket:message key="FocusType.displayName"/></strong></td>
+                        <td><span wicket:id="summaryDisplayName" /></td>
+                    </tr>
+                    <tr>
+                        <td><strong><wicket:message key="AbstractRoleType.identifier"/></strong></td>
+                        <td><span wicket:id="summaryIdentifier" /></td>
+                    </tr>
+                    
+                </table>
             </div>
         </div>
-
+    
+    <div wicket:id="tabPanel" class="tabbable" />
+          
         <div style="margin: 20px 0;" class="form-group" wicket:id="executeOptions" />
 
-        <div wicket:id="progressPanel">[Progress panel here]</div>
+        <div wicket:id="progressPanel">[Status indicator here]</div>
 
         <div class="main-button-bar">
             <span class="button-group">
                 <a class="btn btn-default" wicket:id="back"/>
             </span>
-
+            <!-- todo implement previes -->
+            <a class="btn btn-info" wicket:id="recomputeAssignments" />
             <a class="btn btn-primary" wicket:id="save"/>
             <a class="btn btn-danger" wicket:id="abort"/>
         </div>
     </form>
+
 </wicket:extend>
 </body>
 </html>

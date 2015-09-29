@@ -141,6 +141,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
      * User feedback.
      */
     transient private Collection<ProgressListener> progressListeners;
+    
+    private Map<String,Long> sequences = new HashMap<>();
 
     public LensContext(Class<F> focusClass, PrismContext prismContext, ProvisioningService provisioningService) {
 		Validate.notNull(prismContext, "No prismContext");
@@ -980,5 +982,17 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 			historicResourceObjects = new ArrayList<>();
 		}
 		return historicResourceObjects;
+	}
+	
+	public Map<String, Long> getSequences() {
+		return sequences;
+	}
+
+	public Long getSequenceCounter(String sequenceOid) {
+		return sequences.get(sequenceOid);
+	}
+	
+	public void setSequenceCounter(String sequenceOid, long counter) {
+		sequences.put(sequenceOid, counter);
 	}
 }
