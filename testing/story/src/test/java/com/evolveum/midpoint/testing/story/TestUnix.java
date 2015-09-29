@@ -16,6 +16,7 @@ package com.evolveum.midpoint.testing.story;
  */
 
 
+import static org.testng.AssertJUnit.assertFalse;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -34,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
@@ -68,6 +70,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -78,6 +81,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SequenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -134,6 +138,17 @@ public class TestUnix extends AbstractStoryTest {
 	private static final String USER_LARGO_FIST_NAME = "Largo";
 	private static final String USER_LARGO_LAST_NAME = "LaGrande";
 	private static final int USER_LARGO_UID_NUMBER = 1002;
+
+	private static final String USER_CAPSIZE_USERNAME = "capsize";
+	private static final String USER_CAPSIZE_FIST_NAME = "Kate";
+	private static final String USER_CAPSIZE_LAST_NAME = "Capsize";
+	private static final int USER_CAPSIZE_UID_NUMBER = 1003;
+	
+	private static final String USER_WALLY_USERNAME = "wally";
+	private static final String USER_WALLY_FIST_NAME = "Wally";
+	private static final String USER_WALLY_LAST_NAME = "Feed";
+	private static final int USER_WALLY_UID_NUMBER = 1003;
+
 	
 	private static final File STRUCT_LDIF_FILE = new File(TEST_DIR, "struct.ldif");
 
@@ -141,6 +156,9 @@ public class TestUnix extends AbstractStoryTest {
 	
 	private static final String ROLE_VILLAINS_NAME = "villains";
 	private static final Integer ROLE_VILLAINS_GID = 999;
+	
+	public static final File OBJECT_TEMPLATE_USER_FILE = new File(TEST_DIR, "object-template-user.xml");
+	public static final String OBJECT_TEMPLATE_USER_OID = "9cd03eda-66bd-11e5-866c-f3bc34108fdf";
 	
 	public static final File SEQUENCE_UIDNUMBER_FILE = new File(TEST_DIR, "sequence-uidnumber.xml");
 	public static final String SEQUENCE_UIDNUMBER_OID = "7d4acb8c-65e3-11e5-9ef4-6382ba96fe6c";
@@ -179,14 +197,8 @@ public class TestUnix extends AbstractStoryTest {
 	private static final String ACCOUNT_STAN_FIST_NAME = "Stan";
 	private static final String ACCOUNT_STAN_LAST_NAME = "Salesman";
 	
-	private static final String ACCOUNT_CAPSIZE_USERNAME = "capsize";
-	private static final String ACCOUNT_CAPSIZE_FIST_NAME = "Kate";
-	private static final String ACCOUNT_CAPSIZE_LAST_NAME = "Capsize";
 	
-	private static final String ACCOUNT_WALLY_USERNAME = "wally";
-	private static final String ACCOUNT_WALLY_FIST_NAME = "Wally";
-	private static final String ACCOUNT_WALLY_LAST_NAME = "Feed";
-	
+		
 	private static final String ACCOUNT_AUGUSTUS_USERNAME = "augustus";
 	private static final String ACCOUNT_AUGUSTUS_FIST_NAME = "Augustus";
 	private static final String ACCOUNT_AUGUSTUS_LAST_NAME = "DeWaat";
@@ -239,6 +251,9 @@ public class TestUnix extends AbstractStoryTest {
 		// LDAP content
 		openDJController.addEntriesFromLdifFile(STRUCT_LDIF_FILE.getPath());
 	
+		// Object Templates
+		importObjectFromFile(OBJECT_TEMPLATE_USER_FILE, initResult);
+		setDefaultUserTemplate(OBJECT_TEMPLATE_USER_OID);
 		
 		// Role
 		importObjectFromFile(ROLE_BASIC_FILE, initResult);
@@ -749,6 +764,89 @@ public class TestUnix extends AbstractStoryTest {
         String accountLArgoDn = assertPosixAccount(shadow, USER_LARGO_UID_NUMBER);
         SearchResultEntry groupVillains = openDJController.fetchEntry(groupVillainsDn);
         openDJController.assertAttribute(groupVillains, "memberUid", Integer.toString(USER_LARGO_UID_NUMBER));
+	}
+	
+	@Test
+    public void test300AddUserCapsizeUnixFail() throws Exception {
+		final String TEST_NAME = "test300AddUserCapsizeUnixFail";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<SequenceType> sequenceBefore = getObject(SequenceType.class, SEQUENCE_UIDNUMBER_OID);
+        display("Sequence before", sequenceBefore);
+        assertEquals("Wrong sequence counter (precondition)", USER_CAPSIZE_UID_NUMBER, sequenceBefore.asObjectable().getCounter().intValue());
+        assertTrue("Unexpected unused values in the sequence (precondition)", sequenceBefore.asObjectable().getUnusedValues().isEmpty());
+        
+        PrismObject<UserType> user = createUser(USER_CAPSIZE_USERNAME, USER_CAPSIZE_FIST_NAME, USER_CAPSIZE_LAST_NAME, ROLE_UNIX_OID);
+        user.asObjectable().getEmployeeType().add("troublemaker");
+        
+        try {
+	        // WHEN
+			TestUtil.displayWhen(TEST_NAME);
+	        addObject(user, task, result);
+	        
+	        AssertJUnit.fail("Unexpected success");
+        } catch (ExpressionEvaluationException e) {        
+        	display("Expected exception", e);
+        	// this is expected
+        }
+
+    	// THEN
+        TestUtil.displayThen(TEST_NAME);
+    	result.computeStatus();
+    	TestUtil.assertFailure(result);
+
+        PrismObject<UserType> userAfter = findUserByUsername(USER_CAPSIZE_USERNAME);
+        display("User after", userAfter);
+        assertNull("User capsize sneaked in", userAfter);
+
+        PrismObject<SequenceType> sequenceAfter = getObject(SequenceType.class, SEQUENCE_UIDNUMBER_OID);
+        display("Sequence after", sequenceAfter);
+        assertEquals("Sequence haven't moved", USER_CAPSIZE_UID_NUMBER + 1, sequenceAfter.asObjectable().getCounter().intValue());
+        assertFalse("No unused values in the sequence", sequenceAfter.asObjectable().getUnusedValues().isEmpty());
+	}
+	
+	/**
+	 * This should go well. It should reuse the identifier that was originally assigned to
+	 * Kate Capsise, but not used.
+	 */
+	@Test
+    public void test310AddUserWallyUnix() throws Exception {
+		final String TEST_NAME = "test310AddUserWallyUnix";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<SequenceType> sequenceBefore = getObject(SequenceType.class, SEQUENCE_UIDNUMBER_OID);
+        display("Sequence before", sequenceBefore);
+        assertEquals("Wrong sequence counter (precondition)", USER_WALLY_UID_NUMBER + 1, sequenceBefore.asObjectable().getCounter().intValue());
+        assertFalse("Missing unused values in the sequence (precondition)", sequenceBefore.asObjectable().getUnusedValues().isEmpty());
+
+        PrismObject<UserType> user = createUser(USER_WALLY_USERNAME, USER_WALLY_FIST_NAME, USER_WALLY_LAST_NAME, ROLE_UNIX_OID);
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+        addObject(user, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        PrismObject<UserType> userAfter = findUserByUsername(USER_WALLY_USERNAME);
+        assertNotNull("No herman user", userAfter);
+        display("User after", userAfter);
+        assertUserPosix(userAfter, USER_WALLY_USERNAME, USER_WALLY_FIST_NAME, USER_WALLY_LAST_NAME, USER_WALLY_UID_NUMBER);
+        accountMancombOid = getSingleLinkOid(userAfter);
+        
+        PrismObject<ShadowType> shadow = getShadowModel(accountMancombOid);
+        display("Shadow (model)", shadow);
+        accountMancombDn = assertPosixAccount(shadow, USER_WALLY_UID_NUMBER);
+        
+        PrismObject<SequenceType> sequenceAfter = getObject(SequenceType.class, SEQUENCE_UIDNUMBER_OID);
+        display("Sequence after", sequenceAfter);
+        assertEquals("Sequence has moved", USER_WALLY_UID_NUMBER + 1, sequenceAfter.asObjectable().getCounter().intValue());
+        assertTrue("Unexpected unused values in the sequence", sequenceAfter.asObjectable().getUnusedValues().isEmpty());
 	}
 	
 	private PrismObject<UserType> createUser(String username, String givenName, String familyName, String roleOid) throws SchemaException {
