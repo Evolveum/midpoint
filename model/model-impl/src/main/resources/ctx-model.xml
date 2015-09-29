@@ -199,6 +199,13 @@
           <constructor-arg ref="modelController"/>
     </bean>
     
+    <bean id="sequentialValueExpressionEvaluatorFactory" class="com.evolveum.midpoint.model.impl.expr.SequentialValueExpressionEvaluatorFactory"
+          scope="singleton">
+          <constructor-arg ref="protector"/>
+          <constructor-arg ref="cacheRepositoryService"/>
+          <constructor-arg name="prismContext" ref="prismContext"/>
+    </bean>
+    
     <bean id="expressionFactory" class="com.evolveum.midpoint.model.common.expression.ExpressionFactory" 
     		scope="singleton">
         <constructor-arg>
@@ -218,6 +225,7 @@
         		<ref bean="referenceSearchExpressionEvaluatorFactory"/>
         		<ref bean="associationTargetSearchExpressionEvaluatorFactory"/>
         		<ref bean="associationFromLinkExpressionEvaluatorFactory"/>
+        		<ref bean="sequentialValueExpressionEvaluatorFactory"/>
         	</list>
         </property>
         <property name="defaultEvaluatorFactory">

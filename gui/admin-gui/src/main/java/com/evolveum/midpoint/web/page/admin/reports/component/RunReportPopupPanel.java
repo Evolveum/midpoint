@@ -4,6 +4,7 @@ import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
@@ -37,6 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -206,7 +208,13 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
             panel = new DatePanel(componentId, new PropertyModel<XMLGregorianCalendar>(model, expression));
         } else if ("resourceName".equals(param.getName())) { // hardcoded for Reconc report
             panel = new DropDownChoicePanel(componentId, new PropertyModel(model, expression),
-                    createResourceListModel(), new ChoiceRenderer<String>(), false);             
+                    createResourceListModel(), new ChoiceRenderer<String>(), false);
+        } else if ("stringAttributeName".equals(param.getName())) { // hardcoded for User report
+            panel = new DropDownChoicePanel(componentId, new PropertyModel(model, expression),
+                    createUserAttributeListModel(String.class), new ChoiceRenderer<String>(), false);
+        } else if ("polyStringAttributeName".equals(param.getName())) { // hardcoded for User report
+            panel = new DropDownChoicePanel(componentId, new PropertyModel(model, expression),
+                    createUserAttributeListModel(PolyString.class), new ChoiceRenderer<String>(), false);
         } else {
             panel = new TextPanel<String>(componentId, new PropertyModel<String>(model, expression));
         }
@@ -223,6 +231,31 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
         }
         return panel;
 
+    }
+
+    private IModel<List<String>> createUserAttributeListModel(Class type) {
+        final List<String> attrList = new ArrayList();
+        PrismObjectDefinition<UserType> userDefinition = getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+        List<? extends ItemDefinition> itemDefs = userDefinition.getDefinitions();
+
+        for (ItemDefinition id : itemDefs) {
+            if (id instanceof PrismPropertyDefinition
+                    && ((((PrismPropertyDefinition) id).isIndexed() == null)
+                    || (((PrismPropertyDefinition) id).isIndexed() == true))) {
+                if (id.getTypeClass() != null && id.getTypeClass().equals(type)) {
+                    attrList.add(id.getName().getLocalPart());
+                }
+            }
+        }
+
+        return new AbstractReadOnlyModel<List<String>>() {
+
+            @Override
+            public List<String> getObject() {
+                return attrList;
+            }
+
+        };
     }
 
     private IModel<List<String>> createResourceListModel() {
@@ -293,6 +326,7 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
             PrismContainerValue<ReportParameterType> reportParamValue = reportParam.asPrismContainerValue();
             reportParamValue.revive(getPrismContext());
             paramContainer.add(reportParamValue);
+            Class attributeNameClass = null;
             for (JasperReportParameterDto paramDto : params) {
                 if (paramDto.getValue() == null) {
                     continue;
@@ -300,6 +334,21 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
                 QName typeName = null;
                 Object realValue = paramDto.getValue();
                 Class paramClass = paramDto.getType();
+                /*
+                 if ("attributeName".equals(paramDto.getName())) {                    
+                 attributeNameClass = ((ItemDefinition) realValue).getTypeClass();
+                 realValue = ((ItemDefinition) realValue).getName().getLocalPart();
+                 }
+                 if ("attributeValue".equals(paramDto.getName())) {
+                 if (attributeNameClass.equals(String.class)) {
+                 realValue = getPrismContext().serializeAnyData((String) realValue, 
+                 new QName(ReportConstants.NS_EXTENSION, paramDto.getName()), PrismContext.LANG_XML);
+                 } else if (attributeNameClass.equals(PolyString.class)) {
+                 realValue = getPrismContext().serializeAnyData(new PolyStringType((String) realValue),
+                 new QName(ReportConstants.NS_EXTENSION, paramDto.getName()), PrismContext.LANG_XML);
+                 }
+                 }
+                 */
                 if (XmlTypeConverter.canConvert(paramClass)) {
                     typeName = XsdTypeMapper.toXsdType(paramClass);
                 } else {

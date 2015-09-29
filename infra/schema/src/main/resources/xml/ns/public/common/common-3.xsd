@@ -5690,6 +5690,28 @@
 			<xsd:element name="target" type="tns:MappingTargetDeclarationType"/>
 		</xsd:sequence>
 	</xsd:complexType>
+	
+	<xsd:complexType name="SequentialValueExpressionEvaluatorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Get a sequential value from a named sequence.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="sequenceRef" type="tns:ObjectReferenceType" minOccurs="0">
+        		<xsd:annotation>
+	                <xsd:documentation>
+	                    Reference to the sequence from which the value is taken.
+	                </xsd:documentation>
+	                <xsd:appinfo>
+	        			<a:objectReferenceTargetType>tns:SequenceType</a:objectReferenceTargetType>
+	        		</xsd:appinfo>
+	            </xsd:annotation>
+        	</xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="sequentialValue" type="tns:SequentialValueExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 
     <xsd:element name="synchronization" type="tns:SynchronizationType"/>
 
