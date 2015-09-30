@@ -857,9 +857,11 @@ public class TreeTablePanel extends SimplePanel<String> {
     private PrismObject<OrgType> addChildOrgUnitPerformed(AjaxRequestTarget target, OrgType org) {
         PageBase page = getPageBase();
         try {
-            ObjectReferenceType ref = new ObjectReferenceType();
-            ref.setOid(selected.getObject().getOid());
-            ref.setType(OrgType.COMPLEX_TYPE);
+        	ObjectReferenceType ref = WebMiscUtil.createObjectRef(selected.getObject().getOid(), selected.getObject().getName(), OrgType.COMPLEX_TYPE);
+//            ObjectReferenceType ref = new ObjectReferenceType();
+//            ref.setOid(selected.getObject().getOid());
+//            ref.setType(OrgType.COMPLEX_TYPE);
+//            ref.setTargetName(WebMiscUtil.createPolyFromOrigString(selected.getObject().getName()));
             org.getParentOrgRef().add(ref);
 
             PrismContext context = page.getPrismContext();

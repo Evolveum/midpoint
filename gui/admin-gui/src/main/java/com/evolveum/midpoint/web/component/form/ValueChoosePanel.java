@@ -104,8 +104,7 @@ public class ValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
 	  protected void replaceIfEmpty(Object object) {
 		  boolean added = false;
 		 	  ObjectReferenceType ort = ObjectTypeUtil.createObjectRef((ObjectType) object);
-		 	  ort.setTargetName(((ObjectType) object).getName());
-			  getModel().setObject((T)ort.asReferenceValue());
+		 	  getModel().setObject((T)ort.asReferenceValue());
 		 
 	  }
 

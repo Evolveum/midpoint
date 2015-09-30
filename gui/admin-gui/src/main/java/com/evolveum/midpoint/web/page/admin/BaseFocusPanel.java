@@ -50,6 +50,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorPanel;
@@ -149,6 +150,8 @@ public abstract class BaseFocusPanel<T extends FocusType> extends Panel{
 	    private static final String ID_ASSIGNMENT_MENU = "assignmentMenu";
 	    private static final String ID_SHADOW_CHECK_ALL = "shadowCheckAll";
 	    private static final String ID_ASSIGNMENT_CHECK_ALL = "assignmentCheckAll";
+	    private static final String ID_BUTTON_RECOMPUTE_ASSIGNMENTS = "recomputeAssignments";
+	    
 	    
 	    private static final String MODAL_ID_RESOURCE = "resourcePopup";
 	    private static final String MODAL_ID_ASSIGNABLE = "assignablePopup";
@@ -236,10 +239,16 @@ public LoadableModel<ObjectWrapper> getFocusModel() {
 
 	        initResourceModal();
 	        initAssignableModal();
-	        initConfirmationDialogs();
 	        
+//	        ModalWindow assignmentPreviewPopup = new AssignmentPreviewDialog(MODAL_ID_ASSIGNMENTS_PREVIEW, null, null);
+//	        add(assignmentPreviewPopup);
+	        
+	        initConfirmationDialogs();
+	        initButtons();
 //	        initCustomLayout(mainForm);
 	 }
+	 
+	 
 	 public ObjectWrapper getFocusWrapper() {
 		return focusModel.getObject();
 	}
@@ -935,6 +944,23 @@ public LoadableModel<ObjectWrapper> getFocusModel() {
 	        // add(dialog);
 	    }
 	    
+	    private void initButtons(){
+	    	 AjaxSubmitButton recomputeAssignments = new AjaxSubmitButton(ID_BUTTON_RECOMPUTE_ASSIGNMENTS,
+		                createStringResource("pageAdminFocus.button.recompute.assignments")) {
+
+		            @Override
+		            protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+		            	AssignmentPreviewDialog dialog = (AssignmentPreviewDialog) getParent().get(createComponentPath(MODAL_ID_ASSIGNMENTS_PREVIEW));
+		                ((PageAdminFocus)page).recomputeAssignmentsPerformed(dialog, target);
+		            }
+
+		            @Override
+		            protected void onError(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+		                target.add(getFeedbackPanel());
+		            }
+		        };
+		        add(recomputeAssignments);
+	    }
 
 
 
