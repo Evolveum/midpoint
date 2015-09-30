@@ -447,11 +447,13 @@ public LoadableModel<ObjectWrapper> getFocusModel() {
 	    }
 	 
 	 private void initAssignments(WebMarkupContainer assignments) {
+		 
+		 
 		 AssignmentTablePanel panel = new AssignmentTablePanel(ID_ASSIGNMENTS_PANEL, createStringResource("FocusType.assignment"), assignmentsModel){
 			 
 			 @Override
 			protected void showAllAssignments(AjaxRequestTarget target) {
-				 AssignmentPreviewDialog dialog = (AssignmentPreviewDialog) getParent().get(createComponentPath(MODAL_ID_ASSIGNMENTS_PREVIEW));
+				 AssignmentPreviewDialog dialog = (AssignmentPreviewDialog) getParent().getParent().get(createComponentPath(MODAL_ID_ASSIGNMENTS_PREVIEW));
 	             ((PageAdminFocus)page).recomputeAssignmentsPerformed(dialog, target);
 			}
 			 
