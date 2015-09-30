@@ -244,7 +244,7 @@ public LoadableModel<ObjectWrapper> getFocusModel() {
 //	        add(assignmentPreviewPopup);
 	        
 	        initConfirmationDialogs();
-	        initButtons();
+//	        initButtons();
 //	        initCustomLayout(mainForm);
 	 }
 	 
@@ -447,7 +447,15 @@ public LoadableModel<ObjectWrapper> getFocusModel() {
 	    }
 	 
 	 private void initAssignments(WebMarkupContainer assignments) {
-		 AssignmentTablePanel panel = new AssignmentTablePanel<>(ID_ASSIGNMENTS_PANEL, createStringResource("FocusType.assignment"), assignmentsModel);
+		 AssignmentTablePanel panel = new AssignmentTablePanel(ID_ASSIGNMENTS_PANEL, createStringResource("FocusType.assignment"), assignmentsModel){
+			 
+			 @Override
+			protected void showAllAssignments(AjaxRequestTarget target) {
+				 AssignmentPreviewDialog dialog = (AssignmentPreviewDialog) getParent().get(createComponentPath(MODAL_ID_ASSIGNMENTS_PREVIEW));
+	             ((PageAdminFocus)page).recomputeAssignmentsPerformed(dialog, target);
+			}
+			 
+		 };
 		 assignments.add(panel);
 	    }
 
@@ -944,23 +952,23 @@ public LoadableModel<ObjectWrapper> getFocusModel() {
 	        // add(dialog);
 	    }
 	    
-	    private void initButtons(){
-	    	 AjaxSubmitButton recomputeAssignments = new AjaxSubmitButton(ID_BUTTON_RECOMPUTE_ASSIGNMENTS,
-		                createStringResource("pageAdminFocus.button.recompute.assignments")) {
-
-		            @Override
-		            protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
-		            	AssignmentPreviewDialog dialog = (AssignmentPreviewDialog) getParent().get(createComponentPath(MODAL_ID_ASSIGNMENTS_PREVIEW));
-		                ((PageAdminFocus)page).recomputeAssignmentsPerformed(dialog, target);
-		            }
-
-		            @Override
-		            protected void onError(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
-		                target.add(getFeedbackPanel());
-		            }
-		        };
-		        add(recomputeAssignments);
-	    }
+//	    private void initButtons(){
+//	    	 AjaxSubmitButton recomputeAssignments = new AjaxSubmitButton(ID_BUTTON_RECOMPUTE_ASSIGNMENTS,
+//		                createStringResource("pageAdminFocus.button.recompute.assignments")) {
+//
+//		            @Override
+//		            protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+//		            	AssignmentPreviewDialog dialog = (AssignmentPreviewDialog) getParent().get(createComponentPath(MODAL_ID_ASSIGNMENTS_PREVIEW));
+//		                ((PageAdminFocus)page).recomputeAssignmentsPerformed(dialog, target);
+//		            }
+//
+//		            @Override
+//		            protected void onError(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+//		                target.add(getFeedbackPanel());
+//		            }
+//		        };
+//		        add(recomputeAssignments);
+//	    }
 
 
 
