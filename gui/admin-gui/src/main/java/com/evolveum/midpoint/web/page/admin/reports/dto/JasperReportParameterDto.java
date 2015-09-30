@@ -4,23 +4,38 @@ import java.io.Serializable;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.util.Editable;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.Validatable;
+
+import net.sf.jasperreports.engine.JRPropertiesMap;
 
 public class JasperReportParameterDto extends Selectable implements Serializable, Editable, Validatable{
 	
 	private String name;
 	private Class type;
 	private String typeAsString;
-	
+//	private ItemPath path;
+	private String description;
+	private Class nestedType;
 	private boolean forPrompting = false;
 	private Object value;
+	
+	private JRPropertiesMap properties;
 	
 	private boolean editing;
 	
 	public JasperReportParameterDto() {
 		// TODO Auto-generated constructor stub
+	}
+	
+	public void setNestedType(Class nestedType) {
+		this.nestedType = nestedType;
+	}
+	
+	public Class getNestedType() {
+		return nestedType;
 	}
 	
 	public JasperReportParameterDto(String name, Class type, String typeAsString, boolean forPrompting) {
@@ -56,6 +71,21 @@ public class JasperReportParameterDto extends Selectable implements Serializable
 	
 	public String getTypeAsString() {
 		return typeAsString;
+	}
+	
+	public String getDescription() {
+		return description;
+	}
+	public void setDescription(String description) {
+		this.description = description;
+	}
+	
+	public void setProperties(JRPropertiesMap properties) {
+		this.properties = properties;
+	}
+	
+	public JRPropertiesMap getProperties() {
+		return properties;
 	}
 	
 	public Class getType() throws ClassNotFoundException {

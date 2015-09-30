@@ -1,44 +1,13 @@
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
-import com.evolveum.midpoint.audit.api.AuditEventStage;
-import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
-import com.evolveum.midpoint.report.api.ReportConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.DateInput;
-import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.EditablePropertyColumn;
-import com.evolveum.midpoint.web.component.input.DatePanel;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.input.TextPanel;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.page.admin.reports.dto.JasperReportParameterDto;
-import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
-import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -48,19 +17,82 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColu
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
-import org.apache.wicket.markup.html.form.ChoiceRenderer;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+
+import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.parser.QueryConvertor;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.TypeFilter;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.report.api.ReportConstants;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.DateInput;
+import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.EditablePropertyColumn;
+import com.evolveum.midpoint.web.component.input.AutoCompleteTextPanel;
+import com.evolveum.midpoint.web.component.input.DatePanel;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.input.TextPanel;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.component.util.ListDataProvider;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.LookupPropertyModel;
+import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.page.admin.reports.dto.JasperReportParameterDto;
+import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
+import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import net.sf.jasperreports.engine.JRPropertiesMap;
 
 public class RunReportPopupPanel extends SimplePanel<ReportDto> {
 
@@ -86,9 +118,11 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
     private IModel<ReportDto> reportModel;
     private ReportType reportType;
 
+    
     public void setReportType(ReportType reportType) {
         this.reportType = reportType;
 
+        
         if (getParametersTable() != null) {
             replace(createTablePanel());
         }
@@ -124,8 +158,8 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
                 return new ReportDto(reportType, true);
             }
         };
-
-        ISortableDataProvider<JasperReportParameterDto, String> provider = new ListDataProvider<>(this,
+        
+			ISortableDataProvider<JasperReportParameterDto, String> provider = new ListDataProvider<>(this,
                 new PropertyModel<List<JasperReportParameterDto>>(reportModel, "jasperReportDto.parameters"));
         TablePanel table = new TablePanel<>(ID_PARAMETERS_TABLE, provider, initParameterColumns());
         table.setOutputMarkupId(true);
@@ -185,7 +219,7 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
         return columns;
     }
 
-    private Component createTypedInputPanel(String componentId, IModel<JasperReportParameterDto> model, String expression) {
+    private  Component createTypedInputPanel(String componentId, IModel<JasperReportParameterDto> model, String expression) {
         JasperReportParameterDto param = model.getObject();
         param.setEditing(true);
 
@@ -194,6 +228,8 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
         String tooltipKey = model.getObject().getTypeAsString();
         Class type = null;
 
+        final LookupTableType lookup = createLookupTable(param);
+        
         try {
             type = param.getType();
         } catch (ClassNotFoundException e) {
@@ -206,9 +242,18 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
             panel = WebMiscUtil.createEnumPanel(type, componentId, new PropertyModel(model, expression), this);
         } else if (XMLGregorianCalendar.class.isAssignableFrom(type)) {
             panel = new DatePanel(componentId, new PropertyModel<XMLGregorianCalendar>(model, expression));
-        } else if ("resourceName".equals(param.getName())) { // hardcoded for Reconc report
-            panel = new DropDownChoicePanel(componentId, new PropertyModel(model, expression),
-                    createResourceListModel(), new ChoiceRenderer<String>(), false);
+//        } else if ("resourceName".equals(param.getName())) { // hardcoded for Reconc report
+//            panel = new DropDownChoicePanel(componentId, new PropertyModel(model, expression),
+//                    createResourceListModel(), new ChoiceRenderer<String>(), false);
+        } else if (lookup != null){
+        	panel = new AutoCompleteTextPanel<String>(componentId, new LookupPropertyModel<String>(model, expression,
+                    lookup), String.class) {
+
+                @Override
+                public Iterator<String> getIterator(String input) {
+                    return prepareAutoCompleteList(input, lookup).iterator();
+                }
+            };
         } else if ("stringAttributeName".equals(param.getName())) { // hardcoded for User report
             panel = new DropDownChoicePanel(componentId, new PropertyModel(model, expression),
                     createUserAttributeListModel(String.class), new ChoiceRenderer<String>(), false);
@@ -231,6 +276,122 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
         }
         return panel;
 
+    }
+    
+    private <T extends ObjectType> LookupTableType createLookupTable(JasperReportParameterDto param) {
+    	ItemPath path = null;
+
+    	JRPropertiesMap properties = param.getProperties();
+    	
+    	if (properties == null){
+    		return null;
+    	}
+    	
+    	String pPath = properties.getProperty("path");
+    	if (pPath != null){
+    		path = new ItemPath(pPath);
+    	}
+    	
+    	String pTargetType = properties.getProperty("targetType");
+    	Class<T> targetType = null;
+    	if (pTargetType != null){
+    		try {
+				targetType = (Class<T>) Class.forName(pTargetType);
+			} catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    	}
+    	
+    	if (path != null && targetType != null){
+        	OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCES);
+            Task task = createSimpleTask(OPERATION_LOAD_RESOURCES);
+        	
+        	Collection<PrismObject<T>> objects;
+			try {
+				objects = modelService.searchObjects(targetType, new ObjectQuery(), SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, result);
+			
+				LookupTableType lookup =  new LookupTableType();
+				
+				for (PrismObject<T> o : objects){
+	        		PrismProperty item = o.findProperty(path);
+	        		//TODO: TODO TODO e.g. support not only for property, but also ref, continer..
+	        		if (item == null || item.isEmpty()){
+	        			continue;
+	        		}
+	        		
+	        		//TODO support for single/multivalue value 
+	        		if (!item.isSingleValue()){
+	        			continue;
+	        		}
+	        		
+	        		Object realValue = item.getRealValue();
+	        		
+	        		// TODO: take definition into account
+	        		QName typeName = item.getDefinition().getTypeName();
+	        		
+	        		
+	        		//TODO ros.setValue() ???? use value which will be used in the filter?? get the name of the parameter used for filter from properties map (key)
+	        		LookupTableRowType row =  new LookupTableRowType();
+	        		if (realValue instanceof PolyString){
+	        			row.setKey(WebMiscUtil.getOrigStringFromPoly((PolyString) realValue));
+	        			row.setLabel(new PolyStringType((PolyString)realValue));
+	        		} else if (realValue instanceof PolyStringType){
+	        			row.setKey(WebMiscUtil.getOrigStringFromPoly((PolyStringType) realValue));
+	        			row.setLabel((PolyStringType)realValue);
+	        		} else if (realValue instanceof String){
+	        			row.setKey((String) realValue);
+	        			row.setLabel(new PolyStringType((String)realValue));
+	        		} else {
+	        			row.setKey(realValue.toString());
+	        			row.setLabel(new PolyStringType(realValue.toString()));
+	        		}
+	        		
+	        		lookup.getRow().add(row);	
+	        	}
+				
+				return lookup;
+			} catch (SchemaException | ObjectNotFoundException | SecurityViolationException
+					| CommunicationException | ConfigurationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        	
+        	
+        }
+    	return null;
+	}
+
+	private List<String> prepareAutoCompleteList(String input, LookupTableType lookupTable){
+        List<String> values = new ArrayList<>();
+
+        if(lookupTable == null){
+            return values;
+        }
+
+        List<LookupTableRowType> rows = lookupTable.getRow();
+
+        if(input == null || input.isEmpty()){
+            for(LookupTableRowType row: rows){
+                values.add(WebMiscUtil.getOrigStringFromPoly(row.getLabel()));
+
+                if(values.size() > 10){
+                    return values;
+                }
+            }
+        } else {
+            for(LookupTableRowType row: rows){
+                if(WebMiscUtil.getOrigStringFromPoly(row.getLabel()).startsWith(input)){
+                    values.add(WebMiscUtil.getOrigStringFromPoly(row.getLabel()));
+                }
+
+                if(values.size() > 10){
+                    return values;
+                }
+            }
+        }
+
+        return values;
     }
 
     private IModel<List<String>> createUserAttributeListModel(Class type) {
