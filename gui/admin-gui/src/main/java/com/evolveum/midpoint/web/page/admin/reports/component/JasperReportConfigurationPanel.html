@@ -18,7 +18,7 @@
 <wicket:panel>
 
     <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-12">
             <h3><wicket:message key="JasperReportConfigurationPanel.reportParameters"/></h3>
 
             <div class="table-responsive" wicket:id="parametersTable"/>
@@ -30,12 +30,12 @@
                 </span>
             </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-12">
             <h3><wicket:message key="JasperReportConfigurationPanel.reportFields"/></h3>
 
             <div class="table-responsive" wicket:id="fieldsTable"/>
 
-            <div class="main-button-bar">
+            <div class="main-button-bar" style="margin-left: 20px;">
                 <span class="button-group">
                     <a class="btn btn-success" wicket:id="addField" />
                     <a class="btn btn-danger" wicket:id="deleteField"/>
