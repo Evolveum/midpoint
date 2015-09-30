@@ -66,7 +66,7 @@ public class JasperReportConfigurationPanel extends SimplePanel<ReportDto> {
 
         IModel<String> data = new Base64Model(new PropertyModel(getModel(), "jasperReportDto.jasperReportXml"));
         AceEditorPanel templateEditor = new AceEditorPanel(ID_TEMPLATE,
-                createStringResource("PageReport.jasperTemplate"), data);
+                createStringResource("PageReport.jasperTemplate"), data, 300);
         add(templateEditor);
     }
 
@@ -81,21 +81,21 @@ public class JasperReportConfigurationPanel extends SimplePanel<ReportDto> {
         AjaxButton addParameter = new AjaxButton(ID_BUTTON_ADD_PARAMETER,
                 createStringResource("JasperReportConfigurationPanel.addParameter")) {
 
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                addParameterPerformed(target);
-            }
-        };
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        addParameterPerformed(target);
+                    }
+                };
         add(addParameter);
 
         AjaxButton deleteParameter = new AjaxButton(ID_DELETE_PARAMETER,
                 createStringResource("JasperReportConfigurationPanel.deleteParameter")) {
 
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                deleteParameterPerformed(target);
-            }
-        };
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        deleteParameterPerformed(target);
+                    }
+                };
         add(deleteParameter);
 
     }
@@ -111,21 +111,21 @@ public class JasperReportConfigurationPanel extends SimplePanel<ReportDto> {
         AjaxButton addParameter = new AjaxButton(ID_BUTTON_ADD_FIELD,
                 createStringResource("JasperReportConfigurationPanel.addField")) {
 
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                addFieldPerformed(target);
-            }
-        };
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        addFieldPerformed(target);
+                    }
+                };
         add(addParameter);
 
         AjaxButton deleteParameter = new AjaxButton(ID_DELETE_FIELD,
                 createStringResource("JasperReportConfigurationPanel.deleteField")) {
 
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                deleteFieldPerformed(target);
-            }
-        };
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        deleteFieldPerformed(target);
+                    }
+                };
         add(deleteParameter);
     }
 
@@ -201,52 +201,49 @@ public class JasperReportConfigurationPanel extends SimplePanel<ReportDto> {
         columns.add(column);
 
         //name editing column
-        columns.add(new EditableLinkColumn<JasperReportParameterDto>(
-                createStringResource("JasperReportConfigurationPanel.parameterName"), "name") {
-
-            @Override
-            protected Component createInputPanel(String componentId, final IModel<JasperReportParameterDto> model) {
-                return createTextPanel(componentId, model, getPropertyExpression());
-
-            }
-
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<JasperReportParameterDto> rowModel) {
-                parameterEditPerformed(target, rowModel);
-            }
-        });
+        columns.add(buildEditableLinkColumn("JasperReportConfigurationPanel.parameterName", "name", true));
 
         //class editing column
-        columns.add(new EditableLinkColumn<JasperReportParameterDto>(
-                createStringResource("JasperReportConfigurationPanel.parameterClass"), "typeAsString") {
+        columns.add(buildEditableLinkColumn("JasperReportConfigurationPanel.parameterClass", "typeAsString", true));        
 
-            @Override
-            protected Component createInputPanel(String componentId, IModel<JasperReportParameterDto> model) {
-                return createTextPanel(componentId, model, getPropertyExpression());
-            }
-
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<JasperReportParameterDto> rowModel) {
-                parameterEditPerformed(target, rowModel);
-            }
-        });
-
+        //property:path editing column
+        columns.add(buildEditableLinkColumn("JasperReportConfigurationPanel.parameterPropertyPath", "propertyPath", false));
+        
+        //property:targetType editing column
+        columns.add(buildEditableLinkColumn("JasperReportConfigurationPanel.parameterTargetType", "propertyTargetType", false));        
 
         CheckBoxColumn forPrompting = new CheckBoxColumn<JasperReportParameterDto>(
                 createStringResource("JasperReportConfigurationPanel.forPrompting"), "forPrompting") {
 
-            @Override
-            public void populateItem(Item<ICellPopulator<JasperReportParameterDto>> cellItem,
-                                     String componentId, IModel<JasperReportParameterDto> rowModel) {
-                CheckBoxPanel checkBox = new CheckBoxPanel(componentId,
-                        new PropertyModel<Boolean>(rowModel, getPropertyExpression()), new Model<>(true));
-                cellItem.add(checkBox);
-            }
-        };
+                    @Override
+                    public void populateItem(Item<ICellPopulator<JasperReportParameterDto>> cellItem,
+                            String componentId, IModel<JasperReportParameterDto> rowModel) {
+                        CheckBoxPanel checkBox = new CheckBoxPanel(componentId,
+                                new PropertyModel<Boolean>(rowModel, getPropertyExpression()), new Model<>(true));
+                        cellItem.add(checkBox);
+                    }
+                };
 
         columns.add(forPrompting);
 
         return columns;
+    }
+
+    private EditableLinkColumn<JasperReportParameterDto> buildEditableLinkColumn(String resource, String property, final Boolean mandatory) {
+        return new EditableLinkColumn<JasperReportParameterDto>(
+                createStringResource(resource), property) {
+
+                    @Override
+                    protected Component createInputPanel(String componentId, final IModel<JasperReportParameterDto> model) {
+                        return createTextPanel(componentId, model, getPropertyExpression(), mandatory);
+
+                    }
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target, IModel<JasperReportParameterDto> rowModel) {
+                        parameterEditPerformed(target, rowModel);
+                    }
+                };
     }
 
     private void parameterEditPerformed(AjaxRequestTarget target, IModel<JasperReportParameterDto> rowModel) {
@@ -254,7 +251,6 @@ public class JasperReportConfigurationPanel extends SimplePanel<ReportDto> {
         parameter.setEditing(true);
         target.add(getParametersTable());
     }
-
 
     private TablePanel getParametersTable() {
         return (TablePanel) get(ID_PARAMETERS_TABLE);
@@ -269,32 +265,32 @@ public class JasperReportConfigurationPanel extends SimplePanel<ReportDto> {
         columns.add(new EditableLinkColumn<JasperReportFieldDto>(
                 createStringResource("JasperReportConfigurationPanel.fieldName"), "name") {
 
-            @Override
-            protected Component createInputPanel(String componentId, final IModel<JasperReportFieldDto> model) {
-                return createTextPanel(componentId, model, getPropertyExpression());
+                    @Override
+                    protected Component createInputPanel(String componentId, final IModel<JasperReportFieldDto> model) {
+                        return createTextPanel(componentId, model, getPropertyExpression(), true);
 
-            }
+                    }
 
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<JasperReportFieldDto> rowModel) {
-                fieldEditPerformed(target, rowModel);
-            }
-        });
+                    @Override
+                    public void onClick(AjaxRequestTarget target, IModel<JasperReportFieldDto> rowModel) {
+                        fieldEditPerformed(target, rowModel);
+                    }
+                });
 
         //class editing column
         columns.add(new EditableLinkColumn<JasperReportFieldDto>(
                 createStringResource("JasperReportConfigurationPanel.fieldClass"), "typeAsString") {
 
-            @Override
-            protected Component createInputPanel(String componentId, IModel<JasperReportFieldDto> model) {
-                return createTextPanel(componentId, model, getPropertyExpression());
-            }
+                    @Override
+                    protected Component createInputPanel(String componentId, IModel<JasperReportFieldDto> model) {
+                        return createTextPanel(componentId, model, getPropertyExpression(), true);
+                    }
 
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<JasperReportFieldDto> rowModel) {
-                fieldEditPerformed(target, rowModel);
-            }
-        });
+                    @Override
+                    public void onClick(AjaxRequestTarget target, IModel<JasperReportFieldDto> rowModel) {
+                        fieldEditPerformed(target, rowModel);
+                    }
+                });
 
         return columns;
     }
@@ -309,8 +305,7 @@ public class JasperReportConfigurationPanel extends SimplePanel<ReportDto> {
         return (TablePanel) get(ID_FIELDS_TABLE);
     }
 
-
-    private Component createTextPanel(String componentId, final IModel model, String expression) {
+    private Component createTextPanel(String componentId, final IModel model, String expression, final Boolean mandatory) {
         TextPanel textPanel = new TextPanel<>(componentId, new PropertyModel<String>(model, expression));
         FormComponent input = textPanel.getBaseFormComponent();
         input.add(new AttributeAppender("style", "width: 100%"));
@@ -320,19 +315,21 @@ public class JasperReportConfigurationPanel extends SimplePanel<ReportDto> {
             @Override
             protected void onValidate(IValidatable validatable) {
                 if (validatable.getValue() == null) {
-                    error(validatable, "Empty values not allowed");
+                    error(validatable, "JasperReportConfigurationPanel.errormsg");
                 }
 
             }
 
             @Override
             public boolean validateOnNullValue() {
+                return mandatory;
+                /*
                 if (model.getObject() instanceof Validatable) {
                     return !((Validatable) model.getObject()).isEmpty();
                 }
 
                 return true;
-
+                        */
             }
         });
         return textPanel;
