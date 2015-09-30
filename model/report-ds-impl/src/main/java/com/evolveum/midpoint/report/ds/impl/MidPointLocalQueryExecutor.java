@@ -61,6 +61,7 @@ public class MidPointLocalQueryExecutor extends MidPointQueryExecutor{
 		parseQuery();
 	}
 	
+	
 	@Override
 	protected Object getParsedQuery(String query, Map<QName, Object> expressionParameters) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		return reportService.parseQuery(query, expressionParameters);
