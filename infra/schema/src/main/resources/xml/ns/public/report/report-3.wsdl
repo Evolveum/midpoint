@@ -71,75 +71,6 @@
         </xsd:complexType>
       <xsd:element name="processReportResponse" type="tns:ProcessReportResponseType"/>
       
-       <xsd:complexType name="ParseQueryType">
-          <xsd:sequence>
-            <xsd:element name="query" type="xsd:string"/>
-            <xsd:element name="parameters" type="tns:RemoteReportParametersType"/>
-            
-          </xsd:sequence>
-        </xsd:complexType>
-      <xsd:element name="parseQuery" type="tns:ParseQueryType" />
-      
-        <xsd:complexType name="ParseQueryResponseType">
-          <xsd:sequence>
-          <xsd:element name="parsedQuery" type="q:QueryType">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                parsedQuery
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-          </xsd:sequence>
-        </xsd:complexType>
-      <xsd:element name="parseQueryResponse" type="tns:ParseQueryResponseType"/>
-      
-      
-    
-       <xsd:complexType name="SearchObjectsType">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        A request for searchObjects operation.
-                    </xsd:documentation>
-                </xsd:annotation>
-                <xsd:sequence>
-                    
-                    <xsd:element name="query" type="q:QueryType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Search criteria. If not specified, all objects of a given type are returned.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                
-                    <xsd:element name="options" type="apit:SelectorQualifiedGetOptionsType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Options influencing the retrieval and processing of objects.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-            </xsd:complexType>
-            <xsd:element name="searchObjects" type="tns:SearchObjectsType"/>
-
-            <xsd:complexType name="SearchObjectsResponseType">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        A response from searchObjects operation.
-                    </xsd:documentation>
-                </xsd:annotation>
-                <xsd:sequence>
-                    <xsd:element name="objectList" type="apit:ObjectListType">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                List of objects that match given criteria.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                   
-                </xsd:sequence>
-            </xsd:complexType>
-            <xsd:element name="searchObjectsResponse" type="tns:SearchObjectsResponseType"/>
             
             <xsd:complexType name="EvaluateScriptType">
                 <xsd:annotation>
@@ -231,53 +162,7 @@
             </xsd:complexType>
             <xsd:element name="evaluateAuditScriptResponse" type="tns:EvaluateAuditScriptResponseType"/>
             
-             <xsd:complexType name="GetFieldValueType">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        A response from searchObjects operation.
-                    </xsd:documentation>
-                </xsd:annotation>
-                <xsd:sequence>
-                    <xsd:element name="parameterName" type="xsd:string">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Name of the jasper report parameter
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                   	<xsd:element name="object" type="c:ObjectType">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                               Object to iterate
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-		            
-		                   
-                </xsd:sequence>
-            </xsd:complexType>
-            <xsd:element name="getFieldValue" type="tns:GetFieldValueType"/>
-            
-            <xsd:complexType name="GetFieldValueResponseType">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        A response from searchObjects operation.
-                    </xsd:documentation>
-                </xsd:annotation>
-                <xsd:sequence>
-                    <xsd:element name="value" type="c:ReportParameterType">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Name of the jasper report parameter
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                 
-                </xsd:sequence>
-            </xsd:complexType>
-            <xsd:element name="getFieldValueResponse" type="tns:GetFieldValueResponseType"/>
-      
-    
+             
             <xsd:complexType name="RemoteReportParametersType">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -342,20 +227,6 @@
     <part element="tns:processReportResponse" name="parameters"/>
   </message>
   
-   <message name="parseQuery">
-    <part element="tns:parseQuery" name="parameters"/>
-  </message>
-  <message name="parseQueryResponse">
-    <part element="tns:parseQueryResponse" name="parameters"/>
-  </message>
-  
-   <message name="searchObjects">
-    <part element="tns:searchObjects" name="parameters"/>
-  </message>
-  <message name="searchObjectsResponse">
-    <part element="tns:searchObjectsResponse" name="parameters"/>
-  </message>
-  
   <message name="evaluateScript">
     <part element="tns:evaluateScript" name="parameters"/>
   </message>
@@ -370,26 +241,12 @@
     <part element="tns:evaluateAuditScriptResponse" name="parameters"/>
   </message>
   
-  <message name="getFieldValue">
-    <part element="tns:getFieldValue" name="parameters"/>
-  </message>
-  <message name="getFieldValueResponse">
-    <part element="tns:getFieldValueResponse" name="parameters"/>
-  </message>
-  
   <portType name="reportPortType">
     <operation name="processReport">
       <input message="tns:processReport"/>
       <output message="tns:processReportResponse"/>
     </operation>
-     <operation name="parseQuery">
-      <input message="tns:parseQuery"/>
-      <output message="tns:parseQueryResponse"/>
-    </operation>
-     <operation name="searchObjects">
-      <input message="tns:searchObjects"/>
-      <output message="tns:searchObjectsResponse"/>
-    </operation>
+     
     <operation name="evaluateScript">
       <input message="tns:evaluateScript"/>
       <output message="tns:evaluateScriptResponse"/>
@@ -398,10 +255,7 @@
       <input message="tns:evaluateAuditScript"/>
       <output message="tns:evaluateAuditScriptResponse"/>
     </operation>
-     <operation name="getFieldValue">
-      <input message="tns:getFieldValue"/>
-      <output message="tns:getFieldValueResponse"/>
-    </operation>
+     
   </portType>
   
   
@@ -413,24 +267,6 @@
         <soap:body use="literal"/>
       </input>
       <output name="processReportResponse">
-        <soap:body use="literal"/>
-      </output>
-    </operation>
-     <operation name="parseQuery">
-      <soap:operation name="parseQuery"/>
-      <input>
-        <soap:body use="literal"/>
-      </input>
-      <output name="parseQueryResponse">
-        <soap:body use="literal"/>
-      </output>
-    </operation>
-     <operation name="searchObjects">
-      <soap:operation name="searchObjects"/>
-      <input>
-        <soap:body use="literal"/>
-      </input>
-      <output name="searchObjectsResponse">
         <soap:body use="literal"/>
       </output>
     </operation>
@@ -454,15 +290,6 @@
       </output>
     </operation>
     
-    <operation name="getFieldValue">
-      <soap:operation name="getFieldValue"/>
-      <input>
-        <soap:body use="literal"/>
-      </input>
-      <output name="getFieldValueResponse">
-        <soap:body use="literal"/>
-      </output>
-    </operation>
   </binding>
   <service name="reportWebService">
         <port name="reportPort"

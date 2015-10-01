@@ -280,10 +280,24 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<List
 					}
 				});
 		items.add(item);
+		
+		item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.showAllAssignments"),
+				new InlineMenuItemAction() {
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						showAllAssignments(target);
+					}
+				});
+		items.add(item);
 
 		return items;
 	}
 
+	protected void showAllAssignments(AjaxRequestTarget target){
+		
+	}
+	
 	private List<AssignmentEditorDto> getSelectedAssignments() {
 		List<AssignmentEditorDto> selected = new ArrayList<>();
 

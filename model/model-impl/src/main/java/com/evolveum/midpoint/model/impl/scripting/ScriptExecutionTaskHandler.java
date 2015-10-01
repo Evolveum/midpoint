@@ -84,7 +84,7 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
             LoggingUtils.logException(LOGGER, "Couldn't execute script", e);
             runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR);
         } finally {
-            TaskHandlerUtil.storeAllStatistics(task);
+            TaskHandlerUtil.storeAllStatistics(task, true, false);
         }
 
         task.getResult().computeStatus();

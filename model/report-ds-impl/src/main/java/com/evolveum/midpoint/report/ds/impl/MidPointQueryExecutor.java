@@ -33,6 +33,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
@@ -106,31 +107,7 @@ public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter{
 		return normalized.replace("</code>", "");
 	}
 	
-	@Override
-	protected void parseQuery() {
-		String s = dataset.getQuery().getText();
-
-		Map<QName, Object> expressionParameters = getParameters();
-		LOGGER.trace("query: " + s);
-		if (StringUtils.isEmpty(s)) {
-			query = null;
-		} else {
-			try {
-				if (s.startsWith("<filter")) {
-
-					query = getParsedQuery(s, expressionParameters);
-				} else if (s.startsWith("<code")) {
-					script = getParsedScript(s);
-				}
-			} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-
-	}
-
-	protected MidPointQueryExecutor(JasperReportsContext jasperReportsContext, JRDataset dataset,
+		protected MidPointQueryExecutor(JasperReportsContext jasperReportsContext, JRDataset dataset,
 			Map<String, ? extends JRValueParameter> parametersMap) {
 		super(jasperReportsContext, dataset, parametersMap);
 	}
@@ -142,6 +119,15 @@ public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter{
 	protected abstract Collection<AuditEventRecord> searchAuditRecords(String script, Map<QName, Object> parameters) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException;
 	
 	protected abstract JRDataSource createDataSource(Collection results);
+	
+	@Override
+	protected void parseQuery() {
+		try {
+			query = getParsedQuery(dataset.getQuery().getText(), getParameters());
+		} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException e) {
+			throw new SystemException("Could not parse report query: " + e.getMessage(), e);
+		}
+	}
 	
 	@Override
 	public JRDataSource createDatasource() throws JRException {

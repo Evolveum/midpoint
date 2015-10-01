@@ -85,8 +85,9 @@ public class MidPointRemoteDataSource implements JRDataSource {
 			return currentObject.getOid();
 		}
 
-		ReportParameterType param = reportPort.getFieldValue(
-				QNameUtil.qNameToUri(new QName(fieldName)), currentObject);
+		ReportParameterType param = null;
+//				reportPort.getFieldValue(
+//				QNameUtil.qNameToUri(new QName(fieldName)), currentObject);
 
 		if (param == null) {
 			return null;

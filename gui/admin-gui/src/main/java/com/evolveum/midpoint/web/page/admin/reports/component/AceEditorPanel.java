@@ -34,16 +34,26 @@ public class AceEditorPanel extends SimplePanel<String> {
         super(id, data);
 
         this.title = title;
+        initPanelLayout(0);
+    }
+    
+    public AceEditorPanel(String id, IModel<String> title, IModel<String> data, int minSize) {
+        super(id, data);
 
-        initPanelLayout();
+        this.title = title;
+        initPanelLayout(minSize);
     }
 
-    private void initPanelLayout() {
+
+    private void initPanelLayout(int minSize) {
         Label title = new Label(ID_TITLE, this.title);
         add(title);
 
         AceEditor editor = new AceEditor(ID_EDITOR, getModel());
         editor.setReadonly(false);
+        if (minSize > 0) {
+            editor.setMinSize(minSize);
+        }
         add(editor);
     }
 
