@@ -1230,18 +1230,18 @@ public class XNodeProcessor {
 		return new XNodeSerializer(PrismUtil.getBeanConverter(prismContext));
 	}
 
-    public RootXNode serializeAnyData(Object object) throws SchemaException {
-        return serializeAnyData(object, null);
+    public RootXNode serializeAnyData(Object object, SerializationContext ctx) throws SchemaException {
+        return serializeAnyData(object, null, ctx);
     }
 
-    public RootXNode serializeAnyData(Object object, QName defaultRootElementName) throws SchemaException {
+    public RootXNode serializeAnyData(Object object, QName defaultRootElementName, SerializationContext ctx) throws SchemaException {
         Validate.notNull(object);
         if (object instanceof Item) {
             RootXNode root = serializeItemAsRoot((Item) object);
             return root;
         } else {
             Validate.notNull(defaultRootElementName, "rootElementName must be specified for non-Item objects");
-            XNode valueXNode = getBeanConverter().marshall(object);
+            XNode valueXNode = getBeanConverter().marshall(object, ctx);
             QName typeQName = JAXBUtil.getTypeQName(object.getClass());
             if (valueXNode.getTypeQName() == null) {
                 if (typeQName != null) {

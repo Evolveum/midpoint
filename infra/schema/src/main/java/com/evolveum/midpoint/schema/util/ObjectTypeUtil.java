@@ -40,6 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
 import org.apache.commons.lang.Validate;
@@ -186,6 +187,7 @@ public class ObjectTypeUtil {
         if (definition != null) {
             ref.setType(definition.getTypeName());
         }
+        ref.setTargetName(object.asObjectable().getName());
         return ref;
     }
     
@@ -207,12 +209,17 @@ public class ObjectTypeUtil {
     }
     
     public static ObjectReferenceType createObjectRef(String oid, ObjectTypes type) {
+       return createObjectRef(oid, null, type);
+    }
+    
+    public static ObjectReferenceType createObjectRef(String oid, PolyStringType name, ObjectTypes type) {
         Validate.notEmpty(oid, "Oid must not be null or empty.");
         Validate.notNull(type, "Object type must not be null.");
 
         ObjectReferenceType reference = new ObjectReferenceType();
         reference.setType(type.getTypeQName());
         reference.setOid(oid);
+        reference.setTargetName(name);
 
         return reference;
     }

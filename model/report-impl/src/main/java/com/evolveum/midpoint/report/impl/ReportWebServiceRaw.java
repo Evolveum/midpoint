@@ -20,7 +20,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.SerializationContext;
+import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.report.api.ReportPort;
@@ -31,22 +32,13 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.report.report_3.EvaluateAuditScriptResponseType;
 import com.evolveum.midpoint.xml.ns._public.report.report_3.EvaluateAuditScriptType;
 import com.evolveum.midpoint.xml.ns._public.report.report_3.EvaluateScriptResponseType;
 import com.evolveum.midpoint.xml.ns._public.report.report_3.EvaluateScriptType;
-import com.evolveum.midpoint.xml.ns._public.report.report_3.GetFieldValueResponseType;
-import com.evolveum.midpoint.xml.ns._public.report.report_3.GetFieldValueType;
-import com.evolveum.midpoint.xml.ns._public.report.report_3.ParseQueryResponseType;
-import com.evolveum.midpoint.xml.ns._public.report.report_3.ParseQueryType;
 import com.evolveum.midpoint.xml.ns._public.report.report_3.ProcessReportResponseType;
 import com.evolveum.midpoint.xml.ns._public.report.report_3.ProcessReportType;
-import com.evolveum.midpoint.xml.ns._public.report.report_3.ReportPortType;
-import com.evolveum.midpoint.xml.ns._public.report.report_3.SearchObjectsResponseType;
-import com.evolveum.midpoint.xml.ns._public.report.report_3.SearchObjectsType;
-import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 @Service
 public class ReportWebServiceRaw implements Provider<DOMSource> {
@@ -115,48 +107,26 @@ public class ReportWebServiceRaw implements Provider<DOMSource> {
 
 	        Node response;
 	        Holder<OperationResultType> operationResultTypeHolder = new Holder<>();
+	        SerializationContext ctx=  new SerializationContext(SerializationOptions.createSerializeReferenceNames());
 	        try {
-	        	if (requestObject instanceof ParseQueryType){
-	        		ParseQueryType p = (ParseQueryType) requestObject;
-	        		QueryType parsed = reportService.parseQuery(p.getQuery(), p.getParameters());
-	        		ParseQueryResponseType pr = new ParseQueryResponseType();
-	        		pr.setParsedQuery(parsed);
-	        		response =  prismContext.serializeAnyDataToElement(pr, ReportPort.PARSE_QUERY_RESPONSE);
-	        	} else if (requestObject instanceof SearchObjectsType){
-	        		SearchObjectsType s = (SearchObjectsType) requestObject;
-	        		ObjectListType olt = reportService.searchObjects(s.getQuery(), s.getOptions());
-	        		SearchObjectsResponseType sr = new SearchObjectsResponseType();
-	        		sr.setObjectList(olt);
-	        		response = prismContext.serializeAnyDataToElement(sr, ReportPort.SEARCH_OBJECTS_RESPONSE);
-	        	} else if (requestObject instanceof EvaluateScriptType){
+	        	if (requestObject instanceof EvaluateScriptType){
 	        		EvaluateScriptType s = (EvaluateScriptType) requestObject;
 	        		ObjectListType olt = reportService.evaluateScript(s.getScript(), s.getParameters());
 	        		EvaluateScriptResponseType sr = new EvaluateScriptResponseType();
 	        		sr.setObjectList(olt);
-	        		response = prismContext.serializeAnyDataToElement(sr, ReportPort.EVALUATE_SCRIPT_RESPONSE);
+	        		response = prismContext.serializeAnyDataToElement(sr, ReportPort.EVALUATE_SCRIPT_RESPONSE, ctx);
 	        	} else if (requestObject instanceof EvaluateAuditScriptType){
 	        		EvaluateAuditScriptType s = (EvaluateAuditScriptType) requestObject;
 	        		AuditEventRecordListType olt = reportService.evaluateAuditScript(s.getScript(), s.getParameters());
 	        		EvaluateAuditScriptResponseType sr = new EvaluateAuditScriptResponseType();
 	        		sr.setObjectList(olt);
-	        		response = prismContext.serializeAnyDataToElement(sr, ReportPort.EVALUATE_AUDIT_SCRIPT_RESPONSE);
-	            } else if (requestObject instanceof GetFieldValueType){
-	            	GetFieldValueType g = (GetFieldValueType) requestObject;
-	        		ReportParameterType param = reportService.getFieldValue(g.getParameterName(), g.getObject());
-	        		GetFieldValueResponseType gr = new GetFieldValueResponseType();
-	        		gr.setValue(param);
-//	        		XNode valueNode = prismContext.getXnodeProcessor().serializeItemValue(param.asPrismContainerValue());
-//	        		MapXNode paramXnode = new MapXNode();
-//	        		paramXnode.put(new QName(SchemaConstants.NS_REPORT_WS, "value"), valueNode);
-//	        		RootXNode rootXNode = new RootXNode(ReportPort.GET_FIELD_VALUE_RESPONSE, paramXnode);
-//	        		response = prismContext.getParserDom().serializeXRootToElement(rootXNode);
-	        		response = prismContext.serializeAnyDataToElement(gr, ReportPort.GET_FIELD_VALUE_RESPONSE);
+	        		response = prismContext.serializeAnyDataToElement(sr, ReportPort.EVALUATE_AUDIT_SCRIPT_RESPONSE, ctx);
 	            } else if (requestObject instanceof ProcessReportType){
 	            	ProcessReportType p = (ProcessReportType) requestObject;
 	            	ObjectListType olt = reportService.processReport(p.getQuery(), p.getParameters(), p.getOptions());
 	            	ProcessReportResponseType pr = new ProcessReportResponseType();
 	            	pr.setObjectList(olt);
-	            	response = prismContext.serializeAnyDataToElement(pr, ReportPort.PROCESS_REPORT_RESPONSE);
+	            	response = prismContext.serializeAnyDataToElement(pr, ReportPort.PROCESS_REPORT_RESPONSE, ctx);
 	            } else {
 	            	throw new FaultMessage("Unsupported request type: " + requestObject);
 	            }

@@ -1227,17 +1227,6 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
     
     public long getSequenceCounter(String sequenceOid) throws ObjectNotFoundException, SchemaException {
-    	LensContext<? extends FocusType> ctx = ModelExpressionThreadLocalHolder.getLensContext();
-    	if (ctx == null) {
-    		throw new IllegalStateException("No lens context");
-    	}
-    	
-    	Long counter = ctx.getSequenceCounter(sequenceOid);
-    	if (counter == null) {
-    		counter = repositoryService.advanceSequence(sequenceOid, getCurrentResult());
-    		ctx.setSequenceCounter(sequenceOid, counter);
-    	}
-    	
-    	return counter;
+    	return SequentialValueExpressionEvaluator.getSequenceCounter(sequenceOid, repositoryService, getCurrentResult());
     }
 }

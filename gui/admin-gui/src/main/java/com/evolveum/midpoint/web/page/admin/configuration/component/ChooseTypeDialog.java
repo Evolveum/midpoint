@@ -145,7 +145,7 @@ public class ChooseTypeDialog extends ModalWindow{
         provider.setQuery(getDataProviderQuery());
         TablePanel table = new TablePanel<>(ID_TABLE, provider, columns);
         table.setOutputMarkupId(true);
-        content.add(table);
+        content.addOrReplace(table);
 
         AjaxButton cancelButton = new AjaxButton(ID_BUTTON_CANCEL,
                 createStringResource("chooseTypeDialog.button.cancel")) {

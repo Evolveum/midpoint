@@ -30,6 +30,12 @@ public class SerializationOptions {
     public void setSerializeReferenceNames(boolean serializeReferenceNames) {
         this.serializeReferenceNames = serializeReferenceNames;
     }
+    
+    public static SerializationOptions createSerializeReferenceNames(){
+    	SerializationOptions serializationOptions = new SerializationOptions();
+    	serializationOptions.setSerializeReferenceNames(true);
+    	return serializationOptions;
+    }
 
     public static boolean isSerializeReferenceNames(SerializationOptions options) {
         return options != null && options.isSerializeReferenceNames();

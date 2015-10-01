@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,6 +112,9 @@ import javax.xml.namespace.QName;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * @author semancik
@@ -673,8 +676,10 @@ public class Clockwork {
 	}
 	
 	private <F extends ObjectType> void processClockworkException(LensContext<F> context, Exception e, Task task, OperationResult result) throws SchemaException {
+		LOGGER.trace("Processing clockwork exception {}", e.toString());
 		result.recordFatalError(e);
 		auditEvent(context, AuditEventStage.EXECUTION, null, true, task, result);
+		reclaimSequences(context, task, result);
 	}
 
 	private <F extends ObjectType> void auditEvent(LensContext<F> context, AuditEventStage stage, 
@@ -1022,5 +1027,22 @@ public class Clockwork {
 		}
 	}
 
+	private <F extends ObjectType> void reclaimSequences(LensContext<F> context, Task task, OperationResult result) throws SchemaException {
+		Map<String, Long> sequenceMap = context.getSequences();
+		LOGGER.trace("Context sequence map: {}", sequenceMap);
+		for (Entry<String, Long> sequenceMapEntry: sequenceMap.entrySet()) {
+			Collection<Long> unusedValues = new ArrayList<>(1);
+			unusedValues.add(sequenceMapEntry.getValue());
+			try {
+				LOGGER.trace("Returning value {} to sequence {}", sequenceMapEntry.getValue(), sequenceMapEntry.getKey());
+				repositoryService.returnUnusedValuesToSequence(sequenceMapEntry.getKey(), unusedValues, result);
+			} catch (ObjectNotFoundException e) {
+				LOGGER.error("Cannot return unused value to sequence {}: it does not exist", sequenceMapEntry.getKey(), e);
+				// ... but otherwise ignore it and go on
+			}
+		}
+	}
+
+		
 
 }

@@ -56,15 +56,6 @@ public class MidPointRemoteQueryExecutor extends MidPointQueryExecutor{
 	}
 	
 	
-	@Override
-	protected Object getParsedQuery(String query, Map<QName, Object> expressionParameters) throws  SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
-	
-		RemoteReportParametersType reportParamters = converToReportParameterType(expressionParameters);
-		
-		return reportPort.parseQuery(query, reportParamters);
-//		return getStringQuery();
-	}
-	
 	private RemoteReportParametersType converToReportParameterType(Map<QName, Object> expressionParameters) throws SchemaException {
 		Set<Entry<QName, Object>> paramSet = expressionParameters.entrySet();
 		if (paramSet == null || paramSet.isEmpty()){
@@ -95,10 +86,11 @@ public class MidPointRemoteQueryExecutor extends MidPointQueryExecutor{
 		// TODO Auto-generated method stub
 		SelectorQualifiedGetOptionsType optionsType = MiscSchemaUtil.optionsToOptionsType(options);
 	
-		ObjectListType results = reportPort.searchObjects((QueryType)query, optionsType);
-		if (results == null){
-			return new ArrayList<>();
-		}
+		ObjectListType results =  new ObjectListType();
+//				reportPort.searchObjects((QueryType)query, optionsType);
+//		if (results == null){
+//			return new ArrayList<>();
+//		}
 		return results.getObject();
 	}
 	
@@ -203,6 +195,14 @@ public class MidPointRemoteQueryExecutor extends MidPointQueryExecutor{
 			applicationContext.destroy();
 //			throw new UnsupportedOperationException("QueryExecutor.close() not supported");
 			//nothing to DO
+		}
+
+
+		@Override
+		protected Object getParsedQuery(String query, Map<QName, Object> expressionParameters)
+				throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			// TODO Auto-generated method stub
+			return null;
 		}
 
 

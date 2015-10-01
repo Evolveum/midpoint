@@ -28,9 +28,6 @@
 
 		<div wicket:id="assignmentsPreviewPopup" />
 
-
-
-
 		<div class="row">
 			<div class="col-md-6">
 				<div wicket:id="focusForm" />
@@ -53,8 +50,14 @@
 				</div>
 <!-- 			</div> -->
 <!-- 			<div class="col-md-6"> -->
-				<div wicket:id="assignmentsContainer">
-					<div wicket:id="assignmentsPanel" />
+<!-- 				<div class="row"> -->
+<!--             		<a class="btn btn-info" wicket:id="recomputeAssignments" /> -->
+<!--         		</div> -->
+
+				<div class="row assignable-header">
+					<div wicket:id="assignmentsContainer">
+						<div wicket:id="assignmentsPanel" />
+					</div>
 				</div>
 			</div>
 			<!--                     <div class="row assignable-header"> -->
@@ -76,6 +79,7 @@
 			<!--             </div> -->
 
 		</div>
+		 
 	</wicket:panel>
 </body>
 </html>

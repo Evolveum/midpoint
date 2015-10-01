@@ -121,14 +121,12 @@ public abstract class PageAdminAbstractRole<T extends AbstractRoleType> extends 
 
 			@Override
 			public AbstractResource getObject() {
-				// if(summaryObject.getObject().asObjectable().getJpegPhoto() !=
-				// null){
-				// return new ByteArrayResource("image/jpeg",
-				// summaryObject.getObject().asObjectable().getJpegPhoto());
-				// } else {
-				return new ContextRelativeResource("img/placeholder.png");
-				// }
-
+				 if(summaryObject.getObject().asObjectable().getJpegPhoto() != null){
+	                    return new ByteArrayResource("image/jpeg", summaryObject.getObject().asObjectable().getJpegPhoto());
+	                } else {
+	                    return new ContextRelativeResource("img/placeholder.png");
+	                }
+				
 			}
 		});
 		summaryContainer.add(img);

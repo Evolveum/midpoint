@@ -193,7 +193,7 @@ public abstract class PageAdminFocus <T extends FocusType> extends PageAdmin imp
 	    private static final String ID_ASSIGNMENT_MENU = "assignmentMenu";
 	    private static final String ID_SHADOW_CHECK_ALL = "shadowCheckAll";
 	    private static final String ID_ASSIGNMENT_CHECK_ALL = "assignmentCheckAll";
-	    private static final String ID_BUTTON_RECOMPUTE_ASSIGNMENTS = "recomputeAssignments";
+	    
 	    
 	    private static final String MODAL_ID_RESOURCE = "resourcePopup";
 	    private static final String MODAL_ID_ASSIGNABLE = "assignablePopup";
@@ -1236,7 +1236,7 @@ return false;
 	        handleAssignmentDeltas(focusDelta, getFocusAssignments(), def);
 	    }
 
-	    private void recomputeAssignmentsPerformed(AjaxRequestTarget target){
+	    protected void recomputeAssignmentsPerformed(AssignmentPreviewDialog dialog, AjaxRequestTarget target){
 	        LOGGER.debug("Recompute user assignments");
 	        Task task = createSimpleTask(OPERATION_RECOMPUTE_ASSIGNMENTS);
 	        OperationResult result = new OperationResult(OPERATION_RECOMPUTE_ASSIGNMENTS);
@@ -1336,7 +1336,7 @@ return false;
 	                }
 	            }
 
-	            AssignmentPreviewDialog dialog = (AssignmentPreviewDialog) get(MODAL_ID_ASSIGNMENTS_PREVIEW);
+	            
 	            dialog.updateData(target, new ArrayList<>(assignmentDtoSet), directAssignmentsOids);
 	            dialog.show(target);
 
@@ -1951,8 +1951,8 @@ return false;
 	        });
 	        add(window);
 
-	        ModalWindow assignmentPreviewPopup = new AssignmentPreviewDialog(MODAL_ID_ASSIGNMENTS_PREVIEW, null, null);
-	        add(assignmentPreviewPopup);
+//	        ModalWindow assignmentPreviewPopup = new AssignmentPreviewDialog(MODAL_ID_ASSIGNMENTS_PREVIEW, null, null);
+//	        add(assignmentPreviewPopup);
 	    }
 	    
 	    private void initTasks(WebMarkupContainer tasks) {
@@ -2042,20 +2042,20 @@ return false;
 	        progressReporter.registerAbortButton(abortButton);
 	        mainForm.add(abortButton);
 	        
-	        AjaxSubmitButton recomputeAssignments = new AjaxSubmitButton(ID_BUTTON_RECOMPUTE_ASSIGNMENTS,
-	                createStringResource("pageAdminFocus.button.recompute.assignments")) {
-
-	            @Override
-	            protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
-	                recomputeAssignmentsPerformed(target);
-	            }
-
-	            @Override
-	            protected void onError(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
-	                target.add(getFeedbackPanel());
-	            }
-	        };
-	        mainForm.add(recomputeAssignments);
+//	        AjaxSubmitButton recomputeAssignments = new AjaxSubmitButton(ID_BUTTON_RECOMPUTE_ASSIGNMENTS,
+//	                createStringResource("pageAdminFocus.button.recompute.assignments")) {
+//
+//	            @Override
+//	            protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+//	                recomputeAssignmentsPerformed(target);
+//	            }
+//
+//	            @Override
+//	            protected void onError(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+//	                target.add(getFeedbackPanel());
+//	            }
+//	        };
+//	        mainForm.add(recomputeAssignments);
 	        
 	        AjaxButton back = new AjaxButton("back", createStringResource("pageAdminFocus.button.back")) {
 

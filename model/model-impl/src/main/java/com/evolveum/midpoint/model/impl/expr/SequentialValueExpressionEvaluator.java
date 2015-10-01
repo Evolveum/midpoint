@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.impl.expr;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -28,9 +29,11 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SequentialValueExpressionEvaluatorType;
 
 /**
@@ -57,8 +60,7 @@ public class SequentialValueExpressionEvaluator<V extends PrismValue, D extends 
 	@Override
 	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext params) throws SchemaException,
 			ExpressionEvaluationException, ObjectNotFoundException {
-        
-		long counter = repositoryService.advanceSequence(sequentialValueEvaluatorType.getSequenceRef().getOid(), params.getResult());
+        long counter = getSequenceCounter(sequentialValueEvaluatorType.getSequenceRef().getOid(), repositoryService, params.getResult());
 		
 		Object value = ExpressionUtil.convertToOutputValue(counter, outputDefinition, protector);
                 
@@ -72,6 +74,21 @@ public class SequentialValueExpressionEvaluator<V extends PrismValue, D extends 
 		
 		return ItemDelta.toDeltaSetTriple(output, null);
 	}
+	
+	public static long getSequenceCounter(String sequenceOid, RepositoryService repositoryService, OperationResult result) throws ObjectNotFoundException, SchemaException {
+    	LensContext<? extends FocusType> ctx = ModelExpressionThreadLocalHolder.getLensContext();
+    	if (ctx == null) {
+    		throw new IllegalStateException("No lens context");
+    	}
+    	
+    	Long counter = ctx.getSequenceCounter(sequenceOid);
+    	if (counter == null) {
+    		counter = repositoryService.advanceSequence(sequenceOid, result);
+    		ctx.setSequenceCounter(sequenceOid, counter);
+    	}
+    	
+    	return counter;
+    }
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#shortDebugDump()

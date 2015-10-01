@@ -170,6 +170,14 @@ public final class WebMiscUtil {
             }
         };
     }
+    
+    public static ObjectReferenceType createObjectRef(String oid, String name, QName type){
+    	ObjectReferenceType ort = new ObjectReferenceType();
+    	ort.setOid(oid);
+    	ort.setTargetName(createPolyFromOrigString(name));
+    	ort.setType(type);
+    	return ort;
+    }
 
 //    public static DropDownChoicePanel createActivationStatusPanel(String id, final IModel<ActivationStatusType> model,
 //                                                                  final Component component) {
