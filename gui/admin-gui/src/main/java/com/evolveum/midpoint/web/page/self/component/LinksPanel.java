@@ -20,6 +20,8 @@ public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
     private static final String ID_IMAGE = "imageId";
     private static final String ID_LINK = "link";
     private static final String ID_LABEL = "labelId";
+    private static final String ID_LINKS_ROW = "linksRow";
+    private static final String ID_LINKS_COLUMN = "linksColumn";
     private static final String OPERATION_LOAD_LINKS = DOT_CLASS + "loadLinks";
 
     public LinksPanel(String id) {
@@ -34,7 +36,7 @@ public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
     protected void initLayout() {
 
         final List<RichHyperlinkType> linksList = getModel().getObject();
-        RepeatingView rowView = new RepeatingView("linksRow");
+        RepeatingView rowView = new RepeatingView(ID_LINKS_ROW);
 
         int linksListSize = linksList == null ? 0 : linksList.size();
         if (linksListSize > 0) {
@@ -45,7 +47,7 @@ public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
                 final RichHyperlinkType link = linksList.get(i);
                 if (currentColumn == 0) {
                     row = new WebMarkupContainer(rowView.newChildId());
-                    columnView = new RepeatingView("linksColumn");
+                    columnView = new RepeatingView(ID_LINKS_COLUMN);
                 }
 
                 WebMarkupContainer column = new WebMarkupContainer(columnView.newChildId());

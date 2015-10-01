@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8" ?>
 <!--
   ~ Copyright (c) 2010-2013 Evolveum
   ~
@@ -13,16 +14,22 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<!DOCTYPE html>
-><html xmlns:wicket="http://wicket.apache.org">
-<wicket:panel>
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
 
-            <div class="input-group">
-                <input wicket:id="searchInput" name="q" class="form-control" placeholder="Search..." type="text">
-              <span class="input-group-btn">
-                <button type="submit" name="search" id="search-btn" class="btn btn-flat"><i class="fa fa-search"></i>
-                </button>
-              </span>
-            </div>
+    <div class="input-group margin">
+        <input wicket:id="searchInput" class="form-control" type="text" />
+        <div class="input-group-btn">
+            <a wicket:id="searchButton" type="button" class="btn btn-default bg-blue">
+                <i class="fa fa-search"/>
+                <span wicket:id="buttonLabel"/>
+            </a>
+            <button aria-expanded="false" type="button" class="btn btn-info dropdown-toggle bg-blue" data-toggle="dropdown">
+                <span class="caret"></span>
+                <span class="sr-only">Toggle Dropdown</span>
+            </button>
+            <ul  class="dropdown-menu" role="menu" wicket:id="searchTypes">
+                <li><a wicket:id="searchTypeItem" href="#"><span wicket:id="linkLabel"/></a></li>
+            </ul>
+        </div>
+    </div>
 </wicket:panel>
-</html>
