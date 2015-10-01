@@ -123,10 +123,24 @@ public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter{
 	@Override
 	protected void parseQuery() {
 		try {
-			query = getParsedQuery(dataset.getQuery().getText(), getParameters());
+
+			String s = dataset.getQuery().getText();
+			LOGGER.trace("query: " + s);
+			if (StringUtils.isEmpty(s)) {
+				query = null;
+			} else {
+				if (s.startsWith("<filter")) {
+					query = getParsedQuery(s, getParameters());
+					// getParsedQuery(s, expressionParameters);
+				} else if (s.startsWith("<code")) {
+					script = getParsedScript(s);
+				}
+			}
 		} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException e) {
-			throw new SystemException("Could not parse report query: " + e.getMessage(), e);
+			// TODO Auto-generated catch block
+			throw new SystemException(e.getMessage(), e);
 		}
+
 	}
 	
 	@Override
