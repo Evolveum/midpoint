@@ -447,15 +447,15 @@ public class PageUsers extends PageAdminUsers {
         setResponsePage(PageUser.class, parameters);
     }
 
-    private TablePanel getTable() {
-        return (TablePanel) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
+    private BoxedTablePanel getTable() {
+        return (BoxedTablePanel) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
     }
 
     private void searchPerformed(AjaxRequestTarget target) {
         ObjectQuery query = createQuery();
         target.add(getFeedbackPanel());
 
-        TablePanel panel = getTable();
+        BoxedTablePanel panel = getTable();
         DataTable table = panel.getDataTable();
         ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
         provider.setQuery(query);
@@ -710,7 +710,7 @@ public class PageUsers extends PageAdminUsers {
     private void clearSearchPerformed(AjaxRequestTarget target){
         model.setObject(new UsersDto());
 
-        TablePanel panel = getTable();
+        BoxedTablePanel panel = getTable();
         DataTable table = panel.getDataTable();
         ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
         provider.setQuery(null);

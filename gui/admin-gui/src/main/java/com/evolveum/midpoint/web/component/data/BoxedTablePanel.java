@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.web.component.data;
 
-import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import org.apache.wicket.MarkupContainer;
@@ -46,7 +46,7 @@ public class BoxedTablePanel<T> extends SimplePanel {
     private static final String ID_PAGING = "paging";
     private static final String ID_COUNT = "count";
 
-    public BoxedTablePanel(String id,ISortableDataProvider provider, List<IColumn<T, String>> columns,
+    public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
                            UserProfileStorage.TableId tableId, int pageSize) {
         super(id);
 
@@ -77,6 +77,25 @@ public class BoxedTablePanel<T> extends SimplePanel {
 
     protected WebMarkupContainer createFooter(String footerId) {
         return new PagingFooter(footerId, ID_PAGING_FOOTER, this, getTable());
+    }
+
+    public DataTable getDataTable() {
+        return (DataTable) get(ID_TABLE);
+    }
+
+    public void setCurrentPage(ObjectPaging paging) {
+        if (paging == null) {
+            getDataTable().setCurrentPage(0);
+            return;
+        }
+
+        long itemsPerPage = getDataTable().getItemsPerPage();
+        long page = ((paging.getOffset() + itemsPerPage) / itemsPerPage) - 1;
+        if (page < 0) {
+            page = 0;
+        }
+
+        getDataTable().setCurrentPage(page);
     }
 
     private static class PagingFooter extends Fragment {
@@ -129,6 +148,11 @@ public class BoxedTablePanel<T> extends SimplePanel {
             }
 
             if (count > 0) {
+                if (count == Integer.MAX_VALUE) {
+                    return new StringResourceModel("CountToolbar.label", PagingFooter.this, null,
+                            new Object[]{from, to}).getString();
+                }
+
                 return new StringResourceModel("CountToolbar.label", PagingFooter.this, null,
                         new Object[]{from, to, count}).getString();
             }
