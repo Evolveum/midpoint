@@ -22,7 +22,7 @@ import com.evolveum.midpoint.web.page.admin.home.component.DashboardColor;
 import com.evolveum.midpoint.web.page.admin.home.dto.AccountCallableResult;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.page.self.component.LinksPanel;
-import com.evolveum.midpoint.web.page.self.component.SearchPanel;
+import com.evolveum.midpoint.web.page.self.component.DashboardSearchPanel;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
@@ -69,8 +69,8 @@ public class PageSelfDashboard extends PageSelf {
     }
 
     private void initLayout(){
-        SearchPanel searchPanel = new SearchPanel(ID_SEARCH_PANEL, null);
-        add(searchPanel);
+        DashboardSearchPanel dashboardSearchPanel = new DashboardSearchPanel(ID_SEARCH_PANEL, null);
+        add(dashboardSearchPanel);
         final AsyncDashboardPanel<Object, List<RichHyperlinkType>> linksPanel =
                 new AsyncDashboardPanel<Object, List<RichHyperlinkType>>(ID_LINKS_PANEL, null,
                         "", DashboardColor.GRAY) {

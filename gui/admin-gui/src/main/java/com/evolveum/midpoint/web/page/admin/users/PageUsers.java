@@ -114,10 +114,10 @@ public class PageUsers extends PageAdminUsers {
     private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel;
 
     public PageUsers(){
-        this(true);
+        this(true, null, null);
     }
 
-    public PageUsers(boolean clearPagingInSession) {
+    public PageUsers(boolean clearPagingInSession, final UsersDto.SearchType type, final String text) {
         model = new LoadableModel<UsersDto>(false) {
 
             @Override
@@ -127,7 +127,12 @@ public class PageUsers extends PageAdminUsers {
                 if (dto == null) {
                     dto = new UsersDto();
                 }
-
+                if (type != null && text != null && !text.trim().equals("")){
+                    dto.setText(text);
+                    List<UsersDto.SearchType> searchType = new ArrayList<UsersDto.SearchType>();
+                    searchType.add(type);
+                    dto.setType(searchType);
+                }
                 return dto;
             }
         };
@@ -143,6 +148,11 @@ public class PageUsers extends PageAdminUsers {
         getSessionStorage().clearPagingInSession(clearPagingInSession);
         initLayout();
     }
+
+    public PageUsers(UsersDto.SearchType type, String text) {
+        this(true, type, text);
+    }
+
 
     private void initLayout() {
         Form mainForm = new Form(ID_MAIN_FORM);

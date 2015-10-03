@@ -174,7 +174,7 @@ public class PageRole extends PageAdminAbstractRole<RoleType>implements Progress
 		if (getPreviousPage() != null) {
 			goBack(PageDashboard.class); // parameter is not used
 		} else {
-			setResponsePage(new PageRoles(false));
+			setResponsePage(new PageRoles(false, ""));
 		}
 	}
 

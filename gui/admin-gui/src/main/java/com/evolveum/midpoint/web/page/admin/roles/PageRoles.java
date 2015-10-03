@@ -89,10 +89,14 @@ public class PageRoles extends PageAdminRoles {
     private IModel<RolesSearchDto> searchModel;
 
     public PageRoles() {
-        this(true);
+        this(true, "");
     }
 
-    public PageRoles(boolean clearPagingInSession){
+    public PageRoles(String searchText) {
+        this(true, searchText);
+    }
+
+    public PageRoles(boolean clearPagingInSession, final String searchText) {
         searchModel = new LoadableModel<RolesSearchDto>() {
 
             @Override
@@ -102,6 +106,9 @@ public class PageRoles extends PageAdminRoles {
 
                 if(dto == null){
                     dto = new RolesSearchDto();
+                }
+                if (searchText != null && !searchText.trim().equals("")){
+                    dto.setText(searchText);
                 }
 
                 return dto;
@@ -152,7 +159,7 @@ public class PageRoles extends PageAdminRoles {
         });
     }
 
-    private void initSearchForm(Form searchForm){
+    private void initSearchForm(Form searchForm) {
         DropDownChoice requestable = new DropDownChoice(ID_SEARCH_REQUESTABLE,
                 new PropertyModel(searchModel, RolesSearchDto.F_REQUESTABLE),
                 WebMiscUtil.createReadonlyModelFromEnum(RolesSearchDto.Requestable.class), new EnumChoiceRenderer(this));
@@ -315,7 +322,7 @@ public class PageRoles extends PageAdminRoles {
         setResponsePage(PageRole.class, parameters);
     }
 
-    private void listRolesPerformed(AjaxRequestTarget target){
+    private void listRolesPerformed(AjaxRequestTarget target) {
         ObjectQuery query = createQuery();
         ObjectDataProvider provider = getRoleDataProvider();
         provider.setQuery(query);
@@ -330,14 +337,14 @@ public class PageRoles extends PageAdminRoles {
         target.add(getFeedbackPanel());
     }
 
-    private ObjectQuery createQuery(){
+    private ObjectQuery createQuery() {
         RolesSearchDto dto = searchModel.getObject();
         String text = dto.getText();
         Boolean requestable = dto.getRequestableValue();
         ObjectQuery query = new ObjectQuery();
         List<ObjectFilter> filters = new ArrayList<>();
 
-        if(StringUtils.isNotEmpty(text)){
+        if (StringUtils.isNotEmpty(text)) {
             PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
             String normalizedText = normalizer.normalize(text);
 
@@ -346,11 +353,11 @@ public class PageRoles extends PageAdminRoles {
             filters.add(substring);
         }
 
-        if(requestable != null){
+        if (requestable != null) {
             EqualFilter requestableFilter = EqualFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
-                        null, requestable);
+                    null, requestable);
 
-            if (requestable){
+            if (requestable) {
                 filters.add(requestableFilter);
             } else {
                 requestableFilter = EqualFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
@@ -362,14 +369,14 @@ public class PageRoles extends PageAdminRoles {
             }
         }
 
-        if(!filters.isEmpty()){
+        if (!filters.isEmpty()) {
             query.setFilter(AndFilter.createAnd(filters));
         }
 
         return query;
     }
 
-    private void clearSearchPerformed(AjaxRequestTarget target){
+    private void clearSearchPerformed(AjaxRequestTarget target) {
         searchModel.setObject(new RolesSearchDto());
 
         TablePanel panel = getRoleTable();
