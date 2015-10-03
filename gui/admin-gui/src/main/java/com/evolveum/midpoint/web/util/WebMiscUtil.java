@@ -42,6 +42,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
@@ -467,8 +468,17 @@ public final class WebMiscUtil {
         }
     }
 
+    public static <T extends Selectable> List<T> getSelectedData(BoxedTablePanel panel) {
+        DataTable table = panel.getDataTable();
+        return getSelectedData(table);
+    }
+
     public static <T extends Selectable> List<T> getSelectedData(TablePanel panel) {
         DataTable table = panel.getDataTable();
+        return getSelectedData(table);
+    }
+
+    private static <T extends Selectable> List<T> getSelectedData(DataTable table) {
         BaseSortableDataProvider<T> provider = (BaseSortableDataProvider<T>) table.getDataProvider();
 
         List<T> selected = new ArrayList<T>();
