@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -51,6 +52,12 @@ public class BoxedTablePanel<T> extends SimplePanel implements Table {
     private static final String ID_MENU = "menu";
 
     private UserProfileStorage.TableId tableId;
+    private boolean showPaging;
+
+    public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
+                           UserProfileStorage.TableId tableId) {
+        this(id, provider, columns, tableId, UserProfileStorage.DEFAULT_PAGING_SIZE);
+    }
 
     public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
                            UserProfileStorage.TableId tableId, int pageSize) {
@@ -88,6 +95,18 @@ public class BoxedTablePanel<T> extends SimplePanel implements Table {
         getDataTable().setItemsPerPage(size);
     }
 
+    @Override
+    public void setShowPaging(boolean show) {
+        //todo make use of this [lazyman]
+        this.showPaging = show;
+
+        if (!show) {
+            setItemsPerPage(Integer.MAX_VALUE);
+        } else {
+            setItemsPerPage(10);
+        }
+    }
+
     protected WebMarkupContainer createHeader(String headerId) {
         WebMarkupContainer header = new WebMarkupContainer(headerId);
         header.setVisible(false);
@@ -98,18 +117,13 @@ public class BoxedTablePanel<T> extends SimplePanel implements Table {
         return new PagingFooter(footerId, ID_PAGING_FOOTER, this, this);
     }
 
+    @Override
     public void setCurrentPage(ObjectPaging paging) {
-        if (paging == null) {
-            getDataTable().setCurrentPage(0);
-            return;
-        }
+        WebMiscUtil.setCurrentPage(this, paging);
+    }
 
-        long itemsPerPage = getDataTable().getItemsPerPage();
-        long page = ((paging.getOffset() + itemsPerPage) / itemsPerPage) - 1;
-        if (page < 0) {
-            page = 0;
-        }
-
+    @Override
+    public void setCurrentPage(long page) {
         getDataTable().setCurrentPage(page);
     }
 

@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -43,6 +44,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
@@ -468,18 +470,9 @@ public final class WebMiscUtil {
         }
     }
 
-    public static <T extends Selectable> List<T> getSelectedData(BoxedTablePanel panel) {
-        DataTable table = panel.getDataTable();
-        return getSelectedData(table);
-    }
-
-    public static <T extends Selectable> List<T> getSelectedData(TablePanel panel) {
-        DataTable table = panel.getDataTable();
-        return getSelectedData(table);
-    }
-
-    private static <T extends Selectable> List<T> getSelectedData(DataTable table) {
-        BaseSortableDataProvider<T> provider = (BaseSortableDataProvider<T>) table.getDataProvider();
+    public static <T extends Selectable> List<T> getSelectedData(Table table) {
+        DataTable dataTable = table.getDataTable();
+        BaseSortableDataProvider<T> provider = (BaseSortableDataProvider<T>) dataTable.getDataProvider();
 
         List<T> selected = new ArrayList<T>();
         for (T bean : provider.getAvailableData()) {
@@ -679,7 +672,7 @@ public final class WebMiscUtil {
      * @param <T>
      * @return
      */
-    public static <T extends Selectable> List<T> isAnythingSelected(AjaxRequestTarget target, T single, TablePanel table,
+    public static <T extends Selectable> List<T> isAnythingSelected(AjaxRequestTarget target, T single, Table table,
                                                                     PageBase page, String nothingWarnMessage) {
         List<T> selected;
         if (single != null) {
@@ -796,5 +789,25 @@ public final class WebMiscUtil {
         int exp = (int) (Math.log(bytes) / Math.log(unit));
         char pre = "KMGTPE".charAt(exp - 1);
         return String.format("%.1f%sB", bytes / Math.pow(unit, exp), pre);
+    }
+
+
+    public static void setCurrentPage(Table table, ObjectPaging paging) {
+        if (table == null) {
+            return;
+        }
+
+        if (paging == null) {
+            table.getDataTable().setCurrentPage(0);
+            return;
+        }
+
+        long itemsPerPage = table.getDataTable().getItemsPerPage();
+        long page = ((paging.getOffset() + itemsPerPage) / itemsPerPage) - 1;
+        if (page < 0) {
+            page = 0;
+        }
+
+        table.getDataTable().setCurrentPage(page);
     }
 }

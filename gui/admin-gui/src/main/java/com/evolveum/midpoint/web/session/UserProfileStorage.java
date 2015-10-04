@@ -28,7 +28,7 @@ import java.util.Map;
  */
 public class UserProfileStorage implements Serializable {
 
-    public static final Integer DEFAULT_PAGING_SIZE = 10;
+    public static final int DEFAULT_PAGING_SIZE = 10;
 
     /*
     *   Enum containing IDs of all tables. where paging size can be adjusted
@@ -47,7 +47,8 @@ public class UserProfileStorage implements Serializable {
         PAGE_RESOURCE_ACCOUNTS_PANEL,
         PAGE_TASKS_PANEL,
         PAGE_USERS_PANEL,
-        PAGE_WORK_ITEMS
+        PAGE_WORK_ITEMS,
+        PAGE_RESOURCES_CONNECTOR_HOSTS
     }
 
     private Map<TableId, Integer> tables = new HashMap<TableId, Integer>();

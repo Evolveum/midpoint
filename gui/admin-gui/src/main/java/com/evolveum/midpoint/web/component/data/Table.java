@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.data;
 
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 
@@ -29,4 +30,11 @@ public interface Table {
     UserProfileStorage.TableId getTableId();
 
     void setItemsPerPage(int size);
+
+    void setShowPaging(boolean show);
+
+    void setCurrentPage(long page);
+
+    @Deprecated
+    void setCurrentPage(ObjectPaging paging);
 }

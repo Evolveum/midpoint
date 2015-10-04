@@ -42,8 +42,9 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
-import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -65,6 +66,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -150,8 +152,9 @@ public class PageResources extends PageAdminResources {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        TablePanel resources = new TablePanel<>(ID_TABLE, initResourceDataProvider(), initResourceColumns(),
-                UserProfileStorage.TableId.PAGE_RESOURCES_PANEL, getItemsPerPage(UserProfileStorage.TableId.PAGE_RESOURCES_PANEL));
+        BoxedTablePanel resources = new BoxedTablePanel<>(ID_TABLE, initResourceDataProvider(), initResourceColumns(),
+                UserProfileStorage.TableId.PAGE_RESOURCES_PANEL,
+                (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_RESOURCES_PANEL));
         resources.setOutputMarkupId(true);
 
         ResourcesStorage storage = getSessionStorage().getResources();
@@ -159,9 +162,9 @@ public class PageResources extends PageAdminResources {
 
         mainForm.add(resources);
 
-        TablePanel connectorHosts = new TablePanel<>(ID_CONNECTOR_TABLE,
-                new ObjectDataProvider(PageResources.this, ConnectorHostType.class), initConnectorHostsColumns());
-        connectorHosts.setShowPaging(false);
+        BoxedTablePanel connectorHosts = new BoxedTablePanel<>(ID_CONNECTOR_TABLE,
+                new ObjectDataProvider(PageResources.this, ConnectorHostType.class), initConnectorHostsColumns(),
+                UserProfileStorage.TableId.PAGE_RESOURCES_CONNECTOR_HOSTS);
         connectorHosts.setOutputMarkupId(true);
         mainForm.add(connectorHosts);
 
@@ -483,12 +486,12 @@ public class PageResources extends PageAdminResources {
         dialog.show(target);
     }
 
-    private TablePanel getResourceTable() {
-        return (TablePanel) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
+    private Table getResourceTable() {
+        return (Table) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
     }
 
-    private TablePanel getConnectorHostTable() {
-        return (TablePanel) get(createComponentPath(ID_MAIN_FORM, ID_CONNECTOR_TABLE));
+    private Table getConnectorHostTable() {
+        return (Table) get(createComponentPath(ID_MAIN_FORM, ID_CONNECTOR_TABLE));
     }
 
     /**
@@ -502,7 +505,7 @@ public class PageResources extends PageAdminResources {
 
             @Override
             public String getObject() {
-                TablePanel table = resources ? getResourceTable() : getConnectorHostTable();
+                Table table = resources ? getResourceTable() : getConnectorHostTable();
                 List selected = new ArrayList();
 
                 if(singleDelete != null){
@@ -525,7 +528,7 @@ public class PageResources extends PageAdminResources {
     }
 
     private void deleteHostConfirmedPerformed(AjaxRequestTarget target) {
-        TablePanel hostTable = getConnectorHostTable();
+        Table hostTable = getConnectorHostTable();
         List<SelectableBean<ConnectorHostType>> selected = WebMiscUtil.getSelectedData(hostTable);
 
         OperationResult result = new OperationResult(OPERATION_DELETE_HOSTS);
@@ -551,7 +554,7 @@ public class PageResources extends PageAdminResources {
         provider.clearCache();
 
         showResult(result);
-        target.add(getFeedbackPanel(), hostTable);
+        target.add(getFeedbackPanel(), (Component) hostTable);
     }
 
     private void deleteResourceConfirmedPerformed(AjaxRequestTarget target) {
@@ -582,12 +585,12 @@ public class PageResources extends PageAdminResources {
             result.recordStatus(OperationResultStatus.SUCCESS, "The resource(s) have been successfully deleted.");
         }
 
-        TablePanel resourceTable = getResourceTable();
+        Table resourceTable = getResourceTable();
         ObjectDataProvider provider = (ObjectDataProvider) resourceTable.getDataTable().getDataProvider();
         provider.clearCache();
 
         showResult(result);
-        target.add(getFeedbackPanel(), resourceTable);
+        target.add(getFeedbackPanel(), (Component) resourceTable);
     }
 
     private void discoveryRemotePerformed(AjaxRequestTarget target) {
@@ -633,16 +636,8 @@ public class PageResources extends PageAdminResources {
             // todo de-duplicate code (see the same operation in PageResource)
             // this provides some additional tests, namely a test for schema handling section
             getModelService().getObject(ResourceType.class, dto.getOid(), null, task, result);
-        } catch (ObjectNotFoundException ex) {
+        } catch (Exception ex) {
             result.recordFatalError("Failed to test resource connection", ex);
-        } catch (ConfigurationException e) {
-            result.recordFatalError("Failed to test resource connection", e);
-        } catch (SchemaException e) {
-            result.recordFatalError("Failed to test resource connection", e);
-        } catch (CommunicationException e) {
-            result.recordFatalError("Failed to test resource connection", e);
-        } catch (SecurityViolationException e) {
-            result.recordFatalError("Failed to test resource connection", e);
         }
 
         // a bit of hack: result of TestConnection contains a result of getObject as a subresult
@@ -687,7 +682,7 @@ public class PageResources extends PageAdminResources {
         ObjectQuery query = createQuery();
         target.add(getFeedbackPanel());
 
-        TablePanel panel = getResourceTable();
+        Table panel = getResourceTable();
         DataTable table = panel.getDataTable();
         ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
         provider.setQuery(query);
@@ -696,7 +691,7 @@ public class PageResources extends PageAdminResources {
         storage.setResourceSearch(searchModel.getObject());
         panel.setCurrentPage(storage.getResourcePaging());
 
-        target.add(panel);
+        target.add((Component) panel);
     }
 
     private void deleteResourceSyncTokenPerformed(AjaxRequestTarget target, IModel<ResourceDto> model){
@@ -719,7 +714,7 @@ public class PageResources extends PageAdminResources {
     private void clearSearchPerformed(AjaxRequestTarget target){
         searchModel.setObject(new ResourceSearchDto());
 
-        TablePanel panel = getResourceTable();
+        Table panel = getResourceTable();
         DataTable table = panel.getDataTable();
         ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
         provider.setQuery(null);
@@ -729,6 +724,6 @@ public class PageResources extends PageAdminResources {
         panel.setCurrentPage(storage.getResourcePaging());
 
         target.add(get(ID_SEARCH_FORM));
-        target.add(panel);
+        target.add((Component) panel);
     }
 }
