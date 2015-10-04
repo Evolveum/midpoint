@@ -39,7 +39,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class TablePanel<T> extends Panel {
+public class TablePanel<T> extends Panel implements Table {
 
     private static final String ID_TABLE = "table";
     private static final String ID_PAGING = "paging";
@@ -101,6 +101,7 @@ public class TablePanel<T> extends Panel {
         add(nb2);
     }
 
+    @Override
     public UserProfileStorage.TableId getTableId() {
         return tableId;
     }
@@ -129,6 +130,7 @@ public class TablePanel<T> extends Panel {
         return baseProvider.isSizeAvailableModel();
     }
 
+    @Override
     public DataTable getDataTable() {
         return (DataTable) get(ID_TABLE);
     }
@@ -137,6 +139,7 @@ public class TablePanel<T> extends Panel {
         return (NavigatorPanel) get(ID_PAGING);
     }
 
+    @Override
     public void setItemsPerPage(int size) {
         getDataTable().setItemsPerPage(size);
     }

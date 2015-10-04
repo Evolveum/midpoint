@@ -80,6 +80,7 @@ public class TableConfigurationPanel extends SimplePanel {
             }
         };
         cogButton.add(tableColumns);
+        tableColumns.setVisible(false); //todo implement [lazyman]
 
         initPopoverLayout();
     }
@@ -96,15 +97,12 @@ public class TableConfigurationPanel extends SimplePanel {
 
             @Override
             protected void onError(AjaxRequestTarget target, Form<?> form) {
-                super.onError(target, form);
                 target.add(getPageBase().getFeedbackPanel());
             }
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                super.onSubmit(target, form);
-
-//                pageSizeChanged(target);
+                pageSizeChanged(target);
             }
         };
         form.add(button);
@@ -117,10 +115,6 @@ public class TableConfigurationPanel extends SimplePanel {
         form.add(input);
     }
 
-    protected void pageSizeUpdated(int pageSize) {
-
-    }
-
     private void tableColumnsPerformed(AjaxRequestTarget target) {
         //todo implement table columns support [lazyman]
     }
@@ -130,20 +124,18 @@ public class TableConfigurationPanel extends SimplePanel {
 
             @Override
             public Integer getObject() {
-//                TablePanel tablePanel = findParent(TablePanel.class);
-//                UserProfileStorage.TableId tableId = tablePanel.getTableId();
-//
-//                return getPageBase().getSessionStorage().getUserProfile().getPagingSize(tableId);
-                //todo fix [lazyman]
-                return 10;
+                Table tablePanel = findParent(Table.class);
+                UserProfileStorage.TableId tableId = tablePanel.getTableId();
+
+                return getPageBase().getSessionStorage().getUserProfile().getPagingSize(tableId);
             }
 
             @Override
             public void setObject(Integer o) {
-//                TablePanel tablePanel = findParent(TablePanel.class);
-//                UserProfileStorage.TableId tableId = tablePanel.getTableId();
-//
-//                getPageBase().getSessionStorage().getUserProfile().setPagingSize(tableId, o);
+                Table tablePanel = findParent(Table.class);
+                UserProfileStorage.TableId tableId = tablePanel.getTableId();
+
+                getPageBase().getSessionStorage().getUserProfile().setPagingSize(tableId, o);
             }
 
             @Override
