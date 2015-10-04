@@ -122,11 +122,25 @@ function updateHeightReal(elementId, add, substract) {
  * @param popoverId
  */
 function initPageSizePopover(buttonId, popoverId) {
+    console.log(popoverId);
+    initPageSizePopover(buttonId, popoverId, buttonId);
+}
+
+/**
+ *
+ * @param buttonId
+ * @param popoverId
+ * @param positionId
+ */
+function initPageSizePopover(buttonId, popoverId, positionId) {
+    console.log("initPageSizePopover('" + buttonId + "','" + popoverId + "','" + positionId +"')");
+
     var button = $('#' + buttonId);
     button.click(function () {
         var popover = $('#' + popoverId);
 
-        var position = button.position();
+        var positionElement = $('#' + positionId);
+        var position = positionElement.position();
 
         var left = position.left - popover.outerWidth();
         var top = position.top + button.outerHeight() / 2 - popover.outerHeight() / 2;

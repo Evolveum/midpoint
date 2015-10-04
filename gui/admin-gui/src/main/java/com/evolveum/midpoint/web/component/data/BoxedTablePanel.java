@@ -45,6 +45,7 @@ public class BoxedTablePanel<T> extends SimplePanel {
     private static final String ID_PAGING_FOOTER = "pagingFooter";
     private static final String ID_PAGING = "paging";
     private static final String ID_COUNT = "count";
+    private static final String ID_MENU = "menu";
 
     public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
                            UserProfileStorage.TableId tableId, int pageSize) {
@@ -55,6 +56,7 @@ public class BoxedTablePanel<T> extends SimplePanel {
 
     private void initLayout(List<IColumn<T, String>> columns, ISortableDataProvider provider, int pageSize) {
         DataTable<T, String> table = new SelectableDataTable<>(ID_TABLE, columns, provider, pageSize);
+        table.setOutputMarkupId(true);
         add(table);
 
         TableHeadersToolbar headersTop = new TableHeadersToolbar(table, provider);
@@ -118,6 +120,9 @@ public class BoxedTablePanel<T> extends SimplePanel {
                 }
             });
             add(count);
+
+            TableConfigurationPanel menu =new TableConfigurationPanel(ID_MENU);
+            add(menu);
         }
 
         private String createCountString(IPageable pageable) {
