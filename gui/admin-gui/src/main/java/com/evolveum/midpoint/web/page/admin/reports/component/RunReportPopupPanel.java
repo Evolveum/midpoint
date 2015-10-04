@@ -118,11 +118,9 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
     private IModel<ReportDto> reportModel;
     private ReportType reportType;
 
-    
     public void setReportType(ReportType reportType) {
         this.reportType = reportType;
 
-        
         if (getParametersTable() != null) {
             replace(createTablePanel());
         }
@@ -158,8 +156,8 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
                 return new ReportDto(reportType, true);
             }
         };
-        
-			ISortableDataProvider<JasperReportParameterDto, String> provider = new ListDataProvider<>(this,
+
+        ISortableDataProvider<JasperReportParameterDto, String> provider = new ListDataProvider<>(this,
                 new PropertyModel<List<JasperReportParameterDto>>(reportModel, "jasperReportDto.parameters"));
         TablePanel table = new TablePanel<>(ID_PARAMETERS_TABLE, provider, initParameterColumns());
         table.setOutputMarkupId(true);
@@ -219,7 +217,7 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
         return columns;
     }
 
-    private  Component createTypedInputPanel(String componentId, IModel<JasperReportParameterDto> model, String expression) {
+    private Component createTypedInputPanel(String componentId, IModel<JasperReportParameterDto> model, String expression) {
         JasperReportParameterDto param = model.getObject();
         param.setEditing(true);
 
@@ -229,7 +227,7 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
         Class type = null;
 
         final LookupTableType lookup = createLookupTable(param);
-        
+
         try {
             type = param.getType();
         } catch (ClassNotFoundException e) {
@@ -245,22 +243,23 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
 //        } else if ("resourceName".equals(param.getName())) { // hardcoded for Reconc report
 //            panel = new DropDownChoicePanel(componentId, new PropertyModel(model, expression),
 //                    createResourceListModel(), new ChoiceRenderer<String>(), false);
-        } else if (lookup != null){
-        	panel = new AutoCompleteTextPanel<String>(componentId, new LookupPropertyModel<String>(model, expression,
+        } else if (lookup != null) {
+            panel = new AutoCompleteTextPanel<String>(componentId, new LookupPropertyModel<String>(model, expression,
                     lookup), String.class) {
 
-                @Override
-                public Iterator<String> getIterator(String input) {
-                    return prepareAutoCompleteList(input, lookup).iterator();
-                }
-            };
-        } else if ("stringAttributeName".equals(param.getName())) { // hardcoded for User report
-            panel = new DropDownChoicePanel(componentId, new PropertyModel(model, expression),
-                    createUserAttributeListModel(String.class), new ChoiceRenderer<String>(), false);
-        } else if ("polyStringAttributeName".equals(param.getName())) { // hardcoded for User report
-            panel = new DropDownChoicePanel(componentId, new PropertyModel(model, expression),
-                    createUserAttributeListModel(PolyString.class), new ChoiceRenderer<String>(), false);
-        } else {
+                        @Override
+                        public Iterator<String> getIterator(String input) {
+                            return prepareAutoCompleteList(input, lookup).iterator();
+                        }
+                    };
+        } /*
+         else if ("stringAttributeName".equals(param.getName())) { // hardcoded for User report
+         panel = new DropDownChoicePanel(componentId, new PropertyModel(model, expression),
+         createUserAttributeListModel(String.class), new ChoiceRenderer<String>(), false);
+         } else if ("polyStringAttributeName".equals(param.getName())) { // hardcoded for User report
+         panel = new DropDownChoicePanel(componentId, new PropertyModel(model, expression),
+         createUserAttributeListModel(PolyString.class), new ChoiceRenderer<String>(), false);
+         } */ else {
             panel = new TextPanel<String>(componentId, new PropertyModel<String>(model, expression));
         }
         List<FormComponent> components = panel.getFormComponents();
@@ -277,115 +276,133 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
         return panel;
 
     }
-    
+
     private <T extends ObjectType> LookupTableType createLookupTable(JasperReportParameterDto param) {
-    	ItemPath path = null;
+        ItemPath label = null;
+        ItemPath key = null;
 
-    	JRPropertiesMap properties = param.getProperties();
-    	
-    	if (properties == null){
-    		return null;
-    	}
-    	
-    	String pPath = properties.getProperty("path");
-    	if (pPath != null){
-    		path = new ItemPath(pPath);
-    	}
-    	
-    	String pTargetType = properties.getProperty("targetType");
-    	Class<T> targetType = null;
-    	if (pTargetType != null){
-    		try {
-				targetType = (Class<T>) Class.forName(pTargetType);
-			} catch (ClassNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-    	}
-    	
-    	if (path != null && targetType != null){
-        	OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCES);
-            Task task = createSimpleTask(OPERATION_LOAD_RESOURCES);
-        	
-        	Collection<PrismObject<T>> objects;
-			try {
-				objects = modelService.searchObjects(targetType, new ObjectQuery(), SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, result);
-			
-				LookupTableType lookup =  new LookupTableType();
-				
-				for (PrismObject<T> o : objects){
-	        		PrismProperty item = o.findProperty(path);
-	        		//TODO: TODO TODO e.g. support not only for property, but also ref, continer..
-	        		if (item == null || item.isEmpty()){
-	        			continue;
-	        		}
-	        		
-	        		//TODO support for single/multivalue value 
-	        		if (!item.isSingleValue()){
-	        			continue;
-	        		}
-	        		
-	        		Object realValue = item.getRealValue();
-	        		
-	        		// TODO: take definition into account
-	        		QName typeName = item.getDefinition().getTypeName();
-	        		
-	        		
-	        		//TODO ros.setValue() ???? use value which will be used in the filter?? get the name of the parameter used for filter from properties map (key)
-	        		LookupTableRowType row =  new LookupTableRowType();
-	        		if (realValue instanceof PolyString){
-	        			row.setKey(WebMiscUtil.getOrigStringFromPoly((PolyString) realValue));
-	        			row.setLabel(new PolyStringType((PolyString)realValue));
-	        		} else if (realValue instanceof PolyStringType){
-	        			row.setKey(WebMiscUtil.getOrigStringFromPoly((PolyStringType) realValue));
-	        			row.setLabel((PolyStringType)realValue);
-	        		} else if (realValue instanceof String){
-	        			row.setKey((String) realValue);
-	        			row.setLabel(new PolyStringType((String)realValue));
-	        		} else {
-	        			row.setKey(realValue.toString());
-	        			row.setLabel(new PolyStringType(realValue.toString()));
-	        		}
-	        		
-	        		lookup.getRow().add(row);	
-	        	}
-				
-				return lookup;
-			} catch (SchemaException | ObjectNotFoundException | SecurityViolationException
-					| CommunicationException | ConfigurationException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-        	
-        	
+        JRPropertiesMap properties = param.getProperties();
+
+        if (properties == null) {
+            return null;
         }
-    	return null;
-	}
 
-	private List<String> prepareAutoCompleteList(String input, LookupTableType lookupTable){
+        String pLabel = properties.getProperty("label");
+        if (pLabel != null) {
+            label = new ItemPath(pLabel);
+        }
+        String pKey = properties.getProperty("key");
+        if (pKey != null) {
+            key = new ItemPath(pKey);
+        }
+
+        String pTargetType = properties.getProperty("targetType");
+        Class<T> targetType = null;
+        if (pTargetType != null) {
+            try {
+                targetType = (Class<T>) Class.forName(pTargetType);
+            } catch (ClassNotFoundException e) {
+                error("Error while creating lookup table for input parameter: " + param.getName() + ", " + e.getClass().getSimpleName() + " (" + e.getMessage() + ")");
+                //e.printStackTrace();
+            }
+        }
+
+        if (label != null && targetType != null) {
+            OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCES);
+            Task task = createSimpleTask(OPERATION_LOAD_RESOURCES);
+
+            Collection<PrismObject<T>> objects;
+            try {
+                objects = modelService.searchObjects(targetType, new ObjectQuery(), SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, result);
+
+                LookupTableType lookup = new LookupTableType();
+
+                for (PrismObject<T> o : objects) {
+                    Object realKeyValue = null;
+                    PrismProperty labelItem = o.findProperty(label);
+
+                    //TODO: e.g. support not only for property, but also ref, container..
+                    if (labelItem == null || labelItem.isEmpty()) {
+                        continue;
+                    }
+                    PrismProperty keyItem = o.findProperty(key);
+                    if ("oid".equals(pKey)) {
+                        realKeyValue = o.getOid();
+                    }
+                    if (realKeyValue == null && (keyItem == null || keyItem.isEmpty())) {
+                        continue;
+                    }
+
+                    //TODO: support for single/multivalue value 
+                    if (!labelItem.isSingleValue()) {
+                        continue;
+                    }
+
+                    Object realLabelValue = labelItem.getRealValue();
+                    realKeyValue = (realKeyValue == null) ? keyItem.getRealValue() : realKeyValue;
+
+                    // TODO: take definition into account
+                    QName typeName = labelItem.getDefinition().getTypeName();
+
+                    LookupTableRowType row = new LookupTableRowType();
+
+                    if (realKeyValue != null) {
+                        row.setKey(convertObjectToPolyStringType(realKeyValue).getOrig());
+                    } else {
+                        throw new SchemaException("Cannot create lookup table with null key for label: " + realLabelValue);
+                    }
+
+                    row.setLabel(convertObjectToPolyStringType(realLabelValue));
+
+                    lookup.getRow().add(row);
+                }
+
+                return lookup;
+            } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException e) {
+                error("Error while creating lookup table for input parameter: " + param.getName() + ", " + e.getClass().getSimpleName() + " (" + e.getMessage() + ")");
+                //e.printStackTrace();
+            }
+
+        }
+        return null;
+    }
+
+    private PolyStringType convertObjectToPolyStringType(Object o) {
+        if (o instanceof PolyString) {
+            return new PolyStringType((PolyString) o);
+        } else if (o instanceof PolyStringType) {
+            return (PolyStringType) o;
+        } else if (o instanceof String) {
+            return new PolyStringType((String) o);
+        } else {
+            return new PolyStringType(o.toString());
+        }
+    }
+
+    private List<String> prepareAutoCompleteList(String input, LookupTableType lookupTable) {
         List<String> values = new ArrayList<>();
 
-        if(lookupTable == null){
+        if (lookupTable == null) {
             return values;
         }
 
         List<LookupTableRowType> rows = lookupTable.getRow();
 
-        if(input == null || input.isEmpty()){
-            for(LookupTableRowType row: rows){
+        if (input == null || input.isEmpty()) {
+            for (LookupTableRowType row : rows) {
                 values.add(WebMiscUtil.getOrigStringFromPoly(row.getLabel()));
 
-                if(values.size() > 10){
+                if (values.size() > 10) {
                     return values;
                 }
             }
         } else {
-            for(LookupTableRowType row: rows){
-                if(WebMiscUtil.getOrigStringFromPoly(row.getLabel()).startsWith(input)){
+            for (LookupTableRowType row : rows) {
+                if (WebMiscUtil.getOrigStringFromPoly(row.getLabel()).startsWith(input)) {
                     values.add(WebMiscUtil.getOrigStringFromPoly(row.getLabel()));
                 }
 
-                if(values.size() > 10){
+                if (values.size() > 10) {
                     return values;
                 }
             }

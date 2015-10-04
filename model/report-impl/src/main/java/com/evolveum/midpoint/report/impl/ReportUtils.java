@@ -155,7 +155,7 @@ public class ReportUtils {
         String val = (defaultValue == null) ? key : defaultValue;
         ResourceBundle bundle;
         try {
-            bundle = ResourceBundle.getBundle("com.evolveum.midpoint.web.security.MidPointApplication");
+            bundle = ResourceBundle.getBundle("localization/Midpoint");
         } catch (MissingResourceException e) {
             return (defaultValue != null) ? defaultValue : key; //workaround for Jasper Studio
         }
@@ -431,7 +431,7 @@ public class ReportUtils {
         return sb.toString();
     }
 
-    public static String getBusinessDisplayName(ObjectReferenceType ort) {
+    public static String getBusinessDisplayName(ObjectReferenceType ort) {        
         return ort.getDescription();
     }
 
