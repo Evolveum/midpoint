@@ -142,8 +142,12 @@ function initPageSizePopover(buttonId, popoverId, positionId) {
         var positionElement = $('#' + positionId);
         var position = positionElement.position();
 
-        var left = position.left - popover.outerWidth();
-        var top = position.top + button.outerHeight() / 2 - popover.outerHeight() / 2;
+        var top = position.top + parseInt(positionElement.css('marginTop'));
+        var left = position.left + parseInt(positionElement.css('marginLeft'));
+        var realPosition = {top: top, left: left};
+
+        var left = realPosition.left - popover.outerWidth();
+        var top = realPosition.top + button.outerHeight() / 2 - popover.outerHeight() / 2;
 
         popover.css("top", top);
         popover.css("left", left);
