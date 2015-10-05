@@ -2653,6 +2653,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
 	
+	protected void resetAuthentication() {
+		SecurityContext securityContext = SecurityContextHolder.getContext();
+		securityContext.setAuthentication(null);
+	}
+	
+	protected void assertNoAuthentication() {
+		SecurityContext securityContext = SecurityContextHolder.getContext();
+		assertNull("Unexpected authentication", securityContext.getAuthentication());
+	}
+	
 	protected void displayAllUsers() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".displayAllUsers");
 		OperationResult result = task.getResult();
