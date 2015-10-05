@@ -15,22 +15,25 @@
   ~ limitations under the License.
   -->
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
-<form wicket:id="searchForm">
-    <div class="input-group margin">
-        <input wicket:id="searchInput" class="form-control" type="text" />
-        <div class="input-group-btn">
-            <a wicket:id="searchButton" type="button" class="btn btn-default bg-blue">
-                <i class="fa fa-search"/>
-                <span wicket:id="buttonLabel"/>
-            </a>
-            <button aria-expanded="false" type="button" class="btn btn-info dropdown-toggle bg-blue" data-toggle="dropdown">
-                <span class="caret"></span>
-                <span class="sr-only">Toggle Dropdown</span>
-            </button>
-            <ul  class="dropdown-menu" role="menu" wicket:id="searchTypes">
-                <li><a wicket:id="searchTypeItem" href="#"><span wicket:id="linkLabel"/></a></li>
-            </ul>
-        </div>
+    <div class="box-body">
+        <form wicket:id="searchForm">
+           <div class="input-group">
+                <input wicket:id="searchInput" class="form-control input-lg" type="text" />
+                <div class="input-group-btn">
+                    <button wicket:id="searchButton" class="btn btn-lg btn-primary">
+                        <i class="fa fa-search"/>&nbsp;
+                        <span wicket:id="buttonLabel"/>
+                    </button>
+                    <button aria-expanded="false" type="button" class="btn btn-lg btn-primary dropdown-toggle"
+                            data-toggle="dropdown">
+                        <span class="caret"></span>
+                        <span class="sr-only">Toggle Dropdown</span>
+                    </button>
+                    <ul class="dropdown-menu" role="menu" wicket:id="searchTypes">
+                        <li><a wicket:id="searchTypeItem" href="#"><span wicket:id="linkLabel"/></a></li>
+                    </ul>
+                </div>
+            </div>
+        </form>
     </div>
-</form>
 </wicket:panel>
