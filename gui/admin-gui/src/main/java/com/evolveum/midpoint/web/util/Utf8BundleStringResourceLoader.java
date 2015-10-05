@@ -44,7 +44,7 @@ public class Utf8BundleStringResourceLoader implements IStringResourceLoader {
 
     @Override
     public String loadStringResource(Class<?> clazz, String key, Locale locale, String style, String variation) {
-        return loadStringResource((Class<?>) null, key, locale, style, variation);
+        return loadStringResource((Component) null, key, locale, style, variation);
     }
 
     @Override

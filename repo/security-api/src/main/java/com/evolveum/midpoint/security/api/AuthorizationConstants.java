@@ -250,7 +250,22 @@ public class AuthorizationConstants {
 	
 	public static final QName AUTZ_UI_CONTACTS_QNAME = new QName(NS_AUTHORIZATION_UI, "contacts");
 	public static final String AUTZ_UI_CONTACTS_URL = NS_AUTHORIZATION_UI + "#contacts";
-	
+
+	//self
+	public static final QName AUTZ_UI_SELF_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "self");
+	public static final String AUTZ_UI_SELF_ALL_URL = NS_AUTHORIZATION_UI + "#self";
+
+	public static final QName AUTZ_UI_SELF_ASSIGNMENTS_QNAME = new QName(NS_AUTHORIZATION_UI, "selfAssignments");
+	public static final String AUTZ_UI_SELF_ASSIGNMENTS_URL = NS_AUTHORIZATION_UI + "#selfAssignments";
+
+	public static final QName AUTZ_UI_SELF_CREDENTIALS_QNAME = new QName(NS_AUTHORIZATION_UI, "selfCredentials");
+	public static final String AUTZ_UI_SELF_CREDENTIALS_URL = NS_AUTHORIZATION_UI + "#selfCredentials";
+
+	public static final QName AUTZ_UI_SELF_PROFILE_QNAME = new QName(NS_AUTHORIZATION_UI, "selfProfile");
+	public static final String AUTZ_UI_SELF_PROFILE_URL = NS_AUTHORIZATION_UI + "#selfProfile";
+
+	public static final QName AUTZ_UI_SELF_DASHBOARD_QNAME = new QName(NS_AUTHORIZATION_UI, "selfDashboard");
+	public static final String AUTZ_UI_SELF_DASHBOARD_URL = NS_AUTHORIZATION_UI + "#selfDashboard";
 	
 	//permitAll  - it means, no authorization is required, everyone can access these resources, this is user for about system and about midpoint pages..
 	public static final QName AUTZ_UI_PERMIT_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "permitAll");

@@ -39,6 +39,7 @@ public class SystemConfigurationDto implements Serializable {
     public static final String F_OBJECT_POLICY_LIST = "objectPolicyList";
     public static final String F_NOTIFICATION_CONFIGURATION = "notificationConfig";
     public static final String F_ENABLE_EXPERIMENTAL_CODE = "enableExperimentalCode";
+    public static final String F_USER_DASHBOARD_LINK = "userDashboardLink";
 
     private AEPlevel aepLevel;
 
@@ -51,6 +52,7 @@ public class SystemConfigurationDto implements Serializable {
     private ObjectViewDto<ObjectTemplateType> objectTemplateDto;
     private List<ObjectPolicyConfigurationTypeDto> objectPolicyList;
     private NotificationConfigurationDto notificationConfig;
+    private List<RichHyperlinkType> userDashboardLink;
 
     public SystemConfigurationDto(){
         this(null);
@@ -96,6 +98,20 @@ public class SystemConfigurationDto implements Serializable {
         }
 
         enableExperimentalCode = SystemConfigurationTypeUtil.isExperimentalCodeEnabled(config);
+
+        userDashboardLink = loadUserDashboardLink(config);
+    }
+
+
+    public static List<RichHyperlinkType> loadUserDashboardLink (SystemConfigurationType config){
+        List<RichHyperlinkType> links = new ArrayList<>();
+        if (config == null || config.getInternals() == null || config.getInternals().isEnableExperimentalCode() == null) {
+            return links;
+        }
+        if (config.getAdminGuiConfiguration() != null) {
+            links.addAll(config.getAdminGuiConfiguration().getUserDashboardLink());
+        }
+        return links;
     }
 
     private ObjectViewDto<ValuePolicyType> loadPasswordPolicy(SystemConfigurationType config){
@@ -186,5 +202,13 @@ public class SystemConfigurationDto implements Serializable {
 
     public void setEnableExperimentalCode(Boolean enableExperimentalCode) {
         this.enableExperimentalCode = enableExperimentalCode;
+    }
+
+    public List<RichHyperlinkType> getUserDashboardLink() {
+        return userDashboardLink;
+    }
+
+    public void setUserDashboardLink(List<RichHyperlinkType> userDashboardLink) {
+        this.userDashboardLink = userDashboardLink;
     }
 }

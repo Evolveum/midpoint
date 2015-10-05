@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,37 +16,234 @@
 
 package com.evolveum.midpoint.web.page.admin.home.component;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.util.FutureUpdateBehavior;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.page.admin.home.dto.SimplePieChartDto;
-import com.evolveum.midpoint.web.page.admin.home.dto.SystemInfoDto;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.util.time.Duration;
+import org.ocpsoft.prettytime.PrettyTime;
+
+import javax.management.Attribute;
+import javax.management.AttributeList;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+import javax.management.openmbean.CompositeData;
+import java.io.Serializable;
+import java.lang.management.ManagementFactory;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.concurrent.Callable;
+import java.util.concurrent.FutureTask;
 
 /**
- *
- *  @author shood
- * */
-public class SystemInfoPanel extends SimplePanel<SystemInfoDto>{
+ * @author Viliam Repan (lazyman)
+ */
+public class SystemInfoPanel extends SimplePanel<SystemInfoPanel.SystemInfoDto> {
 
-//    private static final String ID_ACTIVE_USERS = "activeUsers";
-//    private static final String ID_ACTIVE_TASKS = "activeTasks";
-    private static final String ID_SERVER_LOAD = "serverLoad";
-    private static final String ID_RAM_USAGE = "usedRam";
+    private static final Trace LOGGER = TraceManager.getTrace(SystemInfoPanel.class);
 
-    public SystemInfoPanel(String id, IModel<SystemInfoDto> model){
-        super(id, model);
+    private static final String ID_TABLE = "table";
+    private static final String ID_CPU_USAGE = "cpuUsage";
+    private static final String ID_HEAP_MEMORY = "heapMemory";
+    private static final String ID_NON_HEAP_MEMORY = "nonHeapMemory";
+    private static final String ID_THREADS = "threads";
+    private static final String ID_START_TIME = "startTime";
+    private static final String ID_UPTIME = "uptime";
+
+    public SystemInfoPanel(String id) {
+        super(id);
     }
 
     @Override
-    protected void initLayout(){
-//        SimplePieChart userPanel = new SimplePieChart(ID_ACTIVE_USERS, new PropertyModel<SimplePieChartDto>(getModel(), "activeUsersDto"));
-//        add(userPanel);
-//        SimplePieChart tasksPanel = new SimplePieChart(ID_ACTIVE_TASKS, new PropertyModel<SimplePieChartDto>(getModel(), "activeTasksDto"));
-//        add(tasksPanel);
+    public IModel<SystemInfoDto> createModel() {
+        return new LoadableModel<SystemInfoDto>() {
 
-        SimplePieChart serverLoadPanel = new SimplePieChart(ID_SERVER_LOAD, new PropertyModel<SimplePieChartDto>(getModel(), "serverLoadDto"));
-        add(serverLoadPanel);
-        SimplePieChart ramPanel = new SimplePieChart(ID_RAM_USAGE, new PropertyModel<SimplePieChartDto>(getModel(), "usedRamDto"));
-        add(ramPanel);
+            @Override
+            protected SystemInfoDto load() {
+                SystemInfoDto dto = new SystemInfoDto();
+                try {
+                    fillCpuUsage(dto);
+                    fillMemoryUsage(dto);
+                    fillThreads(dto);
+                    fillUptime(dto);
+                } catch (Exception ex) {
+                    LOGGER.debug("Couldn't load jmx data", ex);
+                }
+
+                return dto;
+            }
+        };
+    }
+
+    private void fillUptime(SystemInfoDto dto) throws Exception {
+        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+        ObjectName name = ObjectName.getInstance("java.lang:type=Runtime");
+
+        dto.uptime = (long) mbs.getAttribute(name, "Uptime");
+        dto.starttime = (long) mbs.getAttribute(name, "StartTime");
+    }
+
+    private void fillCpuUsage(SystemInfoDto dto) throws Exception {
+        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+        ObjectName name = ObjectName.getInstance("java.lang:type=OperatingSystem");
+        AttributeList list = mbs.getAttributes(name, new String[]{"ProcessCpuLoad"});
+
+        if (list.isEmpty()) {
+            dto.cpuUsage = Double.NaN;
+            return;
+        }
+
+        Attribute att = (Attribute) list.get(0);
+        Double value = (Double) att.getValue();
+
+        if (value == -1.0) {
+            // usually takes a couple of seconds before we get real values
+            dto.cpuUsage = Double.NaN;
+            return;
+        }
+
+        dto.cpuUsage = ((int) (value * 1000) / 10.0);
+    }
+
+    private void fillMemoryUsage(SystemInfoDto dto) throws Exception {
+        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+        ObjectName name = ObjectName.getInstance("java.lang:type=Memory");
+
+        CompositeData cd = (CompositeData) mbs.getAttribute(name, "HeapMemoryUsage");
+        dto.heapMemory[0] = (Long) cd.get("used");
+        dto.heapMemory[1] = (Long) cd.get("committed");
+        dto.heapMemory[2] = (Long) cd.get("max");
+
+        cd = (CompositeData) mbs.getAttribute(name, "NonHeapMemoryUsage");
+        dto.nonHeapMemory[0] = (Long) cd.get("used");
+        dto.nonHeapMemory[1] = (Long) cd.get("committed");
+        dto.nonHeapMemory[2] = (Long) cd.get("max");
+    }
+
+    private void fillThreads(SystemInfoDto dto) throws Exception {
+        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+        ObjectName name = ObjectName.getInstance("java.lang:type=Threading");
+
+        dto.threads[0] = (Number) mbs.getAttribute(name, "ThreadCount");
+        dto.threads[1] = (Number) mbs.getAttribute(name, "PeakThreadCount");
+        dto.threads[2] = (Number) mbs.getAttribute(name, "TotalStartedThreadCount");
+    }
+
+    @Override
+    protected void initLayout() {
+        final WebMarkupContainer table = new WebMarkupContainer(ID_TABLE);
+        table.setOutputMarkupId(true);
+        add(table);
+        table.add(new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(1500)));
+
+        Label cpuUsage = new Label(ID_CPU_USAGE, new PropertyModel<>(getModel(), SystemInfoDto.F_CPU_USAGE));
+        table.add(cpuUsage);
+
+        Label heapMemory = new Label(ID_HEAP_MEMORY, createMemoryModel(true));
+        table.add(heapMemory);
+
+        Label nonHeapMemory = new Label(ID_NON_HEAP_MEMORY, createMemoryModel(false));
+        table.add(nonHeapMemory);
+
+        Label threads = new Label(ID_THREADS, createThreadModel());
+        table.add(threads);
+
+        Label startTime = new Label(ID_START_TIME, createStartTimeModel());
+        table.add(startTime);
+
+        Label uptime = new Label(ID_UPTIME, createUptimeModel());
+        table.add(uptime);
+    }
+
+    private IModel<String> createUptimeModel() {
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                SystemInfoDto dto = getModelObject();
+
+                PrettyTime time = new PrettyTime();
+                return time.format(new Date(System.currentTimeMillis() - dto.uptime));
+            }
+        };
+    }
+
+    private IModel<String> createStartTimeModel() {
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                SystemInfoDto dto = getModelObject();
+
+                if (dto.starttime == 0) {
+                    return null;
+                }
+
+                SimpleDateFormat df = new SimpleDateFormat();
+                return df.format(new Date(dto.starttime));
+            }
+        };
+    }
+
+    private IModel<String> createMemoryModel(final boolean heap) {
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                SystemInfoDto dto = getModelObject();
+                Long[] memory = heap ? dto.heapMemory : dto.nonHeapMemory;
+
+                StringBuilder sb = new StringBuilder();
+                sb.append(WebMiscUtil.createHumanReadableByteCount(memory[0])).append(" / ");
+                sb.append(WebMiscUtil.createHumanReadableByteCount(memory[1])).append(" / ");
+                sb.append(WebMiscUtil.createHumanReadableByteCount(memory[2]));
+
+                return sb.toString();
+            }
+        };
+    }
+
+    private IModel<String> createThreadModel() {
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                SystemInfoDto dto = getModelObject();
+
+                StringBuilder sb = new StringBuilder();
+                sb.append(dto.threads[0]).append(" / ");
+                sb.append(dto.threads[1]).append(" / ");
+                sb.append(dto.threads[2]);
+
+                return sb.toString();
+            }
+        };
+    }
+
+    static class SystemInfoDto implements Serializable {
+
+        static final String F_CPU_USAGE = "cpuUsage";
+        static final String F_HEAP_MEMORY = "heapMemory";
+        static final String F_NON_HEAP_MEMORY = "nonHeapMemory";
+
+        double cpuUsage = Double.NaN;
+        //used, committed, max
+        Long[] heapMemory = new Long[3];
+        //used, committed, max
+        Long[] nonHeapMemory = new Long[3];
+        //ThreadCount, PeakThreadCount, TotalStartedThreadCount
+        Number[] threads = new Number[3];
+
+        long starttime = 0;
+        long uptime = 0;
     }
 }

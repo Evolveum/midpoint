@@ -16,21 +16,24 @@
 
 package com.evolveum.midpoint.web.session;
 
+import org.apache.commons.lang.Validate;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- *  @author shood
- * */
-public class UserProfileStorage implements Serializable{
+ * @author shood
+ * @author Viliam Repan (lazyman)
+ */
+public class UserProfileStorage implements Serializable {
 
-    public static final Integer DEFAULT_PAGING_SIZE = 10;
+    public static final int DEFAULT_PAGING_SIZE = 10;
 
     /*
     *   Enum containing IDs of all tables. where paging size can be adjusted
     * */
-    public enum TableId{
+    public enum TableId {
         TABLE_ROLES,
         TABLE_USERS,
         TREE_TABLE_PANEL_CHILD,
@@ -44,46 +47,22 @@ public class UserProfileStorage implements Serializable{
         PAGE_RESOURCE_ACCOUNTS_PANEL,
         PAGE_TASKS_PANEL,
         PAGE_USERS_PANEL,
-        PAGE_WORK_ITEMS
-
+        PAGE_WORK_ITEMS,
+        PAGE_RESOURCES_CONNECTOR_HOSTS
     }
 
-    private Map<TableId, Integer> pagingSizeMap = new HashMap<TableId, Integer>(){{
-        put(TableId.TABLE_ROLES, null);
-        put(TableId.TABLE_USERS, null);
-        put(TableId.TREE_TABLE_PANEL_CHILD, null);
-        put(TableId.TREE_TABLE_PANEL_MEMBER, null);
-        put(TableId.TREE_TABLE_PANEL_MANAGER, null);
-        put(TableId.CONF_PAGE_ACCOUNTS, null);
-        put(TableId.CONF_DEBUG_LIST_PANEL, null);
-        put(TableId.PAGE_CREATED_REPORTS_PANEL, null);
-        put(TableId.PAGE_RESOURCE_PANEL, null);
-        put(TableId.PAGE_RESOURCES_PANEL, null);
-        put(TableId.PAGE_RESOURCE_ACCOUNTS_PANEL, null);
-        put(TableId.PAGE_TASKS_PANEL, null);
-        put(TableId.PAGE_USERS_PANEL, null);
-        put(TableId.PAGE_WORK_ITEMS, null);
-    }};
+    private Map<TableId, Integer> tables = new HashMap<TableId, Integer>();
 
-    public Map<TableId, Integer> getPageSizingMap(){
-        return pagingSizeMap;
+    public Integer getPagingSize(TableId key) {
+        Validate.notNull(key, "Key must not be null.");
+
+        Integer size = tables.get(key);
+        return size == null ? DEFAULT_PAGING_SIZE : size;
     }
 
-    public Integer getPagingSize(TableId key){
-        if(key == null){
-            return DEFAULT_PAGING_SIZE;
-        }
+    public void setPagingSize(TableId key, Integer size) {
+        Validate.notNull(key, "Key must not be null.");
 
-        Integer size = pagingSizeMap.get(key);
-
-        if(size == null){
-            return DEFAULT_PAGING_SIZE;
-        } else {
-            return size;
-        }
-    }
-
-    public void setPagingSize(TableId key, Integer size){
-        pagingSizeMap.put(key, size);
+        tables.put(key, size);
     }
 }

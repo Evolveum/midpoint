@@ -5,11 +5,11 @@ package com.evolveum.midpoint.web.page.admin.home.component;
  */
 public enum DashboardColor {
 
-    GRAY("panel-default"),
-    BLUE("panel-info"),
-    GREEN("panel-success"),
-    YELLOW("panel-warning"),
-    RED("panel-danger");
+    GRAY("box-default"),
+    BLUE("box-info"),
+    GREEN("box-success"),
+    YELLOW("box-warning"),
+    RED("box-danger");
 
     private String cssClass;
 

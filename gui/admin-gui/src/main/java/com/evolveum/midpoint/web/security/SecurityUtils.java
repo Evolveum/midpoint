@@ -22,7 +22,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.menu.top.MenuItem;
+import com.evolveum.midpoint.web.component.menu.MainMenuItem;
+import com.evolveum.midpoint.web.component.menu.MenuItem;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -59,13 +60,22 @@ public class SecurityUtils {
         return (MidPointPrincipal) principal;
     }
 
+    public static boolean isMenuAuthorized(MainMenuItem item) {
+        Class clazz = item.getPage();
+        return clazz == null || isMenuAuthorizedByPage(clazz);
+    }
+
     public static boolean isMenuAuthorized(MenuItem item) {
         Class clazz = item.getPage();
-        if (clazz == null) {
+        return isMenuAuthorizedByPage(clazz);
+    }
+
+    private static boolean isMenuAuthorizedByPage(Class page) {
+        if (page == null) {
             return false;
         }
 
-        PageDescriptor descriptor = (PageDescriptor) clazz.getAnnotation(PageDescriptor.class);
+        PageDescriptor descriptor = (PageDescriptor) page.getAnnotation(PageDescriptor.class);
         if (descriptor == null ){
             return false;
         }

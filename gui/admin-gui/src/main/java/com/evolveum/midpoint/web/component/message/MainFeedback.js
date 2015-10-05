@@ -130,37 +130,35 @@ jQuery.fn.disableTextSelection = function(){
 };
 
 function setTempMessagePositionWhileScroll() {
-	if (isIE9OrNewer() || !isIE()) {
-		var scroll;
-		var isSelected;
-		$(window).scroll(function() {
-			isSelected = false;
-			$(".messagePanel").find(".messages-topPanel").each(function(index){
-				if($(this).hasClass("selected")){
-					isSelected = true;
-				}
-			});
-			offside = $(".feedbackContainer").height() + 135;
-			scroll = $(window).scrollTop();
-			if (scroll >= offside) {
-				if(!isSelected) {
-					if($(".tempMessage").css("display") == "none") {
-						$(".tempMessage").stop();
-						$(".tempMessage").css("opacity", 0);
-						$(".tempMessage").show();
-						$(".tempMessage").animate({opacity : 1}, 400);
-					}
-				} else {
-					$(".tempMessage").hide();
+	var scroll;
+	var isSelected;
+	$(window).scroll(function() {
+		isSelected = false;
+		$(".messagePanel").find(".messages-topPanel").each(function(index){
+			if($(this).hasClass("selected")){
+				isSelected = true;
+			}
+		});
+		offside = $(".feedbackContainer").height() + 135;
+		scroll = $(window).scrollTop();
+		if (scroll >= offside) {
+			if(!isSelected) {
+				if($(".tempMessage").css("display") == "none") {
+					$(".tempMessage").stop();
+					$(".tempMessage").css("opacity", 0);
+					$(".tempMessage").show();
+					$(".tempMessage").animate({opacity : 1}, 400);
 				}
 			} else {
-				$(".tempMessage").stop();
-				$(".tempMessage").animate({opacity : 0}, 400, function(){
-					$(".tempMessage").hide();
-				});
+				$(".tempMessage").hide();
 			}
-		}); 
-	}
+		} else {
+			$(".tempMessage").stop();
+			$(".tempMessage").animate({opacity : 0}, 400, function(){
+				$(".tempMessage").hide();
+			});
+		}
+	});
 }
 
 function scrollToReadMessage() {

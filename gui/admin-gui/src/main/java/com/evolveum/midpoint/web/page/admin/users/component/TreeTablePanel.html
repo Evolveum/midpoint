@@ -28,43 +28,51 @@
             </form>
         </div>
         <div class="col-md-4">
-            <div wicket:id="treeHeader" class="row" style="margin: 0; border-bottom: 1px solid #ddd;">
-                <div class="col-xs-9" style="padding-left: 5px;">
-                    <div class="tree-table-header">
-                        <wicket:message key="TreeTablePanel.hierarchy"/>
+            <div class="box box-default">
+                <div class="box-body">
+                    <div wicket:id="treeHeader" class="row" style="margin: 0; border-bottom: 1px solid #ddd;">
+                        <div class="col-xs-9" style="padding-left: 5px;">
+                            <div class="tree-table-header">
+                                <wicket:message key="TreeTablePanel.hierarchy"/>
+                            </div>
+                        </div>
+                        <div class="col-xs-3 cog" style="padding-right: 5px; margin-top: 2px;" wicket:id="treeMenu" about="treeMenu"/>
+                    </div>
+
+                    <div wicket:id="treeContainer" class="org-tree-container">
+                        <div wicket:id="tree"/>
                     </div>
                 </div>
-                <div class="col-xs-3 cog" style="padding-right: 5px; margin-top: 2px;" wicket:id="treeMenu" about="treeMenu"/>
-            </div>
-
-            <div wicket:id="treeContainer" class="org-tree-container">
-                <div wicket:id="tree"/>
             </div>
         </div>
         <div class="col-md-8">
-            <form class="clearfix form-horizontal" wicket:id="form">
-                <div wicket:id="childOrgContainer">
-                    <div class="tree-table-header">
-                        <wicket:message key="TreeTablePanel.childOrg"/>
-                    </div>
-                    <div wicket:id="childUnitTable" about="childUnitTable"/>
-                </div>
+            <div class="box box-success">
+                <div class="box-body">
+                    <form class="clearfix form-horizontal" wicket:id="form">
+                        <div wicket:id="childOrgContainer">
+                            <div class="tree-table-header">
+                                <wicket:message key="TreeTablePanel.childOrg"/>
+                            </div>
+                            <div wicket:id="childUnitTable" about="childUnitTable"/>
+                        </div>
 
-                <div wicket:id="managerContainer">
-                    <div class="tree-table-header">
-                        <wicket:message key="TreeTablePanel.managers"/>
-                    </div>
-                    <div wicket:id="managerTable"/>
-                </div>
+                        <div wicket:id="managerContainer">
+                            <div class="tree-table-header">
+                                <wicket:message key="TreeTablePanel.managers"/>
+                            </div>
+                            <div wicket:id="managerTable"/>
+                        </div>
 
-                <div wicket:id="memberContainer">
-                    <div class="tree-table-header">
-                        <wicket:message key="TreeTablePanel.members"/>
-                    </div>
-                    <div wicket:id="memberTable"/>
-                </div>
+                        <div wicket:id="memberContainer">
+                            <div class="tree-table-header">
+                                <wicket:message key="TreeTablePanel.members"/>
+                            </div>
+                            <div wicket:id="memberTable"/>
+                        </div>
 
-            </form>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </wicket:panel>

@@ -52,4 +52,9 @@
         <js>/js/midpoint/dropdown-multiple.js</js>
         <js>/js/midpoint/midpoint.js</js>
     </group>
+
+    <group name="midpoint-theme">
+        <css>/less/midpoint-theme.less</css>
+        <js>/js/midpoint-theme.js</js>
+    </group>
 </groups>

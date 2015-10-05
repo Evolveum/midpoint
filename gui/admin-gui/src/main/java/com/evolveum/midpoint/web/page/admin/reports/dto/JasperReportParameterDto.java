@@ -98,19 +98,34 @@ public class JasperReportParameterDto extends Selectable implements Serializable
         return (clearedMap.isEmpty()) ? null : clearedMap;
     }
 
-    public String getPropertyPath() {
+    public String getPropertyLabel() {
         if (properties != null) {
-            return properties.getProperty("path");
+            return properties.getProperty("label");
         } else {
             return null;
         }
     }
 
-    public void setPropertyPath(String val) {
+    public void setPropertyLabel(String val) {
         if (properties == null) {
             properties = new JRPropertiesMap();
         }
-        properties.setProperty("path", val);
+        properties.setProperty("label", val);
+    }
+    
+    public String getPropertyKey() {
+        if (properties != null) {
+            return properties.getProperty("key");
+        } else {
+            return null;
+        }
+    }
+
+    public void setPropertyKey(String val) {
+        if (properties == null) {
+            properties = new JRPropertiesMap();
+        }
+        properties.setProperty("key", val);
     }
 
     public String getPropertyTargetType() {
