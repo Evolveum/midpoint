@@ -96,7 +96,7 @@
     </cleanupPolicy>
     <adminGuiConfiguration>
         <userDashboardLink>
-            <targetUrl>/admin/users</targetUrl>
+            <targetUrl>/midpoint/admin/users</targetUrl>
             <label>Users</label>
             <icon>
                 <cssClass>fa fa-users</cssClass>
@@ -105,7 +105,7 @@
             <authorization>http://</authorization>
         </userDashboardLink>
         <userDashboardLink>
-            <targetUrl>/admin/org/tree</targetUrl>
+            <targetUrl>/midpoint/admin/org/tree</targetUrl>
             <label>Organizations</label>
             <icon>
                 <cssClass>fa fa-bank</cssClass>
