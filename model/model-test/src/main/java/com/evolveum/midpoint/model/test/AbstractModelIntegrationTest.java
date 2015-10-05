@@ -2905,6 +2905,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertNotNull("Null role spec", roleSpec);
         display("Role spec", roleSpec);
         List<DisplayableValue<String>> roleTypes = roleSpec.getRoleTypes();
+        assertNotNull("Null roleTypes in roleSpec "+roleSpec);
         if (roleTypes.size() != expectedRoleTypes.length) {
         	AssertJUnit.fail("Expected role types "+Arrays.toString(expectedRoleTypes)+" but got "+roleTypes);
         }

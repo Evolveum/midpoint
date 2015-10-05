@@ -1407,7 +1407,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertAssignments(user, 2);
         
         RoleSelectionSpecification spec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
-        assertRoleTypes(spec, "application");
+        assertRoleTypes(spec, "application", "nonexistent");
         assertFilter(spec.getFilter(), TypeFilter.class);
         
         assertGlobalStateUntouched();
