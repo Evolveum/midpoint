@@ -104,10 +104,14 @@ public class SystemConfigurationDto implements Serializable {
 
 
     public static List<RichHyperlinkType> loadUserDashboardLink (SystemConfigurationType config){
+        List<RichHyperlinkType> links = new ArrayList<>();
         if (config == null || config.getInternals() == null || config.getInternals().isEnableExperimentalCode() == null) {
-            return new ArrayList<RichHyperlinkType>();
+            return links;
         }
-        return config.getAdminGuiConfiguration().getUserDashboardLink();
+        if (config.getAdminGuiConfiguration() != null) {
+            links.addAll(config.getAdminGuiConfiguration().getUserDashboardLink());
+        }
+        return links;
     }
 
     private ObjectViewDto<ValuePolicyType> loadPasswordPolicy(SystemConfigurationType config){
