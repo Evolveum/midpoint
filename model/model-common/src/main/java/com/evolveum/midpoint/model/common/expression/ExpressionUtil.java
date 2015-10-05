@@ -656,6 +656,11 @@ public class ExpressionUtil {
         UserType actor = null;
         try {
             if (securityEnforcer != null) {
+            	if (!securityEnforcer.isAuthenticated()) {
+            		// Nothing to set up. This is most likely evaluation of role condition before
+            		// the authentication is complete.
+            		return;
+            	}
                 MidPointPrincipal principal = securityEnforcer.getPrincipal();
                 if (principal != null) {
                     actor = principal.getUser();

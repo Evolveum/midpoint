@@ -292,7 +292,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
     public void test010GetUserAdministrator() throws Exception {
 		final String TEST_NAME = "test010GetUserAdministrator";
         TestUtil.displayTestTile(this, TEST_NAME);
-        assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
+        resetAuthentication();
 
         // WHEN
         MidPointPrincipal principal = userProfileService.getPrincipal(USER_ADMINISTRATOR_USERNAME);
@@ -310,27 +310,27 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
     public void test050GetUserJack() throws Exception {
 		final String TEST_NAME = "test050GetUserJack";
         TestUtil.displayTestTile(this, TEST_NAME);
-        assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
+        resetAuthentication();
 
         // WHEN
         MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
         
         // THEN
-        assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
+        assertNoAuthentication();
         assertJack(principal);
         assertTrue("Unexpected authorizations", principal.getAuthorities().isEmpty());
 
-        assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
+        assertNoAuthentication();
         assertNotAuthorized(principal, AUTZ_LOOT_URL);
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
-        assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
+        assertNoAuthentication();
 	}
 	
 	@Test
     public void test051GetUserBarbossa() throws Exception {
 		final String TEST_NAME = "test051GetUserBarbossa";
         TestUtil.displayTestTile(this, TEST_NAME);
-        assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
+        resetAuthentication();
 
         // WHEN
         MidPointPrincipal principal = userProfileService.getPrincipal(USER_BARBOSSA_USERNAME);
@@ -353,7 +353,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
     public void test052GetUserGuybrush() throws Exception {
 		final String TEST_NAME = "test052GetUserGuybrush";
         TestUtil.displayTestTile(this, TEST_NAME);
-        assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
+        resetAuthentication();
 
         // WHEN
         MidPointPrincipal principal = userProfileService.getPrincipal(USER_GUYBRUSH_USERNAME);
@@ -375,9 +375,11 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
     public void test060GuybrushConditionalRoleFalse() throws Exception {
 		final String TEST_NAME = "test060GuybrushConditionalRoleFalse";
         TestUtil.displayTestTile(this, TEST_NAME);
-        assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
+        login(USER_ADMINISTRATOR_USERNAME);
         
         assignRole(USER_GUYBRUSH_OID, ROLE_CONDITIONAL_OID);
+        
+        resetAuthentication();
 
         // WHEN
         MidPointPrincipal principal = userProfileService.getPrincipal(USER_GUYBRUSH_USERNAME);
@@ -401,11 +403,13 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
     public void test061GuybrushConditionalRoleTrue() throws Exception {
 		final String TEST_NAME = "test061GuybrushConditionalRoleTrue";
         TestUtil.displayTestTile(this, TEST_NAME);
-        assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
+        login(USER_ADMINISTRATOR_USERNAME);
         
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_EMPLOYEE_TYPE, task, result, "special");
+        
+        resetAuthentication();
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -431,9 +435,11 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
     public void test062GuybrushConditionalRoleUnassign() throws Exception {
 		final String TEST_NAME = "test062GuybrushConditionalRoleUnassign";
         TestUtil.displayTestTile(this, TEST_NAME);
-        assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
+        login(USER_ADMINISTRATOR_USERNAME);
         
         unassignRole(USER_GUYBRUSH_OID, ROLE_CONDITIONAL_OID);
+        
+        resetAuthentication();
 
         // WHEN
         MidPointPrincipal principal = userProfileService.getPrincipal(USER_GUYBRUSH_USERNAME);
@@ -456,10 +462,12 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		final String TEST_NAME = "test100JackRolePirate";
         TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
-        assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
+        login(USER_ADMINISTRATOR_USERNAME);
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        
+        resetAuthentication();
         
         // WHEN
         MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
@@ -481,10 +489,12 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		final String TEST_NAME = "test109JackUnassignRolePirate";
         TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
-        assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
+        login(USER_ADMINISTRATOR_USERNAME);
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        
+        resetAuthentication();
         
         // WHEN
         MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
@@ -503,10 +513,12 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		final String TEST_NAME = "test110GuybrushRoleNicePirate";
         TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
-        assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
+        login(USER_ADMINISTRATOR_USERNAME);
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assignRole(USER_GUYBRUSH_OID, ROLE_NICE_PIRATE_OID, task, result);
+        
+        resetAuthentication();
         
         // WHEN
         MidPointPrincipal principal = userProfileService.getPrincipal(USER_GUYBRUSH_USERNAME);
@@ -524,10 +536,12 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		final String TEST_NAME = "test111GuybrushRoleCaptain";
         TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
-        assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
+        login(USER_ADMINISTRATOR_USERNAME);
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assignRole(USER_GUYBRUSH_OID, ROLE_CAPTAIN_OID, task, result);
+        
+        resetAuthentication();
         
         // WHEN
         MidPointPrincipal principal = userProfileService.getPrincipal(USER_GUYBRUSH_USERNAME);
@@ -1407,7 +1421,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertAssignments(user, 2);
         
         RoleSelectionSpecification spec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
-        assertRoleTypes(spec, "application");
+        assertRoleTypes(spec, "application", "nonexistent");
         assertFilter(spec.getFilter(), TypeFilter.class);
         
         assertGlobalStateUntouched();

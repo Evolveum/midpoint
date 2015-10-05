@@ -70,10 +70,13 @@ public class MidPointAuthWebSession extends AuthenticatedWebSession {
         super(request);
         Injector.get().inject(this);
 
-        if (getLocale() == null) {
+        Locale locale = getLocale();
+        LOGGER.debug("Found locale {}", locale);
+        if (locale == null || !MidPointApplication.containsLocale(locale)) {
             //default locale for web application
-            setLocale(new Locale("en", "US"));
+            setLocale(MidPointApplication.getDefaultLocale());
         }
+        LOGGER.debug("Using {} as locale", getLocale());
     }
 
     @Override

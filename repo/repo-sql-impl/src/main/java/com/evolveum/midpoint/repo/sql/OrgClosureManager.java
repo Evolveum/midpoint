@@ -1030,12 +1030,19 @@ public class OrgClosureManager {
             // we create the table manually, because we want to have an index on it, and
             // with serializable transactions it is not possible to create index within the transaction (after inserting data)
             start = System.currentTimeMillis();
-            Query createTableQuery = session.createSQLQuery("create table " + deltaTempTableName + " (" +
+            final String createTableSql = "create table " + deltaTempTableName + " (" +
                     "descendant_oid NVARCHAR(36) COLLATE database_default, " +
                     "ancestor_oid NVARCHAR(36) COLLATE database_default, " +
                     "val INT, " +
-                    "PRIMARY KEY (descendant_oid, ancestor_oid))");
-            createTableQuery.executeUpdate();
+                    "PRIMARY KEY (descendant_oid, ancestor_oid))";
+//            Query createTableQuery = session.createSQLQuery(createTableSql);
+//            createTableQuery.executeUpdate();  <--- this does not work because the temporary table gets deleted when the command terminates (preparedStatement issue - maybe something like this: https://support.microsoft.com/en-us/kb/280134 ?)
+            session.doWork(new Work() {
+                @Override
+                public void execute(Connection connection) throws SQLException {
+                    connection.createStatement().execute(createTableSql);
+                }
+            });
             if (LOGGER.isTraceEnabled()) LOGGER.trace("Empty delta table created in {} ms", System.currentTimeMillis() - start);
 
             Query insertQuery = session.createSQLQuery("insert into " + deltaTempTableName + " " + selectClause);
@@ -1092,7 +1099,7 @@ public class OrgClosureManager {
     private String generateDeltaTempTableName() {
         String deltaTempTableName;
         deltaTempTableName =
-                (isSQLServer()?"##":"") +
+                (isSQLServer()?"#":"") +
                         "m_org_closure_delta_" + System.currentTimeMillis() + "_" + ((int) (Math.random() * 10000000.0));
         return deltaTempTableName;
     }

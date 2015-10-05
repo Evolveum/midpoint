@@ -38,7 +38,9 @@ import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
 import com.evolveum.midpoint.web.util.Utf8BundleStringResourceLoader;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.io.IOUtils;
 import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
@@ -65,10 +67,11 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.net.URL;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -83,7 +86,78 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
     public static final String WEB_APP_CONFIGURATION = "midpoint.webApplication";
 
+    public static final List<LocaleDescriptor> AVAILABLE_LOCALES;
+
+    private static final String LOCALIZATION_DESCRIPTOR = "/localization/locale.properties";
+
+    private static final String PROP_NAME = ".name";
+    private static final String PROP_FLAG = ".flag";
+    private static final String PROP_DEFAULT = ".default";
+
     private static final Trace LOGGER = TraceManager.getTrace(MidPointApplication.class);
+
+    static {
+        List<LocaleDescriptor> locales = new ArrayList<>();
+        try {
+            ClassLoader classLoader = MidPointApplication.class.getClassLoader();
+            Enumeration<URL> urls = classLoader.getResources(LOCALIZATION_DESCRIPTOR);
+            while (urls.hasMoreElements()) {
+                final URL url = urls.nextElement();
+                LOGGER.debug("Found localization descriptor {}.", new Object[]{url.toString()});
+
+                Properties properties = new Properties();
+                Reader reader = null;
+                try {
+                    reader = new InputStreamReader(url.openStream(), "utf-8");
+                    properties.load(reader);
+
+                    Map<String, Map<String, String>> localeMap = new HashMap<>();
+                    Set<String> keys = (Set) properties.keySet();
+                    for (String key : keys) {
+                        String[] array = key.split("\\.");
+                        if (array.length != 2) {
+                            continue;
+                        }
+
+                        String locale = array[0];
+                        Map<String, String> map = localeMap.get(locale);
+                        if (map == null) {
+                            map = new HashMap<>();
+                            localeMap.put(locale, map);
+                        }
+
+                        map.put(key, properties.getProperty(key));
+                    }
+
+                    for (String key : localeMap.keySet()) {
+                        Map<String, String> localeDefinition = localeMap.get(key);
+                        if (!localeDefinition.containsKey(key + PROP_NAME)
+                                || !localeDefinition.containsKey(key + PROP_FLAG)) {
+                            continue;
+                        }
+
+                        LocaleDescriptor descriptor = new LocaleDescriptor(
+                                localeDefinition.get(key + PROP_NAME),
+                                localeDefinition.get(key + PROP_FLAG),
+                                localeDefinition.get(key + PROP_DEFAULT),
+                                WebMiscUtil.getLocaleFromString(key)
+                        );
+                        locales.add(descriptor);
+                    }
+                } catch (Exception ex) {
+                    LoggingUtils.logException(LOGGER, "Couldn't load localization", ex);
+                } finally {
+                    IOUtils.closeQuietly(reader);
+                }
+            }
+
+            Collections.sort(locales);
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't load locales", ex);
+        }
+
+        AVAILABLE_LOCALES = Collections.unmodifiableList(locales);
+    }
 
     @Autowired
     transient ModelService model;
@@ -248,6 +322,30 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         List<IStringResourceLoader> resourceLoaders = resourceSettings.getStringResourceLoaders();
         IStringResourceLoader loader = resourceLoaders.get(0);
         return loader.loadStringResource((Class) null, key, null, null, null);
+    }
+
+    public static boolean containsLocale(Locale locale) {
+        if (locale == null) {
+            return false;
+        }
+
+        for (LocaleDescriptor descriptor : AVAILABLE_LOCALES) {
+            if (locale.equals(descriptor.getLocale())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static Locale getDefaultLocale() {
+        for (LocaleDescriptor descriptor : AVAILABLE_LOCALES) {
+            if (descriptor.isDefault()) {
+                return descriptor.getLocale();
+            }
+        }
+
+        return new Locale("en", "US");
     }
 
     private static class ResourceFileFilter implements FilenameFilter {
