@@ -38,9 +38,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.BasicSearchPanel;
-import com.evolveum.midpoint.web.component.DropDownMultiChoice;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
-import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -55,26 +54,28 @@ import com.evolveum.midpoint.web.session.UsersStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author lazyman
@@ -107,17 +108,17 @@ public class PageUsers extends PageAdminUsers {
     private static final String ID_TABLE = "table";
     private static final String ID_SEARCH_FORM = "searchForm";
     private static final String ID_BASIC_SEARCH = "basicSearch";
-    private static final String ID_SEARCH_TYPE = "searchType";
+    private static final String ID_TABLE_HEADER = "tableHeader";
 
     private UserListItemDto singleDelete;
     private LoadableModel<UsersDto> model;
     private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel;
 
-    public PageUsers(){
-        this(true);
+    public PageUsers() {
+        this(true, null, null);
     }
 
-    public PageUsers(boolean clearPagingInSession) {
+    public PageUsers(boolean clearPagingInSession, final UsersDto.SearchType type, final String text) {
         model = new LoadableModel<UsersDto>(false) {
 
             @Override
@@ -127,7 +128,12 @@ public class PageUsers extends PageAdminUsers {
                 if (dto == null) {
                     dto = new UsersDto();
                 }
-
+                if (type != null && text != null && !text.trim().equals("")) {
+                    dto.setText(text);
+                    List<UsersDto.SearchType> searchType = new ArrayList<UsersDto.SearchType>();
+                    searchType.add(type);
+                    dto.setType(searchType);
+                }
                 return dto;
             }
         };
@@ -144,6 +150,11 @@ public class PageUsers extends PageAdminUsers {
         initLayout();
     }
 
+    public PageUsers(UsersDto.SearchType type, String text) {
+        this(true, type, text);
+    }
+
+
     private void initLayout() {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
@@ -158,10 +169,7 @@ public class PageUsers extends PageAdminUsers {
             }
         });
 
-        initSearch();
         initTable(mainForm);
-
-        mainForm.add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel, false, false, false));
     }
 
     private IModel<String> createDeleteConfirmString() {
@@ -169,9 +177,9 @@ public class PageUsers extends PageAdminUsers {
 
             @Override
             public String getObject() {
-                if(singleDelete == null){
+                if (singleDelete == null) {
                     return createStringResource("pageUsers.message.deleteUserConfirm",
-                        WebMiscUtil.getSelectedData(getTable()).size()).getString();
+                            WebMiscUtil.getSelectedData(getTable()).size()).getString();
                 } else {
                     return createStringResource("pageUsers.message.deleteUserConfirmSingle",
                             singleDelete.getName()).getString();
@@ -325,8 +333,16 @@ public class PageUsers extends PageAdminUsers {
                 GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
         provider.setOptions(options);
 
-        TablePanel table = new TablePanel(ID_TABLE, provider, columns,
-                UserProfileStorage.TableId.PAGE_USERS_PANEL, getItemsPerPage(UserProfileStorage.TableId.PAGE_USERS_PANEL));
+        BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider, columns,
+                UserProfileStorage.TableId.PAGE_USERS_PANEL,
+                (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_USERS_PANEL)) {
+
+            @Override
+            protected WebMarkupContainer createHeader(String headerId) {
+                return new SearchFragment(headerId, ID_TABLE_HEADER, PageUsers.this, model, executeOptionsModel);
+            }
+        };
+
         table.setOutputMarkupId(true);
 
         UsersStorage storage = getSessionStorage().getUsers();
@@ -411,49 +427,6 @@ public class PageUsers extends PageAdminUsers {
         return accountRef != null ? accountRef.size() : 0;
     }
 
-    private void initSearch() {
-        final Form searchForm = new Form(ID_SEARCH_FORM);
-        add(searchForm);
-        searchForm.setOutputMarkupId(true);
-
-        IModel<Map<String, String>> options = new Model(null);
-        DropDownMultiChoice searchType = new DropDownMultiChoice<UsersDto.SearchType>(ID_SEARCH_TYPE,
-                new PropertyModel<List<UsersDto.SearchType>>(model, UsersDto.F_TYPE),
-                WebMiscUtil.createReadonlyModelFromEnum(UsersDto.SearchType.class),
-                new IChoiceRenderer<UsersDto.SearchType>() {
-
-                    @Override
-                    public Object getDisplayValue(UsersDto.SearchType object) {
-                        return WebMiscUtil.createLocalizedModelForEnum(object, PageUsers.this).getObject();
-                    }
-
-                    @Override
-                    public String getIdValue(UsersDto.SearchType object, int index) {
-                        return Integer.toString(index);
-                    }
-                }, options);
-        searchForm.add(searchType);
-
-        BasicSearchPanel<UsersDto> basicSearch = new BasicSearchPanel<UsersDto>(ID_BASIC_SEARCH, model) {
-
-            @Override
-            protected IModel<String> createSearchTextModel() {
-                return new PropertyModel<String>(model, UsersDto.F_TEXT);
-            }
-
-            @Override
-            protected void searchPerformed(AjaxRequestTarget target) {
-                PageUsers.this.searchPerformed(target);
-            }
-
-            @Override
-            protected void clearSearchPerformed(AjaxRequestTarget target) {
-                PageUsers.this.clearSearchPerformed(target);
-            }
-        };
-        searchForm.add(basicSearch);
-    }
-
     private void userDetailsPerformed(AjaxRequestTarget target, String oid) {
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, oid);
@@ -461,15 +434,15 @@ public class PageUsers extends PageAdminUsers {
         setResponsePage(PageUser.class, parameters);
     }
 
-    private TablePanel getTable() {
-        return (TablePanel) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
+    private BoxedTablePanel getTable() {
+        return (BoxedTablePanel) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
     }
 
     private void searchPerformed(AjaxRequestTarget target) {
         ObjectQuery query = createQuery();
         target.add(getFeedbackPanel());
 
-        TablePanel panel = getTable();
+        BoxedTablePanel panel = getTable();
         DataTable table = panel.getDataTable();
         ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
         provider.setQuery(query);
@@ -510,7 +483,7 @@ public class PageUsers extends PageAdminUsers {
             }
             if (dto.hasType(UsersDto.SearchType.GIVEN_NAME)) {
                 filters.add(SubstringFilter.createSubstring(UserType.F_GIVEN_NAME, UserType.class, getPrismContext(),
-                       PolyStringNormMatchingRule.NAME, normalizedString));
+                        PolyStringNormMatchingRule.NAME, normalizedString));
             }
 
             if (filters.size() == 1) {
@@ -538,9 +511,9 @@ public class PageUsers extends PageAdminUsers {
     }
 
     private void deleteConfirmedPerformed(AjaxRequestTarget target) {
-        List<UserListItemDto> users = new  ArrayList<UserListItemDto>();
+        List<UserListItemDto> users = new ArrayList<UserListItemDto>();
 
-        if(singleDelete == null){
+        if (singleDelete == null) {
             users = isAnythingSelected(target, null);
         } else {
             users.add(singleDelete);
@@ -721,10 +694,10 @@ public class PageUsers extends PageAdminUsers {
         target.add(getTable());
     }
 
-    private void clearSearchPerformed(AjaxRequestTarget target){
+    private void clearSearchPerformed(AjaxRequestTarget target) {
         model.setObject(new UsersDto());
 
-        TablePanel panel = getTable();
+        BoxedTablePanel panel = getTable();
         DataTable table = panel.getDataTable();
         ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
         provider.setQuery(null);
@@ -734,7 +707,47 @@ public class PageUsers extends PageAdminUsers {
         storage.setUsersPaging(null);
         panel.setCurrentPage(null);
 
-        target.add(get(ID_SEARCH_FORM));
         target.add(panel);
+    }
+
+    private static class SearchFragment extends Fragment {
+
+        public SearchFragment(String id, String markupId, MarkupContainer markupProvider,
+                              IModel<UsersDto> model, IModel<ExecuteChangeOptionsDto> executeOptionsModel) {
+            super(id, markupId, markupProvider, model);
+
+            initLayout(executeOptionsModel);
+        }
+
+        private void initLayout(IModel<ExecuteChangeOptionsDto> executeOptionsModel) {
+            final Form searchForm = new Form(ID_SEARCH_FORM);
+            add(searchForm);
+            searchForm.setOutputMarkupId(true);
+
+            final IModel<UsersDto> model = (IModel) getDefaultModel();
+
+            BasicSearchPanel<UsersDto> basicSearch = new BasicSearchPanel<UsersDto>(ID_BASIC_SEARCH, model) {
+
+                @Override
+                protected IModel<String> createSearchTextModel() {
+                    return new PropertyModel<String>(model, UsersDto.F_TEXT);
+                }
+
+                @Override
+                protected void searchPerformed(AjaxRequestTarget target) {
+                    PageUsers page = (PageUsers) getPage();
+                    page.searchPerformed(target);
+                }
+
+                @Override
+                protected void clearSearchPerformed(AjaxRequestTarget target) {
+                    PageUsers page = (PageUsers) getPage();
+                    page.clearSearchPerformed(target);
+                }
+            };
+            searchForm.add(basicSearch);
+
+            add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel, false, false, false));
+        }
     }
 }

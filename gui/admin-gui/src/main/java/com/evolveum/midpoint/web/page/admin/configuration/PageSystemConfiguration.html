@@ -19,11 +19,17 @@
 <body>
 <wicket:extend>
     <form wicket:id="mainForm" class="form-horizontal">
-        <div wicket:id="tabPanel" class="tabbable"/>
+        <div wicket:id="tabPanel" class="nav-tabs-custom"/>
 
-        <div class="main-button-bar">
-            <a class="btn btn-default" wicket:id="cancel"/>
-            <a class="btn btn-primary" wicket:id="save" />
+        <div class="box">
+            <div class="box-body">
+                <div class="form-inline">
+                    <div class="form-group">
+                        <a class="btn btn-default" wicket:id="cancel"/>
+                        <a class="btn btn-primary" wicket:id="save" />
+                    </div>
+                </div>
+            </div>
         </div>
     </form>
 </wicket:extend>

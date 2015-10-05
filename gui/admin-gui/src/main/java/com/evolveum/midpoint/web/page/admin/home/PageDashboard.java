@@ -30,11 +30,9 @@ import com.evolveum.midpoint.web.component.SecurityContextAwareCallable;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
 import com.evolveum.midpoint.web.component.util.CallableResult;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.component.wf.WorkItemsPanel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.home.component.*;
 import com.evolveum.midpoint.web.page.admin.home.dto.*;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
@@ -69,15 +67,11 @@ public class PageDashboard extends PageAdminHome {
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
     private static final String OPERATION_LOAD_ACCOUNTS = DOT_CLASS + "loadAccounts";
     private static final String OPERATION_LOAD_ASSIGNMENTS = DOT_CLASS + "loadAssignments";
-    private static final String OPERATION_LOAD_WORK_ITEMS = DOT_CLASS + "loadWorkItems";
 
     private static final String ID_PERSONAL_INFO = "personalInfo";
-    private static final String ID_WORK_ITEMS = "workItems";
     private static final String ID_ACCOUNTS = "accounts";
     private static final String ID_ASSIGNMENTS = "assignments";
     private static final String ID_SYSTEM_INFO = "systemInfo";
-
-    private static final int MAX_WORK_ITEMS = 1000;
 
     private final Model<PrismObject<UserType>> principalModel = new Model<PrismObject<UserType>>();
 
@@ -108,7 +102,6 @@ public class PageDashboard extends PageAdminHome {
 
     private void initLayout() {
         initPersonalInfo();
-        initMyWorkItems();
         initMyAccounts();
         initAssignments();
         initSystemInfo();
@@ -170,115 +163,16 @@ public class PageDashboard extends PageAdminHome {
         add(personalInfo);
     }
 
-    private CallableResult<List<WorkItemDto>> loadWorkItems() {
-
-        LOGGER.debug("Loading work items.");
-
-        AccountCallableResult callableResult = new AccountCallableResult();
-        List<WorkItemDto> list = new ArrayList<WorkItemDto>();
-        callableResult.setValue(list);
-
-        if (!getWorkflowManager().isEnabled()) {
-            return callableResult;
-        }
-
-        PrismObject<UserType> user = principalModel.getObject();
-        if (user == null) {
-            return callableResult;
-        }
-
-        OperationResult result = new OperationResult(OPERATION_LOAD_WORK_ITEMS);
-        callableResult.setResult(result);
-
-        try {
-            List<WorkItemType> workItems = getWorkflowService().listWorkItemsRelatedToUser(user.getOid(),
-                    true, 0, MAX_WORK_ITEMS, result);
-            for (WorkItemType workItem : workItems) {
-                list.add(new WorkItemDto(workItem));
-            }
-        } catch (Exception e) {
-            result.recordFatalError("Couldn't get list of work items.", e);
-        }
-
-        result.recordSuccessIfUnknown();
-        result.recomputeStatus();
-
-        LOGGER.debug("Finished work items loading.");
-
-        return callableResult;
-    }
-
     private void initSystemInfo() {
-        AsyncDashboardPanel<Object, SystemInfoDto> systemInfo =
-                new AsyncDashboardPanel<Object, SystemInfoDto>(ID_SYSTEM_INFO, createStringResource("PageDashboard.systemInfo"),
-                        "fa fa-fw fa-tachometer", DashboardColor.GREEN) {
+        DashboardPanel systemInfo = new DashboardPanel(ID_SYSTEM_INFO, null,
+                createStringResource("PageDashboard.systemInfo"), "fa fa-tachometer", DashboardColor.GREEN) {
 
-                    @Override
-                    protected SecurityContextAwareCallable<CallableResult<SystemInfoDto>> createCallable(
-                            Authentication auth, IModel callableParameterModel) {
-
-                        return new SecurityContextAwareCallable<CallableResult<SystemInfoDto>>(
-                                getSecurityEnforcer(), auth) {
-
-                            @Override
-                            public CallableResult<SystemInfoDto> callWithContextPrepared() throws Exception {
-                                CallableResult callableResult = new CallableResult();
-
-                                //TODO - fill correct data in users and tasks graphs[shood]
-                                SimplePieChartDto usersDto = new SimplePieChartDto("PageDashboard.activeUsers", 100, 25);
-                                SimplePieChartDto tasksDto = new SimplePieChartDto("PageDashboard.activeTasks", 100, 35);
-                                SimplePieChartDto loadDto = new SimplePieChartDto("PageDashboard.serverLoad", 100, WebMiscUtil.getSystemLoad(), "%");
-                                SimplePieChartDto memDto = new SimplePieChartDto("PageDashboard.usedRam",
-                                        WebMiscUtil.getMaxRam(), WebMiscUtil.getRamUsage(), "%");
-
-                                SystemInfoDto sysInfoDto = new SystemInfoDto(usersDto, tasksDto, loadDto, memDto);
-
-                                callableResult.setValue(sysInfoDto);
-                                return callableResult;
-                            }
-                        };
-                    }
-
-                    @Override
-                    protected Component getMainComponent(String markupId) {
-                        return new SystemInfoPanel(markupId, new PropertyModel<SystemInfoDto>(getModel(), CallableResult.F_VALUE));
-                    }
-                };
-        add(systemInfo);
-    }
-
-    private void initMyWorkItems() {
-        AsyncDashboardPanel<Object, List<WorkItemDto>> workItems =
-                new AsyncDashboardPanel<Object, List<WorkItemDto>>(ID_WORK_ITEMS, createStringResource("PageDashboard.workItems"),
-                        "fa fa-fw fa-tasks", DashboardColor.RED) {
-
-                    @Override
-                    protected SecurityContextAwareCallable<CallableResult<List<WorkItemDto>>> createCallable(
-                            Authentication auth, IModel callableParameterModel) {
-
-                        return new SecurityContextAwareCallable<CallableResult<List<WorkItemDto>>>(
-                                getSecurityEnforcer(), auth) {
-
-                            @Override
-                            public CallableResult<List<WorkItemDto>> callWithContextPrepared() throws Exception {
-                                return loadWorkItems();
-                            }
-                        };
-                    }
-
-                    @Override
-                    protected Component getMainComponent(String markupId) {
-                        return new WorkItemsPanel(markupId, new PropertyModel<List<WorkItemDto>>(getModel(), CallableResult.F_VALUE), false);
-                    }
-                };
-
-        workItems.add(new VisibleEnableBehaviour() {
             @Override
-            public boolean isVisible() {
-                return getWorkflowManager().isEnabled();
+            protected Component getMainComponent(String componentId) {
+                return new SystemInfoPanel(componentId);
             }
-        });
-        add(workItems);
+        };
+        add(systemInfo);
     }
 
     private void initMyAccounts() {

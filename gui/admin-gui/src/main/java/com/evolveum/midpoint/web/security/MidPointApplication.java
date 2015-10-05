@@ -36,8 +36,8 @@ import com.evolveum.midpoint.web.page.error.PageError403;
 import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
-import com.evolveum.midpoint.web.util.Utf8BundleStringResourceLoader;
 import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
+import com.evolveum.midpoint.web.util.Utf8BundleStringResourceLoader;
 import org.apache.commons.configuration.Configuration;
 import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
@@ -46,10 +46,12 @@ import org.apache.wicket.core.request.handler.PageProvider;
 import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
 import org.apache.wicket.core.request.mapper.MountedMapper;
 import org.apache.wicket.markup.head.PriorityFirstComparator;
+import org.apache.wicket.markup.html.SecurePackageResourceGuard;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.IRequestHandler;
 import org.apache.wicket.request.cycle.AbstractRequestCycleListener;
 import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.request.resource.SharedResourceReference;
 import org.apache.wicket.resource.loader.IStringResourceLoader;
 import org.apache.wicket.settings.IApplicationSettings;
@@ -117,12 +119,18 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     public void init() {
         super.init();
 
+        getJavaScriptLibrarySettings().setJQueryReference(
+                new PackageResourceReference(MidPointApplication.class,
+                        "../../../../../webjars/adminlte/2.3.0/plugins/jQuery/jQuery-2.1.4.min.js"));
+
         GuiComponents.init();
 
         getComponentInstantiationListeners().add(new SpringComponentInjector(this));
 
         IResourceSettings resourceSettings = getResourceSettings();
         resourceSettings.setHeaderItemComparator(new PriorityFirstComparator(true));
+        SecurePackageResourceGuard guard = (SecurePackageResourceGuard) resourceSettings.getPackageResourceGuard();
+        guard.addPattern("+*.woff2");
 
         List<IStringResourceLoader> resourceLoaders = resourceSettings.getStringResourceLoaders();
         resourceLoaders.add(0, new Utf8BundleStringResourceLoader("localization/Midpoint"));
@@ -233,6 +241,13 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
     public ModelInteractionService getModelInteractionService() {
         return modelInteractionService;
+    }
+
+    public String getString(String key) {
+        IResourceSettings resourceSettings = getResourceSettings();
+        List<IStringResourceLoader> resourceLoaders = resourceSettings.getStringResourceLoaders();
+        IStringResourceLoader loader = resourceLoaders.get(0);
+        return loader.loadStringResource((Class) null, key, null, null, null);
     }
 
     private static class ResourceFileFilter implements FilenameFilter {

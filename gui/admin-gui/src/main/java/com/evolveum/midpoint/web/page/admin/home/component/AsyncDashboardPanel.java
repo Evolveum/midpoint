@@ -38,8 +38,8 @@ import org.apache.wicket.util.time.Duration;
  */
 public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, CallableResult<T>> {
 
-    private static final String ID_DASHBOARD_PARENT = "dashboardParent";
-    private static final String ID_DASHBOARD_TITLE = "dashboardTitle";
+    protected static final String ID_DASHBOARD_PARENT = "dashboardParent";
+    protected static final String ID_DASHBOARD_TITLE = "dashboardTitle";
     private static final String ID_TITLE = "title";
     private static final String ID_PRELOADER_CONTAINER = "preloaderContainer";
     private static final String ID_PRELOADER = "preloader";
