@@ -21,6 +21,7 @@ import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -39,7 +40,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class TablePanel<T> extends Panel {
+public class TablePanel<T> extends Panel implements Table {
 
     private static final String ID_TABLE = "table";
     private static final String ID_PAGING = "paging";
@@ -101,6 +102,7 @@ public class TablePanel<T> extends Panel {
         add(nb2);
     }
 
+    @Override
     public UserProfileStorage.TableId getTableId() {
         return tableId;
     }
@@ -129,6 +131,7 @@ public class TablePanel<T> extends Panel {
         return baseProvider.isSizeAvailableModel();
     }
 
+    @Override
     public DataTable getDataTable() {
         return (DataTable) get(ID_TABLE);
     }
@@ -137,25 +140,23 @@ public class TablePanel<T> extends Panel {
         return (NavigatorPanel) get(ID_PAGING);
     }
 
+    @Override
     public void setItemsPerPage(int size) {
         getDataTable().setItemsPerPage(size);
     }
 
-    public void setCurrentPage(ObjectPaging paging) {
-        if (paging == null) {
-            getDataTable().setCurrentPage(0);
-            return;
-        }
-
-        long itemsPerPage = getDataTable().getItemsPerPage();
-        long page = ((paging.getOffset() + itemsPerPage) / itemsPerPage) - 1;
-        if (page < 0) {
-            page = 0;
-        }
-
+    @Override
+    public void setCurrentPage(long page) {
         getDataTable().setCurrentPage(page);
     }
 
+    @Deprecated
+    @Override
+    public void setCurrentPage(ObjectPaging paging) {
+        WebMiscUtil.setCurrentPage(this, paging);
+    }
+
+    @Override
     public void setShowPaging(boolean showPaging) {
         this.showPaging.setObject(showPaging);
         this.showCount.setObject(showPaging);

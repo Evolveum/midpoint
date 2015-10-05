@@ -78,7 +78,7 @@ public class JasperReportDto implements Serializable{
 					p.setNestedType(parameter.getNestedType());
 				}
 				
-				if (parameter.hasProperties()){
+				if (parameter.hasProperties()){                                        
 					p.setProperties(parameter.getPropertiesMap());
 				}
 				parameters.add(p);

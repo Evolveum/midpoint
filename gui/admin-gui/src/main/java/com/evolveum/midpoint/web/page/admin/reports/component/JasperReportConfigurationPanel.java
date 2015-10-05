@@ -201,16 +201,19 @@ public class JasperReportConfigurationPanel extends SimplePanel<ReportDto> {
         columns.add(column);
 
         //name editing column
-        columns.add(buildEditableLinkColumn("JasperReportConfigurationPanel.parameterName", "name", true));
+        columns.add(buildEditableLinkColumn("JasperReportConfigurationPanel.parameterName", null, "name", true));
 
         //class editing column
-        columns.add(buildEditableLinkColumn("JasperReportConfigurationPanel.parameterClass", "typeAsString", true));        
+        columns.add(buildEditableLinkColumn("JasperReportConfigurationPanel.parameterClass", null, "typeAsString", true));        
+        
+        //property:key editing column
+        columns.add(buildEditableLinkColumn("JasperReportConfigurationPanel.parameterProperty", "key", "propertyKey", false));
 
-        //property:path editing column
-        columns.add(buildEditableLinkColumn("JasperReportConfigurationPanel.parameterPropertyPath", "propertyPath", false));
+        //property:label editing column
+        columns.add(buildEditableLinkColumn("JasperReportConfigurationPanel.parameterProperty", "label", "propertyLabel", false));
         
         //property:targetType editing column
-        columns.add(buildEditableLinkColumn("JasperReportConfigurationPanel.parameterTargetType", "propertyTargetType", false));        
+        columns.add(buildEditableLinkColumn("JasperReportConfigurationPanel.parameterProperty", "targetType", "propertyTargetType", false));        
 
         CheckBoxColumn forPrompting = new CheckBoxColumn<JasperReportParameterDto>(
                 createStringResource("JasperReportConfigurationPanel.forPrompting"), "forPrompting") {
@@ -229,9 +232,9 @@ public class JasperReportConfigurationPanel extends SimplePanel<ReportDto> {
         return columns;
     }
 
-    private EditableLinkColumn<JasperReportParameterDto> buildEditableLinkColumn(String resource, String property, final Boolean mandatory) {
+    private EditableLinkColumn<JasperReportParameterDto> buildEditableLinkColumn(String resource, String resourceParam, String property, final Boolean mandatory) {
         return new EditableLinkColumn<JasperReportParameterDto>(
-                createStringResource(resource), property) {
+                createStringResource(resource, resourceParam), property) {
 
                     @Override
                     protected Component createInputPanel(String componentId, final IModel<JasperReportParameterDto> model) {

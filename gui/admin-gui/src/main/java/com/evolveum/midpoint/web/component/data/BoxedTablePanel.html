@@ -32,10 +32,8 @@
             <div class="dataTables_info" wicket:id="count"/>
         </div>
         <div class="col-md-6">
-            <div class="dataTables_paginate paging_bootstrap" wicket:id="paging"/>
-            <wicket:remove>
-                <!-- todo [lazyman] add cog button with two menu items: "page size" and "column settings" -->
-            </wicket:remove>
+            <div wicket:id="menu"/>
+            <div wicket:id="paging" class="dataTables_paginate paging_bootstrap" />
         </div>
     </div>
 </wicket:fragment>

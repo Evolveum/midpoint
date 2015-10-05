@@ -18,8 +18,12 @@ package com.evolveum.midpoint.web.component.data;
 
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
+import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
@@ -36,7 +40,7 @@ import java.util.List;
 /**
  * @author Viliam Repan (lazyman)
  */
-public class BoxedTablePanel<T> extends SimplePanel {
+public class BoxedTablePanel<T> extends SimplePanel implements Table {
 
     private static final String ID_HEADER = "header";
     private static final String ID_FOOTER = "footer";
@@ -45,16 +49,27 @@ public class BoxedTablePanel<T> extends SimplePanel {
     private static final String ID_PAGING_FOOTER = "pagingFooter";
     private static final String ID_PAGING = "paging";
     private static final String ID_COUNT = "count";
+    private static final String ID_MENU = "menu";
+
+    private UserProfileStorage.TableId tableId;
+    private boolean showPaging;
+
+    public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
+                           UserProfileStorage.TableId tableId) {
+        this(id, provider, columns, tableId, UserProfileStorage.DEFAULT_PAGING_SIZE);
+    }
 
     public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
                            UserProfileStorage.TableId tableId, int pageSize) {
         super(id);
+        this.tableId = tableId;
 
         initLayout(columns, provider, pageSize);
     }
 
     private void initLayout(List<IColumn<T, String>> columns, ISortableDataProvider provider, int pageSize) {
         DataTable<T, String> table = new SelectableDataTable<>(ID_TABLE, columns, provider, pageSize);
+        table.setOutputMarkupId(true);
         add(table);
 
         TableHeadersToolbar headersTop = new TableHeadersToolbar(table, provider);
@@ -65,8 +80,31 @@ public class BoxedTablePanel<T> extends SimplePanel {
         add(createFooter(ID_FOOTER));
     }
 
-    private DataTable getTable() {
+    @Override
+    public DataTable getDataTable() {
         return (DataTable) get(ID_TABLE);
+    }
+
+    @Override
+    public UserProfileStorage.TableId getTableId() {
+        return tableId;
+    }
+
+    @Override
+    public void setItemsPerPage(int size) {
+        getDataTable().setItemsPerPage(size);
+    }
+
+    @Override
+    public void setShowPaging(boolean show) {
+        //todo make use of this [lazyman]
+        this.showPaging = show;
+
+        if (!show) {
+            setItemsPerPage(Integer.MAX_VALUE);
+        } else {
+            setItemsPerPage(10);
+        }
     }
 
     protected WebMarkupContainer createHeader(String headerId) {
@@ -76,48 +114,58 @@ public class BoxedTablePanel<T> extends SimplePanel {
     }
 
     protected WebMarkupContainer createFooter(String footerId) {
-        return new PagingFooter(footerId, ID_PAGING_FOOTER, this, getTable());
+        return new PagingFooter(footerId, ID_PAGING_FOOTER, this, this);
     }
 
-    public DataTable getDataTable() {
-        return (DataTable) get(ID_TABLE);
-    }
-
+    @Override
     public void setCurrentPage(ObjectPaging paging) {
-        if (paging == null) {
-            getDataTable().setCurrentPage(0);
-            return;
-        }
+        WebMiscUtil.setCurrentPage(this, paging);
+    }
 
-        long itemsPerPage = getDataTable().getItemsPerPage();
-        long page = ((paging.getOffset() + itemsPerPage) / itemsPerPage) - 1;
-        if (page < 0) {
-            page = 0;
-        }
-
+    @Override
+    public void setCurrentPage(long page) {
         getDataTable().setCurrentPage(page);
     }
 
     private static class PagingFooter extends Fragment {
 
-        public PagingFooter(String id, String markupId, MarkupContainer markupProvider, DataTable table) {
+        public PagingFooter(String id, String markupId, MarkupContainer markupProvider, Table table) {
             super(id, markupId, markupProvider);
+            setOutputMarkupId(true);
 
             initLayout(table);
         }
 
-        private void initLayout(final DataTable table) {
-            BoxedPagingPanel nb2 = new BoxedPagingPanel(ID_PAGING, table, true);
+        private void initLayout(final Table table) {
+            final DataTable dataTable = table.getDataTable();
+            BoxedPagingPanel nb2 = new BoxedPagingPanel(ID_PAGING, dataTable, true);
             add(nb2);
 
             Label count = new Label(ID_COUNT, new AbstractReadOnlyModel<String>() {
 
                 @Override
                 public String getObject() {
-                    return createCountString(table);
+                    return createCountString(dataTable);
                 }
             });
             add(count);
+
+            TableConfigurationPanel menu = new TableConfigurationPanel(ID_MENU) {
+
+                @Override
+                protected void pageSizeChanged(AjaxRequestTarget target) {
+                    Table table = findParent(Table.class);
+                    UserProfileStorage.TableId tableId = table.getTableId();
+
+                    PageBase page = (PageBase) getPage();
+                    Integer pageSize = page.getSessionStorage().getUserProfile().getPagingSize(tableId);
+
+                    table.setItemsPerPage(pageSize);
+                    target.add(findParent(PagingFooter.class));
+                    target.add((Component) table);
+                }
+            };
+            add(menu);
         }
 
         private String createCountString(IPageable pageable) {
