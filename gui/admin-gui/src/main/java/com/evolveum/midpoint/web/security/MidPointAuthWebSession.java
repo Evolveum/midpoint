@@ -109,8 +109,9 @@ public class MidPointAuthWebSession extends AuthenticatedWebSession {
 
             auditEvent(authentication, username, OperationResultStatus.SUCCESS);
         } catch (AuthenticationException ex) {
-            ComponentStringResourceLoader comp = new ComponentStringResourceLoader();
-            error(comp.loadStringResource(MidPointApplication.class, ex.getMessage(), getLocale(), "", ""));
+            String key = ex.getMessage() != null ? ex.getMessage() : "web.security.provider.unavailable";
+            MidPointApplication app = (MidPointApplication) getSession().getApplication();
+            error(app.getString(key));
 
             LOGGER.debug("Couldn't authenticate user.", ex);
             authenticated = false;

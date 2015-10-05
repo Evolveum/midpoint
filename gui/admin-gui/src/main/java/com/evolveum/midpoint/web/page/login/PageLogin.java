@@ -24,7 +24,9 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.forgetpassword.PageForgetPassword;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
+import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.PasswordTextField;
@@ -48,6 +50,11 @@ public class PageLogin extends PageBase {
 
 
     public PageLogin() {
+        if (SecurityUtils.getPrincipalUser() != null) {
+            MidPointApplication app = getMidpointApplication();
+            setResponsePage(app.getHomePage());
+        }
+
         Form form = new Form(ID_LOGIN_FORM) {
 
 

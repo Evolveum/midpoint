@@ -36,8 +36,8 @@ import com.evolveum.midpoint.web.page.error.PageError403;
 import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
-import com.evolveum.midpoint.web.util.Utf8BundleStringResourceLoader;
 import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
+import com.evolveum.midpoint.web.util.Utf8BundleStringResourceLoader;
 import org.apache.commons.configuration.Configuration;
 import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
@@ -241,6 +241,13 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
     public ModelInteractionService getModelInteractionService() {
         return modelInteractionService;
+    }
+
+    public String getString(String key) {
+        IResourceSettings resourceSettings = getResourceSettings();
+        List<IStringResourceLoader> resourceLoaders = resourceSettings.getStringResourceLoaders();
+        IStringResourceLoader loader = resourceLoaders.get(0);
+        return loader.loadStringResource((Class) null, key, null, null, null);
     }
 
     private static class ResourceFileFilter implements FilenameFilter {
