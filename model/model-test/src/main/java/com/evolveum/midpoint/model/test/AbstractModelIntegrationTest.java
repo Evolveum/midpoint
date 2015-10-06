@@ -175,6 +175,7 @@ import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.fail;
 
 /**
  * Abstract framework for an integration test that is placed on top of a model API.
@@ -2348,8 +2349,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			return;
 		}
 		assertNotNull("No values for attribute "+attributeName+" of "+dummyInstanceName+" dummy account "+username, values);
-		assertEquals("Unexpected number of values for attribute " + attributeName + " of dummy account " + username + 
-				". Expected: " + Arrays.toString(expectedAttributeValues) + ", was: " + values, 
+		assertEquals("Unexpected number of values for attribute " + attributeName + " of dummy account " + username +
+				". Expected: " + Arrays.toString(expectedAttributeValues) + ", was: " + values,
 				expectedAttributeValues.length, values.size());
 		for (Object expectedValue: expectedAttributeValues) {
 			if (!values.contains(expectedValue)) {
@@ -2965,4 +2966,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 	}
+
+	protected void assertRefEquals(String message, ObjectReferenceType expected, ObjectReferenceType actual) {
+		if (expected == null && actual == null) {
+			return;
+		}
+		if (expected == null || actual == null) {
+			fail(message + ": expected=" + expected + ", actual=" + actual);
+		}
+		PrismAsserts.assertRefEquivalent(message, expected.asReferenceValue(), actual.asReferenceValue());
+	}
+
 }
