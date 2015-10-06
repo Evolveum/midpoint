@@ -19,7 +19,6 @@ alter table m_focus add hasPhoto boolean not null default FALSE;
 update m_focus set hasPhoto = false;
 update m_focus set hasPhoto = (select hasPhoto from m_user where m_user.oid = m_focus.oid)
   where m_focus.oid in (select oid from m_user);
-alter table m_focus alter column hasPhoto drop default;
 
 alter table m_focus_photo
   drop constraint m_user_photo_pkey;
