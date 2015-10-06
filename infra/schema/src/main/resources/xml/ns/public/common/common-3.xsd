@@ -370,7 +370,7 @@
                     	<a:displayOrder>250</a:displayOrder>
             		</xsd:appinfo>
                 </xsd:annotation>
-            </xsd:element>
+            </xsd:element>            
         </xsd:sequence>
        
         <xsd:attribute name="oid" type="xsd:string" use="optional">
@@ -11353,6 +11353,39 @@
                     </xsd:element>
                     <xsd:element name="configuration" type="tns:ReportConfigurationType" minOccurs="0"/>
                     <xsd:element name="configurationSchema" type="tns:XmlSchemaType" minOccurs="0"/>
+                    <xsd:element name="virtualizer" type="xsd:string" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Optional name of Jasper virtualizer class.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:operational/>
+                            </xsd:appinfo>
+                        </xsd:annotation>                
+                    </xsd:element>
+                    <xsd:element name="virtualizerKickOn" type="xsd:int" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Number of pages after Jasper virtualizer kicks on.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="maxPages" type="xsd:int" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Number of pages after Jasper cancels report execution.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="timeout" type="xsd:int" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Timeout in [ms] after Jasper cancels report execution.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
             	</xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -12391,13 +12424,13 @@
         <xsd:documentation>
             E.g. kind+intent of a resource object (if target is a resource).
 
-            TargetRef + targetQualification are used to group cases e.g. by role, by roleType,
-            by resource, by resource object ... We could add more similar properties,
-            as requirements evolve.
-        </xsd:documentation>
-    </xsd:annotation>
-</xsd:element>
--->
+                        TargetRef + targetQualification are used to group cases e.g. by role, by roleType,
+                        by resource, by resource object ... We could add more similar properties,
+                        as requirements evolve.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            -->
             <xsd:element name="reviewRequestedTimestamp" type="xsd:dateTime">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -13075,19 +13108,19 @@
     <xsd:complexType name="SequenceType">
         <xsd:annotation>
             <xsd:documentation>
-            	<p>
-	                Definition of a sequence object that produces unique values. The sequence state is
-	                persistently stored in the repository, therefore it can efficiently produce unique
-	                identifiers in a controlled and predictable manner.
+                <p>
+                    Definition of a sequence object that produces unique values. The sequence state is
+                    persistently stored in the repository, therefore it can efficiently produce unique
+                    identifiers in a controlled and predictable manner.
                 </p>
                 <p>
-                	The sequence is atomic. If two threads or even two nodes request a value from
-	 				the same sequence at the same time then different values will be returned. Therefore the
-	 				use of the sequence has some inherent cost (e.g. database locking overhead).
+                    The sequence is atomic. If two threads or even two nodes request a value from
+                    the same sequence at the same time then different values will be returned. Therefore the
+                    use of the sequence has some inherent cost (e.g. database locking overhead).
                 </p>
                 <p>
-                	The sequence produces only values of type "long". If any other type or format is needed
-                	then an expression must be used to transform the value.
+                    The sequence produces only values of type "long". If any other type or format is needed
+                    then an expression must be used to transform the value.
                 </p>
             </xsd:documentation>
         </xsd:annotation>
@@ -13147,256 +13180,256 @@
     <xsd:element name="sequence" type="tns:SequenceType" />
     
     <xsd:complexType name="FormType">
-		<xsd:annotation>
-			<xsd:documentation>
-				<p>
-					Form definition. Forms define how a certain user interface form or
-					dialog is presented.
-				</p>
-				<p>
-					Forms inherently define presentation logic. The forms may contain
-					expression or other
-					dynamic parts. However, these parts are provided only for the purpose of
-					improved
-					user experience. The data that the form computes should only help the
-					user to fill out
-					the form or provide a value preview. The data produced by form
-					expressions are NOT
-					authoritative.
-				</p>
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="c:ObjectType">
-				<xsd:sequence>
-					<xsd:element name="includeRef" type="tns:ObjectReferenceType"
-						minOccurs="0" maxOccurs="unbounded">
-						<xsd:annotation>
-							<xsd:documentation>
-								Included form.
-							</xsd:documentation>
-							<xsd:appinfo>
-								<a:objectReferenceTargetType>tns:FormType</a:objectReferenceTargetType>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-					<xsd:element name="formDefinition" type="tns:FormDefinitionType" minOccurs="1">
-						<!-- This is a prism limitation. This is a polymorphic and ordered type.
-						     It has to be a prism property. -->
-					</xsd:element>
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-	<xsd:element name="form" type="tns:FormType" />
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>
+                    Form definition. Forms define how a certain user interface form or
+                    dialog is presented.
+                </p>
+                <p>
+                    Forms inherently define presentation logic. The forms may contain
+                    expression or other
+                    dynamic parts. However, these parts are provided only for the purpose of
+                    improved
+                    user experience. The data that the form computes should only help the
+                    user to fill out
+                    the form or provide a value preview. The data produced by form
+                    expressions are NOT
+                    authoritative.
+                </p>
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:ObjectType">
+                <xsd:sequence>
+                    <xsd:element name="includeRef" type="tns:ObjectReferenceType"
+                                 minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Included form.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:FormType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="formDefinition" type="tns:FormDefinitionType" minOccurs="1">
+                        <!-- This is a prism limitation. This is a polymorphic and ordered type.
+                        It has to be a prism property. -->
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="form" type="tns:FormType" />
 
-	<xsd:complexType name="FormDefinitionType">
-		<xsd:annotation>
-			<xsd:documentation>
-				<p>
-					This part defines the actual form presentation and layout.
-				</p>
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element name="display" type="tns:FormDisplayType" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Display characteristics of the form.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element ref="tns:formItem" minOccurs="0" maxOccurs="unbounded">
-				<xsd:annotation>
-					<xsd:documentation>
-						List of form items.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-		</xsd:sequence>
-	</xsd:complexType>
+    <xsd:complexType name="FormDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>
+                    This part defines the actual form presentation and layout.
+                </p>
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="display" type="tns:FormDisplayType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Display characteristics of the form.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element ref="tns:formItem" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        List of form items.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
 
-	<xsd:complexType name="AbstractDisplayType" abstract="true">
-		<xsd:sequence>
-			<!-- basic properties -->
-			<xsd:element name="label" type="xsd:string" minOccurs="0" />
-			<xsd:element name="tooltip" type="xsd:string" minOccurs="0" />
-			<xsd:element name="help" type="xsd:string" minOccurs="0" />
-			<!-- style properties -->
-			<xsd:element name="cssStyle" type="xsd:string" minOccurs="0" />
-			<xsd:element name="cssClass" type="xsd:string" minOccurs="0" />
-		</xsd:sequence>
-	</xsd:complexType>
+    <xsd:complexType name="AbstractDisplayType" abstract="true">
+        <xsd:sequence>
+            <!-- basic properties -->
+            <xsd:element name="label" type="xsd:string" minOccurs="0" />
+            <xsd:element name="tooltip" type="xsd:string" minOccurs="0" />
+            <xsd:element name="help" type="xsd:string" minOccurs="0" />
+            <!-- style properties -->
+            <xsd:element name="cssStyle" type="xsd:string" minOccurs="0" />
+            <xsd:element name="cssClass" type="xsd:string" minOccurs="0" />
+        </xsd:sequence>
+    </xsd:complexType>
 
-	<xsd:complexType name="FormDisplayType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:AbstractDisplayType">
-				<xsd:sequence>
-					<xsd:element name="theme" type="xsd:string" minOccurs="0" />
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
+    <xsd:complexType name="FormDisplayType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractDisplayType">
+                <xsd:sequence>
+                    <xsd:element name="theme" type="xsd:string" minOccurs="0" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
 
-	<xsd:complexType name="FormItemDisplayType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:AbstractDisplayType">
-				<xsd:sequence>
-					<xsd:element name="minOccurs" type="xsd:string" minOccurs="0" />
-					<xsd:element name="maxOccurs" type="xsd:string" minOccurs="0" />
-					<xsd:element name="size" type="xsd:integer" minOccurs="0" />
-					<xsd:element name="maxSize" type="xsd:integer" minOccurs="0" />
-					<xsd:element name="newLine" type="xsd:boolean" minOccurs="0" default="true">
-						<xsd:annotation>
-							<xsd:documentation>
-								displayable form component position (if true, field/group/loop will be
-								placed on new line)
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
+    <xsd:complexType name="FormItemDisplayType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractDisplayType">
+                <xsd:sequence>
+                    <xsd:element name="minOccurs" type="xsd:string" minOccurs="0" />
+                    <xsd:element name="maxOccurs" type="xsd:string" minOccurs="0" />
+                    <xsd:element name="size" type="xsd:integer" minOccurs="0" />
+                    <xsd:element name="maxSize" type="xsd:integer" minOccurs="0" />
+                    <xsd:element name="newLine" type="xsd:boolean" minOccurs="0" default="true">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                displayable form component position (if true, field/group/loop will be
+                                placed on new line)
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
 
-	<xsd:complexType name="AbstractFormItemType" abstract="true">
-		<xsd:annotation>
-			<xsd:documentation>
-				Abstract supertype for all form items.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element name="name" type="xsd:string" minOccurs="0"></xsd:element>
-			<xsd:element ref="tns:description" minOccurs="0" />
-			<xsd:element name="ref" type="t:ItemPathType" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Reference to an item of the backing object that is behind the form.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="type" type="xsd:QName" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Type override. Normally the field type will be determined
-						by the type of backing item. This field can be used as type
-						override if a different presenation is required.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="display" type="tns:FormItemDisplayType" minOccurs="0" />
-			<xsd:element name="widget" type="xsd:string" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Name of the UI widget that should be used to display this item.
-						Normally, the widget will be chosen automatically based on the type
-						of the backing item (see "ref" element). The "widget" element can be
-						used to override this default behavior. It is used for default included
-						types like text, label, combo, password, checkbox, etc. or class name for
-						custom implementation.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="availableValues" type="c:ExpressionType" minOccurs="0" />
-			<xsd:element name="validation" type="tns:FormItemValidationType" minOccurs="0" />
-			<!-- TODO: condition -->
-		</xsd:sequence>
-	</xsd:complexType>
-	<xsd:element name="formItem" type="tns:AbstractFormItemType" />
+    <xsd:complexType name="AbstractFormItemType" abstract="true">
+        <xsd:annotation>
+            <xsd:documentation>
+                Abstract supertype for all form items.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" minOccurs="0"></xsd:element>
+            <xsd:element ref="tns:description" minOccurs="0" />
+            <xsd:element name="ref" type="t:ItemPathType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to an item of the backing object that is behind the form.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="type" type="xsd:QName" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Type override. Normally the field type will be determined
+                        by the type of backing item. This field can be used as type
+                        override if a different presenation is required.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="display" type="tns:FormItemDisplayType" minOccurs="0" />
+            <xsd:element name="widget" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the UI widget that should be used to display this item.
+                        Normally, the widget will be chosen automatically based on the type
+                        of the backing item (see "ref" element). The "widget" element can be
+                        used to override this default behavior. It is used for default included
+                        types like text, label, combo, password, checkbox, etc. or class name for
+                        custom implementation.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="availableValues" type="c:ExpressionType" minOccurs="0" />
+            <xsd:element name="validation" type="tns:FormItemValidationType" minOccurs="0" />
+            <!-- TODO: condition -->
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="formItem" type="tns:AbstractFormItemType" />
 
-	<xsd:complexType name="FormItemValidationType">
-		<xsd:sequence>
-			<xsd:element name="server" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-				<xsd:annotation>
-					<xsd:documentation>
-						<!--TODO -->
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="client" type="tns:FormItemClientValidationType" minOccurs="0" />
-		</xsd:sequence>
-	</xsd:complexType>
+    <xsd:complexType name="FormItemValidationType">
+        <xsd:sequence>
+            <xsd:element name="server" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <!--TODO -->
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="client" type="tns:FormItemClientValidationType" minOccurs="0" />
+        </xsd:sequence>
+    </xsd:complexType>
 
-	<xsd:complexType name="FormItemClientValidationType">
-		<xsd:annotation>
-			<xsd:documentation>
-				<!--TODO -->
-				javascript stuff, we replate ${this} with proper input id, probably
-				some jQuery black magic
+    <xsd:complexType name="FormItemClientValidationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <!--TODO -->
+                javascript stuff, we replate ${this} with proper input id, probably
+                some jQuery black magic
 
-				TODO: add event type attribute to client element for this validator
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element name="event" type="xsd:string" minOccurs="1" maxOccurs="unbounded" />
-			<xsd:element name="script" type="xsd:string" minOccurs="1" />
-		</xsd:sequence>
-	</xsd:complexType>
+                TODO: add event type attribute to client element for this validator
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="event" type="xsd:string" minOccurs="1" maxOccurs="unbounded" />
+            <xsd:element name="script" type="xsd:string" minOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
 
-	<xsd:complexType name="FormFieldType">
-		<xsd:annotation>
-			<xsd:documentation>
-				A single form field. This definition is expected to render a short,
-				compact
-				visual representation of a single item (property, reference or container).
-				If a container is represented as a field, it has to be a very
-				compart representation
-				of the container, usually be using custom widget that creates a pop-up
-				when clicked.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:AbstractFormItemType">
-				<xsd:sequence>
-					<!-- Nothing to add now -->
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
+    <xsd:complexType name="FormFieldType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A single form field. This definition is expected to render a short,
+                compact
+                visual representation of a single item (property, reference or container).
+                If a container is represented as a field, it has to be a very
+                compart representation
+                of the container, usually be using custom widget that creates a pop-up
+                when clicked.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractFormItemType">
+                <xsd:sequence>
+                    <!-- Nothing to add now -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
 
-		<!-- TODO: some kind of renderer, probably something like IChoiceRenderer 
-			in wicket to translate real value to display value and after edit to translate 
-			displayed value to real value -->
+        <!-- TODO: some kind of renderer, probably something like IChoiceRenderer 
+        in wicket to translate real value to display value and after edit to translate 
+        displayed value to real value -->
 
-	</xsd:complexType>
-	<xsd:element name="formField" type="tns:FormFieldType" substitutionGroup="tns:formItem" />
+    </xsd:complexType>
+    <xsd:element name="formField" type="tns:FormFieldType" substitutionGroup="tns:formItem" />
 
-	<xsd:complexType name="FormFieldGroupType">
-		<xsd:annotation>
-			<xsd:documentation>
-				<p>
-					A group of fields. The group is rendered in a such a way that it will be obvious
-					that the fields belong together and form a a logical group (e.g. by using box
-					with a border). This can be used to display value of complex containers.
-					But it may also be used to visualy group together a set of
-					related properties that are not in the same container.
-				</p>
-				<p>
-					The group is NOT meant to automatically generate fields for every container item.
-					Individual fields must be defined as sub-items of this group.
-				</p>
-				<p>
-					If ref element is used it MUST point to PrismContainer. In that case subitems of this
-					group must point to the container value items.
-				</p>
-				<p>
-					The group may not have any ref element. In that case the subfields may
-					refer to any property.
-				</p>
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:AbstractFormItemType">
-				<xsd:sequence>
-					<xsd:element ref="tns:formItem" minOccurs="0" maxOccurs="unbounded">
-						<xsd:annotation>
-							<xsd:documentation>
-								List of group subitems.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
+    <xsd:complexType name="FormFieldGroupType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>
+                    A group of fields. The group is rendered in a such a way that it will be obvious
+                    that the fields belong together and form a a logical group (e.g. by using box
+                    with a border). This can be used to display value of complex containers.
+                    But it may also be used to visualy group together a set of
+                    related properties that are not in the same container.
+                </p>
+                <p>
+                    The group is NOT meant to automatically generate fields for every container item.
+                    Individual fields must be defined as sub-items of this group.
+                </p>
+                <p>
+                    If ref element is used it MUST point to PrismContainer. In that case subitems of this
+                    group must point to the container value items.
+                </p>
+                <p>
+                    The group may not have any ref element. In that case the subfields may
+                    refer to any property.
+                </p>
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractFormItemType">
+                <xsd:sequence>
+                    <xsd:element ref="tns:formItem" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                List of group subitems.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
     
 </xsd:schema>
