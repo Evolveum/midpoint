@@ -78,8 +78,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -443,6 +445,28 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         IntegrationTestTools.assertAttribute(accountNew, dummyResourceCtl.getAttributeFullnameQName(), "Jack Sparrow");	
 	}
 	
+	@Test
+    public void test130GetAdminGuiConfig() throws Exception {
+		final String TEST_NAME = "test130GetAdminGuiConfig";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+		// WHEN
+		AdminGuiConfigurationType adminGuiConfiguration = modelInteractionService.getAdminGuiConfiguration(task, result);
+
+		// THEN
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		
+		assertNotNull("Null config", adminGuiConfiguration);
+		assertEquals("Unexpected number of links", 1, adminGuiConfiguration.getUserDashboardLink().size());
+		RichHyperlinkType link = adminGuiConfiguration.getUserDashboardLink().get(0);
+		assertEquals("Bad link label", "Foo", link.getLabel());
+		assertEquals("Bad link targetUrl", "/foo", link.getTargetUrl());
+	}
 	
 	@Test
     public void test200ModifyUserDeleteAccount() throws Exception {

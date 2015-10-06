@@ -142,4 +142,10 @@
     <internals>
         <maxModelClicks>30</maxModelClicks>     <!-- especially for TestIteration.test235 to prevent long test run in case of failure -->
     </internals>
+    <adminGuiConfiguration>
+	    <userDashboardLink>
+	    	<targetUrl>/foo</targetUrl>
+	    	<label>Foo</label>
+	    </userDashboardLink>
+    </adminGuiConfiguration>
 </systemConfiguration>
