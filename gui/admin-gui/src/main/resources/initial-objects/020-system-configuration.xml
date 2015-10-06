@@ -96,22 +96,20 @@
     </cleanupPolicy>
     <adminGuiConfiguration>
         <userDashboardLink>
-            <targetUrl>/midpoint/admin/users</targetUrl>
+            <targetUrl>/admin/users</targetUrl>
             <label>Users</label>
             <icon>
                 <cssClass>fa fa-users</cssClass>
             </icon>
             <color>red</color>
-            <authorization>http://</authorization>
         </userDashboardLink>
         <userDashboardLink>
-            <targetUrl>/midpoint/admin/org/tree</targetUrl>
+            <targetUrl>/admin/org/tree</targetUrl>
             <label>Organizations</label>
             <icon>
                 <cssClass>fa fa-bank</cssClass>
             </icon>
             <color>green</color>
-            <authorization>http://</authorization>
         </userDashboardLink>
     </adminGuiConfiguration>
 </systemConfiguration>

@@ -76,7 +76,7 @@ public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
                             if (webApplication != null) {
                                 ServletContext servletContext = webApplication.getServletContext();
                                 if (servletContext != null) {
-                                    rootContext = servletContext.getServletContextName();
+                                    rootContext = servletContext.getContextPath();
                                 }
                             }
                         }
