@@ -9,7 +9,12 @@ import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.protocol.http.RequestUtils;
+import org.apache.wicket.protocol.http.WebApplication;
+import org.apache.wicket.request.Url;
+import org.apache.wicket.request.cycle.RequestCycle;
 
+import javax.servlet.ServletContext;
 import java.util.List;
 
 /**
@@ -62,7 +67,20 @@ public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
                     @Override
                     protected void onComponentTag(final ComponentTag tag) {
                         super.onComponentTag(tag);
-                        tag.put("href", link.getTargetUrl());
+                        String rootContext = "";
+                        if (link.getTargetUrl() != null && !link.getTargetUrl().startsWith("http://") &&
+                                !link.getTargetUrl().startsWith("https://") &&
+                                !link.getTargetUrl().startsWith("www://") &&
+                                !link.getTargetUrl().startsWith("//")) {
+                            WebApplication webApplication = WebApplication.get();
+                            if (webApplication != null) {
+                                ServletContext servletContext = webApplication.getServletContext();
+                                if (servletContext != null) {
+                                    rootContext = servletContext.getServletContextName();
+                                }
+                            }
+                        }
+                        tag.put("href", rootContext + link.getTargetUrl());
                     }
                 };
                 linkItem.add(new Label(ID_IMAGE) {
