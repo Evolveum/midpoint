@@ -30,10 +30,7 @@ import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.*;
 
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -182,6 +179,7 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
         }
     }
 
+    @ColumnDefault("false")
     public boolean isHasPhoto() {
         return hasPhoto;
     }

@@ -260,8 +260,8 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 	}
 
 	protected void assertDefinitionAndOwner(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType certificationDefinition) {
-		assertEquals("Unexpected ownerRef", ObjectTypeUtil.createObjectRef(USER_ADMINISTRATOR_OID, ObjectTypes.USER), campaign.getOwnerRef());
-		assertEquals("Unexpected definitionRef",
+		assertRefEquals("Unexpected ownerRef", ObjectTypeUtil.createObjectRef(USER_ADMINISTRATOR_OID, ObjectTypes.USER), campaign.getOwnerRef());
+		assertRefEquals("Unexpected definitionRef",
 				ObjectTypeUtil.createObjectRef(certificationDefinition),
 				campaign.getDefinitionRef());
 	}
@@ -298,7 +298,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		AccessCertificationDecisionType storedDecision = _case.getDecision().get(0);
 		assertEquals("wrong response", response, storedDecision.getResponse());
 		assertEquals("wrong comment", comment, storedDecision.getComment());
-		assertEquals("wrong reviewerRef", ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER), storedDecision.getReviewerRef());
+		assertRefEquals("wrong reviewerRef", ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER), storedDecision.getReviewerRef());
 		assertEquals("wrong stage number", stageNumber, storedDecision.getStageNumber());
 		assertApproximateTime("timestamp", new Date(), storedDecision.getTimestamp());
 		assertEquals("wrong current response", aggregatedResponse, _case.getCurrentResponse());

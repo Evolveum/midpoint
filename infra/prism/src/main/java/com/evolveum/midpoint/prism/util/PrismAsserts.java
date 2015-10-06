@@ -999,4 +999,14 @@ public class PrismAsserts {
         }
     }
 
+	public static void assertRefEquivalent(String message, PrismReferenceValue expected, PrismReferenceValue actual) {
+		if (expected == null && actual == null) {
+			return;
+		}
+		if (expected == null || actual == null) {
+			fail(message + ": expected=" + expected + ", actual=" + actual);
+		}
+		assertEquals(message+": wrong target oid", expected.getOid(), actual.getOid());
+		assertEquals(message+": wrong target type", expected.getTargetType(), actual.getTargetType());
+	}
 }

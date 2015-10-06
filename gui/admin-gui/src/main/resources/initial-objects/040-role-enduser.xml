@@ -21,6 +21,7 @@
     <authorization>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#dashboard</action>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#myPasswords</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#self</action>
     </authorization>
     <authorization>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>

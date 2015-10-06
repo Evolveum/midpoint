@@ -102,7 +102,6 @@
                 <cssClass>fa fa-users</cssClass>
             </icon>
             <color>red</color>
-            <authorization>http://</authorization>
         </userDashboardLink>
         <userDashboardLink>
             <targetUrl>/admin/org/tree</targetUrl>
@@ -111,7 +110,6 @@
                 <cssClass>fa fa-bank</cssClass>
             </icon>
             <color>green</color>
-            <authorization>http://</authorization>
         </userDashboardLink>
     </adminGuiConfiguration>
 </systemConfiguration>
