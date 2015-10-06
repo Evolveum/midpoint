@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.api;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -47,6 +48,13 @@ public class RoleSelectionSpecification {
 			roleTypes = new ArrayList<DisplayableValue<String>>();
 		}
 		roleTypes.add(roleType);
+	}
+	
+	public void addRoleTypes(Collection<DisplayableValue<String>> roleTypes) {
+		if (this.roleTypes == null) {
+			this.roleTypes = new ArrayList<DisplayableValue<String>>();
+		}
+		this.roleTypes.addAll(roleTypes);
 	}
 	
 	/**

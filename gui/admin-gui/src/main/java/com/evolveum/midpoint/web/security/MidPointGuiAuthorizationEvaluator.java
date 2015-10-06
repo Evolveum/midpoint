@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,10 +57,12 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
 		this.securityEnforcer = securityEnforcer;
 	}
 
+    @Override
 	public UserProfileService getUserProfileService() {
 		return securityEnforcer.getUserProfileService();
 	}
 
+	@Override
 	public void setUserProfileService(UserProfileService userProfileService) {
 		securityEnforcer.setUserProfileService(userProfileService);
 	}
@@ -70,19 +72,28 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
         securityEnforcer.setupPreAuthenticatedSecurityContext(authentication);
     }
 
+    @Override
     public void setupPreAuthenticatedSecurityContext(PrismObject<UserType> user) {
 		securityEnforcer.setupPreAuthenticatedSecurityContext(user);
 	}
+    
+    @Override
+	public boolean isAuthenticated() {
+		return securityEnforcer.isAuthenticated();
+	}
 
+    @Override
 	public MidPointPrincipal getPrincipal() throws SecurityViolationException {
 		return securityEnforcer.getPrincipal();
 	}
 
+    @Override
 	public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl, AuthorizationPhaseType phase,
 			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver) throws SchemaException {
 		return securityEnforcer.isAuthorized(operationUrl, phase, object, delta, target, ownerResolver);
 	}
 
+    @Override
 	public boolean supports(ConfigAttribute attribute) {
 		return securityEnforcer.supports(attribute);
 	}
@@ -94,6 +105,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
 		securityEnforcer.authorize(operationUrl, phase, object, delta, target, ownerResolver, result);
 	}
 
+	@Override
 	public boolean supports(Class<?> clazz) {
 		return securityEnforcer.supports(clazz);
 	}
