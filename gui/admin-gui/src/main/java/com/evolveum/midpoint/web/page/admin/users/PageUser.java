@@ -203,9 +203,7 @@ public class PageUser extends PageAdminFocus<UserType> {
 //        summaryContainer.add(img);
     }
 
-
-
-    private boolean isEditingUser() {
+    public boolean isEditingUser() {
         StringValue userOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
         return userOid != null && StringUtils.isNotEmpty(userOid.toString());
     }
