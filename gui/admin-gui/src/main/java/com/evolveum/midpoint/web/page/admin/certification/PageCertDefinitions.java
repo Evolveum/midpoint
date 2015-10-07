@@ -102,17 +102,6 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 
     //region Layout
 
-    @Override
-    protected IModel<String> createPageSubTitleModel(){
-        return new AbstractReadOnlyModel<String>() {
-
-            @Override
-            public String getObject() {
-                return createStringResource("page.subTitle").getString();
-            }
-        };
-    }
-
     private void initLayout() {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);

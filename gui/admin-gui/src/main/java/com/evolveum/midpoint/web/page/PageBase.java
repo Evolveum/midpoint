@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,28 +94,40 @@ public abstract class PageBase extends PageTemplate {
 
     @SpringBean(name = "modelController")
     private ScriptingService scriptingService;
+    
     @SpringBean(name = "modelController")
     private ModelService modelService;
-    @SpringBean(name = "modelController")
+    
+    @SpringBean(name = "modelInteractionService")
     private ModelInteractionService modelInteractionService;
+    
     @SpringBean(name = "modelController")
     private TaskService taskService;
+    
     @SpringBean(name = "modelDiagController")
     private ModelDiagnosticService modelDiagnosticService;
+    
     @SpringBean(name = "taskManager")
     private TaskManager taskManager;
+    
     @SpringBean(name = "modelController")
     private WorkflowService workflowService;
+    
     @SpringBean(name = "workflowManager")
     private WorkflowManager workflowManager;
+    
     @SpringBean(name = "midpointConfiguration")
     private MidpointConfiguration midpointConfiguration;
+    
     @SpringBean(name = "reportManager")
     private ReportManager reportManager;
+    
     @SpringBean(name = "certificationManager")
     private CertificationManager certificationManager;
+    
     @SpringBean(name = "accessDecisionManager")
     private SecurityEnforcer securityEnforcer;
+    
     @SpringBean
     private MidpointFormValidatorRegistry formValidatorRegistry;
 

@@ -159,17 +159,6 @@ public class PageCreatedReports extends PageAdminReports {
         initLayout();
     }
 
-    @Override
-    protected IModel<String> createPageSubTitleModel() {
-        return new AbstractReadOnlyModel<String>() {
-
-            @Override
-            public String getObject() {
-                return createStringResource("page.subTitle").getString();
-            }
-        };
-    }
-
     private void initLayout() {
         initSearchForm();
 
