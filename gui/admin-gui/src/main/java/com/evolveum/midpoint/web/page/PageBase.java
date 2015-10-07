@@ -40,6 +40,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.menu.MainMenuItem;
 import com.evolveum.midpoint.web.component.menu.MenuItem;
 import com.evolveum.midpoint.web.component.menu.SideBarMenuItem;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertCampaigns;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinitions;
@@ -53,6 +54,7 @@ import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
+import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
@@ -69,11 +71,9 @@ import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
-import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorImpl;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.injection.Injector;
@@ -91,48 +91,48 @@ import java.util.List;
  * @author lazyman
  */
 public abstract class PageBase extends PageTemplate {
-	
-	private static final String DOT_CLASS = PageBase.class.getName() + ".";
+
+    private static final String DOT_CLASS = PageBase.class.getName() + ".";
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageBase.class);
 
     @SpringBean(name = "modelController")
     private ScriptingService scriptingService;
-    
+
     @SpringBean(name = "modelController")
     private ModelService modelService;
-    
+
     @SpringBean(name = "modelInteractionService")
     private ModelInteractionService modelInteractionService;
-    
+
     @SpringBean(name = "modelController")
     private TaskService taskService;
-    
+
     @SpringBean(name = "modelDiagController")
     private ModelDiagnosticService modelDiagnosticService;
-    
+
     @SpringBean(name = "taskManager")
     private TaskManager taskManager;
-    
+
     @SpringBean(name = "modelController")
     private WorkflowService workflowService;
-    
+
     @SpringBean(name = "workflowManager")
     private WorkflowManager workflowManager;
-    
+
     @SpringBean(name = "midpointConfiguration")
     private MidpointConfiguration midpointConfiguration;
-    
+
     @SpringBean(name = "reportManager")
     private ReportManager reportManager;
-    
+
     @SpringBean(name = "certificationManager")
     private CertificationManager certificationManager;
-    
+
     @SpringBean(name = "accessDecisionManager")
     private SecurityEnforcer securityEnforcer;
-    
+
     @SpringBean
     private MidpointFormValidatorRegistry formValidatorRegistry;
 
@@ -186,7 +186,7 @@ public abstract class PageBase extends PageTemplate {
         return modelService;
     }
 
-    public ScriptingService getScriptingService(){
+    public ScriptingService getScriptingService() {
         return scriptingService;
     }
 
@@ -279,7 +279,7 @@ public abstract class PageBase extends PageTemplate {
         result.computeStatus();
     }
 
-    public long getItemsPerPage(UserProfileStorage.TableId tableId){
+    public long getItemsPerPage(UserProfileStorage.TableId tableId) {
         UserProfileStorage userProfile = getSessionStorage().getUserProfile();
         return userProfile.getPagingSize(tableId);
     }
@@ -387,10 +387,24 @@ public abstract class PageBase extends PageTemplate {
         List<MenuItem> submenu = item.getItems();
 
         MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.serverTasks.list"),
-                PageTasks.class);
+                PageTasks.class, null, null);
         submenu.add(list);
         MenuItem n = new MenuItem(createStringResource("PageAdmin.menu.top.serverTasks.new"),
                 PageTaskAdd.class);
+        submenu.add(n);
+        n = new MenuItem(createStringResource("PageAdmin.menu.top.serverTasks.edit"),
+                PageTaskEdit.class, null, new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return getPage().getClass().equals(PageTaskEdit.class);
+            }
+
+            @Override
+            public boolean isEnabled() {
+                return false;
+            }
+        });
         submenu.add(n);
 
         return item;
@@ -471,6 +485,20 @@ public abstract class PageBase extends PageTemplate {
         submenu.add(menu);
         menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.repositoryObjects"),
                 PageDebugList.class);
+        submenu.add(menu);
+        menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.repositoryObjectView"),
+                PageDebugView.class, null, new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return getPage().getClass().equals(PageDebugView.class);
+            }
+
+            @Override
+            public boolean isEnabled() {
+                return false;
+            }
+        });
         submenu.add(menu);
 
         PageParameters params = new PageParameters();
@@ -567,7 +595,7 @@ public abstract class PageBase extends PageTemplate {
 
         return item;
     }
-    
+
     protected PrismObject<UserType> loadUserSelf(PageBase page) {
         OperationResult result = new OperationResult(OPERATION_LOAD_USER);
         PrismObject<UserType> user = WebModelUtils.loadObject(UserType.class,

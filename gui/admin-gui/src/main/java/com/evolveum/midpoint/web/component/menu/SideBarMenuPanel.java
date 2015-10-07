@@ -87,8 +87,14 @@ public class SideBarMenuPanel extends SimplePanel<List<SideBarMenuItem>> {
                     @Override
                     public boolean isVisible() {
                         SideBarMenuItem mainMenu = item.getModelObject();
+
                         for (MainMenuItem i : mainMenu.getItems()) {
-                            if (SecurityUtils.isMenuAuthorized(i)) {
+                            boolean visible = true;
+                            if (i.getVisibleEnable() != null) {
+                                visible = i.getVisibleEnable().isVisible();
+                            }
+
+                            if (visible && SecurityUtils.isMenuAuthorized(i)) {
                                 return true;
                             }
                         }
