@@ -64,7 +64,6 @@ public class PageDashboard extends PageAdminHome {
     private static final Trace LOGGER = TraceManager.getTrace(PageDashboard.class);
 
     private static final String DOT_CLASS = PageDashboard.class.getName() + ".";
-    private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
     private static final String OPERATION_LOAD_ACCOUNTS = DOT_CLASS + "loadAccounts";
     private static final String OPERATION_LOAD_ASSIGNMENTS = DOT_CLASS + "loadAssignments";
 
@@ -76,30 +75,10 @@ public class PageDashboard extends PageAdminHome {
     private final Model<PrismObject<UserType>> principalModel = new Model<PrismObject<UserType>>();
 
     public PageDashboard() {
-        principalModel.setObject(loadUser());
-
+        principalModel.setObject(loadUserSelf(PageDashboard.this));
         initLayout();
     }
-
-    private PrismObject<UserType> loadUser() {
-        MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
-        Validate.notNull(principal, "No principal");
-        if (principal.getOid() == null) {
-        	throw new IllegalArgumentException("No OID in principal: "+principal);
-        }
-        
-        OperationResult result = new OperationResult(OPERATION_LOAD_USER);
-        PrismObject<UserType> user = WebModelUtils.loadObject(UserType.class,
-                principal.getOid(), result, PageDashboard.this);
-        result.computeStatus();
-
-        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
-            showResult(result);
-        }
-
-        return user;
-    }
-
+    
     private void initLayout() {
         initPersonalInfo();
         initMyAccounts();
