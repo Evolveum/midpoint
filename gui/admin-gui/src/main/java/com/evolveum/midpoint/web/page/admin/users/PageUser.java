@@ -199,8 +199,14 @@ public class PageUser extends PageAdminFocus<UserType> {
             setResponsePage(getSessionStorage().getPreviousPage());
         } else if (getPreviousPage() != null) {
             goBack(PageDashboard.class);        // the class parameter is not necessary, is previousPage is set
-        } else if (getSessionStorage() != null && getSessionStorage().getPreviousPage() != null){
-            setResponsePage(getSessionStorage().getPreviousPage());
+        } else if (getSessionStorage() != null){
+        	if (getSessionStorage().getPreviousPageInstance() != null){
+        		setResponsePage(getSessionStorage().getPreviousPageInstance());
+        	} else if (getSessionStorage().getPreviousPage() != null){
+        		setResponsePage(getSessionStorage().getPreviousPage());
+        	} else {
+        		setResponsePage(PageUsers.class);
+        	}
         } else {
         	setResponsePage(PageUsers.class);
         }
