@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.web.page.self.component;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
@@ -8,6 +9,8 @@ import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstance;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -41,14 +44,53 @@ public class MyRequestsPanel extends SimplePanel<List<ProcessInstanceDto>> {
     @Override
     protected void initLayout() {
         List<IColumn<ProcessInstanceDto, String>> columns = new ArrayList<IColumn<ProcessInstanceDto, String>>();
-        columns.add(new LinkColumn<ProcessInstanceDto>(createStringResource("MyRequestsPanel.waitingFor"), "name") {
+        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
+                AuthorizationConstants.AUTZ_UI_WORK_ITEMS_PROCESS_INSTANCE_URL)) {
+            columns.add(new LinkColumn<ProcessInstanceDto>(createStringResource("MyRequestsPanel.name"), "name") {
+
+                @Override
+                public void onClick(AjaxRequestTarget target, IModel<ProcessInstanceDto> rowModel) {
+                    ProcessInstanceDto piDto = rowModel.getObject();
+                    itemDetailsPerformed(target, false, piDto.getProcessInstance().getProcessInstanceId());
+                }
+            });
+        } else {
+            columns.add(new AbstractColumn<ProcessInstanceDto, String>(createStringResource("MyRequestsPanel.name")) {
+                @Override
+                public void populateItem(Item<ICellPopulator<ProcessInstanceDto>> item, String componentId,
+                                         final IModel<ProcessInstanceDto> rowModel) {
+                    item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
+
+                        @Override
+                        public Object getObject() {
+                            ProcessInstanceDto pi = rowModel.getObject();
+                            return pi.getName();
+                        }
+                    }));
+                }
+            });
+        }
+        columns.add(new AbstractColumn<ProcessInstanceDto, String>(createStringResource("pageProcessInstances.item.result")) {
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<ProcessInstanceDto> rowModel) {
-                ProcessInstanceDto piDto = rowModel.getObject();
-                itemDetailsPerformed(target, false, piDto.getProcessInstance().getProcessInstanceId());
+            public void populateItem(Item<ICellPopulator<ProcessInstanceDto>> item, String componentId,
+                                     final IModel<ProcessInstanceDto> rowModel) {
+                item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
+
+                    @Override
+                    public Object getObject() {
+                        ProcessInstanceDto pi = rowModel.getObject();
+                        Boolean result = ApprovalUtils.approvalBooleanValue(pi.getAnswer());
+                        if (result == null) {
+                            return "";
+                        } else {
+                            return result ? "APPROVED" : "REJECTED";        // todo i18n
+                        }
+                    }
+                }));
             }
         });
+
         columns.add(new AbstractColumn<ProcessInstanceDto, String>(createStringResource("MyRequestsPanel.started")) {
 
             @Override
@@ -70,6 +112,28 @@ public class MyRequestsPanel extends SimplePanel<List<ProcessInstanceDto>> {
                 }));
             }
         });
+
+        columns.add(new AbstractColumn<ProcessInstanceDto, String>(createStringResource("pageProcessInstances.item.finished")) {
+
+            @Override
+            public void populateItem(Item<ICellPopulator<ProcessInstanceDto>> item, String componentId,
+                                     final IModel<ProcessInstanceDto> rowModel) {
+                item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
+
+                    @Override
+                    public Object getObject() {
+                        ProcessInstanceDto pi = rowModel.getObject();
+                        Date finished = XmlTypeConverter.toDate(pi.getProcessInstance().getEndTimestamp());
+                        if (finished == null) {
+                            return getString("pageProcessInstances.notYet");
+                        } else {
+                            return WebMiscUtil.formatDate(finished);
+                        }
+                    }
+                }));
+            }
+        });
+
         ISortableDataProvider provider = new ListDataProvider(this, getModel());
         TablePanel accountsTable = new TablePanel<ProcessInstanceDto>(ID_REQUESTS_TABLE, provider, columns);
         add(accountsTable);
