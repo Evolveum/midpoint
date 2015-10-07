@@ -626,7 +626,7 @@
             <dependency>
 			    <groupId>org.forgerock.opendj</groupId>
 			    <artifactId>opendj-ldap-sdk</artifactId>
-			    <version>2.6.0</version>
+			    <version>${opendj.version}</version>
 			</dependency>
             <dependency>
                 <groupId>org.apache.velocity</groupId>
