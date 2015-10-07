@@ -96,7 +96,6 @@ public abstract class PageBase extends PageTemplate {
     private ScriptingService scriptingService;
     @SpringBean(name = "modelController")
     private ModelService modelService;
-    @SpringBean(name = "modelController")
     private ModelInteractionService modelInteractionService;
     @SpringBean(name = "modelController")
     private TaskService taskService;

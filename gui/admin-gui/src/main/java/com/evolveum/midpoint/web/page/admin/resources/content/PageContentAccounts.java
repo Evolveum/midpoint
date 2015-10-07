@@ -454,7 +454,7 @@ public class PageContentAccounts extends PageAdminResources {
             @Override
             protected String load() {
                 String name = WebMiscUtil.getName(resourceModel.getObject());
-                return new StringResourceModel("page.subTitle", PageContentAccounts.this, null, null, name).getString();
+                return new StringResourceModel("PageContentAccounts.subTitle", PageContentAccounts.this, null, null, name).getString();
             }
         };
     }
