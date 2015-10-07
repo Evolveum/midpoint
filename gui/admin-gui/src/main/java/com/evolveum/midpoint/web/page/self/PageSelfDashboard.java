@@ -234,6 +234,11 @@ public class PageSelfDashboard extends PageSelf {
         try {
             List<WfProcessInstanceType> processInstanceTypes = getWorkflowService().listProcessInstancesRelatedToUser(user.getOid(),
              false, false, false, 0, MAX_REQUESTS, result);
+            List<WfProcessInstanceType> processInstanceTypesFinished = getWorkflowService().listProcessInstancesRelatedToUser(user.getOid(),
+             false, false, true, 0, MAX_REQUESTS, result);
+            if (processInstanceTypes != null && processInstanceTypesFinished != null){
+                processInstanceTypes.addAll(processInstanceTypesFinished);
+            }
             for (WfProcessInstanceType processInstanceType : processInstanceTypes) {
                 ProcessInstanceState processInstanceState = (ProcessInstanceState) processInstanceType.getState();
                 Task shadowTask = null;
