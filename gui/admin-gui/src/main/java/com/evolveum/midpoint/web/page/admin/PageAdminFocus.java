@@ -404,6 +404,7 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 		// initTasks(tasks);
 		//
 		initButtons(mainForm);
+		initOptions(mainForm);
 		initCustomLayout(mainForm);
 		//
 		// initResourceModal();
@@ -438,8 +439,24 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 	protected abstract Class<T> getCompileTimeClass();
 
 	protected abstract Class getRestartResponsePage();
+	
+	protected String getFocusOidParameter() {
+		StringValue oidValue = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
+		if (oidValue == null) {
+			return null;
+		}
+		String oid = oidValue.toString();
+		if (StringUtils.isBlank(oid)) {
+			return null;
+		}
+		return oid;
+	}
+	
+	private boolean isEditingFocus() {
+		return getFocusOidParameter() != null;
+	}
 
-	private ObjectWrapper loadFocusWrapper(PrismObject<T> userToEdit) {
+	protected ObjectWrapper loadFocusWrapper(PrismObject<T> userToEdit) {
 		OperationResult result = new OperationResult(OPERATION_LOAD_USER);
 		PrismObject<T> focus = null;
 		try {
@@ -455,11 +472,10 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 			} else {
 				Task task = createSimpleTask(OPERATION_LOAD_USER);
 
-				StringValue userOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
 				Collection options = SelectorOptions.createCollection(UserType.F_JPEG_PHOTO,
 						GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
 
-				focus = WebModelUtils.loadObject(getCompileTimeClass(), userOid.toString(), options, result, this);
+				focus = WebModelUtils.loadObject(getCompileTimeClass(), getFocusOidParameter(), options, result, this);
 
 			}
 
@@ -696,11 +712,6 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 		}
 
 		return target;
-	}
-
-	private boolean isEditingFocus() {
-		StringValue focusOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
-		return focusOid != null && StringUtils.isNotEmpty(focusOid.toString());
 	}
 
 	protected void savePerformed(AjaxRequestTarget target) {
@@ -2098,8 +2109,13 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 			}
 		};
 		mainForm.add(back);
-
-		mainForm.add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel, true, false));
+		
+	}
+	
+	protected ExecuteChangeOptionsPanel initOptions(final Form mainForm) {
+		ExecuteChangeOptionsPanel optionsPanel = new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel, true, false);
+		mainForm.add(optionsPanel);
+		return optionsPanel;
 	}
 
 	private void initConfirmationDialogs() {

@@ -569,15 +569,9 @@ public abstract class PageBase extends PageTemplate {
     }
     
     protected PrismObject<UserType> loadUserSelf(PageBase page) {
-        MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
-        Validate.notNull(principal, "No principal");
-        if (principal.getOid() == null) {
-        	throw new IllegalArgumentException("No OID in principal: "+principal);
-        }
-        
         OperationResult result = new OperationResult(OPERATION_LOAD_USER);
         PrismObject<UserType> user = WebModelUtils.loadObject(UserType.class,
-                principal.getOid(), result, page);
+                WebModelUtils.getLoggedInUserOid(), result, page);
         result.computeStatus();
 
         if (!WebMiscUtil.isSuccessOrHandledError(result)) {

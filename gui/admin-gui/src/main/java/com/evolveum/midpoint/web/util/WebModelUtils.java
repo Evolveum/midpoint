@@ -287,5 +287,14 @@ public class WebModelUtils {
 
         return objectDelta;
     }
+    
+    public static String getLoggedInUserOid() {
+    	MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+        Validate.notNull(principal, "No principal");
+        if (principal.getOid() == null) {
+        	throw new IllegalArgumentException("No OID in principal: "+principal);
+        }
+        return principal.getOid();
+    }
 
 }

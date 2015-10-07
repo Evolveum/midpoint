@@ -15,16 +15,23 @@
  */
 package com.evolveum.midpoint.web.page.self;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.home.PageAdminHome;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
+import com.evolveum.midpoint.web.util.WebModelUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author Viliam Repan (lazyman)
+ * @author Radovan Semancik
  */
 @PageDescriptor(url = {"/self/profile"}, action = {
         @AuthorizationAction(actionUri = PageSelf.AUTH_SELF_ALL_URI,
@@ -37,8 +44,21 @@ public class PageSelfProfile extends PageUser {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(PageSelfProfile.class);
 
-	public PageSelfProfile() {
-		initialize(loadUserSelf(PageSelfProfile.this));
+	@Override
+	protected String getFocusOidParameter() {
+		return WebModelUtils.getLoggedInUserOid();
+	}
+	
+	@Override
+	protected void setSpecificResponsePage() {
+		setResponsePage(PageSelfProfile.class);
+	}
+	
+	@Override
+	protected ExecuteChangeOptionsPanel initOptions(final Form mainForm) {
+		ExecuteChangeOptionsPanel optionsPanel = super.initOptions(mainForm);
+		optionsPanel.setVisible(false);
+		return optionsPanel;
 	}
 	
 }
