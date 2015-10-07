@@ -17,6 +17,8 @@ package com.evolveum.midpoint.web.page.admin.roles;
 
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -43,12 +45,15 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorPanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.form.multivalue.GenericMultiValueLabelEditPanel;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.PageAdminAbstractRole;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
@@ -88,10 +93,6 @@ public class PageRole extends PageAdminAbstractRole<RoleType>implements Progress
 		super.performCustomInitialization();
 
 	}
-
-	protected void initCustomLayout(Form mainForm) {
-		super.initCustomLayout(mainForm);
-	};
 
 	/**
 	 * Removes empty policy constraints from role. It was created when loading
@@ -219,4 +220,27 @@ public class PageRole extends PageAdminAbstractRole<RoleType>implements Progress
 			});
 		
 	}
+
+	@Override
+	protected FocusSummaryPanel<RoleType> createSummaryPanel(IModel<PrismObject<RoleType>> summaryObject) {
+    	return new FocusSummaryPanel<RoleType>(ID_SUMMARY_PANEL, summaryObject) {
+			@Override
+			protected QName getDisplayNamePropertyName() {
+				return RoleType.F_NAME;
+			}
+			@Override
+			protected QName getTitlePropertyName() {
+				return RoleType.F_ROLE_TYPE;
+			}
+			@Override
+			protected String getIconCssClass() {
+				return "fa fa-street-view";
+			}
+			@Override
+			protected String getIconBoxColorCssClass() {
+				return "bg-yellow";
+			}
+    	};
+    }
+
 }

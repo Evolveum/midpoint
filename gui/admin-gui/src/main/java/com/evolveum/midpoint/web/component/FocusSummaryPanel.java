@@ -17,6 +17,7 @@ package com.evolveum.midpoint.web.component;
 
 import javax.xml.namespace.QName;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.Image;
@@ -35,17 +36,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
  * @author semancik
  *
  */
-public abstract class FocusSummaryPanel<F extends FocusType> extends Panel {
-	
-	/**
-	 * 
-	 */
+public abstract class FocusSummaryPanel<F extends FocusType> extends Panel {	
 	private static final long serialVersionUID = -3755521482914447912L;
+	
+	private static final String ID_ICON_BOX = "summaryIconBox";
 	private static final String ID_PHOTO = "summaryPhoto";
+	private static final String ID_ICON = "summaryIcon";
 	private static final String ID_DISPLAY_NAME = "summaryDisplayName";
 	private static final String ID_IDENTIFIER = "summaryIdentifier";
 	private static final String ID_TITLE = "summaryTitle";
 	
+	private static final String ICON_BOX_CSS_CLASS = "info-box-icon";
 
 	public FocusSummaryPanel(String id, final IModel<PrismObject<F>> model) {
 		super(id, model);
@@ -58,21 +59,41 @@ public abstract class FocusSummaryPanel<F extends FocusType> extends Panel {
 			add(new Label(ID_TITLE, new PrismPropertyModel<>(model, getTitlePropertyName())));
 		}
 		
+		WebMarkupContainer iconBox = new WebMarkupContainer(ID_ICON_BOX);
+		add(iconBox);
+		
+		if (getIconBoxColorCssClass() != null) {
+			iconBox.add(new AttributeModifier("class", ICON_BOX_CSS_CLASS + " " + getIconBoxColorCssClass()));
+		}
+		
+		final byte[] jpegPhoto = model.getObject().asObjectable().getJpegPhoto();
 		Image img = new Image(ID_PHOTO, new AbstractReadOnlyModel<AbstractResource>() {
 
             @Override
             public AbstractResource getObject() {
-                if(model.getObject().asObjectable().getJpegPhoto() != null){
-                    return new ByteArrayResource("image/jpeg", model.getObject().asObjectable().getJpegPhoto());
+                if(jpegPhoto == null) {
+                	return null;
                 } else {
-                    return new ContextRelativeResource("img/placeholder.png");
+                    return new ByteArrayResource("image/jpeg", model.getObject().asObjectable().getJpegPhoto());
                 }
-
             }
         });
-        add(img);
+		
+		img.setVisible(jpegPhoto != null);
+		iconBox.add(img);
+        
+        Label icon = new Label(ID_ICON,"");
+        icon.add(new AttributeModifier("class", getIconCssClass()));
+        icon.setVisible(jpegPhoto == null);
+        iconBox.add(icon);
 	}
 	
+	protected abstract String getIconCssClass();
+	
+	protected String getIconBoxColorCssClass() {
+		return null;
+	}
+
 	protected QName getIdentifierPropertyName() {
 		return FocusType.F_NAME;
 	}

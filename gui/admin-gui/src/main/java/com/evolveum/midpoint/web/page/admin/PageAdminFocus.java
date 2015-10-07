@@ -43,6 +43,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
@@ -97,6 +98,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
@@ -207,6 +209,7 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 	private static final String ID_ASSIGNMENT_MENU = "assignmentMenu";
 	private static final String ID_SHADOW_CHECK_ALL = "shadowCheckAll";
 	private static final String ID_ASSIGNMENT_CHECK_ALL = "assignmentCheckAll";
+	protected static final String ID_SUMMARY_PANEL = "summaryPanel";
 
 	private static final String MODAL_ID_RESOURCE = "resourcePopup";
 	private static final String MODAL_ID_ASSIGNABLE = "assignablePopup";
@@ -220,6 +223,8 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 	// used to determine whether to leave this page or stay on it (after
 	// operation finishing)
 	private ObjectDelta delta;
+	
+	private IModel<PrismObject<T>> summaryObject;
 
 	private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel = new LoadableModel<ExecuteChangeOptionsDto>(false) {
 
@@ -267,6 +272,22 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 	public LoadableModel<ObjectWrapper> getFocusModel() {
 		return focusModel;
 	}
+	
+	public IModel<PrismObject<T>> getSummaryObject() {
+		return summaryObject;
+	}
+
+	public IModel<PrismObject<T>> createSummaryObject() {
+		summaryObject = new AbstractReadOnlyModel<PrismObject<T>>() {
+			@Override
+            public PrismObject<T> getObject() {
+				LOGGER.trace("createSummaryObject->getObject");
+				ObjectWrapper focus = getFocusWrapper();
+				return focus.getObject();
+			}
+		};
+		return summaryObject;
+	}
 
 	public void initialize(final PrismObject<T> userToEdit) {
 		focusModel = new LoadableModel<ObjectWrapper>(false) {
@@ -302,7 +323,29 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 
 	protected abstract T createNewFocus();
 
-	protected abstract void initCustomLayout(Form mainForm);
+	protected void initCustomLayout(Form mainForm) {
+		// Nothing to do here
+	}
+	
+	protected void initSummaryPanel(Form mainForm) {
+		
+		IModel<PrismObject<T>> summaryObject = createSummaryObject();
+    	
+    	FocusSummaryPanel<T> summaryPanel = createSummaryPanel(summaryObject);
+    	
+    	summaryPanel.setOutputMarkupId(true);
+    	
+    	summaryPanel.add(new VisibleEnableBehaviour(){    		
+            @Override
+            public boolean isVisible(){
+            	return isEditingFocus();
+            }
+        });
+    	
+    	mainForm.add(summaryPanel);
+    }
+
+	protected abstract FocusSummaryPanel<T> createSummaryPanel(IModel<PrismObject<T>> summaryObject);
 
 	protected abstract void initTabs(List<ITab> tabs);
 
@@ -405,6 +448,7 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 		//
 		initButtons(mainForm);
 		initOptions(mainForm);
+		initSummaryPanel(mainForm);
 		initCustomLayout(mainForm);
 		//
 		// initResourceModal();
@@ -426,14 +470,16 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 		return assignmentsModel.getObject();
 	}
 
-	protected abstract void reviveCustomModels() throws SchemaException;
+    protected void reviveCustomModels() throws SchemaException {
+        // Nothing to do here;
+    }
 
 	protected void reviveModels() throws SchemaException {
 		WebMiscUtil.revive(focusModel, getPrismContext());
 		WebMiscUtil.revive(shadowModel, getPrismContext());
 		WebMiscUtil.revive(assignmentsModel, getPrismContext());
+		WebMiscUtil.revive(summaryObject, getPrismContext());
 		reviveCustomModels();
-		// WebMiscUtil.revive(summaryUser, getPrismContext());
 	}
 
 	protected abstract Class<T> getCompileTimeClass();
@@ -441,7 +487,10 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 	protected abstract Class getRestartResponsePage();
 	
 	protected String getFocusOidParameter() {
+		PageParameters parameters = getPageParameters();
+		LOGGER.trace("Page parameters: {}", parameters);
 		StringValue oidValue = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
+		LOGGER.trace("OID parameter: {}", oidValue);
 		if (oidValue == null) {
 			return null;
 		}
@@ -462,11 +511,13 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 		try {
 			if (!isEditingFocus()) {
 				if (userToEdit == null) {
+					LOGGER.trace("New focus (creating)");
 					// UserType userType = new UserType();'
 					T focusType = createNewFocus();
 					getMidpointApplication().getPrismContext().adopt(focusType);
 					focus = focusType.asPrismObject();
 				} else {
+					LOGGER.trace("New focus (supplied): {}", userToEdit);
 					focus = userToEdit;
 				}
 			} else {
@@ -475,8 +526,10 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 				Collection options = SelectorOptions.createCollection(UserType.F_JPEG_PHOTO,
 						GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
 
-				focus = WebModelUtils.loadObject(getCompileTimeClass(), getFocusOidParameter(), options, result, this);
-
+				String focusOid = getFocusOidParameter();
+				focus = WebModelUtils.loadObject(getCompileTimeClass(), focusOid, options, result, this);
+				
+				LOGGER.trace("Existing focus (loadled): {} -> {}", focusOid, focus);
 			}
 
 			result.recordSuccess();

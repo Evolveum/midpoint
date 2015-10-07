@@ -48,18 +48,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public abstract class PageAdminAbstractRole<T extends AbstractRoleType> extends PageAdminFocus<T> {
 
-	private static final String ID_SUMMARY_PANEL = "summaryPanel";
-	private static final String ID_SUMMARY_NAME = "summaryName";
-	private static final String ID_SUMMARY_DISPLAY_NAME = "summaryDisplayName";
-	private static final String ID_SUMMARY_IDENTIFIER = "summaryIdentifier";
-	// private static final String ID_SUMMARY_FAMILY_NAME = "summaryFamilyName";
-	private static final String ID_SUMMARY_PHOTO = "summaryPhoto";
-
-	private static final String ID_INDUCEMENT_MENU = "assignmentMenu";
-	private static final String ID_SHADOW_CHECK_ALL = "shadowCheckAll";
-	private static final String ID_INDUCEMENT_CHECK_ALL = "assignmentCheckAll";
-	private static final String OPERATION_LOAD_INDUCEMENTS = "loadInducements";
-
 	private IModel<PrismObject<T>> summaryObject;
 	private LoadableModel<List<AssignmentEditorDto>> inducementsModel;
 
@@ -80,58 +68,7 @@ public abstract class PageAdminAbstractRole<T extends AbstractRoleType> extends 
 		handleAssignmentForAdd(focus, AbstractRoleType.F_INDUCEMENT, focus.asObjectable().getInducement());
 	
 	}
-
-	private void initSummaryInfo(Form mainForm) {
-
-		WebMarkupContainer summaryContainer = new WebMarkupContainer(ID_SUMMARY_PANEL);
-		summaryContainer.setOutputMarkupId(true);
-
-		summaryContainer.add(new VisibleEnableBehaviour() {
-
-			@Override
-			public boolean isVisible() {
-				if (getPageParameters().get(OnePageParameterEncoder.PARAMETER).isEmpty()) {
-					return false;
-				} else {
-					return true;
-				}
-			}
-		});
-
-		mainForm.add(summaryContainer);
-
-		summaryObject = new AbstractReadOnlyModel<PrismObject<T>>() {
-
-			@Override
-			public PrismObject<T> getObject() {
-				ObjectWrapper object = getFocusWrapper();
-				return object.getObject();
-			}
-		};
-
-		summaryContainer.add(new Label(ID_SUMMARY_DISPLAY_NAME,
-				new PrismPropertyModel<>(summaryObject, AbstractRoleType.F_DISPLAY_NAME)));
-		summaryContainer.add(
-				new Label(ID_SUMMARY_NAME, new PrismPropertyModel<>(summaryObject, AbstractRoleType.F_NAME)));
-
-		summaryContainer.add(new Label(ID_SUMMARY_IDENTIFIER,
-				new PrismPropertyModel<>(summaryObject, AbstractRoleType.F_IDENTIFIER)));
-
-		Image img = new Image(ID_SUMMARY_PHOTO, new AbstractReadOnlyModel<AbstractResource>() {
-
-			@Override
-			public AbstractResource getObject() {
-				 if(summaryObject.getObject().asObjectable().getJpegPhoto() != null){
-	                    return new ByteArrayResource("image/jpeg", summaryObject.getObject().asObjectable().getJpegPhoto());
-	                } else {
-	                    return new ContextRelativeResource("img/placeholder.png");
-	                }
-				
-			}
-		});
-		summaryContainer.add(img);
-	}
-
+	
 	@Override
 	protected void performCustomInitialization() {
 		inducementsModel = new LoadableModel<List<AssignmentEditorDto>>(false) {
@@ -159,13 +96,6 @@ public abstract class PageAdminAbstractRole<T extends AbstractRoleType> extends 
 		Collections.sort(list);
 
 		return list;
-	}
-
-	@Override
-	protected void initCustomLayout(Form mainForm) {
-
-		initSummaryInfo(mainForm);
-
 	}
 
 	@Override

@@ -75,26 +75,12 @@ public class PageUser extends PageAdminFocus<UserType> {
 
     public static final String PARAM_RETURN_PAGE = "returnPage";
     private static final String DOT_CLASS = PageUser.class.getName() + ".";
-  
 
-
-    private static final String ID_MAIN_FORM = "mainForm";
-  
+    private static final String ID_MAIN_FORM = "mainForm";  
     private static final String ID_TASK_TABLE = "taskTable";
- 
-  
     private static final String ID_TASKS = "tasks";
- 
-    private static final String ID_SUMMARY_PANEL = "summaryPanel";
-    private static final String ID_SUMMARY_NAME = "summaryName";
-    private static final String ID_SUMMARY_FULL_NAME = "summaryFullName";
-    private static final String ID_SUMMARY_GIVEN_NAME = "summaryGivenName";
-    private static final String ID_SUMMARY_FAMILY_NAME = "summaryFamilyName";
-    private static final String ID_SUMMARY_PHOTO = "summaryPhoto";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
-
-    private IModel<PrismObject<UserType>> summaryUser;
 
     private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel
             = new LoadableModel<ExecuteChangeOptionsDto>(false) {
@@ -121,17 +107,9 @@ public class PageUser extends PageAdminFocus<UserType> {
         initialize(userToEdit);
     }
 
-    private void initSummaryInfo(Form mainForm){
-    	
-    	summaryUser = new AbstractReadOnlyModel<PrismObject<UserType>>() {    		
-    		            @Override
-    		            public PrismObject<UserType> getObject() {
-    		                ObjectWrapper user = getFocusWrapper();
-    		                return user.getObject();
-    		            }
-    		        };
-    	
-    	FocusSummaryPanel<UserType>  summaryContainer = new FocusSummaryPanel<UserType>("summaryPanel", summaryUser) {
+    @Override
+    protected FocusSummaryPanel<UserType> createSummaryPanel(IModel<PrismObject<UserType>> summaryObject) {
+    	return new FocusSummaryPanel<UserType>(ID_SUMMARY_PANEL, summaryObject) {
 			@Override
 			protected QName getDisplayNamePropertyName() {
 				return UserType.F_FULL_NAME;
@@ -140,63 +118,15 @@ public class PageUser extends PageAdminFocus<UserType> {
 			protected QName getTitlePropertyName() {
 				return UserType.F_TITLE;
 			}
+			@Override
+			protected String getIconCssClass() {
+				return "fa fa-user";
+			}
+			@Override
+			protected String getIconBoxColorCssClass() {
+				return "bg-red";
+			}
     	};
-    	
-    	summaryContainer.setOutputMarkupId(true);
-    	
-    	summaryContainer.add(new VisibleEnableBehaviour(){    		
-            @Override
-            public boolean isVisible(){
-            	return isEditingFocus();
-            }
-        });
-    	
-    	mainForm.add(summaryContainer);
-
-//        WebMarkupContainer summaryContainer = new WebMarkupContainer(ID_SUMMARY_PANEL);
-//        summaryContainer.setOutputMarkupId(true);
-//
-//        summaryContainer.add(new VisibleEnableBehaviour(){
-//
-//            @Override
-//            public boolean isVisible(){
-//                if(getPageParameters().get(OnePageParameterEncoder.PARAMETER).isEmpty()){
-//                    return false;
-//                } else {
-//                    return true;
-//                }
-//            }
-//        });
-//
-//        mainForm.add(summaryContainer);
-//
-//        summaryUser = new AbstractReadOnlyModel<PrismObject<UserType>>() {
-//
-//            @Override
-//            public PrismObject<UserType> getObject() {
-//                ObjectWrapper user = getFocusWrapper();
-//                return user.getObject();
-//            }
-//        };
-//
-//        summaryContainer.add(new Label(ID_SUMMARY_NAME, new PrismPropertyModel<>(summaryUser, UserType.F_NAME)));
-//        summaryContainer.add(new Label(ID_SUMMARY_FULL_NAME, new PrismPropertyModel<>(summaryUser, UserType.F_FULL_NAME)));
-//        summaryContainer.add(new Label(ID_SUMMARY_GIVEN_NAME, new PrismPropertyModel<>(summaryUser, UserType.F_GIVEN_NAME)));
-//        summaryContainer.add(new Label(ID_SUMMARY_FAMILY_NAME, new PrismPropertyModel<>(summaryUser, UserType.F_FAMILY_NAME)));
-//
-//        Image img = new Image(ID_SUMMARY_PHOTO, new AbstractReadOnlyModel<AbstractResource>() {
-//
-//            @Override
-//            public AbstractResource getObject() {
-//                if(summaryUser.getObject().asObjectable().getJpegPhoto() != null){
-//                    return new ByteArrayResource("image/jpeg", summaryUser.getObject().asObjectable().getJpegPhoto());
-//                } else {
-//                    return new ContextRelativeResource("img/placeholder.png");
-//                }
-//
-//            }
-//        });
-//        summaryContainer.add(img);
     }
 
     protected void cancelPerformed(AjaxRequestTarget target) {
@@ -232,14 +162,6 @@ public class PageUser extends PageAdminFocus<UserType> {
         }
     }
 
-
-
-    protected void reviveCustomModels() throws SchemaException {
-        WebMiscUtil.revive(summaryUser, getPrismContext());
-    }
-
-
-
     private List<FocusShadowDto> getSelectedAccounts() {
         List<FocusShadowDto> selected = new ArrayList<FocusShadowDto>();
 
@@ -252,8 +174,6 @@ public class PageUser extends PageAdminFocus<UserType> {
 
         return selected;
     }
-
-
  
 
     // many things could change (e.g. assignments, tasks) - here we deal only with tasks
@@ -271,13 +191,6 @@ public class PageUser extends PageAdminFocus<UserType> {
 	protected UserType createNewFocus() {
 		return new UserType();
 	}
-
-	@Override
-	protected void initCustomLayout(Form mainForm) {
-		initSummaryInfo(mainForm);
-	}
-
-	
 	
 	@Override
 	protected Class getRestartResponsePage() {
