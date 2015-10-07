@@ -82,8 +82,10 @@ public class BaseMenuItem implements Serializable {
             return false;
         }
 
+        boolean isMenuActive = isMenuActive();
+
         if (pageClass.isAssignableFrom(this.page)) {
-            return true;
+            return isMenuActive;
         }
 
         if (aliases == null) {
@@ -92,10 +94,14 @@ public class BaseMenuItem implements Serializable {
 
         for (Class c : aliases) {
             if (pageClass.isAssignableFrom(c)) {
-                return true;
+                return isMenuActive;
             }
         }
 
         return false;
+    }
+
+    protected boolean isMenuActive() {
+        return true;
     }
 }

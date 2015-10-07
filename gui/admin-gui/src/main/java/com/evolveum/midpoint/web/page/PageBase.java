@@ -48,6 +48,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
 import com.evolveum.midpoint.web.page.admin.reports.PageNewReport;
+import com.evolveum.midpoint.web.page.admin.reports.PageReport;
 import com.evolveum.midpoint.web.page.admin.reports.PageReports;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
@@ -77,6 +78,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.injection.Injector;
+import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -393,18 +395,7 @@ public abstract class PageBase extends PageTemplate {
                 PageTaskAdd.class);
         submenu.add(n);
         n = new MenuItem(createStringResource("PageAdmin.menu.top.serverTasks.edit"),
-                PageTaskEdit.class, null, new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return getPage().getClass().equals(PageTaskEdit.class);
-            }
-
-            @Override
-            public boolean isEnabled() {
-                return false;
-            }
-        });
+                PageTaskEdit.class, null, createVisibleDisabledBehaviorForEditMenu(PageTaskEdit.class));
         submenu.add(n);
 
         return item;
@@ -438,6 +429,9 @@ public abstract class PageBase extends PageTemplate {
         MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.reports.list"),
                 PageReports.class);
         submenu.add(list);
+        MenuItem configure = new MenuItem(createStringResource("PageAdmin.menu.top.reports.configure"),
+                PageReport.class, null, createVisibleDisabledBehaviorForEditMenu(PageReport.class));
+        submenu.add(configure);
         MenuItem created = new MenuItem(createStringResource("PageAdmin.menu.top.reports.created"),
                 PageCreatedReports.class);
         submenu.add(created);
@@ -487,18 +481,7 @@ public abstract class PageBase extends PageTemplate {
                 PageDebugList.class);
         submenu.add(menu);
         menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.repositoryObjectView"),
-                PageDebugView.class, null, new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return getPage().getClass().equals(PageDebugView.class);
-            }
-
-            @Override
-            public boolean isEnabled() {
-                return false;
-            }
-        });
+                PageDebugView.class, null, createVisibleDisabledBehaviorForEditMenu(PageDebugView.class));
         submenu.add(menu);
 
         PageParameters params = new PageParameters();
@@ -559,7 +542,37 @@ public abstract class PageBase extends PageTemplate {
 
         MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.users.list"), PageUsers.class);
         submenu.add(list);
-        MenuItem newUser = new MenuItem(createStringResource("PageAdmin.menu.top.users.new"), PageUser.class);
+        MenuItem edit = new MenuItem(createStringResource("PageAdmin.menu.top.users.edit"), PageUser.class,
+                null, new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isEnabled() {
+                return false;
+            }
+
+            @Override
+            public boolean isVisible() {
+                if (!getPage().getClass().equals(PageUser.class)) {
+                    return false;
+                }
+
+                PageUser page = (PageUser) getPage();
+                return page.isEditingUser();
+            }
+        });
+        submenu.add(edit);
+        MenuItem newUser = new MenuItem(createStringResource("PageAdmin.menu.top.users.new"), PageUser.class) {
+
+            @Override
+            protected boolean isMenuActive() {
+                if (!PageBase.this.getPage().getClass().equals(PageUser.class)) {
+                    return false;
+                }
+
+                PageUser page = (PageUser) PageBase.this.getPage();
+                return !page.isEditingUser();
+            }
+        };
         submenu.add(newUser);
 //        MenuItem search = new MenuItem(createStringResource("PageAdmin.menu.users.search"),
 //        PageUsersSearch.class);
@@ -607,5 +620,20 @@ public abstract class PageBase extends PageTemplate {
         }
 
         return user;
+    }
+
+    private VisibleEnableBehaviour createVisibleDisabledBehaviorForEditMenu(final Class<? extends WebPage> page) {
+        return new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return getPage().getClass().equals(page);
+            }
+
+            @Override
+            public boolean isEnabled() {
+                return false;
+            }
+        };
     }
 }
