@@ -41,6 +41,7 @@ import com.evolveum.midpoint.web.component.menu.MainMenuItem;
 import com.evolveum.midpoint.web.component.menu.MenuItem;
 import com.evolveum.midpoint.web.component.menu.SideBarMenuItem;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertCampaigns;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinitions;
@@ -542,7 +543,18 @@ public abstract class PageBase extends PageTemplate {
 
         MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.users.list"), PageUsers.class);
         submenu.add(list);
-        MenuItem edit = new MenuItem(createStringResource("PageAdmin.menu.top.users.edit"), PageUser.class,
+        createFocusPageNewEditMenu(submenu, "PageAdmin.menu.top.users.new",
+                "PageAdmin.menu.top.users.edit", PageUser.class);
+//        MenuItem search = new MenuItem(createStringResource("PageAdmin.menu.users.search"),
+//        PageUsersSearch.class);
+//        submenu.add(search);
+
+        return item;
+    }
+
+    private void createFocusPageNewEditMenu(List<MenuItem> submenu, String newKey, String editKey,
+                                            final Class<? extends PageAdminFocus> newPageType) {
+        MenuItem edit = new MenuItem(createStringResource(editKey), newPageType,
                 null, new VisibleEnableBehaviour() {
 
             @Override
@@ -552,33 +564,28 @@ public abstract class PageBase extends PageTemplate {
 
             @Override
             public boolean isVisible() {
-                if (!getPage().getClass().equals(PageUser.class)) {
+                if (!getPage().getClass().equals(newPageType)) {
                     return false;
                 }
 
-                PageUser page = (PageUser) getPage();
+                PageAdminFocus page = (PageAdminFocus) getPage();
                 return page.isEditingFocus();
             }
         });
         submenu.add(edit);
-        MenuItem newUser = new MenuItem(createStringResource("PageAdmin.menu.top.users.new"), PageUser.class) {
+        MenuItem newMenu = new MenuItem(createStringResource(newKey), newPageType) {
 
             @Override
             protected boolean isMenuActive() {
-                if (!PageBase.this.getPage().getClass().equals(PageUser.class)) {
+                if (!PageBase.this.getPage().getClass().equals(newPageType)) {
                     return false;
                 }
 
-                PageUser page = (PageUser) PageBase.this.getPage();
+                PageAdminFocus page = (PageAdminFocus) PageBase.this.getPage();
                 return !page.isEditingFocus();
             }
         };
-        submenu.add(newUser);
-//        MenuItem search = new MenuItem(createStringResource("PageAdmin.menu.users.search"),
-//        PageUsersSearch.class);
-//        submenu.add(search);
-
-        return item;
+        submenu.add(newMenu);
     }
 
     private MainMenuItem createOrganizationsMenu() {
@@ -589,8 +596,8 @@ public abstract class PageBase extends PageTemplate {
 
         MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.users.org.tree"), PageOrgTree.class);
         submenu.add(list);
-        MenuItem n = new MenuItem(createStringResource("PageAdmin.menu.top.users.org.new"), PageOrgUnit.class);
-        submenu.add(n);
+        createFocusPageNewEditMenu(submenu, "PageAdmin.menu.top.users.org.new",
+                "PageAdmin.menu.top.users.org.edit", PageOrgUnit.class);
 
         return item;
     }
@@ -603,8 +610,8 @@ public abstract class PageBase extends PageTemplate {
 
         MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.roles.list"), PageRoles.class);
         submenu.add(list);
-        MenuItem n = new MenuItem(createStringResource("PageAdmin.menu.top.roles.new"), PageRole.class);
-        submenu.add(n);
+        createFocusPageNewEditMenu(submenu, "PageAdmin.menu.top.roles.new",
+                "PageAdmin.menu.top.roles.edit", PageRole.class);
 
         return item;
     }
