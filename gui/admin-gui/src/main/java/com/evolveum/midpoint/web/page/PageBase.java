@@ -68,10 +68,12 @@ import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorImpl;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.injection.Injector;
@@ -89,6 +91,9 @@ import java.util.List;
  * @author lazyman
  */
 public abstract class PageBase extends PageTemplate {
+	
+	private static final String DOT_CLASS = PageBase.class.getName() + ".";
+    private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageBase.class);
 
@@ -561,5 +566,24 @@ public abstract class PageBase extends PageTemplate {
         submenu.add(n);
 
         return item;
+    }
+    
+    protected PrismObject<UserType> loadUserSelf(PageBase page) {
+        MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+        Validate.notNull(principal, "No principal");
+        if (principal.getOid() == null) {
+        	throw new IllegalArgumentException("No OID in principal: "+principal);
+        }
+        
+        OperationResult result = new OperationResult(OPERATION_LOAD_USER);
+        PrismObject<UserType> user = WebModelUtils.loadObject(UserType.class,
+                principal.getOid(), result, page);
+        result.computeStatus();
+
+        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
+            showResult(result);
+        }
+
+        return user;
     }
 }
