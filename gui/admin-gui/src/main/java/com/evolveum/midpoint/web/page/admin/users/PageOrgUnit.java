@@ -219,9 +219,9 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 	}
 	
 	@Override
-	protected FocusSummaryPanel<OrgType> createSummaryPanel(IModel<PrismObject<OrgType>> summaryObject) {
+	protected FocusSummaryPanel<OrgType> createSummaryPanel() {
 		
-    	return new FocusSummaryPanel<OrgType>(ID_SUMMARY_PANEL, summaryObject) {
+    	return new FocusSummaryPanel<OrgType>(ID_SUMMARY_PANEL, getFocusModel()) {
 			@Override
 			protected QName getDisplayNamePropertyName() {
 				return OrgType.F_DISPLAY_NAME;

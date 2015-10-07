@@ -175,7 +175,7 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 	public static final String AUTH_ORG_ALL_LABEL = "PageAdminUsers.auth.orgAll.label";
 	public static final String AUTH_ORG_ALL_DESCRIPTION = "PageAdminUsers.auth.orgAll.description";
 
-	private LoadableModel<ObjectWrapper> focusModel;
+	private LoadableModel<ObjectWrapper<T>> focusModel;
 	private LoadableModel<List<FocusShadowDto>> shadowModel;
 	private LoadableModel<List<AssignmentEditorDto>> assignmentsModel;
 
@@ -224,8 +224,6 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 	// operation finishing)
 	private ObjectDelta delta;
 	
-	private IModel<PrismObject<T>> summaryObject;
-
 	private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel = new LoadableModel<ExecuteChangeOptionsDto>(false) {
 
 		@Override
@@ -269,31 +267,15 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 		};
 	}
 
-	public LoadableModel<ObjectWrapper> getFocusModel() {
+	public LoadableModel<ObjectWrapper<T>> getFocusModel() {
 		return focusModel;
-	}
-	
-	public IModel<PrismObject<T>> getSummaryObject() {
-		return summaryObject;
-	}
-
-	public IModel<PrismObject<T>> createSummaryObject() {
-		summaryObject = new AbstractReadOnlyModel<PrismObject<T>>() {
-			@Override
-            public PrismObject<T> getObject() {
-				LOGGER.trace("createSummaryObject->getObject");
-				ObjectWrapper focus = getFocusWrapper();
-				return focus.getObject();
-			}
-		};
-		return summaryObject;
 	}
 
 	public void initialize(final PrismObject<T> userToEdit) {
-		focusModel = new LoadableModel<ObjectWrapper>(false) {
+		focusModel = new LoadableModel<ObjectWrapper<T>>(false) {
 
 			@Override
-			protected ObjectWrapper load() {
+			protected ObjectWrapper<T> load() {
 				return loadFocusWrapper(userToEdit);
 			}
 		};
@@ -329,9 +311,7 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 	
 	protected void initSummaryPanel(Form mainForm) {
 		
-		IModel<PrismObject<T>> summaryObject = createSummaryObject();
-    	
-    	FocusSummaryPanel<T> summaryPanel = createSummaryPanel(summaryObject);
+    	FocusSummaryPanel<T> summaryPanel = createSummaryPanel();
     	
     	summaryPanel.setOutputMarkupId(true);
     	
@@ -345,7 +325,7 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
     	mainForm.add(summaryPanel);
     }
 
-	protected abstract FocusSummaryPanel<T> createSummaryPanel(IModel<PrismObject<T>> summaryObject);
+	protected abstract FocusSummaryPanel<T> createSummaryPanel();
 
 	protected abstract void initTabs(List<ITab> tabs);
 
@@ -478,7 +458,6 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 		WebMiscUtil.revive(focusModel, getPrismContext());
 		WebMiscUtil.revive(shadowModel, getPrismContext());
 		WebMiscUtil.revive(assignmentsModel, getPrismContext());
-		WebMiscUtil.revive(summaryObject, getPrismContext());
 		reviveCustomModels();
 	}
 
@@ -505,19 +484,19 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 		return getFocusOidParameter() != null;
 	}
 
-	protected ObjectWrapper loadFocusWrapper(PrismObject<T> userToEdit) {
+	protected ObjectWrapper<T> loadFocusWrapper(PrismObject<T> userToEdit) {
 		OperationResult result = new OperationResult(OPERATION_LOAD_USER);
 		PrismObject<T> focus = null;
 		try {
 			if (!isEditingFocus()) {
 				if (userToEdit == null) {
-					LOGGER.trace("New focus (creating)");
+					LOGGER.trace("Loading focus: New focus (creating)");
 					// UserType userType = new UserType();'
 					T focusType = createNewFocus();
 					getMidpointApplication().getPrismContext().adopt(focusType);
 					focus = focusType.asPrismObject();
 				} else {
-					LOGGER.trace("New focus (supplied): {}", userToEdit);
+					LOGGER.trace("Loading focus: New focus (supplied): {}", userToEdit);
 					focus = userToEdit;
 				}
 			} else {
@@ -529,7 +508,7 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 				String focusOid = getFocusOidParameter();
 				focus = WebModelUtils.loadObject(getCompileTimeClass(), focusOid, options, result, this);
 				
-				LOGGER.trace("Existing focus (loadled): {} -> {}", focusOid, focus);
+				LOGGER.trace("Loading focus: Existing focus (loadled): {} -> {}", focusOid, focus);
 			}
 
 			result.recordSuccess();
@@ -1528,12 +1507,12 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 				if (dto.isLoadedOK()) {
 					packageRef = new PackageResourceReference(ImgResources.class, ImgResources.HDD_PRISM);
 
-					panel = new PrismObjectPanel("shadow", new PropertyModel<ObjectWrapper>(item.getModel(), "object"), packageRef,
+					panel = new PrismObjectPanel<ShadowType>("shadow", new PropertyModel<ObjectWrapper<ShadowType>>(item.getModel(), "object"), packageRef,
 							(Form) PageAdminFocus.this.get(ID_MAIN_FORM), PageAdminFocus.this) {
 
 						@Override
-						protected Component createHeader(String id, IModel<ObjectWrapper> model) {
-							return new CheckTableHeader(id, model) {
+						protected Component createHeader(String id, IModel<ObjectWrapper<ShadowType>> model) {
+							return new CheckTableHeader(id, (IModel)model) {
 
 								@Override
 								protected List<InlineMenuItem> createMenuItems() {
@@ -2026,7 +2005,7 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 
 			@Override
 			protected PrismObject<UserType> getUserDefinition() {
-				return focusModel.getObject().getObject();
+				return (PrismObject<UserType>) focusModel.getObject().getObject();
 			}
 		});
 		add(window);

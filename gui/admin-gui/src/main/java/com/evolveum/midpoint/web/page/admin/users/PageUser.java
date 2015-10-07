@@ -108,8 +108,8 @@ public class PageUser extends PageAdminFocus<UserType> {
     }
 
     @Override
-    protected FocusSummaryPanel<UserType> createSummaryPanel(IModel<PrismObject<UserType>> summaryObject) {
-    	return new FocusSummaryPanel<UserType>(ID_SUMMARY_PANEL, summaryObject) {
+    protected FocusSummaryPanel<UserType> createSummaryPanel() {
+    	return new FocusSummaryPanel<UserType>(ID_SUMMARY_PANEL, getFocusModel()) {
 			@Override
 			protected QName getDisplayNamePropertyName() {
 				return UserType.F_FULL_NAME;

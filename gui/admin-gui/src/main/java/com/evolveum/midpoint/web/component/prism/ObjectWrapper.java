@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,7 +89,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 /**
  * @author lazyman
  */
-public class ObjectWrapper implements Serializable, Revivable {
+public class ObjectWrapper<O extends ObjectType> implements Serializable, Revivable {
 
 	public static final String F_DISPLAY_NAME = "displayName";
 	public static final String F_SELECTED = "selected";
@@ -99,9 +99,9 @@ public class ObjectWrapper implements Serializable, Revivable {
 	private static final String DOT_CLASS = ObjectWrapper.class.getName() + ".";
 	private static final String CREATE_CONTAINERS = DOT_CLASS + "createContainers";
 
-	private PrismObject object;
-	private PrismObject objectOld;
-	private ObjectDelta oldDelta;
+	private PrismObject<O> object;
+	private PrismObject<O> objectOld;
+	private ObjectDelta<O> oldDelta;
 	private ContainerStatus status;
 	private HeaderStatus headerStatus;
 	private String displayName;
@@ -209,11 +209,11 @@ public class ObjectWrapper implements Serializable, Revivable {
 		return headerStatus;
 	}
 
-	public ObjectDelta getOldDelta() {
+	public ObjectDelta<O> getOldDelta() {
 		return oldDelta;
 	}
 
-	public void setOldDelta(ObjectDelta oldDelta) {
+	public void setOldDelta(ObjectDelta<O> oldDelta) {
 		this.oldDelta = oldDelta;
 	}
 
@@ -221,11 +221,11 @@ public class ObjectWrapper implements Serializable, Revivable {
 		this.headerStatus = headerStatus;
 	}
 
-	public PrismObject getObject() {
+	public PrismObject<O> getObject() {
 		return object;
 	}
 	
-	public PrismObject getObjectOld() {
+	public PrismObject<O> getObjectOld() {
 		return objectOld;
 	}
 

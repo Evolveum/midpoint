@@ -26,10 +26,11 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.ByteArrayResource;
-import org.apache.wicket.request.resource.ContextRelativeResource;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.web.component.util.PrismPropertyWrapperModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 /**
@@ -48,15 +49,15 @@ public abstract class FocusSummaryPanel<F extends FocusType> extends Panel {
 	
 	private static final String ICON_BOX_CSS_CLASS = "info-box-icon";
 
-	public FocusSummaryPanel(String id, final IModel<PrismObject<F>> model) {
+	public FocusSummaryPanel(String id, final IModel<ObjectWrapper<F>> model) {
 		super(id, model);
 		
-		add(new Label(ID_DISPLAY_NAME, new PrismPropertyModel<>(model, getDisplayNamePropertyName())));
-		add(new Label(ID_IDENTIFIER, new PrismPropertyModel<>(model, getIdentifierPropertyName())));
+		add(new Label(ID_DISPLAY_NAME, new PrismPropertyWrapperModel<>(model, getDisplayNamePropertyName())));
+		add(new Label(ID_IDENTIFIER, new PrismPropertyWrapperModel<>(model, getIdentifierPropertyName())));
 		if (getTitlePropertyName() == null) {
 			add(new Label(ID_TITLE, ""));
 		} else {
-			add(new Label(ID_TITLE, new PrismPropertyModel<>(model, getTitlePropertyName())));
+			add(new Label(ID_TITLE, new PrismPropertyWrapperModel<>(model, getTitlePropertyName())));
 		}
 		
 		WebMarkupContainer iconBox = new WebMarkupContainer(ID_ICON_BOX);
@@ -66,25 +67,34 @@ public abstract class FocusSummaryPanel<F extends FocusType> extends Panel {
 			iconBox.add(new AttributeModifier("class", ICON_BOX_CSS_CLASS + " " + getIconBoxColorCssClass()));
 		}
 		
-		final byte[] jpegPhoto = model.getObject().asObjectable().getJpegPhoto();
 		Image img = new Image(ID_PHOTO, new AbstractReadOnlyModel<AbstractResource>() {
 
             @Override
             public AbstractResource getObject() {
+            	byte[] jpegPhoto = model.getObject().getObject().asObjectable().getJpegPhoto();
                 if(jpegPhoto == null) {
                 	return null;
                 } else {
-                    return new ByteArrayResource("image/jpeg", model.getObject().asObjectable().getJpegPhoto());
+                    return new ByteArrayResource("image/jpeg",jpegPhoto);
                 }
             }
         });
-		
-		img.setVisible(jpegPhoto != null);
+		img.add(new VisibleEnableBehaviour(){    		
+            @Override
+            public boolean isVisible(){
+            	return model.getObject().getObject().asObjectable().getJpegPhoto() != null;
+            }
+        });
 		iconBox.add(img);
         
         Label icon = new Label(ID_ICON,"");
         icon.add(new AttributeModifier("class", getIconCssClass()));
-        icon.setVisible(jpegPhoto == null);
+        icon.add(new VisibleEnableBehaviour(){    		
+            @Override
+            public boolean isVisible(){
+            	return model.getObject().getObject().asObjectable().getJpegPhoto() == null;
+            }
+        });
         iconBox.add(icon);
 	}
 	

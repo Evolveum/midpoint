@@ -222,8 +222,8 @@ public class PageRole extends PageAdminAbstractRole<RoleType>implements Progress
 	}
 
 	@Override
-	protected FocusSummaryPanel<RoleType> createSummaryPanel(IModel<PrismObject<RoleType>> summaryObject) {
-    	return new FocusSummaryPanel<RoleType>(ID_SUMMARY_PANEL, summaryObject) {
+	protected FocusSummaryPanel<RoleType> createSummaryPanel() {
+    	return new FocusSummaryPanel<RoleType>(ID_SUMMARY_PANEL, getFocusModel()) {
 			@Override
 			protected QName getDisplayNamePropertyName() {
 				return RoleType.F_NAME;
