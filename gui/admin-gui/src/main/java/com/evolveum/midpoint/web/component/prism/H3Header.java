@@ -24,6 +24,8 @@ import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -40,14 +42,14 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class H3Header extends SimplePanel<ObjectWrapper> {
+public class H3Header<O extends ObjectType> extends SimplePanel<ObjectWrapper<O>> {
 
     private static final String ID_STATUS = "status";
     private static final String ID_SHOW_MORE = "showMore";
     private static final String ID_TITLE = "title";
     private static final String ID_MENU = "menu";
 
-    public H3Header(String id, IModel<ObjectWrapper> model) {
+    public H3Header(String id, IModel<ObjectWrapper<O>> model) {
         super(id, model);
 
         add(AttributeModifier.append("class", "h3-header"));

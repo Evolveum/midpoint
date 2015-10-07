@@ -80,20 +80,20 @@ public class PageAccount extends PageAdminResources {
 
     private static final String ID_PROTECTED_MESSAGE = "protectedMessage";
 
-    private IModel<ObjectWrapper> accountModel;
+    private IModel<ObjectWrapper<ShadowType>> accountModel;
 
     public PageAccount() {
-        accountModel = new LoadableModel<ObjectWrapper>(false) {
+        accountModel = new LoadableModel<ObjectWrapper<ShadowType>>(false) {
 
             @Override
-            protected ObjectWrapper load() {
+            protected ObjectWrapper<ShadowType> load() {
                 return loadAccount();
             }
         };
         initLayout();
     }
 
-    private ObjectWrapper loadAccount() {
+    private ObjectWrapper<ShadowType> loadAccount() {
         OperationResult result = new OperationResult(OPERATION_LOAD_ACCOUNT);
 
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
@@ -132,11 +132,11 @@ public class PageAccount extends PageAdminResources {
         });
         mainForm.add(protectedMessage);
 
-        PrismObjectPanel userForm = new PrismObjectPanel("account", accountModel, new PackageResourceReference(
+        PrismObjectPanel<ShadowType> userForm = new PrismObjectPanel<ShadowType>("account", accountModel, new PackageResourceReference(
                 ImgResources.class, ImgResources.HDD_PRISM), mainForm, this) {
 
             @Override
-            protected IModel<String> createDescription(IModel<ObjectWrapper> model) {
+            protected IModel<String> createDescription(IModel<ObjectWrapper<ShadowType>> model) {
                 return createStringResource("pageAccount.description");
             }
         };

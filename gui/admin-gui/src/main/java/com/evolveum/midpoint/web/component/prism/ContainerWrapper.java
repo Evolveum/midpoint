@@ -80,7 +80,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 	private static final String CREATE_PROPERTIES = DOT_CLASS + "createProperties";
 
 	private String displayName;
-	private ObjectWrapper object;
+	private ObjectWrapper<? extends ObjectType> object;
 	private T container;
 	private ContainerStatus status;
 
@@ -195,7 +195,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 
 						definition = pageBase
 								.getModelInteractionService()
-								.getEditObjectClassDefinition(object.getObject(), resource,
+								.getEditObjectClassDefinition((PrismObject<ShadowType>) object.getObject(), resource,
 										AuthorizationPhaseType.REQUEST)
 								.toResourceAttributeContainerDefinition();
 

@@ -74,8 +74,9 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 
     public static final String SELECTED_TAB_INDEX = "tab";
 
-    public static final String CONFIGURATION_TAB_BASIC = "basic";
-    public static final String CONFIGURATION_TAB_LOGGING = "logging";
+    public static final int CONFIGURATION_TAB_BASIC = 0;
+    public static final int CONFIGURATION_TAB_LOGGING = 1;
+    public static final int CONFIGURATION_TAB_PROFILING = 2;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageSystemConfiguration.class);
 
@@ -90,15 +91,21 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 
     public static final String ROOT_APPENDER_INHERITANCE_CHOICE = "(Inherit root)";
 
-    LoggingConfigPanel loggingConfigPanel;
-    ProfilingConfigPanel profilingConfigPanel;
-    SystemConfigPanel systemConfigPanel;
+    private LoggingConfigPanel loggingConfigPanel;
+    private ProfilingConfigPanel profilingConfigPanel;
+    private SystemConfigPanel systemConfigPanel;
 
     private LoadableModel<SystemConfigurationDto> model;
 
     private boolean initialized;
 
     public PageSystemConfiguration() {
+        this(null);
+    }
+
+    public PageSystemConfiguration(PageParameters parameters) {
+        super(parameters);
+
         model = new LoadableModel<SystemConfigurationDto>(false) {
 
             @Override
@@ -184,20 +191,12 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
         if (!initialized) {
             PageParameters params = getPageParameters();
             StringValue val = params.get(SELECTED_TAB_INDEX);
-            String value = CONFIGURATION_TAB_BASIC;
+            String value = null;
             if (val != null && !val.isNull()) {
                 value = val.toString();
             }
 
-            int index;
-            switch (value) {
-                case CONFIGURATION_TAB_LOGGING:
-                    index = 1;
-                    break;
-                case CONFIGURATION_TAB_BASIC:
-                default:
-                    index = 0;
-            }
+            int index = StringUtils.isNumeric(value) ? Integer.parseInt(value) : CONFIGURATION_TAB_BASIC;
             getTabPanel().setSelectedTab(index);
 
             initialized = true;
@@ -602,9 +601,12 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
     }
 
     private void resetPerformed(AjaxRequestTarget target) {
-        model.reset();
+        int index = getTabPanel().getSelectedTab();
 
-        target.add(this);
+        PageParameters params = new PageParameters();
+        params.add(SELECTED_TAB_INDEX, index);
+        PageSystemConfiguration page = new PageSystemConfiguration(params);
+        setResponsePage(page);
     }
 
     private void cancelPerformed(AjaxRequestTarget target) {
