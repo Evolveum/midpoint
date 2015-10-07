@@ -108,13 +108,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-public abstract class BaseFocusPanel<T extends FocusType> extends Panel{
-
-	
-
-	/**
-	 * 
-	 */
+public abstract class BaseFocusPanel<F extends FocusType> extends Panel{
 	private static final long serialVersionUID = 1L;
 	
 	 public static final String AUTH_USERS_ALL = AuthorizationConstants.AUTZ_UI_USERS_ALL_URL;
@@ -126,7 +120,7 @@ public abstract class BaseFocusPanel<T extends FocusType> extends Panel{
 	    public static final String AUTH_ORG_ALL_DESCRIPTION = "PageAdminUsers.auth.orgAll.description";
 	
 	
-	 private LoadableModel<ObjectWrapper> focusModel;
+	 private LoadableModel<ObjectWrapper<F>> focusModel;
 	    private LoadableModel<List<FocusShadowDto>> shadowModel;
 	    private LoadableModel<List<AssignmentEditorDto>> assignmentsModel;
 	    
@@ -169,7 +163,7 @@ public abstract class BaseFocusPanel<T extends FocusType> extends Panel{
 	    
 	    private Form mainForm;
 	    
-	    public BaseFocusPanel(String id, Form mainForm, LoadableModel<ObjectWrapper> focusModel, LoadableModel<List<FocusShadowDto>> shadowModel, LoadableModel<List<AssignmentEditorDto>> assignmentsModel, PageBase page) {
+	    public BaseFocusPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusModel, LoadableModel<List<FocusShadowDto>> shadowModel, LoadableModel<List<AssignmentEditorDto>> assignmentsModel, PageBase page) {
 			super(id);
 			this.page = page;
 			this.focusModel = focusModel;
@@ -193,14 +187,14 @@ public abstract class BaseFocusPanel<T extends FocusType> extends Panel{
 	        return StringUtils.join(components, ":");
 	    }
 
-public LoadableModel<ObjectWrapper> getFocusModel() {
+public LoadableModel<ObjectWrapper<F>> getFocusModel() {
 	return focusModel;
 }
 	
 
 //	 protected abstract void initCustomLayout(Form mainForm);
 	 
-	 protected abstract T createNewFocus();
+	 protected abstract F createNewFocus();
 	 
 	 protected void initLayout(){
 //		 final Form mainForm = new Form(ID_MAIN_FORM, true);
@@ -210,11 +204,11 @@ public LoadableModel<ObjectWrapper> getFocusModel() {
 
 //	        progressReporter = ProgressReporter.create(page, mainForm, "progressPanel");
 
-	        PrismObjectPanel userForm = new PrismObjectPanel(ID_FOCUS_FORM, focusModel, new PackageResourceReference(
+	        PrismObjectPanel userForm = new PrismObjectPanel<F>(ID_FOCUS_FORM, focusModel, new PackageResourceReference(
 	                ImgResources.class, ImgResources.USER_PRISM), mainForm, page) {
 
 	            @Override
-	            protected IModel<String> createDescription(IModel<ObjectWrapper> model) {
+	            protected IModel<String> createDescription(IModel<ObjectWrapper<F>> model) {
 	                return createStringResource("pageAdminFocus.description");
 	            }
 	        };
@@ -353,7 +347,7 @@ public LoadableModel<ObjectWrapper> getFocusModel() {
 	        reviveCustomModels();
 //	        WebMiscUtil.revive(summaryUser, getPrismContext());
 	    }
-	 protected abstract Class<T> getCompileTimeClass();
+	 protected abstract Class<F> getCompileTimeClass();
 	 protected abstract Class getRestartResponsePage();
 	 
  
@@ -394,12 +388,12 @@ public LoadableModel<ObjectWrapper> getFocusModel() {
 	                    packageRef = new PackageResourceReference(ImgResources.class,
 	                            ImgResources.HDD_PRISM);
 
-	                    panel = new PrismObjectPanel("shadow", new PropertyModel<ObjectWrapper>(
+	                    panel = new PrismObjectPanel<F>("shadow", new PropertyModel<ObjectWrapper<F>>(
 	                            item.getModel(), "object"), packageRef, (Form) page.get(ID_MAIN_FORM), page) {
 
 	                        @Override
-	                        protected Component createHeader(String id, IModel<ObjectWrapper> model) {
-	                            return new CheckTableHeader(id, model) {
+	                        protected Component createHeader(String id, IModel<ObjectWrapper<F>> model) {
+	                            return new CheckTableHeader(id, (IModel)model) {
 
 	                                @Override
 	                                protected List<InlineMenuItem> createMenuItems() {
@@ -816,7 +810,7 @@ public LoadableModel<ObjectWrapper> getFocusModel() {
 
 	            @Override
 	            protected PrismObject<UserType> getUserDefinition() {
-	                return focusModel.getObject().getObject();
+	                return (PrismObject<UserType>) focusModel.getObject().getObject();
 	            }
 	        });
 	        add(window);

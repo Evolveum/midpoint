@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.apache.wicket.AttributeModifier;
@@ -56,7 +57,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class PrismObjectPanel extends Panel {
+public class PrismObjectPanel<O extends ObjectType> extends Panel {
 
     private static final String STRIPED_CLASS = "striped";
     private static final String ID_HEADER = "header";
@@ -64,7 +65,7 @@ public class PrismObjectPanel extends Panel {
     private boolean showHeader = true;
     private PageBase pageBase;
 
-    public PrismObjectPanel(String id, IModel<ObjectWrapper> model, ResourceReference image, Form form, PageBase pageBase) {
+    public PrismObjectPanel(String id, IModel<ObjectWrapper<O>> model, ResourceReference image, Form form, PageBase pageBase) {
         super(id);
         setOutputMarkupId(true);
 
@@ -84,7 +85,7 @@ public class PrismObjectPanel extends Panel {
         response.render(OnDomReadyHeaderItem.forScript(sb.toString()));
     }
 
-    private AjaxEventBehavior createHeaderOnClickBehaviour(final IModel<ObjectWrapper> model) {
+    private AjaxEventBehavior createHeaderOnClickBehaviour(final IModel<ObjectWrapper<O>> model) {
         return new AjaxEventBehavior("onClick") {
 
             @Override
@@ -94,7 +95,7 @@ public class PrismObjectPanel extends Panel {
         };
     }
 
-    private IModel<String> createHeaderClassModel(final IModel<ObjectWrapper> model) {
+    private IModel<String> createHeaderClassModel(final IModel<ObjectWrapper<O>> model) {
         return new AbstractReadOnlyModel<String>() {
             @Override
             public String getObject() {
@@ -108,7 +109,7 @@ public class PrismObjectPanel extends Panel {
         };
     }
 
-    private IModel<String> createHeaderNameClassModel(final IModel<ObjectWrapper> model) {
+    private IModel<String> createHeaderNameClassModel(final IModel<ObjectWrapper<O>> model) {
         return new AbstractReadOnlyModel<String>() {
             @Override
             public String getObject() {
@@ -166,7 +167,7 @@ public class PrismObjectPanel extends Panel {
 //        return (ActivationStatusType) prismProperty.getRealValue();
 //    }
 
-    protected Component createHeader(String id, IModel<ObjectWrapper> model) {
+    protected Component createHeader(String id, IModel<ObjectWrapper<O>> model) {
         H3Header header = new H3Header(id, model) {
 
             @Override
@@ -238,7 +239,7 @@ public class PrismObjectPanel extends Panel {
         };
     }
 
-    private void initLayout(final IModel<ObjectWrapper> model, ResourceReference image, final Form form) {
+    private void initLayout(final IModel<ObjectWrapper<O>> model, ResourceReference image, final Form form) {
         add(createHeader(ID_HEADER, model));
 
         WebMarkupContainer headerPanel = new WebMarkupContainer("headerPanel");
@@ -261,7 +262,7 @@ public class PrismObjectPanel extends Panel {
 
             @Override
             public boolean isVisible() {
-                ObjectWrapper wrapper = model.getObject();
+                ObjectWrapper<O> wrapper = model.getObject();
                 return wrapper.isProtectedAccount();
             }
         });
@@ -306,7 +307,7 @@ public class PrismObjectPanel extends Panel {
         body.add(containers);
     }
 
-    protected IModel<List<ContainerWrapper>> createContainerModel(IModel<ObjectWrapper> model){
+    protected IModel<List<ContainerWrapper>> createContainerModel(IModel<ObjectWrapper<O>> model){
         return new PropertyModel<>(model, "containers");
     }
 
@@ -314,16 +315,16 @@ public class PrismObjectPanel extends Panel {
         item.add(new PrismContainerPanel("container", item.getModel(), true, form, pageBase));
     }
 
-    protected IModel<String> createDisplayName(IModel<ObjectWrapper> model) {
+    protected IModel<String> createDisplayName(IModel<ObjectWrapper<O>> model) {
         return new PropertyModel<>(model, "displayName");
     }
 
-    protected IModel<String> createDescription(IModel<ObjectWrapper> model) {
+    protected IModel<String> createDescription(IModel<ObjectWrapper<O>> model) {
         return new PropertyModel<>(model, "description");
     }
 
-    private void initButtons(WebMarkupContainer headerPanel, final IModel<ObjectWrapper> model) {
-        headerPanel.add(new PrismOptionButtonPanel("optionButtons", model) {
+    private void initButtons(WebMarkupContainer headerPanel, final IModel<ObjectWrapper<O>> model) {
+        headerPanel.add(new PrismOptionButtonPanel("optionButtons", (IModel) model) {
 
             @Override
             public void checkBoxOnUpdate(AjaxRequestTarget target) {
@@ -359,8 +360,8 @@ public class PrismObjectPanel extends Panel {
         this.showHeader = showHeader;
     }
 
-    public void headerOnClickPerformed(AjaxRequestTarget target, IModel<ObjectWrapper> model) {
-        ObjectWrapper wrapper = model.getObject();
+    public void headerOnClickPerformed(AjaxRequestTarget target, IModel<ObjectWrapper<O>> model) {
+        ObjectWrapper<O> wrapper = model.getObject();
         wrapper.setMinimalized(!wrapper.isMinimalized());
         target.add(PrismObjectPanel.this);
     }

@@ -117,8 +117,8 @@ public class PageWorkItem extends PageAdminWorkItems {
     private IModel<ObjectWrapper> requesterModel;
     private IModel<ObjectWrapper> objectOldModel;
     private IModel<ObjectWrapper> objectNewModel;
-    private IModel<ObjectWrapper> requestSpecificModel;
-    private IModel<ObjectWrapper> additionalDataModel;
+    private IModel<ObjectWrapper<WorkItemType>> requestSpecificModel;
+    private IModel<ObjectWrapper<? extends ObjectType>> additionalDataModel;
     private IModel<ObjectWrapper> trackingDataModel;
     private LoadableModel<ProcessInstanceDto> processInstanceDtoModel;
     private IModel<DeltaDto> deltaModel;
@@ -161,14 +161,14 @@ public class PageWorkItem extends PageAdminWorkItems {
                 return getObjectNewWrapper();
             }
         };
-        requestSpecificModel = new LoadableModel<ObjectWrapper>(false) {
+        requestSpecificModel = new LoadableModel<ObjectWrapper<WorkItemType>>(false) {
             @Override
             protected ObjectWrapper load() {
                 loadWorkItemDetailedDtoIfNecessary();
                 return getRequestSpecificWrapper();
             }
         };
-        additionalDataModel = new LoadableModel<ObjectWrapper>(false) {
+        additionalDataModel = new LoadableModel<ObjectWrapper<?>>(false) {
             @Override
             protected ObjectWrapper load() {
                 loadWorkItemDetailedDtoIfNecessary();
@@ -486,16 +486,16 @@ public class PageWorkItem extends PageAdminWorkItems {
         Label candidates = new Label("candidates", new PropertyModel(workItemDtoModel, WorkItemDto.F_CANDIDATES));
         mainForm.add(candidates);
 
-        PrismObjectPanel requestSpecificForm = new PrismObjectPanel("requestSpecificForm", requestSpecificModel,
+        PrismObjectPanel<WorkItemType> requestSpecificForm = new PrismObjectPanel<WorkItemType>("requestSpecificForm", requestSpecificModel,
                 new PackageResourceReference(ImgResources.class, ImgResources.DECISION_PRISM), mainForm, this) {
 
             @Override
-            protected IModel<String> createDisplayName(IModel<ObjectWrapper> model) {
+            protected IModel<String> createDisplayName(IModel<ObjectWrapper<WorkItemType>> model) {
                 return createStringResource("pageWorkItem.requestSpecific.description");
             }
 
             @Override
-            protected IModel<String> createDescription(IModel<ObjectWrapper> model) {
+            protected IModel<String> createDescription(IModel<ObjectWrapper<WorkItemType>> model) {
                 return new Model<>("");
             }
         };
@@ -545,12 +545,12 @@ public class PageWorkItem extends PageAdminWorkItems {
                 new PackageResourceReference(ImgResources.class, ImgResources.TRACKING_PRISM), mainForm, this) {
 
             @Override
-            protected IModel<String> createDisplayName(IModel<ObjectWrapper> model) {
+            protected IModel<String> createDisplayName(IModel model) {
                 return createStringResource("pageWorkItem.trackingData.description");
             }
 
             @Override
-            protected IModel<String> createDescription(IModel<ObjectWrapper> model) {
+            protected IModel<String> createDescription(IModel model) {
                 return new Model("");
             }
         };

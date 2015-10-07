@@ -43,6 +43,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
@@ -97,6 +98,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
@@ -173,7 +175,7 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 	public static final String AUTH_ORG_ALL_LABEL = "PageAdminUsers.auth.orgAll.label";
 	public static final String AUTH_ORG_ALL_DESCRIPTION = "PageAdminUsers.auth.orgAll.description";
 
-	private LoadableModel<ObjectWrapper> focusModel;
+	private LoadableModel<ObjectWrapper<T>> focusModel;
 	private LoadableModel<List<FocusShadowDto>> shadowModel;
 	private LoadableModel<List<AssignmentEditorDto>> assignmentsModel;
 
@@ -207,6 +209,7 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 	private static final String ID_ASSIGNMENT_MENU = "assignmentMenu";
 	private static final String ID_SHADOW_CHECK_ALL = "shadowCheckAll";
 	private static final String ID_ASSIGNMENT_CHECK_ALL = "assignmentCheckAll";
+	protected static final String ID_SUMMARY_PANEL = "summaryPanel";
 
 	private static final String MODAL_ID_RESOURCE = "resourcePopup";
 	private static final String MODAL_ID_ASSIGNABLE = "assignablePopup";
@@ -220,7 +223,7 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 	// used to determine whether to leave this page or stay on it (after
 	// operation finishing)
 	private ObjectDelta delta;
-
+	
 	private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel = new LoadableModel<ExecuteChangeOptionsDto>(false) {
 
 		@Override
@@ -264,15 +267,15 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 		};
 	}
 
-	public LoadableModel<ObjectWrapper> getFocusModel() {
+	public LoadableModel<ObjectWrapper<T>> getFocusModel() {
 		return focusModel;
 	}
 
 	public void initialize(final PrismObject<T> userToEdit) {
-		focusModel = new LoadableModel<ObjectWrapper>(false) {
+		focusModel = new LoadableModel<ObjectWrapper<T>>(false) {
 
 			@Override
-			protected ObjectWrapper load() {
+			protected ObjectWrapper<T> load() {
 				return loadFocusWrapper(userToEdit);
 			}
 		};
@@ -302,7 +305,27 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 
 	protected abstract T createNewFocus();
 
-	protected abstract void initCustomLayout(Form mainForm);
+	protected void initCustomLayout(Form mainForm) {
+		// Nothing to do here
+	}
+	
+	protected void initSummaryPanel(Form mainForm) {
+		
+    	FocusSummaryPanel<T> summaryPanel = createSummaryPanel();
+    	
+    	summaryPanel.setOutputMarkupId(true);
+    	
+    	summaryPanel.add(new VisibleEnableBehaviour(){    		
+            @Override
+            public boolean isVisible(){
+            	return isEditingFocus();
+            }
+        });
+    	
+    	mainForm.add(summaryPanel);
+    }
+
+	protected abstract FocusSummaryPanel<T> createSummaryPanel();
 
 	protected abstract void initTabs(List<ITab> tabs);
 
@@ -405,6 +428,7 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 		//
 		initButtons(mainForm);
 		initOptions(mainForm);
+		initSummaryPanel(mainForm);
 		initCustomLayout(mainForm);
 		//
 		// initResourceModal();
@@ -426,14 +450,15 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 		return assignmentsModel.getObject();
 	}
 
-	protected abstract void reviveCustomModels() throws SchemaException;
+    protected void reviveCustomModels() throws SchemaException {
+        // Nothing to do here;
+    }
 
 	protected void reviveModels() throws SchemaException {
 		WebMiscUtil.revive(focusModel, getPrismContext());
 		WebMiscUtil.revive(shadowModel, getPrismContext());
 		WebMiscUtil.revive(assignmentsModel, getPrismContext());
 		reviveCustomModels();
-		// WebMiscUtil.revive(summaryUser, getPrismContext());
 	}
 
 	protected abstract Class<T> getCompileTimeClass();
@@ -441,7 +466,10 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 	protected abstract Class getRestartResponsePage();
 	
 	protected String getFocusOidParameter() {
+		PageParameters parameters = getPageParameters();
+		LOGGER.trace("Page parameters: {}", parameters);
 		StringValue oidValue = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
+		LOGGER.trace("OID parameter: {}", oidValue);
 		if (oidValue == null) {
 			return null;
 		}
@@ -456,17 +484,19 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 		return getFocusOidParameter() != null;
 	}
 
-	protected ObjectWrapper loadFocusWrapper(PrismObject<T> userToEdit) {
+	protected ObjectWrapper<T> loadFocusWrapper(PrismObject<T> userToEdit) {
 		OperationResult result = new OperationResult(OPERATION_LOAD_USER);
 		PrismObject<T> focus = null;
 		try {
 			if (!isEditingFocus()) {
 				if (userToEdit == null) {
+					LOGGER.trace("Loading focus: New focus (creating)");
 					// UserType userType = new UserType();'
 					T focusType = createNewFocus();
 					getMidpointApplication().getPrismContext().adopt(focusType);
 					focus = focusType.asPrismObject();
 				} else {
+					LOGGER.trace("Loading focus: New focus (supplied): {}", userToEdit);
 					focus = userToEdit;
 				}
 			} else {
@@ -475,8 +505,10 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 				Collection options = SelectorOptions.createCollection(UserType.F_JPEG_PHOTO,
 						GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
 
-				focus = WebModelUtils.loadObject(getCompileTimeClass(), getFocusOidParameter(), options, result, this);
-
+				String focusOid = getFocusOidParameter();
+				focus = WebModelUtils.loadObject(getCompileTimeClass(), focusOid, options, result, this);
+				
+				LOGGER.trace("Loading focus: Existing focus (loadled): {} -> {}", focusOid, focus);
 			}
 
 			result.recordSuccess();
@@ -1475,12 +1507,12 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 				if (dto.isLoadedOK()) {
 					packageRef = new PackageResourceReference(ImgResources.class, ImgResources.HDD_PRISM);
 
-					panel = new PrismObjectPanel("shadow", new PropertyModel<ObjectWrapper>(item.getModel(), "object"), packageRef,
+					panel = new PrismObjectPanel<ShadowType>("shadow", new PropertyModel<ObjectWrapper<ShadowType>>(item.getModel(), "object"), packageRef,
 							(Form) PageAdminFocus.this.get(ID_MAIN_FORM), PageAdminFocus.this) {
 
 						@Override
-						protected Component createHeader(String id, IModel<ObjectWrapper> model) {
-							return new CheckTableHeader(id, model) {
+						protected Component createHeader(String id, IModel<ObjectWrapper<ShadowType>> model) {
+							return new CheckTableHeader(id, (IModel)model) {
 
 								@Override
 								protected List<InlineMenuItem> createMenuItems() {
@@ -1973,7 +2005,7 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 
 			@Override
 			protected PrismObject<UserType> getUserDefinition() {
-				return focusModel.getObject().getObject();
+				return (PrismObject<UserType>) focusModel.getObject().getObject();
 			}
 		});
 		add(window);
