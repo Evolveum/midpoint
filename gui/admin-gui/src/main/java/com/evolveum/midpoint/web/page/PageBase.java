@@ -557,7 +557,7 @@ public abstract class PageBase extends PageTemplate {
                 }
 
                 PageUser page = (PageUser) getPage();
-                return page.isEditingUser();
+                return page.isEditingFocus();
             }
         });
         submenu.add(edit);
@@ -570,7 +570,7 @@ public abstract class PageBase extends PageTemplate {
                 }
 
                 PageUser page = (PageUser) PageBase.this.getPage();
-                return !page.isEditingUser();
+                return !page.isEditingFocus();
             }
         };
         submenu.add(newUser);

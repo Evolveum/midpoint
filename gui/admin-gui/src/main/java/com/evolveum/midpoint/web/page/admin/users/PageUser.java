@@ -147,11 +147,7 @@ public class PageUser extends PageAdminFocus<UserType> {
     	summaryContainer.add(new VisibleEnableBehaviour(){    		
             @Override
             public boolean isVisible(){
-                if(getPageParameters().get(OnePageParameterEncoder.PARAMETER).isEmpty()){
-                    return false;
-                } else {
-                    return true;
-                }
+            	return isEditingFocus();
             }
         });
     	
@@ -201,11 +197,6 @@ public class PageUser extends PageAdminFocus<UserType> {
 //            }
 //        });
 //        summaryContainer.add(img);
-    }
-
-    public boolean isEditingUser() {
-        StringValue userOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
-        return userOid != null && StringUtils.isNotEmpty(userOid.toString());
     }
 
     protected void cancelPerformed(AjaxRequestTarget target) {

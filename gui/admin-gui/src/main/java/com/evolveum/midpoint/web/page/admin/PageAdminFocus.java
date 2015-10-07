@@ -452,7 +452,7 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 		return oid;
 	}
 	
-	private boolean isEditingFocus() {
+	public boolean isEditingFocus() {
 		return getFocusOidParameter() != null;
 	}
 
