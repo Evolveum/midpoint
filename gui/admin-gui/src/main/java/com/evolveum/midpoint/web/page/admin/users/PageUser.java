@@ -19,6 +19,8 @@ package com.evolveum.midpoint.web.page.admin.users;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -39,6 +41,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
@@ -119,12 +122,29 @@ public class PageUser extends PageAdminFocus<UserType> {
     }
 
     private void initSummaryInfo(Form mainForm){
-
-        WebMarkupContainer summaryContainer = new WebMarkupContainer(ID_SUMMARY_PANEL);
-        summaryContainer.setOutputMarkupId(true);
-
-        summaryContainer.add(new VisibleEnableBehaviour(){
-
+    	
+    	summaryUser = new AbstractReadOnlyModel<PrismObject<UserType>>() {    		
+    		            @Override
+    		            public PrismObject<UserType> getObject() {
+    		                ObjectWrapper user = getFocusWrapper();
+    		                return user.getObject();
+    		            }
+    		        };
+    	
+    	FocusSummaryPanel<UserType>  summaryContainer = new FocusSummaryPanel<UserType>("summaryPanel", summaryUser) {
+			@Override
+			protected QName getDisplayNamePropertyName() {
+				return UserType.F_FULL_NAME;
+			}
+			@Override
+			protected QName getTitlePropertyName() {
+				return UserType.F_TITLE;
+			}
+    	};
+    	
+    	summaryContainer.setOutputMarkupId(true);
+    	
+    	summaryContainer.add(new VisibleEnableBehaviour(){    		
             @Override
             public boolean isVisible(){
                 if(getPageParameters().get(OnePageParameterEncoder.PARAMETER).isEmpty()){
@@ -134,36 +154,53 @@ public class PageUser extends PageAdminFocus<UserType> {
                 }
             }
         });
+    	
+    	mainForm.add(summaryContainer);
 
-        mainForm.add(summaryContainer);
-
-        summaryUser = new AbstractReadOnlyModel<PrismObject<UserType>>() {
-
-            @Override
-            public PrismObject<UserType> getObject() {
-                ObjectWrapper user = getFocusWrapper();
-                return user.getObject();
-            }
-        };
-
-        summaryContainer.add(new Label(ID_SUMMARY_NAME, new PrismPropertyModel<>(summaryUser, UserType.F_NAME)));
-        summaryContainer.add(new Label(ID_SUMMARY_FULL_NAME, new PrismPropertyModel<>(summaryUser, UserType.F_FULL_NAME)));
-        summaryContainer.add(new Label(ID_SUMMARY_GIVEN_NAME, new PrismPropertyModel<>(summaryUser, UserType.F_GIVEN_NAME)));
-        summaryContainer.add(new Label(ID_SUMMARY_FAMILY_NAME, new PrismPropertyModel<>(summaryUser, UserType.F_FAMILY_NAME)));
-
-        Image img = new Image(ID_SUMMARY_PHOTO, new AbstractReadOnlyModel<AbstractResource>() {
-
-            @Override
-            public AbstractResource getObject() {
-                if(summaryUser.getObject().asObjectable().getJpegPhoto() != null){
-                    return new ByteArrayResource("image/jpeg", summaryUser.getObject().asObjectable().getJpegPhoto());
-                } else {
-                    return new ContextRelativeResource("img/placeholder.png");
-                }
-
-            }
-        });
-        summaryContainer.add(img);
+//        WebMarkupContainer summaryContainer = new WebMarkupContainer(ID_SUMMARY_PANEL);
+//        summaryContainer.setOutputMarkupId(true);
+//
+//        summaryContainer.add(new VisibleEnableBehaviour(){
+//
+//            @Override
+//            public boolean isVisible(){
+//                if(getPageParameters().get(OnePageParameterEncoder.PARAMETER).isEmpty()){
+//                    return false;
+//                } else {
+//                    return true;
+//                }
+//            }
+//        });
+//
+//        mainForm.add(summaryContainer);
+//
+//        summaryUser = new AbstractReadOnlyModel<PrismObject<UserType>>() {
+//
+//            @Override
+//            public PrismObject<UserType> getObject() {
+//                ObjectWrapper user = getFocusWrapper();
+//                return user.getObject();
+//            }
+//        };
+//
+//        summaryContainer.add(new Label(ID_SUMMARY_NAME, new PrismPropertyModel<>(summaryUser, UserType.F_NAME)));
+//        summaryContainer.add(new Label(ID_SUMMARY_FULL_NAME, new PrismPropertyModel<>(summaryUser, UserType.F_FULL_NAME)));
+//        summaryContainer.add(new Label(ID_SUMMARY_GIVEN_NAME, new PrismPropertyModel<>(summaryUser, UserType.F_GIVEN_NAME)));
+//        summaryContainer.add(new Label(ID_SUMMARY_FAMILY_NAME, new PrismPropertyModel<>(summaryUser, UserType.F_FAMILY_NAME)));
+//
+//        Image img = new Image(ID_SUMMARY_PHOTO, new AbstractReadOnlyModel<AbstractResource>() {
+//
+//            @Override
+//            public AbstractResource getObject() {
+//                if(summaryUser.getObject().asObjectable().getJpegPhoto() != null){
+//                    return new ByteArrayResource("image/jpeg", summaryUser.getObject().asObjectable().getJpegPhoto());
+//                } else {
+//                    return new ContextRelativeResource("img/placeholder.png");
+//                }
+//
+//            }
+//        });
+//        summaryContainer.add(img);
     }
 
 
