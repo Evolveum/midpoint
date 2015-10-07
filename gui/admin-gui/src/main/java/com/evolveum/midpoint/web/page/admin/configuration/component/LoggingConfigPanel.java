@@ -122,7 +122,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
     protected void initLayout() {
         initLoggers();
         initAudit();
-        initProfiling();
+//        initProfiling();
         initAppenders();
     }
 
@@ -333,6 +333,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
 
                     FormComponent<StandardLoggerType> input = dropDownChoicePanel.getBaseFormComponent();
                     input.add(new LoggerValidator());
+                    input.add(new AttributeAppender("style", "width: 100%"));
                     input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
                     return dropDownChoicePanel;
 
@@ -355,6 +356,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
 
                     FormComponent<LoggingComponentType> input = dropDownChoicePanel.getBaseFormComponent();
                     input.add(new LoggerValidator());
+                    input.add(new AttributeAppender("style", "width: 100%"));
                     input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
                     return dropDownChoicePanel;
 

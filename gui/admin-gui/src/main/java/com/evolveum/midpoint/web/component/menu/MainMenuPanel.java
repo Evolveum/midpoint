@@ -20,6 +20,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -59,15 +60,12 @@ public class MainMenuPanel extends SimplePanel<MainMenuItem> {
 
             @Override
             public String getObject() {
-                Class page = getPage().getClass();
-
-                Class type = menu.getPage();
-                if (type != null && page.isAssignableFrom(type)) {
+                if (menu.isMenuActive((WebPage) getPage())) {
                     return "active";
                 }
 
                 for (MenuItem item : menu.getItems()) {
-                    if (item.getPage() != null && page.isAssignableFrom(item.getPage())) {
+                    if (item.isMenuActive((WebPage) getPage())) {
                         return "active";
                     }
                 }
@@ -127,14 +125,11 @@ public class MainMenuPanel extends SimplePanel<MainMenuItem> {
 
             @Override
             public String getObject() {
-                Class page = getPage().getClass();
-                Class type = menu.getPage();
-
-                return page.isAssignableFrom(type) ? "active" : null;
+                return menu.isMenuActive((WebPage) getPage()) ? "active" : null;
             }
         }));
 
-        BookmarkablePageLink subLink = new BookmarkablePageLink(ID_SUB_LINK, menu.getPage());
+        BookmarkablePageLink subLink = new BookmarkablePageLink(ID_SUB_LINK, menu.getPage(), menu.getParams());
         listItem.add(subLink);
 
         Label subLabel = new Label(ID_SUB_LABEL, menu.getName());
@@ -144,7 +139,25 @@ public class MainMenuPanel extends SimplePanel<MainMenuItem> {
 
             @Override
             public boolean isVisible() {
-                return SecurityUtils.isMenuAuthorized(listItem.getModelObject());
+                MenuItem mi = listItem.getModelObject();
+
+                boolean visible = true;
+                if (mi.getVisibleEnable() != null) {
+                    visible = mi.getVisibleEnable().isVisible();
+                }
+
+                return visible && SecurityUtils.isMenuAuthorized(mi);
+            }
+
+            @Override
+            public boolean isEnabled() {
+                MenuItem mi = listItem.getModelObject();
+
+                if (mi.getVisibleEnable() == null) {
+                    return true;
+                }
+
+                return mi.getVisibleEnable().isEnabled();
             }
         });
     }

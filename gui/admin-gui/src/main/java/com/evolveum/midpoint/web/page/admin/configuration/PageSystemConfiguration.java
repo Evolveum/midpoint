@@ -35,6 +35,7 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.LoggingConfigPanel;
+import com.evolveum.midpoint.web.page.admin.configuration.component.ProfilingConfigPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.SystemConfigPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.*;
 import com.evolveum.midpoint.web.page.error.PageError;
@@ -73,8 +74,9 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 
     public static final String SELECTED_TAB_INDEX = "tab";
 
-    public static final String CONFIGURATION_TAB_BASIC = "basic";
-    public static final String CONFIGURATION_TAB_LOGGING = "logging";
+    public static final int CONFIGURATION_TAB_BASIC = 0;
+    public static final int CONFIGURATION_TAB_LOGGING = 1;
+    public static final int CONFIGURATION_TAB_PROFILING = 2;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageSystemConfiguration.class);
 
@@ -89,14 +91,21 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 
     public static final String ROOT_APPENDER_INHERITANCE_CHOICE = "(Inherit root)";
 
-    LoggingConfigPanel loggingConfigPanel;
-    SystemConfigPanel systemConfigPanel;
+    private LoggingConfigPanel loggingConfigPanel;
+    private ProfilingConfigPanel profilingConfigPanel;
+    private SystemConfigPanel systemConfigPanel;
 
     private LoadableModel<SystemConfigurationDto> model;
 
     private boolean initialized;
 
     public PageSystemConfiguration() {
+        this(null);
+    }
+
+    public PageSystemConfiguration(PageParameters parameters) {
+        super(parameters);
+
         model = new LoadableModel<SystemConfigurationDto>(false) {
 
             @Override
@@ -158,6 +167,15 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
                 return loggingConfigPanel;
             }
         });
+        
+        tabs.add(new AbstractTab(createStringResource("pageSystemConfiguration.profiling.title")) {
+
+            @Override
+            public WebMarkupContainer getPanel(String panelId) {
+            	profilingConfigPanel = new ProfilingConfigPanel(panelId);
+                return profilingConfigPanel;
+            }
+        });
 
         TabbedPanel tabPanel = new TabbedPanel(ID_TAB_PANEL, tabs);
         tabPanel.setOutputMarkupId(true);
@@ -173,20 +191,12 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
         if (!initialized) {
             PageParameters params = getPageParameters();
             StringValue val = params.get(SELECTED_TAB_INDEX);
-            String value = CONFIGURATION_TAB_BASIC;
+            String value = null;
             if (val != null && !val.isNull()) {
                 value = val.toString();
             }
 
-            int index;
-            switch (value) {
-                case CONFIGURATION_TAB_LOGGING:
-                    index = 1;
-                    break;
-                case CONFIGURATION_TAB_BASIC:
-                default:
-                    index = 0;
-            }
+            int index = StringUtils.isNumeric(value) ? Integer.parseInt(value) : CONFIGURATION_TAB_BASIC;
             getTabPanel().setSelectedTab(index);
 
             initialized = true;
@@ -271,11 +281,11 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
             configuration.getSubSystemLogger().add(item.toXmlType());
         }
 
-        if (dto.getProfilingLevel() != null) {
-            ClassLoggerConfigurationType type = createCustomClassLogger(LoggingDto.LOGGER_PROFILING,
-                    ProfilingLevel.toLoggerLevelType(dto.getProfilingLevel()), dto.getProfilingAppender());
-            configuration.getClassLogger().add(type);
-        }
+//        if (dto.getProfilingLevel() != null) {
+//            ClassLoggerConfigurationType type = createCustomClassLogger(LoggingDto.LOGGER_PROFILING,
+//                    ProfilingLevel.toLoggerLevelType(dto.getProfilingLevel()), dto.getProfilingAppender());
+//            configuration.getClassLogger().add(type);
+//        }
 
         return configuration;
     }
@@ -317,6 +327,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
         config.setTaskManager(dto.isSubsystemTaskManager());
         config.setWorkflow(dto.isSubsystemWorkflow());
 
+       
         return config;
     }
 
@@ -356,6 +367,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 
             s = saveLogging(target, s);
             s = saveNotificationConfiguration(s);
+            s = saveProfiling(target, s);
             saveObjectPolicies(s);
 
             if(LOGGER.isTraceEnabled())
@@ -505,17 +517,17 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
                 return config;
             }
 
-            profilingConfig = createProfilingConfiguration(loggingDto);
-            if(profilingConfig == null){
-                target.add(getFeedbackPanel());
-                target.add(get(ID_MAIN_FORM));
-                return config;
-            }
+//            profilingConfig = createProfilingConfiguration(loggingDto);
+//            if(profilingConfig == null){
+//                target.add(getFeedbackPanel());
+//                target.add(get(ID_MAIN_FORM));
+//                return config;
+//            }
         }
 
         if(loggingConfigPanel != null){
             config.setLogging(loggingConfig);
-            config.setProfilingConfiguration(profilingConfig);
+//            config.setProfilingConfiguration(profilingConfig);
         }
 
         if(loggingConfigPanel != null){
@@ -532,11 +544,69 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 
         return config;
     }
+    
+    private SystemConfigurationType saveProfiling(AjaxRequestTarget target, SystemConfigurationType config){
+        LoggingDto loggingDto = null;
+//        LoggingConfigurationType loggingConfig = null;
+        ProfilingConfigurationType profilingConfig = null;
+
+        if(profilingConfigPanel != null){
+            loggingDto = profilingConfigPanel.getModel().getObject();
+//            loggingConfig = createLoggingConfiguration(loggingDto);
+
+//            if(loggingConfig == null){
+//                target.add(getFeedbackPanel());
+//                target.add(get(ID_MAIN_FORM));
+//                return config;
+//            }
+
+            profilingConfig = createProfilingConfiguration(loggingDto);
+            if(profilingConfig == null){
+                target.add(getFeedbackPanel());
+                target.add(get(ID_MAIN_FORM));
+                return config;
+            }
+        }
+
+        if(loggingConfigPanel != null){
+//            config.setLogging(loggingConfig);
+            config.setProfilingConfiguration(profilingConfig);
+        }
+        
+        
+        if (loggingDto.getProfilingLevel() != null) {
+            ClassLoggerConfigurationType type = createCustomClassLogger(LoggingDto.LOGGER_PROFILING,
+                    ProfilingLevel.toLoggerLevelType(loggingDto.getProfilingLevel()), loggingDto.getProfilingAppender());
+            LoggingConfigurationType loggingConfig = config.getLogging();
+            if (loggingConfig == null){
+            	loggingConfig = new LoggingConfigurationType();
+            }
+            loggingConfig.getClassLogger().add(type);
+        }
+        
+
+//        if(loggingConfigPanel != null){
+//            for (LoggerConfiguration logger : loggingDto.getLoggers()) {
+//                logger.setEditing(false);
+//            }
+//            for (FilterConfiguration filter : loggingDto.getFilters()) {
+//                filter.setEditing(false);
+//            }
+//            for (AppenderConfiguration appender : loggingDto.getAppenders()) {
+//                appender.setEditing(false);
+//            }
+//        }
+
+        return config;
+    }
 
     private void resetPerformed(AjaxRequestTarget target) {
-        model.reset();
+        int index = getTabPanel().getSelectedTab();
 
-        target.add(this);
+        PageParameters params = new PageParameters();
+        params.add(SELECTED_TAB_INDEX, index);
+        PageSystemConfiguration page = new PageSystemConfiguration(params);
+        setResponsePage(page);
     }
 
     private void cancelPerformed(AjaxRequestTarget target) {

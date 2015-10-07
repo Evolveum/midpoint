@@ -20,34 +20,9 @@
 
     <form wicket:id="mainForm" autocomplete="off" class="form-horizontal">
 
- <div class="row" wicket:id="summaryPanel">
-            <div class="col-xs-6 col-md-2 col-md-offset-4" style="text-align: right;">
-                <img wicket:id="summaryPhoto" class="user-thumbnail" src="img/placeholder.png">
-            </div>
-            <div class="col-xs-6 col-md-4">
-                <table class="table" style="width: auto; min-width: 300px;">
-                    <tr>
-                        <td><h4><wicket:message key="ObjectType.name"/></h4></td>
-                        <td><h4><span wicket:id="summaryName" /></h4></td>
-                    </tr>
-                    <tr>
-                        <td><strong><wicket:message key="FocusType.displayName"/></strong></td>
-                        <td><span wicket:id="summaryDisplayName" /></td>
-                    </tr>
-                    <tr>
-                        <td><strong><wicket:message key="AbstractRoleType.identifier"/></strong></td>
-                        <td><span wicket:id="summaryIdentifier" /></td>
-                    </tr>
-                    
-                </table>
-            </div>
-        </div>
+		<div wicket:id="summaryPanel"/>
 
-        <div class="box box-solid">
-            <div class="box-body no-padding">
-                <div wicket:id="tabPanel" class="nav-tabs-custom" />
-            </div>
-        </div>
+        <div wicket:id="tabPanel" class="nav-tabs-custom" />
           
         <div style="margin: 20px 0;" class="form-group" wicket:id="executeOptions" />
 

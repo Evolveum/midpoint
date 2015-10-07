@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 /**
  * @author lazyman
@@ -27,4 +28,11 @@ public class PageAdminConfiguration extends PageAdmin {
     public static final String AUTH_CONFIGURATION_ALL = AuthorizationConstants.AUTZ_UI_CONFIGURATION_ALL_URL;
     public static final String AUTH_CONFIGURATION_ALL_LABEL = "PageAdminConfiguration.auth.configurationAll.label";
     public static final String AUTH_CONFIGURATION_ALL_DESCRIPTION = "PageAdminConfiguration.auth.configurationAll.description";
+
+    public PageAdminConfiguration() {
+    }
+
+    public PageAdminConfiguration(PageParameters parameters) {
+        super(parameters);
+    }
 }

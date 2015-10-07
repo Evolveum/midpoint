@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -67,6 +69,7 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentTableDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
 import com.evolveum.midpoint.web.component.form.Form;
@@ -83,6 +86,7 @@ import com.evolveum.midpoint.web.component.progress.ProgressReporter;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.PageAdminAbstractRole;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
@@ -104,6 +108,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -212,5 +217,29 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 		super.initTabs(tabs);
 		
 	}
+	
+	@Override
+	protected FocusSummaryPanel<OrgType> createSummaryPanel() {
+		
+    	return new FocusSummaryPanel<OrgType>(ID_SUMMARY_PANEL, getFocusModel()) {
+			@Override
+			protected QName getDisplayNamePropertyName() {
+				return OrgType.F_DISPLAY_NAME;
+			}
+			@Override
+			protected QName getTitlePropertyName() {
+				return OrgType.F_IDENTIFIER;
+			}
+			@Override
+			protected String getIconCssClass() {
+				return "fa fa-users";
+			}
+			@Override
+			protected String getIconBoxColorCssClass() {
+				return "bg-aqua";
+			}
+    	};
+    	
+    }
 
 }
