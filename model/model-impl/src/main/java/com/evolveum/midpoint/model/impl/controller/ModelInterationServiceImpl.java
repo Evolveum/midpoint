@@ -104,7 +104,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * @author semancik
  *
  */
-@Component
+@Component("modelInteractionService")
 public class ModelInterationServiceImpl implements ModelInteractionService {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ModelInterationServiceImpl.class);
