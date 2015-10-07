@@ -76,6 +76,7 @@ import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.injection.Injector;
@@ -84,6 +85,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.apache.wicket.util.string.StringValue;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -488,13 +490,36 @@ public abstract class PageBase extends PageTemplate {
         PageParameters params = new PageParameters();
         params.add(PageSystemConfiguration.SELECTED_TAB_INDEX, PageSystemConfiguration.CONFIGURATION_TAB_BASIC);
         menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.basic"),
-                PageSystemConfiguration.class, params, null);
+                PageSystemConfiguration.class, params, null) {
+
+            @Override
+            public boolean isMenuActive(WebPage page) {
+                if (!PageSystemConfiguration.class.equals(page.getClass())) {
+                    return false;
+                }
+
+                int index = getSelectedTabForConfiguration(page);
+                return PageSystemConfiguration.CONFIGURATION_TAB_BASIC == index ? true : false;
+            }
+        };
         submenu.add(menu);
 
         params = new PageParameters();
         params.add(PageSystemConfiguration.SELECTED_TAB_INDEX, PageSystemConfiguration.CONFIGURATION_TAB_LOGGING);
         menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.logging"),
-                PageSystemConfiguration.class, params, null);
+                PageSystemConfiguration.class, params, null) {
+
+            @Override
+            public boolean isMenuActive(WebPage page) {
+                if (!PageSystemConfiguration.class.equals(page.getClass())) {
+                    return false;
+                }
+
+                int index = getSelectedTabForConfiguration(page);
+                return (PageSystemConfiguration.CONFIGURATION_TAB_LOGGING == index
+                        || PageSystemConfiguration.CONFIGURATION_TAB_PROFILING == index) ? true : false;
+            }
+        };
         submenu.add(menu);
 
 
@@ -511,6 +536,18 @@ public abstract class PageBase extends PageTemplate {
         submenu.add(menu);
 
         return item;
+    }
+
+    private int getSelectedTabForConfiguration(WebPage page) {
+        PageParameters params = page.getPageParameters();
+        StringValue val = params.get(PageSystemConfiguration.SELECTED_TAB_INDEX);
+        String value = null;
+        if (val != null && !val.isNull()) {
+            value = val.toString();
+        }
+
+        return StringUtils.isNumeric(value) ? Integer.parseInt(value) :
+                PageSystemConfiguration.CONFIGURATION_TAB_BASIC;
     }
 
     private void createSelfServiceMenu(SideBarMenuItem menu) {

@@ -129,7 +129,7 @@ public class MainMenuPanel extends SimplePanel<MainMenuItem> {
             }
         }));
 
-        BookmarkablePageLink subLink = new BookmarkablePageLink(ID_SUB_LINK, menu.getPage());
+        BookmarkablePageLink subLink = new BookmarkablePageLink(ID_SUB_LINK, menu.getPage(), menu.getParams());
         listItem.add(subLink);
 
         Label subLabel = new Label(ID_SUB_LABEL, menu.getName());

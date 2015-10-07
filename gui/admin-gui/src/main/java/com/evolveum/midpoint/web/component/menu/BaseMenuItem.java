@@ -84,7 +84,7 @@ public class BaseMenuItem implements Serializable {
 
         boolean isMenuActive = isMenuActive();
 
-        if (pageClass.isAssignableFrom(this.page)) {
+        if (pageClass.equals(this.page)) {
             return isMenuActive;
         }
 
@@ -93,7 +93,7 @@ public class BaseMenuItem implements Serializable {
         }
 
         for (Class c : aliases) {
-            if (pageClass.isAssignableFrom(c)) {
+            if (pageClass.equals(c)) {
                 return isMenuActive;
             }
         }
