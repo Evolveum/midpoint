@@ -35,6 +35,7 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.LoggingConfigPanel;
+import com.evolveum.midpoint.web.page.admin.configuration.component.ProfilingConfigPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.SystemConfigPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.*;
 import com.evolveum.midpoint.web.page.error.PageError;
@@ -90,6 +91,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
     public static final String ROOT_APPENDER_INHERITANCE_CHOICE = "(Inherit root)";
 
     LoggingConfigPanel loggingConfigPanel;
+    ProfilingConfigPanel profilingConfigPanel;
     SystemConfigPanel systemConfigPanel;
 
     private LoadableModel<SystemConfigurationDto> model;
@@ -156,6 +158,15 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
             public WebMarkupContainer getPanel(String panelId) {
                 loggingConfigPanel = new LoggingConfigPanel(panelId);
                 return loggingConfigPanel;
+            }
+        });
+        
+        tabs.add(new AbstractTab(createStringResource("pageSystemConfiguration.profiling.title")) {
+
+            @Override
+            public WebMarkupContainer getPanel(String panelId) {
+            	profilingConfigPanel = new ProfilingConfigPanel(panelId);
+                return profilingConfigPanel;
             }
         });
 
@@ -271,11 +282,11 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
             configuration.getSubSystemLogger().add(item.toXmlType());
         }
 
-        if (dto.getProfilingLevel() != null) {
-            ClassLoggerConfigurationType type = createCustomClassLogger(LoggingDto.LOGGER_PROFILING,
-                    ProfilingLevel.toLoggerLevelType(dto.getProfilingLevel()), dto.getProfilingAppender());
-            configuration.getClassLogger().add(type);
-        }
+//        if (dto.getProfilingLevel() != null) {
+//            ClassLoggerConfigurationType type = createCustomClassLogger(LoggingDto.LOGGER_PROFILING,
+//                    ProfilingLevel.toLoggerLevelType(dto.getProfilingLevel()), dto.getProfilingAppender());
+//            configuration.getClassLogger().add(type);
+//        }
 
         return configuration;
     }
@@ -317,6 +328,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
         config.setTaskManager(dto.isSubsystemTaskManager());
         config.setWorkflow(dto.isSubsystemWorkflow());
 
+       
         return config;
     }
 
@@ -356,6 +368,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 
             s = saveLogging(target, s);
             s = saveNotificationConfiguration(s);
+            s = saveProfiling(target, s);
             saveObjectPolicies(s);
 
             if(LOGGER.isTraceEnabled())
@@ -505,17 +518,17 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
                 return config;
             }
 
-            profilingConfig = createProfilingConfiguration(loggingDto);
-            if(profilingConfig == null){
-                target.add(getFeedbackPanel());
-                target.add(get(ID_MAIN_FORM));
-                return config;
-            }
+//            profilingConfig = createProfilingConfiguration(loggingDto);
+//            if(profilingConfig == null){
+//                target.add(getFeedbackPanel());
+//                target.add(get(ID_MAIN_FORM));
+//                return config;
+//            }
         }
 
         if(loggingConfigPanel != null){
             config.setLogging(loggingConfig);
-            config.setProfilingConfiguration(profilingConfig);
+//            config.setProfilingConfiguration(profilingConfig);
         }
 
         if(loggingConfigPanel != null){
@@ -529,6 +542,61 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
                 appender.setEditing(false);
             }
         }
+
+        return config;
+    }
+    
+    private SystemConfigurationType saveProfiling(AjaxRequestTarget target, SystemConfigurationType config){
+        LoggingDto loggingDto = null;
+//        LoggingConfigurationType loggingConfig = null;
+        ProfilingConfigurationType profilingConfig = null;
+
+        if(profilingConfigPanel != null){
+            loggingDto = profilingConfigPanel.getModel().getObject();
+//            loggingConfig = createLoggingConfiguration(loggingDto);
+
+//            if(loggingConfig == null){
+//                target.add(getFeedbackPanel());
+//                target.add(get(ID_MAIN_FORM));
+//                return config;
+//            }
+
+            profilingConfig = createProfilingConfiguration(loggingDto);
+            if(profilingConfig == null){
+                target.add(getFeedbackPanel());
+                target.add(get(ID_MAIN_FORM));
+                return config;
+            }
+        }
+
+        if(loggingConfigPanel != null){
+//            config.setLogging(loggingConfig);
+            config.setProfilingConfiguration(profilingConfig);
+        }
+        
+        
+        if (loggingDto.getProfilingLevel() != null) {
+            ClassLoggerConfigurationType type = createCustomClassLogger(LoggingDto.LOGGER_PROFILING,
+                    ProfilingLevel.toLoggerLevelType(loggingDto.getProfilingLevel()), loggingDto.getProfilingAppender());
+            LoggingConfigurationType loggingConfig = config.getLogging();
+            if (loggingConfig == null){
+            	loggingConfig = new LoggingConfigurationType();
+            }
+            loggingConfig.getClassLogger().add(type);
+        }
+        
+
+//        if(loggingConfigPanel != null){
+//            for (LoggerConfiguration logger : loggingDto.getLoggers()) {
+//                logger.setEditing(false);
+//            }
+//            for (FilterConfiguration filter : loggingDto.getFilters()) {
+//                filter.setEditing(false);
+//            }
+//            for (AppenderConfiguration appender : loggingDto.getAppenders()) {
+//                appender.setEditing(false);
+//            }
+//        }
 
         return config;
     }
