@@ -150,8 +150,10 @@ public class OrgTreeProvider extends SortableTreeProvider<OrgTreeDto, String> {
             result.computeStatus();
 
             root = createDto(null, object);
-            LOGGER.info("\n{}", result.debugDump());
-            LOGGER.debug("Finished roots loading.");
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("\n{}", result.debugDump());
+                LOGGER.debug("Finished roots loading.");
+            }
         }
 
         if (WebMiscUtil.showResultInPage(result)) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -142,4 +143,13 @@ public interface ModelInteractionService {
      * @throws SchemaException Wrong schema or content of security policy
      */
     CredentialsPolicyType getCredentialsPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+    
+    /**
+     * Returns currently applicable admin GUI configuration. The implementation will do all steps necessary to construct
+     * applicable configuration, e.g. reading from system configuration, merging with user preferences, etc.
+     * Note: This operation bypasses the authorizations. It will always return the value regardless whether
+     * the current user is authorized to read the underlying objects or not. However, it will always return only
+     * values applicable for current user, therefore the authorization might be considered to be implicit in this case.
+     */
+    AdminGuiConfigurationType getAdminGuiConfiguration(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 }

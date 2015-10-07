@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.evolveum.midpoint.web.page.admin.reports.dto;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -36,6 +35,10 @@ public class ReportDto implements Serializable {
     public static final String F_NAME = "name";
     public static final String F_DESCRIPTION = "description";
     public static final String F_EXPORT_TYPE = "exportType";
+    public static final String F_VIRTUALIZER = "virtualizer";
+    public static final String F_VIRTUALIZER_KICKON = "virtualizerKickOn";
+    public static final String F_MAXPAGES = "maxPages"; 
+    public static final String F_TIMEOUT = "timeout";
 
     private boolean parent;
     private String oid;
@@ -46,34 +49,40 @@ public class ReportDto implements Serializable {
     private ExportType exportType;
     private JasperReportDto jasperReportDto;
     private byte[] templateStyle;
-    
-//    private PrismObject<ReportType> object;
-    
+    private String virtualizer;
+    private Integer virtualizerKickOn;
+    private Integer maxPages;
+    private Integer timeout;
 
+//    private PrismObject<ReportType> object;
     private ReportType reportType;
-    
+
     public ReportDto() {
     }
-    
+
     public ReportDto(byte[] reportJrxml) {
-    	this.jasperReportDto = new JasperReportDto(reportJrxml);
+        this.jasperReportDto = new JasperReportDto(reportJrxml);
     }
-    
+
     public ReportDto(ReportType reportType, boolean onlyForPromptingParams) {
-    	this.oid = reportType.getOid();
-    	this.name = reportType.getName().getOrig();
-    	this.exportType = reportType.getExport();
-    	this.searchOnResource = false;
-    	this.description = reportType.getDescription();
+        this.oid = reportType.getOid();
+        this.name = reportType.getName().getOrig();
+        this.exportType = reportType.getExport();
+        this.searchOnResource = false;
+        this.description = reportType.getDescription();
 //    	this.xml = new String(Base64.decodeBase64(reportType.getTemplate()));
-    	this.jasperReportDto = new JasperReportDto(reportType.getTemplate(), onlyForPromptingParams);
-    	this.templateStyle = reportType.getTemplateStyle();
-    	this.parent = reportType.isParent();
-    	this.reportType = reportType;
+        this.jasperReportDto = new JasperReportDto(reportType.getTemplate(), onlyForPromptingParams);
+        this.templateStyle = reportType.getTemplateStyle();
+        this.parent = reportType.isParent();
+        this.virtualizer = reportType.getVirtualizer();
+        this.virtualizerKickOn = reportType.getVirtualizerKickOn();
+        this.maxPages = reportType.getMaxPages();
+        this.timeout = reportType.getTimeout();
+        this.reportType = reportType;
     }
-    
-    public ReportDto(ReportType reportType){
-    	this(reportType, false);
+
+    public ReportDto(ReportType reportType) {
+        this(reportType, false);
     }
 
     public ReportDto(String name, String description) {
@@ -88,8 +97,6 @@ public class ReportDto implements Serializable {
         this.exportType = export;
         this.parent = parent;
     }
-    
-    
 
     public boolean isParent() {
         return parent;
@@ -100,22 +107,26 @@ public class ReportDto implements Serializable {
     }
 
     public PrismObject<ReportType> getObject() {
-    	if (reportType == null){
-    		reportType = new ReportType();
-    		//TODO FIXME temporary every new report will be set as parent report
-    		reportType.setParent(Boolean.TRUE);
-    	}
-    	reportType.setName(new PolyStringType(name));
-    	reportType.setExport(exportType);
-    	reportType.setTemplate(jasperReportDto.getTemplate());
-    	reportType.setTemplateStyle(templateStyle);
-    	reportType.setDescription(description);
-    	 
+        if (reportType == null) {
+            reportType = new ReportType();
+            //TODO FIXME temporary every new report will be set as parent report
+            reportType.setParent(Boolean.TRUE);
+        }
+        reportType.setName(new PolyStringType(name));
+        reportType.setExport(exportType);
+        reportType.setTemplate(jasperReportDto.getTemplate());
+        reportType.setTemplateStyle(templateStyle);
+        reportType.setDescription(description);
+        reportType.setVirtualizer(virtualizer);
+        reportType.setVirtualizerKickOn(virtualizerKickOn);        
+        reportType.setMaxPages(maxPages);
+        reportType.setTimeout(timeout);
+
         return reportType.asPrismObject();
     }
 
     public void setObject(PrismObject<ReportType> object) {
-       this.reportType = object.asObjectable();
+        this.reportType = object.asObjectable();
     }
 
     public String getOid() {
@@ -133,7 +144,6 @@ public class ReportDto implements Serializable {
 //    public void setXml(String xml) {
 //        this.xml = xml;
 //    }
-
     public String getName() {
         return name;
     }
@@ -157,8 +167,40 @@ public class ReportDto implements Serializable {
     public void setExportType(ExportType exportType) {
         this.exportType = exportType;
     }
-    
+
     public JasperReportDto getJasperReportDto() {
-		return jasperReportDto;
-	}
+        return jasperReportDto;
+    }
+
+    public String getVirtualizer() {
+        return virtualizer;
+    }
+
+    public void setVirtualizer(String virtualizer) {
+        this.virtualizer = virtualizer;
+    }
+
+    public Integer getVirtualizerKickOn() {
+        return virtualizerKickOn;
+    }
+
+    public void setVirtualizerKickOn(Integer virtualizerKickOn) {
+        this.virtualizerKickOn = virtualizerKickOn;
+    }
+
+    public Integer getMaxPages() {
+        return maxPages;
+    }
+
+    public void setMaxPages(Integer maxPages) {
+        this.maxPages = maxPages;
+    }
+
+    public Integer getTimeout() {
+        return timeout;
+    }
+
+    public void setTimeout(Integer timeout) {
+        this.timeout = timeout;
+    }
 }

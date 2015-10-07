@@ -107,7 +107,7 @@ public class PageDebugView extends PageAdminConfiguration {
 
             @Override
             public String getObject() {
-                return createStringResource("page.subTitle", model.getObject().getName()).getString();
+                return createStringResource("PageDebugView.subTitle", model.getObject().getName()).getString();
             }
         };
     }

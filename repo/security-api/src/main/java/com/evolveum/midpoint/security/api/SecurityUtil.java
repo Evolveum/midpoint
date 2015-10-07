@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 Evolveum
+ * Copyright (c) 2014-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,11 @@ public class SecurityUtil {
 					MidPointPrincipal.class.getName()+" but it was "+principalObject.getClass());
 		}
 		return (MidPointPrincipal) principalObject;
+	}
+	
+	public static boolean isAuthenticated() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		return (authentication != null);
 	}
 	
 }

@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.commons.lang.Validate;
+
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -32,11 +34,14 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
+import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -139,6 +144,7 @@ public class WebModelUtils {
 
         return object;
     }
+
 
     public static <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
                                                                             OperationResult result, PageBase page) {
@@ -280,6 +286,15 @@ public class WebModelUtils {
         ObjectDelta objectDelta = ObjectDelta.createModificationReplaceProperty(type, oid, path, context, status);
 
         return objectDelta;
+    }
+    
+    public static String getLoggedInUserOid() {
+    	MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+        Validate.notNull(principal, "No principal");
+        if (principal.getOid() == null) {
+        	throw new IllegalArgumentException("No OID in principal: "+principal);
+        }
+        return principal.getOid();
     }
 
 }

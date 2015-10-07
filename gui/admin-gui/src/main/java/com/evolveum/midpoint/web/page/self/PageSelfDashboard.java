@@ -297,11 +297,8 @@ public class PageSelfDashboard extends PageSelf {
                         SystemConfigurationType.F_DEFAULT_USER_TEMPLATE ,SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY);
         SystemConfigurationDto dto = null;
         try{
-            PrismObject<SystemConfigurationType> systemConfig = getModelService().getObject(SystemConfigurationType.class,
-                    SystemObjectsType.SYSTEM_CONFIGURATION.value(), options, task, result);
-
-            dto = new SystemConfigurationDto(systemConfig);
-            list = dto.getUserDashboardLink();
+            AdminGuiConfigurationType adminGuiConfig = getModelInteractionService().getAdminGuiConfiguration(task, result);
+            list = adminGuiConfig.getUserDashboardLink();
             callableResult.setValue(list);
             result.recordSuccess();
         } catch(Exception ex){

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,10 +68,12 @@ import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorImpl;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.injection.Injector;
@@ -89,33 +91,48 @@ import java.util.List;
  * @author lazyman
  */
 public abstract class PageBase extends PageTemplate {
+	
+	private static final String DOT_CLASS = PageBase.class.getName() + ".";
+    private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageBase.class);
 
     @SpringBean(name = "modelController")
     private ScriptingService scriptingService;
+    
     @SpringBean(name = "modelController")
     private ModelService modelService;
-    @SpringBean(name = "modelController")
+    
+    @SpringBean(name = "modelInteractionService")
     private ModelInteractionService modelInteractionService;
+    
     @SpringBean(name = "modelController")
     private TaskService taskService;
+    
     @SpringBean(name = "modelDiagController")
     private ModelDiagnosticService modelDiagnosticService;
+    
     @SpringBean(name = "taskManager")
     private TaskManager taskManager;
+    
     @SpringBean(name = "modelController")
     private WorkflowService workflowService;
+    
     @SpringBean(name = "workflowManager")
     private WorkflowManager workflowManager;
+    
     @SpringBean(name = "midpointConfiguration")
     private MidpointConfiguration midpointConfiguration;
+    
     @SpringBean(name = "reportManager")
     private ReportManager reportManager;
+    
     @SpringBean(name = "certificationManager")
     private CertificationManager certificationManager;
+    
     @SpringBean(name = "accessDecisionManager")
     private SecurityEnforcer securityEnforcer;
+    
     @SpringBean
     private MidpointFormValidatorRegistry formValidatorRegistry;
 
@@ -549,5 +566,18 @@ public abstract class PageBase extends PageTemplate {
         submenu.add(n);
 
         return item;
+    }
+    
+    protected PrismObject<UserType> loadUserSelf(PageBase page) {
+        OperationResult result = new OperationResult(OPERATION_LOAD_USER);
+        PrismObject<UserType> user = WebModelUtils.loadObject(UserType.class,
+                WebModelUtils.getLoggedInUserOid(), result, page);
+        result.computeStatus();
+
+        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
+            showResult(result);
+        }
+
+        return user;
     }
 }

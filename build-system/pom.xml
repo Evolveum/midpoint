@@ -75,7 +75,7 @@
         <commons-email.version>1.3</commons-email.version>
         <xmlsec.version>2.0.1</xmlsec.version>
         <connid.version>1.4.1.23</connid.version>
-        <jasper.version>6.0.0</jasper.version>
+        <jasper.version>6.1.1</jasper.version>
         <derby.version>10.11.1.1</derby.version>
         <wro4j.version>1.7.1</wro4j.version>
         <jackson.version>2.3.3</jackson.version>
@@ -626,7 +626,7 @@
             <dependency>
 			    <groupId>org.forgerock.opendj</groupId>
 			    <artifactId>opendj-ldap-sdk</artifactId>
-			    <version>2.6.0</version>
+			    <version>${opendj.version}</version>
 			</dependency>
             <dependency>
                 <groupId>org.apache.velocity</groupId>
@@ -673,6 +673,26 @@
                     <exclusion> <!-- Conflicting version with Spring core -->
                         <groupId>commons-logging</groupId>
                         <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                    <exclusion> <!-- Causes problems with OpenDJ -->
+                        <groupId>bouncycastle</groupId>
+                        <artifactId>bcmail-jdk14</artifactId>
+                    </exclusion>
+                    <exclusion> <!-- Causes problems with OpenDJ -->
+                        <groupId>org.bouncycastle</groupId>
+                        <artifactId>bcmail-jdk14</artifactId>
+                    </exclusion>
+                    <exclusion> <!-- Causes problems with OpenDJ -->
+                        <groupId>bouncycastle</groupId>
+                        <artifactId>bcprov-jdk14</artifactId>
+                    </exclusion>
+                    <exclusion> <!-- Causes problems with OpenDJ -->
+                        <groupId>org.bouncycastle</groupId>
+                        <artifactId>bcprov-jdk14</artifactId>
+                    </exclusion>
+                    <exclusion> <!-- Causes problems with OpenDJ -->
+                        <groupId>org.bouncycastle</groupId>
+                        <artifactId>bctsp-jdk14</artifactId>
                     </exclusion>
                     <!-- use in midPoint 3.2
                     <exclusion>

@@ -189,7 +189,7 @@ public class PageAccount extends PageAdminResources {
                 ResourceType resource = account.asObjectable().getResource();
                 String name = WebMiscUtil.getName(resource);
 
-                return new StringResourceModel("page.subTitle", PageAccount.this, null, null, name).getString();
+                return new StringResourceModel("PageAccount.subTitle", PageAccount.this, null, null, name).getString();
             }
         };
     }

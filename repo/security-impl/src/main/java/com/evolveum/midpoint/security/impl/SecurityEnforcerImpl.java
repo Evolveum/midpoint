@@ -127,8 +127,13 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	public MidPointPrincipal getPrincipal() throws SecurityViolationException {
 		return SecurityUtil.getPrincipal();
 	}
-
+	
     @Override
+	public boolean isAuthenticated() {
+		return SecurityUtil.isAuthenticated();
+	}
+
+	@Override
     public void setupPreAuthenticatedSecurityContext(Authentication authentication) {
         SecurityContext securityContext = SecurityContextHolder.getContext();
         securityContext.setAuthentication(authentication);

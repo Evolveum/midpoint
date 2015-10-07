@@ -319,8 +319,8 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
 				}
 			}
 			if (delta != null) {
-				getModelService()
-						.executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+                            getPrismContext().adopt(delta);
+                            getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
 			}
         } catch (Exception e) {
             result.recordFatalError("Couldn't save report.", e);

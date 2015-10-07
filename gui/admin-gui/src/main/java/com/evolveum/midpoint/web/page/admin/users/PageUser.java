@@ -68,7 +68,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USER_URL,
                 label = "PageUser.auth.user.label",
                 description = "PageUser.auth.user.description")})
-public class PageUser extends PageAdminFocus {
+public class PageUser extends PageAdminFocus<UserType> {
 
     public static final String PARAM_RETURN_PAGE = "returnPage";
     private static final String DOT_CLASS = PageUser.class.getName() + ".";
@@ -242,7 +242,7 @@ public class PageUser extends PageAdminFocus {
     }
 
 	@Override
-	protected FocusType createNewFocus() {
+	protected UserType createNewFocus() {
 		return new UserType();
 	}
 

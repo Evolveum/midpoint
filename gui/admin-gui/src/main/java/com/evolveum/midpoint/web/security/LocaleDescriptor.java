@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component.menu.top;
+package com.evolveum.midpoint.web.security;
 
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import org.apache.commons.lang.StringUtils;
@@ -32,28 +32,18 @@ public class LocaleDescriptor implements Serializable, Comparable<LocaleDescript
     private static final String PROPERTY_NAME = "name";
     private static final String PROPERTY_FLAG = "flag";
     private static final String PROPERTY_LOCALE = "locale";
+    private static final String PROPERTY_DEFAULT = "def";
+
     private String name;
     private String flag;
     private Locale locale;
+    private boolean def;
 
-    public LocaleDescriptor(Properties properties) {
-        Validate.notNull(properties);
-
-        this.name = (String) properties.get(PROPERTY_NAME);
-        this.flag = (String) properties.get(PROPERTY_FLAG);
-
-        String locale = (String) properties.get(PROPERTY_LOCALE);
-        if (StringUtils.isEmpty(locale)) {
-            throw new IllegalStateException("Property file - locale descriptor doesn't contain property '"
-                    + PROPERTY_LOCALE + "' with locale definition.");
-        }
-        this.locale = WebMiscUtil.getLocaleFromString(locale);
-    }
-
-    public LocaleDescriptor(String name, String flag, Locale locale) {
+    public LocaleDescriptor(String name, String flag, String def, Locale locale) {
         this.flag = flag;
         this.locale = locale;
         this.name = name;
+        this.def = Boolean.parseBoolean(def);
     }
 
     public String getFlag() {
@@ -66,6 +56,10 @@ public class LocaleDescriptor implements Serializable, Comparable<LocaleDescript
 
     public String getName() {
         return name;
+    }
+
+    public boolean isDefault() {
+        return def;
     }
 
     @Override
