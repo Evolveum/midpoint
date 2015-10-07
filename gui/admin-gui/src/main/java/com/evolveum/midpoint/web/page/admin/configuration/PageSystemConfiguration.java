@@ -91,9 +91,9 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 
     public static final String ROOT_APPENDER_INHERITANCE_CHOICE = "(Inherit root)";
 
-    LoggingConfigPanel loggingConfigPanel;
-    ProfilingConfigPanel profilingConfigPanel;
-    SystemConfigPanel systemConfigPanel;
+    private LoggingConfigPanel loggingConfigPanel;
+    private ProfilingConfigPanel profilingConfigPanel;
+    private SystemConfigPanel systemConfigPanel;
 
     private LoadableModel<SystemConfigurationDto> model;
 

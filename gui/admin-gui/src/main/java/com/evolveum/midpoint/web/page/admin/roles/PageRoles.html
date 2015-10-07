@@ -20,9 +20,12 @@
 <wicket:extend>
     <div wicket:id="confirmDeletePopup" />
 
-    <div class="clearfix">
-        <form class="form-inline pull-right search-form" wicket:id="searchForm">
+    <form wicket:id="mainForm" class="form-inline">
+        <div wicket:id="table"/>
+    </form>
 
+    <wicket:fragment wicket:id="tableHeader">
+        <form class="form-inline pull-right search-form" wicket:id="searchForm">
             <div class="form-group">
                 <label class="sr-only"><wicket:message key="pageRoles.requestable"/></label>
                 <select class="form-control input-sm" wicket:id="choice" />
@@ -30,11 +33,7 @@
 
             <div wicket:id="basicSearch"/>
         </form>
-    </div>
-
-    <form wicket:id="mainForm" class="clearfix form-horizontal">
-        <div wicket:id="table"/>
-    </form>
+    </wicket:fragment>
 
 </wicket:extend>
 </body>
