@@ -24,6 +24,8 @@ import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import org.apache.wicket.Page;
+import org.apache.wicket.PageReference;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -36,7 +38,11 @@ import javax.xml.namespace.QName;
 
 /**
  *  @author shood
- * */
+ *
+ *  TODO use a better name (ChooseObjectPanel ? ObjectChoosePanel ?)
+ *  Distinguish between chooser panels that reside on "main page" and
+ *  the one that resides in the popup window (ObjectSelectionPanel).
+ */
 public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectViewDto>{
 
     private static final Trace LOGGER = TraceManager.getTrace(ChooseTypePanel.class);
@@ -45,14 +51,14 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
     private static final String ID_LINK_CHOOSE = "choose";
     private static final String ID_LINK_REMOVE = "remove";
 
-    private static final String MODAL_ID_SHOW_CHOOSE_OPTIONS = "showOptionsPopup";
+    private static final String MODAL_ID_OBJECT_SELECTION_POPUP = "objectSelectionPopup";
 
     public ChooseTypePanel(String id, IModel<ObjectViewDto> model){
         super(id, model);
     }
 
     @Override
-    protected void initLayout(){
+    protected void initLayout() {
 
         final Label name = new Label(ID_OBJECT_NAME, new AbstractReadOnlyModel<String>(){
 
@@ -60,9 +66,9 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
             public String getObject(){
                 ObjectViewDto dto = getModel().getObject();
 
-                if(dto.getName() != null)
+                if (dto.getName() != null)
                     return getModel().getObject().getName();
-                else if(ObjectViewDto.BAD_OID.equals(dto.getOid())){
+                else if (ObjectViewDto.BAD_OID.equals(dto.getOid())){
                     return createStringResource("chooseTypePanel.ObjectNameValue.badOid").getString();
                 } else {
                     return createStringResource("chooseTypePanel.ObjectNameValue.null").getString();
@@ -95,30 +101,75 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
         initDialog();
     }
 
-    private void initDialog(){
-        ModalWindow dialog = new ChooseTypeDialog(MODAL_ID_SHOW_CHOOSE_OPTIONS, getObjectTypeClass()){
+    private void initDialog() {
+        final ModalWindow dialog = new ModalWindow(MODAL_ID_OBJECT_SELECTION_POPUP);
+        // Page creator is used to eliminate "form in a form problem" (MID-2589) - when
+        // an object hierarchy contains form1 -> modal window -> form2, then while submitting
+        // form2, the form1 gets updated with inappropriate search query, leading to zeroing
+        // nullable dropdown boxes. The solution can be factoring out modal window out of form1,
+        // but this is quite problematic when there is a rich hierarchy of panels between
+        // form1 -> ... (panels) ... -> modal window. So, the other solution is
+        // to break the hierarchy by introducing a page hosting the modal window content.
+        dialog.setPageCreator(new ModalWindow.PageCreator() {
+            public Page createPage() {
+                final PageReference callingPageReference = getPage().getPageReference();
 
-            @Override
-            protected void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object){
-                choosePerformed(target, object);
+                ObjectSelectionPanel selectionPanel = new ObjectSelectionPanel(
+                        ObjectSelectionPage.ID_OBJECT_SELECTION_PANEL,
+                        getObjectTypeClass(), getPageBase()) {
+
+                    // It seems that when modal window is open, ChooseTypePanel.this points to
+                    // wrong instance of ChooseTypePanel (the one that will not be used afterwards -
+                    // any changes made to its models are simply lost). So we want to get the reference to the "correct" one.
+                    private ChooseTypePanel getRealParent() {
+                        return theSameForPage(ChooseTypePanel.this, callingPageReference);
+                    }
+
+                    @Override
+                    protected void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object){
+                        getRealParent().choosePerformed(target, object);
+                    }
+
+                    @Override
+                    protected ObjectQuery getDataProviderQuery(){
+                        return getRealParent().getChooseQuery();
+                    }
+
+                    @Override
+                    public boolean isSearchEnabled() {
+                        return getRealParent().isSearchEnabled();
+                    }
+
+                    @Override
+                    public QName getSearchProperty() {
+                        return getRealParent().getSearchProperty();
+                    }
+
+                    @Override
+                    protected void cancelPerformed(AjaxRequestTarget target) {
+                        super.cancelPerformed(target);
+                        dialog.close(target);
+                    }
+                };
+
+                return new ObjectSelectionPage(selectionPanel, getPageBase());
             }
-
-            @Override
-            protected ObjectQuery getDataProviderQuery(){
-                return getChooseQuery();
+        });
+        dialog.setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
+            // We are not able to refresh targets residing in the parent page
+            // from inside the modal window -> so we have to do it in this
+            // context, when the modal window is being closed.
+            public void onClose(AjaxRequestTarget target) {
+                target.add(ChooseTypePanel.this.get(ID_OBJECT_NAME));
             }
-
-            @Override
-            public boolean isSearchEnabled() {
-                return ChooseTypePanel.this.isSearchEnabled();
-            }
-
-            @Override
-            public QName getSearchProperty() {
-                return ChooseTypePanel.this.getSearchProperty();
-            }
-        };
-
+        });
+        dialog.setTitle(createStringResource("chooseTypeDialog.title"));
+        dialog.showUnloadConfirmation(false);
+        dialog.setCssClassName(ModalWindow.CSS_CLASS_GRAY);
+        dialog.setCookieName(ObjectSelectionPanel.class.getSimpleName() + ((int) (Math.random() * 100)));
+        dialog.setInitialWidth(500);
+        dialog.setInitialHeight(500);
+        dialog.setWidthUnit("px");
         add(dialog);
     }
 
@@ -135,7 +186,7 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
     }
 
     private void choosePerformed(AjaxRequestTarget target, ObjectType object){
-        ModalWindow window = (ModalWindow) get(MODAL_ID_SHOW_CHOOSE_OPTIONS);
+        ModalWindow window = (ModalWindow) get(MODAL_ID_OBJECT_SELECTION_POPUP);
         window.close(target);
 
         ObjectViewDto o = getModel().getObject();
@@ -144,14 +195,14 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
         o.setOid(object.getOid());
 
         if(LOGGER.isTraceEnabled()){
-            LOGGER.trace("Choose operation performed.");
+            LOGGER.trace("Choose operation performed: {} ({})", o.getName(), o.getOid());
         }
 
         target.add(get(ID_OBJECT_NAME));
     }
 
     private void changeOptionPerformed(AjaxRequestTarget target){
-        ModalWindow window = (ModalWindow)get(MODAL_ID_SHOW_CHOOSE_OPTIONS);
+        ModalWindow window = (ModalWindow)get(MODAL_ID_OBJECT_SELECTION_POPUP);
         window.show(target);
     }
 

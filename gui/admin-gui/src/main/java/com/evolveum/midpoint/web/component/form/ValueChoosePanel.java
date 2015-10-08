@@ -1,21 +1,18 @@
 package com.evolveum.midpoint.web.component.form;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
+import com.evolveum.midpoint.web.page.admin.configuration.component.ObjectSelectionPage;
+import org.apache.wicket.Page;
+import org.apache.wicket.PageReference;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -30,8 +27,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypeDialog;
+import com.evolveum.midpoint.web.page.admin.configuration.component.ObjectSelectionPanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.roles.component.UserOrgReferenceChoosePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -54,7 +50,7 @@ public class ValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
 	private static final String ID_BUTTON_GROUP = "buttonGroup";
 	private static final String ID_EDIT = "edit";
 
-	protected static final String MODAL_ID_CHOOSE_PANEL = "showPopup";
+	protected static final String MODAL_ID_OBJECT_SELECTION_POPUP = "objectSelectionPopup";
 
 	private static final String CLASS_MULTI_VALUE = "multivalue-form";
 
@@ -69,6 +65,8 @@ public class ValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
 
 		
 		WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
+
+		textWrapper.setOutputMarkupId(true);
 
 		TextField text = new TextField<>(ID_TEXT, createTextModel(value));
 		text.add(new AjaxFormComponentUpdatingBehavior("onblur") {
@@ -119,52 +117,111 @@ public class ValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
 		
          }
 	}
-	
-	private void initGenericDialog(Class<C> type, final List<PrismReferenceValue> values){
-		ModalWindow dialog = new ChooseTypeDialog(MODAL_ID_CHOOSE_PANEL, type) {
 
-			@Override
-			protected void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object) {
-				choosePerformed(target, (C) object);
-			}
+	// for ModalWindow treatment see comments in ChooseTypePanel
+	private void initGenericDialog(final Class<C> type, final List<PrismReferenceValue> values) {
+		final ModalWindow dialog = new ModalWindow(MODAL_ID_OBJECT_SELECTION_POPUP);
+		dialog.setPageCreator(new ModalWindow.PageCreator() {
+			public Page createPage() {
+				final PageReference callingPageReference = getPage().getPageReference();
+				ObjectSelectionPanel selectionPanel = new ObjectSelectionPanel(
+						ObjectSelectionPage.ID_OBJECT_SELECTION_PANEL, type, getPageBase()) {
 
-			@Override
-			protected ObjectQuery getDataProviderQuery() {
-				return createChooseQuery(values);
+					private ValueChoosePanel getRealParent() {
+						return theSameForPage(ValueChoosePanel.this, callingPageReference);
+					}
+
+					@Override
+					protected void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object) {
+						getRealParent().choosePerformed(target, (C) object);
+					}
+
+					@Override
+					protected ObjectQuery getDataProviderQuery() {
+						return getRealParent().createChooseQuery(values);
+					}
+
+					@Override
+					public boolean isSearchEnabled() {
+						return true;
+					}
+
+					@Override
+					protected void cancelPerformed(AjaxRequestTarget target) {
+						super.cancelPerformed(target);
+						dialog.close(target);
+					}
+				};
+				return new ObjectSelectionPage(selectionPanel, getPageBase());
 			}
-			
-			@Override
-			public boolean isSearchEnabled() {
-				return true;
+		});
+		dialog.setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
+			public void onClose(AjaxRequestTarget target) {
+				target.add(ValueChoosePanel.this.get(ID_TEXT_WRAPPER));
 			}
-		};
+		});
+		dialog.setTitle(createStringResource("chooseTypeDialog.title"));
+		dialog.showUnloadConfirmation(false);
+		dialog.setCssClassName(ModalWindow.CSS_CLASS_GRAY);
+		dialog.setCookieName(ObjectSelectionPanel.class.getSimpleName() + ((int) (Math.random() * 100)));
+		dialog.setInitialWidth(500);
+		dialog.setInitialHeight(500);
+		dialog.setWidthUnit("px");
 		add(dialog);
 	}
-	
-	private void initUserOrgDialog(){
-		ModalWindow dialog = new ChooseTypeDialog(MODAL_ID_CHOOSE_PANEL, UserType.class){
 
-            @Override
-            protected void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object){
-                choosePerformed(target, (C)object);
-            }
 
-            @Override
-            protected WebMarkupContainer createExtraContentContainer(String extraContentId) {
-                return new UserOrgReferenceChoosePanel(extraContentId, Boolean.FALSE){
+	private void initUserOrgDialog() {
+		final ModalWindow dialog = new ModalWindow(MODAL_ID_OBJECT_SELECTION_POPUP);
+		dialog.setPageCreator(new ModalWindow.PageCreator() {
+			public Page createPage() {
+				final PageReference callingPageReference = getPage().getPageReference();
+				ObjectSelectionPanel selectionPanel = new ObjectSelectionPanel(
+						ObjectSelectionPage.ID_OBJECT_SELECTION_PANEL, UserType.class, getPageBase()) {
 
-                    @Override
-                    protected void onReferenceTypeChangePerformed(AjaxRequestTarget target, Boolean newValue) {
-                        updateTableByTypePerformed(target, Boolean.FALSE.equals(newValue) ? UserType.class : OrgType.class);
-                    }
-                };
-            }
-        };
-        add(dialog);
+					private ValueChoosePanel getRealParent() {
+						return theSameForPage(ValueChoosePanel.this, callingPageReference);
+					}
+
+					@Override
+					protected void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object) {
+						getRealParent().choosePerformed(target, (C) object);
+					}
+
+					@Override
+					protected WebMarkupContainer createExtraContentContainer(String extraContentId) {
+						return new UserOrgReferenceChoosePanel(extraContentId, Boolean.FALSE) {
+							@Override
+							protected void onReferenceTypeChangePerformed(AjaxRequestTarget target, Boolean newValue) {
+								updateTableByTypePerformed(target, Boolean.FALSE.equals(newValue) ? UserType.class : OrgType.class);
+							}
+						};
+					}
+
+					@Override
+					protected void cancelPerformed(AjaxRequestTarget target) {
+						super.cancelPerformed(target);
+						dialog.close(target);
+					}
+				};
+				return new ObjectSelectionPage(selectionPanel, getPageBase());
+			}
+		});
+		dialog.setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
+			public void onClose(AjaxRequestTarget target) {
+				target.add(ValueChoosePanel.this.get(ID_TEXT_WRAPPER));
+			}
+		});
+		dialog.setTitle(createStringResource("chooseTypeDialog.title"));
+		dialog.showUnloadConfirmation(false);
+		dialog.setCssClassName(ModalWindow.CSS_CLASS_GRAY);
+		dialog.setCookieName(ObjectSelectionPanel.class.getSimpleName() + ((int) (Math.random() * 100)));
+		dialog.setInitialWidth(500);
+		dialog.setInitialHeight(500);
+		dialog.setWidthUnit("px");
+		add(dialog);
 	}
 
-
-	
 	protected ObjectQuery createChooseQuery(List<PrismReferenceValue> values) {
 		ArrayList<String> oidList = new ArrayList<>();
 		ObjectQuery query = new ObjectQuery();
@@ -219,10 +276,12 @@ public class ValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
 	}
 
 	protected void editValuePerformed(List<PrismReferenceValue> values, AjaxRequestTarget target) {
-		ModalWindow window = (ModalWindow) get(MODAL_ID_CHOOSE_PANEL);
-		ChooseTypeDialog dialog = (ChooseTypeDialog) window;
-		dialog.updateTablePerformed(target, createChooseQuery(values));
+		ModalWindow window = (ModalWindow) get(MODAL_ID_OBJECT_SELECTION_POPUP);
 		window.show(target);
+		ObjectSelectionPanel dialog = (ObjectSelectionPanel) window.get(createComponentPath(window.getContentId(), ObjectSelectionPage.ID_OBJECT_SELECTION_PANEL));
+		if (dialog != null) {
+			dialog.updateTablePerformed(target, createChooseQuery(values));
+		}
 	}
 
 	/*
@@ -232,7 +291,7 @@ public class ValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
 	 */
 	protected void choosePerformed(AjaxRequestTarget target, C object) {
 		choosePerformedHook(target, object);
-		ModalWindow window = (ModalWindow) get(MODAL_ID_CHOOSE_PANEL);
+		ModalWindow window = (ModalWindow) get(MODAL_ID_OBJECT_SELECTION_POPUP);
 		window.close(target);
 
 		 if(isObjectUnique(object)){
@@ -242,8 +301,8 @@ public class ValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("New object instance has been added to the model.");
 		}
-
-		target.add(this);
+		// has to be done in the context of parent page
+		//target.add(this);
 	}
 
 	
