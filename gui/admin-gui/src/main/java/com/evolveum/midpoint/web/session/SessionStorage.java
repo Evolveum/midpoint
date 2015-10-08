@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.session;
 
+import org.apache.wicket.Page;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -32,6 +33,8 @@ public class SessionStorage implements Serializable {
      * place to store "previous page" for back button
      */
     private Class<? extends WebPage> previousPage;
+    
+    private Page previousPageInstance;
     /**
      * place to store "previous page" parameters for back button
      */
@@ -63,6 +66,14 @@ public class SessionStorage implements Serializable {
     public void setPreviousPage(Class<? extends WebPage> previousPage) {
         this.previousPage = previousPage;
     }
+    
+    public void setPreviousPageInstance(Page previousPage) {
+        this.previousPageInstance = previousPage;
+    }
+    
+    public Page getPreviousPageInstance() {
+		return previousPageInstance;
+	}
 
     public PageParameters getPreviousPageParams() {
         return previousPageParams;
