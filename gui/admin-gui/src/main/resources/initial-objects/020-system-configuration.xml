@@ -118,7 +118,7 @@
                 <cssClass>fa fa-users</cssClass>
             </icon>
             <color>green</color>
-            <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#usersAll</authorization>
+            <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#users</authorization>
         </userDashboardLink>
         <userDashboardLink>
             <targetUrl>/admin/resources</targetUrl>
@@ -127,7 +127,7 @@
                 <cssClass>fa fa-building</cssClass>
             </icon>
             <color>yellow</color>
-            <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#resourcesAll</authorization>
+            <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#resources</authorization>
         </userDashboardLink>
     </adminGuiConfiguration>
 </systemConfiguration>

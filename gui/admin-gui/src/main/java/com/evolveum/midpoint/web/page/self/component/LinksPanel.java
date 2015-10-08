@@ -23,6 +23,7 @@ public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
     private static final String ID_IMAGE = "imageId";
     private static final String ID_LINK = "link";
     private static final String ID_LABEL = "labelId";
+    private static final String ID_DESCRIPTION = "descriptionId";
     private static final String ID_LINKS_ROW = "linksRow";
     private static final String ID_LINKS_COLUMN = "linksColumn";
     private static final String OPERATION_LOAD_LINKS = DOT_CLASS + "loadLinks";
@@ -94,6 +95,13 @@ public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
                             return link.getLabel();
                         }
                     }));
+                    Label description = new Label(ID_DESCRIPTION, new Model<String>() {
+                        public String getObject() {
+                            return link.getDescription();
+                        }
+                    });
+                    description.setEnabled(false);
+                    linkItem.add(description);
 
                     column.add(linkItem);
                     columnView.add(column);
