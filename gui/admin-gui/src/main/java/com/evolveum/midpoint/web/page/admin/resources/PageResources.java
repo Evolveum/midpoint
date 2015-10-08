@@ -123,7 +123,14 @@ public class PageResources extends PageAdminResources {
     }
 
     public PageResources(boolean clearSessionPaging) {
+        this(clearSessionPaging, "");
+    }
 
+    public PageResources(String searchText){
+        this(true, searchText);
+    }
+
+    public PageResources(boolean clearSessionPaging, final String searchText){
         searchModel = new LoadableModel<ResourceSearchDto>() {
 
             @Override
@@ -134,7 +141,9 @@ public class PageResources extends PageAdminResources {
                 if(dto == null){
                     dto = new ResourceSearchDto();
                 }
-
+                if (searchText != null && !searchText.trim().equals("")) {
+                    dto.setText(searchText);
+                }
                 return dto;
             }
         };

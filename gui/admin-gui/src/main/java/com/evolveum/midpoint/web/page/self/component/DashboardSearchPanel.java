@@ -1,7 +1,8 @@
 package com.evolveum.midpoint.web.page.self.component;
 
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
+import com.evolveum.midpoint.web.page.admin.resources.PageResources;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 import org.apache.poi.ss.formula.functions.T;
@@ -32,10 +33,10 @@ public class DashboardSearchPanel extends SimplePanel<T> {
     private static final String ID_BUTTON_LABEL = "buttonLabel";
     private static final String ID_SEARCH_FORM = "searchForm";
     private static final List<String> SEARCH_TYPES = Arrays.asList(new String[]{
-            "User", "Role", "Organization"});
+            "User", "Resource", "Task"});
     private static final int USER_INDEX = 0;
-    private static final int ROLE_INDEX = 1;
-    private static final int ORG_INDEX = 2;
+    private static final int RESOURCE_INDEX = 1;
+    private static final int TASK_INDEX = 2;
 
     private String selected = "Google";
 
@@ -117,10 +118,10 @@ public class DashboardSearchPanel extends SimplePanel<T> {
     private void performSearch(String searchType, String text) {
         if (SEARCH_TYPES.indexOf(searchType) == USER_INDEX) {
             setResponsePage(new PageUsers(UsersDto.SearchType.NAME, text));
-        } else if (SEARCH_TYPES.indexOf(searchType) == ROLE_INDEX) {
-            setResponsePage(new PageRoles(text));
-        } else if (SEARCH_TYPES.indexOf(searchType) == ORG_INDEX) {
-
+        } else if (SEARCH_TYPES.indexOf(searchType) == RESOURCE_INDEX) {
+            setResponsePage(new PageResources(text));
+        } else if (SEARCH_TYPES.indexOf(searchType) == TASK_INDEX) {
+            setResponsePage(new PageTasks(text));
         }
 
     }
