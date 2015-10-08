@@ -49,6 +49,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -58,6 +59,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -322,6 +324,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         display("Shadow", shadow);
         assertAccountShadow(shadow, toDn(ACCOUNT_JACK_UID));
         assertLockout(shadow, LockoutStatusType.NORMAL);
+        assertPasswordAllowChange(shadow, null);
         jackAccountOid = shadow.getOid();
         
         IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
@@ -466,6 +469,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         assertEquals("Wrong ICFS UID", MiscUtil.binaryToHex(entry.get(getPrimaryIdentifierAttributeName()).getBytes()), accountBarbossaIcfUid);
         
         assertLdapPassword(USER_BARBOSSA_USERNAME, "deadjacktellnotales");
+        assertPasswordAllowChange(shadow, null);
         
         ResourceAttribute<Long> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimestamp"));
         assertNotNull("No createTimestamp in "+shadow, createTimestampAttribute);
@@ -600,7 +604,48 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
         assertAdministrativeStatus(shadow, ActivationStatusType.ENABLED);
 	}
-	
+
+	/**
+	 * passwordAllowChange is a boolean attribute
+	 */
+	@Test
+    public void test240ModifyAccountBarbossaPasswordAllowChangeFalse() throws Exception {
+		final String TEST_NAME = "test240ModifyAccountBarbossaPasswordAllowChangeFalse";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectDelta<ShadowType> delta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
+        QName attrQName = new QName(MidPointConstants.NS_RI, "passwordAllowChange");
+        ResourceAttributeDefinition<Boolean> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
+        PropertyDelta<Boolean> attrDelta = PropertyDelta.createModificationReplaceProperty(
+        		new ItemPath(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.FALSE);
+        delta.addModification(attrDelta);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        assertAttribute(entry, "passwordAllowChange", "FALSE");
+        
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        String shadowOid = getSingleLinkOid(user);
+        assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
+
+        PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
+        display("Shadow after", shadow);
+        assertPasswordAllowChange(shadow, false);
+
+	}
+
 	/**
 	 * This should create account with a group. And disabled.
 	 */
@@ -1009,6 +1054,11 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 		assertNotNull("No primary identifier ("+getPrimaryIdentifierAttributeQName()+" in "+shadow, primaryIdAttr);
 		String primaryId = primaryIdAttr.getRealValue();
 		assertTrue("Unexpected chars in primary ID: '"+primaryId+"'", primaryId.matches("[a-z0-9]+"));
+	}
+	
+	protected void assertPasswordAllowChange(PrismObject<ShadowType> shadow, Boolean expected) throws SchemaException {
+		Boolean passwordAllowChange = ShadowUtil.getAttributeValue(shadow, new QName(MidPointConstants.NS_RI, "passwordAllowChange"));
+		assertEquals("Wrong passwordAllowChange in "+shadow, expected, passwordAllowChange);
 	}
 	
 	private void makeBadLoginAttempt(String uid) throws LdapException {
