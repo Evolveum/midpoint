@@ -232,11 +232,15 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 			}
 			@Override
 			protected String getIconCssClass() {
-				return "fa fa-users";
+				return "fa fa-building";
 			}
 			@Override
-			protected String getIconBoxColorCssClass() {
-				return "bg-aqua";
+			protected String getIconBoxAdditionalCssClass() {
+				return "summary-panel-org";
+			}
+			@Override
+			protected String getBoxAdditionalCssClass() {
+				return "summary-panel-org";
 			}
     	};
     	

@@ -40,6 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 public abstract class FocusSummaryPanel<F extends FocusType> extends Panel {	
 	private static final long serialVersionUID = -3755521482914447912L;
 	
+	private static final String ID_BOX = "summaryBox";
 	private static final String ID_ICON_BOX = "summaryIconBox";
 	private static final String ID_PHOTO = "summaryPhoto";
 	private static final String ID_ICON = "summaryIcon";
@@ -47,24 +48,30 @@ public abstract class FocusSummaryPanel<F extends FocusType> extends Panel {
 	private static final String ID_IDENTIFIER = "summaryIdentifier";
 	private static final String ID_TITLE = "summaryTitle";
 	
+	private static final String BOX_CSS_CLASS = "info-box";
 	private static final String ICON_BOX_CSS_CLASS = "info-box-icon";
 
 	public FocusSummaryPanel(String id, final IModel<ObjectWrapper<F>> model) {
 		super(id, model);
 		
-		add(new Label(ID_DISPLAY_NAME, new PrismPropertyWrapperModel<>(model, getDisplayNamePropertyName())));
-		add(new Label(ID_IDENTIFIER, new PrismPropertyWrapperModel<>(model, getIdentifierPropertyName())));
+		WebMarkupContainer box = new WebMarkupContainer(ID_BOX);
+		add(box);
+		
+		box.add(new AttributeModifier("class", BOX_CSS_CLASS + " " + getBoxAdditionalCssClass()));
+		
+		box.add(new Label(ID_DISPLAY_NAME, new PrismPropertyWrapperModel<>(model, getDisplayNamePropertyName())));
+		box.add(new Label(ID_IDENTIFIER, new PrismPropertyWrapperModel<>(model, getIdentifierPropertyName())));
 		if (getTitlePropertyName() == null) {
-			add(new Label(ID_TITLE, ""));
+			box.add(new Label(ID_TITLE, ""));
 		} else {
-			add(new Label(ID_TITLE, new PrismPropertyWrapperModel<>(model, getTitlePropertyName())));
+			box.add(new Label(ID_TITLE, new PrismPropertyWrapperModel<>(model, getTitlePropertyName())));
 		}
 		
 		WebMarkupContainer iconBox = new WebMarkupContainer(ID_ICON_BOX);
-		add(iconBox);
+		box.add(iconBox);
 		
-		if (getIconBoxColorCssClass() != null) {
-			iconBox.add(new AttributeModifier("class", ICON_BOX_CSS_CLASS + " " + getIconBoxColorCssClass()));
+		if (getIconBoxAdditionalCssClass() != null) {
+			iconBox.add(new AttributeModifier("class", ICON_BOX_CSS_CLASS + " " + getIconBoxAdditionalCssClass()));
 		}
 		
 		Image img = new Image(ID_PHOTO, new AbstractReadOnlyModel<AbstractResource>() {
@@ -100,9 +107,9 @@ public abstract class FocusSummaryPanel<F extends FocusType> extends Panel {
 	
 	protected abstract String getIconCssClass();
 	
-	protected String getIconBoxColorCssClass() {
-		return null;
-	}
+	protected abstract String getIconBoxAdditionalCssClass();
+	
+	protected abstract String getBoxAdditionalCssClass();
 
 	protected QName getIdentifierPropertyName() {
 		return FocusType.F_NAME;
