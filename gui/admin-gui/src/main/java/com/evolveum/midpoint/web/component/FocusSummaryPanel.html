@@ -19,12 +19,23 @@
     		<!-- take care that there are no whitespaces inside the following div -->
             <div wicket:id="summaryIconBox" class="info-box-icon"><span class="user-thumbnail-helper"/><span wicket:id="summaryIcon"/><img wicket:id="summaryPhoto" class="user-thumbnail"/></div>
             <div class="info-box-content">
-            	<span class="info-box-number">
-            		<span wicket:id="summaryDisplayName"/> (<span wicket:id="summaryIdentifier"/>)
-            	</span>
-            	<span class="info-box-text">
-            		<span wicket:id="summaryTitle"/>
-            	</span>
+            	<span class="summary-content-box">
+	            	<span class="summary-text-box">
+		            	<span class="info-box-number">
+		            		<span wicket:id="summaryDisplayName"/> (<span wicket:id="summaryIdentifier"/>)
+		            	</span>
+		            	<span class="summary-panel-title">
+		            		<span wicket:id="summaryTitle"/>
+		            	</span>
+		            	<span class="summary-panel-organization">
+		            		<span wicket:id="summaryOrganization"/>
+		            	</span>
+	            	</span>
+		            <span class="summary-tag-box">
+		            	<span class="summary-tag"><span class="summary-tag-icon"><span wicket:id="summaryTagActivationIcon"/></span> <span wicket:id="summaryTagActivationLabel"/></span>
+		            	<span class="summary-tag"><span class="summary-tag-icon"><span wicket:id="summaryTagSecurityIcon"/></span> <span wicket:id="summaryTagSecurityLabel"/></span>
+		            </span>
+	            </span>
             </div>
         </div>
 </wicket:panel>

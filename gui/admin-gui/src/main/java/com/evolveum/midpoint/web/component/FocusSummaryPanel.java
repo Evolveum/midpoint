@@ -47,6 +47,11 @@ public abstract class FocusSummaryPanel<F extends FocusType> extends Panel {
 	private static final String ID_DISPLAY_NAME = "summaryDisplayName";
 	private static final String ID_IDENTIFIER = "summaryIdentifier";
 	private static final String ID_TITLE = "summaryTitle";
+	private static final String ID_ORGANIZATION = "summaryOrganization";
+	private static final String ID_TAG_ACTIVATION_ICON = "summaryTagActivationIcon";
+	private static final String ID_TAG_ACTIVATION_LABEL = "summaryTagActivationLabel";
+	private static final String ID_TAG_SECURITY_ICON = "summaryTagSecurityIcon";
+	private static final String ID_TAG_SECURITY_LABEL = "summaryTagSecurityLabel";
 	
 	private static final String BOX_CSS_CLASS = "info-box";
 	private static final String ICON_BOX_CSS_CLASS = "info-box-icon";
@@ -66,6 +71,18 @@ public abstract class FocusSummaryPanel<F extends FocusType> extends Panel {
 		} else {
 			box.add(new Label(ID_TITLE, new PrismPropertyWrapperModel<>(model, getTitlePropertyName())));
 		}
+		box.add(new Label(ID_ORGANIZATION, "TODO"));
+		
+		Label tagActivationIcon = new Label(ID_TAG_ACTIVATION_ICON, "");
+		tagActivationIcon.add(new AttributeModifier("class", "fa fa-check"));
+		box.add(tagActivationIcon);
+		box.add(new Label(ID_TAG_ACTIVATION_LABEL, "TODO"));
+		
+		Label tagSecurityIcon = new Label(ID_TAG_SECURITY_ICON, "");
+		tagSecurityIcon.add(new AttributeModifier("class", "fa fa-shield"));
+		box.add(tagSecurityIcon);
+		box.add(new Label(ID_TAG_SECURITY_LABEL, "TODO"));
+		
 		
 		WebMarkupContainer iconBox = new WebMarkupContainer(ID_ICON_BOX);
 		box.add(iconBox);
