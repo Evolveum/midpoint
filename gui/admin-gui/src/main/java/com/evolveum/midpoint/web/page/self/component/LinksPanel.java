@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.web.page.self.component;
 
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -9,10 +10,7 @@ import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.protocol.http.RequestUtils;
 import org.apache.wicket.protocol.http.WebApplication;
-import org.apache.wicket.request.Url;
-import org.apache.wicket.request.cycle.RequestCycle;
 
 import javax.servlet.ServletContext;
 import java.util.List;
@@ -50,68 +48,65 @@ public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
             WebMarkupContainer row = null;
             for (int i = 0; i < linksListSize; i++) {
                 final RichHyperlinkType link = linksList.get(i);
-                if (currentColumn == 0) {
-                    row = new WebMarkupContainer(rowView.newChildId());
-                    columnView = new RepeatingView(ID_LINKS_COLUMN);
-                }
-
-                WebMarkupContainer column = new WebMarkupContainer(columnView.newChildId());
-
-
-                Link linkItem = new Link(ID_LINK) {
-                    @Override
-                    public void onClick() {
-
+                String authorization = link.getAuthorization();
+                if (authorization == null || WebMiscUtil.isAuthorized(authorization)) {
+                    if (currentColumn == 0) {
+                        row = new WebMarkupContainer(rowView.newChildId());
+                        columnView = new RepeatingView(ID_LINKS_COLUMN);
                     }
+                    WebMarkupContainer column = new WebMarkupContainer(columnView.newChildId());
+                    Link linkItem = new Link(ID_LINK) {
+                        @Override
+                        public void onClick() {
+                        }
 
-                    @Override
-                    protected void onComponentTag(final ComponentTag tag) {
-                        super.onComponentTag(tag);
-                        String rootContext = "";
-                        if (link.getTargetUrl() != null && !link.getTargetUrl().startsWith("http://") &&
-                                !link.getTargetUrl().startsWith("https://") &&
-                                !link.getTargetUrl().startsWith("www://") &&
-                                !link.getTargetUrl().startsWith("//")) {
-                            WebApplication webApplication = WebApplication.get();
-                            if (webApplication != null) {
-                                ServletContext servletContext = webApplication.getServletContext();
-                                if (servletContext != null) {
-                                    rootContext = servletContext.getContextPath();
+                        @Override
+                        protected void onComponentTag(final ComponentTag tag) {
+                            super.onComponentTag(tag);
+                            String rootContext = "";
+                            if (link.getTargetUrl() != null && !link.getTargetUrl().startsWith("http://") &&
+                                    !link.getTargetUrl().startsWith("https://") &&
+                                    !link.getTargetUrl().startsWith("www://") &&
+                                    !link.getTargetUrl().startsWith("//")) {
+                                WebApplication webApplication = WebApplication.get();
+                                if (webApplication != null) {
+                                    ServletContext servletContext = webApplication.getServletContext();
+                                    if (servletContext != null) {
+                                        rootContext = servletContext.getContextPath();
+                                    }
                                 }
                             }
+                            tag.put("href", rootContext + link.getTargetUrl());
                         }
-                        tag.put("href", rootContext + link.getTargetUrl());
-                    }
-                };
-                linkItem.add(new Label(ID_IMAGE) {
-                    @Override
-                    protected void onComponentTag(final ComponentTag tag) {
-                        super.onComponentTag(tag);
-                        tag.put("class", "info-box-icon " + (link.getColor() != null ?
-                                (link.getColor().startsWith("bg-") ? link.getColor() : "bg-" + link.getColor()) : "") + " "
-                                + link.getIcon().getCssClass());
-                    }
-                });
+                    };
+                    linkItem.add(new Label(ID_IMAGE) {
+                        @Override
+                        protected void onComponentTag(final ComponentTag tag) {
+                            super.onComponentTag(tag);
+                            tag.put("class", "info-box-icon " + (link.getColor() != null ?
+                                    (link.getColor().startsWith("bg-") ? link.getColor() : "bg-" + link.getColor()) : "") + " "
+                                    + link.getIcon().getCssClass());
+                        }
+                    });
 
-                linkItem.add(new Label(ID_LABEL, new Model<String>() {
-                    public String getObject() {
-                        return link.getLabel();
-                    }
-                }));
+                    linkItem.add(new Label(ID_LABEL, new Model<String>() {
+                        public String getObject() {
+                            return link.getLabel();
+                        }
+                    }));
 
-                column.add(linkItem);
-                columnView.add(column);
-                if (currentColumn == 1 || (i == (linksListSize - 1))) {
-                    row.add(columnView);
-                    rowView.add(row);
-                    currentColumn = 0;
-                } else {
-                    currentColumn++;
+                    column.add(linkItem);
+                    columnView.add(column);
+                    if (currentColumn == 1 || (i == (linksListSize - 1))) {
+                        row.add(columnView);
+                        rowView.add(row);
+                        currentColumn = 0;
+                    } else {
+                        currentColumn++;
+                    }
                 }
             }
         }
         add(rowView);
     }
-
-
 }
