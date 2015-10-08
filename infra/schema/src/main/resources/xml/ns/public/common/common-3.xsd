@@ -8704,6 +8704,17 @@
                 <xsd:annotation>
                     <xsd:documentation>
                     	Human-readable label to display with the link (or a key to the localization file).
+                    	The label should be quite short (several words). It is meant to be displayed as a menu item
+                    	label, launcher label, etc.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                    	Human-readable desciption to display with the link (or a key to the localization file).
+                    	The description can be longer (several sentences). It is mean to be displayed as a multi-line
+                    	description, tooltip, etc. 
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
