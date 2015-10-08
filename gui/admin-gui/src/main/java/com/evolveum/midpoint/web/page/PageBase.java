@@ -552,7 +552,7 @@ public abstract class PageBase extends PageTemplate {
 
     private void createSelfServiceMenu(SideBarMenuItem menu) {
         MainMenuItem item = new MainMenuItem("fa fa-dashboard",
-                createStringResource("PageAdmin.menu.dashboard"), PageSelfDashboard.class);
+                createStringResource("PageAdmin.menu.selfDashboard"), PageSelfDashboard.class);
         menu.getItems().add(item);
         item = new MainMenuItem("fa fa-user",
                 createStringResource("PageAdmin.menu.profile"), PageSelfProfile.class);
