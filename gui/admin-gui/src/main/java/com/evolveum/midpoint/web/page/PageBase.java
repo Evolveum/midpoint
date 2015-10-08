@@ -640,7 +640,7 @@ public abstract class PageBase extends PageTemplate {
     }
 
     private MainMenuItem createRolesItems() {
-        MainMenuItem item = new MainMenuItem("fa fa-bookmark",
+        MainMenuItem item = new MainMenuItem("fa fa-street-view",
                 createStringResource("PageAdmin.menu.top.roles"), null);
 
         List<MenuItem> submenu = item.getItems();

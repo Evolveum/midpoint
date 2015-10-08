@@ -237,8 +237,12 @@ public class PageRole extends PageAdminAbstractRole<RoleType>implements Progress
 				return "fa fa-street-view";
 			}
 			@Override
-			protected String getIconBoxColorCssClass() {
-				return "bg-yellow";
+			protected String getIconBoxAdditionalCssClass() {
+				return "summary-panel-role";
+			}
+			@Override
+			protected String getBoxAdditionalCssClass() {
+				return "summary-panel-role";
 			}
     	};
     }

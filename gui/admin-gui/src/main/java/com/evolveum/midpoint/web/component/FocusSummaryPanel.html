@@ -15,11 +15,9 @@
   ~ limitations under the License.
   -->
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
-    <div class="info-box">
-            <div wicket:id="summaryIconBox" class="info-box-icon">
-            	<span wicket:id="summaryIcon"/>
-                <img wicket:id="summaryPhoto" class="user-thumbnail"/>
-            </div>
+    <div wicket:id="summaryBox" class="info-box">
+    		<!-- take care that there are no whitespaces inside the following div -->
+            <div wicket:id="summaryIconBox" class="info-box-icon"><span class="user-thumbnail-helper"/><span wicket:id="summaryIcon"/><img wicket:id="summaryPhoto" class="user-thumbnail"/></div>
             <div class="info-box-content">
             	<span class="info-box-number">
             		<span wicket:id="summaryDisplayName"/> (<span wicket:id="summaryIdentifier"/>)

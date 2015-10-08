@@ -123,8 +123,12 @@ public class PageUser extends PageAdminFocus<UserType> {
 				return "fa fa-user";
 			}
 			@Override
-			protected String getIconBoxColorCssClass() {
-				return "bg-red";
+			protected String getIconBoxAdditionalCssClass() {
+				return "summary-panel-user";
+			}
+			@Override
+			protected String getBoxAdditionalCssClass() {
+				return "summary-panel-user";
 			}
     	};
     }
