@@ -1,16 +1,23 @@
 package com.evolveum.midpoint.web.page.self.component;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceController;
+import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
+import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceState;
+import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon;
 import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstance;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -70,25 +77,51 @@ public class MyRequestsPanel extends SimplePanel<List<ProcessInstanceDto>> {
                 }
             });
         }
-        columns.add(new AbstractColumn<ProcessInstanceDto, String>(createStringResource("pageProcessInstances.item.result")) {
+        columns.add(new IconColumn<ProcessInstanceDto>(createStringResource("pageProcessInstances.item.result")) {
 
             @Override
-            public void populateItem(Item<ICellPopulator<ProcessInstanceDto>> item, String componentId,
-                                     final IModel<ProcessInstanceDto> rowModel) {
-                item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
+            protected IModel<String> createIconModel(final IModel<ProcessInstanceDto> rowModel) {
+                return new AbstractReadOnlyModel<String>() {
 
                     @Override
-                    public Object getObject() {
-                        ProcessInstanceDto pi = rowModel.getObject();
-                        Boolean result = ApprovalUtils.approvalBooleanValue(pi.getAnswer());
+                    public String getObject() {
+                        ProcessInstanceDto dto = rowModel.getObject();
+                        Boolean result = ApprovalUtils.approvalBooleanValue(dto.getAnswer());
                         if (result == null) {
-                            return "";
+                            return OperationResultStatusIcon
+                                    .parseOperationalResultStatus(OperationResultStatusType.IN_PROGRESS).getIcon();
                         } else {
-                            return result ? "APPROVED" : "REJECTED";        // todo i18n
+                            return result ?
+                                    OperationResultStatusIcon
+                                            .parseOperationalResultStatus(OperationResultStatusType.SUCCESS).getIcon()
+                                    : OperationResultStatusIcon
+                                    .parseOperationalResultStatus(OperationResultStatusType.FATAL_ERROR).getIcon();
                         }
                     }
-                }));
+                };
             }
+
+            @Override
+            protected IModel<String> createTitleModel(final IModel<ProcessInstanceDto> rowModel) {
+                return new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        ProcessInstanceDto dto = rowModel.getObject();
+                        Boolean result = ApprovalUtils.approvalBooleanValue(dto.getAnswer());
+                        if (result == null) {
+                            return MyRequestsPanel.this.getString(OperationResultStatus.class.getSimpleName() + "." +
+                                    OperationResultStatus.IN_PROGRESS);
+                        } else {
+                            return result ?
+                                    createStringResource("MyRequestsPanel.approved").getString()
+                                    : createStringResource("MyRequestsPanel.rejected").getString();
+                        }
+
+                    }
+                };
+            }
+
         });
 
         columns.add(new AbstractColumn<ProcessInstanceDto, String>(createStringResource("MyRequestsPanel.started")) {
