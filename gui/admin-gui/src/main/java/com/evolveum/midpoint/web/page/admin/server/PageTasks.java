@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
+import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -49,6 +51,7 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.apache.commons.lang.StringUtils;
@@ -115,12 +118,22 @@ public class PageTasks extends PageAdminTasks {
     private static final String ID_DELETE_TASKS_POPUP = "deleteTasksPopup";
 
     private IModel<TasksSearchDto> searchModel;
+    private String searchText = "";
 
-    public PageTasks(){
+    public PageTasks() {
         this(true);
     }
 
     public PageTasks(boolean clearSessionStorage) {
+        this(true, "");
+    }
+
+    public PageTasks(String searchText) {
+        this(true, searchText);
+    }
+
+    public PageTasks(boolean clearSessionStorage, String searchText) {
+        this.searchText = searchText;
         searchModel = new LoadableModel<TasksSearchDto>(false) {
 
             @Override
@@ -1133,6 +1146,15 @@ public class PageTasks extends PageAdminTasks {
             }
             if (category != null && !ALL_CATEGORIES.equals(category)) {
                 filters.add(EqualFilter.createEqual(TaskType.F_CATEGORY, TaskType.class, getPrismContext(), null, category));
+            }
+            if (searchText != null && !searchText.trim().equals("")) {
+                PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
+                String normalizedString = normalizer.normalize(searchText);
+
+                ObjectFilter substring = SubstringFilter.createSubstring(TaskType.F_NAME, TaskType.class,
+                        getPrismContext(), PolyStringNormMatchingRule.NAME, normalizedString);
+                filters.add(substring);
+                searchText = "";
             }
             if (!Boolean.TRUE.equals(showSubtasks)) {
                 filters.add(EqualFilter.createEqual(TaskType.F_PARENT, TaskType.class, getPrismContext(), null));
