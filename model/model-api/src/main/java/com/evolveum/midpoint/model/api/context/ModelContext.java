@@ -50,4 +50,6 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
     PrismContext getPrismContext();       // use with care
 
     PrismObject<SystemConfigurationType> getSystemConfiguration();  // beware, may be null - use only as a performance optimization
+
+    String getChannel();
 }

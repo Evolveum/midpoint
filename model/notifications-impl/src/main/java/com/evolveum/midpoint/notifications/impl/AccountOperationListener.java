@@ -179,6 +179,11 @@ public class AccountOperationListener implements ResourceOperationListener {
         } else {
             LOGGER.warn("No owner for task " + task + ", therefore no requester will be set for event " + event.getId());
         }
+
+        if (task != null) {
+            event.setChannel(task.getChannel());
+        }
+
         return event;
     }
 

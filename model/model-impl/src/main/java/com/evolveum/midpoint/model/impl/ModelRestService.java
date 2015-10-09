@@ -704,6 +704,7 @@ public class ModelRestService {
 	private void initRequest(Task task, MessageContext mc) {
 		UserType user = (UserType) mc.get("authenticatedUser");
 		task.setOwner(user.asPrismObject());
+		task.setChannel(SchemaConstants.CHANNEL_REST_URI);
 		auditLoginSuccess(task);
 	}
     
