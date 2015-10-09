@@ -563,7 +563,7 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 	        try {
 	            
 	        	parentOrg = getModelService().getObject(OrgType.class, parentOrgRef.getOid(), null, task, subResult);
-		        LOGGER.trace("Loaded parent org with result {}", new Object[]{subResult});
+		        LOGGER.trace("Loaded parent org with result {}", new Object[]{subResult.getLastSubresult()});
 	        } catch (Exception ex) {
 	            subResult.recordWarning("Cannot load parent org "+parentOrgRef.getOid(), ex);
 	            LOGGER.warn("Cannot load parent org {}: {}", parentOrgRef.getOid(), ex.getMessage(), ex);

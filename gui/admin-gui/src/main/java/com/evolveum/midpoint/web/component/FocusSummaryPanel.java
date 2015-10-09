@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.web.component;
 
+import java.util.Collection;
+
 import javax.xml.namespace.QName;
 
 import org.apache.wicket.AttributeModifier;
@@ -36,6 +38,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 /**
  * @author semancik
@@ -77,7 +80,26 @@ public abstract class FocusSummaryPanel<F extends FocusType> extends Panel {
 		} else {
 			box.add(new Label(ID_TITLE, new PrismPropertyWrapperModel<>(model, getTitlePropertyName(), " ")));
 		}
-		box.add(new Label(ID_ORGANIZATION, "TODO: Organization"));
+		
+		box.add(new Label(ID_ORGANIZATION, new ReadOnlyWrapperModel<F>(model) {
+			@Override
+			public Object getObject() {
+				Collection<PrismObject<OrgType>> parentOrgs = getWrapper().getParentOrgs();
+				if (parentOrgs.isEmpty()) {
+					return "";
+				}
+				// Kinda hack now .. "functional" orgType always has preference
+				// this whole thing should be driven by an expression later on
+				for (PrismObject<OrgType> org: parentOrgs) {
+					OrgType orgType = org.asObjectable();
+					if (orgType.getOrgType().contains("functional")) {
+						return orgType.getDisplayName();
+					}
+				}
+				// Just use the first one as a fallback
+				return parentOrgs.iterator().next().asObjectable().getDisplayName();
+			}
+		}));
 		
 		SummaryTag<F> tagActivation = new SummaryTag<F>(ID_TAG_ACTIVATION, model) {
 			@Override
