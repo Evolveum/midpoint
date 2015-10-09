@@ -178,23 +178,7 @@ public class SimpleFocalObjectNotifier extends GeneralNotifier {
             body.append("More information about the status of the request was displayed and/or is present in log files.\n\n");
         }
 
-        if (event.getRequester() != null) {
-            body.append("Requester: ");
-            try {
-                ObjectType requester = event.getRequester().resolveObjectType(result);
-                if (requester instanceof UserType) {
-                    UserType requesterUser = (UserType) requester;
-                    body.append(requesterUser.getFullName()).append(" (").append(requester.getName()).append(")");
-                } else {
-                    body.append(ObjectTypeUtil.toShortString(requester));
-                }
-            } catch (RuntimeException e) {
-                body.append("couldn't be determined: ").append(e.getMessage());
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine requester for a notification", e);
-            }
-            body.append("\n");
-        }
-        body.append("Channel: ").append(modelContext.getChannel()).append("\n\n");
+        notificationsUtil.addRequesterAndChannelInformation(body, event, result);
 
         if (techInfo) {
             body.append("----------------------------------------\n");

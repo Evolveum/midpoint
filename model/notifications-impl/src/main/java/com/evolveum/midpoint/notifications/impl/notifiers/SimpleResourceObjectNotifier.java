@@ -231,6 +231,9 @@ public class SimpleResourceObjectNotifier extends GeneralNotifier {
             body.append("Error: " + resourceObjectEvent.getAccountOperationDescription().getResult().getMessage() + "\n\n");
         }
 
+        body.append("\n\n");
+        notificationsUtil.addRequesterAndChannelInformation(body, event, result);
+
         if (techInfo) {
             body.append("----------------------------------------\n");
             body.append("Technical information:\n\n");
