@@ -1026,7 +1026,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		private Throwable exception;
 		private long started;
 
-		private SynchronizationInformation increment = new SynchronizationInformation();		// quite a hack TODO replace by something appropriate
+		private SynchronizationInformation.Record increment = new SynchronizationInformation.Record();
 
 		public SynchronizationEventInformation(PrismObject<? extends ShadowType> currentShadow, Task task) {
 			started = System.currentTimeMillis();

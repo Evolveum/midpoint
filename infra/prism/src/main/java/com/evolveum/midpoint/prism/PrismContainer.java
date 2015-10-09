@@ -216,12 +216,16 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
     }
     
     public <T> T getPropertyRealValue(QName propertyName, Class<T> type) {
-    	PrismProperty<T> property = findProperty(propertyName);
-    	if (property == null) {          // when using sql repo, even non-existing properties do not have 'null' here
-    		return null;
-    	}
-    	return property.getRealValue(type);
+    	return getPropertyRealValue(new ItemPath(propertyName), type);
     }
+
+	public <T> T getPropertyRealValue(ItemPath propertyPath, Class<T> type) {
+		PrismProperty<T> property = findProperty(propertyPath);
+		if (property == null) {
+			return null;
+		}
+		return property.getRealValue(type);
+	}
     
     /**
      * Convenience method. Works only on single-valued containers.

@@ -1755,9 +1755,29 @@ public class TaskQuartzImpl implements Task {
         }
 
         ArrayList<PrismPropertyValue<T>> values = new ArrayList(1);
-        values.add(new PrismPropertyValue<T>(value));
+		if (value != null) {
+			values.add(new PrismPropertyValue<T>(value));
+		}
         processModificationBatched(setExtensionPropertyAndPrepareDelta(propertyName, propertyDef, values));
     }
+
+	@Override
+	public <T> void setExtensionPropertyValueTransient(QName propertyName, T value) throws SchemaException {
+		PrismPropertyDefinition propertyDef = getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(propertyName);
+		if (propertyDef == null) {
+			throw new SchemaException("Unknown property " + propertyName);
+		}
+		ArrayList<PrismPropertyValue<T>> values = new ArrayList(1);
+		if (value != null) {
+			values.add(new PrismPropertyValue<T>(value));
+		}
+		ItemDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, propertyName), propertyDef, getPrismContext());
+		delta.setValuesToReplace(values);
+
+		Collection<ItemDelta<?,?>> modifications = new ArrayList<>(1);
+		modifications.add(delta);
+		PropertyDelta.applyTo(modifications, taskPrism);
+	}
 
     // use this method to avoid cloning the value
     @Override
@@ -2537,18 +2557,15 @@ public class TaskQuartzImpl implements Task {
 
 	// Operational data
 
-	@Override
-	public OperationalInformation getOperationalInformation() {
+	private OperationalInformation getOperationalInformation() {
 		return operationalInformation;
 	}
 
-	@Override
-	public SynchronizationInformation getSynchronizationInformation() {
+	private SynchronizationInformation getSynchronizationInformation() {
 		return synchronizationInformation;
 	}
 
-	@Override
-	public IterativeTaskInformation getIterativeTaskInformation() {
+	private IterativeTaskInformation getIterativeTaskInformation() {
 		return iterativeTaskInformation;
 	}
 
@@ -2560,7 +2577,7 @@ public class TaskQuartzImpl implements Task {
 		OperationalInformationType rv = new OperationalInformationType();
 		OperationalInformation.addTo(rv, operationalInformation.getAggregatedValue());
 		for (Task subtask : getLightweightAsynchronousSubtasks()) {
-			OperationalInformation info = subtask.getOperationalInformation();
+			OperationalInformation info = ((TaskQuartzImpl) subtask).getOperationalInformation();
 			if (info != null) {
 				OperationalInformation.addTo(rv, info.getAggregatedValue());
 			}
@@ -2577,7 +2594,7 @@ public class TaskQuartzImpl implements Task {
 		IterativeTaskInformationType rv = new IterativeTaskInformationType();
 		IterativeTaskInformation.addTo(rv, iterativeTaskInformation.getAggregatedValue(), false);
 		for (Task subtask : getLightweightAsynchronousSubtasks()) {
-			IterativeTaskInformation info = subtask.getIterativeTaskInformation();
+			IterativeTaskInformation info = ((TaskQuartzImpl) subtask).getIterativeTaskInformation();
 			if (info != null) {
 				IterativeTaskInformation.addTo(rv, info.getAggregatedValue(), false);
 			}
@@ -2594,7 +2611,7 @@ public class TaskQuartzImpl implements Task {
 		SynchronizationInformationType rv = new SynchronizationInformationType();
 		SynchronizationInformation.addTo(rv, synchronizationInformation.getAggregatedValue());
 		for (Task subtask : getLightweightAsynchronousSubtasks()) {
-			SynchronizationInformation info = subtask.getSynchronizationInformation();
+			SynchronizationInformation info = ((TaskQuartzImpl) subtask).getSynchronizationInformation();
 			if (info != null) {
 				SynchronizationInformation.addTo(rv, info.getAggregatedValue());
 			}
@@ -2630,7 +2647,7 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	@Override
-	public synchronized void recordSynchronizationOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started, Throwable exception, SynchronizationInformation increment) {
+	public synchronized void recordSynchronizationOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started, Throwable exception, SynchronizationInformation.Record increment) {
 		recordIterativeOperationEnd(objectName, objectDisplayName, objectType, objectOid, started, exception);
 		if (synchronizationInformation != null) {
 			synchronizationInformation.recordSynchronizationOperationEnd(objectName, objectDisplayName, objectType, objectOid, started, exception, increment);

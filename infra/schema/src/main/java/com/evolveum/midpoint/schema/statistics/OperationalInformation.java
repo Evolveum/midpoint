@@ -40,23 +40,23 @@ import java.util.Map;
  */
 public class OperationalInformation {
 
-    private OperationalInformationType startValue;
+    /*
+     * Thread safety: Instances of this class may be accessed from more than one thread at once.
+     * Updates are invoked in the context of the thread executing the task.
+     * Queries are invoked either from this thread, or from some observer (task manager or GUI thread).
+     *
+     * We ensure synchronization by making public methods synchronized. We don't expect much contention on this.
+     */
+    private final OperationalInformationType startValue;        // this object is concurrently read (that is thread-safe), not written
 
     private Map<ProvisioningStatisticsKey,ProvisioningStatisticsData> provisioningData = new HashMap<>();
     private Map<NotificationsStatisticsKey,GenericStatisticsData> notificationsData = new HashMap<>();
     private Map<MappingsStatisticsKey,GenericStatisticsData> mappingsData = new HashMap<>();
 
-    private List<StatusMessage> messages = new ArrayList<>();
+    private StatusMessage lastMessage;
 
     public OperationalInformation(OperationalInformationType value) {
         startValue = value;
-        if (value == null) {
-            return;
-        }
-//        if (value.getLastMessageTimestamp() != null) {
-//            StatusMessage last = new StatusMessage(XmlTypeConverter.toDate(value.getLastMessageTimestamp()), value.getLastMessage());
-//            messages.add(last);
-//        }
     }
 
     public OperationalInformation() {
@@ -67,13 +67,13 @@ public class OperationalInformation {
         return startValue;
     }
 
-    public OperationalInformationType getDeltaValue() {
+    public synchronized OperationalInformationType getDeltaValue() {
         OperationalInformationType rv = toOperationalInformationType();
         rv.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
         return rv;
     }
 
-    public OperationalInformationType getAggregatedValue() {
+    public synchronized OperationalInformationType getAggregatedValue() {
         OperationalInformationType delta = toOperationalInformationType();
         OperationalInformationType rv = aggregate(startValue, delta);
         rv.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
@@ -85,19 +85,11 @@ public class OperationalInformation {
         rv.setProvisioningStatistics(toProvisioningStatisticsType());
         rv.setMappingsStatistics(toMappingsStatisticsType());
         rv.setNotificationsStatistics(toNotificationsStatisticsType());
-        StatusMessage statusMessage = getLastStatusMessage();
-        if (statusMessage != null) {
-            rv.setLastMessageTimestamp(XmlTypeConverter.createXMLGregorianCalendar(statusMessage.getDate()));
-            rv.setLastMessage(statusMessage.getMessage());
+        if (lastMessage != null) {
+            rv.setLastMessageTimestamp(XmlTypeConverter.createXMLGregorianCalendar(lastMessage.getDate()));
+            rv.setLastMessage(lastMessage.getMessage());
         }
         return rv;
-    }
-
-    private StatusMessage getLastStatusMessage() {
-        if (messages.isEmpty()) {
-            return null;
-        }
-        return messages.get(messages.size() - 1);
     }
 
     private NotificationsStatisticsType toNotificationsStatisticsType() {
@@ -450,12 +442,7 @@ public class OperationalInformation {
         return Math.max(a, b);
     }
 
-
-    public void recordState(String message) {
-        messages.add(new StatusMessage(message));
-    }
-
-    public void recordProvisioningOperation(String resourceOid, String resourceName, QName objectClassName, ProvisioningOperation operation, boolean success, int count, long duration) {
+    public synchronized void recordProvisioningOperation(String resourceOid, String resourceName, QName objectClassName, ProvisioningOperation operation, boolean success, int count, long duration) {
         ProvisioningStatisticsKey key = new ProvisioningStatisticsKey(resourceOid, resourceName, objectClassName, operation, success);
         ProvisioningStatisticsData data = provisioningData.get(key);
         if (data == null) {
@@ -465,7 +452,7 @@ public class OperationalInformation {
         data.recordOperation(duration, count);
     }
 
-    public void recordNotificationOperation(String transportName, boolean success, long duration) {
+    public synchronized void recordNotificationOperation(String transportName, boolean success, long duration) {
         NotificationsStatisticsKey key = new NotificationsStatisticsKey(transportName, success);
         GenericStatisticsData data = notificationsData.get(key);
         if (data == null) {
@@ -475,7 +462,7 @@ public class OperationalInformation {
         data.recordOperation(duration, 1);
     }
 
-    public void recordMappingOperation(String objectOid, String objectName, String mappingName, long duration) {
+    public synchronized void recordMappingOperation(String objectOid, String objectName, String mappingName, long duration) {
         // ignoring mapping name for now
         if (objectName == null) {
             System.out.println("Null objectName");
@@ -489,27 +476,11 @@ public class OperationalInformation {
         data.recordOperation(duration, 1);
     }
 
-    public Map<ProvisioningStatisticsKey, ProvisioningStatisticsData> getProvisioningData() {
-        return provisioningData;
+    public synchronized StatusMessage getLastMessage() {
+        return lastMessage;
     }
 
-    public Map<NotificationsStatisticsKey, GenericStatisticsData> getNotificationsData() {
-        return notificationsData;
-    }
-
-    public Map<MappingsStatisticsKey, GenericStatisticsData> getMappingsData() {
-        return mappingsData;
-    }
-
-    public List<StatusMessage> getMessages() {
-        return messages;
-    }
-
-    public StatusMessage getLastMessage() {
-        if (messages.isEmpty()) {
-            return null;
-        } else {
-            return messages.get(messages.size()-1);
-        }
+    public synchronized void recordState(String message) {
+        lastMessage = new StatusMessage(message);
     }
 }

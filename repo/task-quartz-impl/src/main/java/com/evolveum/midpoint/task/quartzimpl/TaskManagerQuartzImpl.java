@@ -31,6 +31,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
@@ -59,10 +60,13 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeErrorStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -956,7 +960,30 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         if (SelectorOptions.hasToLoadPath(TaskType.F_SUBTASK, options)) {
             fillInSubtasks(task, clusterStatusInformation, options, result);
         }
+        fillStatistics(task);
         return task.getTaskPrismObject();
+    }
+
+    private void fillStatistics(Task task) throws SchemaException {
+        if (task.getTaskIdentifier() == null) {
+            return;     // shouldn't really occur
+        }
+
+        Task taskInMemory = getLocallyRunningTaskByIdentifier(task.getTaskIdentifier());
+        if (taskInMemory == null) {
+            return;
+        }
+
+        OperationalInformationType operationalInformationType = taskInMemory.getAggregateOperationalInformation();
+        operationalInformationType.setFromMemory(true);
+        SynchronizationInformationType synchronizationInformationType = taskInMemory.getAggregateSynchronizationInformation();
+        synchronizationInformationType.setFromMemory(true);
+        IterativeTaskInformationType iterativeTaskInformationType = taskInMemory.getAggregateIterativeTaskInformation();
+        iterativeTaskInformationType.setFromMemory(true);
+
+        task.setExtensionPropertyValueTransient(SchemaConstants.MODEL_EXTENSION_OPERATIONAL_INFORMATION_PROPERTY_NAME, operationalInformationType);
+        task.setExtensionPropertyValueTransient(SchemaConstants.MODEL_EXTENSION_SYNCHRONIZATION_INFORMATION_PROPERTY_NAME, synchronizationInformationType);
+        task.setExtensionPropertyValueTransient(SchemaConstants.MODEL_EXTENSION_ITERATIVE_TASK_INFORMATION_PROPERTY_NAME, iterativeTaskInformationType);
     }
 
     private void fillInSubtasks(Task task, ClusterStatusInformation clusterStatusInformation, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
