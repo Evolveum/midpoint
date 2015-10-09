@@ -15,11 +15,18 @@
  */
 package com.evolveum.midpoint.web.page.admin.users.component;
 
+import java.util.List;
+
 import javax.xml.namespace.QName;
 
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.web.component.util.ReadOnlyWrapperModel;
+import com.evolveum.midpoint.web.component.util.SummaryTag;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -28,9 +35,46 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 public class UserSummaryPanel extends FocusSummaryPanel<UserType> {
 	private static final long serialVersionUID = -5077637168906420769L;
+	
+	private static final String ID_TAG_SECURITY = "summaryTagSecurity";
 
 	public UserSummaryPanel(String id, IModel model) {
 		super(id, model);
+		
+		SummaryTag<UserType> tagSecurity = new SummaryTag<UserType>(ID_TAG_SECURITY, model) {
+			@Override
+			protected void initialize(ObjectWrapper<UserType> wrapper) {
+				List<AssignmentType> assignments = wrapper.getObject().asObjectable().getAssignment();
+				if (assignments.isEmpty()) {
+					setIconCssClass("fa fa-times");
+					setLabel("No assignments");
+					return;
+				}
+				boolean isSuperuser = false;
+				boolean isEndUser = false;
+				for (AssignmentType assignment: assignments) {
+					if (assignment.getTargetRef() != null) {
+						if (SystemObjectsType.ROLE_SUPERUSER.value().equals(assignment.getTargetRef().getOid())) {
+							isSuperuser = true;
+						} else if (SystemObjectsType.ROLE_END_USER.value().equals(assignment.getTargetRef().getOid())) {
+							isEndUser = true;
+						}
+					}
+				}
+				if (isSuperuser) {
+					setIconCssClass("fa fa-shield");
+					setLabel("Superuser");
+					setColor("red");
+				} else if (isEndUser) {
+					setIconCssClass("fa fa-user");
+					setLabel("End User");
+					setColor("green");
+				} else {
+					setHideTag(true);
+				}
+			}
+		};
+		addTag(tagSecurity);
 	}
 
 	@Override

@@ -64,6 +64,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
@@ -438,12 +439,13 @@ public class PrismValuePanel extends Panel {
                   if(def.getValueEnumerationRef() != null){
                       PrismReferenceValue valueEnumerationRef = def.getValueEnumerationRef();
                       String lookupTableUid = valueEnumerationRef.getOid();
-                      OperationResult result = new OperationResult("loadLookupTable");
+                      Task task = pageBase.createSimpleTask("loadLookupTable");
+                      OperationResult result = task.getResult();
 
                       Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_ROW,
                               GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
                       final PrismObject<LookupTableType> lookupTable = WebModelUtils.loadObject(LookupTableType.class,
-                              lookupTableUid, options, result, pageBase);
+                              lookupTableUid, options, pageBase, task, result);
 
                       inputPanel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<String>(model, baseExpression + ".orig",
                               lookupTable.asObjectable()), String.class) {
@@ -528,12 +530,13 @@ public class PrismValuePanel extends Panel {
                   if(def.getValueEnumerationRef() != null){
                       PrismReferenceValue valueEnumerationRef = def.getValueEnumerationRef();
                       String lookupTableUid = valueEnumerationRef.getOid();
-                      OperationResult result = new OperationResult("loadLookupTable");
+                      Task task = pageBase.createSimpleTask("loadLookupTable");
+                      OperationResult result = task.getResult();
 
                       Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_ROW,
                               GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
                       final PrismObject<LookupTableType> lookupTable = WebModelUtils.loadObject(LookupTableType.class,
-                              lookupTableUid, options, result, pageBase);
+                              lookupTableUid, options, pageBase, task, result);
 
                       panel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<String>(model, baseExpression, lookupTable.asObjectable()), type) {
 

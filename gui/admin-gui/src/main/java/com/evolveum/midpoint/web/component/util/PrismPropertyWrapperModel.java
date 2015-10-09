@@ -44,15 +44,25 @@ public class PrismPropertyWrapperModel<O extends ObjectType> extends AbstractWra
     private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyWrapperModel.class);
 
     private ItemPath path;
+    private Object defaultValue = null;
 
     public PrismPropertyWrapperModel(IModel<ObjectWrapper<O>> model, QName item) {
-        this(model, new ItemPath(item));
+        this(model, new ItemPath(item), null);
+    }
+
+    public PrismPropertyWrapperModel(IModel<ObjectWrapper<O>> model, QName item, Object defaltValue) {
+        this(model, new ItemPath(item), defaltValue);
     }
 
     public PrismPropertyWrapperModel(IModel<ObjectWrapper<O>> model, ItemPath path) {
+    	this(model, path, null);
+    }
+    
+    public PrismPropertyWrapperModel(IModel<ObjectWrapper<O>> model, ItemPath path, Object defaltValue) {
     	super(model);
         Validate.notNull(path, "Item path must not be null.");
         this.path = path;
+        this.defaultValue = defaltValue;
     }
 
     @Override
@@ -66,7 +76,12 @@ public class PrismPropertyWrapperModel<O extends ObjectType> extends AbstractWra
             throw new RestartResponseException(PageError.class);
         }
 
-        return getRealValue(property != null ? property.getRealValue() : null);
+        Object val = getRealValue(property != null ? property.getRealValue() : null);
+        if (val == null) {
+        	return defaultValue;
+        } else {
+        	return val;
+        }
     }
 
     @Override

@@ -76,6 +76,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
@@ -125,6 +126,7 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 	private boolean protectedAccount;
 
 	private List<PrismProperty> associations;
+	private Collection<PrismObject<OrgType>> parentOrgs = new ArrayList<>();
 
 	private OperationResult fetchResult;
 	// a "static" (non-refined) definition that reflects editability of the object in terms of midPoint schema limitations and security
@@ -184,6 +186,10 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 
 	public void setAssociations(List<PrismProperty> associations) {
 		this.associations = associations;
+	}
+
+	public Collection<PrismObject<OrgType>> getParentOrgs() {
+		return parentOrgs;
 	}
 
 	public OperationResult getFetchResult() {

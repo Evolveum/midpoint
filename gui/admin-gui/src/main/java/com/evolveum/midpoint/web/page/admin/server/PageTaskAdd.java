@@ -174,13 +174,15 @@ public class PageTaskAdd extends PageAdminTasks {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCE);
+            	Task task = createSimpleTask(OPERATION_LOAD_RESOURCE);
+                OperationResult result = task.getResult();
                 List<QName> objectClassList = new ArrayList<>();
 
                 TaskAddResourcesDto resourcesDto = model.getObject().getResource();
 
                 if(resourcesDto != null){
-                    PrismObject<ResourceType> resource = WebModelUtils.loadObject(ResourceType.class, resourcesDto.getOid(), result, PageTaskAdd.this);
+                    PrismObject<ResourceType> resource = WebModelUtils.loadObject(ResourceType.class, 
+                    		resourcesDto.getOid(), PageTaskAdd.this, task, result);
 
                     try {
                         ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resource, getPrismContext());

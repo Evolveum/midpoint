@@ -94,14 +94,15 @@ public class PageAccount extends PageAdminResources {
     }
 
     private ObjectWrapper<ShadowType> loadAccount() {
-        OperationResult result = new OperationResult(OPERATION_LOAD_ACCOUNT);
+    	Task task = createSimpleTask(OPERATION_LOAD_ACCOUNT);
+        OperationResult result = task.getResult();
 
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
                 ShadowType.F_RESOURCE, GetOperationOptions.createResolve());
 
         StringValue oid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
         PrismObject<ShadowType> account = WebModelUtils.loadObject(ShadowType.class, oid.toString(), options,
-                result, PageAccount.this);
+                PageAccount.this, task, result);
 
         if (account == null) {
             getSession().error(getString("pageAccount.message.cantEditAccount"));

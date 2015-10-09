@@ -190,11 +190,13 @@ public class TaskDto extends Selectable {
     }
 
     private void updateObjectClassList(PageBase pageBase){
-        OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCE);
+    	Task task = pageBase.createSimpleTask(OPERATION_LOAD_RESOURCE);
+        OperationResult result = task.getResult();
         List<QName> objectClassList = new ArrayList<>();
 
         if(resourceRef != null){
-            PrismObject<ResourceType> resource = WebModelUtils.loadObject(ResourceType.class, resourceRef.getOid(), result, pageBase);
+            PrismObject<ResourceType> resource = WebModelUtils.loadObject(ResourceType.class, resourceRef.getOid(), 
+            		pageBase, task, result);
 
             try {
                 ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resource, pageBase.getPrismContext());

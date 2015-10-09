@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.resources;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
@@ -74,8 +75,9 @@ public class PageResourceWizard extends PageAdminResources {
                         return resource.asPrismObject();
                     }
 
+                    Task task = createSimpleTask("loadResource");
                     PrismObject<ResourceType> resource = WebModelUtils.loadObject(ResourceType.class, getResourceOid(),
-                            null, PageResourceWizard.this);
+                            PageResourceWizard.this, task, task.getResult());
 
                     PageResourceWizard.this.getPrismContext().adopt(resource);
                     if (resource == null) {

@@ -1045,12 +1045,13 @@ public class TreeTablePanel extends SimplePanel<String> {
 
         PageBase page = getPageBase();
         ModelService model = page.getModelService();
-        OperationResult result = new OperationResult(OPERATION_MOVE_OBJECTS);
+        Task task = getPageBase().createSimpleTask(OPERATION_MOVE_OBJECTS);
+        OperationResult result = task.getResult();
         for (OrgTableDto object : objects) {
             OperationResult subResult = result.createSubresult(OPERATION_MOVE_OBJECT);
 
             PrismObject<OrgType> orgUnit = WebModelUtils.loadObject(OrgType.class, object.getOid(),
-                    WebModelUtils.createOptionsForParentOrgRefs(), subResult, getPageBase());
+                    WebModelUtils.createOptionsForParentOrgRefs(), getPageBase(), task, subResult);
             try {
                 ObjectDelta delta = createMoveDelta(orgUnit, oldParent, newParent, operation);
 

@@ -395,7 +395,8 @@ public class NameStep extends WizardStep {
     @Override
     public void applyState() {
         PageBase page = (PageBase) getPage();
-        OperationResult result = new OperationResult(OPERATION_SAVE_RESOURCE);
+        Task task = page.createSimpleTask(OPERATION_SAVE_RESOURCE);
+        OperationResult result = task.getResult();
         boolean newResource;
 
         try {
@@ -435,7 +436,7 @@ public class NameStep extends WizardStep {
             ObjectDelta delta;
             if (!newResource) {
                 PrismObject<ResourceType> oldResource = WebModelUtils.loadObject(ResourceType.class, resource.getOid(),
-                        result, page);
+                        page, task, result);
 
                 delta = DiffUtil.diff(oldResource, resource);
             } else {
@@ -445,10 +446,10 @@ public class NameStep extends WizardStep {
             WebModelUtils.save(delta, ModelExecuteOptions.createRaw(), result, page);
 
             if(!newResource){
-                resource = WebModelUtils.loadObject(ResourceType.class, delta.getOid(), result, page);
+                resource = WebModelUtils.loadObject(ResourceType.class, delta.getOid(), page, task, result);
             } else {
                 Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
-                resource = WebModelUtils.loadObject(ResourceType.class, delta.getOid(), options ,result, page);
+                resource = WebModelUtils.loadObject(ResourceType.class, delta.getOid(), options , page, task, result);
             }
 
             resourceModel.setObject(resource);

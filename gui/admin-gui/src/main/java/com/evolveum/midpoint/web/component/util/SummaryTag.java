@@ -36,6 +36,7 @@ public abstract class SummaryTag<O extends ObjectType> extends Panel {
 	private String iconCssClass;
 	private String label;
 	private String color = null;
+	private boolean hideTag = false;
 	
 	public SummaryTag(String id, final IModel<ObjectWrapper<O>> model) {
 		super(id, model);
@@ -65,6 +66,16 @@ public abstract class SummaryTag<O extends ObjectType> extends Panel {
 				return "color: " + getColor();
 			}
 		}));
+		
+		add(new VisibleEnableBehaviour(){    		
+            @Override
+            public boolean isVisible(){
+            	if (!initialized) {
+    				initialize(model.getObject());
+    			}
+            	return !isHideTag();
+            }
+        });
 	}
 
 	public String getIconCssClass() {
@@ -90,11 +101,19 @@ public abstract class SummaryTag<O extends ObjectType> extends Panel {
 	public void setColor(String color) {
 		this.color = color;
 	}
+	
+	public boolean isHideTag() {
+		return hideTag;
+	}
 
-	protected abstract void initialize(ReadOnlyWrapperModel<O> model);
+	public void setHideTag(boolean hideTag) {
+		this.hideTag = hideTag;
+	}
+
+	protected abstract void initialize(ObjectWrapper<O> objectWrapper);
 
 	abstract class SummaryTagWrapperModel extends ReadOnlyWrapperModel<O> {
-
+		
 		public SummaryTagWrapperModel(IModel<ObjectWrapper<O>> wrapperModel) {
 			super(wrapperModel);
 		}
@@ -102,7 +121,7 @@ public abstract class SummaryTag<O extends ObjectType> extends Panel {
 		@Override
 		public Object getObject() {
 			if (!initialized) {
-				initialize(this);
+				initialize(getWrapper());
 			}
 			return getValue();
 		}

@@ -278,9 +278,10 @@ public class PageSelfDashboard extends PageSelf {
             throw new IllegalArgumentException("No OID in principal: "+principal);
         }
 
-        OperationResult result = new OperationResult(OPERATION_LOAD_USER);
+        Task task = createSimpleTask(OPERATION_LOAD_USER);
+        OperationResult result = task.getResult();
         PrismObject<UserType> user = WebModelUtils.loadObject(UserType.class,
-                principal.getOid(), result, PageSelfDashboard.this);
+                principal.getOid(), PageSelfDashboard.this, task, result);
         result.computeStatus();
 
         if (!WebMiscUtil.isSuccessOrHandledError(result)) {

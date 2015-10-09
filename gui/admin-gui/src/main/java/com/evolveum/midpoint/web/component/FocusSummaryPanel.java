@@ -53,18 +53,19 @@ public abstract class FocusSummaryPanel<F extends FocusType> extends Panel {
 	private static final String ID_TITLE = "summaryTitle";
 	private static final String ID_ORGANIZATION = "summaryOrganization";
 	private static final String ID_TAG_ACTIVATION = "summaryTagActivation";
-	private static final String ID_TAG_SECURITY = "summaryTagSecurity";
 	
 	private static final String BOX_CSS_CLASS = "info-box";
 	private static final String ICON_BOX_CSS_CLASS = "info-box-icon";
 
 	protected static final String ICON_CLASS_ACTIVATION_ACTIVE = "fa fa-check";
 	protected static final String ICON_CLASS_ACTIVATION_INACTIVE = "fa fa-times";
+	
+	private WebMarkupContainer box;
 
 	public FocusSummaryPanel(String id, final IModel<ObjectWrapper<F>> model) {
 		super(id, model);
 		
-		WebMarkupContainer box = new WebMarkupContainer(ID_BOX);
+		box = new WebMarkupContainer(ID_BOX);
 		add(box);
 		
 		box.add(new AttributeModifier("class", BOX_CSS_CLASS + " " + getBoxAdditionalCssClass()));
@@ -72,16 +73,16 @@ public abstract class FocusSummaryPanel<F extends FocusType> extends Panel {
 		box.add(new Label(ID_DISPLAY_NAME, new PrismPropertyWrapperModel<>(model, getDisplayNamePropertyName())));
 		box.add(new Label(ID_IDENTIFIER, new PrismPropertyWrapperModel<>(model, getIdentifierPropertyName())));
 		if (getTitlePropertyName() == null) {
-			box.add(new Label(ID_TITLE, ""));
+			box.add(new Label(ID_TITLE, " "));
 		} else {
-			box.add(new Label(ID_TITLE, new PrismPropertyWrapperModel<>(model, getTitlePropertyName())));
+			box.add(new Label(ID_TITLE, new PrismPropertyWrapperModel<>(model, getTitlePropertyName(), " ")));
 		}
 		box.add(new Label(ID_ORGANIZATION, "TODO: Organization"));
 		
 		SummaryTag<F> tagActivation = new SummaryTag<F>(ID_TAG_ACTIVATION, model) {
 			@Override
-			protected void initialize(ReadOnlyWrapperModel<F> model) {
-				ActivationType activation = model.getObjectType().getActivation();
+			protected void initialize(ObjectWrapper<F> wrapper) {
+				ActivationType activation = wrapper.getObject().asObjectable().getActivation();
 				if (activation == null) {
 					setIconCssClass(ICON_CLASS_ACTIVATION_ACTIVE);
 					setLabel("Active");
@@ -97,17 +98,8 @@ public abstract class FocusSummaryPanel<F extends FocusType> extends Panel {
 				}
 			}
 		};
-		box.add(tagActivation);
+		addTag(tagActivation);
 		
-		SummaryTag<F> tagSecurity = new SummaryTag<F>(ID_TAG_SECURITY, model) {
-			@Override
-			protected void initialize(ReadOnlyWrapperModel<F> model) {
-				setIconCssClass("fa fa-shield");
-				setLabel("TODO");
-			}
-		};
-		box.add(tagSecurity);
-				
 		WebMarkupContainer iconBox = new WebMarkupContainer(ID_ICON_BOX);
 		box.add(iconBox);
 		
@@ -144,6 +136,10 @@ public abstract class FocusSummaryPanel<F extends FocusType> extends Panel {
             }
         });
         iconBox.add(icon);
+	}
+	
+	public void addTag(SummaryTag<F> tag) {
+		box.add(tag);
 	}
 	
 	protected abstract String getIconCssClass();

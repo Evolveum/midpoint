@@ -116,8 +116,10 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
     private ReportDto loadReport() {
         StringValue reportOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
 
-        OperationResult result = new OperationResult(OPERATION_LOAD_REPORT);
-        PrismObject<ReportType> prismReport = WebModelUtils.loadObject(ReportType.class, reportOid.toString(), result, this);
+        Task task = createSimpleTask(OPERATION_LOAD_REPORT);
+        OperationResult result = task.getResult();
+        PrismObject<ReportType> prismReport = WebModelUtils.loadObject(ReportType.class, reportOid.toString(), 
+        		this, task, result);
         
         if (prismReport == null) {
             LOGGER.error("Couldn't load report.");
@@ -299,9 +301,9 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
     }
 
     protected void onSavePerformed(AjaxRequestTarget target) {
-        OperationResult result = new OperationResult(OPERATION_SAVE_REPORT);
+    	Task task = createSimpleTask(OPERATION_SAVE_REPORT);
+        OperationResult result = task.getResult();
         try {
-            Task task = createSimpleTask(OPERATION_SAVE_REPORT);
 
             //TODO TODO TODO
             PrismObject<ReportType> newReport = model.getObject().getObject();
@@ -312,7 +314,7 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
 				delta.setPrismContext(getPrismContext());
 			} else {
 				PrismObject<ReportType> oldReport = WebModelUtils.loadObject(ReportType.class,
-						newReport.getOid(), result, this);
+						newReport.getOid(), this, task, result);
 
 				if (oldReport != null) {
 					delta = oldReport.diff(newReport);
