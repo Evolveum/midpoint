@@ -30,7 +30,11 @@ import org.apache.wicket.request.resource.ByteArrayResource;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.PrismPropertyWrapperModel;
+import com.evolveum.midpoint.web.component.util.ReadOnlyWrapperModel;
+import com.evolveum.midpoint.web.component.util.SummaryTag;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 /**
@@ -48,13 +52,14 @@ public abstract class FocusSummaryPanel<F extends FocusType> extends Panel {
 	private static final String ID_IDENTIFIER = "summaryIdentifier";
 	private static final String ID_TITLE = "summaryTitle";
 	private static final String ID_ORGANIZATION = "summaryOrganization";
-	private static final String ID_TAG_ACTIVATION_ICON = "summaryTagActivationIcon";
-	private static final String ID_TAG_ACTIVATION_LABEL = "summaryTagActivationLabel";
-	private static final String ID_TAG_SECURITY_ICON = "summaryTagSecurityIcon";
-	private static final String ID_TAG_SECURITY_LABEL = "summaryTagSecurityLabel";
+	private static final String ID_TAG_ACTIVATION = "summaryTagActivation";
+	private static final String ID_TAG_SECURITY = "summaryTagSecurity";
 	
 	private static final String BOX_CSS_CLASS = "info-box";
 	private static final String ICON_BOX_CSS_CLASS = "info-box-icon";
+
+	protected static final String ICON_CLASS_ACTIVATION_ACTIVE = "fa fa-check";
+	protected static final String ICON_CLASS_ACTIVATION_INACTIVE = "fa fa-times";
 
 	public FocusSummaryPanel(String id, final IModel<ObjectWrapper<F>> model) {
 		super(id, model);
@@ -71,19 +76,38 @@ public abstract class FocusSummaryPanel<F extends FocusType> extends Panel {
 		} else {
 			box.add(new Label(ID_TITLE, new PrismPropertyWrapperModel<>(model, getTitlePropertyName())));
 		}
-		box.add(new Label(ID_ORGANIZATION, "TODO"));
+		box.add(new Label(ID_ORGANIZATION, "TODO: Organization"));
 		
-		Label tagActivationIcon = new Label(ID_TAG_ACTIVATION_ICON, "");
-		tagActivationIcon.add(new AttributeModifier("class", "fa fa-check"));
-		box.add(tagActivationIcon);
-		box.add(new Label(ID_TAG_ACTIVATION_LABEL, "TODO"));
+		SummaryTag<F> tagActivation = new SummaryTag<F>(ID_TAG_ACTIVATION, model) {
+			@Override
+			protected void initialize(ReadOnlyWrapperModel<F> model) {
+				ActivationType activation = model.getObjectType().getActivation();
+				if (activation == null) {
+					setIconCssClass(ICON_CLASS_ACTIVATION_ACTIVE);
+					setLabel("Active");
+					setColor("green");
+				} else if (activation.getEffectiveStatus() == ActivationStatusType.ENABLED) {
+					setIconCssClass(ICON_CLASS_ACTIVATION_ACTIVE);
+					setLabel("Active");
+					setColor("green");
+				} else {
+					setIconCssClass(ICON_CLASS_ACTIVATION_INACTIVE);
+					setLabel("Inactive");
+					setColor("red");
+				}
+			}
+		};
+		box.add(tagActivation);
 		
-		Label tagSecurityIcon = new Label(ID_TAG_SECURITY_ICON, "");
-		tagSecurityIcon.add(new AttributeModifier("class", "fa fa-shield"));
-		box.add(tagSecurityIcon);
-		box.add(new Label(ID_TAG_SECURITY_LABEL, "TODO"));
-		
-		
+		SummaryTag<F> tagSecurity = new SummaryTag<F>(ID_TAG_SECURITY, model) {
+			@Override
+			protected void initialize(ReadOnlyWrapperModel<F> model) {
+				setIconCssClass("fa fa-shield");
+				setLabel("TODO");
+			}
+		};
+		box.add(tagSecurity);
+				
 		WebMarkupContainer iconBox = new WebMarkupContainer(ID_ICON_BOX);
 		box.add(iconBox);
 		

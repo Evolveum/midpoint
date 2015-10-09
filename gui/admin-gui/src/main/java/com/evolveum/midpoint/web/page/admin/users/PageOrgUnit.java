@@ -92,6 +92,7 @@ import com.evolveum.midpoint.web.page.admin.PageAdminAbstractRole;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
+import com.evolveum.midpoint.web.page.admin.users.component.OrgSummaryPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusShadowDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
@@ -221,28 +222,7 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 	@Override
 	protected FocusSummaryPanel<OrgType> createSummaryPanel() {
 		
-    	return new FocusSummaryPanel<OrgType>(ID_SUMMARY_PANEL, getFocusModel()) {
-			@Override
-			protected QName getDisplayNamePropertyName() {
-				return OrgType.F_DISPLAY_NAME;
-			}
-			@Override
-			protected QName getTitlePropertyName() {
-				return OrgType.F_IDENTIFIER;
-			}
-			@Override
-			protected String getIconCssClass() {
-				return "fa fa-building";
-			}
-			@Override
-			protected String getIconBoxAdditionalCssClass() {
-				return "summary-panel-org";
-			}
-			@Override
-			protected String getBoxAdditionalCssClass() {
-				return "summary-panel-org";
-			}
-    	};
+    	return new OrgSummaryPanel(ID_SUMMARY_PANEL, getFocusModel());
     	
     }
 

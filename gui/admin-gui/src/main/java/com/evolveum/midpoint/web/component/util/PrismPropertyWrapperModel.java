@@ -39,11 +39,10 @@ import javax.xml.namespace.QName;
  * @author lazyman
  * @author semancik
  */
-public class PrismPropertyWrapperModel<O extends ObjectType> implements IModel {
+public class PrismPropertyWrapperModel<O extends ObjectType> extends AbstractWrapperModel<O> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyWrapperModel.class);
 
-    private IModel<ObjectWrapper<O>> model;
     private ItemPath path;
 
     public PrismPropertyWrapperModel(IModel<ObjectWrapper<O>> model, QName item) {
@@ -51,19 +50,16 @@ public class PrismPropertyWrapperModel<O extends ObjectType> implements IModel {
     }
 
     public PrismPropertyWrapperModel(IModel<ObjectWrapper<O>> model, ItemPath path) {
-        Validate.notNull(model, "Prism object model must not be null.");
+    	super(model);
         Validate.notNull(path, "Item path must not be null.");
-
-        this.model = model;
         this.path = path;
     }
 
     @Override
     public Object getObject() {
-        PrismObject<O> object = model.getObject().getObject();
         PrismProperty property;
         try {
-            property = object.findOrCreateProperty(path);
+            property = getPrismObject().findOrCreateProperty(path);
         } catch (SchemaException ex) {
             LoggingUtils.logException(LOGGER, "Couldn't create property in path {}", ex, path);
             //todo show message in page error [lazyman]
@@ -76,8 +72,7 @@ public class PrismPropertyWrapperModel<O extends ObjectType> implements IModel {
     @Override
     public void setObject(Object object) {
         try {
-            PrismObject<O> obj = model.getObject().getObject();
-            PrismProperty property = obj.findOrCreateProperty(path);
+            PrismProperty property = getPrismObject().findOrCreateProperty(path);
 
             if (object != null) {
                 PrismPropertyDefinition def = property.getDefinition();
