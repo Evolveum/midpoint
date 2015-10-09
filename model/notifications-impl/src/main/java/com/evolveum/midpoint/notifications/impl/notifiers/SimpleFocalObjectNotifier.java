@@ -25,8 +25,10 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -175,6 +177,24 @@ public class SimpleFocalObjectNotifier extends GeneralNotifier {
         if (!event.isSuccess()) {
             body.append("More information about the status of the request was displayed and/or is present in log files.\n\n");
         }
+
+        if (event.getRequester() != null) {
+            body.append("Requester: ");
+            try {
+                ObjectType requester = event.getRequester().resolveObjectType(result);
+                if (requester instanceof UserType) {
+                    UserType requesterUser = (UserType) requester;
+                    body.append(requesterUser.getFullName()).append(" (").append(requester.getName()).append(")");
+                } else {
+                    body.append(ObjectTypeUtil.toShortString(requester));
+                }
+            } catch (RuntimeException e) {
+                body.append("couldn't be determined: ").append(e.getMessage());
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine requester for a notification", e);
+            }
+            body.append("\n");
+        }
+        body.append("Channel: ").append(modelContext.getChannel()).append("\n\n");
 
         if (techInfo) {
             body.append("----------------------------------------\n");
