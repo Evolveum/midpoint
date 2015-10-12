@@ -17,11 +17,13 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator;
+import com.evolveum.midpoint.model.impl.expr.MidpointFunctionsImpl;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -72,6 +74,15 @@ public class ReportServiceImpl implements ReportService {
 
 	@Autowired(required = true)
 	private AuditService auditService;
+	
+	@Autowired(required = true)
+	private FunctionLibrary logFunctionLibrary;
+	
+	@Autowired(required = true)
+	private FunctionLibrary basicFunctionLibrary;
+	
+	@Autowired(required = true)
+	private FunctionLibrary midpointFunctionLibrary;
 
 	@Override
 	public ObjectQuery parseQuery(String query, Map<QName, Object> parameters) throws SchemaException,
@@ -275,16 +286,21 @@ public class ReportServiceImpl implements ReportService {
 	}
 
 	private Collection<FunctionLibrary> createFunctionLibraries() {
-		FunctionLibrary functionLib = ExpressionUtil.createBasicFunctionLibrary(prismContext,
-				prismContext.getDefaultProtector());
+//		FunctionLibrary functionLib = ExpressionUtil.createBasicFunctionLibrary(prismContext,
+//				prismContext.getDefaultProtector());
 		FunctionLibrary midPointLib = new FunctionLibrary();
 		midPointLib.setVariableName("report");
 		midPointLib.setNamespace("http://midpoint.evolveum.com/xml/ns/public/function/report-3");
 		ReportFunctions reportFunctions = new ReportFunctions(prismContext, model, taskManager, auditService);
 		midPointLib.setGenericFunctions(reportFunctions);
+//		
+//		MidpointFunctionsImpl mp = new MidpointFunctionsImpl();
+//		mp.
 
 		Collection<FunctionLibrary> functions = new ArrayList<>();
-		functions.add(functionLib);
+		functions.add(basicFunctionLibrary);
+		functions.add(logFunctionLibrary);
+		functions.add(midpointFunctionLibrary);
 		functions.add(midPointLib);
 		return functions;
 	}
