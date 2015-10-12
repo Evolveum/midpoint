@@ -85,7 +85,7 @@ public class MidpointXmlProvider<T> extends AbstractConfigurableProvider impleme
 			marhaledObj = prismContext.getJaxbDomHack().silentMarshalObject(object, LOGGER);
 		}
 		
-		entityStream.write(marhaledObj.getBytes());
+		entityStream.write(marhaledObj.getBytes("utf-8"));
 		
 		
 	}
