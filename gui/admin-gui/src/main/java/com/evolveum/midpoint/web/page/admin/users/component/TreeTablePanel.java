@@ -64,6 +64,7 @@ import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.web.util.StringResourceChoiceRenderer;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -86,15 +87,18 @@ import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -137,7 +141,12 @@ public class TreeTablePanel extends SimplePanel<String> {
     private static final String ID_TREE_HEADER = "treeHeader";
     private static final String ID_SEARCH_FORM = "searchForm";
     private static final String ID_BASIC_SEARCH = "basicSearch";
+    private static final String ID_SEARCH_SCOPE = "searchScope";
 
+    private static final String SEARCH_SCOPE_SUBTREE = "subtree";
+    private static final String SEARCH_SCOPE_ONE = "one";
+    private static final List<String> SEARCH_SCOPE_VALUES = Arrays.asList( SEARCH_SCOPE_SUBTREE, SEARCH_SCOPE_ONE);
+    
     private IModel<OrgTreeDto> selected = new LoadableModel<OrgTreeDto>() {
 
         @Override
@@ -405,7 +414,6 @@ public class TreeTablePanel extends SimplePanel<String> {
                 UserProfileStorage.TableId.TREE_TABLE_PANEL_MANAGER, UserProfileStorage.DEFAULT_PAGING_SIZE);
         managerTablePanel.setOutputMarkupId(true);
         managerTablePanel.getNavigatorPanel().add(new VisibleEnableBehaviour(){
-
             @Override
             public boolean isVisible() {
                 return managerTableProvider.size() > managerTablePanel.getDataTable().getItemsPerPage();
@@ -454,6 +462,11 @@ public class TreeTablePanel extends SimplePanel<String> {
         Form form = new Form(ID_SEARCH_FORM);
         form.setOutputMarkupId(true);
         add(form);
+        
+        
+        DropDownChoice<String> seachScrope = new DropDownChoice<String>(ID_SEARCH_SCOPE, Model.of(SEARCH_SCOPE_SUBTREE),
+        		SEARCH_SCOPE_VALUES, new StringResourceChoiceRenderer("TreeTablePanel.search.scope"));
+        form.add(seachScrope);
 
         BasicSearchPanel basicSearch = new BasicSearchPanel(ID_BASIC_SEARCH, new Model()) {
 
@@ -1140,15 +1153,27 @@ public class TreeTablePanel extends SimplePanel<String> {
         OrgTreeDto dto = selected.getObject();
         String oid = dto != null ? dto.getOid() : getModel().getObject();
 
-        OrgFilter org = OrgFilter.createOrg(oid, OrgFilter.Scope.ONE_LEVEL);
-
         BasicSearchPanel<String> basicSearch = (BasicSearchPanel) get(createComponentPath(ID_SEARCH_FORM, ID_BASIC_SEARCH));
         String object = basicSearch.getModelObject();
 
-        if (StringUtils.isEmpty(object)) {
-            return ObjectQuery.createObjectQuery(org);
+        DropDownChoice<String> searchScopeChoice = (DropDownChoice) get(createComponentPath(ID_SEARCH_FORM, ID_SEARCH_SCOPE));
+        String scope = searchScopeChoice.getModelObject();
+
+        if (StringUtils.isBlank(object)) {
+        	object = null;
+        }
+        
+        OrgFilter org;
+        if (object == null || SEARCH_SCOPE_ONE.equals(scope)) {
+        	org = OrgFilter.createOrg(oid, OrgFilter.Scope.ONE_LEVEL);
+        } else {
+        	org = OrgFilter.createOrg(oid, OrgFilter.Scope.SUBTREE);
         }
 
+        if (object == null) {
+            return ObjectQuery.createObjectQuery(org);
+        }
+        
         PageBase page = getPageBase();
         PrismContext context = page.getPrismContext();
 
@@ -1162,8 +1187,13 @@ public class TreeTablePanel extends SimplePanel<String> {
                 PolyStringNormMatchingRule.NAME, normalizedString);
 
         AndFilter and = AndFilter.createAnd(org, substring);
+        ObjectQuery query = ObjectQuery.createObjectQuery(and);
+        
+        if(LOGGER.isTraceEnabled()){
+            LOGGER.trace("Searching child rgs of org {} with query:\n{}", oid, query.debugDump());
+        }
 
-        return ObjectQuery.createObjectQuery(and);
+        return query;
     }
 
     private ObjectQuery createManagerTableQuery(){
@@ -1184,9 +1214,17 @@ public class TreeTablePanel extends SimplePanel<String> {
             substring =  SubstringFilter.createSubstring(ObjectType.F_NAME, ObjectType.class, getPageBase().getPrismContext(),
                     PolyStringNormMatchingRule.NAME, normalizedString);
         }
+        
+        DropDownChoice<String> searchScopeChoice = (DropDownChoice) get(createComponentPath(ID_SEARCH_FORM, ID_SEARCH_SCOPE));
+        String scope = searchScopeChoice.getModelObject();
 
         try {
-            OrgFilter org = OrgFilter.createOrg(oid, OrgFilter.Scope.ONE_LEVEL);
+            OrgFilter org;
+            if (substring == null || SEARCH_SCOPE_ONE.equals(scope)) {
+            	org = OrgFilter.createOrg(oid, OrgFilter.Scope.ONE_LEVEL);
+            } else {
+            	org = OrgFilter.createOrg(oid, OrgFilter.Scope.SUBTREE);
+            }
 
             PrismReferenceValue referenceValue = new PrismReferenceValue();
             referenceValue.setOid(oid);
@@ -1220,30 +1258,46 @@ public class TreeTablePanel extends SimplePanel<String> {
         PolyStringNormalizer normalizer = getPageBase().getPrismContext().getDefaultPolyStringNormalizer();
         String normalizedString = normalizer.normalize(object);
 
-        if (StringUtils.isEmpty(normalizedString)) {
+        if (StringUtils.isBlank(normalizedString)) {
             substring = null;
         } else {
             substring =  SubstringFilter.createSubstring(ObjectType.F_NAME, ObjectType.class, getPageBase().getPrismContext(),
                     PolyStringNormMatchingRule.NAME, normalizedString);
         }
 
+        DropDownChoice<String> searchScopeChoice = (DropDownChoice) get(createComponentPath(ID_SEARCH_FORM, ID_SEARCH_SCOPE));
+        String scope = searchScopeChoice.getModelObject();
+
         try {
-            OrgFilter org = OrgFilter.createOrg(oid, OrgFilter.Scope.ONE_LEVEL);
-
-            PrismReferenceValue referenceFilter = new PrismReferenceValue();
-            referenceFilter.setOid(oid);
-            referenceFilter.setRelation(null);
-            RefFilter referenceOidFilter = RefFilter.createReferenceEqual(new ItemPath(FocusType.F_PARENT_ORG_REF),
-                    UserType.class, getPageBase().getPrismContext(), referenceFilter);
-
-            if(substring != null){
-                query = ObjectQuery.createObjectQuery(AndFilter.createAnd(org, referenceOidFilter , substring));
+            OrgFilter org;
+            if (substring == null || SEARCH_SCOPE_ONE.equals(scope)) {
+            	org = OrgFilter.createOrg(oid, OrgFilter.Scope.ONE_LEVEL);
+            	
+                PrismReferenceValue referenceFilter = new PrismReferenceValue();
+                referenceFilter.setOid(oid);
+                referenceFilter.setRelation(null);
+                RefFilter referenceOidFilter = RefFilter.createReferenceEqual(new ItemPath(FocusType.F_PARENT_ORG_REF),
+                        UserType.class, getPageBase().getPrismContext(), referenceFilter);
+                
+                if (substring != null){
+                    query = ObjectQuery.createObjectQuery(AndFilter.createAnd(org, referenceOidFilter , substring));
+                } else {
+                    query = ObjectQuery.createObjectQuery(AndFilter.createAnd(org, referenceOidFilter));
+                }
+                
             } else {
-                query = ObjectQuery.createObjectQuery(AndFilter.createAnd(org, referenceOidFilter));
+            	
+            	org = OrgFilter.createOrg(oid, OrgFilter.Scope.SUBTREE);
+            	
+                if (substring != null){
+                    query = ObjectQuery.createObjectQuery(AndFilter.createAnd(org, substring));
+                } else {
+                    query = ObjectQuery.createObjectQuery(org);
+                }
             }
 
             if(LOGGER.isTraceEnabled()){
-                LOGGER.info(query.debugDump());
+                LOGGER.trace("Searching members of org {} with query:\n{}", oid, query.debugDump());
             }
 
         } catch (SchemaException e) {

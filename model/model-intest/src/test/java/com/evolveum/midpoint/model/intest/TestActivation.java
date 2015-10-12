@@ -1336,7 +1336,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		assertValidity(userLargo, null);
 		assertValidityTimestamp(userLargo, startMillis, clock.currentTimeMillis());
 		lastValidityChangeTimestamp = userLargo.asObjectable().getActivation().getValidityChangeTimestamp();
-		assertEffectiveStatus(userLargo, ActivationStatusType.DISABLED);
+		assertEffectiveStatus(userLargo, ActivationStatusType.ENABLED);
 		
 		assertUser(userLargo, USER_LARGO_OID, USER_LARGO_USERNAME, "Largo LaGrande", "Largo", "LaGrande");
         accountOid = getSingleLinkOid(userLargo);
@@ -1350,7 +1350,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountShadowModel(accountModel, accountOid, USER_LARGO_USERNAME, "Largo LaGrande");
         
         // Check account in dummy resource
-        assertDefaultDummyAccount(USER_LARGO_USERNAME, "Largo LaGrande", false);
+        assertDefaultDummyAccount(USER_LARGO_USERNAME, "Largo LaGrande", true);
 	}
 	
 	/**
