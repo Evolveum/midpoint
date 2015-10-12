@@ -23,7 +23,6 @@ alter table m_focus_photo
     foreign key (owner_oid)
     references m_focus;
 
-
 alter table m_focus add hasPhoto boolean not null default false;
 
 update m_focus set hasPhoto = false;
@@ -32,7 +31,14 @@ update m_focus set hasPhoto = (select hasPhoto from m_user where m_user.oid = m_
 
 alter table m_user drop column hasPhoto;
 
+alter table m_assignment add orgRef_relation varchar(157);
+alter table m_assignment add orgRef_targetOid varchar(36);
+alter table m_assignment add orgRef_type integer;
+alter table m_assignment add resourceRef_relation varchar(157);
+alter table m_assignment add resourceRef_targetOid varchar(36);
+alter table m_assignment add resourceRef_type integer;
 
-
-
-
+create index iTargetRefTargetOid on m_assignment (targetRef_targetOid);
+create index iTenantRefTargetOid on m_assignment (tenantRef_targetOid);
+create index iOrgRefTargetOid on m_assignment (orgRef_targetOid);
+create index iResourceRefTargetOid on m_assignment (resourceRef_targetOid);
