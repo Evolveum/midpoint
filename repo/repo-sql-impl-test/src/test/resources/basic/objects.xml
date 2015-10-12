@@ -74,6 +74,14 @@
             </construction>
             <order>10</order>
         </assignment>
+        
+        <assignment id="2">
+        	<targetRef oid="r123" type="RoleType" />
+        </assignment>
+        
+         <assignment id="3">
+        	<targetRef oid="00000000-8888-6666-0000-100000000085" type="OrgType" />
+        </assignment>
 
         <fullName>
             <t:orig>Test UserX00002</t:orig>
