@@ -975,11 +975,17 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         }
 
         OperationalInformationType operationalInformationType = taskInMemory.getAggregateOperationalInformation();
-        operationalInformationType.setFromMemory(true);
+        if (operationalInformationType != null) {
+            operationalInformationType.setFromMemory(true);
+        }
         SynchronizationInformationType synchronizationInformationType = taskInMemory.getAggregateSynchronizationInformation();
-        synchronizationInformationType.setFromMemory(true);
+        if (synchronizationInformationType != null) {
+            synchronizationInformationType.setFromMemory(true);
+        }
         IterativeTaskInformationType iterativeTaskInformationType = taskInMemory.getAggregateIterativeTaskInformation();
-        iterativeTaskInformationType.setFromMemory(true);
+        if (iterativeTaskInformationType != null) {
+            iterativeTaskInformationType.setFromMemory(true);
+        }
 
         task.setExtensionPropertyValueTransient(SchemaConstants.MODEL_EXTENSION_OPERATIONAL_INFORMATION_PROPERTY_NAME, operationalInformationType);
         task.setExtensionPropertyValueTransient(SchemaConstants.MODEL_EXTENSION_SYNCHRONIZATION_INFORMATION_PROPERTY_NAME, synchronizationInformationType);

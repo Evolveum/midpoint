@@ -52,7 +52,11 @@ import java.util.Set;
 @IdClass(RContainerId.class)
 @Table(name = "m_assignment", indexes = {
         @Index(name = "iAssignmentAdministrative", columnList = "administrativeStatus"),
-        @Index(name = "iAssignmentEffective", columnList = "effectiveStatus")})
+        @Index(name = "iAssignmentEffective", columnList = "effectiveStatus"),
+        @Index(name = "iTargetRefTargetOid", columnList = "targetRef_targetOid"),
+        @Index(name = "iTenantRefTargetOid", columnList = "tenantRef_targetOid"),
+        @Index(name = "iOrgRefTargetOid", columnList = "orgRef_targetOid"),
+        @Index(name = "iResourceRefTargetOid", columnList = "resourceRef_targetOid")})
 public class RAssignment implements Container, Metadata<RAssignmentReference> {
 
     public static final String F_OWNER = "owner";
@@ -78,6 +82,8 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     private REmbeddedReference targetRef;
     private Integer order;
     private REmbeddedReference tenantRef;
+    private REmbeddedReference orgRef;
+    private REmbeddedReference resourceRef;
     //metadata
     private XMLGregorianCalendar createTimestamp;
     private REmbeddedReference creatorRef;
@@ -135,6 +141,16 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     @Embedded
     public REmbeddedReference getTenantRef() {
         return tenantRef;
+    }
+
+    @Embedded
+    public REmbeddedReference getOrgRef() {
+        return orgRef;
+    }
+
+    @Embedded
+    public REmbeddedReference getResourceRef() {
+        return resourceRef;
     }
 
     @org.hibernate.annotations.ForeignKey(name = "none")
@@ -287,6 +303,14 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         this.tenantRef = tenantRef;
     }
 
+    public void setOrgRef(REmbeddedReference orgRef) {
+        this.orgRef = orgRef;
+    }
+
+    public void setResourceRef(REmbeddedReference resourceRef) {
+        this.resourceRef = resourceRef;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -302,6 +326,8 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         if (order != null ? !order.equals(that.order) : that.order != null)
             return false;
         if (tenantRef != null ? !tenantRef.equals(that.tenantRef) : that.tenantRef != null) return false;
+        if (orgRef != null ? !orgRef.equals(that.orgRef) : that.orgRef != null) return false;
+        if (resourceRef != null ? !resourceRef.equals(that.resourceRef) : that.resourceRef != null) return false;
 
         if (!MetadataFactory.equals(this, that)) return false;
 
@@ -357,6 +383,12 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         repo.setTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTargetRef(), prismContext));
 
         repo.setTenantRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTenantRef(), prismContext));
+
+        repo.setOrgRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOrgRef(), prismContext));
+
+        if (jaxb.getConstruction() != null) {
+            repo.setResourceRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getConstruction().getResourceRef(), prismContext));
+        }
 
         MetadataFactory.fromJAXB(jaxb.getMetadata(), repo, prismContext);
     }

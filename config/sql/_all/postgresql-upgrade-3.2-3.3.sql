@@ -35,3 +35,16 @@ alter table m_focus_photo
   references m_focus;
 
 alter table m_user drop column hasPhoto;
+
+alter table m_assignment
+  add orgRef_relation varchar(157),
+  add orgRef_targetOid varchar(36),
+  add orgRef_type int4,
+  add resourceRef_relation varchar(157),
+  add resourceRef_targetOid varchar(36),
+  add resourceRef_type int4;
+
+create index iTargetRefTargetOid on m_assignment (targetRef_targetOid);
+create index iTenantRefTargetOid on m_assignment (tenantRef_targetOid);
+create index iOrgRefTargetOid on m_assignment (orgRef_targetOid);
+create index iResourceRefTargetOid on m_assignment (resourceRef_targetOid);
