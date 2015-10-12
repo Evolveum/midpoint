@@ -180,10 +180,10 @@ public class PageCertCampaigns extends PageAdminCertification {
 				if (definitionOid == null) {
 					return null;
 				}
+				Task task = createSimpleTask("dummy");
 				PrismObject<AccessCertificationDefinitionType> definitionPrismObject = WebModelUtils
 						.loadObject(AccessCertificationDefinitionType.class,
-								definitionOid, new OperationResult("dummy"),
-								PageCertCampaigns.this);
+								definitionOid, PageCertCampaigns.this, task, task.getResult());
 				if (definitionPrismObject == null) {
 					return null;
 				}

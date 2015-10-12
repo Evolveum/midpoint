@@ -640,7 +640,7 @@ public abstract class PageBase extends PageTemplate {
     }
 
     private MainMenuItem createRolesItems() {
-        MainMenuItem item = new MainMenuItem("fa fa-bookmark",
+        MainMenuItem item = new MainMenuItem("fa fa-street-view",
                 createStringResource("PageAdmin.menu.top.roles"), null);
 
         List<MenuItem> submenu = item.getItems();
@@ -654,9 +654,10 @@ public abstract class PageBase extends PageTemplate {
     }
 
     protected PrismObject<UserType> loadUserSelf(PageBase page) {
-        OperationResult result = new OperationResult(OPERATION_LOAD_USER);
+    	Task task = createSimpleTask(OPERATION_LOAD_USER);
+        OperationResult result = task.getResult();
         PrismObject<UserType> user = WebModelUtils.loadObject(UserType.class,
-                WebModelUtils.getLoggedInUserOid(), result, page);
+                WebModelUtils.getLoggedInUserOid(), page, task, result);
         result.computeStatus();
 
         if (!WebMiscUtil.isSuccessOrHandledError(result)) {

@@ -49,6 +49,8 @@
             <modifyChannel>http://modifyChannelUri</modifyChannel>
         </metadata>
 
+        <roleMembershipRef oid="r123" type="c:RoleType"/>
+
         <assignment id="1">
             <description>Some assignment description</description>
             <extension>
@@ -137,6 +139,8 @@
 
         <linkRef oid="1234" />
         <linkRef oid="11223344"/>
+        <roleMembershipRef oid="r123" type="c:RoleType"/>
+        <roleMembershipRef oid="r456" type="c:RoleType"/>
 
         <fullName>
             <t:orig>Test UserX00003</t:orig>

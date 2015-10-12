@@ -77,6 +77,12 @@ public class PageSelfDashboard extends PageSelf {
     private void initLayout(){
         DashboardSearchPanel dashboardSearchPanel = new DashboardSearchPanel(ID_SEARCH_PANEL, null);
         add(dashboardSearchPanel);
+        if (! WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_USERS_ALL_URL,
+                AuthorizationConstants.AUTZ_UI_USERS_URL, AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL,
+                AuthorizationConstants.AUTZ_UI_RESOURCES_URL, AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL,
+                AuthorizationConstants.AUTZ_UI_TASKS_URL)) {
+            dashboardSearchPanel.setVisible(false);
+        }
         final AsyncDashboardPanel<Object, List<RichHyperlinkType>> linksPanel =
                 new AsyncDashboardPanel<Object, List<RichHyperlinkType>>(ID_LINKS_PANEL, null,
                         "", DashboardColor.GRAY) {
@@ -272,9 +278,10 @@ public class PageSelfDashboard extends PageSelf {
             throw new IllegalArgumentException("No OID in principal: "+principal);
         }
 
-        OperationResult result = new OperationResult(OPERATION_LOAD_USER);
+        Task task = createSimpleTask(OPERATION_LOAD_USER);
+        OperationResult result = task.getResult();
         PrismObject<UserType> user = WebModelUtils.loadObject(UserType.class,
-                principal.getOid(), result, PageSelfDashboard.this);
+                principal.getOid(), PageSelfDashboard.this, task, result);
         result.computeStatus();
 
         if (!WebMiscUtil.isSuccessOrHandledError(result)) {
@@ -297,10 +304,6 @@ public class PageSelfDashboard extends PageSelf {
         callableResult.setResult(result);
 
         Task task = createSimpleTask(TASK_GET_SYSTEM_CONFIG);
-        Collection<SelectorOptions<GetOperationOptions>> options =
-                SelectorOptions.createCollection(GetOperationOptions.createResolve(),
-                        SystemConfigurationType.F_DEFAULT_USER_TEMPLATE ,SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY);
-        SystemConfigurationDto dto = null;
         try{
             AdminGuiConfigurationType adminGuiConfig = getModelInteractionService().getAdminGuiConfiguration(task, result);
             list = adminGuiConfig.getUserDashboardLink();

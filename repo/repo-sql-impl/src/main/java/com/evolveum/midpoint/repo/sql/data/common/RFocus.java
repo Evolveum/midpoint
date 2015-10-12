@@ -56,6 +56,7 @@ import java.util.Set;
 public abstract class RFocus<T extends FocusType> extends RObject<T> {
 
     private Set<RObjectReference> linkRef;
+    private Set<RObjectReference> roleMembershipRef;
     private Set<RAssignment> assignments;
     private RActivation activation;
     //photo
@@ -71,6 +72,17 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
             linkRef = new HashSet<>();
         }
         return linkRef;
+    }
+
+    @Where(clause = RObjectReference.REFERENCE_TYPE + "= 8")
+    @OneToMany(mappedBy = "owner", orphanRemoval = true)
+    @ForeignKey(name = "none")
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<RObjectReference> getRoleMembershipRef() {
+        if (roleMembershipRef == null) {
+            roleMembershipRef = new HashSet<>();
+        }
+        return roleMembershipRef;
     }
 
     @Transient
@@ -120,6 +132,10 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
         this.linkRef = linkRef;
     }
 
+    public void setRoleMembershipRef(Set<RObjectReference> roleMembershipRef) {
+        this.roleMembershipRef = roleMembershipRef;
+    }
+
     public void setActivation(RActivation activation) {
         this.activation = activation;
     }
@@ -134,6 +150,7 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
 
         if (assignments != null ? !assignments.equals(other.assignments) : other.assignments != null) return false;
         if (linkRef != null ? !linkRef.equals(other.linkRef) : other.linkRef != null) return false;
+        if (roleMembershipRef != null ? !roleMembershipRef.equals(other.roleMembershipRef) : other.roleMembershipRef != null) return false;
         if (activation != null ? !activation.equals(other.activation) : other.activation != null) return false;
 
         return true;
@@ -155,6 +172,9 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
         repo.getLinkRef().addAll(
                 RUtil.safeListReferenceToSet(jaxb.getLinkRef(), prismContext, repo, RReferenceOwner.USER_ACCOUNT));
 
+        repo.getRoleMembershipRef().addAll(
+                RUtil.safeListReferenceToSet(jaxb.getRoleMembershipRef(), prismContext, repo, RReferenceOwner.ROLE_MEMBER));
+
         for (AssignmentType assignment : jaxb.getAssignment()) {
             RAssignment rAssignment = new RAssignment(repo, RAssignmentOwner.FOCUS);
             RAssignment.copyFromJAXB(assignment, rAssignment, jaxb, prismContext, generatorResult);
@@ -166,7 +186,6 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
             RActivation activation = new RActivation();
             RActivation.copyFromJAXB(jaxb.getActivation(), activation, prismContext);
             repo.setActivation(activation);
-
         }
 
         if (jaxb.getJpegPhoto() != null) {

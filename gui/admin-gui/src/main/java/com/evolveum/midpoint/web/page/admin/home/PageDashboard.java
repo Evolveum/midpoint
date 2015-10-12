@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
@@ -97,7 +98,8 @@ public class PageDashboard extends PageAdminHome {
             return callableResult;
         }
 
-        OperationResult result = new OperationResult(OPERATION_LOAD_ACCOUNTS);
+        Task task = createSimpleTask(OPERATION_LOAD_ACCOUNTS);
+        OperationResult result = task.getResult();
         callableResult.setResult(result);
         Collection<SelectorOptions<GetOperationOptions>> options =
                 SelectorOptions.createCollection(ShadowType.F_RESOURCE, GetOperationOptions.createResolve());
@@ -105,7 +107,7 @@ public class PageDashboard extends PageAdminHome {
         List<ObjectReferenceType> references = user.asObjectable().getLinkRef();
         for (ObjectReferenceType reference : references) {
             PrismObject<ShadowType> account = WebModelUtils.loadObject(ShadowType.class, reference.getOid(),
-                    options, result, this);
+                    options, this, task, result);
             if (account == null) {
                 continue;
             }
@@ -246,13 +248,14 @@ public class PageDashboard extends PageAdminHome {
             return callableResult;
         }
 
-        OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENTS);
+        Task task = createSimpleTask(OPERATION_LOAD_ASSIGNMENTS);
+        OperationResult result = task.getResult();
         callableResult.setResult(result);
 
         PrismContainer assignments = user.findContainer(UserType.F_ASSIGNMENT);
         List<PrismContainerValue> values = assignments.getValues();
         for (PrismContainerValue assignment : values) {
-            AssignmentItemDto item = createAssignmentItem(user, result, assignment);
+            AssignmentItemDto item = createAssignmentItem(user, assignment, task, result);
             if (item != null) {
                 list.add(item);
             }
@@ -267,8 +270,8 @@ public class PageDashboard extends PageAdminHome {
         return callableResult;
     }
 
-    private AssignmentItemDto createAssignmentItem(PrismObject<UserType> user, OperationResult result,
-                                                   PrismContainerValue assignment) {
+    private AssignmentItemDto createAssignmentItem(PrismObject<UserType> user,
+                                                   PrismContainerValue assignment, Task task, OperationResult result) {
         PrismReference targetRef = assignment.findReference(AssignmentType.F_TARGET_REF);
         if (targetRef == null || targetRef.isEmpty()) {
             //account construction
@@ -282,7 +285,7 @@ public class PageDashboard extends PageAdminHome {
                 if (constr.getResourceRef() != null) {
                     ObjectReferenceType resourceRef = constr.getResourceRef();
 
-                    PrismObject resource = WebModelUtils.loadObject(ResourceType.class, resourceRef.getOid(), result, this);
+                    PrismObject resource = WebModelUtils.loadObject(ResourceType.class, resourceRef.getOid(), this, task, result);
                     name = WebMiscUtil.getName(resource);
                 }
             }
@@ -294,7 +297,7 @@ public class PageDashboard extends PageAdminHome {
         PrismObject value = refValue.getObject();
         if (value == null) {
             //resolve reference
-            value = WebModelUtils.loadObject(ObjectType.class, refValue.getOid(), result, this);
+            value = WebModelUtils.loadObject(ObjectType.class, refValue.getOid(), this, task, result);
         }
 
         if (value == null) {

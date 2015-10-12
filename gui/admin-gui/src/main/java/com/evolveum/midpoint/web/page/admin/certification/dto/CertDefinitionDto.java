@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.page.admin.certification.dto;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.page.PageBase;
@@ -43,9 +44,9 @@ public class CertDefinitionDto implements Serializable {
     private String ownerName;
     private String xml;
 
-    public CertDefinitionDto(AccessCertificationDefinitionType definition, OperationResult result, PageBase page) {
+    public CertDefinitionDto(AccessCertificationDefinitionType definition, PageBase page, Task task, OperationResult result) {
         this.definition = definition;
-        ownerName = CertCampaignDto.resolveOwnerName(definition.getOwnerRef(), result, page);
+        ownerName = CertCampaignDto.resolveOwnerName(definition.getOwnerRef(), page, task, result);
 
         try {
             xml = page.getPrismContext().serializeObjectToString(definition.asPrismObject(), PrismContext.LANG_XML);

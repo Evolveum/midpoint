@@ -101,4 +101,6 @@ public interface Event {
      * @return
      */
     boolean isRelatedToItem(ItemPath itemPath);
+
+    String getChannel();
 }

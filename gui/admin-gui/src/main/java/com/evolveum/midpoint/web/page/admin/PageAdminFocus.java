@@ -182,7 +182,8 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 	private ProgressReporter progressReporter;
 
 	private static final String DOT_CLASS = PageAdminFocus.class.getName() + ".";
-	private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadFocus";
+	private static final String OPERATION_LOAD_FOCUS = DOT_CLASS + "loadFocus";
+	private static final String OPERATION_LOAD_PARENT_ORGS = DOT_CLASS + "loadParentOrgs";
 	private static final String OPERATION_LOAD_ASSIGNMENTS = DOT_CLASS + "loadAssignments";
 	private static final String OPERATION_LOAD_ASSIGNMENT = DOT_CLASS + "loadAssignment";
 	private static final String OPERATION_SAVE = DOT_CLASS + "save";
@@ -485,7 +486,8 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 	}
 
 	protected ObjectWrapper<T> loadFocusWrapper(PrismObject<T> userToEdit) {
-		OperationResult result = new OperationResult(OPERATION_LOAD_USER);
+		Task task = createSimpleTask(OPERATION_LOAD_FOCUS);
+		OperationResult result = task.getResult();
 		PrismObject<T> focus = null;
 		try {
 			if (!isEditingFocus()) {
@@ -500,13 +502,12 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 					focus = userToEdit;
 				}
 			} else {
-				Task task = createSimpleTask(OPERATION_LOAD_USER);
 
 				Collection options = SelectorOptions.createCollection(UserType.F_JPEG_PHOTO,
 						GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
 
 				String focusOid = getFocusOidParameter();
-				focus = WebModelUtils.loadObject(getCompileTimeClass(), focusOid, options, result, this);
+				focus = WebModelUtils.loadObject(getCompileTimeClass(), focusOid, options, this, task, result);
 				
 				LOGGER.trace("Loading focus: Existing focus (loadled): {} -> {}", focusOid, focus);
 			}
@@ -531,13 +532,13 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 		}
 
 		ContainerStatus status = isEditingFocus() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
-		ObjectWrapper wrapper = null;
+		ObjectWrapper<T> wrapper = null;
 		try {
 			wrapper = ObjectWrapperUtil.createObjectWrapper("pageAdminFocus.focusDetails", null, focus, status, this);
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't get user.", ex);
 			LoggingUtils.logException(LOGGER, "Couldn't load user", ex);
-			wrapper = new ObjectWrapper("pageAdminFocus.focusDetails", null, focus, null, status, this);
+			wrapper = new ObjectWrapper<>("pageAdminFocus.focusDetails", null, focus, null, status, this);
 		}
 		// ObjectWrapper wrapper = new ObjectWrapper("pageUser.userDetails",
 		// null, user, status);
@@ -545,10 +546,35 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 			showResultInSession(wrapper.getResult());
 		}
 
+		loadParentOrgs(wrapper, task, result);
+		
 		wrapper.setShowEmpty(!isEditingFocus());
 		return wrapper;
 	}
 
+	private void loadParentOrgs(ObjectWrapper<T> wrapper, Task task, OperationResult result) {
+		OperationResult subResult = result.createMinorSubresult(OPERATION_LOAD_PARENT_ORGS);
+		PrismObject<T> focus = wrapper.getObject();
+		// Load parent organizations (full objects). There are used in the summary panel and also in the main form.
+		// Do it here explicitly instead of using resolve option to have ability to better handle (ignore) errors.
+		for (ObjectReferenceType parentOrgRef: focus.asObjectable().getParentOrgRef()) {
+			
+	        PrismObject<OrgType> parentOrg = null;
+	        try {
+	            
+	        	parentOrg = getModelService().getObject(OrgType.class, parentOrgRef.getOid(), null, task, subResult);
+		        LOGGER.trace("Loaded parent org with result {}", new Object[]{subResult.getLastSubresult()});
+	        } catch (Exception ex) {
+	            subResult.recordWarning("Cannot load parent org "+parentOrgRef.getOid(), ex);
+	            LOGGER.warn("Cannot load parent org {}: {}", parentOrgRef.getOid(), ex.getMessage(), ex);
+	        }
+			
+	        wrapper.getParentOrgs().add(parentOrg);
+		}
+		subResult.computeStatus();
+	}
+	
+	
 	// protected void finishProcessing(ObjectDelta objectDelta,
 	// AjaxRequestTarget target, OperationResult result){
 	// delta = objectDelta;
@@ -628,7 +654,7 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 					continue;
 				}
 
-				PrismObject<ShadowType> shadow = WebModelUtils.loadObject(ShadowType.class, reference.getOid(), options, subResult, this);
+				PrismObject<ShadowType> shadow = WebModelUtils.loadObject(ShadowType.class, reference.getOid(), options, this, task, subResult);
 
 				// PrismObject<ShadowType> account =
 				// getModelService().getObject(ShadowType.class,

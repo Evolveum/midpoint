@@ -475,8 +475,8 @@ public class FocusProcessor {
 			recordValidityDelta(focusContext, validityStatusNew, now);
 		}
 		
-		ActivationStatusType effectiveStatusNew = activationComputer.getEffectiveStatus(activationNew, validityStatusNew, ActivationStatusType.DISABLED);
-		ActivationStatusType effectiveStatusCurrent = activationComputer.getEffectiveStatus(activationCurrent, validityStatusCurrent, ActivationStatusType.DISABLED);
+		ActivationStatusType effectiveStatusNew = activationComputer.getEffectiveStatus(activationNew, validityStatusNew, ActivationStatusType.ENABLED);
+		ActivationStatusType effectiveStatusCurrent = activationComputer.getEffectiveStatus(activationCurrent, validityStatusCurrent, ActivationStatusType.ENABLED);
 		
 		if (effectiveStatusCurrent == effectiveStatusNew) {
 			// No change, (almost) no work

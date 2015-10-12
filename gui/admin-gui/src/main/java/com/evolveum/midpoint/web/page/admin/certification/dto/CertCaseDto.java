@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.page.admin.certification.dto;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
@@ -26,6 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -51,13 +53,13 @@ public class CertCaseDto extends CertCaseOrDecisionDto {
     private List<String> reviewerNames = new ArrayList<>();
     private List<String> comments = new ArrayList<>();
 
-    public CertCaseDto(AccessCertificationCaseType _case, OperationResult result, PageBase page) {
+    public CertCaseDto(AccessCertificationCaseType _case, PageBase page, Task task, OperationResult result) {
         super(_case, page);
         for (AccessCertificationDecisionType decision : _case.getDecision()) {
             if (decision.getComment() != null) {
                 comments.add(decision.getComment());
             }
-            PrismObject<UserType> reviewerObject = WebModelUtils.resolveReference(decision.getReviewerRef(), result, page);
+            PrismObject<UserType> reviewerObject = WebModelUtils.resolveReference(decision.getReviewerRef(), page, task, result);
             if (reviewerObject != null) {
                 reviewerNames.add(WebMiscUtil.getName(reviewerObject));
             }

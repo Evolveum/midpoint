@@ -351,10 +351,11 @@ public class PageSecurityQuestions extends PageBase {
 			throw new RestartResponseException(PageSecurityQuestions.class);
 		}
 
-		OperationResult result = new OperationResult(OPERATION_LOAD_USER);
+		Task task = createSimpleTask(OPERATION_LOAD_USER);
+		OperationResult result = task.getResult();
 		PrismObject<UserType> user = WebModelUtils.loadObject(UserType.class,
-				getSession().getAttribute(SESSION_ATTRIBUTE_POID).toString(), result,
-				PageSecurityQuestions.this);
+				getSession().getAttribute(SESSION_ATTRIBUTE_POID).toString(), 
+				PageSecurityQuestions.this, task, result);
 
 		result.computeStatus();
 

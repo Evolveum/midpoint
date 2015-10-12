@@ -42,5 +42,7 @@ public enum RReferenceOwner {
 
     MODIFY_APPROVER,
 
-    INCLUDE;
+    INCLUDE,
+
+    ROLE_MEMBER;
 }

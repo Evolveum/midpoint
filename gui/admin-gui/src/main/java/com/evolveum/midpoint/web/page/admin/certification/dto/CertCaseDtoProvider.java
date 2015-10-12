@@ -60,10 +60,10 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrDeci
         LOGGER.trace("begin::iterator() from {} count {}.", new Object[]{first, count});
         getAvailableData().clear();
 
-        OperationResult result = new OperationResult(OPERATION_SEARCH_OBJECTS);
+        Task task = getPage().createSimpleTask(OPERATION_SEARCH_OBJECTS);
+        OperationResult result = task.getResult();
         try {
             ObjectPaging paging = createPaging(first, count);
-            Task task = getPage().createSimpleTask(OPERATION_SEARCH_OBJECTS);
             
             ObjectQuery caseQuery = getQuery();
             if (caseQuery == null){
@@ -78,7 +78,7 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrDeci
             List<AccessCertificationCaseType> caseList = certificationManager.searchCases(campaignOid, caseQuery, resolveNames, task, result);
 
             for (AccessCertificationCaseType _case : caseList) {
-                getAvailableData().add(new CertCaseDto(_case, result, getPage()));
+                getAvailableData().add(new CertCaseDto(_case, getPage(), task, result));
             }
         } catch (Exception ex) {
             result.recordFatalError("Couldn't list decisions.", ex);

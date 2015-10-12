@@ -20,7 +20,6 @@ import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
 import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeResultHandler;
-import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeTaskHandler;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -69,7 +68,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.sun.jndi.toolkit.dir.SearchFilter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -110,6 +108,8 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
     private boolean fixIntents;
     private boolean fixUniqueness;
     private boolean fixNormalization;
+
+    private boolean checkDuplicatesOnPrimaryIdentifiersOnly = false;
 
     private boolean dryRun;
 
@@ -205,6 +205,11 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
             }
         }
 
+        PrismProperty<Boolean> checkDuplicatesOnPrimaryIdentifiersOnlyProperty = coordinatorTask.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_CHECK_DUPLICATES_ON_PRIMARY_IDENTIFIERS_ONLY);
+        if (checkDuplicatesOnPrimaryIdentifiersOnlyProperty != null && checkDuplicatesOnPrimaryIdentifiersOnlyProperty.getRealValue() != null) {
+            checkDuplicatesOnPrimaryIdentifiersOnly = checkDuplicatesOnPrimaryIdentifiersOnlyProperty.getRealValue();
+        }
+
         try {
             configuration = Utils.getSystemConfiguration(repositoryService, result);
         } catch (SchemaException e) {
@@ -223,14 +228,14 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
     protected void logConfiguration(String state) {
         LOGGER.info("{}\n" +
                         "- normalization  diagnose={},\tfix={}\n" +
-                        "- uniqueness     diagnose={},\tfix={}\n" +
+                        "- uniqueness     diagnose={},\tfix={} (primary identifiers only = {})\n" +
                         "- intents        diagnose={},\tfix={}\n" +
                         "- owners         diagnose={}\n" +
                         "- fetch          diagnose={}\n\n" +
                         "dryRun = {}\n",
                 state,
                 checkNormalization, fixNormalization,
-                checkUniqueness, fixUniqueness,
+                checkUniqueness, fixUniqueness, checkDuplicatesOnPrimaryIdentifiersOnly,
                 checkIntents, fixIntents,
                 checkOwners,
                 checkFetch,
@@ -398,7 +403,8 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         }
 
         Set<RefinedAttributeDefinition<?>> identifiers = new HashSet<>();
-        identifiers.addAll(context.getObjectClassDefinition().getIdentifiers());
+        Collection<? extends RefinedAttributeDefinition<?>> primaryIdentifiers = context.getObjectClassDefinition().getIdentifiers();
+        identifiers.addAll(primaryIdentifiers);
         identifiers.addAll(context.getObjectClassDefinition().getSecondaryIdentifiers());
 
         PrismContainer<ShadowAttributesType> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
@@ -426,7 +432,9 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
                 continue;
             }
             if (checkUniqueness) {
-                addIdentifierValue(checkResult, context, identifier.getName(), value, shadow);
+                if (!checkDuplicatesOnPrimaryIdentifiersOnly || primaryIdentifiers.contains(identifier)) {
+                    addIdentifierValue(checkResult, context, identifier.getName(), value, shadow);
+                }
             }
             if (checkNormalization) {
                 doCheckNormalization(checkResult, identifier, value, context);

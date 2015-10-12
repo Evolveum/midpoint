@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -246,12 +247,13 @@ public class OrgUnitBrowser extends ModalWindow {
             return null;
         }
 
-        OperationResult result = new OperationResult(OPERATION_LOAD_PARENT_ORG_REFS);
+        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_PARENT_ORG_REFS);
+        OperationResult result = task.getResult();
         List<String> oids = new ArrayList<>();
         try {
             for (OrgTableDto dto : selected) {
                 PrismObject object = WebModelUtils.loadObject(dto.getType(), dto.getOid(),
-                        WebModelUtils.createOptionsForParentOrgRefs(), result, getPageBase());
+                        WebModelUtils.createOptionsForParentOrgRefs(), getPageBase(), task, result);
                 PrismReference parentRef = object.findReference(OrgType.F_PARENT_ORG_REF);
                 if (parentRef != null) {
                     for (PrismReferenceValue value : parentRef.getValues()) {

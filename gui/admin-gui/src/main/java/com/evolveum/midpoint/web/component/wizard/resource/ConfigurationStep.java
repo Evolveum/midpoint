@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -153,7 +153,8 @@ public class ConfigurationStep extends WizardStep {
     private void saveChanges() {
         PageBase page = getPageBase();
 
-        OperationResult result = new OperationResult(OPERATION_SAVE);
+        Task task = page.createSimpleTask(OPERATION_SAVE);
+        OperationResult result = task.getResult();
         try {
             PrismObject<ResourceType> newResource = resourceModel.getObject();
             //apply configuration to old resource
@@ -167,16 +168,16 @@ public class ConfigurationStep extends WizardStep {
 
             if(isNewResource){
                 Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
-                oldResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(), options, result, page);
+                oldResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(), options, page, task, result);
             } else {
-                oldResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(), result, page);
+                oldResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(), page, task, result);
             }
 
             delta = DiffUtil.diff(oldResource, newResource);
 
             WebModelUtils.save(delta, result, page);
 
-            newResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(), result, page);
+            newResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(), page, task, result);
             resourceModel.setObject(newResource);
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Error occurred during resource test connection", ex);

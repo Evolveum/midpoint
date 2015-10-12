@@ -220,7 +220,6 @@ public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T
 		if (anchorEnd) {
 			sb.append(" anchorEnd");
 		}
-		sb.append("\n");
 		return debugDump(indent, sb);
 	}
 

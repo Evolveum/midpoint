@@ -16,13 +16,12 @@
 
 package com.evolveum.midpoint.web.page.admin.server.currentState;
 
-import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
-
-import java.util.Date;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * @author Pavol Mederly
@@ -36,19 +35,20 @@ public class TaskCurrentStateDto {
 
     public TaskCurrentStateDto(TaskDto taskDto) {
         this.taskDto = taskDto;
-    }
-
-    public TaskCurrentStateDto(TaskDto taskDto, SynchronizationInformationType sit, IterativeTaskInformationType itit, Long currentProgress) {
-        this.taskDto = taskDto;
-        this.synchronizationInformationType = sit;
-        this.iterativeTaskInformationType = itit;
-        if (currentProgress != null) {
-            this.currentProgress = currentProgress;
-        } else {
-            if (taskDto != null) {
-                this.currentProgress = taskDto.getProgress();
-            }
+        if (taskDto == null) {
+            return;
         }
+        this.currentProgress = taskDto.getProgress();
+        TaskType taskType = taskDto.getTaskType();
+        if (taskType == null) {
+            return;
+        }
+        PrismContainer<?> extension = taskType.asPrismObject().getExtension();
+        if (extension == null) {
+            return;
+        }
+        synchronizationInformationType = extension.getPropertyRealValue(SchemaConstants.MODEL_EXTENSION_SYNCHRONIZATION_INFORMATION_PROPERTY_NAME, SynchronizationInformationType.class);
+        iterativeTaskInformationType = extension.getPropertyRealValue(SchemaConstants.MODEL_EXTENSION_ITERATIVE_TASK_INFORMATION_PROPERTY_NAME, IterativeTaskInformationType.class);
     }
 
     public TaskDto getTaskDto() {

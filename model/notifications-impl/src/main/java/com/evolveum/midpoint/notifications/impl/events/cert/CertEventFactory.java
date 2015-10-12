@@ -54,7 +54,10 @@ public class CertEventFactory {
 
     protected void fillInEvent(AccessCertificationCampaignType campaign, Task task, AccessCertificationEvent event) {
         event.setRequestee(new SimpleObjectRefImpl(notificationsUtil, campaign.getOwnerRef()));
-        event.setRequester(new SimpleObjectRefImpl(notificationsUtil, task.getOwner()));
+        if (task != null) {
+            event.setRequester(new SimpleObjectRefImpl(notificationsUtil, task.getOwner()));
+            event.setChannel(task.getChannel());
+        }
     }
 
     protected void fillInReviewerRelatedEvent(ObjectReferenceType reviewerRef, Task task, AccessCertificationEvent event) {
