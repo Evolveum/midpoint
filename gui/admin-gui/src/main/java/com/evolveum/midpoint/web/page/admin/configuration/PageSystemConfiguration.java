@@ -574,7 +574,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
         }
         
         
-        if (loggingDto.getProfilingLevel() != null) {
+        if (loggingDto != null && loggingDto.getProfilingLevel() != null) {
             ClassLoggerConfigurationType type = createCustomClassLogger(LoggingDto.LOGGER_PROFILING,
                     ProfilingLevel.toLoggerLevelType(loggingDto.getProfilingLevel()), loggingDto.getProfilingAppender());
             LoggingConfigurationType loggingConfig = config.getLogging();
