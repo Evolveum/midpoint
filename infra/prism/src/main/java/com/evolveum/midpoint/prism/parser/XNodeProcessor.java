@@ -817,8 +817,18 @@ public class XNodeProcessor {
 
         refVal.setFilter(parseFilter(xmap.get(XNode.KEY_REFERENCE_FILTER)));
 
-        PolyString targetName = xmap.getParsedPrimitiveValue(XNode.KEY_REFERENCE_TARGET_NAME, PrismConstants.POLYSTRING_TYPE_QNAME);
-        refVal.setTargetName(targetName);
+        XNode xnodeForTargetName = xmap.get(XNode.KEY_REFERENCE_TARGET_NAME);
+        if (xnodeForTargetName != null) {
+            Object o = getBeanConverter().unmarshall(xnodeForTargetName, PolyStringType.class);
+            // working around polystring-related type mess in unmarshaller
+            if (o instanceof PolyString) {
+                refVal.setTargetName((PolyString) o);
+            } else if (o instanceof PolyStringType) {
+                refVal.setTargetName((PolyStringType) o);
+            } else {
+                throw new IllegalStateException("targetName is not a polystring, it's a " + o.getClass().getName());
+            }
+        }
 
         XNode xrefObject = xmap.get(XNode.KEY_REFERENCE_OBJECT);
         if (xrefObject != null) {
