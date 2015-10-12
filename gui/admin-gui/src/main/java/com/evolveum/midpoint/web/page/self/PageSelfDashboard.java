@@ -1,8 +1,6 @@
 package com.evolveum.midpoint.web.page.self;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -17,7 +15,6 @@ import com.evolveum.midpoint.web.component.SecurityContextAwareCallable;
 import com.evolveum.midpoint.web.component.util.CallableResult;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wf.WorkItemsPanel;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.SystemConfigurationDto;
 import com.evolveum.midpoint.web.page.admin.home.component.AsyncDashboardPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.DashboardColor;
 import com.evolveum.midpoint.web.page.admin.home.dto.AccountCallableResult;
@@ -40,7 +37,6 @@ import org.apache.wicket.model.PropertyModel;
 import org.springframework.security.core.Authentication;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**

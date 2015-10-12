@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
@@ -33,6 +34,9 @@ import com.evolveum.midpoint.repo.sql.query.definition.PropertyDefinition;
 import com.evolveum.midpoint.repo.sql.query.definition.ReferenceDefinition;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.commons.lang.StringUtils;
@@ -86,7 +90,14 @@ public class ReferenceRestriction extends ItemRestriction<RefFilter> {
         // ugly hacking, todo refactor!
         StringBuilder sb = new StringBuilder();
         if (def instanceof ReferenceDefinition) {
-            String alias = context.getAlias(filter.getParentPath());
+            ItemPath parentPath = filter.getParentPath();
+            // hack: construction/resourceRef->resourceRef
+            if (QNameUtil.match(ConstructionType.F_RESOURCE_REF, filter.getElementName()) &&
+                    parentPath != null && parentPath.last() instanceof NameItemPathSegment &&
+                    QNameUtil.match(AssignmentType.F_CONSTRUCTION, ((NameItemPathSegment) parentPath.last()).getName())) {
+                parentPath = parentPath.allExceptLast();
+            }
+            String alias = context.getAlias(parentPath);
             if (StringUtils.isNotEmpty(alias)) {
                 sb.append(alias);
                 sb.append('.');

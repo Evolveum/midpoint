@@ -116,6 +116,10 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     public String hello(String name) {
         return "Hello "+name;
     }
+    
+    public PrismContext getPrismContext() {
+		return prismContext;
+	}
 
     @Override
     public List<String> toList(String... s) {
