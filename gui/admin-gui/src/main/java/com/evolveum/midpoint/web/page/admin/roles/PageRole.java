@@ -58,6 +58,7 @@ import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.PageAdminAbstractRole;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.roles.component.MultiplicityPolicyDialog;
+import com.evolveum.midpoint.web.page.admin.roles.component.RoleSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MultiplicityPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
@@ -223,28 +224,7 @@ public class PageRole extends PageAdminAbstractRole<RoleType>implements Progress
 
 	@Override
 	protected FocusSummaryPanel<RoleType> createSummaryPanel() {
-    	return new FocusSummaryPanel<RoleType>(ID_SUMMARY_PANEL, getFocusModel()) {
-			@Override
-			protected QName getDisplayNamePropertyName() {
-				return RoleType.F_NAME;
-			}
-			@Override
-			protected QName getTitlePropertyName() {
-				return RoleType.F_ROLE_TYPE;
-			}
-			@Override
-			protected String getIconCssClass() {
-				return "fa fa-street-view";
-			}
-			@Override
-			protected String getIconBoxAdditionalCssClass() {
-				return "summary-panel-role";
-			}
-			@Override
-			protected String getBoxAdditionalCssClass() {
-				return "summary-panel-role";
-			}
-    	};
+    	return new RoleSummaryPanel(ID_SUMMARY_PANEL, getFocusModel());
     }
 
 }

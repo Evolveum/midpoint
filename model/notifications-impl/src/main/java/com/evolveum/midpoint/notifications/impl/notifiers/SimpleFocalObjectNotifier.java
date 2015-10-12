@@ -25,8 +25,10 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -175,6 +177,8 @@ public class SimpleFocalObjectNotifier extends GeneralNotifier {
         if (!event.isSuccess()) {
             body.append("More information about the status of the request was displayed and/or is present in log files.\n\n");
         }
+
+        notificationsUtil.addRequesterAndChannelInformation(body, event, result);
 
         if (techInfo) {
             body.append("----------------------------------------\n");

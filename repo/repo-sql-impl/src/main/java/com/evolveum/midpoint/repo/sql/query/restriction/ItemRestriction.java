@@ -179,6 +179,10 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
             if (ObjectType.F_METADATA.equals(qname)) {
                 continue;
             }
+            // ugly hack: construction/resourceRef -> resourceRef
+            if (QNameUtil.match(AssignmentType.F_CONSTRUCTION, qname)) {
+                continue;
+            }
 
             // create new property path
             propPathSegments.add(new NameItemPathSegment(qname));
@@ -260,6 +264,10 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
         for (ItemPathSegment segment : segments) {
             QName qname = ItemPath.getName(segment);
             if (ObjectType.F_METADATA.equals(qname)) {
+                continue;
+            }
+            // ugly hack: construction/resourceRef -> resourceRef
+            if (QNameUtil.match(AssignmentType.F_CONSTRUCTION, qname)) {
                 continue;
             }
             // create new property path
@@ -557,6 +565,9 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
         for (ItemPathSegment segment : segments) {
             QName qname = ItemPath.getName(segment);
             if (ObjectType.F_METADATA.equals(qname)) {          // todo not QNameUtil.match? [mederly]
+                continue;
+            }
+            if (QNameUtil.match(AssignmentType.F_CONSTRUCTION, qname)) {     // ugly hack: construction/resourceRef -> resourceRef
                 continue;
             }
 

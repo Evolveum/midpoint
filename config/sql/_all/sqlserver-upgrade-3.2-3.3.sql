@@ -31,3 +31,15 @@ alter table m_focus_photo
     foreign key (owner_oid)
     references m_focus;
 
+alter table m_assignment add
+    orgRef_relation nvarchar(157) collate database_default,
+    orgRef_targetOid nvarchar(36) collate database_default,
+    orgRef_type int,
+    resourceRef_relation nvarchar(157) collate database_default,
+    resourceRef_targetOid nvarchar(36) collate database_default,
+    resourceRef_type int;
+
+create index iTargetRefTargetOid on m_assignment (targetRef_targetOid);
+create index iTenantRefTargetOid on m_assignment (tenantRef_targetOid);
+create index iOrgRefTargetOid on m_assignment (orgRef_targetOid);
+create index iResourceRefTargetOid on m_assignment (resourceRef_targetOid);

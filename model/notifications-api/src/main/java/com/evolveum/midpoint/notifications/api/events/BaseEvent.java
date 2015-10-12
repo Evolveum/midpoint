@@ -60,6 +60,8 @@ public abstract class BaseEvent implements Event {
 
     private SimpleObjectRef requestee;
 
+    private String channel;
+
     public BaseEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator) {
         id = lightweightIdentifierGenerator.generate();
     }
@@ -291,5 +293,12 @@ public abstract class BaseEvent implements Event {
         return itemPath;
     }
 
+    @Override
+    public String getChannel() {
+        return channel;
+    }
 
+    public void setChannel(String channel) {
+        this.channel = channel;
+    }
 }

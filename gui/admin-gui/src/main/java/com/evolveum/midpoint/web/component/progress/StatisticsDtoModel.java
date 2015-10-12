@@ -16,17 +16,14 @@
 
 package com.evolveum.midpoint.web.component.progress;
 
-import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
-import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import org.apache.wicket.Application;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
@@ -70,45 +67,10 @@ public class StatisticsDtoModel extends AbstractReadOnlyModel<StatisticsDto> {
         if (task != null) {
             return getStatisticsFromTask(task);
         }
-
-        String taskId = null;
-        if (taskModel != null && taskModel.getObject() != null) {
-            taskId = taskModel.getObject().getIdentifier();
+        if (taskModel != null && taskModel.getObject() != null && taskModel.getObject().getTaskType() != null) {
+            return getStatisticsFromTaskType(taskModel.getObject().getTaskType());
         }
-
-        if (taskId == null) {
-            LOGGER.warn("taskIdentifier not available");
-            return null;
-        }
-        MidPointApplication application = (MidPointApplication) Application.get();
-        TaskManager taskManager = application.getTaskManager();
-        Task task = taskManager.getLocallyRunningTaskByIdentifier(taskId);
-        if (task == null) {
-            LOGGER.trace("No task by taskIdentifier, trying analyzing the extension");
-            if (taskModel == null || taskModel.getObject() == null) {
-                LOGGER.trace("No taskModel or no object in it");
-                return null;
-            }
-            TaskType taskType = taskModel.getObject().getTaskType();
-            if (taskType == null) {
-                LOGGER.trace("No TaskType found");
-                return null;
-            }
-
-            PrismContainer<?> extension = taskType.asPrismObject().getExtension();
-            if (extension == null) {
-                LOGGER.trace("No extension in TaskType found");
-                return null;
-            }
-            OperationalInformationType infoPropertyValue = extension.getPropertyRealValue(SchemaConstants.MODEL_EXTENSION_OPERATIONAL_INFORMATION_PROPERTY_NAME, OperationalInformationType.class);
-            if (infoPropertyValue == null) {
-                LOGGER.trace("No info in task extension either.");
-                return null;
-            }
-            infoPropertyValue.setFromMemory(false);
-            return new StatisticsDto(infoPropertyValue);
-        }
-        return getStatisticsFromTask(task);
+        return null;
     }
 
     protected StatisticsDto getStatisticsFromTask(Task task) {
@@ -119,6 +81,18 @@ public class StatisticsDtoModel extends AbstractReadOnlyModel<StatisticsDto> {
         }
         operationalInformation.setFromMemory(true);
         StatisticsDto dto = new StatisticsDto(operationalInformation);
+        return dto;
+    }
+
+    protected StatisticsDto getStatisticsFromTaskType(TaskType task) {
+        OperationalInformationType infoPropertyValue = (OperationalInformationType) task.asPrismObject().getPropertyRealValue(
+                new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OPERATIONAL_INFORMATION_PROPERTY_NAME),
+                OperationalInformationType.class);
+        if (infoPropertyValue == null) {
+            LOGGER.trace("No operational information in task extension.");
+            return null;
+        }
+        StatisticsDto dto = new StatisticsDto(infoPropertyValue);
         return dto;
     }
 

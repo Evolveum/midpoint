@@ -23,25 +23,34 @@
              before logging and cleanup policy items -->
 
     <notificationConfiguration>
-		<handler>
-        <simpleResourceObjectNotifier>
-            <recipientExpression>
-                <value>somebody@acme.org</value>
-            </recipientExpression>
-            <transport>mail</transport>
-        </simpleResourceObjectNotifier>
-	</handler>
-	
-	<handler>
-        <simpleUserNotifier>
-            <recipientExpression>
-                <value>somebody@acme.org</value>
-            </recipientExpression>
-            <transport>mail</transport>
-        </simpleUserNotifier>
-	</handler>
+        <handler>
+            <simpleResourceObjectNotifier>
+                <recipientExpression>
+                    <value>somebody@acme.org</value>
+                </recipientExpression>
+                <transport>mail</transport>
+            </simpleResourceObjectNotifier>
+        </handler>
+
+        <handler>
+            <simpleUserNotifier>
+                <recipientExpression>
+                    <value>somebody@acme.org</value>
+                </recipientExpression>
+                <transport>mail</transport>
+            </simpleUserNotifier>
+        </handler>
         <mail>
+            <server>
+                <host>smtp.gmail.com</host>
+                <port>587</port>
+                <username>..........</username>
+                <password><clearValue>.........</clearValue></password>
+                <transportSecurity>starttlsEnabled</transportSecurity>
+            </server>
+            <!-- or:
             <redirectToFile>c:\midpoint\mail-notifications.log</redirectToFile>
+            -->
         </mail>
     </notificationConfiguration>
 

@@ -40,16 +40,6 @@ import javax.xml.namespace.QName;
 public interface StatisticsCollector {
 
     /**
-     * Gets information from the current task.
-     */
-
-    OperationalInformation getOperationalInformation();
-
-    SynchronizationInformation getSynchronizationInformation();
-
-    IterativeTaskInformation getIterativeTaskInformation();
-
-    /**
      * Gets information from the current task and its transient subtasks (aka worker threads).
      */
 
@@ -89,7 +79,7 @@ public interface StatisticsCollector {
 
     void recordSynchronizationOperationStart(String objectName, String objectDisplayName, QName objectType, String objectOid);
 
-    void recordSynchronizationOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started, Throwable exception, SynchronizationInformation increment);
+    void recordSynchronizationOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started, Throwable exception, SynchronizationInformation.Record increment);
 
     /**
      * Sets initial values for statistics.

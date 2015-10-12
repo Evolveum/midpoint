@@ -347,6 +347,11 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
+    public <T> void setExtensionPropertyValueTransient(QName propertyName, T value) throws SchemaException {
+        throw new UnsupportedOperationException("not implemented yet.");
+    }
+
+    @Override
     public <T extends Containerable> void setExtensionContainerValue(QName containerName, T value)
             throws SchemaException {
         throw new UnsupportedOperationException("not implemented yet.");
@@ -655,23 +660,8 @@ public class SimpleTaskAdapter implements Task {
 
     @Override
     public void startLightweightHandler() {
-
     }
 
-    @Override
-    public OperationalInformation getOperationalInformation() {
-        return null;
-    }
-
-    @Override
-    public SynchronizationInformation getSynchronizationInformation() {
-        return null;
-    }
-
-    @Override
-    public IterativeTaskInformation getIterativeTaskInformation() {
-        return null;
-    }
 
     @Override
     public OperationalInformationType getAggregateOperationalInformation() {
@@ -720,7 +710,7 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public void recordSynchronizationOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started, Throwable exception, SynchronizationInformation increment) {
+    public void recordSynchronizationOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started, Throwable exception, SynchronizationInformation.Record increment) {
     }
 
     @Override

@@ -27,18 +27,68 @@ import java.util.Date;
  * @author Pavol Mederly
  */
 public class SynchronizationInformation {
-    
-    private SynchronizationInformationType startValue;
 
-    protected int countProtected;
-    protected int countNoSynchronizationPolicy;
-    protected int countSynchronizationDisabled;
-    protected int countNotApplicableForTask;
-    protected int countDeleted;
-    protected int countDisputed;
-    protected int countLinked;
-    protected int countUnlinked;
-    protected int countUnmatched;
+    /*
+     * Thread safety: Just like OperationalInformation, instances of this class may be accessed from
+     * more than one thread at once. Updates are invoked in the context of the thread executing the task.
+     * Queries are invoked either from this thread, or from some observer (task manager or GUI thread).
+     */
+
+    private final SynchronizationInformationType startValue;
+
+    // Record is part of the interface, simplifying it a bit
+    // It does *not* have to be thread-safe
+    public static class Record {
+
+        private int countProtected;
+        private int countNoSynchronizationPolicy;
+        private int countSynchronizationDisabled;
+        private int countNotApplicableForTask;
+        private int countDeleted;
+        private int countDisputed;
+        private int countLinked;
+        private int countUnlinked;
+        private int countUnmatched;
+
+        public void setCountProtected(int countProtected) {
+            this.countProtected = countProtected;
+        }
+
+        public void setCountNoSynchronizationPolicy(int countNoSynchronizationPolicy) {
+            this.countNoSynchronizationPolicy = countNoSynchronizationPolicy;
+        }
+
+        public void setCountSynchronizationDisabled(int countSynchronizationDisabled) {
+            this.countSynchronizationDisabled = countSynchronizationDisabled;
+        }
+
+        public void setCountNotApplicableForTask(int countNotApplicableForTask) {
+            this.countNotApplicableForTask = countNotApplicableForTask;
+        }
+
+        public void setCountDeleted(int countDeleted) {
+            this.countDeleted = countDeleted;
+        }
+
+        public void setCountDisputed(int countDisputed) {
+            this.countDisputed = countDisputed;
+        }
+
+        public void setCountLinked(int countLinked) {
+            this.countLinked = countLinked;
+        }
+
+        public void setCountUnlinked(int countUnlinked) {
+            this.countUnlinked = countUnlinked;
+        }
+
+        public void setCountUnmatched(int countUnmatched) {
+            this.countUnmatched = countUnmatched;
+        }
+
+    };
+
+    private final Record currentState = new Record();
 
     public SynchronizationInformation(SynchronizationInformationType value) {
         startValue = value;
@@ -52,13 +102,13 @@ public class SynchronizationInformation {
         return (SynchronizationInformationType) startValue;
     }
 
-    public SynchronizationInformationType getDeltaValue() {
+    public synchronized SynchronizationInformationType getDeltaValue() {
         SynchronizationInformationType rv = toSynchronizationInformationType();
         rv.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
         return rv;
     }
 
-    public SynchronizationInformationType getAggregatedValue() {
+    public synchronized SynchronizationInformationType getAggregatedValue() {
         SynchronizationInformationType delta = toSynchronizationInformationType();
         SynchronizationInformationType rv = aggregate(startValue, delta);
         rv.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
@@ -87,106 +137,34 @@ public class SynchronizationInformation {
         sum.setCountUnmatched(sum.getCountUnmatched() + delta.getCountUnmatched());
     }
 
-    protected SynchronizationInformationType toSynchronizationInformationType() {
+    private SynchronizationInformationType toSynchronizationInformationType() {
         SynchronizationInformationType rv = new SynchronizationInformationType();
         toJaxb(rv);
         return rv;
     }
 
     private void toJaxb(SynchronizationInformationType rv) {
-        rv.setCountProtected(countProtected);
-        rv.setCountNoSynchronizationPolicy(countNoSynchronizationPolicy);
-        rv.setCountSynchronizationDisabled(countSynchronizationDisabled);
-        rv.setCountNotApplicableForTask(countNotApplicableForTask);
-        rv.setCountDeleted(countDeleted);
-        rv.setCountDisputed(countDisputed);
-        rv.setCountLinked(countLinked);
-        rv.setCountUnlinked(countUnlinked);
-        rv.setCountUnmatched(countUnmatched);
+        rv.setCountProtected(currentState.countProtected);
+        rv.setCountNoSynchronizationPolicy(currentState.countNoSynchronizationPolicy);
+        rv.setCountSynchronizationDisabled(currentState.countSynchronizationDisabled);
+        rv.setCountNotApplicableForTask(currentState.countNotApplicableForTask);
+        rv.setCountDeleted(currentState.countDeleted);
+        rv.setCountDisputed(currentState.countDisputed);
+        rv.setCountLinked(currentState.countLinked);
+        rv.setCountUnlinked(currentState.countUnlinked);
+        rv.setCountUnmatched(currentState.countUnmatched);
     }
 
-    public int getCountProtected() {
-        return countProtected;
-    }
-
-    public void setCountProtected(int countProtected) {
-        this.countProtected = countProtected;
-    }
-
-    public int getCountNoSynchronizationPolicy() {
-        return countNoSynchronizationPolicy;
-    }
-
-    public void setCountNoSynchronizationPolicy(int countNoSynchronizationPolicy) {
-        this.countNoSynchronizationPolicy = countNoSynchronizationPolicy;
-    }
-
-    public int getCountSynchronizationDisabled() {
-        return countSynchronizationDisabled;
-    }
-
-    public void setCountSynchronizationDisabled(int countSynchronizationDisabled) {
-        this.countSynchronizationDisabled = countSynchronizationDisabled;
-    }
-
-    public int getCountNotApplicableForTask() {
-        return countNotApplicableForTask;
-    }
-
-    public void setCountNotApplicableForTask(int countNotApplicableForTask) {
-        this.countNotApplicableForTask = countNotApplicableForTask;
-    }
-
-    public int getCountDeleted() {
-        return countDeleted;
-    }
-
-    public void setCountDeleted(int countDeleted) {
-        this.countDeleted = countDeleted;
-    }
-
-    public int getCountDisputed() {
-        return countDisputed;
-    }
-
-    public void setCountDisputed(int countDisputed) {
-        this.countDisputed = countDisputed;
-    }
-
-    public int getCountLinked() {
-        return countLinked;
-    }
-
-    public void setCountLinked(int countLinked) {
-        this.countLinked = countLinked;
-    }
-
-    public int getCountUnlinked() {
-        return countUnlinked;
-    }
-
-    public void setCountUnlinked(int countUnlinked) {
-        this.countUnlinked = countUnlinked;
-    }
-
-    public int getCountUnmatched() {
-        return countUnmatched;
-    }
-
-    public void setCountUnmatched(int countUnmatched) {
-        this.countUnmatched = countUnmatched;
-    }
-
-    public void recordSynchronizationOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started, Throwable exception, SynchronizationInformation increment) {
-        countProtected += increment.countProtected;
-        countNoSynchronizationPolicy += increment.countNoSynchronizationPolicy;
-        countSynchronizationDisabled += increment.countSynchronizationDisabled;
-        countNotApplicableForTask += increment.countNotApplicableForTask;
-        countDeleted += increment.countDeleted;
-        countDisputed += increment.countDisputed;
-        countLinked += increment.countLinked;
-        countUnlinked += increment.countUnlinked;
-        countUnmatched += increment.countUnmatched;
+    public synchronized void recordSynchronizationOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started, Throwable exception, SynchronizationInformation.Record increment) {
+        currentState.countProtected += increment.countProtected;
+        currentState.countNoSynchronizationPolicy += increment.countNoSynchronizationPolicy;
+        currentState.countSynchronizationDisabled += increment.countSynchronizationDisabled;
+        currentState.countNotApplicableForTask += increment.countNotApplicableForTask;
+        currentState.countDeleted += increment.countDeleted;
+        currentState.countDisputed += increment.countDisputed;
+        currentState.countLinked += increment.countLinked;
+        currentState.countUnlinked += increment.countUnlinked;
+        currentState.countUnmatched += increment.countUnmatched;
     }
 
     public void recordSynchronizationOperationStart(String objectName, String objectDisplayName, QName objectType, String objectOid) {

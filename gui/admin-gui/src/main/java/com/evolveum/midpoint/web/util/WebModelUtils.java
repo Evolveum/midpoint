@@ -62,8 +62,8 @@ public class WebModelUtils {
     private static final String OPERATION_SEARCH_OBJECTS = DOT_CLASS + "searchObjects";
     private static final String OPERATION_SAVE_OBJECT = DOT_CLASS + "saveObject";
 
-    public static String resolveReferenceName(ObjectReferenceType ref, OperationResult result, PageBase page) {
-        PrismObject<ObjectType> object = resolveReference(ref, result, page);
+    public static String resolveReferenceName(ObjectReferenceType ref, PageBase page, Task task, OperationResult result) {
+        PrismObject<ObjectType> object = resolveReference(ref, page, task, result);
         if (object == null) {
             return ref.getOid();
         } else {
@@ -71,7 +71,7 @@ public class WebModelUtils {
         }
     }
 
-    public static <T extends ObjectType> PrismObject<T> resolveReference(ObjectReferenceType reference, OperationResult result, PageBase page) {
+    public static <T extends ObjectType> PrismObject<T> resolveReference(ObjectReferenceType reference, PageBase page, Task task, OperationResult result) {
         if (reference == null) {
             return null;
         }
@@ -88,24 +88,17 @@ public class WebModelUtils {
             LOGGER.error("No definition for {} was found", reference.getType());
             return null;
         }
-        return loadObject(definition.getCompileTimeClass(), reference.getOid(), result, page);
-    }
-
-    public static <T extends ObjectType> PrismObject<T> loadObject(Class<T> type, String oid, OperationResult result,
-                                                                   PageBase page) {
-        return loadObject(type, oid, null, result, page);
+        return loadObject(definition.getCompileTimeClass(), reference.getOid(), page, task, result);
     }
 
     public static <T extends ObjectType> PrismObject<T> loadObject(Class<T> type, String oid,
-                                                                   Collection<SelectorOptions<GetOperationOptions>> options,
-                                                                   OperationResult result, PageBase page) {
-
-        return loadObject(type, oid, options, result, page, null);
+                                                                   PageBase page, Task task, OperationResult result) {
+        return loadObject(type, oid, null, page, task, result);
     }
 
-    private static <T extends ObjectType> PrismObject<T> loadObject(Class<T> type, String oid,
+    public static <T extends ObjectType> PrismObject<T> loadObject(Class<T> type, String oid,
                                                                     Collection<SelectorOptions<GetOperationOptions>> options,
-                                                                    OperationResult result, PageBase page, PrismObject<UserType> principal) {
+                                                                    PageBase page, Task task, OperationResult result) {
         LOGGER.debug("Loading {} with oid {}, options {}", new Object[]{type.getSimpleName(), oid, options});
 
         OperationResult subResult;
@@ -127,7 +120,6 @@ public class WebModelUtils {
         		}
         	}
 //        	.createResolveNames();
-            Task task = page.createSimpleTask(subResult.getOperation(), principal);
             object = page.getModelService().getObject(type, oid, options, task, subResult);
         } catch (Exception ex) {
             subResult.recordFatalError("WebModelUtils.couldntLoadObject", ex);

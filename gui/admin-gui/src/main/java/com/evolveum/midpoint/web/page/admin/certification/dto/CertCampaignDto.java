@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.page.admin.certification.dto;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.Selectable;
@@ -57,9 +58,9 @@ public class CertCampaignDto extends Selectable {
     private String ownerName;
     private String currentStateName;
 
-    public CertCampaignDto(AccessCertificationCampaignType campaign, OperationResult result, PageBase page) {
+    public CertCampaignDto(AccessCertificationCampaignType campaign, PageBase page, Task task, OperationResult result) {
         this.campaign = campaign;
-        ownerName = resolveOwnerName(campaign.getOwnerRef(), result, page);
+        ownerName = resolveOwnerName(campaign.getOwnerRef(), page, task, result);
         currentStateName = resolveCurrentStateName(page);
     }
 
@@ -67,11 +68,11 @@ public class CertCampaignDto extends Selectable {
         return ownerName;
     }
 
-    public static String resolveOwnerName(ObjectReferenceType ownerRef, OperationResult result, PageBase page) {
+    public static String resolveOwnerName(ObjectReferenceType ownerRef, PageBase page, Task task, OperationResult result) {
         if (ownerRef == null) {
             return null;
         }
-        PrismObject<? extends ObjectType> ownerObject = WebModelUtils.resolveReference(ownerRef, result, page);
+        PrismObject<? extends ObjectType> ownerObject = WebModelUtils.resolveReference(ownerRef, page, task, result);
         if (ownerObject == null) {
             return null;
         }

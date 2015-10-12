@@ -31,3 +31,17 @@ update m_focus set hasPhoto = (select hasPhoto from m_user where m_user.oid = m_
     where m_focus.oid in (select oid from m_user);
 
 alter table m_user drop column hasPhoto;
+
+
+alter table m_assignment add (
+    orgRef_relation varchar2(157 char),
+    orgRef_targetOid varchar2(36 char),
+    orgRef_type number(10,0),
+    resourceRef_relation varchar2(157 char),
+    resourceRef_targetOid varchar2(36 char),
+    resourceRef_type number(10,0));
+
+create index iTargetRefTargetOid on m_assignment (targetRef_targetOid);
+create index iTenantRefTargetOid on m_assignment (tenantRef_targetOid);
+create index iOrgRefTargetOid on m_assignment (orgRef_targetOid);
+create index iResourceRefTargetOid on m_assignment (resourceRef_targetOid);

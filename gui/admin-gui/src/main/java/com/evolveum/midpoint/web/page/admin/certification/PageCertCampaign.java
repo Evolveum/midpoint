@@ -180,12 +180,12 @@ public class PageCertCampaign extends PageAdminCertification {
 	}
 
 	private CertCampaignDto loadCampaign() {
-		OperationResult result = new OperationResult("dummy");  // todo
+		Task task = createSimpleTask("dummy");  // todo
+		OperationResult result = task.getResult();
 		AccessCertificationCampaignType campaign = null;
 		try {
-			Task task = createSimpleTask("dummy");  // todo
 			PrismObject<AccessCertificationCampaignType> campaignObject =
-					WebModelUtils.loadObject(AccessCertificationCampaignType.class, getCampaignOid(), result, PageCertCampaign.this);
+					WebModelUtils.loadObject(AccessCertificationCampaignType.class, getCampaignOid(), PageCertCampaign.this, task, result);
 			if (campaignObject != null) {
 				campaign = campaignObject.asObjectable();
 			}
@@ -199,7 +199,7 @@ public class PageCertCampaign extends PageAdminCertification {
 		if (!WebMiscUtil.isSuccessOrHandledError(result)) {
 			showResult(result);
 		}
-		return new CertCampaignDto(campaign, result, this);
+		return new CertCampaignDto(campaign, this, task, result);
 	}
 
 	private void initLayout() {

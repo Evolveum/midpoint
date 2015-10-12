@@ -142,11 +142,12 @@ public class OrgTreeProvider extends SortableTreeProvider<OrgTreeDto, String> {
     public Iterator<? extends OrgTreeDto> getRoots() {
         OperationResult result = null;
         if (root == null) {
-            result = new OperationResult(LOAD_ORG_UNIT);
+        	Task task = getPage().createSimpleTask(LOAD_ORG_UNIT);
+            result = task.getResult();
             LOGGER.debug("Getting roots for: " + rootOid.getObject());
 
             PrismObject<OrgType> object = WebModelUtils.loadObject(OrgType.class, rootOid.getObject(),
-                    WebModelUtils.createOptionsForParentOrgRefs(), result, getPage());
+                    WebModelUtils.createOptionsForParentOrgRefs(), getPage(), task, result);
             result.computeStatus();
 
             root = createDto(null, object);

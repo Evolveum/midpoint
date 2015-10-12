@@ -25,6 +25,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -41,9 +42,9 @@ import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -61,6 +62,7 @@ import org.apache.wicket.model.PropertyModel;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
+
 import java.util.*;
 
 /**
@@ -358,7 +360,8 @@ public class CapabilityStep extends WizardStep {
     private void savePerformed(){
         PrismObject<ResourceType> oldResource;
         PrismObject<ResourceType> newResource = resourceModel.getObject();
-        OperationResult result = new OperationResult(OPERATION_SAVE_CAPABILITIES);
+        Task task = getPageBase().createSimpleTask(OPERATION_SAVE_CAPABILITIES);
+        OperationResult result = task.getResult();
         ModelService modelService = getPageBase().getModelService();
         ObjectDelta delta = null;
 
@@ -389,7 +392,7 @@ public class CapabilityStep extends WizardStep {
 
             }
 
-            oldResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(), result, getPageBase());
+            oldResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(), getPageBase(), task, result);
             if(oldResource != null){
                 delta = oldResource.diff(newResource);
             }

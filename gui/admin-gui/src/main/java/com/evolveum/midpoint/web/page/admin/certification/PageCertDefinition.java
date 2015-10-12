@@ -143,17 +143,19 @@ public class PageCertDefinition extends PageAdminCertification {
 	}
 
 	private CertDefinitionDto loadDefinition() {
-		OperationResult result = new OperationResult("dummy");  // todo
+		Task task = createSimpleTask("dummy");
+		OperationResult result = task.getResult();
 		AccessCertificationDefinitionType definition = null;
 		CertDefinitionDto definitionDto = null;
 		try {
 			Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
 			PrismObject<AccessCertificationDefinitionType> definitionObject =
-					WebModelUtils.loadObject(AccessCertificationDefinitionType.class, getDefinitionOid(), options, result, PageCertDefinition.this);
+					WebModelUtils.loadObject(AccessCertificationDefinitionType.class, getDefinitionOid(), options, 
+							PageCertDefinition.this, task, result);
 			if (definitionObject != null) {
 				definition = definitionObject.asObjectable();
 			}
-			definitionDto = new CertDefinitionDto(definition, result, this);
+			definitionDto = new CertDefinitionDto(definition, this, task, result);
 			result.recordSuccessIfUnknown();
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get definition", ex);

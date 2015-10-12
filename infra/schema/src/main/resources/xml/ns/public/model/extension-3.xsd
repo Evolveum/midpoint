@@ -260,6 +260,17 @@
         </xsd:annotation>
     </xsd:element>
 
+    <xsd:element name="checkDuplicatesOnPrimaryIdentifiersOnly" type="xsd:boolean" default="false">
+        <xsd:annotation>
+            <xsd:documentation>
+                Should ShadowIntegrityCheck task handler check duplicates only for primary identifiers?
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
     <xsd:element name="operationalInformation" type="c:OperationalInformationType">
         <xsd:annotation>
             <xsd:documentation>

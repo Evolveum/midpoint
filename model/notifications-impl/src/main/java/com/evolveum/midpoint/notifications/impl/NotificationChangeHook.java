@@ -137,6 +137,8 @@ public class NotificationChangeHook implements ChangeHook {
 
         ModelEvent event = new ModelEvent(lightweightIdentifierGenerator);
         event.setModelContext(modelContext);
+        // TODO or take channel from modelContext?
+        event.setChannel(task.getChannel());
 
         if (task.getOwner() != null) {
             event.setRequester(new SimpleObjectRefImpl(notificationsUtil, task.getOwner().asObjectable()));
