@@ -309,10 +309,11 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
         ProfilingConfigurationType config = new ProfilingConfigurationType();
 
         if(dto.isPerformanceStatistics() || dto.isRequestFilter() || dto.isSubsystemModel() || dto.isSubsystemRepository() || dto.isSubsystemProvisioning()
-                || dto.isSubsystemResourceObjectChangeListener() || dto.isSubsystemUcf() || dto.isSubsystemTaskManager() || dto.isSubsystemWorkflow())
+                || dto.isSubsystemResourceObjectChangeListener() || dto.isSubsystemUcf() || dto.isSubsystemTaskManager() || dto.isSubsystemWorkflow()) {
             config.setEnabled(true);
-        else
+        } else {
             config.setEnabled(false);
+        }
 
         LOGGER.info("Profiling enabled: " + config.isEnabled());
 
@@ -550,30 +551,17 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 //        LoggingConfigurationType loggingConfig = null;
         ProfilingConfigurationType profilingConfig = null;
 
-        if(profilingConfigPanel != null){
+        if (profilingConfigPanel != null) {
             loggingDto = profilingConfigPanel.getModel().getObject();
-//            loggingConfig = createLoggingConfiguration(loggingDto);
-
-//            if(loggingConfig == null){
-//                target.add(getFeedbackPanel());
-//                target.add(get(ID_MAIN_FORM));
-//                return config;
-//            }
-
             profilingConfig = createProfilingConfiguration(loggingDto);
-            if(profilingConfig == null){
+            if (profilingConfig == null) {
                 target.add(getFeedbackPanel());
                 target.add(get(ID_MAIN_FORM));
                 return config;
             }
-        }
-
-        if(loggingConfigPanel != null){
-//            config.setLogging(loggingConfig);
             config.setProfilingConfiguration(profilingConfig);
         }
-        
-        
+
         if (loggingDto != null && loggingDto.getProfilingLevel() != null) {
             ClassLoggerConfigurationType type = createCustomClassLogger(LoggingDto.LOGGER_PROFILING,
                     ProfilingLevel.toLoggerLevelType(loggingDto.getProfilingLevel()), loggingDto.getProfilingAppender());

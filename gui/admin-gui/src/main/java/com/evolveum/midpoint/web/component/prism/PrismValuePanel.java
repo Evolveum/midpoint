@@ -422,16 +422,19 @@ public class PrismValuePanel extends Panel {
                   return WebMiscUtil.createEnumPanel(ActivationStatusType.class, id, new PropertyModel<ActivationStatusType>(model, baseExpression), this);
               } else if(ActivationType.F_LOCKOUT_STATUS.equals(definition.getName())){
                   return WebMiscUtil.createEnumPanel(LockoutStatusType.class, id, new PropertyModel<LockoutStatusType>(model, baseExpression), this);
-              } else{
-              	
+              } else {
+              	// nothing to do
               }
               
               if (DOMUtil.XSD_DATETIME.equals(valueType)) {
                   panel = new DatePanel(id, new PropertyModel<XMLGregorianCalendar>(model, baseExpression));
+                  
               } else if (ProtectedStringType.COMPLEX_TYPE.equals(valueType)) {
                   panel = new PasswordPanel(id, new PropertyModel<String>(model, baseExpression + ".clearValue"));
+                  
               } else if (DOMUtil.XSD_BOOLEAN.equals(valueType)) {
                   panel = new TriStateComboPanel(id, new PropertyModel<Boolean>(model, baseExpression));
+                  
               } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(valueType)) {
                   InputPanel inputPanel;
                   PrismPropertyDefinition def = property.getDefinition();
@@ -457,6 +460,7 @@ public class PrismValuePanel extends Panel {
                       };
 
                   } else {
+                	  
                       inputPanel = new TextPanel<>(id, new PropertyModel<String>(model, baseExpression + ".orig"), String.class);
                   }
 
@@ -464,7 +468,8 @@ public class PrismValuePanel extends Panel {
                       inputPanel.getBaseFormComponent().setRequired(true);
                   }
                   panel = inputPanel;
-              } else if(DOMUtil.XSD_BASE64BINARY.equals(valueType)){
+                  
+              } else if(DOMUtil.XSD_BASE64BINARY.equals(valueType)) {
                   panel = new UploadPanel(id){
 
                       @Override
