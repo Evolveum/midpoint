@@ -32,6 +32,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
@@ -44,6 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 
@@ -56,6 +58,7 @@ public class SystemConfigurationDto implements Serializable {
 	public static final String F_AUDIT_CLEANUP = "auditCleanupValue";
 	public static final String F_TASK_CLEANUP = "taskCleanupValue";
 	public static final String F_PASSWORD_POLICY = "passPolicyDto";
+	public static final String F_SECURITY_POLICY = "securityPolicyDto";
 	public static final String F_OBJECT_TEMPLATE = "objectTemplateDto";
 	public static final String F_OBJECT_POLICY_LIST = "objectPolicyList";
 	public static final String F_NOTIFICATION_CONFIGURATION = "notificationConfig";
@@ -70,14 +73,14 @@ public class SystemConfigurationDto implements Serializable {
 	private Boolean enableExperimentalCode;
 
 	private ObjectViewDto<ValuePolicyType> passPolicyDto;
-	private ObjectViewDto<ObjectTemplateType> objectTemplateDto;
+	private ObjectViewDto<SecurityPolicyType> securityPolicyDto;
 	private List<ObjectPolicyConfigurationTypeDto> objectPolicyList;
 	private NotificationConfigurationDto notificationConfig;
 	private List<RichHyperlinkType> userDashboardLink;
 
 	private LoggingDto loggingConfig;
 	private ProfilingDto profilingDto;
-	
+
 	private SystemConfigurationType oldObject;
 
 	private List<AppenderConfiguration> appenders = new ArrayList<>();
@@ -109,7 +112,8 @@ public class SystemConfigurationDto implements Serializable {
 		taskCleanupValue = taskCleanup.getMaxAge().toString();
 
 		passPolicyDto = loadPasswordPolicy(config);
-		objectTemplateDto = loadObjectTemplate(config);
+		securityPolicyDto = loadSecurityPolicy(config);
+		// objectTemplateDto = loadObjectTemplate(config);
 
 		objectPolicyList = new ArrayList<>();
 		List<ObjectPolicyConfigurationType> objectPolicies = config.getDefaultObjectPolicyConfiguration();
@@ -160,36 +164,38 @@ public class SystemConfigurationDto implements Serializable {
 
 		userDashboardLink = loadUserDashboardLink(config);
 	}
-	
-	public SystemConfigurationType getOldObject(){
+
+	public SystemConfigurationType getOldObject() {
 		return oldObject;
 	}
-	
-	public SystemConfigurationType getNewObject() throws DatatypeConfigurationException{
+
+	public SystemConfigurationType getNewObject() throws DatatypeConfigurationException {
 		SystemConfigurationType newObject = oldObject.clone();
-		
-		if (StringUtils.isNotBlank(getPassPolicyDto().getOid())){
-			ObjectReferenceType globalPassPolicyRef = ObjectTypeUtil.createObjectRef(getPassPolicyDto().getOid(), ObjectTypes.PASSWORD_POLICY);
+
+		if (StringUtils.isNotBlank(getPassPolicyDto().getOid())) {
+			ObjectReferenceType globalPassPolicyRef = ObjectTypeUtil
+					.createObjectRef(getPassPolicyDto().getOid(), ObjectTypes.PASSWORD_POLICY);
 			newObject.setGlobalPasswordPolicyRef(globalPassPolicyRef);
 		} else {
 			newObject.setGlobalPasswordPolicyRef(null);
 		}
 
-		if (StringUtils.isNotBlank(getObjectTemplateDto().getOid())){
-			ObjectReferenceType globalObjectTemplateRef = ObjectTypeUtil.createObjectRef(getObjectTemplateDto().getOid(), ObjectTypes.OBJECT_TEMPLATE);
-			newObject.setDefaultUserTemplateRef(globalObjectTemplateRef);
+		if (StringUtils.isNotBlank(getSecurityPolicyDto().getOid())) {
+			ObjectReferenceType globalSecurityPolicyRef = ObjectTypeUtil.createObjectRef(
+					getSecurityPolicyDto().getOid(),
+					WebMiscUtil.createPolyFromOrigString(getSecurityPolicyDto().getName()),
+					ObjectTypes.SECURITY_POLICY);
+			newObject.setGlobalSecurityPolicyRef(globalSecurityPolicyRef);
 		} else {
-			newObject.setDefaultUserTemplateRef(null);
+			newObject.setGlobalSecurityPolicyRef(null);
 		}
-	
+
 		AssignmentPolicyEnforcementType globalAEP = AEPlevel.toAEPValueType(getAepLevel());
 		ProjectionPolicyType projectionPolicy = new ProjectionPolicyType();
 		projectionPolicy.setAssignmentPolicyEnforcement(globalAEP);
 
-		Duration auditCleanupDuration = DatatypeFactory.newInstance()
-				.newDuration(getAuditCleanupValue());
-		Duration cleanupTaskDuration = DatatypeFactory.newInstance()
-				.newDuration(getTaskCleanupValue());
+		Duration auditCleanupDuration = DatatypeFactory.newInstance().newDuration(getAuditCleanupValue());
+		Duration cleanupTaskDuration = DatatypeFactory.newInstance().newDuration(getTaskCleanupValue());
 		CleanupPolicyType auditCleanup = new CleanupPolicyType();
 		CleanupPolicyType taskCleanup = new CleanupPolicyType();
 		auditCleanup.setMaxAge(auditCleanupDuration);
@@ -201,19 +207,19 @@ public class SystemConfigurationDto implements Serializable {
 		newObject.setGlobalAccountSynchronizationSettings(projectionPolicy);
 		newObject.setCleanupPolicy(cleanupPolicies);
 		SystemConfigurationTypeUtil.setEnableExperimentalCode(newObject, getEnableExperimentalCode());
-		
+
 		newObject.setLogging(loggingConfig.getNewObject());
 		newObject.setNotificationConfiguration(notificationConfig.getNewObject(newObject));
 		newObject.setProfilingConfiguration(profilingDto.getNewObejct());
 		ClassLoggerConfigurationType profilingClassLogger = profilingDto.getProfilingClassLogerConfig();
-		if (newObject.getLogging() != null){
+		if (newObject.getLogging() != null) {
 			newObject.getLogging().getClassLogger().add(profilingClassLogger);
 		} else {
 			LoggingConfigurationType profLogging = new LoggingConfigurationType();
 			profLogging.getClassLogger().add(profilingClassLogger);
 			newObject.setLogging(profLogging);
 		}
-		
+
 		return newObject;
 	}
 
@@ -241,19 +247,19 @@ public class SystemConfigurationDto implements Serializable {
 		passPolicyDto.setType(ValuePolicyType.class);
 		return passPolicyDto;
 	}
-	
-		private ObjectViewDto<ObjectTemplateType> loadObjectTemplate(SystemConfigurationType config) {
-		ObjectTemplateType objectTemplate = config.getDefaultUserTemplate();
 
-		if (objectTemplate != null) {
-			objectTemplateDto = new ObjectViewDto<>(objectTemplate.getOid(),
-					objectTemplate.getName().getOrig());
+	private ObjectViewDto<SecurityPolicyType> loadSecurityPolicy(SystemConfigurationType config) {
+		ObjectReferenceType securityPolicy = config.getGlobalSecurityPolicyRef();
+
+		if (securityPolicy != null) {
+			securityPolicyDto = new ObjectViewDto<SecurityPolicyType>(securityPolicy.getOid(),
+					WebMiscUtil.getName(securityPolicy));
 		} else {
-			objectTemplateDto = new ObjectViewDto<>();
+			securityPolicyDto = new ObjectViewDto<SecurityPolicyType>();
 		}
 
-		objectTemplateDto.setType(ObjectTemplateType.class);
-		return objectTemplateDto;
+		securityPolicyDto.setType(SecurityPolicyType.class);
+		return securityPolicyDto;
 	}
 
 	public String getAuditCleanupValue() {
@@ -288,12 +294,12 @@ public class SystemConfigurationDto implements Serializable {
 		this.passPolicyDto = passPolicyDto;
 	}
 
-	public ObjectViewDto<ObjectTemplateType> getObjectTemplateDto() {
-		return objectTemplateDto;
+	public ObjectViewDto<SecurityPolicyType> getSecurityPolicyDto() {
+		return securityPolicyDto;
 	}
 
-	public void setObjectTemplateDto(ObjectViewDto<ObjectTemplateType> objectTemplateDto) {
-		this.objectTemplateDto = objectTemplateDto;
+	public void setSecurityPolicyDto(ObjectViewDto<SecurityPolicyType> securityPolicyDto) {
+		this.securityPolicyDto = securityPolicyDto;
 	}
 
 	public NotificationConfigurationDto getNotificationConfig() {

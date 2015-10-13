@@ -362,6 +362,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 				LOGGER.trace("System configuration delta:\n{}", delta.debugDump());
 			}
 			if (delta != null && !delta.isEmpty()) {
+				getPrismContext().adopt(delta);
 				getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task,
 						result);
 			}

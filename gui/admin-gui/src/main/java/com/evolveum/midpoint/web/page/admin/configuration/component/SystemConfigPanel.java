@@ -16,30 +16,24 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.component;
 
+import java.util.List;
+
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
+import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
+
 import com.evolveum.midpoint.web.component.ObjectPolicyConfigurationEditor;
-import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.*;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.AEPlevel;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectPolicyConfigurationTypeDto;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.SystemConfigurationDto;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MailTransportSecurityType;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormSubmitBehavior;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
-import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.*;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
-import com.evolveum.midpoint.web.component.form.Form;
-
-import java.util.List;
 
 /**
  * @author lazyman
@@ -47,14 +41,13 @@ import java.util.List;
 public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
 
     private static final String ID_GLOBAL_PASSWORD_POLICY_CHOOSER = "passwordPolicyChooser";
-    private static final String ID_GLOBAL_USER_TEMPLATE_CHOOSER = "userTemplateChooser";
+    private static final String ID_GLOBAL_SECURITY_POLICY_CHOOSER = "securityPolicyChooser";
     private static final String ID_OBJECT_POLICY_EDITOR = "objectPolicyEditor";
     private static final String ID_GLOBAL_AEP = "aepChooser";
     private static final String ID_CLEANUP_AUDIT_RECORDS = "auditRecordsCleanup";
     private static final String ID_CLEANUP_CLOSED_TASKS = "closedTasksCleanup";
     private static final String ID_CLEANUP_AUDIT_RECORDS_TOOLTIP = "auditRecordsCleanupTooltip";
     private static final String ID_CLEANUP_CLOSED_TASKS_TOOLTIP = "closedTasksCleanupTooltip";
-    private static final String ID_OBJECT_POLICY_DEPRECATED_WARNING = "userTemplateDeprecatedWarning";
 
     private static final String ID_EXPERIMENTAL_CODE_CHECKBOX = "experimentalCodeCheckbox";
     
@@ -76,24 +69,11 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
         ChooseTypePanel passPolicyChoosePanel = new ChooseTypePanel(ID_GLOBAL_PASSWORD_POLICY_CHOOSER,
                 new PropertyModel<ObjectViewDto>(getModel(), SystemConfigurationDto.F_PASSWORD_POLICY));
 
-//        passPolicyChoosePanel.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
-//        TODO - remove this before 3.2 release, this is kept only for compatibility reasons. ObjectPolicyConfigurationEditor
-//        is new incarnation of this deprecated config option.
-        ChooseTypePanel userTemplateChoosePanel = new ChooseTypePanel(ID_GLOBAL_USER_TEMPLATE_CHOOSER,
-                new PropertyModel<ObjectViewDto>(getModel(), SystemConfigurationDto.F_OBJECT_TEMPLATE));
+        ChooseTypePanel securityPolicyChoosePanel = new ChooseTypePanel(ID_GLOBAL_SECURITY_POLICY_CHOOSER,
+                new PropertyModel<ObjectViewDto>(getModel(), SystemConfigurationDto.F_SECURITY_POLICY));
 //        userTemplateChoosePanel.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         add(passPolicyChoosePanel);
-        add(userTemplateChoosePanel);
-
-        Label objectPolicyDeprecationWarningTooltip = new Label(ID_OBJECT_POLICY_DEPRECATED_WARNING);
-        objectPolicyDeprecationWarningTooltip.add(new InfoTooltipBehavior(){
-
-            @Override
-            public String getCssClass() {
-                return "fa fa-fw fa-exclamation-triangle text-danger";
-            }
-        });
-        add(objectPolicyDeprecationWarningTooltip);
+        add(securityPolicyChoosePanel);
 
         ObjectPolicyConfigurationEditor objectPolicyEditor = new ObjectPolicyConfigurationEditor(ID_OBJECT_POLICY_EDITOR,
                 new PropertyModel<List<ObjectPolicyConfigurationTypeDto>>(getModel(), SystemConfigurationDto.F_OBJECT_POLICY_LIST));

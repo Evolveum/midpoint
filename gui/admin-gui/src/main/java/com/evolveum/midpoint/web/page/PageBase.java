@@ -503,6 +503,23 @@ public abstract class PageBase extends PageTemplate {
             }
         };
         submenu.add(menu);
+        
+        params = new PageParameters();
+        params.add(PageSystemConfiguration.SELECTED_TAB_INDEX, PageSystemConfiguration.CONFIGURATION_TAB_NOTIFICATION);
+        menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.notifications"),
+                PageSystemConfiguration.class, params, null) {
+
+            @Override
+            public boolean isMenuActive(WebPage page) {
+                if (!PageSystemConfiguration.class.equals(page.getClass())) {
+                    return false;
+                }
+
+                int index = getSelectedTabForConfiguration(page);
+                return PageSystemConfiguration.CONFIGURATION_TAB_NOTIFICATION == index ? true : false;
+            }
+        };
+        submenu.add(menu);
 
         params = new PageParameters();
         params.add(PageSystemConfiguration.SELECTED_TAB_INDEX, PageSystemConfiguration.CONFIGURATION_TAB_LOGGING);
@@ -538,22 +555,7 @@ public abstract class PageBase extends PageTemplate {
         };
         submenu.add(menu);
         
-        params = new PageParameters();
-        params.add(PageSystemConfiguration.SELECTED_TAB_INDEX, PageSystemConfiguration.CONFIGURATION_TAB_NOTIFICATION);
-        menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.notifications"),
-                PageSystemConfiguration.class, params, null) {
-
-            @Override
-            public boolean isMenuActive(WebPage page) {
-                if (!PageSystemConfiguration.class.equals(page.getClass())) {
-                    return false;
-                }
-
-                int index = getSelectedTabForConfiguration(page);
-                return PageSystemConfiguration.CONFIGURATION_TAB_NOTIFICATION == index ? true : false;
-            }
-        };
-        submenu.add(menu);
+        
 
 
         menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.shadowsDetails"),

@@ -47,8 +47,8 @@ public class ProfilingDto implements Serializable{
 	private void init(ProfilingConfigurationType profilingConfiguration,
 			List<ClassLoggerConfigurationType> classLoggerConfig) {
 
-		if (profilingConfiguration != null && profilingConfiguration.isEnabled()) {
-			profilingEnabled = true;
+		
+//			profilingEnabled = true;
 
 			requestFilter = checkXsdBooleanValue(profilingConfiguration.isRequestFilter());
 			performanceStatistics = checkXsdBooleanValue(profilingConfiguration.isPerformanceStatistics());
@@ -76,7 +76,7 @@ public class ProfilingDto implements Serializable{
 					continue;
 				}
 			}
-		}
+		
 	}
 	
 	public ClassLoggerConfigurationType getProfilingClassLogerConfig() {
@@ -86,6 +86,11 @@ public class ProfilingDto implements Serializable{
 				ClassLoggerConfigurationType type = new ClassLoggerConfigurationType();
 				type.setPackage(ProfilingDto.LOGGER_PROFILING);
 				type.setLevel(ProfilingLevel.toLoggerLevelType(getProfilingLevel()));
+				
+				if (StringUtils.isEmpty(getProfilingAppender())){
+					return type;
+				}
+				
 				if (StringUtils.isNotEmpty(getProfilingAppender()) || !(PageSystemConfiguration.ROOT_APPENDER_INHERITANCE_CHOICE.equals(getProfilingAppender()))) {
 					type.getAppender().add(getProfilingAppender());
 				}

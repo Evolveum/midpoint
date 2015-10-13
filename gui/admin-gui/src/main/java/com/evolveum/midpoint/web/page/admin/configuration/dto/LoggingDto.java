@@ -150,6 +150,7 @@ public class LoggingDto implements Serializable {
 				}
 			}
 
+			//TODO : clean up toXmlType() method.. getAppenders() in LogginConfiguration is empty by default..shouldn't it be null?
 			if (item instanceof StandardLogger) {
 				configuration.getClassLogger().add(((StandardLogger) item).toXmlType());
 			} else if (item instanceof ComponentLogger) {

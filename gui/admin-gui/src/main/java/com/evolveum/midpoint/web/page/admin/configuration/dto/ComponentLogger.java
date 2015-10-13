@@ -69,7 +69,9 @@ public class ComponentLogger extends LoggerConfiguration {
 		ClassLoggerConfigurationType type = new ClassLoggerConfigurationType();
 		type.setPackage(getPackageByValue(component));
 		type.setLevel(getLevel());
-		type.getAppender().addAll(getAppenders());
+		if (!(getAppenders().isEmpty())){
+        	type.getAppender().addAll(getAppenders());
+        }
 		return type;
 	}
 
