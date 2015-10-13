@@ -41,6 +41,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -80,6 +81,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -466,6 +469,31 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		RichHyperlinkType link = adminGuiConfiguration.getUserDashboardLink().get(0);
 		assertEquals("Bad link label", "Foo", link.getLabel());
 		assertEquals("Bad link targetUrl", "/foo", link.getTargetUrl());
+	}
+	
+	@Test
+    public void test150GetGuybrushRefinedObjectClassDef() throws Exception {
+		final String TEST_NAME = "test150GetGuybrushRefinedObjectClassDef";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<ShadowType> shadow = getShadowModel(ACCOUNT_SHADOW_GUYBRUSH_OID);
+        
+		// WHEN
+		RefinedObjectClassDefinition rOCDef = modelInteractionService.getEditObjectClassDefinition(shadow, resourceDummy, AuthorizationPhaseType.REQUEST);
+
+		// THEN
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		
+		display("Refined object class", rOCDef);
+		assertNotNull("Null config", rOCDef);
+		
+		display("Password credentials outbound", rOCDef.getCredentialsOutbound());
+		assertNotNull("Assert not null", rOCDef.getCredentialsOutbound());
 	}
 	
 	@Test
