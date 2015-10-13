@@ -116,17 +116,7 @@ function updateHeightReal(elementId, add, substract) {
 }
 
 /**
- * Used in PageSizePopover class, in table panel.
- *
- * @param buttonId
- * @param popoverId
- */
-function initPageSizePopover(buttonId, popoverId) {
-    console.log(popoverId);
-    initPageSizePopover(buttonId, popoverId, buttonId);
-}
-
-/**
+ * Used in TableConfigurationPanel (table page size)
  *
  * @param buttonId
  * @param popoverId
