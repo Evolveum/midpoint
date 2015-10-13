@@ -1104,7 +1104,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			SearchResultMetadata metadata = null;
 			try {
 				
-				metadata = getCacheRepositoryService().searchObjectsIterative(type, query, internalHandler, null, result);
+				metadata = getCacheRepositoryService().searchObjectsIterative(type, query, internalHandler, null, false, result);	// TODO think about strictSequential flag
 				
 				result.computeStatus();
 				result.recordSuccessIfUnknown();

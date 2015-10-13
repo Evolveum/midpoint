@@ -46,9 +46,12 @@ import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.ProjectionList;
 import org.hibernate.criterion.Projections;
+import org.hibernate.criterion.Restrictions;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
+
+import static com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl.*;
 
 /**
  * @author lazyman
@@ -133,8 +136,19 @@ public class QueryInterpreter {
             criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
         }
 
+        if (query != null && query.getPaging() instanceof ObjectPagingAfterOid) {
+            ObjectPagingAfterOid paging = (ObjectPagingAfterOid) query.getPaging();
+            if (paging.getOidGreaterThan() != null) {
+                criteria = criteria.add(Restrictions.gt("oid", paging.getOidGreaterThan()));
+            }
+        }
+
         if (!countingObjects && query != null && query.getPaging() != null) {
-            criteria = updatePagingAndSorting(criteria, type, query.getPaging());
+            if (query.getPaging() instanceof ObjectPagingAfterOid) {
+                criteria = updatePagingAndSortingByOid(criteria, query);                // very special case - ascending ordering by OID (nothing more)
+            } else {
+                criteria = updatePagingAndSorting(criteria, type, query.getPaging());
+            }
         }
 
         if (!countingObjects) {
@@ -191,8 +205,6 @@ public class QueryInterpreter {
         }
 
         QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
-        // PropertyPath path = new
-        // XPathHolder(paging.getOrderBy()).toPropertyPath();
         if (paging.getOrderBy() == null) {
             LOGGER.warn("Ordering by property path with size not equal 1 is not supported '" + paging.getOrderBy()
                     + "'.");
@@ -226,6 +238,18 @@ public class QueryInterpreter {
 
 
         return query;
+    }
+
+    protected Criteria updatePagingAndSortingByOid(Criteria criteria, ObjectQuery query) {
+        ObjectPagingAfterOid paging = (ObjectPagingAfterOid) query.getPaging();
+        if (paging.getOrderBy() != null || paging.getDirection() != null || paging.getOffset() != null) {
+            throw new IllegalArgumentException("orderBy, direction nor offset is allowed on ObjectPagingAfterOid");
+        }
+        criteria = criteria.addOrder(Order.asc("oid"));
+        if (paging.getMaxSize() != null) {
+            criteria = criteria.setMaxResults(paging.getMaxSize());
+        }
+        return criteria;
     }
 
     public <T extends Object> Matcher<T> findMatcher(T value) {

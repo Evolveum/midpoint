@@ -96,7 +96,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 PolyStringStrictMatchingRule.NAME, new PolyString("asdf", "asdf"));
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
-        repositoryService.searchObjectsIterative(UserType.class, query, handler, null, result);
+        repositoryService.searchObjectsIterative(UserType.class, query, handler, null, false, result);
         result.recomputeStatus();
 
         AssertJUnit.assertTrue(result.isSuccess());
@@ -117,7 +117,7 @@ public class SearchTest extends BaseSQLRepoTest {
             }
         };
 
-        repositoryService.searchObjectsIterative(UserType.class, null, handler, null, result);
+        repositoryService.searchObjectsIterative(UserType.class, null, handler, null, false, result);
         result.recomputeStatus();
 
         AssertJUnit.assertTrue(result.isSuccess());
@@ -157,7 +157,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
         ObjectQuery query = new ObjectQuery();
         query.setPaging(ObjectPaging.createPaging(offset, size, ObjectType.F_NAME, OrderDirection.ASCENDING));
-        repositoryService.searchObjectsIterative(UserType.class, query, handler, null, result);
+        repositoryService.searchObjectsIterative(UserType.class, query, handler, null, false, result);
         result.recomputeStatus();
 
         config.setIterativeSearchByPagingBatchSize(oldbatch);

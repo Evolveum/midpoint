@@ -192,7 +192,8 @@ public class RepositoryCache implements RepositoryService {
 	 */
 	@Override
 	public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
-			final ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
+			final ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options,
+			boolean strictlySequential, OperationResult parentResult) throws SchemaException {
 		// TODO use cached query result if applicable
 		log("Cache: PASS searchObjectsIterative ({})", type.getSimpleName());
 		final Cache cache = getCache();
@@ -203,9 +204,9 @@ public class RepositoryCache implements RepositoryService {
 				return handler.handle(object, parentResult);
 			}
 		};
-		return repository.searchObjectsIterative(type, query, myHandler, options, parentResult);
+		return repository.searchObjectsIterative(type, query, myHandler, options, strictlySequential, parentResult);
 	}
-	
+
 	@Override
 	public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult)
 			throws SchemaException {

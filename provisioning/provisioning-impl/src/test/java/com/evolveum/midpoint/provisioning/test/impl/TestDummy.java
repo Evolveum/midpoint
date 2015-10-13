@@ -2710,7 +2710,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		// WHEN
         if (useRepo) {
-            repositoryService.searchObjectsIterative(ShadowType.class, query, handler, null, result);
+            repositoryService.searchObjectsIterative(ShadowType.class, query, handler, null, false, result);
         } else {
             provisioningService.searchObjectsIterative(ShadowType.class, query, options, handler, null, result);
         }

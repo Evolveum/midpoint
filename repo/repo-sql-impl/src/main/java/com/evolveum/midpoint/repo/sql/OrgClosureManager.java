@@ -462,7 +462,7 @@ public class OrgClosureManager {
                 return true;
             }
         };
-        service.searchObjectsIterative(OrgType.class, new ObjectQuery(), handler, null, result);
+        service.searchObjectsIterative(OrgType.class, new ObjectQuery(), handler, null, false, result);
 
         LOGGER.info("Org closure table was successfully recomputed (not committed yet); all {} organizations processed", orgsTotal);
 
