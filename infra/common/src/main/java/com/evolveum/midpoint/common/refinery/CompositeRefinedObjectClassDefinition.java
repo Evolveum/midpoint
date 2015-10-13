@@ -222,12 +222,12 @@ public class CompositeRefinedObjectClassDefinition extends RefinedObjectClassDef
 		return structuralObjectClassDefinition.getBaseContext();
 	}
 
-	public List<MappingType> getCredentialsInbound() {
-		return structuralObjectClassDefinition.getCredentialsInbound();
+	public List<MappingType> getPasswordInbound() {
+		return structuralObjectClassDefinition.getPasswordInbound();
 	}
 
-	public MappingType getCredentialsOutbound() {
-		return structuralObjectClassDefinition.getCredentialsOutbound();
+	public MappingType getPasswordOutbound() {
+		return structuralObjectClassDefinition.getPasswordOutbound();
 	}
 
 	public AttributeFetchStrategyType getPasswordFetchStrategy() {

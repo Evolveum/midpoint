@@ -783,7 +783,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         return attrNames;
     }
     
-    public List<MappingType> getCredentialsInbound() {
+    public List<MappingType> getPasswordInbound() {
         
     	ResourcePasswordDefinitionType password = getPasswordDefinition();
     	
@@ -794,7 +794,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         return password.getInbound();
     }
     
-	public MappingType getCredentialsOutbound() {
+	public MappingType getPasswordOutbound() {
 
 		ResourcePasswordDefinitionType password = getPasswordDefinition();
 

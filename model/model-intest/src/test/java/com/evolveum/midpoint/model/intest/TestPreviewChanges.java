@@ -492,8 +492,8 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		display("Refined object class", rOCDef);
 		assertNotNull("Null config", rOCDef);
 		
-		display("Password credentials outbound", rOCDef.getCredentialsOutbound());
-		assertNotNull("Assert not null", rOCDef.getCredentialsOutbound());
+		display("Password credentials outbound", rOCDef.getPasswordOutbound());
+		assertNotNull("Assert not null", rOCDef.getPasswordOutbound());
 	}
 	
 	@Test
