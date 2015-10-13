@@ -16,14 +16,22 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuditingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingComponentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingLevelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SubSystemLoggerConfigurationType;
 
 /**
  * @author lazyman
@@ -51,8 +59,6 @@ public class LoggingDto implements Serializable {
 		componentMap.put("com.evolveum.midpoint.notifications", LoggingComponentType.NOTIFICATIONS);
 	}
 
-	// private PrismObject<SystemConfigurationType> oldConfiguration;
-
 	private LoggingLevelType rootLevel;
 	private String rootAppender;
 
@@ -70,9 +76,7 @@ public class LoggingDto implements Serializable {
 	}
 
 	public LoggingDto(LoggingConfigurationType config) {
-		// this.oldConfiguration = oldConfiguration;
 		init(config);
-		// initProfiling(oldConfiguration);
 	}
 
 	private void init(LoggingConfigurationType config) {
@@ -146,7 +150,6 @@ public class LoggingDto implements Serializable {
 				if (logger.getPackage().equals(item.getName())) {
 					throw new IllegalStateException(
 							"Logger with name '" + item.getName() + "' is already defined.");
-					// return null;
 				}
 			}
 
@@ -167,7 +170,6 @@ public class LoggingDto implements Serializable {
 				if (filter.getComponent().name().equals(item.getName())) {
 					throw new IllegalStateException(
 							"Filter with name '" + item.getName() + "' is already defined.");
-					// return null;
 				}
 			}
 

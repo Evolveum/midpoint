@@ -71,14 +71,12 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
 
         ChooseTypePanel securityPolicyChoosePanel = new ChooseTypePanel(ID_GLOBAL_SECURITY_POLICY_CHOOSER,
                 new PropertyModel<ObjectViewDto>(getModel(), SystemConfigurationDto.F_SECURITY_POLICY));
-//        userTemplateChoosePanel.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         add(passPolicyChoosePanel);
         add(securityPolicyChoosePanel);
 
         ObjectPolicyConfigurationEditor objectPolicyEditor = new ObjectPolicyConfigurationEditor(ID_OBJECT_POLICY_EDITOR,
                 new PropertyModel<List<ObjectPolicyConfigurationTypeDto>>(getModel(), SystemConfigurationDto.F_OBJECT_POLICY_LIST));
         add(objectPolicyEditor);
-//        objectPolicyEditor.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 
         DropDownChoice<AEPlevel> aepLevel = new DropDownChoice<>(ID_GLOBAL_AEP,
                 new PropertyModel<AEPlevel>(getModel(), SystemConfigurationDto.F_AEP_LEVEL),

@@ -47,9 +47,6 @@ public class ProfilingDto implements Serializable{
 	private void init(ProfilingConfigurationType profilingConfiguration,
 			List<ClassLoggerConfigurationType> classLoggerConfig) {
 
-		
-//			profilingEnabled = true;
-
 			requestFilter = checkXsdBooleanValue(profilingConfiguration.isRequestFilter());
 			performanceStatistics = checkXsdBooleanValue(profilingConfiguration.isPerformanceStatistics());
 			subsystemModel = checkXsdBooleanValue(profilingConfiguration.isModel());
