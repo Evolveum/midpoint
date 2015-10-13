@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,36 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.component;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
+import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.*;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.EditableCheckboxColumn;
+import com.evolveum.midpoint.web.component.data.column.EditableLinkColumn;
+import com.evolveum.midpoint.web.component.data.column.EditablePropertyColumn;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.ListMultipleChoicePanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
@@ -30,34 +54,28 @@ import com.evolveum.midpoint.web.component.util.Editable;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.*;
-import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.AppenderConfiguration;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.ClassLogger;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.ComponentLogger;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.FileAppenderConfig;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.FilterConfiguration;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.InputStringValidator;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.LevelValidator;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggerConfiguration;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggerValidator;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggingDto;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.StandardLogger;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.StandardLoggerType;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.*;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileAppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingComponentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingLevelType;
 
 /**
  * @author lazyman
+ * @author katkav
  */
 public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
 
@@ -77,46 +95,6 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
     public LoggingConfigPanel(String id, IModel<LoggingDto> model) {
         super(id, model);
     }
-
-//    @Override
-//    public IModel<LoggingDto> createModel() {
-//        return new LoadableModel<LoggingDto>(false) {
-//
-//            @Override
-//            protected LoggingDto load() {
-//                return initLoggingModel();
-//            }
-//        };
-//    }
-
-//    private LoggingDto initLoggingModel() {
-//        LoggingDto dto = null;
-//        OperationResult result = new OperationResult(OPERATION_LOAD_LOGGING_CONFIGURATION);
-//        try {
-//            Task task = getPageBase().createSimpleTask(OPERATION_LOAD_LOGGING_CONFIGURATION);
-//
-//            PrismObject<SystemConfigurationType> config = getPageBase().getModelService().getObject(
-//                    SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null,
-//                    task, result);
-//            SystemConfigurationType systemConfiguration = config.asObjectable();
-//            LoggingConfigurationType logging = systemConfiguration.getLogging();
-//            dto = new LoggingDto(logging);
-//
-//            result.recordSuccess();
-//        } catch (Exception ex) {
-//            result.recordFatalError("Couldn't load logging configuration.", ex);
-//        }
-//
-//        if (!result.isSuccess()) {
-//            getPageBase().showResult(result);
-//        }
-//
-//        if (dto == null) {
-//            dto = new LoggingDto();
-//        }
-//
-//        return dto;
-//    }
 
     @Override
     protected void initLayout() {
@@ -425,7 +403,6 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
     }
 
     private String getComponenLoggerDisplayValue(LoggingComponentType item){
-        //LoggingConfigPanel.this.getString("LoggingConfigPanel.logger." + item);
         return createStringResource("LoggingComponentType." + item).getString();
     }
 
@@ -438,7 +415,6 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
 
                 LoggingDto dto = getModel().getObject();
 
-                //list.add(PageSystemConfiguration.ROOT_APPENDER_INHERITANCE_CHOICE);
                 for(AppenderConfiguration appender: dto.getAppenders()){
 
                     if(!appender.getName().equals(dto.getRootAppender())){

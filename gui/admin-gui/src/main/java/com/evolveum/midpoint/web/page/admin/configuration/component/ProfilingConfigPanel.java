@@ -1,76 +1,45 @@
+/*
+ * Copyright (c) 2010-2015 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.evolveum.midpoint.web.page.admin.configuration.component;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
-import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.EditableCheckboxColumn;
-import com.evolveum.midpoint.web.component.data.column.EditableLinkColumn;
-import com.evolveum.midpoint.web.component.data.column.EditablePropertyColumn;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.input.ListMultipleChoicePanel;
-import com.evolveum.midpoint.web.component.input.TextPanel;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.component.util.Editable;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-
 import com.evolveum.midpoint.web.page.admin.configuration.dto.AppenderConfiguration;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.ClassLogger;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.ComponentLogger;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.FileAppenderConfig;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.FilterConfiguration;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.InputStringValidator;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.LevelValidator;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggerConfiguration;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggerValidator;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggingDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ProfilingDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ProfilingLevel;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.StandardLogger;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.StandardLoggerType;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FileAppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingComponentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingLevelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
+/**
+ * 
+ * @author katkav
+ *
+ */
 public class ProfilingConfigPanel extends SimplePanel<ProfilingDto> {
 
     private static final String DOT_CLASS = LoggingConfigPanel.class.getName() + ".";

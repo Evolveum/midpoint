@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.Duration;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
@@ -38,7 +35,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -55,44 +51,20 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.LoggingConfi
 import com.evolveum.midpoint.web.page.admin.configuration.component.NotificationConfigPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ProfilingConfigPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.SystemConfigPanel;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.AEPlevel;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.AppenderConfiguration;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.ClassLogger;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.ComponentLogger;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.FilterConfiguration;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggerConfiguration;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggingDto;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.MailServerConfigurationTypeDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.NotificationConfigurationDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectPolicyConfigurationTypeDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ProfilingDto;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.ProfilingLevel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.PropertyConstraintTypeDto;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.StandardLogger;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.SystemConfigurationDto;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuditingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPoliciesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingLevelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MailConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MailServerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProfilingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SubSystemLoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * @author lazyman

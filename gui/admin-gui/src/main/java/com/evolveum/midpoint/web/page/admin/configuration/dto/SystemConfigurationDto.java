@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FileAppenderConfigur
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
@@ -113,7 +112,6 @@ public class SystemConfigurationDto implements Serializable {
 
 		passPolicyDto = loadPasswordPolicy(config);
 		securityPolicyDto = loadSecurityPolicy(config);
-		// objectTemplateDto = loadObjectTemplate(config);
 
 		objectPolicyList = new ArrayList<>();
 		List<ObjectPolicyConfigurationType> objectPolicies = config.getDefaultObjectPolicyConfiguration();

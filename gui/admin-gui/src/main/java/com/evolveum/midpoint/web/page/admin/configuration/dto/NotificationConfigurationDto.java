@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,17 @@
  */
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MailConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MailServerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MailConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MailServerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  *  @author shood
