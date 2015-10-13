@@ -46,11 +46,15 @@ li.dropdown.user.user-menu {
   }
 }
 
-//disabled menu css fixes
-.skin-blue .treeview-menu > li > span {
-  color: #8aa4af;
+//table context menu border fix
+th.cog, td.cog {
+  & ul.dropdown-menu.pull-right {
+    border-color: #337ab7;
+  }
 }
+//end table context menu border fix
 
+//disabled menu css fixes
 .sidebar-menu .treeview-menu > li > span {
   display: block;
   font-size: 14px;
@@ -63,10 +67,11 @@ li.dropdown.user.user-menu {
   width: 20px;
 }
 
-.skin-blue .treeview-menu > li.active > span,
-.skin-blue .treeview-menu > li > span:hover {
-  color: #fff;
+.skin-blue-light .treeview-menu > li.active > span,
+.skin-blue-light .treeview-menu > li > span:hover {
+  color: #000;
 }
+//end of disabled menu css fixes
 
 .user-thumbnail-helper {
   display: inline-block;
@@ -105,6 +110,7 @@ li.dropdown.user.user-menu {
 	white-space: nowrap;
 	text-align: center;
 	line-height: 0px;
+    border-radius: 0;
 }
 
 .info-box-icon.summary-panel-role {
@@ -114,6 +120,7 @@ li.dropdown.user.user-menu {
 	white-space: nowrap;
 	text-align: center;
 	line-height: 0px;
+    border-radius: 0;
 }
 
 .info-box-icon.summary-panel-org {
@@ -123,6 +130,7 @@ li.dropdown.user.user-menu {
 	white-space: nowrap;
 	text-align: center;
 	line-height: 0px;
+    border-radius: 0;
 }
 
 .summary-panel-identifier {
