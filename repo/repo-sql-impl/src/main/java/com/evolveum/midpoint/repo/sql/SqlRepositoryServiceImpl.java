@@ -61,9 +61,7 @@ import org.springframework.stereotype.Repository;
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
-import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -121,7 +119,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Transformer;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -940,7 +937,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Validate.notNull(type, "Object type must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
 
-        logSearchInputParameters(type, query, false);
+        logSearchInputParameters(type, query, false, null);
 
         OperationResult subResult = result.createSubresult(SEARCH_OBJECTS);
         subResult.addParam("type", type.getName());
@@ -977,11 +974,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
-    private <T extends ObjectType> void logSearchInputParameters(Class<T> type, ObjectQuery query, boolean iterative) {
+    private <T extends ObjectType> void logSearchInputParameters(Class<T> type, ObjectQuery query, boolean iterative, Boolean strictlySequential) {
         ObjectPaging paging = query != null ? query.getPaging() : null;
-        LOGGER.debug("Searching objects of type '{}', query (on trace level), offset {}, count {}, iterative {}.",
+        LOGGER.debug("Searching objects of type '{}', query (on trace level), offset {}, count {}, iterative {}, strictlySequential {}.",
                 new Object[]{type.getSimpleName(), (paging != null ? paging.getOffset() : "undefined"),
-                        (paging != null ? paging.getMaxSize() : "undefined"), iterative}
+                        (paging != null ? paging.getMaxSize() : "undefined"), iterative, strictlySequential}
         );
 
         if (!LOGGER.isTraceEnabled()) {
@@ -1864,12 +1861,13 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
                                                                               ResultHandler<T> handler,
                                                                               Collection<SelectorOptions<GetOperationOptions>> options,
+                                                                              boolean strictlySequential,
                                                                               OperationResult result) throws SchemaException {
         Validate.notNull(type, "Object type must not be null.");
         Validate.notNull(handler, "Result handler must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
 
-        logSearchInputParameters(type, query, true);
+        logSearchInputParameters(type, query, true, strictlySequential);
 
         OperationResult subResult = result.createSubresult(SEARCH_OBJECTS_ITERATIVE);
         subResult.addParam("type", type.getName());
@@ -1887,7 +1885,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 
         if (getConfiguration().isIterativeSearchByPaging()) {
-            searchObjectsIterativeByPaging(type, query, handler, options, subResult);
+            if (strictlySequential) {
+                searchObjectsIterativeByPagingStrictlySequential(type, query, handler, options, subResult);
+            } else {
+                searchObjectsIterativeByPaging(type, query, handler, options, subResult);
+            }
             return null;
         }
 
@@ -1989,6 +1991,102 @@ main:       while (remaining > 0) {
                 }
                 offset += objects.size();
                 remaining -= objects.size();
+            }
+        } finally {
+            if (result != null && result.isUnknown()) {
+                result.computeStatus();
+            }
+        }
+    }
+
+    // Temporary hack. Represents special paging object that means
+    // "give me objects with OID greater than specified one, sorted by OID ascending".
+    //
+    // TODO: replace by using cookie that is part of the standard ObjectPaging
+    // (but think out all consequences, e.g. conflicts with the other use of the cookie)
+    public static class ObjectPagingAfterOid extends ObjectPaging {
+        private String oidGreaterThan;
+
+        public String getOidGreaterThan() {
+            return oidGreaterThan;
+        }
+
+        public void setOidGreaterThan(String oidGreaterThan) {
+            this.oidGreaterThan = oidGreaterThan;
+        }
+
+        @Override
+        public String toString() {
+            return super.toString() + ", after OID: " + oidGreaterThan;
+        }
+
+        @Override
+        public ObjectPagingAfterOid clone() {
+            ObjectPagingAfterOid clone = new ObjectPagingAfterOid();
+            copyTo(clone);
+            return clone;
+        }
+
+        protected void copyTo(ObjectPagingAfterOid clone) {
+            super.copyTo(clone);
+            clone.oidGreaterThan = this.oidGreaterThan;
+        }
+    }
+
+    /**
+     * Strictly-sequential version of paged search.
+     *
+     * Assumptions:
+     *  - During processing of returned object(s), any objects can be added, deleted or modified.
+     *
+     * Guarantees:
+     *  - We return each object that existed in the moment of search start:
+     *     - exactly once if it was not deleted in the meanwhile,
+     *     - at most once otherwise.
+     *  - However, we may or may not return any objects that were added during the processing.
+     *
+     * Constraints:
+     *  - There can be no ordering prescribed. We use our own ordering.
+     *  - Moreover, for simplicity we disallow any explicit paging.
+     *
+     *  Implementation is very simple - we fetch objects ordered by OID, and remember last OID fetched.
+     *  Obviously no object will be present in output more than once.
+     *  Objects that are not deleted will be there exactly once, provided their oid is not changed.
+     */
+    private <T extends ObjectType> void searchObjectsIterativeByPagingStrictlySequential(
+            Class<T> type, ObjectQuery query, ResultHandler<T> handler,
+            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
+            throws SchemaException {
+
+        try {
+            ObjectQuery pagedQuery = query != null ? query.clone() : new ObjectQuery();
+
+            String lastOid = "";
+            final int batchSize = getConfiguration().getIterativeSearchByPagingBatchSize();
+
+            if (pagedQuery.getPaging() != null) {
+                throw new IllegalArgumentException("Externally specified paging is not supported on strictly sequential iterative search.");
+            }
+
+            ObjectPagingAfterOid paging = new ObjectPagingAfterOid();
+            pagedQuery.setPaging(paging);
+
+main:       for (;;) {
+                paging.setOidGreaterThan(lastOid);
+                paging.setMaxSize(batchSize);
+
+                List<PrismObject<T>> objects = searchObjects(type, pagedQuery, options, result);
+
+                for (PrismObject<T> object : objects) {
+                    lastOid = object.getOid();
+                    if (!handler.handle(object, result)) {
+                        break main;
+                    }
+                }
+
+                if (objects.size() == 0) {
+                    break;
+                }
             }
         } finally {
             if (result != null && result.isUnknown()) {

@@ -22,6 +22,7 @@ import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -545,9 +546,9 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		
 		final Holder<Long> countHolder = new Holder<Long>(0L);
 
-		Handler<PrismObject<ShadowType>> handler = new Handler<PrismObject<ShadowType>>() {
+		ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
 			@Override
-			public boolean handle(PrismObject<ShadowType> shadow) {
+			public boolean handle(PrismObject<ShadowType> shadow, OperationResult parentResult) {
 				if ((objectclassDef instanceof RefinedObjectClassDefinition) && !((RefinedObjectClassDefinition)objectclassDef).matches(shadow.asObjectable())) {
 					return true;
 				}
@@ -561,7 +562,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			}
 		};
 
-		Utils.searchIterative(repositoryService, ShadowType.class, query, handler , BLOCK_SIZE, opResult);
+		repositoryService.searchObjectsIterative(ShadowType.class, query, handler, null, true, opResult);
         interrupted = !task.canRun();
 		
 		// for each try the operation again
@@ -591,7 +592,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			provisioningService.getObject(ShadowType.class, shadow.getOid(), options, task, opResult);
 		} catch (ObjectNotFoundException e) {
 			// Account is gone
-			reactShadowGone(shadow, resource, task, opResult);
+			reactShadowGone(shadow, resource, task, opResult);		// actually, for deleted objects here is the recon code called second time
 			if (opResult.isUnknown()) {
 				opResult.setStatus(OperationResultStatus.HANDLED_ERROR);
 			}

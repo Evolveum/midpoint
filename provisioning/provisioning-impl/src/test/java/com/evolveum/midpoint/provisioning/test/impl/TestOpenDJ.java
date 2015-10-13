@@ -1143,7 +1143,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 					return true;
 				}
 			};
-			repositoryService.searchObjectsIterative(ShadowType.class, null, handler, null, result);
+			repositoryService.searchObjectsIterative(ShadowType.class, null, handler, null, false, result);
 			assertEquals("Unexpected number of shadows in the repo", expectedCount, actualCount);
 		}
 	}

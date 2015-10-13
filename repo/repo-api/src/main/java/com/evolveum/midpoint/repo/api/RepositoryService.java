@@ -288,6 +288,9 @@ public interface RepositoryService {
 	 *            search query
 	 * @param handler
 	 *            result handler
+	 * @param strictlySequential
+	 * 			  takes care not to skip any object nor to process objects more than once;
+	 * 			  currently requires paging NOT to be used - uses its own paging
 	 * @param parentResult
 	 *            parent OperationResult (in/out)
 	 * @return all objects of specified type that match search criteria (subject
@@ -300,7 +303,8 @@ public interface RepositoryService {
 	 */
 
 	<T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
-			ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
+			ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, boolean strictlySequential,
+			OperationResult parentResult)
 			throws SchemaException;
 
 	/**
