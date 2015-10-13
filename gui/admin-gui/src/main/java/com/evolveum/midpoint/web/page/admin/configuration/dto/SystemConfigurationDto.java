@@ -16,15 +16,6 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
-import com.evolveum.midpoint.common.SystemConfigurationHolder;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,6 +26,26 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 
 import org.apache.commons.lang.StringUtils;
+
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
+import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPoliciesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileAppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 
 /**
  * @author lazyman
@@ -157,16 +168,20 @@ public class SystemConfigurationDto implements Serializable {
 	public SystemConfigurationType getNewObject() throws DatatypeConfigurationException{
 		SystemConfigurationType newObject = oldObject.clone();
 		
-		String globalPasswordPolicyOid = getPassPolicyDto().getOid();
-		ObjectReferenceType globalPassPolicyRef = ObjectTypeUtil.createObjectRef(globalPasswordPolicyOid, ObjectTypes.PASSWORD_POLICY);
-//		ObjectReferenceType globalPassPolicyRef = new ObjectReferenceType();
-//		globalPassPolicyRef.setOid(globalPasswordPolicyOid);
+		if (StringUtils.isNotBlank(getPassPolicyDto().getOid())){
+			ObjectReferenceType globalPassPolicyRef = ObjectTypeUtil.createObjectRef(getPassPolicyDto().getOid(), ObjectTypes.PASSWORD_POLICY);
+			newObject.setGlobalPasswordPolicyRef(globalPassPolicyRef);
+		} else {
+			newObject.setGlobalPasswordPolicyRef(null);
+		}
 
-		String globalObjectTemplateOid = getObjectTemplateDto().getOid();
-		ObjectReferenceType globalObjectTemplateRef = ObjectTypeUtil.createObjectRef(globalObjectTemplateOid, ObjectTypes.OBJECT_TEMPLATE);
-//		ObjectReferenceType globalObjectTemplateRef = new ObjectReferenceType();
-//		globalObjectTemplateRef.setOid(globalObjectTemplateOid);
-
+		if (StringUtils.isNotBlank(getObjectTemplateDto().getOid())){
+			ObjectReferenceType globalObjectTemplateRef = ObjectTypeUtil.createObjectRef(getObjectTemplateDto().getOid(), ObjectTypes.OBJECT_TEMPLATE);
+			newObject.setDefaultUserTemplateRef(globalObjectTemplateRef);
+		} else {
+			newObject.setDefaultUserTemplateRef(null);
+		}
+	
 		AssignmentPolicyEnforcementType globalAEP = AEPlevel.toAEPValueType(getAepLevel());
 		ProjectionPolicyType projectionPolicy = new ProjectionPolicyType();
 		projectionPolicy.setAssignmentPolicyEnforcement(globalAEP);
@@ -182,18 +197,6 @@ public class SystemConfigurationDto implements Serializable {
 		CleanupPoliciesType cleanupPolicies = new CleanupPoliciesType();
 		cleanupPolicies.setAuditRecords(auditCleanup);
 		cleanupPolicies.setClosedTasks(taskCleanup);
-
-		if (StringUtils.isEmpty(globalPasswordPolicyOid)) {
-			newObject.setGlobalPasswordPolicyRef(null);
-		} else {
-			newObject.setGlobalPasswordPolicyRef(globalPassPolicyRef);
-		}
-
-		if (StringUtils.isEmpty(globalObjectTemplateOid)) {
-			newObject.setDefaultUserTemplateRef(null);
-		} else {
-			newObject.setDefaultUserTemplateRef(globalObjectTemplateRef);
-		}
 
 		newObject.setGlobalAccountSynchronizationSettings(projectionPolicy);
 		newObject.setCleanupPolicy(cleanupPolicies);
