@@ -46,11 +46,15 @@ li.dropdown.user.user-menu {
   }
 }
 
-//disabled menu css fixes
-.skin-blue .treeview-menu > li > span {
-  color: #8aa4af;
+//table context menu border fix
+th.cog, td.cog {
+  & ul.dropdown-menu.pull-right {
+    border-color: #337ab7;
+  }
 }
+//end table context menu border fix
 
+//disabled menu css fixes
 .sidebar-menu .treeview-menu > li > span {
   display: block;
   font-size: 14px;
