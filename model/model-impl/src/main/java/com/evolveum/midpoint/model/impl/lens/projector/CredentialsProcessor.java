@@ -173,7 +173,7 @@ public class CredentialsProcessor {
           return;
         }
         
-        MappingType outboundMappingType = refinedAccountDef.getCredentialsOutbound();
+        MappingType outboundMappingType = refinedAccountDef.getPasswordOutbound();
         
         if (outboundMappingType == null) {
             LOGGER.trace("No outbound definition in password definition in credentials in account type {}, skipping credentials processing", rat);

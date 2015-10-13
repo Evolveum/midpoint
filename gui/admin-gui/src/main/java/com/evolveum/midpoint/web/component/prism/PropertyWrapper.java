@@ -166,7 +166,7 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
             wrapper = new ValueWrapper(this, new PrismPropertyValue(new PolyString("")),
                     new PrismPropertyValue(new PolyString("")), ValueStatus.ADDED);
         } else if (isUser() && isThisPropertyActivationEnabled()) {
-            wrapper = new ValueWrapper(this, new PrismPropertyValue(ActivationStatusType.ENABLED),
+            wrapper = new ValueWrapper(this, new PrismPropertyValue(null),
                     new PrismPropertyValue(null), ValueStatus.ADDED);
         } else {
             wrapper = new ValueWrapper(this, new PrismPropertyValue(null), ValueStatus.ADDED);
