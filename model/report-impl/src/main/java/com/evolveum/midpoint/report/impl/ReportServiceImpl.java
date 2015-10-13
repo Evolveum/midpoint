@@ -93,6 +93,9 @@ public class ReportServiceImpl implements ReportService {
 
 		ObjectQuery parsedQuery = null;
 		try {
+			Task task = taskManager.createTaskInstance();
+			ModelExpressionThreadLocalHolder.pushCurrentResult(task.getResult());
+			ModelExpressionThreadLocalHolder.pushCurrentTask(task);
 			SearchFilterType filter = (SearchFilterType) prismContext.parseAtomicValue(query,
 					SearchFilterType.COMPLEX_TYPE);
 			LOGGER.trace("filter {}", filter);
@@ -105,12 +108,10 @@ public class ReportServiceImpl implements ReportService {
 
 			ObjectFilter subFilter = ((TypeFilter) f).getFilter();
 			ObjectQuery q = ObjectQuery.createObjectQuery(subFilter);
-			Task task = taskManager.createTaskInstance();
+			
 			ExpressionVariables variables = new ExpressionVariables();
 			variables.addVariableDefinitions(parameters);
-
-			ModelExpressionThreadLocalHolder.pushCurrentResult(task.getResult());
-			ModelExpressionThreadLocalHolder.pushCurrentTask(task);
+			
 			q = ExpressionUtil.evaluateQueryExpressions(q, variables, expressionFactory, prismContext,
 					"parsing expression values for report", task, task.getResult());
 			((TypeFilter) f).setFilter(q.getFilter());
