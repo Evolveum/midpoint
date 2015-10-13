@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.impl;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 /**
@@ -27,8 +28,7 @@ public class ModelConstants {
 	
 	public static final String NS_MODEL_TRIGGER_PREFIX = SchemaConstants.NS_MODEL +"/trigger";
 	
-	public static final String NS_SYNCHRONIZATION_PREFIX = SchemaConstants.NS_MODEL +"/synchronization";
-	public static final String NS_SYNCHRONIZATION_TASK_PREFIX = NS_SYNCHRONIZATION_PREFIX + "/task";
+	public static final String NS_SYNCHRONIZATION_TASK_PREFIX = ModelPublicConstants.NS_SYNCHRONIZATION_TASK_PREFIX;
 
 	public static final String NS_IMPORT_OBJECTS_PREFIX = SchemaConstants.NS_MODEL +"/import-objects";
 	public static final String NS_IMPORT_OBJECTS_TASK_PREFIX = NS_IMPORT_OBJECTS_PREFIX + "/task";

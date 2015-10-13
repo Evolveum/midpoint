@@ -408,6 +408,7 @@ public class TaskQuartzImpl implements Task {
         }
 	}
 
+	@Override
 	public void setProgressTransient(long value) {
 		try {
 			taskPrism.setPropertyRealValue(TaskType.F_PROGRESS, value);
