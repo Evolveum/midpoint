@@ -23,6 +23,7 @@ import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.ExpressionWrapper;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
@@ -392,7 +393,7 @@ public class ExpressionUtil {
             	if (expressionResult == null || expressionResult.isEmpty()) {
                     LOGGER.debug("Result of search filter expression was null or empty. Expression: {}",
                             valueExpression);
-                    return NoneFilter.createNone();
+                    return evaluateFilter(filter, valueExpression);
                 }
                 // TODO: log more context
                 LOGGER.trace("Search filter expression in the rule for {} evaluated to {}.", new Object[] {
@@ -446,17 +447,14 @@ public class ExpressionUtil {
                 if (expressionResult == null || expressionResult.isEmpty()) {
                     LOGGER.debug("Result of search filter expression was null or empty. Expression: {}",
                             valueExpression);
-                    return NoneFilter.createNone();
+                    
+                    return evaluateFilter(pvfilter, valueExpression);
                 }
                 // TODO: log more context
                 LOGGER.trace("Search filter expression in the rule for {} evaluated to {}.", new Object[] {
                         shortDesc, expressionResult });
                 
                 PropertyValueFilter evaluatedFilter = (PropertyValueFilter) pvfilter.clone();
-//                if (evaluatedFilter instanceof EqualFilter) {
-//                    ((EqualFilter) evaluatedFilter).setValue(expressionResult);
-//                    evaluatedFilter.setExpression(null);
-//                } else if (evaluatedFilter instanceof RefFilter) {
                 	evaluatedFilter.setValue(expressionResult);
                 	evaluatedFilter.setExpression(null);
 //                }
@@ -488,6 +486,25 @@ public class ExpressionUtil {
             throw new IllegalStateException("Unsupported filter type: " + filter.getClass());
         }
 		
+	}
+	
+	private static ObjectFilter evaluateFilter(ObjectFilter filter, ExpressionType valueExpression){
+		if (valueExpression.isAllowEmptyValues() == null){
+        	return NoneFilter.createNone();
+        }
+        
+        if (!valueExpression.isAllowEmptyValues()){
+        	return AllFilter.createAll();
+        }
+        if (filter instanceof InOidFilter){
+        	return NoneFilter.createNone();
+        } else if (filter instanceof PropertyValueFilter){
+        	PropertyValueFilter evaluatedFilter = (PropertyValueFilter) filter.clone();
+        	evaluatedFilter.setExpression(null);
+        	return evaluatedFilter;
+        }
+     
+        return NoneFilter.createNone();
 	}
 
 	private static <V extends PrismValue> V  evaluateExpression(ExpressionVariables variables, PrismContext prismContext,
