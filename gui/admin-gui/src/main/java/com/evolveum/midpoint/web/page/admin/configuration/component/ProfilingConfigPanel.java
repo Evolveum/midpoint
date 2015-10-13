@@ -56,6 +56,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.dto.LevelValidator;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggerConfiguration;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggerValidator;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggingDto;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.ProfilingDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ProfilingLevel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.StandardLogger;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.StandardLoggerType;
@@ -70,7 +71,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingLevelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
-public class ProfilingConfigPanel extends SimplePanel<LoggingDto> {
+public class ProfilingConfigPanel extends SimplePanel<ProfilingDto> {
 
     private static final String DOT_CLASS = LoggingConfigPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_LOGGING_CONFIGURATION = DOT_CLASS + "loadLoggingConfiguration";
@@ -85,49 +86,49 @@ public class ProfilingConfigPanel extends SimplePanel<LoggingDto> {
     private static final String ID_BUTTON_ADD_STANDARD_LOGGER = "addStandardLogger";
     private static final String ID_DUMP_INTERVAL_TOOLTIP = "dumpIntervalTooltip";
 
-    public ProfilingConfigPanel(String id) {
-        super(id, null);
+    public ProfilingConfigPanel(String id, IModel<ProfilingDto> model) {
+        super(id, model);
     }
 
-    @Override
-    public IModel<LoggingDto> createModel() {
-        return new LoadableModel<LoggingDto>(false) {
+//    @Override
+//    public IModel<LoggingDto> createModel() {
+//        return new LoadableModel<LoggingDto>(false) {
+//
+//            @Override
+//            protected LoggingDto load() {
+//                return initLoggingModel();
+//            }
+//        };
+//    }
 
-            @Override
-            protected LoggingDto load() {
-                return initLoggingModel();
-            }
-        };
-    }
-
-    private LoggingDto initLoggingModel() {
-        LoggingDto dto = null;
-        OperationResult result = new OperationResult(OPERATION_LOAD_LOGGING_CONFIGURATION);
-        try {
-            Task task = getPageBase().createSimpleTask(OPERATION_LOAD_LOGGING_CONFIGURATION);
-
-            PrismObject<SystemConfigurationType> config = getPageBase().getModelService().getObject(
-                    SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null,
-                    task, result);
-            SystemConfigurationType systemConfiguration = config.asObjectable();
-            LoggingConfigurationType logging = systemConfiguration.getLogging();
-            dto = new LoggingDto(config, logging);
-
-            result.recordSuccess();
-        } catch (Exception ex) {
-            result.recordFatalError("Couldn't load logging configuration.", ex);
-        }
-
-        if (!result.isSuccess()) {
-            getPageBase().showResult(result);
-        }
-
-        if (dto == null) {
-            dto = new LoggingDto();
-        }
-
-        return dto;
-    }
+//    private LoggingDto initLoggingModel() {
+//        LoggingDto dto = null;
+//        OperationResult result = new OperationResult(OPERATION_LOAD_LOGGING_CONFIGURATION);
+//        try {
+//            Task task = getPageBase().createSimpleTask(OPERATION_LOAD_LOGGING_CONFIGURATION);
+//
+//            PrismObject<SystemConfigurationType> config = getPageBase().getModelService().getObject(
+//                    SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null,
+//                    task, result);
+//            SystemConfigurationType systemConfiguration = config.asObjectable();
+//            LoggingConfigurationType logging = systemConfiguration.getLogging();
+//            dto = new LoggingDto(config, logging);
+//
+//            result.recordSuccess();
+//        } catch (Exception ex) {
+//            result.recordFatalError("Couldn't load logging configuration.", ex);
+//        }
+//
+//        if (!result.isSuccess()) {
+//            getPageBase().showResult(result);
+//        }
+//
+//        if (dto == null) {
+//            dto = new LoggingDto();
+//        }
+//
+//        return dto;
+//    }
 
     @Override
     protected void initLayout() {
@@ -142,7 +143,7 @@ public class ProfilingConfigPanel extends SimplePanel<LoggingDto> {
             public List<String> getObject() {
                 List<String> list = new ArrayList<>();
 
-                LoggingDto dto = getModel().getObject();
+                ProfilingDto dto = getModel().getObject();
                 for (AppenderConfiguration appender : dto.getAppenders()) {
                     list.add(appender.getName());
                 }
@@ -170,16 +171,16 @@ public class ProfilingConfigPanel extends SimplePanel<LoggingDto> {
         add(profilingAppender);
 
         //Subsystem and general profiling init
-        CheckBox requestFilter = new ProfilingCheckBox("requestFilter", new PropertyModel<Boolean>(getModel(), "requestFilter"));
+        CheckBox requestFilter = WebMiscUtil.createAjaxCheckBox("requestFilter", new PropertyModel<Boolean>(getModel(), "requestFilter"));
         
-        CheckBox performanceStatistics = new ProfilingCheckBox("performanceStatistics", new PropertyModel<Boolean>(getModel(), "performanceStatistics"));
-        CheckBox subsystemModel = new ProfilingCheckBox("subsystemModel", new PropertyModel<Boolean>(getModel(), "subsystemModel"));
-        CheckBox subsystemRepository = new ProfilingCheckBox("subsystemRepository", new PropertyModel<Boolean>(getModel(), "subsystemRepository"));
-        CheckBox subsystemProvisioning = new ProfilingCheckBox("subsystemProvisioning", new PropertyModel<Boolean>(getModel(), "subsystemProvisioning"));
-        CheckBox subsystemUcf = new ProfilingCheckBox("subsystemUcf", new PropertyModel<Boolean>(getModel(), "subsystemUcf"));
-        CheckBox subsystemResourceObjectChangeListener = new ProfilingCheckBox("subsystemResourceObjectChangeListener", new PropertyModel<Boolean>(getModel(), "subsystemResourceObjectChangeListener"));
-        CheckBox subsystemTaskManager = new ProfilingCheckBox("subsystemTaskManager", new PropertyModel<Boolean>(getModel(), "subsystemTaskManager"));
-        CheckBox subsystemWorkflow = new ProfilingCheckBox("subsystemWorkflow", new PropertyModel<Boolean>(getModel(), "subsystemWorkflow"));
+        CheckBox performanceStatistics = WebMiscUtil.createAjaxCheckBox("performanceStatistics", new PropertyModel<Boolean>(getModel(), "performanceStatistics"));
+        CheckBox subsystemModel = WebMiscUtil.createAjaxCheckBox("subsystemModel", new PropertyModel<Boolean>(getModel(), "subsystemModel"));
+        CheckBox subsystemRepository = WebMiscUtil.createAjaxCheckBox("subsystemRepository", new PropertyModel<Boolean>(getModel(), "subsystemRepository"));
+        CheckBox subsystemProvisioning = WebMiscUtil.createAjaxCheckBox("subsystemProvisioning", new PropertyModel<Boolean>(getModel(), "subsystemProvisioning"));
+        CheckBox subsystemUcf = WebMiscUtil.createAjaxCheckBox("subsystemUcf", new PropertyModel<Boolean>(getModel(), "subsystemUcf"));
+        CheckBox subsystemResourceObjectChangeListener = WebMiscUtil.createAjaxCheckBox("subsystemResourceObjectChangeListener", new PropertyModel<Boolean>(getModel(), "subsystemResourceObjectChangeListener"));
+        CheckBox subsystemTaskManager = WebMiscUtil.createAjaxCheckBox("subsystemTaskManager", new PropertyModel<Boolean>(getModel(), "subsystemTaskManager"));
+        CheckBox subsystemWorkflow = WebMiscUtil.createAjaxCheckBox("subsystemWorkflow", new PropertyModel<Boolean>(getModel(), "subsystemWorkflow"));
         add(requestFilter);
         add(performanceStatistics);
         add(subsystemModel);
@@ -190,9 +191,8 @@ public class ProfilingConfigPanel extends SimplePanel<LoggingDto> {
         add(subsystemTaskManager);
         add(subsystemWorkflow);
 
-        TextField<Integer> dumpInterval = new TextField<>("dumpInterval", new PropertyModel<Integer>(getModel(),
+        TextField<Integer> dumpInterval = WebMiscUtil.createAjaxTextField("dumpInterval", new PropertyModel<Integer>(getModel(),
                 "dumpInterval"));
-        dumpInterval.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         add(dumpInterval);
 
         Label dumpIntervalTooltip = new Label(ID_DUMP_INTERVAL_TOOLTIP);
@@ -200,49 +200,6 @@ public class ProfilingConfigPanel extends SimplePanel<LoggingDto> {
         add(dumpIntervalTooltip);
     }
 
-   
-//    private void adjustLoggersTablePage(TablePanel loggersTable, LoggingDto dto){
-//        if(loggersTable != null && dto.getLoggers().size() > 10){
-//            DataTable table = loggersTable.getDataTable();
-//
-//            if(table != null){
-//                table.setCurrentPage((long)(dto.getLoggers().size()/10));
-//            }
-//        }
-//    }
-    
-    private static class EmptyOnChangeAjaxFormUpdatingBehavior extends AjaxFormComponentUpdatingBehavior {
 
-        public EmptyOnChangeAjaxFormUpdatingBehavior(){
-            super("onChange");
-        }
-
-        @Override
-        protected void onUpdate(AjaxRequestTarget target){
-
-        }
-    }
-    
-    private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {
-
-        public EmptyOnBlurAjaxFormUpdatingBehaviour() {
-            super("onBlur");
-        }
-
-        @Override
-        protected void onUpdate(AjaxRequestTarget target) {
-        }
-    }
-
-    private class ProfilingCheckBox extends CheckBox{
-    	
-    	public ProfilingCheckBox(String id, PropertyModel<Boolean> propertyModel){
-    		super(id, propertyModel);
-    		add(new EmptyOnChangeAjaxFormUpdatingBehavior());
-    	}
-    	
-    
- 	   
-    }
   
 }

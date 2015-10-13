@@ -74,55 +74,54 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
     private static final String ID_BUTTON_ADD_STANDARD_LOGGER = "addStandardLogger";
     private static final String ID_DUMP_INTERVAL_TOOLTIP = "dumpIntervalTooltip";
 
-    public LoggingConfigPanel(String id) {
-        super(id, null);
+    public LoggingConfigPanel(String id, IModel<LoggingDto> model) {
+        super(id, model);
     }
 
-    @Override
-    public IModel<LoggingDto> createModel() {
-        return new LoadableModel<LoggingDto>(false) {
+//    @Override
+//    public IModel<LoggingDto> createModel() {
+//        return new LoadableModel<LoggingDto>(false) {
+//
+//            @Override
+//            protected LoggingDto load() {
+//                return initLoggingModel();
+//            }
+//        };
+//    }
 
-            @Override
-            protected LoggingDto load() {
-                return initLoggingModel();
-            }
-        };
-    }
-
-    private LoggingDto initLoggingModel() {
-        LoggingDto dto = null;
-        OperationResult result = new OperationResult(OPERATION_LOAD_LOGGING_CONFIGURATION);
-        try {
-            Task task = getPageBase().createSimpleTask(OPERATION_LOAD_LOGGING_CONFIGURATION);
-
-            PrismObject<SystemConfigurationType> config = getPageBase().getModelService().getObject(
-                    SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null,
-                    task, result);
-            SystemConfigurationType systemConfiguration = config.asObjectable();
-            LoggingConfigurationType logging = systemConfiguration.getLogging();
-            dto = new LoggingDto(config, logging);
-
-            result.recordSuccess();
-        } catch (Exception ex) {
-            result.recordFatalError("Couldn't load logging configuration.", ex);
-        }
-
-        if (!result.isSuccess()) {
-            getPageBase().showResult(result);
-        }
-
-        if (dto == null) {
-            dto = new LoggingDto();
-        }
-
-        return dto;
-    }
+//    private LoggingDto initLoggingModel() {
+//        LoggingDto dto = null;
+//        OperationResult result = new OperationResult(OPERATION_LOAD_LOGGING_CONFIGURATION);
+//        try {
+//            Task task = getPageBase().createSimpleTask(OPERATION_LOAD_LOGGING_CONFIGURATION);
+//
+//            PrismObject<SystemConfigurationType> config = getPageBase().getModelService().getObject(
+//                    SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null,
+//                    task, result);
+//            SystemConfigurationType systemConfiguration = config.asObjectable();
+//            LoggingConfigurationType logging = systemConfiguration.getLogging();
+//            dto = new LoggingDto(logging);
+//
+//            result.recordSuccess();
+//        } catch (Exception ex) {
+//            result.recordFatalError("Couldn't load logging configuration.", ex);
+//        }
+//
+//        if (!result.isSuccess()) {
+//            getPageBase().showResult(result);
+//        }
+//
+//        if (dto == null) {
+//            dto = new LoggingDto();
+//        }
+//
+//        return dto;
+//    }
 
     @Override
     protected void initLayout() {
         initLoggers();
         initAudit();
-//        initProfiling();
         initAppenders();
     }
 
@@ -181,7 +180,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         DropDownChoice<LoggingLevelType> rootLevel = new DropDownChoice<>(ID_ROOT_LEVEL,
                 new PropertyModel<LoggingLevelType>(getModel(), LoggingDto.F_ROOT_LEVEL),
                 WebMiscUtil.createReadonlyModelFromEnum(LoggingLevelType.class));
-
+        rootLevel.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         add(rootLevel);
 
         DropDownChoice<String> rootAppender = new DropDownChoice<>(ID_ROOT_APPENDER,
@@ -194,63 +193,25 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
                 rootAppenderChangePerformed(target);
             }
         });
+        rootAppender.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         add(rootAppender);
     }
 
     private void initAudit(){
-        CheckBox auditLog = new CheckBox("auditLog", new PropertyModel<Boolean>(getModel(), "auditLog"));
+        CheckBox auditLog = WebMiscUtil.createAjaxCheckBox("auditLog", new PropertyModel<Boolean>(getModel(), "auditLog"));
         add(auditLog);
 
-        CheckBox auditDetails = new CheckBox("auditDetails", new PropertyModel<Boolean>(getModel(), "auditDetails"));
+        CheckBox auditDetails = WebMiscUtil.createAjaxCheckBox("auditDetails", new PropertyModel<Boolean>(getModel(), "auditDetails"));
         add(auditDetails);
 
         DropDownChoice<String> auditAppender = new DropDownChoice<>("auditAppender", new PropertyModel<String>(
                 getModel(), "auditAppender"), createAppendersListModel());
         auditAppender.setNullValid(true);
+        auditAppender.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         add(auditAppender);
     }
 
-    private void initProfiling(){
-        //Entry-Exit profiling init
-        DropDownChoice<ProfilingLevel> profilingLevel = new DropDownChoice<>("profilingLevel",
-                new PropertyModel<ProfilingLevel>(getModel(), "profilingLevel"),
-                WebMiscUtil.createReadonlyModelFromEnum(ProfilingLevel.class),
-                new EnumChoiceRenderer<ProfilingLevel>(this));
-        add(profilingLevel);
-
-        DropDownChoice<String> profilingAppender = new DropDownChoice<>("profilingAppender",
-                new PropertyModel<String>(getModel(), "profilingAppender"), createAppendersListModel());
-        profilingAppender.setNullValid(true);
-        add(profilingAppender);
-
-        //Subsystem and general profiling init
-        CheckBox requestFilter = new CheckBox("requestFilter", new PropertyModel<Boolean>(getModel(), "requestFilter"));
-        CheckBox performanceStatistics = new CheckBox("performanceStatistics", new PropertyModel<Boolean>(getModel(), "performanceStatistics"));
-        CheckBox subsystemModel = new CheckBox("subsystemModel", new PropertyModel<Boolean>(getModel(), "subsystemModel"));
-        CheckBox subsystemRepository = new CheckBox("subsystemRepository", new PropertyModel<Boolean>(getModel(), "subsystemRepository"));
-        CheckBox subsystemProvisioning = new CheckBox("subsystemProvisioning", new PropertyModel<Boolean>(getModel(), "subsystemProvisioning"));
-        CheckBox subsystemUcf = new CheckBox("subsystemUcf", new PropertyModel<Boolean>(getModel(), "subsystemUcf"));
-        CheckBox subsystemResourceObjectChangeListener = new CheckBox("subsystemResourceObjectChangeListener", new PropertyModel<Boolean>(getModel(), "subsystemResourceObjectChangeListener"));
-        CheckBox subsystemTaskManager = new CheckBox("subsystemTaskManager", new PropertyModel<Boolean>(getModel(), "subsystemTaskManager"));
-        CheckBox subsystemWorkflow = new CheckBox("subsystemWorkflow", new PropertyModel<Boolean>(getModel(), "subsystemWorkflow"));
-        add(requestFilter);
-        add(performanceStatistics);
-        add(subsystemModel);
-        add(subsystemRepository);
-        add(subsystemProvisioning);
-        add(subsystemUcf);
-        add(subsystemResourceObjectChangeListener);
-        add(subsystemTaskManager);
-        add(subsystemWorkflow);
-
-        TextField<Integer> dumpInterval = new TextField<>("dumpInterval", new PropertyModel<Integer>(getModel(),
-                "dumpInterval"));
-        add(dumpInterval);
-
-        Label dumpIntervalTooltip = new Label(ID_DUMP_INTERVAL_TOOLTIP);
-        dumpIntervalTooltip.add(new InfoTooltipBehavior());
-        add(dumpIntervalTooltip);
-    }
+   
 
     private void addStandardLoggerPerformed(AjaxRequestTarget target){
         LoggingDto dto = getModel().getObject();
@@ -681,28 +642,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         target.add(getLoggersTable());
     }
 
-    private static class EmptyOnChangeAjaxFormUpdatingBehavior extends AjaxFormComponentUpdatingBehavior {
-
-        public EmptyOnChangeAjaxFormUpdatingBehavior(){
-            super("onChange");
-        }
-
-        @Override
-        protected void onUpdate(AjaxRequestTarget target){
-
-        }
-    }
-
-    private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {
-
-        public EmptyOnBlurAjaxFormUpdatingBehaviour() {
-            super("onBlur");
-        }
-
-        @Override
-        protected void onUpdate(AjaxRequestTarget target) {
-        }
-    }
+   
 
     private static class FileAppenderColumn<T extends Editable> extends EditablePropertyColumn<T> {
 

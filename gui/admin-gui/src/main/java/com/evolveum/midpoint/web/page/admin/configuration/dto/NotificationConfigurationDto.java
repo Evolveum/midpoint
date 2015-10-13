@@ -18,11 +18,14 @@ package com.evolveum.midpoint.web.page.admin.configuration.dto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MailConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MailServerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationConfigurationType;
-
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
 
 /**
  *  @author shood
@@ -63,6 +66,40 @@ public class NotificationConfigurationDto implements Serializable{
             }
         }
     }
+    
+    public NotificationConfigurationType getNewObject(SystemConfigurationType systemConfig) {
+	
+		
+		NotificationConfigurationType notificationConfig = (systemConfig.getNotificationConfiguration() != null) ? systemConfig.getNotificationConfiguration() : new NotificationConfigurationType();
+		MailConfigurationType mailConfig = (notificationConfig.getMail() != null) ? notificationConfig.getMail() : new MailConfigurationType();
+
+			mailConfig.setDebug(isDebug());
+			mailConfig.setDefaultFrom(getDefaultFrom());
+			mailConfig.setRedirectToFile(getRedirectToFile());
+			mailConfig.getServer().clear();
+			
+			for (MailServerConfigurationTypeDto serverDto : getServers()) {
+				MailServerConfigurationType newConfig = new MailServerConfigurationType();
+				newConfig.setHost(serverDto.getHost());
+				newConfig.setPort(serverDto.getPort());
+				newConfig.setUsername(serverDto.getUsername());
+				newConfig.setTransportSecurity(serverDto.getMailTransportSecurityType());
+
+				if (serverDto.getPassword() != null && StringUtils.isNotEmpty(serverDto.getPassword())) {
+					ProtectedStringType pass = new ProtectedStringType();
+					pass.setClearValue(serverDto.getPassword());
+					newConfig.setPassword(pass);
+				} else {
+					newConfig.setPassword(serverDto.getOldConfig().getPassword());
+				}
+
+				mailConfig.getServer().add(newConfig);
+			}
+			
+			notificationConfig.setMail(mailConfig);
+		
+		return notificationConfig;
+	}
 
     public String getDefaultFrom() {
         return defaultFrom;
