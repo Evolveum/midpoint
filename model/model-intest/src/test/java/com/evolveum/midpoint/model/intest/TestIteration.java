@@ -1468,7 +1468,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         // There should be no account with the "straight" name
         assertNoDummyAccount(RESOURCE_DUMMY_MAGENTA_NAME, "drake");
         // The new account
-        assertDummyAccount(RESOURCE_DUMMY_MAGENTA_NAME, "drake001", "Francis Drake", false);
+        assertDummyAccount(RESOURCE_DUMMY_MAGENTA_NAME, "drake001", "Francis Drake", true);
         
         assertDummyAccountAttribute(RESOURCE_DUMMY_MAGENTA_NAME, "drake001", 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, DESCRIPTION_RUM + " -- Francis Drake");
@@ -1532,7 +1532,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         // There should be no account with the "straight" name
         assertNoDummyAccount(RESOURCE_DUMMY_MAGENTA_NAME, "drake");
         // The new account
-        assertDummyAccount(RESOURCE_DUMMY_MAGENTA_NAME, "drake001", "Francis Drake", false);
+        assertDummyAccount(RESOURCE_DUMMY_MAGENTA_NAME, "drake001", "Francis Drake", true);
         
         assertDummyAccountAttribute(RESOURCE_DUMMY_MAGENTA_NAME, "drake001", 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "London");
