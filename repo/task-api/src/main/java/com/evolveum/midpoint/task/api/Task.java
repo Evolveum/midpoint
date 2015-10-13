@@ -743,6 +743,8 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      */
     public void setProgressImmediate(long progress, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
+    void setProgressTransient(long value);
+
     /**
      * Returns expected total progress.
      * @return

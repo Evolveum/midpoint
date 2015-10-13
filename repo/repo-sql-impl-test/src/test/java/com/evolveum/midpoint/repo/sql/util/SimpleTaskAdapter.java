@@ -384,6 +384,10 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
+    public void setProgressTransient(long value) {
+    }
+
+    @Override
     public PrismObject<TaskType> getTaskPrismObject() {
         throw new UnsupportedOperationException("not implemented yet.");
     }

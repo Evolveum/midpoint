@@ -444,7 +444,7 @@ public final class PrismForJAXBUtil {
     
     public static void setReferenceTargetName(PrismReferenceValue rval, PolyStringType name) {
         if (name == null) {
-        	rval.setTargetName(null);
+        	rval.setTargetName((PolyString) null);
         } else {
         	rval.setTargetName(name.toPolyString());
         }

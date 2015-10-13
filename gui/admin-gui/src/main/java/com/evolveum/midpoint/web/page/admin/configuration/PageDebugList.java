@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -663,10 +664,10 @@ public class PageDebugList extends PageAdminConfiguration {
         try {
             if (dto.getDeleteUsers()) {
                 ObjectQuery query = createDeleteAllUsersQuery();
-                deleteObjectsAsync(UserType.COMPLEX_TYPE, query, true, result);
+                deleteObjectsAsync(UserType.COMPLEX_TYPE, query, true, "Delete all users", result);
             }
             if (dto.getDeleteOrgs()) {
-                deleteObjectsAsync(OrgType.COMPLEX_TYPE, null, true, result);
+                deleteObjectsAsync(OrgType.COMPLEX_TYPE, null, true, "Delete all orgs", result);
             }
             if (dto.getDeleteAccountShadow()) {
                 deleteAllShadowsConfirmed(result, true);
@@ -698,14 +699,17 @@ public class PageDebugList extends PageAdminConfiguration {
         ObjectFilter kind = EqualFilter.createEqual(ShadowType.F_KIND, ShadowType.class,
                 getPrismContext(), null, ShadowKindType.ACCOUNT);
 
+        String taskName;
         ObjectQuery query;
         if (deleteAccountShadows) {
+            taskName = "Delete all account shadows";
             query = ObjectQuery.createObjectQuery(kind);
         } else {
+            taskName = "Delete all non-account shadows";
             query = ObjectQuery.createObjectQuery(NotFilter.createNot(kind));
         }
 
-        deleteObjectsAsync(ShadowType.COMPLEX_TYPE, query, true, result);
+        deleteObjectsAsync(ShadowType.COMPLEX_TYPE, query, true, taskName, result);
     }
 
     private void exportSelected(AjaxRequestTarget target, DebugObjectItem item) {
@@ -795,7 +799,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
             QName type = dto.getType().getTypeQName();
 
-            deleteObjectsAsync(type, query, true, result);
+            deleteObjectsAsync(type, query, true, "Delete all of type " + type.getLocalPart(), result);
 
             info(getString("pageDebugList.messsage.deleteAllOfType", dto.getType()));
         } catch (Exception ex) {
@@ -866,7 +870,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
             QName type = ShadowType.COMPLEX_TYPE;
 
-            deleteObjectsAsync(type, objectQuery, true, result);
+            deleteObjectsAsync(type, objectQuery, true, "Delete shadows on " + dto.getResource().getName(), result);
 
             info(getString("pageDebugList.messsage.deleteAllShadowsStarted", dto.getResource().getName()));
         } catch (Exception ex) {
@@ -880,12 +884,11 @@ public class PageDebugList extends PageAdminConfiguration {
         target.add(getFeedbackPanel());
     }
 
-    private void deleteObjectsAsync(QName type, ObjectQuery objectQuery, boolean raw, OperationResult result)
+    private void deleteObjectsAsync(QName type, ObjectQuery objectQuery, boolean raw, String taskName, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 
         Task task = createSimpleTask(result.getOperation());
-        // toto this should be a constant referenced from somewhere
-        task.setHandlerUri("http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/delete/handler-3");
+        task.setHandlerUri(ModelPublicConstants.DELETE_TASK_HANDLER_URI);
 
         if (objectQuery == null) {
             objectQuery = new ObjectQuery();
@@ -911,6 +914,7 @@ public class PageDebugList extends PageAdminConfiguration {
         rawProp.setRealValue(raw);
         task.setExtensionProperty(rawProp);
 
+        task.setName(taskName);
         task.savePendingModifications(result);
 
         TaskManager taskManager = getTaskManager();
