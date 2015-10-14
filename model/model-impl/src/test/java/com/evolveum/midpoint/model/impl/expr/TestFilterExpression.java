@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
+import com.evolveum.midpoint.prism.query.UndefinedFilter;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -58,15 +59,15 @@ public class TestFilterExpression extends AbstractModelIntegrationTest {
 	 
 	
   @Test
-  public void testEvaluateExpressionToNoneFilter() throws Exception {
-  	final String TEST_NAME = "testEvaluateExpressionToNoneFilter";
+  public void testEvaluateExpressionToUndefinedFilterAllowedNull() throws Exception {
+  	final String TEST_NAME = "testEvaluateExpressionToUndefinedFilterAllowedNull";
   	TestUtil.displayTestTile(TEST_NAME);
   	PrismContext prismContext = PrismTestUtil.getPrismContext();
   	// GIVEN
   	OperationResult result = new OperationResult(TestFilterExpression.class.getName()+"."+TEST_NAME);
   	Task task = taskManager.createTaskInstance(TEST_NAME);
   	
-  	String filename = "expression-to-none-filter.xml";
+  	String filename = "expression-to-undefined-filter-allowed-null.xml";
   	
   	SearchFilterType filterType = PrismTestUtil.parseAtomicValue(
               new File(TEST_DIR, filename), SearchFilterType.COMPLEX_TYPE);
@@ -81,19 +82,19 @@ public class TestFilterExpression extends AbstractModelIntegrationTest {
   	
   	ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(filter, variables, expressionFactory, prismContext, "evaluating filter with null value not allowed", task, result);
 
-  	AssertJUnit.assertTrue("Expression should be evaluated to NoneFilter", (evaluatedFilter instanceof NoneFilter));
+  	AssertJUnit.assertTrue("Expression should be evaluated to NoneFilter", (evaluatedFilter instanceof UndefinedFilter));
   }
 	
 	@Test
-  public void testEvaluateExpressionToAllFilter() throws Exception {
-  	final String TEST_NAME = "testEvaluateExpressionToAllFilter";
+  public void testEvaluateExpressionToUndefinedFilterAllowedFalse() throws Exception {
+  	final String TEST_NAME = "testEvaluateExpressionToUndefinedFilterAllowedFalse";
   	TestUtil.displayTestTile(TEST_NAME);
   	PrismContext prismContext = PrismTestUtil.getPrismContext();
   	// GIVEN
   	OperationResult result = new OperationResult(TestFilterExpression.class.getName()+"."+TEST_NAME);
   	Task task = taskManager.createTaskInstance(TEST_NAME);
   	
-  	String filename = "expression-to-all-filter.xml";
+  	String filename = "expression-to-undefined-filter-allowed-false.xml";
   	
   	SearchFilterType filterType = PrismTestUtil.parseAtomicValue(
               new File(TEST_DIR, filename), SearchFilterType.COMPLEX_TYPE);
@@ -108,7 +109,7 @@ public class TestFilterExpression extends AbstractModelIntegrationTest {
   	
   	ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(filter, variables, expressionFactory, prismContext, "evaluating filter with null value not allowed", task, result);
 
-  	AssertJUnit.assertTrue("Expression should be evaluated to AllFilter", (evaluatedFilter instanceof AllFilter));
+  	AssertJUnit.assertTrue("Expression should be evaluated to AllFilter", (evaluatedFilter instanceof UndefinedFilter));
   }
 	
 	@Test

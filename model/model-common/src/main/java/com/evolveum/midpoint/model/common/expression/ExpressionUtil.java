@@ -63,6 +63,7 @@ import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
+import com.evolveum.midpoint.prism.query.UndefinedFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.prism.util.PrismUtil;
@@ -489,22 +490,17 @@ public class ExpressionUtil {
 	}
 	
 	private static ObjectFilter evaluateFilter(ObjectFilter filter, ExpressionType valueExpression){
-		if (valueExpression.isAllowEmptyValues() == null){
-        	return NoneFilter.createNone();
+		if (valueExpression.isAllowEmptyValues() == null || !valueExpression.isAllowEmptyValues()){
+        	return UndefinedFilter.createUndefined();
         }
-        
-        if (!valueExpression.isAllowEmptyValues()){
-        	return AllFilter.createAll();
-        }
-        if (filter instanceof InOidFilter){
-        	return NoneFilter.createNone();
-        } else if (filter instanceof PropertyValueFilter){
+		
+		if (filter instanceof PropertyValueFilter){
         	PropertyValueFilter evaluatedFilter = (PropertyValueFilter) filter.clone();
         	evaluatedFilter.setExpression(null);
         	return evaluatedFilter;
         }
      
-        return NoneFilter.createNone();
+        return UndefinedFilter.createUndefined();
 	}
 
 	private static <V extends PrismValue> V  evaluateExpression(ExpressionVariables variables, PrismContext prismContext,

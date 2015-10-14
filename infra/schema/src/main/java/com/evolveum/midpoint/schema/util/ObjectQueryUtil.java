@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,12 +43,14 @@ import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.LogicalFilter;
 import com.evolveum.midpoint.prism.query.NoneFilter;
+import com.evolveum.midpoint.prism.query.UndefinedFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.prism.query.Visitor;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -115,7 +117,7 @@ public class ObjectQueryUtil {
         Validate.notNull(resourceOid, "Resource where to search must not be null.");
         Validate.notNull(prismContext, "Prism context must not be null.");
         return ObjectQuery.createObjectQuery(createResourceFilter(resourceOid, prismContext));
-    }
+    } 
 
     public static ObjectFilter createResourceFilter(String resourceOid, PrismContext prismContext) throws SchemaException {
 		return RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, prismContext, resourceOid);
@@ -292,7 +294,7 @@ public class ObjectQueryUtil {
 				if (subfilter instanceof NoneFilter) {
 					// AND with "false"
 					return NoneFilter.createNone();
-				} else if (subfilter instanceof AllFilter) {
+				} else if (subfilter instanceof AllFilter || subfilter instanceof UndefinedFilter) {
 					// AND with "true", just skip it
 				} else {
 					ObjectFilter simplifiedSubfilter = simplify(subfilter);
@@ -308,7 +310,7 @@ public class ObjectQueryUtil {
 			List<ObjectFilter> conditions = ((OrFilter)filter).getConditions();
 			OrFilter simplifiedFilter = ((OrFilter)filter).cloneEmpty();
 			for (ObjectFilter subfilter: conditions) {
-				if (subfilter instanceof NoneFilter) {
+				if (subfilter instanceof NoneFilter || subfilter instanceof UndefinedFilter) {
 					// OR with "false", just skip it
 				} else if (subfilter instanceof AllFilter) {
 					// OR with "true"
@@ -326,7 +328,9 @@ public class ObjectQueryUtil {
 		} else if (filter instanceof NotFilter) {
 			ObjectFilter subfilter = ((NotFilter)filter).getFilter();
 			ObjectFilter simplifiedSubfilter = simplify(subfilter);
-			if (subfilter instanceof NoneFilter) {
+			if (subfilter instanceof UndefinedFilter){
+				return null;
+			} else if (subfilter instanceof NoneFilter) {
 				return AllFilter.createAll();
 			} else if (subfilter instanceof AllFilter) {
 				return NoneFilter.createNone();
@@ -335,6 +339,14 @@ public class ObjectQueryUtil {
 				simplifiedFilter.setFilter(simplifiedSubfilter);
 				return simplifiedFilter;
 			}
+		} else if (filter instanceof TypeFilter) {
+			ObjectFilter subFilter = ((TypeFilter) filter).getFilter();
+			ObjectFilter simplifiedSubfilter = simplify(subFilter);
+			TypeFilter simplifiedFilter = (TypeFilter) ((TypeFilter) filter).clone();
+			simplifiedFilter.setFilter(simplifiedSubfilter);
+			return simplifiedFilter;
+		} else if (filter instanceof UndefinedFilter) {
+			return null;
 		} else {
 			// Cannot simplify
 			return filter.clone();
