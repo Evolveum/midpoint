@@ -315,7 +315,7 @@ public class InboundProcessor {
 //   		 we don't need to do inbound if account was deleted
 			return;
 		}
-        processSpecialPropertyInbound(accountDefinition.getCredentialsInbound(), SchemaConstants.PATH_PASSWORD_VALUE,
+        processSpecialPropertyInbound(accountDefinition.getPasswordInbound(), SchemaConstants.PATH_PASSWORD_VALUE,
         		context.getFocusContext().getObjectNew(), projContext, accountDefinition, context, task, now, result);
         
         processSpecialPropertyInbound(accountDefinition.getActivationBidirectionalMappingType(ActivationType.F_ADMINISTRATIVE_STATUS), SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,

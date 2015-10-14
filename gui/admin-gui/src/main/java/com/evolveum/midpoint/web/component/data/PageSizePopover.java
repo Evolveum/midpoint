@@ -34,9 +34,12 @@ public class PageSizePopover extends SimplePanel {
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
 
+        String buttonId = get(ID_POP_BUTTON).getMarkupId();
+
         StringBuilder sb = new StringBuilder();
-        sb.append("initPageSizePopover('").append(get(ID_POP_BUTTON).getMarkupId());
+        sb.append("initPageSizePopover('").append(buttonId);
         sb.append("','").append(get(ID_POPOVER).getMarkupId());
+        sb.append("','").append(buttonId);
         sb.append("');");
 
         response.render(OnDomReadyHeaderItem.forScript(sb.toString()));

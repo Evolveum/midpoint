@@ -56,8 +56,7 @@ public class DiffUtil {
 		return null;
 	}
 
-	public static <T extends Objectable> ObjectDelta<T> diff(T oldObjectType, T newObjectType, Class<T> type, 
-			PrismContext prismContext) throws SchemaException {
+	public static <T extends Objectable> ObjectDelta<T> diff(T oldObjectType, T newObjectType) throws SchemaException {
 		PrismObject<T> oldObject = null;
 		if (oldObjectType != null) {
 			oldObject = oldObjectType.asPrismObject();

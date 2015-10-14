@@ -100,7 +100,7 @@ public class ExportObjects extends BaseNinjaAction {
 
             System.out.println("Creating xml file " + file.getName());
 
-            repository.searchObjectsIterative(ObjectType.class, null, handler, null, result);
+            repository.searchObjectsIterative(ObjectType.class, null, handler, null, false, result);
             
             stream.write("</objects>");
             System.out.println("Created xml file " + file.getName());

@@ -290,7 +290,7 @@ public class ReportUtils {
         String str = PrettyPrinter.prettyPrint(value);
         if (str.length() > 1000) {
             return str.substring(0, 1000);
-        }        
+        }
         return str;
 
     }
@@ -431,7 +431,7 @@ public class ReportUtils {
         return sb.toString();
     }
 
-    public static String getBusinessDisplayName(ObjectReferenceType ort) {        
+    public static String getBusinessDisplayName(ObjectReferenceType ort) {
         return ort.getDescription();
     }
 
@@ -477,9 +477,11 @@ public class ReportUtils {
                 ObjectType objectToAdd = (ObjectType) delta.getObjectToAdd();
                 if (objectToAdd != null) {
                     sb.append(printChangeType(delta, "Add"));
-                    sb.append(prettyPrintForReport(objectToAdd.getClass().getSimpleName()));
-                    sb.append("=");
-                    sb.append(objectToAdd.getName().toString());
+                    if (objectToAdd.getName() != null) {
+                        sb.append(prettyPrintForReport(objectToAdd.getClass().getSimpleName()));
+                        sb.append("=");
+                        sb.append(objectToAdd.getName().toString());
+                    }
                     sb.append(" {");
                     sb.append(prettyPrintForReport(objectToAdd));
                     sb.append("}");

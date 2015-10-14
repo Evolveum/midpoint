@@ -31,7 +31,7 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 	private OrderDirection direction;
 	private String cookie;
 	
-	ObjectPaging() {
+	protected ObjectPaging() {
 		// TODO Auto-generated constructor stub
 	}
 	
@@ -125,9 +125,17 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 	}
 
 	public ObjectPaging clone() {
-		ObjectPaging clone = new ObjectPaging(offset, maxSize, orderBy, direction);
-		clone.cookie = this.cookie;
+		ObjectPaging clone = new ObjectPaging();
+		copyTo(clone);
 		return clone;
+	}
+
+	protected void copyTo(ObjectPaging clone) {
+		clone.offset = this.offset;
+		clone.maxSize = this.maxSize;
+		clone.orderBy = this.orderBy;
+		clone.direction = this.direction;
+		clone.cookie = this.cookie;
 	}
 
 	@Override

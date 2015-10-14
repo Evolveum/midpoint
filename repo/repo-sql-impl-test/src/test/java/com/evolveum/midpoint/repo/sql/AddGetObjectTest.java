@@ -505,7 +505,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
             }
         };
 
-        repositoryService.searchObjectsIterative(ObjectType.class, null, handler, null, result);
+        repositoryService.searchObjectsIterative(ObjectType.class, null, handler, null, false, result);
         AssertJUnit.assertTrue(!objects.isEmpty());
     }
 

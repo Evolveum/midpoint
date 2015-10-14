@@ -218,7 +218,7 @@ public class ModelObjectResolver implements ObjectResolver {
 		if (ObjectTypes.isClassManagedByProvisioning(type)) {
 			provisioning.searchObjectsIterative(type, query, options, handler, (Task) task, parentResult);
 		} else {
-			cacheRepositoryService.searchObjectsIterative(type, query, handler, options, parentResult);
+			cacheRepositoryService.searchObjectsIterative(type, query, handler, options, false, parentResult);		// TODO pull up into resolver interface
 		}
 	}
 	

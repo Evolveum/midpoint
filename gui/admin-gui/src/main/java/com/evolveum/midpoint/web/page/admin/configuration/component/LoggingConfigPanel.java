@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,36 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.component;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
+import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.*;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.EditableCheckboxColumn;
+import com.evolveum.midpoint.web.component.data.column.EditableLinkColumn;
+import com.evolveum.midpoint.web.component.data.column.EditablePropertyColumn;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.ListMultipleChoicePanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
@@ -30,34 +54,28 @@ import com.evolveum.midpoint.web.component.util.Editable;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.*;
-import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.AppenderConfiguration;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.ClassLogger;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.ComponentLogger;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.FileAppenderConfig;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.FilterConfiguration;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.InputStringValidator;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.LevelValidator;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggerConfiguration;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggerValidator;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggingDto;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.StandardLogger;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.StandardLoggerType;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.*;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileAppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingComponentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingLevelType;
 
 /**
  * @author lazyman
+ * @author katkav
  */
 public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
 
@@ -74,55 +92,14 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
     private static final String ID_BUTTON_ADD_STANDARD_LOGGER = "addStandardLogger";
     private static final String ID_DUMP_INTERVAL_TOOLTIP = "dumpIntervalTooltip";
 
-    public LoggingConfigPanel(String id) {
-        super(id, null);
-    }
-
-    @Override
-    public IModel<LoggingDto> createModel() {
-        return new LoadableModel<LoggingDto>(false) {
-
-            @Override
-            protected LoggingDto load() {
-                return initLoggingModel();
-            }
-        };
-    }
-
-    private LoggingDto initLoggingModel() {
-        LoggingDto dto = null;
-        OperationResult result = new OperationResult(OPERATION_LOAD_LOGGING_CONFIGURATION);
-        try {
-            Task task = getPageBase().createSimpleTask(OPERATION_LOAD_LOGGING_CONFIGURATION);
-
-            PrismObject<SystemConfigurationType> config = getPageBase().getModelService().getObject(
-                    SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null,
-                    task, result);
-            SystemConfigurationType systemConfiguration = config.asObjectable();
-            LoggingConfigurationType logging = systemConfiguration.getLogging();
-            dto = new LoggingDto(config, logging);
-
-            result.recordSuccess();
-        } catch (Exception ex) {
-            result.recordFatalError("Couldn't load logging configuration.", ex);
-        }
-
-        if (!result.isSuccess()) {
-            getPageBase().showResult(result);
-        }
-
-        if (dto == null) {
-            dto = new LoggingDto();
-        }
-
-        return dto;
+    public LoggingConfigPanel(String id, IModel<LoggingDto> model) {
+        super(id, model);
     }
 
     @Override
     protected void initLayout() {
         initLoggers();
         initAudit();
-//        initProfiling();
         initAppenders();
     }
 
@@ -181,7 +158,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         DropDownChoice<LoggingLevelType> rootLevel = new DropDownChoice<>(ID_ROOT_LEVEL,
                 new PropertyModel<LoggingLevelType>(getModel(), LoggingDto.F_ROOT_LEVEL),
                 WebMiscUtil.createReadonlyModelFromEnum(LoggingLevelType.class));
-
+        rootLevel.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         add(rootLevel);
 
         DropDownChoice<String> rootAppender = new DropDownChoice<>(ID_ROOT_APPENDER,
@@ -194,63 +171,25 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
                 rootAppenderChangePerformed(target);
             }
         });
+        rootAppender.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         add(rootAppender);
     }
 
     private void initAudit(){
-        CheckBox auditLog = new CheckBox("auditLog", new PropertyModel<Boolean>(getModel(), "auditLog"));
+        CheckBox auditLog = WebMiscUtil.createAjaxCheckBox("auditLog", new PropertyModel<Boolean>(getModel(), "auditLog"));
         add(auditLog);
 
-        CheckBox auditDetails = new CheckBox("auditDetails", new PropertyModel<Boolean>(getModel(), "auditDetails"));
+        CheckBox auditDetails = WebMiscUtil.createAjaxCheckBox("auditDetails", new PropertyModel<Boolean>(getModel(), "auditDetails"));
         add(auditDetails);
 
         DropDownChoice<String> auditAppender = new DropDownChoice<>("auditAppender", new PropertyModel<String>(
                 getModel(), "auditAppender"), createAppendersListModel());
         auditAppender.setNullValid(true);
+        auditAppender.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         add(auditAppender);
     }
 
-    private void initProfiling(){
-        //Entry-Exit profiling init
-        DropDownChoice<ProfilingLevel> profilingLevel = new DropDownChoice<>("profilingLevel",
-                new PropertyModel<ProfilingLevel>(getModel(), "profilingLevel"),
-                WebMiscUtil.createReadonlyModelFromEnum(ProfilingLevel.class),
-                new EnumChoiceRenderer<ProfilingLevel>(this));
-        add(profilingLevel);
-
-        DropDownChoice<String> profilingAppender = new DropDownChoice<>("profilingAppender",
-                new PropertyModel<String>(getModel(), "profilingAppender"), createAppendersListModel());
-        profilingAppender.setNullValid(true);
-        add(profilingAppender);
-
-        //Subsystem and general profiling init
-        CheckBox requestFilter = new CheckBox("requestFilter", new PropertyModel<Boolean>(getModel(), "requestFilter"));
-        CheckBox performanceStatistics = new CheckBox("performanceStatistics", new PropertyModel<Boolean>(getModel(), "performanceStatistics"));
-        CheckBox subsystemModel = new CheckBox("subsystemModel", new PropertyModel<Boolean>(getModel(), "subsystemModel"));
-        CheckBox subsystemRepository = new CheckBox("subsystemRepository", new PropertyModel<Boolean>(getModel(), "subsystemRepository"));
-        CheckBox subsystemProvisioning = new CheckBox("subsystemProvisioning", new PropertyModel<Boolean>(getModel(), "subsystemProvisioning"));
-        CheckBox subsystemUcf = new CheckBox("subsystemUcf", new PropertyModel<Boolean>(getModel(), "subsystemUcf"));
-        CheckBox subsystemResourceObjectChangeListener = new CheckBox("subsystemResourceObjectChangeListener", new PropertyModel<Boolean>(getModel(), "subsystemResourceObjectChangeListener"));
-        CheckBox subsystemTaskManager = new CheckBox("subsystemTaskManager", new PropertyModel<Boolean>(getModel(), "subsystemTaskManager"));
-        CheckBox subsystemWorkflow = new CheckBox("subsystemWorkflow", new PropertyModel<Boolean>(getModel(), "subsystemWorkflow"));
-        add(requestFilter);
-        add(performanceStatistics);
-        add(subsystemModel);
-        add(subsystemRepository);
-        add(subsystemProvisioning);
-        add(subsystemUcf);
-        add(subsystemResourceObjectChangeListener);
-        add(subsystemTaskManager);
-        add(subsystemWorkflow);
-
-        TextField<Integer> dumpInterval = new TextField<>("dumpInterval", new PropertyModel<Integer>(getModel(),
-                "dumpInterval"));
-        add(dumpInterval);
-
-        Label dumpIntervalTooltip = new Label(ID_DUMP_INTERVAL_TOOLTIP);
-        dumpIntervalTooltip.add(new InfoTooltipBehavior());
-        add(dumpIntervalTooltip);
-    }
+   
 
     private void addStandardLoggerPerformed(AjaxRequestTarget target){
         LoggingDto dto = getModel().getObject();
@@ -464,7 +403,6 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
     }
 
     private String getComponenLoggerDisplayValue(LoggingComponentType item){
-        //LoggingConfigPanel.this.getString("LoggingConfigPanel.logger." + item);
         return createStringResource("LoggingComponentType." + item).getString();
     }
 
@@ -477,7 +415,6 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
 
                 LoggingDto dto = getModel().getObject();
 
-                //list.add(PageSystemConfiguration.ROOT_APPENDER_INHERITANCE_CHOICE);
                 for(AppenderConfiguration appender: dto.getAppenders()){
 
                     if(!appender.getName().equals(dto.getRootAppender())){
@@ -681,28 +618,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         target.add(getLoggersTable());
     }
 
-    private static class EmptyOnChangeAjaxFormUpdatingBehavior extends AjaxFormComponentUpdatingBehavior {
-
-        public EmptyOnChangeAjaxFormUpdatingBehavior(){
-            super("onChange");
-        }
-
-        @Override
-        protected void onUpdate(AjaxRequestTarget target){
-
-        }
-    }
-
-    private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {
-
-        public EmptyOnBlurAjaxFormUpdatingBehaviour() {
-            super("onBlur");
-        }
-
-        @Override
-        protected void onUpdate(AjaxRequestTarget target) {
-        }
-    }
+   
 
     private static class FileAppenderColumn<T extends Editable> extends EditablePropertyColumn<T> {
 

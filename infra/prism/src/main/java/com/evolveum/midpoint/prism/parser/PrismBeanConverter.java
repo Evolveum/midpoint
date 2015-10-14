@@ -145,7 +145,7 @@ public class PrismBeanConverter {
 
         if (PolyStringType.class.equals(beanClass)) {
             PolyString polyString = unmarshalPolyString(xnode);
-            return (T) polyString;
+            return (T) polyString;			// violates the method interface but ... TODO fix it
         } else if (ProtectedStringType.class.equals(beanClass)) {
             ProtectedStringType protectedType = new ProtectedStringType();
             XNodeProcessorUtil.parseProtectedType(protectedType, xnode, prismContext);

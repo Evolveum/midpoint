@@ -61,8 +61,10 @@ public class StandardLogger extends LoggerConfiguration{
         ClassLoggerConfigurationType type = new ClassLoggerConfigurationType();
         type.setPackage(logger.getValue());
         type.setLevel(getLevel());
-        type.getAppender().addAll(getAppenders());
-
+        if (!(getAppenders().isEmpty())){
+        	type.getAppender().addAll(getAppenders());
+        }
+        
         return type;
     }
 

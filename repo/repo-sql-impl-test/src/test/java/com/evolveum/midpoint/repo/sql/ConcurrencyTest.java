@@ -473,7 +473,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
                         return true;
                     }
                 },
-                null, result);
+                null, false, result);
 
         PrismObject<UserType> reloaded = repositoryService.getObject(UserType.class, oid, null, result);
         AssertJUnit.assertEquals("Full name was not changed", newFullName, reloaded.asObjectable().getFullName().getOrig());

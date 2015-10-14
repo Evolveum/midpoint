@@ -15,7 +15,8 @@
   ~ limitations under the License.
   -->
 
-<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
+					 xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
 
     <name>dummy</name>
 
@@ -45,7 +46,9 @@
                 <host>smtp.gmail.com</host>
                 <port>587</port>
                 <username>..........</username>
-                <password><clearValue>.........</clearValue></password>
+                <password>
+					<t:clearValue>.........</t:clearValue>
+				</password>
                 <transportSecurity>starttlsEnabled</transportSecurity>
             </server>
             <!-- or:

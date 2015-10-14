@@ -222,7 +222,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
             if (!useRepository) {
                 modelObjectResolver.searchIterative((Class<O>) type, query, queryOptions, resultHandler, coordinatorTask, opResult);
             } else {
-                repositoryService.searchObjectsIterative(type, query, (ResultHandler) resultHandler, null, opResult);
+                repositoryService.searchObjectsIterative(type, query, (ResultHandler) resultHandler, null, false, opResult);    // TODO think about this
             }
             resultHandler.completeProcessing(opResult);
 

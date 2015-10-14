@@ -34,6 +34,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.w3c.dom.Element;
 
 /**
@@ -160,6 +161,14 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	
 	public void setTargetName(PolyString name) {
 		this.targetName = name;
+	}
+
+	public void setTargetName(PolyStringType name) {
+		if (name == null) {
+			this.targetName = null;
+		} else {
+			this.targetName = name.toPolyString();
+		}
 	}
 
     public Class<Objectable> getTargetTypeCompileTimeClass() {
