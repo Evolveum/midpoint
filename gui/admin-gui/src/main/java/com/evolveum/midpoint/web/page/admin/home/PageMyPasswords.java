@@ -191,7 +191,7 @@ public class PageMyPasswords extends PageAdminHome {
         mainForm.add(accounts);
 
         PasswordPanel passwordPanel = new PasswordPanel(ID_PASSWORD_PANEL,
-                new PropertyModel<String>(model, MyPasswordsDto.F_PASSWORD));
+                new PropertyModel<ProtectedStringType>(model, MyPasswordsDto.F_PASSWORD));
         mainForm.add(passwordPanel);
 
         FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
@@ -261,8 +261,7 @@ public class PageMyPasswords extends PageAdminHome {
         OperationResult result = new OperationResult(OPERATION_SAVE_PASSWORD);
         try {
             MyPasswordsDto dto = model.getObject();
-            ProtectedStringType password = new ProtectedStringType();
-            password.setClearValue(dto.getPassword());
+            ProtectedStringType password = dto.getPassword();
             WebMiscUtil.encryptProtectedString(password, true, getMidpointApplication());
 
             final ItemPath valuePath = new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS,

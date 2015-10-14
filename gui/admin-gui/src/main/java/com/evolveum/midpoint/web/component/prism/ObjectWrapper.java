@@ -64,6 +64,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -90,7 +92,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 /**
  * @author lazyman
  */
-public class ObjectWrapper<O extends ObjectType> implements Serializable, Revivable {
+public class ObjectWrapper<O extends ObjectType> implements Serializable, Revivable, DebugDumpable {
 
 	public static final String F_DISPLAY_NAME = "displayName";
 	public static final String F_SELECTED = "selected";
@@ -522,8 +524,7 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 					PrismContainer prismContainer = parent.findContainer(def.getName());
 
 					ContainerWrapper container;
-					if (prismContainer != null
-							&& !prismContainer.getElementName().equals(CredentialsType.F_PASSWORD)) {
+					if (prismContainer != null) {
 						container = new ContainerWrapper(this, prismContainer, ContainerStatus.MODIFYING,
 								newPath, pageBase);
 					} else {
@@ -941,5 +942,36 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 			return objectClassDefinitionForEditing.toResourceAttributeContainerDefinition();
 		}
 		return null;
+	}
+
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("ObjectWrapper(\n");
+		DebugUtil.debugDumpWithLabel(sb, "displayName", displayName, indent+1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "description", description, indent+1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "object", object==null?null:object.toString(), indent+1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "objectOld", objectOld==null?null:objectOld.toString(), indent+1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "oldDelta", oldDelta, indent+1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "status", status == null?null:status.toString(), indent+1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "headerStatus", headerStatus == null?null:headerStatus.toString(), indent+1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "containers", containers, indent+1);
+		sb.append("\n");
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append(")");
+		return sb.toString();
 	}
 }
