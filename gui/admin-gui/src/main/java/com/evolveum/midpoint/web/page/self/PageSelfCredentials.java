@@ -1,9 +1,6 @@
 package com.evolveum.midpoint.web.page.self;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -14,19 +11,25 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.prism.ContainerStatus;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.home.dto.MyPasswordsDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.FocusShadowDto;
 import com.evolveum.midpoint.web.page.self.component.ChangePasswordPanel;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.wicket.Component;
@@ -35,7 +38,9 @@ import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.IModel;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -63,8 +68,11 @@ public class PageSelfCredentials extends PageSelf {
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
     private static final String OPERATION_LOAD_ACCOUNT = DOT_CLASS + "loadAccount";
     private static final String OPERATION_SAVE_PASSWORD = DOT_CLASS + "savePassword";
+    private static final String OPERATION_LOAD_SHADOW = DOT_CLASS + "loadShadow";
+
 
     private LoadableModel<MyPasswordsDto> model;
+    private PrismObject<UserType> user;
 
     public PageSelfCredentials() {
         model = new LoadableModel<MyPasswordsDto>(false) {
@@ -92,14 +100,13 @@ public class PageSelfCredentials extends PageSelf {
 
     private MyPasswordsDto loadPageModel() {
 //        LOGGER.debug("Loading user and accounts.");
-
         MyPasswordsDto dto = new MyPasswordsDto();
         OperationResult result = new OperationResult(OPERATION_LOAD_USER_WITH_ACCOUNTS);
         try {
             String userOid = SecurityUtils.getPrincipalUser().getOid();
             Task task = createSimpleTask(OPERATION_LOAD_USER);
             OperationResult subResult = result.createSubresult(OPERATION_LOAD_USER);
-            PrismObject<UserType> user = getModelService().getObject(UserType.class, userOid, null, task, subResult);
+            user = getModelService().getObject(UserType.class, userOid, null, task, subResult);
             subResult.recordSuccessIfUnknown();
 
             dto.getAccounts().add(createDefaultPasswordAccountDto(user));
@@ -130,6 +137,10 @@ public class PageSelfCredentials extends PageSelf {
                     subResult.recordFatalError("Couldn't load account.", ex);
                 }
             }
+
+            List<ShadowType> shadowTypeList = loadShadowTypeList();
+
+
             result.recordSuccessIfUnknown();
         } catch (Exception ex) {
 //            LoggingUtils.logException(LOGGER, "Couldn't load accounts", ex);
@@ -232,7 +243,7 @@ public class PageSelfCredentials extends PageSelf {
         PrismReference resourceRef = account.findReference(ShadowType.F_RESOURCE_REF);
         String resourceName;
         if (resourceRef == null || resourceRef.getValue() == null || resourceRef.getValue().getObject() == null) {
-            resourceName = getString("PageMyPasswords.couldntResolve");
+            resourceName = getString("PageSelfCredentials.couldntResolve");
         } else {
             resourceName = WebMiscUtil.getName(resourceRef.getValue().getObject());
         }
@@ -268,6 +279,8 @@ public class PageSelfCredentials extends PageSelf {
                         registry.findObjectDefinitionByCompileTimeClass(UserType.class) :
                         registry.findObjectDefinitionByCompileTimeClass(ShadowType.class);
 
+//                UserType.F_LINK_REF
+//                        ShadowType.REF
                 PropertyDelta delta = PropertyDelta.createModificationReplaceProperty(valuePath, objDef, password,password);
 
                 Class<? extends ObjectType> type = accDto.isMidpoint() ? UserType.class : ShadowType.class;
@@ -298,4 +311,29 @@ public class PageSelfCredentials extends PageSelf {
         setResponsePage(PageDashboard.class);
     }
 
+    private List<ShadowType> loadShadowTypeList(){
+        List<ObjectReferenceType> references = user.asObjectable().getLinkRef();
+        Task task = createSimpleTask(OPERATION_LOAD_SHADOW);
+        List<ShadowType> shadowTypeList = new ArrayList<>();
+
+        for (ObjectReferenceType reference : references) {
+            OperationResult subResult = new OperationResult(OPERATION_LOAD_SHADOW);
+            try {
+                Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(ShadowType.F_RESOURCE,
+                        GetOperationOptions.createResolve());
+
+                if (reference.getOid() == null) {
+                    continue;
+                }
+                PrismObject<ShadowType> shadow = WebModelUtils.loadObject(ShadowType.class, reference.getOid(), options, this, task, subResult);
+                shadowTypeList.add(shadow.asObjectable());
+            } catch (Exception ex) {
+                subResult.recordFatalError("Couldn't load account." + ex.getMessage(), ex);
+            } finally {
+                subResult.computeStatus();
+            }
+        }
+        return shadowTypeList;
+
+    }
 }
