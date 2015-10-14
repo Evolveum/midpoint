@@ -370,25 +370,14 @@
             <artifactId>report-impl</artifactId>
             <version>3.3-SNAPSHOT</version>
             <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.model</groupId>
-            <artifactId>report-ds-impl</artifactId>
-            <version>3.3-SNAPSHOT</version>
-			<scope>runtime</scope>
-			 <exclusions>
+            <exclusions>
             	<exclusion>
             		<artifactId>jaxb-impl</artifactId>
             		<groupId>com.sun.xml.bind</groupId>
             	</exclusion>
             </exclusions>
-<!-- 			<exclusions> -->
-<!-- 				<exclusion> -->
-<!-- 					<groupId>*</groupId> -->
-<!-- 					<artifactId>*</artifactId> -->
-<!-- 				</exclusion> -->
-<!--     		</exclusions> -->
         </dependency>
+       
 	<dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>common</artifactId>
