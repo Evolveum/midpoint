@@ -120,6 +120,7 @@ public class ProfilingDto implements Serializable {
 	}
 
 	public ProfilingConfigurationType getNewObejct() {
+		
 		ProfilingConfigurationType config = new ProfilingConfigurationType();
 
 		if (isPerformanceStatistics() || isRequestFilter() || isSubsystemModel() || isSubsystemRepository()

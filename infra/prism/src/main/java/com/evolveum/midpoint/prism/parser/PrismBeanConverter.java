@@ -909,6 +909,9 @@ public class PrismBeanConverter {
                 }
 
                 for (Object element: col) {
+                	if (element == null){
+                		continue;
+                	}
                     QName fieldTypeName = inspector.findFieldTypeName(field, element.getClass(), namespace);
 					Object elementToMarshall = element;
 					if (element instanceof JAXBElement){

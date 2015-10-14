@@ -44,6 +44,7 @@ public class NotificationConfigurationDto implements Serializable{
     private List<MailServerConfigurationTypeDto> servers;
     private MailServerConfigurationTypeDto selectedServer;
 
+  
     public NotificationConfigurationDto(){}
 
     public NotificationConfigurationDto(NotificationConfigurationType config){

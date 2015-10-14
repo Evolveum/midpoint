@@ -265,7 +265,8 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 			saveObjectPolicies(newObject);
 
 
-			ObjectDelta<SystemConfigurationType> delta = DiffUtil.diff(model.getObject().getOldObject().asPrismObject(), newObject.asPrismObject());
+			ObjectDelta<SystemConfigurationType> delta = DiffUtil.diff(model.getObject().getOldObject(), newObject);
+			delta.normalize();
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("System configuration delta:\n{}", delta.debugDump());
 			}
@@ -298,6 +299,9 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 
 		ObjectPolicyConfigurationType newObjectPolicyConfig;
 		for (ObjectPolicyConfigurationTypeDto o : configList) {
+			if (o.isEmpty()){
+				continue;
+			}
 			newObjectPolicyConfig = new ObjectPolicyConfigurationType();
 			newObjectPolicyConfig.setType(o.getType());
 			newObjectPolicyConfig.setObjectTemplateRef(o.getTemplateRef());
@@ -320,6 +324,13 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 			newObjectPolicyConfig.getPropertyConstraint().addAll(constraintList);
 
 			confList.add(newObjectPolicyConfig);
+		}
+		
+		if (confList.isEmpty()){
+			if (!systemConfig.getDefaultObjectPolicyConfiguration().isEmpty()){
+				systemConfig.getDefaultObjectPolicyConfiguration().clear();
+			}
+			return;
 		}
 
 		systemConfig.getDefaultObjectPolicyConfiguration().clear();
