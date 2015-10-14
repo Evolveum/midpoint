@@ -174,8 +174,7 @@ public class QueryInterpreter {
         try {
             QueryContext context = new QueryContext(this, type, query, prismContext, session);
 
-            Restriction restriction = findAndCreateRestriction(filter, context, null);
-            Criterion criterion = restriction.interpret(filter);
+            Criterion criterion = interpretFilter(filter, context, null);
 
             Criteria criteria = context.getCriteria(null);
             criteria.add(criterion);
@@ -187,6 +186,12 @@ public class QueryInterpreter {
             LOGGER.trace(ex.getMessage(), ex);
             throw new QueryException(ex.getMessage(), ex);
         }
+    }
+
+    public Criterion interpretFilter(ObjectFilter filter, QueryContext context, Restriction parent) throws QueryException {
+        Restriction restriction = findAndCreateRestriction(filter, context, parent);
+        Criterion criterion = restriction.interpret();
+        return criterion;
     }
 
     public <T extends ObjectType> Criteria updatePagingAndSorting(Criteria query, Class<T> type, ObjectPaging paging) {
@@ -270,14 +275,13 @@ public class QueryInterpreter {
                                                                          Restriction parent) throws QueryException {
 
         for (Restriction restriction : AVAILABLE_RESTRICTIONS) {
-            Restriction<T> res = restriction.cloneInstance();
+            Restriction<T> res = restriction.newInstance();
             res.setContext(context);
-            res.setParent(parent);
-            res.setFilter(filter);
-
-            if (!res.canHandle(filter, context)) {
+            if (!res.canHandle(filter)) {
                 continue;
             }
+            res.setParent(parent);
+            res.setFilter(filter);
 
             return res;
         }

@@ -27,9 +27,9 @@ import org.hibernate.criterion.Criterion;
  */
 public abstract class Restriction<T extends ObjectFilter> {
 
-    private QueryContext context;
-    private Restriction parent;
-    private T filter;
+    protected QueryContext context;
+    protected Restriction parent;
+    protected T filter;
 
     public T getFilter() {
         return filter;
@@ -55,15 +55,11 @@ public abstract class Restriction<T extends ObjectFilter> {
         this.parent = parent;
     }
 
-    // todo parameter can be removed
-    public abstract Criterion interpret(T filter) throws QueryException;
+    public abstract Criterion interpret() throws QueryException;
 
-    //todo remove both params, they are already in restriction
-    // when called this we don't really know if filter class matches T as can be seen in QueryInterpreter
-    // therefore filter should stay here as paramtere probably
-    public abstract boolean canHandle(ObjectFilter filter, QueryContext context) throws QueryException;
+    public abstract boolean canHandle(ObjectFilter filter) throws QueryException;
 
     // todo don't know if cloning is necessary... [lazyman]
     // this can be replaced probably by simple java reflection call
-    public abstract Restriction cloneInstance();
+    public abstract Restriction newInstance();
 }

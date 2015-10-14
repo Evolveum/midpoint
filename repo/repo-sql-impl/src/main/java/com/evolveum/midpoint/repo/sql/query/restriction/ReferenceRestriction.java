@@ -54,7 +54,7 @@ import java.util.List;
 public class ReferenceRestriction extends ItemRestriction<RefFilter> {
 
     @Override
-    public boolean canHandle(ObjectFilter filter, QueryContext context) {
+    public boolean canHandle(ObjectFilter filter) {
         if (filter instanceof RefFilter) {
             return true;
         }
@@ -139,7 +139,7 @@ public class ReferenceRestriction extends ItemRestriction<RefFilter> {
     }
 
     @Override
-    public ReferenceRestriction cloneInstance() {
+    public ReferenceRestriction newInstance() {
         return new ReferenceRestriction();
     }
 

@@ -29,8 +29,8 @@ import org.hibernate.criterion.Restrictions;
 public class NotRestriction extends UnaryLogicalRestriction<NotFilter> {
 
     @Override
-    public boolean canHandle(ObjectFilter filter, QueryContext context) {
-        if (!super.canHandle(filter, context)) {
+    public boolean canHandle(ObjectFilter filter) {
+        if (!super.canHandle(filter)) {
             return false;
         }
 
@@ -39,7 +39,7 @@ public class NotRestriction extends UnaryLogicalRestriction<NotFilter> {
 
 
     @Override
-    public Criterion interpret(NotFilter filter) throws QueryException {
+    public Criterion interpret() throws QueryException {
         validateFilter(filter);
         Criterion criterion = interpretChildFilter(filter.getFilter());
 
@@ -47,7 +47,7 @@ public class NotRestriction extends UnaryLogicalRestriction<NotFilter> {
     }
 
     @Override
-    public NotRestriction cloneInstance() {
+    public NotRestriction newInstance() {
         return new NotRestriction();
     }
 }

@@ -58,7 +58,7 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
     private static final Trace LOGGER = TraceManager.getTrace(ItemRestriction.class);
 
     @Override
-    public boolean canHandle(ObjectFilter filter, QueryContext context) throws QueryException {
+    public boolean canHandle(ObjectFilter filter) throws QueryException {
         Validate.notNull(filter, "Object filter must not be null.");
         if (!(filter instanceof ValueFilter)) {
             return false;
@@ -67,7 +67,7 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
     }
 
     @Override
-    public Criterion interpret(T filter) throws QueryException {
+    public Criterion interpret() throws QueryException {
 
 //        ItemPath path = RUtil.createFullPath(filter);
     	ItemPath path = filter.getFullPath();
