@@ -264,8 +264,7 @@ public class PageSelfCredentials extends PageSelf {
         OperationResult result = new OperationResult(OPERATION_SAVE_PASSWORD);
         try {
             MyPasswordsDto dto = model.getObject();
-            ProtectedStringType password = new ProtectedStringType();
-            password.setClearValue(dto.getPassword());
+            ProtectedStringType password = dto.getPassword();
             WebMiscUtil.encryptProtectedString(password, true, getMidpointApplication());
 
             final ItemPath valuePath = new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS,

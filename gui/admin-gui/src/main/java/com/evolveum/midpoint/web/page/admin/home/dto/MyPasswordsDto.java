@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
 /**
  * @author lazyman
  */
@@ -29,7 +31,7 @@ public class MyPasswordsDto implements Serializable {
     public static final String F_PASSWORD = "password";
 
     private List<PasswordAccountDto> accounts;
-    private String password;
+    private ProtectedStringType password;
 
     public List<PasswordAccountDto> getAccounts() {
         if (accounts == null) {
@@ -38,11 +40,11 @@ public class MyPasswordsDto implements Serializable {
         return accounts;
     }
 
-    public String getPassword() {
+    public ProtectedStringType getPassword() {
         return password;
     }
 
-    public void setPassword(String password) {
+    public void setPassword(ProtectedStringType password) {
         this.password = password;
     }
 }
