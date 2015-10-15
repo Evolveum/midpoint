@@ -19,10 +19,7 @@ package com.evolveum.midpoint.web.page.admin.reports;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.prism.query.SubstringFilter;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -114,7 +111,7 @@ public class PageCreatedReports extends PageAdminReports {
     private static final String ID_CONFIRM_DELETE = "confirmDeletePopup";
     private static final String ID_TABLE_HEADER = "tableHeader";
 
-    private IModel<ReportOutputSearchDto> searchModel;
+    private LoadableModel<ReportOutputSearchDto> searchModel;
     private IModel<ReportDeleteDialogDto> deleteModel = new Model<>();
     private ReportOutputType currentReport;
 
@@ -146,7 +143,7 @@ public class PageCreatedReports extends PageAdminReports {
 
         setPreviousPage(previousPage);
 
-        searchModel = new LoadableModel<ReportOutputSearchDto>() {
+        searchModel = new LoadableModel<ReportOutputSearchDto>(false) {
 
             @Override
             protected ReportOutputSearchDto load() {
@@ -169,6 +166,7 @@ public class PageCreatedReports extends PageAdminReports {
         Map<String, String> reportTypeMap = dto.getReportTypeMap();
 
         List<PrismObject<ReportType>> reportTypes = WebModelUtils.searchObjects(ReportType.class, null, null, getPageBase());
+        LOGGER.debug("Found {} report types.", reportTypes.size());
 
         for (PrismObject o : reportTypes) {
             ReportType reportType = (ReportType) o.asObjectable();
@@ -211,7 +209,6 @@ public class PageCreatedReports extends PageAdminReports {
             }
         };
 
-//        ajaxDownloadBehavior.setContentType(contentType);
         mainForm.add(ajaxDownloadBehavior);
 
         ObjectDataProvider provider = new ObjectDataProvider(PageCreatedReports.this, ReportOutputType.class) {
@@ -221,17 +218,12 @@ public class PageCreatedReports extends PageAdminReports {
                 ReportsStorage storage = getSessionStorage().getReports();
                 storage.setReportOutputsPaging(paging);
             }
+
+            @Override
+            public ObjectQuery getQuery() {
+                return createQuery();
+            }
         };
-        ObjectQuery query;
-
-        String oidValue = getPageParameters().get(OnePageParameterEncoder.PARAMETER).toString();
-        if (oidValue != null && !StringUtils.isEmpty(oidValue)) {
-            query = createReportTypeRefQuery(oidValue);
-        } else {
-            query = createQuery();
-        }
-
-        provider.setQuery(query);
 
         BoxedTablePanel table = new BoxedTablePanel(ID_CREATED_REPORTS_TABLE, provider,
                 initColumns(ajaxDownloadBehavior),
@@ -271,29 +263,10 @@ public class PageCreatedReports extends PageAdminReports {
     }
 
     //TODO - commented until FileType property will be available in ReportOutputType
-    /*
-    private List<ExportType> createFileTypeList(){
-        List<ExportType> list = new ArrayList<ExportType>();
-        Collections.addAll(list, ExportType.values());
-        return list;
-    }
-    */
 
     public PageBase getPageBase() {
         return (PageBase) getPage();
     }
-
-    /*
-    private AjaxFormComponentUpdatingBehavior createFilterAjaxBehaviour(){
-        return new AjaxFormComponentUpdatingBehavior("onchange") {
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                filterPerformed(target);
-            }
-        };
-    }
-    */
 
     //TODO - consider adding Author name, File Type and ReportType to columns
     private List<IColumn<SelectableBean<ReportOutputType>, String>> initColumns(
@@ -501,47 +474,42 @@ public class PageCreatedReports extends PageAdminReports {
         target.add(getFeedbackPanel());
     }
 
-    private ObjectQuery createReportTypeRefQuery(String oid) {
-
-        ObjectQuery query = new ObjectQuery();
-
-        try {
-            RefFilter reportRef = RefFilter.createReferenceEqual(ReportOutputType.F_REPORT_REF, ReportOutputType.class,
-                    getPrismContext(), oid);
-
-            query.setFilter(reportRef);
-            return query;
-        } catch (Exception e) {
-            LoggingUtils.logException(LOGGER, "Couldn't create query", e);
-            error("Couldn't create query, reason: " + e.getMessage());
-        }
-
-        return null;
-    }
-
     private ObjectQuery createQuery() {
         ReportOutputSearchDto dto = searchModel.getObject();
-        ObjectQuery query = null;
-
-        if (StringUtils.isEmpty(dto.getText())) {
-            return null;
-        }
 
         try {
-            PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
-            String normalizedString = normalizer.normalize(dto.getText());
+            List<ObjectFilter> ands = new ArrayList<>();
 
-            SubstringFilter substring = SubstringFilter.createSubstring(ReportOutputType.F_NAME, ReportOutputType.class,
-                    getPrismContext(), PolyStringNormMatchingRule.NAME, normalizedString);
+            if (StringUtils.isNotEmpty(dto.getText())) {
+                PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
+                String normalizedString = normalizer.normalize(dto.getText());
 
-            query = ObjectQuery.createObjectQuery(substring);
+                SubstringFilter substring = SubstringFilter.createSubstring(ReportOutputType.F_NAME,
+                        ReportOutputType.class, getPrismContext(), PolyStringNormMatchingRule.NAME, normalizedString);
+                ands.add(substring);
+            }
 
+            String oid = dto.getReportTypeMap().get(dto.getReportType());
+            if (StringUtils.isNotEmpty(oid)) {
+                RefFilter ref = RefFilter.createReferenceEqual(ReportOutputType.F_REPORT_REF, ReportOutputType.class,
+                        getPrismContext(), oid);
+                ands.add(ref);
+            }
+
+            switch (ands.size()) {
+                case 0:
+                    return null;
+                case 1:
+                    return ObjectQuery.createObjectQuery(ands.get(0));
+                default:
+                    AndFilter and = AndFilter.createAnd(ands);
+                    return ObjectQuery.createObjectQuery(and);
+            }
         } catch (Exception e) {
             error(getString("pageCreatedReports.message.queryError") + " " + e.getMessage());
             LoggingUtils.logException(LOGGER, "Couldn't create query filter.", e);
+            return null;
         }
-
-        return query;
     }
 
     private InputStream createReport() {
@@ -574,61 +542,26 @@ public class PageCreatedReports extends PageAdminReports {
         //TODO - perform filtering based on file type - need to wait for schema update (ReportOutputType)
     }
 
-    private void reportTypeFilterPerformed(AjaxRequestTarget target) {
-        ReportOutputSearchDto dto = searchModel.getObject();
-        String oid = dto.getReportTypeMap().get(dto.getReportType());
-        ObjectQuery query;
-
-        if (oid == null || oid.isEmpty()) {
-            query = createQuery();
-        } else {
-            query = createReportTypeRefQuery(oid);
-        }
-
-        Table panel = getReportOutputTable();
-        DataTable table = panel.getDataTable();
-        ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
-        provider.setQuery(query);
-
-        ReportsStorage storage = getSessionStorage().getReports();
-        storage.setReportOutputSearch(searchModel.getObject());
-        storage.setReportsPaging(null);
-        panel.setCurrentPage(null);
-
-        target.add((Component) panel);
-        target.add(getFeedbackPanel());
-    }
-
-    private void searchPerformed(AjaxRequestTarget target) {
-        ObjectQuery query = createQuery();
-        target.add(getFeedbackPanel());
-
-        Table panel = getReportOutputTable();
-        DataTable table = panel.getDataTable();
-        ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
-        provider.setQuery(query);
-
-        ReportsStorage storage = getSessionStorage().getReports();
-        storage.setReportOutputSearch(searchModel.getObject());
-        storage.setReportOutputsPaging(null);
-        panel.setCurrentPage(0);
-
-        target.add((Component) panel);
-    }
-
     private void downloadPerformed(AjaxRequestTarget target, ReportOutputType report,
                                    AjaxDownloadBehaviorFromStream ajaxDownloadBehavior) {
 
         ajaxDownloadBehavior.initiate(target);
     }
 
-    private void clearSearchPerformed(AjaxRequestTarget target) {
-        searchModel.setObject(new ReportOutputSearchDto());
+    private void searchPerformed(AjaxRequestTarget target) {
+        refreshTable(target);
+    }
 
+    private void clearSearchPerformed(AjaxRequestTarget target) {
+        ReportOutputSearchDto dto = searchModel.getObject();
+        dto.setReportType(null);
+        dto.setText(null);
+
+        refreshTable(target);
+    }
+
+    private void refreshTable(AjaxRequestTarget target) {
         Table panel = getReportOutputTable();
-        DataTable table = panel.getDataTable();
-        ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
-        provider.setQuery(null);
 
         ReportsStorage storage = getSessionStorage().getReports();
         storage.setReportOutputSearch(searchModel.getObject());
@@ -636,6 +569,7 @@ public class PageCreatedReports extends PageAdminReports {
         panel.setCurrentPage(0);
 
         target.add((Component) panel);
+        target.add(getFeedbackPanel());
     }
 
     private static class SearchFragment extends Fragment {
@@ -693,7 +627,7 @@ public class PageCreatedReports extends PageAdminReports {
                 @Override
                 protected void onUpdate(AjaxRequestTarget target) {
                     PageCreatedReports page = (PageCreatedReports) getPage();
-                    page.reportTypeFilterPerformed(target);
+                    page.searchPerformed(target);
                 }
             });
             reportTypeSelect.setOutputMarkupId(true);
