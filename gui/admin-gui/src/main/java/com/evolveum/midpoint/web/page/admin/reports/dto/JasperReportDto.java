@@ -123,7 +123,9 @@ public class JasperReportDto implements Serializable{
 //			design.remadgetFields().
 			design.getFieldsList().clear();
 			design.getParametersList().clear();
-		for (JasperReportFieldDto field : fields){
+            design.getFieldsMap().clear();
+            design.getParametersMap().clear();
+            for (JasperReportFieldDto field : fields){
 			if (field.isEmpty()){
 				continue;
 			}
