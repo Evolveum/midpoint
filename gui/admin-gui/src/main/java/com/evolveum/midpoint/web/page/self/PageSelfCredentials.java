@@ -258,9 +258,8 @@ public class PageSelfCredentials extends PageSelf {
     }
 
     private void onSavePerformed(AjaxRequestTarget target) {
-        List<PasswordAccountDto> accounts = WebMiscUtil.getSelectedData(
-                (TablePanel) get(createComponentPath(ID_MAIN_FORM, ID_TAB_PANEL, ID_PANEL, ChangePasswordPanel.ID_ACCOUNTS_TABLE)));
-        if (accounts.isEmpty()) {
+        List<PasswordAccountDto> selectedAccounts = getSelectedAccountsList();
+        if (selectedAccounts.isEmpty()) {
             warn(getString("PageMyPasswords.noAccountSelected"));
             target.add(getFeedbackPanel());
             return;
@@ -278,14 +277,12 @@ public class PageSelfCredentials extends PageSelf {
             Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
 
 
-            for (PasswordAccountDto accDto : accounts) {
+            for (PasswordAccountDto accDto : selectedAccounts) {
                 if (accDto.getCssClass().equals(ChangePasswordPanel.SELECTED_ACCOUNT_ICON_CSS)) {
                     PrismObjectDefinition objDef = accDto.isMidpoint() ?
                             registry.findObjectDefinitionByCompileTimeClass(UserType.class) :
                             registry.findObjectDefinitionByCompileTimeClass(ShadowType.class);
 
-//                UserType.F_LINK_REF
-//                        ShadowType.REF
                     PropertyDelta delta = PropertyDelta.createModificationReplaceProperty(valuePath, objDef, password, password);
 
                     Class<? extends ObjectType> type = accDto.isMidpoint() ? UserType.class : ShadowType.class;
@@ -308,12 +305,32 @@ public class PageSelfCredentials extends PageSelf {
             target.add(getFeedbackPanel());
         } else {
             showResultInSession(result);
-            setResponsePage(PageDashboard.class);
+            if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
+                    AuthorizationConstants.AUTZ_UI_HOME_ALL_URL)) {
+                setResponsePage(PageDashboard.class);
+            } else {
+                setResponsePage(PageSelfDashboard.class);
+            }
         }
     }
 
+    private List<PasswordAccountDto> getSelectedAccountsList(){
+        List<PasswordAccountDto> passwordAccountDtos = model.getObject().getAccounts();
+        List<PasswordAccountDto> selectedAccountList = new ArrayList<>();
+        for (PasswordAccountDto passwordAccountDto : passwordAccountDtos){
+            if (passwordAccountDto.getCssClass().equals(ChangePasswordPanel.SELECTED_ACCOUNT_ICON_CSS)){
+                selectedAccountList.add(passwordAccountDto);
+            }
+        }
+        return selectedAccountList;
+    }
     private void onCancelPerformed(AjaxRequestTarget target) {
-        setResponsePage(PageDashboard.class);
+        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
+                AuthorizationConstants.AUTZ_UI_HOME_ALL_URL)) {
+            setResponsePage(PageDashboard.class);
+        } else {
+            setResponsePage(PageSelfDashboard.class);
+        }
     }
 
     private List<ShadowType> loadShadowTypeList() {
