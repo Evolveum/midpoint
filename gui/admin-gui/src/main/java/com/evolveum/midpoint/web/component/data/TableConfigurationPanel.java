@@ -126,6 +126,9 @@ public class TableConfigurationPanel extends SimplePanel {
             public Integer getObject() {
                 Table tablePanel = findParent(Table.class);
                 UserProfileStorage.TableId tableId = tablePanel.getTableId();
+                if (tableId == null) {
+                    return tablePanel.getItemsPerPage();
+                }
 
                 return getPageBase().getSessionStorage().getUserProfile().getPagingSize(tableId);
             }
@@ -134,6 +137,10 @@ public class TableConfigurationPanel extends SimplePanel {
             public void setObject(Integer o) {
                 Table tablePanel = findParent(Table.class);
                 UserProfileStorage.TableId tableId = tablePanel.getTableId();
+                if (tableId == null) {
+                    tablePanel.setItemsPerPage(o);
+                    return;
+                }
 
                 getPageBase().getSessionStorage().getUserProfile().setPagingSize(tableId, o);
             }
