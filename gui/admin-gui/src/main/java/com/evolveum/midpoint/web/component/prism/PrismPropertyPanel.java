@@ -68,7 +68,9 @@ public class PrismPropertyPanel extends Panel {
             @Override
             public boolean isVisible() {
             	ItemWrapper property = model.getObject();
-                return property.isVisible();
+                boolean visible = property.isVisible();
+                LOGGER.trace("isVisible: {}: {}", property, visible);
+                return visible;
             }
 
             @Override

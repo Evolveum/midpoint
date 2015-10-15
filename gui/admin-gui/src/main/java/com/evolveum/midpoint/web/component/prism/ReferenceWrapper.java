@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2010-2015 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.web.component.prism;
 
 import java.io.Serializable;
@@ -11,9 +26,10 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public class ReferenceWrapper implements ItemWrapper, Serializable{
+public class ReferenceWrapper implements ItemWrapper, Serializable {
 	
 	  private ContainerWrapper container;
 	    private PrismReference reference;
@@ -174,7 +190,31 @@ public class ReferenceWrapper implements ItemWrapper, Serializable{
 	        this.readonly = readonly;
 	    }
 
-		
+	    @Override
+		public String debugDump() {
+			return debugDump(0);
+		}
 
+		@Override
+		public String debugDump(int indent) {
+			StringBuilder sb = new StringBuilder();
+			DebugUtil.indentDebugDump(sb, indent);
+			sb.append("ReferenceWrapper(\n");
+			DebugUtil.debugDumpWithLabel(sb, "displayName", displayName, indent+1);
+			sb.append("\n");
+			DebugUtil.debugDumpWithLabel(sb, "status", status == null?null:status.toString(), indent+1);
+			sb.append("\n");
+			DebugUtil.debugDumpWithLabel(sb, "readonly", readonly, indent+1);
+			sb.append("\n");
+			DebugUtil.debugDumpWithLabel(sb, "itemDefinition", itemDefinition == null?null:itemDefinition.toString(), indent+1);
+			sb.append("\n");
+			DebugUtil.debugDumpWithLabel(sb, "reference", reference, indent+1);
+			sb.append("\n");
+			DebugUtil.debugDumpWithLabel(sb, "values", values, indent+1);
+			sb.append("\n");
+			DebugUtil.indentDebugDump(sb, indent);
+			sb.append(")");
+			return sb.toString();
+		}
 
 }

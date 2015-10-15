@@ -81,6 +81,10 @@ public class ObjectPolicyConfigurationTypeDto implements Serializable{
     public void setConstraints(List<PropertyConstraintTypeDto> constraints) {
         this.constraints = constraints;
     }
+    
+    public boolean isEmpty(){
+    	return type == null && constraints == null && templateRef == null; 
+    }
 
     @Override
     public boolean equals(Object o) {

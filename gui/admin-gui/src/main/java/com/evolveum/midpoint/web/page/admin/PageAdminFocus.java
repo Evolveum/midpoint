@@ -521,6 +521,10 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 		if (!result.isSuccess()) {
 			showResultInSession(result);
 		}
+		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Loaded focus:\n{}", focus.debugDump());
+		}
 
 		if (focus == null) {
 			if (isEditingFocus()) {
@@ -549,6 +553,11 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 		loadParentOrgs(wrapper, task, result);
 		
 		wrapper.setShowEmpty(!isEditingFocus());
+		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Loaded focus wrapper:\n{}", wrapper.debugDump());
+		}
+		
 		return wrapper;
 	}
 
