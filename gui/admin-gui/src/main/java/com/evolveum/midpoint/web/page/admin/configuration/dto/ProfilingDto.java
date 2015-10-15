@@ -30,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ProfilingConfigurati
  * @author katkav
  *
  */
-public class ProfilingDto implements Serializable{
+public class ProfilingDto implements Serializable {
 
 	private boolean profilingEnabled;
 	private boolean requestFilter;
@@ -48,20 +48,22 @@ public class ProfilingDto implements Serializable{
 	private String profilingAppender;
 
 	private List<AppenderConfiguration> appenders;
-	
+
 	public static final String LOGGER_PROFILING = "PROFILING";
 
 	public ProfilingDto() {
 		this(null, null);
 	}
 
-	public ProfilingDto(ProfilingConfigurationType profiling, 
+	public ProfilingDto(ProfilingConfigurationType profiling,
 			List<ClassLoggerConfigurationType> classLoggerConfig) {
 		init(profiling, classLoggerConfig);
 	}
 
 	private void init(ProfilingConfigurationType profilingConfiguration,
 			List<ClassLoggerConfigurationType> classLoggerConfig) {
+
+		if (profilingConfiguration != null) {
 
 			requestFilter = checkXsdBooleanValue(profilingConfiguration.isRequestFilter());
 			performanceStatistics = checkXsdBooleanValue(profilingConfiguration.isPerformanceStatistics());
@@ -78,49 +80,51 @@ public class ProfilingDto implements Serializable{
 				dumpInterval = profilingConfiguration.getDumpInterval();
 			}
 
-			if (classLoggerConfig == null) {
-				return;
+		}
+		if (classLoggerConfig == null) {
+			return;
+		}
+		for (ClassLoggerConfigurationType logger : classLoggerConfig) {
+			if (LOGGER_PROFILING.equals(logger.getPackage())) {
+				setProfilingAppender(logger.getAppender() != null && logger.getAppender().size() > 0
+						? logger.getAppender().get(0) : null);
+				setProfilingLevel(ProfilingLevel.fromLoggerLevelType(logger.getLevel()));
+				continue;
 			}
-			for (ClassLoggerConfigurationType logger : classLoggerConfig) {
-				if (LOGGER_PROFILING.equals(logger.getPackage())) {
-					setProfilingAppender(logger.getAppender() != null && logger.getAppender().size() > 0
-							? logger.getAppender().get(0) : null);
-					setProfilingLevel(ProfilingLevel.fromLoggerLevelType(logger.getLevel()));
-					continue;
-				}
-			}
-		
-	}
-	
-	public ClassLoggerConfigurationType getProfilingClassLogerConfig() {
-	
-	
-			if (getProfilingLevel() != null) {
-				ClassLoggerConfigurationType type = new ClassLoggerConfigurationType();
-				type.setPackage(ProfilingDto.LOGGER_PROFILING);
-				type.setLevel(ProfilingLevel.toLoggerLevelType(getProfilingLevel()));
-				
-				if (StringUtils.isEmpty(getProfilingAppender())){
-					return type;
-				}
-				
-				if (StringUtils.isNotEmpty(getProfilingAppender()) || !(PageSystemConfiguration.ROOT_APPENDER_INHERITANCE_CHOICE.equals(getProfilingAppender()))) {
-					type.getAppender().add(getProfilingAppender());
-				}
+		}
 
+	}
+
+	public ClassLoggerConfigurationType getProfilingClassLogerConfig() {
+
+		if (getProfilingLevel() != null) {
+			ClassLoggerConfigurationType type = new ClassLoggerConfigurationType();
+			type.setPackage(ProfilingDto.LOGGER_PROFILING);
+			type.setLevel(ProfilingLevel.toLoggerLevelType(getProfilingLevel()));
+
+			if (StringUtils.isEmpty(getProfilingAppender())) {
 				return type;
-			
+			}
+
+			if (StringUtils.isNotEmpty(getProfilingAppender())
+					|| !(PageSystemConfiguration.ROOT_APPENDER_INHERITANCE_CHOICE
+							.equals(getProfilingAppender()))) {
+				type.getAppender().add(getProfilingAppender());
+			}
+
+			return type;
+
 		}
 
 		return null;
 	}
-	
+
 	public ProfilingConfigurationType getNewObejct() {
+		
 		ProfilingConfigurationType config = new ProfilingConfigurationType();
 
-		if (isPerformanceStatistics() || isRequestFilter() || isSubsystemModel()
-				|| isSubsystemRepository() || isSubsystemProvisioning()
-				|| isSubsystemResourceObjectChangeListener() || isSubsystemUcf()
+		if (isPerformanceStatistics() || isRequestFilter() || isSubsystemModel() || isSubsystemRepository()
+				|| isSubsystemProvisioning() || isSubsystemResourceObjectChangeListener() || isSubsystemUcf()
 				|| isSubsystemTaskManager() || isSubsystemWorkflow())
 			config.setEnabled(true);
 		else
@@ -140,12 +144,10 @@ public class ProfilingDto implements Serializable{
 		return config;
 	}
 
-	
-	
 	public List<AppenderConfiguration> getAppenders() {
 		return appenders;
 	}
-	
+
 	public void setAppenders(List<AppenderConfiguration> appenders) {
 		this.appenders = appenders;
 	}

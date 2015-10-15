@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.report.ds.impl;
+package com.evolveum.midpoint.report.impl;
 
 import java.util.Map;
 

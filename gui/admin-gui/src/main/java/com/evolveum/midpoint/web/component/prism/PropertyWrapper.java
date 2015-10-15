@@ -26,6 +26,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -40,7 +42,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class PropertyWrapper implements ItemWrapper, Serializable {
+public class PropertyWrapper implements ItemWrapper, Serializable, DebugDumpable {
 
     private ContainerWrapper container;
     private PrismProperty property;
@@ -66,6 +68,8 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
                 && PasswordType.F_VALUE.equals(property.getElementName())) {
             displayName = "prismPropertyPanel.name.credentials.password";
         }
+        
+        values = createValues();
     }
 
     public void revive(PrismContext prismContext) throws SchemaException {
@@ -121,9 +125,6 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
     }
 
     public List<ValueWrapper> getValues() {
-        if (values == null) {
-            values = createValues();
-        }
         return values;
     }
 
@@ -141,28 +142,25 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
 
         int minOccurs = property.getDefinition().getMinOccurs();
         while (values.size() < minOccurs) {
-            values.add(createValue());
+            values.add(createAddedValue());
         }
 
         if (values.isEmpty()) {
-            values.add(createValue());
+            values.add(createAddedValue());
         }
 
         return values;
     }
 
     public void addValue(){
-        getValues().add(createValue());
+        getValues().add(createAddedValue());
     }
 
-    public ValueWrapper createValue() {
+    public ValueWrapper createAddedValue() {
         PrismPropertyDefinition definition = property.getDefinition();
 
         ValueWrapper wrapper;
-        if (ProtectedStringType.COMPLEX_TYPE.equals(definition.getTypeName())) {
-            wrapper = new ValueWrapper(this, new PrismPropertyValue(new ProtectedStringType()),
-                    new PrismPropertyValue(new ProtectedStringType()), ValueStatus.ADDED);
-        } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(definition.getTypeName())) {
+        if (SchemaConstants.T_POLY_STRING_TYPE.equals(definition.getTypeName())) {
             wrapper = new ValueWrapper(this, new PrismPropertyValue(new PolyString("")),
                     new PrismPropertyValue(new PolyString("")), ValueStatus.ADDED);
         } else if (isUser() && isThisPropertyActivationEnabled()) {
@@ -218,15 +216,16 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
+        builder.append("PropertyWrapper(");
         builder.append(getDisplayName());
         builder.append(", ");
         builder.append(status);
-        builder.append("\n");
+        builder.append(",values=[");
         for (ValueWrapper wrapper : getValues()) {
-            builder.append("\t");
             builder.append(wrapper.toString());
-            builder.append("\n");
+            builder.append(",");
         }
+        builder.append("])");
         return builder.toString();
     }
 
@@ -238,5 +237,32 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
     public void setReadonly(boolean readonly) {
         this.readonly = readonly;
     }
+
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("PropertyWrapper(\n");
+		DebugUtil.debugDumpWithLabel(sb, "displayName", displayName, indent+1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "status", status == null?null:status.toString(), indent+1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "readonly", readonly, indent+1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "itemDefinition", itemDefinition == null?null:itemDefinition.toString(), indent+1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "property", property == null?null:property.toString(), indent+1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "values", values, indent+1);
+		sb.append("\n");
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append(")");
+		return sb.toString();
+	}
 
 }

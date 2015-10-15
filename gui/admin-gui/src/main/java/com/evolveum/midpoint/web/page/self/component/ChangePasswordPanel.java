@@ -21,6 +21,8 @@ import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -75,7 +77,7 @@ public class ChangePasswordPanel extends SimplePanel<MyPasswordsDto> {
         Label confirmPasswordLabel = new Label(ID_CONFIRM_PASSWORD_LABEL, createStringResource("PageSelfCredentials.passwordLabel2"));
         add(confirmPasswordLabel);
 
-        PasswordPanel passwordPanel = new PasswordPanel(ID_PASSWORD_PANEL, new PropertyModel<String>(model, MyPasswordsDto.F_PASSWORD));
+        PasswordPanel passwordPanel = new PasswordPanel(ID_PASSWORD_PANEL, new PropertyModel<ProtectedStringType>(model, MyPasswordsDto.F_PASSWORD));
         add(passwordPanel);
 
         List<IColumn<PasswordAccountDto, String>> columns = initColumns();

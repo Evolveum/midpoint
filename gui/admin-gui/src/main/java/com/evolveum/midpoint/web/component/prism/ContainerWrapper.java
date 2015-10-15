@@ -46,6 +46,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -68,7 +70,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCa
 /**
  * @author lazyman
  */
-public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, Serializable {
+public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, Serializable, DebugDumpable {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ContainerWrapper.class);
 
@@ -656,5 +658,40 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 	public void addValue() {
 		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("ContainerWrapper(\n");
+		DebugUtil.debugDumpWithLabel(sb, "displayName", displayName, indent+1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "status", status == null?null:status.toString(), indent+1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "main", main, indent+1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "readonly", readonly, indent+1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "showInheritedObjectAttributes", showInheritedObjectAttributes, indent+1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "path", path == null?null:path.toString(), indent+1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "containerDefinition", containerDefinition == null?null:containerDefinition.toString(), indent+1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "container", container==null?null:container.toString(), indent+1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "properties", properties, indent+1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "result", result, indent+1);
+		sb.append("\n");
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append(")");
+		return sb.toString();
 	}
 }

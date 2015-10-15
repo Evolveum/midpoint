@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,12 @@ import java.util.List;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Revivable;
+import com.evolveum.midpoint.util.DebugDumpable;
 
 /**
  * @author lazyman
  */
-public interface ItemWrapper extends Revivable {
+public interface ItemWrapper extends Revivable, DebugDumpable {
 
     String getDisplayName();
 

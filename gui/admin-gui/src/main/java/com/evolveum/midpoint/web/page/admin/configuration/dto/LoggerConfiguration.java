@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.Editable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingLevelType;
 
 import java.util.ArrayList;
@@ -58,4 +59,6 @@ public abstract class LoggerConfiguration extends Selectable implements Editable
     public void setEditing(boolean editing) {
         this.editing = editing;
     }
+    
+    public abstract ClassLoggerConfigurationType toXmlType();
 }

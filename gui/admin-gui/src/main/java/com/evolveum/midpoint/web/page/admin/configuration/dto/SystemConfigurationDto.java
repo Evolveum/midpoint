@@ -169,7 +169,6 @@ public class SystemConfigurationDto implements Serializable {
 
 	public SystemConfigurationType getNewObject() throws DatatypeConfigurationException {
 		SystemConfigurationType newObject = oldObject.clone();
-
 		if (StringUtils.isNotBlank(getPassPolicyDto().getOid())) {
 			ObjectReferenceType globalPassPolicyRef = ObjectTypeUtil
 					.createObjectRef(getPassPolicyDto().getOid(), ObjectTypes.PASSWORD_POLICY);
@@ -189,9 +188,11 @@ public class SystemConfigurationDto implements Serializable {
 		}
 
 		AssignmentPolicyEnforcementType globalAEP = AEPlevel.toAEPValueType(getAepLevel());
-		ProjectionPolicyType projectionPolicy = new ProjectionPolicyType();
-		projectionPolicy.setAssignmentPolicyEnforcement(globalAEP);
-
+		if (globalAEP != null) {
+			ProjectionPolicyType projectionPolicy = new ProjectionPolicyType();
+			projectionPolicy.setAssignmentPolicyEnforcement(globalAEP);
+			newObject.setGlobalAccountSynchronizationSettings(projectionPolicy);
+		}
 		Duration auditCleanupDuration = DatatypeFactory.newInstance().newDuration(getAuditCleanupValue());
 		Duration cleanupTaskDuration = DatatypeFactory.newInstance().newDuration(getTaskCleanupValue());
 		CleanupPolicyType auditCleanup = new CleanupPolicyType();
@@ -202,12 +203,13 @@ public class SystemConfigurationDto implements Serializable {
 		cleanupPolicies.setAuditRecords(auditCleanup);
 		cleanupPolicies.setClosedTasks(taskCleanup);
 
-		newObject.setGlobalAccountSynchronizationSettings(projectionPolicy);
 		newObject.setCleanupPolicy(cleanupPolicies);
 		SystemConfigurationTypeUtil.setEnableExperimentalCode(newObject, getEnableExperimentalCode());
 
 		newObject.setLogging(loggingConfig.getNewObject());
+
 		newObject.setNotificationConfiguration(notificationConfig.getNewObject(newObject));
+
 		newObject.setProfilingConfiguration(profilingDto.getNewObejct());
 		ClassLoggerConfigurationType profilingClassLogger = profilingDto.getProfilingClassLogerConfig();
 		if (newObject.getLogging() != null) {
