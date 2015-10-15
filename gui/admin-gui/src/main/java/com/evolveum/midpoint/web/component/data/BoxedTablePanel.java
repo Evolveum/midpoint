@@ -138,17 +138,24 @@ public class BoxedTablePanel<T> extends SimplePanel implements Table {
 
         private void initLayout(final Table table) {
             final DataTable dataTable = table.getDataTable();
-            BoxedPagingPanel nb2 = new BoxedPagingPanel(ID_PAGING, dataTable, true);
-            add(nb2);
-
-            Label count = new Label(ID_COUNT, new AbstractReadOnlyModel<String>() {
+            final Label count = new Label(ID_COUNT, new AbstractReadOnlyModel<String>() {
 
                 @Override
                 public String getObject() {
                     return createCountString(dataTable);
                 }
             });
+            count.setOutputMarkupId(true);
             add(count);
+
+            BoxedPagingPanel nb2 = new BoxedPagingPanel(ID_PAGING, dataTable, true) {
+
+                @Override
+                protected void onPageChanged(AjaxRequestTarget target, long page) {
+                    target.add(count);
+                }
+            };
+            add(nb2);
 
             TableConfigurationPanel menu = new TableConfigurationPanel(ID_MENU) {
 
