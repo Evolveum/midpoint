@@ -308,9 +308,14 @@ public class NavigatorPanel extends Panel {
         }
         target.add(container);
         target.add(this);
+
+        onPageChanged(target, page);
     }
 
     private void pageLinkPerformed(AjaxRequestTarget target, long page) {
         changeCurrentPage(target, page);
+    }
+
+    protected void onPageChanged(AjaxRequestTarget target, long page) {
     }
 }

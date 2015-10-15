@@ -146,6 +146,11 @@ public class TablePanel<T> extends Panel implements Table {
     }
 
     @Override
+    public int getItemsPerPage() {
+        return (int) getDataTable().getItemsPerPage();
+    }
+
+    @Override
     public void setCurrentPage(long page) {
         getDataTable().setCurrentPage(page);
     }

@@ -31,6 +31,8 @@ public interface Table {
 
     void setItemsPerPage(int size);
 
+    int getItemsPerPage();
+
     void setShowPaging(boolean show);
 
     void setCurrentPage(long page);

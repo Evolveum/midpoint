@@ -48,7 +48,8 @@ public class UserProfileStorage implements Serializable {
         PAGE_TASKS_PANEL,
         PAGE_USERS_PANEL,
         PAGE_WORK_ITEMS,
-        PAGE_RESOURCES_CONNECTOR_HOSTS
+        PAGE_RESOURCES_CONNECTOR_HOSTS,
+        PAGE_REPORTS
     }
 
     private Map<TableId, Integer> tables = new HashMap<TableId, Integer>();
