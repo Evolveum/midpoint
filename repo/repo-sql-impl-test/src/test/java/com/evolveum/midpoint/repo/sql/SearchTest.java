@@ -25,8 +25,10 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
+import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -310,4 +312,21 @@ public class SearchTest extends BaseSQLRepoTest {
         AssertJUnit.assertEquals("Wrong user name", "atestuserX00002", users.get(0).getName().getOrig());
 
     }
+
+    @Test
+    public void emptyRoleTypeSearchTest() throws Exception {
+
+        EqualFilter equalFilter = EqualFilter.createEqual(new ItemPath(RoleType.F_ROLE_TYPE), RoleType.class, prismContext, "something-non-existing");
+        NotFilter notFilter = NotFilter.createNot(equalFilter);
+        ObjectQuery query = ObjectQuery.createObjectQuery(notFilter);
+
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<RoleType>> roles = repositoryService.searchObjects(RoleType.class, query, null, result);
+        result.recomputeStatus();
+        AssertJUnit.assertTrue(result.isSuccess());
+        AssertJUnit.assertEquals("Should find one role", 1, roles.size());
+        AssertJUnit.assertEquals("Wrong role name", "Judge", roles.get(0).getName().getOrig());
+
+    }
+
 }

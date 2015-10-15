@@ -57,6 +57,8 @@ public class CollectionRestriction extends ItemRestriction<ValueFilter> {
         String alias = context.getAlias(fullPath);
         Object value = getValueFromFilter(filter, (PropertyDefinition) def.getDefinition());
 
+        // TODO what about not-null ?
+
         //custom propertyPath handling for PolyString (it's embedded entity, not a primitive)
         if (value instanceof PolyString) {
             return createCriterion(alias, value, filter);

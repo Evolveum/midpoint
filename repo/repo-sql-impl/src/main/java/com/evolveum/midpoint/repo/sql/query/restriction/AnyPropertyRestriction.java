@@ -112,6 +112,8 @@ public class AnyPropertyRestriction extends ItemRestriction<ValueFilter> {
         Object value = RAnyConverter.getAggregatedRepoObject(testedValue);
         conjunction.add(createCriterion(propertyNamePrefix + RAnyValue.F_VALUE, value, filter));
 
+        // todo what about "not"? but it would not work in this setting anyway (ownerType=A & name=B & value=C)
+        //conjunction.add(Restrictions.isNotNull(propertyNamePrefix + RAnyValue.F_VALUE));
         return conjunction;
     }
 

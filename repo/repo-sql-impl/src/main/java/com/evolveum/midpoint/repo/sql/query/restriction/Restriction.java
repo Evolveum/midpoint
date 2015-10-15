@@ -16,11 +16,14 @@
 
 package com.evolveum.midpoint.repo.sql.query.restriction;
 
+import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sql.query.QueryContext;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
+import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.Restrictions;
 
 /**
  * @author lazyman
@@ -62,4 +65,27 @@ public abstract class Restriction<T extends ObjectFilter> {
     // todo don't know if cloning is necessary... [lazyman]
     // this can be replaced probably by simple java reflection call
     public abstract Restriction newInstance();
+
+    protected boolean isNegated() {
+        return filter instanceof NotFilter || (parent != null && parent.isNegated());
+    }
+
+    /**
+     * Filter of type NOT(PROPERTY=VALUE) causes problems when there are entities with PROPERTY set to NULL.
+     *
+     * Such a filter has to be treated like
+     *
+     *      NOT (PROPERTY=VALUE & PROPERTY IS NOT NULL)
+     *
+     * TODO implement for restrictions other than PropertyRestriction.
+     */
+    protected Criterion addIsNotNullIfNecessary(Criterion criterion, String propertyPath) {
+        if (!isNegated()) {
+            return criterion;
+        }
+        Conjunction conjunction = Restrictions.conjunction();
+        conjunction.add(criterion);
+        conjunction.add(Restrictions.isNotNull(propertyPath));
+        return conjunction;
+    }
 }
