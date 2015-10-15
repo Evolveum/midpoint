@@ -291,6 +291,7 @@ public class TabbedPanel<T extends ITab> extends Panel {
             @Override
             public void onClick() {
                 setSelectedTab(index);
+                onTabChange(index);
             }
         };
     }
@@ -425,4 +426,11 @@ public class TabbedPanel<T extends ITab> extends Panel {
             }
         }
     }
+
+    /**
+     * Method called after tab was changed - user clicked on link in tab header.
+     *
+     * @param index Index of new tab.
+     */
+    protected void onTabChange(int index) {}
 }
