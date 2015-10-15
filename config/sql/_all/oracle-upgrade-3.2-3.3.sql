@@ -45,3 +45,5 @@ create index iTargetRefTargetOid on m_assignment (targetRef_targetOid);
 create index iTenantRefTargetOid on m_assignment (tenantRef_targetOid);
 create index iOrgRefTargetOid on m_assignment (orgRef_targetOid);
 create index iResourceRefTargetOid on m_assignment (resourceRef_targetOid);
+
+create index iTimestampValue on m_audit_event (timestampValue);
