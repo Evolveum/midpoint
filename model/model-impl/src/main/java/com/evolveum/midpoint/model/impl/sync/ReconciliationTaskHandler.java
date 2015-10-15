@@ -555,7 +555,15 @@ public class ReconciliationTaskHandler implements TaskHandler {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Shadow reconciliation of {}, fullSynchronizationTimestamp={}", shadow, shadow.asObjectable().getFullSynchronizationTimestamp());
 				}
-				reconcileShadow(shadow, resource, task);
+				long started = System.currentTimeMillis();
+				try {
+					task.recordIterativeOperationStart(shadow.asObjectable());
+					reconcileShadow(shadow, resource, task);
+					task.recordIterativeOperationEnd(shadow.asObjectable(), started, null);
+				} catch (Throwable t) {
+					task.recordIterativeOperationEnd(shadow.asObjectable(), started, t);
+					throw t;
+				}
 				countHolder.setValue(countHolder.getValue() + 1);
                 incrementAndRecordProgress(task, new OperationResult("dummy"));     // reconcileShadow writes to its own dummy OperationResult, so we do the same here
                 return task.canRun();

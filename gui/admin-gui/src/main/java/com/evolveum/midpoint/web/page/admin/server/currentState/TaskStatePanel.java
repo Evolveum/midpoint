@@ -95,8 +95,10 @@ public class TaskStatePanel extends SimplePanel<TaskCurrentStateDto> {
     private static final String ID_OPERATION_RESULT = "operationResult";
 
     // ugly hack - TODO replace with something serious
+    // we cannot work with handler uri, because it exists only as long as the task executes
     private static final Collection<String> WALL_CLOCK_AVG_CATEGORIES = Arrays.asList(
-            TaskCategory.BULK_ACTIONS, TaskCategory.IMPORTING_ACCOUNTS, TaskCategory.RECOMPUTATION, TaskCategory.RECONCILIATION
+            TaskCategory.BULK_ACTIONS, TaskCategory.IMPORTING_ACCOUNTS, TaskCategory.RECOMPUTATION, TaskCategory.RECONCILIATION,
+            TaskCategory.UTIL       // this is a megahack: only utility tasks that count objects are DeleteTask and ShadowIntegrityCheck
     );
 
     private StatisticsDtoModel statisticsDtoModel;
@@ -557,8 +559,6 @@ public class TaskStatePanel extends SimplePanel<TaskCurrentStateDto> {
             Long finished = taskDto.getLastRunFinishTimestampLong();
             if (started != null && (finished == null || finished < started)) {
                 showAgo = true;     // for all running tasks
-            } else if (finished != null && (System.currentTimeMillis()-finished < 60000L)) {
-                showAgo = true;     // for tasks finished just a while ago
             }
         }
         return showAgo;

@@ -2649,7 +2649,6 @@ public class TaskQuartzImpl implements Task {
 
 	@Override
 	public synchronized void recordSynchronizationOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started, Throwable exception, SynchronizationInformation.Record increment) {
-		recordIterativeOperationEnd(objectName, objectDisplayName, objectType, objectOid, started, exception);
 		if (synchronizationInformation != null) {
 			synchronizationInformation.recordSynchronizationOperationEnd(objectName, objectDisplayName, objectType, objectOid, started, exception, increment);
 		}
@@ -2657,7 +2656,6 @@ public class TaskQuartzImpl implements Task {
 
 	@Override
 	public synchronized void recordSynchronizationOperationStart(String objectName, String objectDisplayName, QName objectType, String objectOid) {
-		recordIterativeOperationStart(objectName, objectDisplayName, objectType, objectOid);
 		if (synchronizationInformation != null) {
 			synchronizationInformation.recordSynchronizationOperationStart(objectName, objectDisplayName, objectType, objectOid);
 		}

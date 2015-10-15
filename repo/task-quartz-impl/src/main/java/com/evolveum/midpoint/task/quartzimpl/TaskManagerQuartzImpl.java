@@ -990,6 +990,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         task.setExtensionPropertyValueTransient(SchemaConstants.MODEL_EXTENSION_OPERATIONAL_INFORMATION_PROPERTY_NAME, operationalInformationType);
         task.setExtensionPropertyValueTransient(SchemaConstants.MODEL_EXTENSION_SYNCHRONIZATION_INFORMATION_PROPERTY_NAME, synchronizationInformationType);
         task.setExtensionPropertyValueTransient(SchemaConstants.MODEL_EXTENSION_ITERATIVE_TASK_INFORMATION_PROPERTY_NAME, iterativeTaskInformationType);
+        task.setProgressTransient(taskInMemory.getProgress());
     }
 
     private void fillInSubtasks(Task task, ClusterStatusInformation clusterStatusInformation, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {

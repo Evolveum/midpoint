@@ -168,7 +168,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			applicableShadow = change.getOldShadow();
 		}
 
-		SynchronizationEventInformation eventInfo = new SynchronizationEventInformation(applicableShadow, task);
+		SynchronizationEventInformation eventInfo = new SynchronizationEventInformation(applicableShadow, change.getSourceChannel(), task);
 
 		try {
 
@@ -1025,10 +1025,12 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		private String objectOid;
 		private Throwable exception;
 		private long started;
+		private String channel;
 
 		private SynchronizationInformation.Record increment = new SynchronizationInformation.Record();
 
-		public SynchronizationEventInformation(PrismObject<? extends ShadowType> currentShadow, Task task) {
+		public SynchronizationEventInformation(PrismObject<? extends ShadowType> currentShadow, String channel, Task task) {
+			this.channel = channel;
 			started = System.currentTimeMillis();
 			if (currentShadow != null) {
 				final ShadowType shadow = currentShadow.asObjectable();
@@ -1037,6 +1039,10 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				objectOid = currentShadow.getOid();
 			}
 			task.recordSynchronizationOperationStart(objectName, objectDisplayName, ShadowType.COMPLEX_TYPE, objectOid);
+			if (SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI.equals(channel)) {
+				// livesync processing is not controlled via model -> so we cannot do this in upper layers
+				task.recordIterativeOperationStart(objectName, objectDisplayName, ShadowType.COMPLEX_TYPE, objectOid);
+			}
 		}
 
 		public void setProtected() {
@@ -1073,6 +1079,10 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 
 		public void record(Task task) {
 			task.recordSynchronizationOperationEnd(objectName, objectDisplayName, ShadowType.COMPLEX_TYPE, objectOid, started, exception, increment);
+			if (SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI.equals(channel)) {
+				// livesync processing is not controlled via model -> so we cannot do this in upper layers
+				task.recordIterativeOperationEnd(objectName, objectDisplayName, ShadowType.COMPLEX_TYPE, objectOid, started, exception);
+			}
 		}
 
 	}

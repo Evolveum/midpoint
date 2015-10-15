@@ -77,7 +77,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 	private boolean stopOnError;
 	private boolean logObjectProgress;
 	private boolean logErrors = true;
-	private boolean recordIterationStatistics = true;				// whether we want to do these ourselves or we let SynchronizationService do that for us
+	private boolean recordIterationStatistics = true;				// whether we want to do these ourselves or we let someone else do that for us
 	private boolean enableIterationStatistics = true;				// whether we want to collect these statistics at all
 	private boolean enableSynchronizationStatistics = false;		// whether we want to collect sync statistics
 	private BlockingQueue<ProcessingRequest> requestQueue;
