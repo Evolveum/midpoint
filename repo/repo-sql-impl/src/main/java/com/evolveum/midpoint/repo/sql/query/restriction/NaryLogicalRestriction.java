@@ -38,7 +38,7 @@ public abstract class NaryLogicalRestriction<T extends NaryLogicalFilter> extend
     private List<Restriction> restrictions;
 
     @Override
-    public boolean canHandle(ObjectFilter filter, QueryContext context) {
+    public boolean canHandle(ObjectFilter filter) {
         if (filter instanceof NaryLogicalFilter) {
             return true;
         }
@@ -69,8 +69,7 @@ public abstract class NaryLogicalRestriction<T extends NaryLogicalFilter> extend
         QueryInterpreter interpreter = context.getInterpreter();
 
         for (ObjectFilter condition : conditions) {
-            Restriction restriction = interpreter.findAndCreateRestriction(condition, context, this);
-            Criterion criterion = restriction.interpret(condition);
+            Criterion criterion = interpreter.interpretFilter(condition, context, this);
             junction.add(criterion);
         }
 

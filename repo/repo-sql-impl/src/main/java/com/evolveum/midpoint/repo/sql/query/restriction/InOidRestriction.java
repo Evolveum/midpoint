@@ -29,14 +29,14 @@ import org.hibernate.criterion.Restrictions;
 public class InOidRestriction extends Restriction<InOidFilter> {
 
     @Override
-    public Criterion interpret(InOidFilter filter) throws QueryException {
+    public Criterion interpret() throws QueryException {
         String property = getContext().getAlias(null) + ".oid";
 
         return Restrictions.in(property, filter.getOids());
     }
 
     @Override
-    public boolean canHandle(ObjectFilter filter, QueryContext context) throws QueryException {
+    public boolean canHandle(ObjectFilter filter) throws QueryException {
         if (filter instanceof InOidFilter) {
             return true;
         }
@@ -45,7 +45,7 @@ public class InOidRestriction extends Restriction<InOidFilter> {
     }
 
     @Override
-    public Restriction cloneInstance() {
+    public Restriction newInstance() {
         return new InOidRestriction();
     }
 }

@@ -56,8 +56,8 @@ public class AnyPropertyRestriction extends ItemRestriction<ValueFilter> {
     private static final Trace LOGGER = TraceManager.getTrace(AnyPropertyRestriction.class);
 
     @Override
-    public boolean canHandle(ObjectFilter filter, QueryContext context) throws QueryException {
-        if (!super.canHandle(filter, context)) {
+    public boolean canHandle(ObjectFilter filter) throws QueryException {
+        if (!super.canHandle(filter)) {
             return false;
         }
 
@@ -130,7 +130,7 @@ public class AnyPropertyRestriction extends ItemRestriction<ValueFilter> {
     }
 
     @Override
-    public AnyPropertyRestriction cloneInstance() {
+    public AnyPropertyRestriction newInstance() {
         return new AnyPropertyRestriction();
     }
 }

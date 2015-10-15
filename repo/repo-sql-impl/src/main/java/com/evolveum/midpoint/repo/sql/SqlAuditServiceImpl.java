@@ -19,36 +19,32 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
 import com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation;
-import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.commons.lang.Validate;
 import org.hibernate.Query;
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.dialect.Dialect;
+import org.hibernate.dialect.pagination.LimitHandler;
+import org.hibernate.engine.spi.RowSelection;
 import org.hibernate.jdbc.Work;
-import org.hibernate.transform.DistinctRootEntityResultTransformer;
-import org.hibernate.transform.ResultTransformer;
-import org.hibernate.transform.RootEntityResultTransformer;
-import org.hibernate.transform.Transformers;
 
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -68,6 +64,7 @@ import org.hibernate.FlushMode;
 public class SqlAuditServiceImpl extends SqlBaseService implements AuditService {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlAuditServiceImpl.class);
+    private static final Integer CLEANUP_AUDIT_BATCH_SIZE = 500;
 
     public SqlAuditServiceImpl(SqlRepositoryFactory repositoryFactory) {
         super(repositoryFactory);
@@ -205,24 +202,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         int attempt = 1;
 
         SqlPerformanceMonitor pm = getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart("deleteObject");
+        long opHandle = pm.registerOperationStart("cleanupAudit");
 
-        try {
-            while (true) {
-                try {
-                    cleanupAuditAttempt(policy, parentResult);
-                    return;
-                } catch (RuntimeException ex) {
-                    attempt = logOperationAttempt(null, operation, attempt, ex, parentResult);
-                    pm.registerOperationNewTrial(opHandle, attempt);
-                }
-            }
-        } finally {
-            pm.registerOperationFinish(opHandle, attempt);
-        }
-    }
-
-    private void cleanupAuditAttempt(CleanupPolicyType policy, OperationResult subResult) {
         if (policy.getMaxAge() == null) {
             return;
         }
@@ -233,50 +214,102 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
         Date minValue = new Date();
         duration.addTo(minValue);
-        LOGGER.info("Starting audit cleanup, deleting up to {} (duration '{}').", new Object[]{minValue, duration});
+
+        // factored out because it produces INFO-level message
+        Dialect dialect = Dialect.getDialect(getSessionFactoryBean().getHibernateProperties());
+        if (!dialect.supportsTemporaryTables()) {
+            LOGGER.error("Dialect {} doesn't support temporary tables, couldn't cleanup audit logs.", dialect);
+            throw new SystemException("Dialect " + dialect + " doesn't support temporary tables, couldn't cleanup audit logs.");
+        }
+
+        long start = System.currentTimeMillis();
+        boolean first = true;
+        Holder<Integer> totalCountHolder = new Holder<>(0);
+        try {
+            while (true) {
+                try {
+                    LOGGER.info("{} audit cleanup, deleting up to {} (duration '{}'), batch size {}{}.",
+                            first ? "Starting" : "Restarting",
+                            minValue, duration, CLEANUP_AUDIT_BATCH_SIZE,
+                            first ? "" : ", up to now deleted " + totalCountHolder.getValue() + " entries");
+                    first = false;
+                    int count;
+                    do {
+                        // the following method may restart due to concurrency (or any other) problem - in any iteration
+                        count = cleanupAuditAttempt(minValue, duration, totalCountHolder, dialect, parentResult);
+                    } while (count > 0);
+                    return;
+                } catch (RuntimeException ex) {
+                    attempt = logOperationAttempt(null, operation, attempt, ex, parentResult);
+                    pm.registerOperationNewTrial(opHandle, attempt);
+                }
+            }
+        } finally {
+            pm.registerOperationFinish(opHandle, attempt);
+            LOGGER.info("Audit cleanup finished; deleted {} entries in {} seconds.",
+                    totalCountHolder.getValue(), (System.currentTimeMillis() - start)/1000L);
+        }
+    }
+
+    private int cleanupAuditAttempt(Date minValue, Duration duration, Holder<Integer> totalCountHolder, Dialect dialect, OperationResult subResult) {
+
+        long start = System.currentTimeMillis();
+        LOGGER.debug("Starting audit cleanup batch, deleting up to {} (duration '{}'), batch size {}, up to now deleted {} entries.",
+                minValue, duration, CLEANUP_AUDIT_BATCH_SIZE, totalCountHolder.getValue());
 
         Session session = null;
         try {
             session = beginTransaction();
 
-            int count = cleanupAuditAttempt(minValue, session);
-            LOGGER.info("Cleanup in performed, {} records deleted up to {} (duration '{}').",
-                    new Object[]{count, minValue, duration});
+            int count = cleanupAuditAttempt(minValue, session, dialect);
 
             session.getTransaction().commit();
+            int totalCount = totalCountHolder.getValue() + count;
+            totalCountHolder.setValue(totalCount);
+            LOGGER.debug("Audit cleanup batch finishing successfully in {} milliseconds; total count = {}", System.currentTimeMillis()-start, totalCount);
+            return count;
         } catch (RuntimeException ex) {
+            LOGGER.debug("Audit cleanup batch finishing with exception in {} milliseconds; exception = {}", System.currentTimeMillis()-start, ex.getMessage());
             handleGeneralRuntimeException(ex, session, subResult);
+            throw new AssertionError("We shouldn't get here.");         // just because of the need to return a value
         } finally {
             cleanupSessionAndResult(session, subResult);
         }
     }
 
-    protected int cleanupAuditAttempt(Date minValue, Session session) {
-        final Dialect dialect = Dialect.getDialect(getSessionFactoryBean().getHibernateProperties());
-        if (!dialect.supportsTemporaryTables()) {
-            LOGGER.error("Dialect {} doesn't support temporary tables, couldn't cleanup audit logs.",
-                    new Object[]{dialect});
-            throw new SystemException("Dialect " + dialect
-                    + " doesn't support temporary tables, couldn't cleanup audit logs.");
-        }
-
+    protected int cleanupAuditAttempt(Date minValue, Session session, Dialect dialect) {
         //create temporary table
         final String tempTable = dialect.generateTemporaryTableName(RAuditEventRecord.TABLE_NAME);
         createTemporaryTable(session, dialect, tempTable);
         LOGGER.trace("Created temporary table '{}'.", new Object[]{tempTable});
 
         //fill temporary table, we don't need to join task on object on container, oid and id is already in task table
-        StringBuilder sb = new StringBuilder();
-        sb.append("insert into ").append(tempTable).append(' ');
-        sb.append("select a.id as id from ").append(RAuditEventRecord.TABLE_NAME).append(" a");
-        sb.append(" where a.").append(RAuditEventRecord.COLUMN_TIMESTAMP).append(" < ?");
+        StringBuilder selectSB = new StringBuilder();
+        selectSB.append("select a.id as id from ").append(RAuditEventRecord.TABLE_NAME).append(" a");
+        selectSB.append(" where a.").append(RAuditEventRecord.COLUMN_TIMESTAMP).append(" < ###TIME###");
+        String selectString = selectSB.toString();
 
-        SQLQuery query = session.createSQLQuery(sb.toString());
+        // batch size
+        RowSelection rowSelection = new RowSelection();
+        rowSelection.setMaxRows(CLEANUP_AUDIT_BATCH_SIZE);
+        LimitHandler limitHandler = dialect.buildLimitHandler(selectString, rowSelection);
+        selectString = limitHandler.getProcessedSql();
+
+        // replace ? -> batch size, $ -> ?
+        // Sorry for that .... I just don't know how to write this query in HQL, nor I'm not sure if limiting max size in
+        // compound insert into ... select ... query via query.setMaxSize() would work - TODO write more nicely if anybody knows how)
+        selectString = selectString.replace("?", String.valueOf(CLEANUP_AUDIT_BATCH_SIZE));
+        selectString = selectString.replace("###TIME###", "?");
+
+        String queryString = "insert into " + tempTable + " " + selectString;
+        LOGGER.trace("Query string = {}", queryString);
+        SQLQuery query = session.createSQLQuery(queryString);
         query.setParameter(0, new Timestamp(minValue.getTime()));
+
         int insertCount = query.executeUpdate();
         LOGGER.trace("Inserted {} audit record ids ready for deleting.", new Object[]{insertCount});
 
-        //drop records from m_task, m_object, m_container
+        //drop records from m_audit_event, m_audit_delta
         session.createSQLQuery(createDeleteQuery(RObjectDeltaOperation.TABLE_NAME, tempTable,
                 RObjectDeltaOperation.COLUMN_RECORD_ID)).executeUpdate();
         session.createSQLQuery(createDeleteQuery(RAuditEventRecord.TABLE_NAME, tempTable, "id")).executeUpdate();
@@ -284,7 +317,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         //drop temporary table
         if (dialect.dropTemporaryTableAfterUse()) {
             LOGGER.debug("Dropping temporary table.");
-            sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             sb.append(dialect.getDropTemporaryTableString());
             sb.append(' ').append(tempTable);
 
