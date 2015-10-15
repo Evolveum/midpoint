@@ -238,8 +238,8 @@ public class PageSelfCredentials extends PageSelf {
     }
 
     private PasswordAccountDto createDefaultPasswordAccountDto(PrismObject<UserType> user) {
-        return new PasswordAccountDto(user.getOid(), getString("PageMyPasswords.accountMidpoint"),
-                getString("PageMyPasswords.resourceMidpoint"), WebMiscUtil.isActivationEnabled(user), true);
+        return new PasswordAccountDto(user.getOid(), getString("PageSelfCredentials.accountMidpoint"),
+                getString("PageSelfCredentials.resourceMidpoint"), WebMiscUtil.isActivationEnabled(user), true);
     }
 
     private PasswordAccountDto createPasswordAccountDto(PrismObject<ShadowType> account) {
@@ -260,7 +260,7 @@ public class PageSelfCredentials extends PageSelf {
     private void onSavePerformed(AjaxRequestTarget target) {
         List<PasswordAccountDto> selectedAccounts = getSelectedAccountsList();
         if (selectedAccounts.isEmpty()) {
-            warn(getString("PageMyPasswords.noAccountSelected"));
+            warn(getString("PageSelfCredentials.noAccountSelected"));
             target.add(getFeedbackPanel());
             return;
         }

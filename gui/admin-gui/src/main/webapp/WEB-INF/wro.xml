@@ -22,7 +22,6 @@
         <css>/less/evolveum-obsolete.less</css>
         <css>/less/global.less</css>
         <css>/WEB-INF/classes/com/evolveum/midpoint/web/component/assignment/AssignmentHeaderPanel.less</css>
-        <css>/WEB-INF/classes/com/evolveum/midpoint/web/page/admin/home/PageMyPasswords.less</css>
     </group>
 
     <group name="bootstrap">

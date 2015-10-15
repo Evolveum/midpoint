@@ -144,7 +144,7 @@ public class ChangePasswordPanel extends SimplePanel<MyPasswordsDto> {
         };
         columns.add(column);
 
-        columns.add(new AbstractColumn<PasswordAccountDto, String>(createStringResource("PageMyPasswords.name")) {
+        columns.add(new AbstractColumn<PasswordAccountDto, String>(createStringResource("ChangePasswordPanel.name")) {
 
             @Override
             public void populateItem(Item<ICellPopulator<PasswordAccountDto>> item, String componentId,
@@ -160,11 +160,11 @@ public class ChangePasswordPanel extends SimplePanel<MyPasswordsDto> {
             }
         });
 
-        column = new PropertyColumn(createStringResource("PageMyPasswords.resourceName"),
+        column = new PropertyColumn(createStringResource("ChangePasswordPanel.resourceName"),
                 PasswordAccountDto.F_RESOURCE_NAME);
         columns.add(column);
 
-        CheckBoxColumn enabled = new CheckBoxColumn(createStringResource("PageMyPasswords.enabled"),
+        CheckBoxColumn enabled = new CheckBoxColumn(createStringResource("ChangePasswordPanel.enabled"),
                 PasswordAccountDto.F_ENABLED);
         enabled.setEnabled(false);
         columns.add(enabled);
