@@ -41,7 +41,6 @@ public class UserMenuPanel extends BaseSimplePanel {
     private static final String ID_USERNAME = "username";
 
     private static final String ID_EDIT_PROFILE = "editProfile";
-    private static final String ID_RESET_PASSWORD = "resetPassword";
     private static final String ID_PASSWORD_QUESTIONS = "passwordQuestions";
 
     public UserMenuPanel(String id) {
@@ -73,16 +72,6 @@ public class UserMenuPanel extends BaseSimplePanel {
                 new Model<>(RequestCycle.get().getRequest().getContextPath() + "/j_spring_security_logout"),
                 createStringResource("UserMenuPanel.logout"));
         add(logoutLink);
-
-        AjaxButton resetPasswords = new AjaxButton(ID_RESET_PASSWORD,
-                createStringResource("UserMenuPanel.resetPasswords")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                setResponsePage(PageMyPasswords.class);
-            }
-        };
-        add(resetPasswords);
 
         AjaxButton editPasswordQ = new AjaxButton(ID_PASSWORD_QUESTIONS,
                 createStringResource("UserMenuPanel.editPasswordQuestions")) {

@@ -11,13 +11,7 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.home.dto.MyPasswordsDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.TooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -52,6 +46,7 @@ public class ChangePasswordPanel extends SimplePanel<MyPasswordsDto> {
     private static final String OPERATION_LOAD_ACCOUNT = DOT_CLASS + "loadAccount";
 
     private LoadableModel<MyPasswordsDto> model;
+    private boolean midpointAccountSelected = true;
 
     public ChangePasswordPanel(String id) {
         super(id);
@@ -120,14 +115,18 @@ public class ChangePasswordPanel extends SimplePanel<MyPasswordsDto> {
                                        if (!passwordAccountDto.isMidpoint()) {
                                            if (passwordAccountDto.getCssClass().equals(PROPAGATED_ACCOUNT_ICON_CSS)) {
                                                passwordAccountDto.setCssClass(SELECTED_ACCOUNT_ICON_CSS);
-                                           } else if (passwordAccountDto.getCssClass().equals(SELECTED_ACCOUNT_ICON_CSS)) {
+                                           } else if (passwordAccountDto.getCssClass().equals(SELECTED_ACCOUNT_ICON_CSS)
+                                                   && passwordAccountDto.isPasswordOutbound() &&
+                                                   midpointAccountSelected) {
+                                               passwordAccountDto.setCssClass(PROPAGATED_ACCOUNT_ICON_CSS);
+                                           }  else if (passwordAccountDto.getCssClass().equals(SELECTED_ACCOUNT_ICON_CSS)) {
                                                passwordAccountDto.setCssClass(DESELECTED_ACCOUNT_ICON_CSS);
                                            } else if (passwordAccountDto.getCssClass().equals(DESELECTED_ACCOUNT_ICON_CSS)) {
                                                passwordAccountDto.setCssClass(SELECTED_ACCOUNT_ICON_CSS);
                                            }
-//                                           rowModel.setObject(passwordAccountDto);
                                            target.add(imagePanel);
                                        } else {
+                                           midpointAccountSelected = !midpointAccountSelected;
                                            if (passwordAccountDto.getCssClass().equals(SELECTED_ACCOUNT_ICON_CSS)) {
                                                passwordAccountDto.setCssClass(DESELECTED_ACCOUNT_ICON_CSS);
                                                updatePropagatedAccountIconsCssClass(DESELECTED_ACCOUNT_ICON_CSS);
