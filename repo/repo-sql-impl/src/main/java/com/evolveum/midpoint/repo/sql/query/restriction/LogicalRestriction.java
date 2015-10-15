@@ -29,7 +29,7 @@ import org.hibernate.criterion.Criterion;
 public abstract class LogicalRestriction<T extends LogicalFilter> extends Restriction<T> {
 
     @Override
-    public boolean canHandle(ObjectFilter filter, QueryContext context) {
+    public boolean canHandle(ObjectFilter filter) {
         if (filter instanceof LogicalFilter) {
             return true;
         }
@@ -40,8 +40,6 @@ public abstract class LogicalRestriction<T extends LogicalFilter> extends Restri
     protected Criterion interpretChildFilter(ObjectFilter filter) throws QueryException {
         QueryContext context = getContext();
         QueryInterpreter interpreter = context.getInterpreter();
-        Restriction restriction = interpreter.findAndCreateRestriction(filter, context, this);
-
-        return restriction.interpret(filter);
+        return interpreter.interpretFilter(filter, context, this);
     }
 }

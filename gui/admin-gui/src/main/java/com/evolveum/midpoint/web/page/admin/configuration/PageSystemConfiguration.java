@@ -195,7 +195,14 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 			}
 		});
 
-		TabbedPanel tabPanel = new TabbedPanel(ID_TAB_PANEL, tabs);
+		TabbedPanel tabPanel = new TabbedPanel(ID_TAB_PANEL, tabs) {
+
+			@Override
+			protected void onTabChange(int index) {
+				PageParameters params = getPageParameters();
+				params.set(SELECTED_TAB_INDEX, index);
+			}
+		};
 		tabPanel.setOutputMarkupId(true);
 		mainForm.add(tabPanel);
 

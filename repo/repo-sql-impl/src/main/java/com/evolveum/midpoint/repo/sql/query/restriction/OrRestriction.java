@@ -30,8 +30,8 @@ import org.hibernate.criterion.Restrictions;
 public class OrRestriction extends NaryLogicalRestriction<OrFilter> {
 
     @Override
-    public boolean canHandle(ObjectFilter filter, QueryContext context) {
-        if (!super.canHandle(filter, context)) {
+    public boolean canHandle(ObjectFilter filter) {
+        if (!super.canHandle(filter)) {
             return false;
         }
 
@@ -39,7 +39,7 @@ public class OrRestriction extends NaryLogicalRestriction<OrFilter> {
     }
 
     @Override
-    public Criterion interpret(OrFilter filter)
+    public Criterion interpret()
             throws QueryException {
 
         validateFilter(filter);
@@ -51,7 +51,7 @@ public class OrRestriction extends NaryLogicalRestriction<OrFilter> {
     }
 
     @Override
-    public OrRestriction cloneInstance() {
+    public OrRestriction newInstance() {
         return new OrRestriction();
     }
 }

@@ -43,7 +43,7 @@ public class OrgRestriction extends Restriction<OrgFilter> {
     private static final String DEPTH = CLOSURE_ALIAS + ".depth";
 
     @Override
-    public boolean canHandle(ObjectFilter filter, QueryContext context) {
+    public boolean canHandle(ObjectFilter filter) {
         if (filter instanceof OrgFilter) {
             return true;
         }
@@ -51,7 +51,7 @@ public class OrgRestriction extends Restriction<OrgFilter> {
     }
 
     @Override
-    public Criterion interpret(OrgFilter filter) throws QueryException {
+    public Criterion interpret() throws QueryException {
         if (filter.isRoot()) {
 //			Criteria pCriteria = getInterpreter().getCriteria(null);
             DetachedCriteria dc = DetachedCriteria.forClass(ROrgClosure.class);
@@ -96,7 +96,7 @@ public class OrgRestriction extends Restriction<OrgFilter> {
     }
 
     @Override
-    public OrgRestriction cloneInstance() {
+    public OrgRestriction newInstance() {
         return new OrgRestriction();
     }
 }
