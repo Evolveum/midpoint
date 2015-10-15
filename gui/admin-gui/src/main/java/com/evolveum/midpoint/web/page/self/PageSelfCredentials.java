@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.web.page.self;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -12,6 +13,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
@@ -130,6 +132,7 @@ public class PageSelfCredentials extends PageSelf {
                     PrismObject<ShadowType> account = getModelService().getObject(ShadowType.class,
                             accountOid, options, task, subResult);
 
+
                     dto.getAccounts().add(createPasswordAccountDto(account));
                     subResult.recordSuccessIfUnknown();
                 } catch (Exception ex) {
@@ -171,7 +174,7 @@ public class PageSelfCredentials extends PageSelf {
             }
         });
 
-        TabbedPanel credentialsTabPanel = new TabbedPanel(ID_TAB_PANEL, tabs){
+        TabbedPanel credentialsTabPanel = new TabbedPanel(ID_TAB_PANEL, tabs) {
             @Override
             protected WebMarkupContainer newLink(String linkId, final int index) {
                 return new AjaxSubmitLink(linkId) {
@@ -248,8 +251,10 @@ public class PageSelfCredentials extends PageSelf {
             resourceName = WebMiscUtil.getName(resourceRef.getValue().getObject());
         }
 
-        return new PasswordAccountDto(account.getOid(), WebMiscUtil.getName(account),
+        PasswordAccountDto passwordAccountDto = new PasswordAccountDto(account.getOid(), WebMiscUtil.getName(account),
                 resourceName, WebMiscUtil.isActivationEnabled(account));
+        passwordAccountDto.setPasswordOutbound(getPasswordOutbound(account));
+        return passwordAccountDto;
     }
 
     private void onSavePerformed(AjaxRequestTarget target) {
@@ -275,18 +280,19 @@ public class PageSelfCredentials extends PageSelf {
 
 
             for (PasswordAccountDto accDto : accounts) {
-                PrismObjectDefinition objDef = accDto.isMidpoint() ?
-                        registry.findObjectDefinitionByCompileTimeClass(UserType.class) :
-                        registry.findObjectDefinitionByCompileTimeClass(ShadowType.class);
+                if (accDto.getCssClass().equals(ChangePasswordPanel.SELECTED_ACCOUNT_ICON_CSS)) {
+                    PrismObjectDefinition objDef = accDto.isMidpoint() ?
+                            registry.findObjectDefinitionByCompileTimeClass(UserType.class) :
+                            registry.findObjectDefinitionByCompileTimeClass(ShadowType.class);
 
 //                UserType.F_LINK_REF
 //                        ShadowType.REF
-                PropertyDelta delta = PropertyDelta.createModificationReplaceProperty(valuePath, objDef, password,password);
+                    PropertyDelta delta = PropertyDelta.createModificationReplaceProperty(valuePath, objDef, password, password);
 
-                Class<? extends ObjectType> type = accDto.isMidpoint() ? UserType.class : ShadowType.class;
+                    Class<? extends ObjectType> type = accDto.isMidpoint() ? UserType.class : ShadowType.class;
 
-                deltas.add(ObjectDelta.createModifyDelta(accDto.getOid(), delta, type, getPrismContext()));
-
+                    deltas.add(ObjectDelta.createModifyDelta(accDto.getOid(), delta, type, getPrismContext()));
+                }
             }
             getModelService().executeChanges(deltas, null, createSimpleTask(OPERATION_SAVE_PASSWORD), result);
 
@@ -311,7 +317,7 @@ public class PageSelfCredentials extends PageSelf {
         setResponsePage(PageDashboard.class);
     }
 
-    private List<ShadowType> loadShadowTypeList(){
+    private List<ShadowType> loadShadowTypeList() {
         List<ObjectReferenceType> references = user.asObjectable().getLinkRef();
         Task task = createSimpleTask(OPERATION_LOAD_SHADOW);
         List<ShadowType> shadowTypeList = new ArrayList<>();
@@ -335,5 +341,19 @@ public class PageSelfCredentials extends PageSelf {
         }
         return shadowTypeList;
 
+    }
+
+    private boolean getPasswordOutbound(PrismObject<ShadowType> shadow) {
+        try {
+            RefinedObjectClassDefinition rOCDef = getModelInteractionService().getEditObjectClassDefinition(shadow,
+                    shadow.asObjectable().getResource().asPrismObject(),
+                    AuthorizationPhaseType.REQUEST);
+            if (rOCDef != null && rOCDef.getPasswordOutbound() != null ){
+                return true;
+            }
+        } catch (SchemaException ex) {
+
+        }
+        return false;
     }
 }
