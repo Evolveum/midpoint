@@ -16,34 +16,6 @@
 
 package com.evolveum.midpoint.web.page.admin.reports;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import com.evolveum.midpoint.web.page.admin.reports.component.DownloadButtonPanel;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.ChoiceRenderer;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
@@ -61,8 +33,9 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
 import com.evolveum.midpoint.web.component.BasicSearchPanel;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
-import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
@@ -73,8 +46,10 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
+import com.evolveum.midpoint.web.page.admin.reports.component.DownloadButtonPanel;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDeleteDialogDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportOutputSearchDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 import com.evolveum.midpoint.web.session.ReportsStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -84,6 +59,33 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.MarkupContainer;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.ChoiceRenderer;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.panel.Fragment;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
+
+import java.io.InputStream;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -110,29 +112,31 @@ public class PageCreatedReports extends PageAdminReports {
     private static final String ID_FILTER_FILE_TYPE = "filetype";
     private static final String ID_REPORT_TYPE_SELECT = "reportType";
     private static final String ID_CONFIRM_DELETE = "confirmDeletePopup";
+    private static final String ID_TABLE_HEADER = "tableHeader";
 
     private IModel<ReportOutputSearchDto> searchModel;
     private IModel<ReportDeleteDialogDto> deleteModel = new Model<>();
     private ReportOutputType currentReport;
 
-    private static Map<ExportType, String> reportExportTypeMap = new HashMap<ExportType, String>();
-    
-    static{
-    	reportExportTypeMap.put(ExportType.CSV, "text/csv; charset=UTF-8");
-    	reportExportTypeMap.put(ExportType.DOCX, "application/vnd.openxmlformats-officedocument.wordprocessingml.document; charset=UTF-8");
-    	reportExportTypeMap.put(ExportType.HTML, "text/html; charset=UTF-8");
-    	reportExportTypeMap.put(ExportType.ODS, "application/vnd.oasis.opendocument.spreadsheet; charset=UTF-8");
-    	reportExportTypeMap.put(ExportType.ODT, "application/vnd.oasis.opendocument.text; charset=UTF-8");
-    	reportExportTypeMap.put(ExportType.PDF, "application/pdf; charset=UTF-8");
-    	reportExportTypeMap.put(ExportType.PPTX, "application/vnd.openxmlformats-officedocument.presentationml.presentation; charset=UTF-8");
-    	reportExportTypeMap.put(ExportType.RTF, "application/rtf; charset=UTF-8");
-    	reportExportTypeMap.put(ExportType.XHTML, "application/xhtml+xml; charset=UTF-8");
-    	reportExportTypeMap.put(ExportType.XLS, "application/vnd.ms-excel; charset=UTF-8");
-    	reportExportTypeMap.put(ExportType.XLSX, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; charset=UTF-8");
-    	reportExportTypeMap.put(ExportType.XML, "application/xml; charset=UTF-8");
-    	reportExportTypeMap.put(ExportType.XML_EMBED, "text/xml; charset=UTF-8");
-    	
+    private static Map<ExportType, String> reportExportTypeMap = new HashMap<>();
+
+    static {
+        reportExportTypeMap.put(ExportType.CSV, "text/csv; charset=UTF-8");
+        reportExportTypeMap.put(ExportType.DOCX, "application/vnd.openxmlformats-officedocument.wordprocessingml.document; charset=UTF-8");
+        reportExportTypeMap.put(ExportType.HTML, "text/html; charset=UTF-8");
+        reportExportTypeMap.put(ExportType.ODS, "application/vnd.oasis.opendocument.spreadsheet; charset=UTF-8");
+        reportExportTypeMap.put(ExportType.ODT, "application/vnd.oasis.opendocument.text; charset=UTF-8");
+        reportExportTypeMap.put(ExportType.PDF, "application/pdf; charset=UTF-8");
+        reportExportTypeMap.put(ExportType.PPTX, "application/vnd.openxmlformats-officedocument.presentationml.presentation; charset=UTF-8");
+        reportExportTypeMap.put(ExportType.RTF, "application/rtf; charset=UTF-8");
+        reportExportTypeMap.put(ExportType.XHTML, "application/xhtml+xml; charset=UTF-8");
+        reportExportTypeMap.put(ExportType.XLS, "application/vnd.ms-excel; charset=UTF-8");
+        reportExportTypeMap.put(ExportType.XLSX, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; charset=UTF-8");
+        reportExportTypeMap.put(ExportType.XML, "application/xml; charset=UTF-8");
+        reportExportTypeMap.put(ExportType.XML_EMBED, "text/xml; charset=UTF-8");
+
     }
+
     public PageCreatedReports() {
         this(new PageParameters(), null);
     }
@@ -143,25 +147,51 @@ public class PageCreatedReports extends PageAdminReports {
         setPreviousPage(previousPage);
 
         searchModel = new LoadableModel<ReportOutputSearchDto>() {
+
             @Override
             protected ReportOutputSearchDto load() {
                 ReportsStorage storage = getSessionStorage().getReports();
                 ReportOutputSearchDto dto = storage.getReportOutputSearch();
 
-                if (dto == null) {
-                    dto = new ReportOutputSearchDto();
+                if (dto != null) {
+                    return dto;
                 }
 
-                return dto;
+                return createSearchDto();
             }
         };
 
         initLayout();
     }
 
-    private void initLayout() {
-        initSearchForm();
+    private ReportOutputSearchDto createSearchDto() {
+        ReportOutputSearchDto dto = new ReportOutputSearchDto();
+        Map<String, String> reportTypeMap = dto.getReportTypeMap();
 
+        List<PrismObject<ReportType>> reportTypes = WebModelUtils.searchObjects(ReportType.class, null, null, getPageBase());
+
+        for (PrismObject o : reportTypes) {
+            ReportType reportType = (ReportType) o.asObjectable();
+
+            if (reportType.isParent()) {
+                String name = WebMiscUtil.getName(o);
+                reportTypeMap.put(name, reportType.getOid());
+            }
+        }
+
+        StringValue param = getPage().getPageParameters().get(OnePageParameterEncoder.PARAMETER);
+        if (param != null) {
+            for (String key : dto.getReportTypeMap().keySet()) {
+                if (reportTypeMap.get(key).equals(param.toString())) {
+                    dto.setReportType(key);
+                }
+            }
+        }
+
+        return dto;
+    }
+
+    private void initLayout() {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
@@ -169,18 +199,18 @@ public class PageCreatedReports extends PageAdminReports {
 
             @Override
             protected InputStream initStream() {
-            	if (currentReport != null){
-            		 String contentType = reportExportTypeMap.get(currentReport.getExportType());
-            	        if (StringUtils.isEmpty(contentType)){
-            	        	contentType = "multipart/mixed; charset=UTF-8";
-            	        }
-            	        setContentType(contentType);
-            	}
-            	
+                if (currentReport != null) {
+                    String contentType = reportExportTypeMap.get(currentReport.getExportType());
+                    if (StringUtils.isEmpty(contentType)) {
+                        contentType = "multipart/mixed; charset=UTF-8";
+                    }
+                    setContentType(contentType);
+                }
+
                 return createReport();
             }
         };
-       
+
 //        ajaxDownloadBehavior.setContentType(contentType);
         mainForm.add(ajaxDownloadBehavior);
 
@@ -203,8 +233,16 @@ public class PageCreatedReports extends PageAdminReports {
 
         provider.setQuery(query);
 
-        TablePanel table = new TablePanel(ID_CREATED_REPORTS_TABLE, provider, initColumns(ajaxDownloadBehavior),
-                UserProfileStorage.TableId.PAGE_CREATED_REPORTS_PANEL, getItemsPerPage(UserProfileStorage.TableId.PAGE_CREATED_REPORTS_PANEL));
+        BoxedTablePanel table = new BoxedTablePanel(ID_CREATED_REPORTS_TABLE, provider,
+                initColumns(ajaxDownloadBehavior),
+                UserProfileStorage.TableId.PAGE_CREATED_REPORTS_PANEL,
+                (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_CREATED_REPORTS_PANEL)) {
+
+            @Override
+            protected WebMarkupContainer createHeader(String headerId) {
+                return new SearchFragment(headerId, ID_TABLE_HEADER, PageCreatedReports.this, searchModel);
+            }
+        };
         table.setShowPaging(true);
         table.setOutputMarkupId(true);
         mainForm.add(table);
@@ -232,96 +270,6 @@ public class PageCreatedReports extends PageAdminReports {
         });
     }
 
-    private void initSearchForm() {
-        Form searchForm = new Form(ID_SEARCH_FORM);
-        add(searchForm);
-
-        //TODO - commented until FileType property will be available in ReportOutputType
-        /*
-        DropDownChoice filetypeSelect = new DropDownChoice(ID_FILTER_FILE_TYPE,
-                new PropertyModel(searchModel, ReportOutputDto.F_FILE_TYPE),
-                new AbstractReadOnlyModel<List<ExportType>>() {
-
-                    @Override
-                    public List<ExportType> getObject() {
-                        return createFileTypeList();
-                    }
-                },
-                new EnumChoiceRenderer(PageCreatedReports.this));
-        filetypeSelect.add(new OnChangeAjaxBehavior() {
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                fileTypeFilterPerformed(target);
-            }
-        });
-        filetypeSelect.setOutputMarkupId(true);
-
-        if(filetypeSelect.getModel().getObject() == null){
-            filetypeSelect.getModel().setObject(null);
-        }
-        searchForm.add(filetypeSelect);
-        */
-
-        DropDownChoice reportTypeSelect = new DropDownChoice(ID_REPORT_TYPE_SELECT,
-                new PropertyModel(searchModel, ReportOutputSearchDto.F_REPORT_TYPE),
-                new AbstractReadOnlyModel<List<String>>() {
-
-                    @Override
-                    public List getObject() {
-                        return createReportTypeList();
-                    }
-                },
-                new ChoiceRenderer()
-        ) {
-
-            @Override
-            protected String getNullValidDisplayValue() {
-                return getString("pageCreatedReports.filter.reportType");
-            }
-
-        };
-        reportTypeSelect.add(new OnChangeAjaxBehavior() {
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                reportTypeFilterPerformed(target);
-            }
-        });
-        reportTypeSelect.setOutputMarkupId(true);
-        reportTypeSelect.setNullValid(true);
-
-        if (getPageParameters().get(OnePageParameterEncoder.PARAMETER) != null) {
-            createReportTypeList();
-
-            for (String key : searchModel.getObject().getReportTypeMap().keySet()) {
-                if (searchModel.getObject().getReportTypeMap().get(key).equals(getPageParameters().get(OnePageParameterEncoder.PARAMETER).toString())) {
-                    reportTypeSelect.getModel().setObject(key);
-                }
-            }
-        }
-        searchForm.add(reportTypeSelect);
-
-        BasicSearchPanel<ReportOutputSearchDto> basicSearch = new BasicSearchPanel<ReportOutputSearchDto>(ID_BASIC_SEARCH) {
-
-            @Override
-            protected IModel<String> createSearchTextModel() {
-                return new PropertyModel<>(searchModel, ReportOutputSearchDto.F_TEXT);
-            }
-
-            @Override
-            protected void searchPerformed(AjaxRequestTarget target) {
-                PageCreatedReports.this.searchPerformed(target);
-            }
-
-            @Override
-            protected void clearSearchPerformed(AjaxRequestTarget target) {
-                PageCreatedReports.this.clearSearchPerformed(target);
-            }
-        };
-        searchForm.add(basicSearch);
-    }
-
     //TODO - commented until FileType property will be available in ReportOutputType
     /*
     private List<ExportType> createFileTypeList(){
@@ -330,27 +278,6 @@ public class PageCreatedReports extends PageAdminReports {
         return list;
     }
     */
-
-    private List<String> createReportTypeList() {
-        searchModel.getObject().getReportTypeMap().clear();
-        List<String> reportTypeNames = new ArrayList<String>();
-
-        List<PrismObject<ReportType>> reportTypes = WebModelUtils.searchObjects(ReportType.class, null, null, getPageBase());
-
-        for (PrismObject o : reportTypes) {
-            ReportType reportType = (ReportType) o.asObjectable();
-
-            if (reportType.isParent()) {
-                String name = WebMiscUtil.getName(o);
-
-                searchModel.getObject().getReportTypeMap().put(name, reportType.getOid());
-
-                reportTypeNames.add(name);
-            }
-        }
-
-        return reportTypeNames;
-    }
 
     public PageBase getPageBase() {
         return (PageBase) getPage();
@@ -515,12 +442,12 @@ public class PageCreatedReports extends PageAdminReports {
         return (ObjectDataProvider<SelectableBean<ReportOutputType>, ReportOutputType>) table.getDataProvider();
     }
 
-    private TablePanel getReportOutputTable() {
-        return (TablePanel) get(createComponentPath(ID_MAIN_FORM, ID_CREATED_REPORTS_TABLE));
+    private Table getReportOutputTable() {
+        return (Table) get(createComponentPath(ID_MAIN_FORM, ID_CREATED_REPORTS_TABLE));
     }
 
     private ObjectDataProvider getTableDataProvider() {
-        TablePanel tablePanel = getReportOutputTable();
+        Table tablePanel = getReportOutputTable();
         DataTable table = tablePanel.getDataTable();
         return (ObjectDataProvider) table.getDataProvider();
     }
@@ -564,7 +491,7 @@ public class PageCreatedReports extends PageAdminReports {
         provider.clearCache();
 
         showResult(result);
-        target.add(getReportOutputTable());
+        target.add((Component) getReportOutputTable());
         target.add(getFeedbackPanel());
     }
 
@@ -658,7 +585,7 @@ public class PageCreatedReports extends PageAdminReports {
             query = createReportTypeRefQuery(oid);
         }
 
-        TablePanel panel = getReportOutputTable();
+        Table panel = getReportOutputTable();
         DataTable table = panel.getDataTable();
         ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
         provider.setQuery(query);
@@ -668,7 +595,7 @@ public class PageCreatedReports extends PageAdminReports {
         storage.setReportsPaging(null);
         panel.setCurrentPage(null);
 
-        target.add(panel);
+        target.add((Component) panel);
         target.add(getFeedbackPanel());
     }
 
@@ -676,7 +603,7 @@ public class PageCreatedReports extends PageAdminReports {
         ObjectQuery query = createQuery();
         target.add(getFeedbackPanel());
 
-        TablePanel panel = getReportOutputTable();
+        Table panel = getReportOutputTable();
         DataTable table = panel.getDataTable();
         ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
         provider.setQuery(query);
@@ -684,9 +611,9 @@ public class PageCreatedReports extends PageAdminReports {
         ReportsStorage storage = getSessionStorage().getReports();
         storage.setReportOutputSearch(searchModel.getObject());
         storage.setReportOutputsPaging(null);
-        panel.setCurrentPage(null);
+        panel.setCurrentPage(0);
 
-        target.add(panel);
+        target.add((Component) panel);
     }
 
     private void downloadPerformed(AjaxRequestTarget target, ReportOutputType report,
@@ -698,7 +625,7 @@ public class PageCreatedReports extends PageAdminReports {
     private void clearSearchPerformed(AjaxRequestTarget target) {
         searchModel.setObject(new ReportOutputSearchDto());
 
-        TablePanel panel = getReportOutputTable();
+        Table panel = getReportOutputTable();
         DataTable table = panel.getDataTable();
         ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
         provider.setQuery(null);
@@ -706,9 +633,72 @@ public class PageCreatedReports extends PageAdminReports {
         ReportsStorage storage = getSessionStorage().getReports();
         storage.setReportOutputSearch(searchModel.getObject());
         storage.setReportOutputsPaging(null);
-        panel.setCurrentPage(null);
+        panel.setCurrentPage(0);
 
-        target.add(get(ID_SEARCH_FORM));
-        target.add(panel);
+        target.add((Component) panel);
+    }
+
+    private static class SearchFragment extends Fragment {
+
+        public SearchFragment(String id, String markupId, MarkupContainer markupProvider,
+                              IModel<ReportOutputSearchDto> model) {
+            super(id, markupId, markupProvider, model);
+
+            initLayout();
+        }
+
+        private void initLayout() {
+            final Form searchForm = new Form(ID_SEARCH_FORM);
+            add(searchForm);
+            searchForm.setOutputMarkupId(true);
+
+            final IModel<ReportOutputSearchDto> model = (IModel) getDefaultModel();
+
+            BasicSearchPanel<ReportOutputSearchDto> basicSearch =
+                    new BasicSearchPanel<ReportOutputSearchDto>(ID_BASIC_SEARCH, model) {
+
+                        @Override
+                        protected IModel<String> createSearchTextModel() {
+                            return new PropertyModel<String>(model, UsersDto.F_TEXT);
+                        }
+
+                        @Override
+                        protected void searchPerformed(AjaxRequestTarget target) {
+                            PageCreatedReports page = (PageCreatedReports) getPage();
+                            page.searchPerformed(target);
+                        }
+
+                        @Override
+                        protected void clearSearchPerformed(AjaxRequestTarget target) {
+                            PageCreatedReports page = (PageCreatedReports) getPage();
+                            page.clearSearchPerformed(target);
+                        }
+                    };
+            searchForm.add(basicSearch);
+
+            DropDownChoice reportTypeSelect = new DropDownChoice(ID_REPORT_TYPE_SELECT,
+                    new PropertyModel(model, ReportOutputSearchDto.F_REPORT_TYPE),
+                    new PropertyModel(model, ReportOutputSearchDto.F_REPORT_TYPES),
+                    new ChoiceRenderer()
+            ) {
+
+                @Override
+                protected String getNullValidDisplayValue() {
+                    return getString("pageCreatedReports.filter.reportType");
+                }
+
+            };
+            reportTypeSelect.add(new OnChangeAjaxBehavior() {
+
+                @Override
+                protected void onUpdate(AjaxRequestTarget target) {
+                    PageCreatedReports page = (PageCreatedReports) getPage();
+                    page.reportTypeFilterPerformed(target);
+                }
+            });
+            reportTypeSelect.setOutputMarkupId(true);
+            reportTypeSelect.setNullValid(true);
+            searchForm.add(reportTypeSelect);
+        }
     }
 }

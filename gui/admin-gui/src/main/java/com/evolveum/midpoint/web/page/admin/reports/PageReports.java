@@ -123,8 +123,8 @@ public class PageReports extends PageAdminReports {
         provider.setQuery(createQuery());
 
         BoxedTablePanel table = new BoxedTablePanel(ID_REPORTS_TABLE, provider, initColumns(),
-                UserProfileStorage.TableId.PAGE_USERS_PANEL,
-                (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_USERS_PANEL)) {
+                UserProfileStorage.TableId.PAGE_REPORTS,
+                (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_REPORTS)) {
 
             @Override
             protected WebMarkupContainer createHeader(String headerId) {
