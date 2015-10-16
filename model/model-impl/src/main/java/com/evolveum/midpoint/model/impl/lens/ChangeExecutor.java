@@ -478,7 +478,7 @@ public class ChangeExecutor {
                         for (PrismReferenceValue linkRefVal : linkRef.getValues()) {
                             if (linkRefVal.getOid().equals(projOid)) {
                                 // Linked, need to unlink
-                                unlinkShadow(focusContext.getOid(), linkRefVal, focusObjectContext, task, result);
+                                unlinkShadow(focusContext.getOid(), linkRefVal, focusObjectContext, projCtx, task, result);
                             }
                         }
                     }
@@ -517,14 +517,14 @@ public class ChangeExecutor {
 	            }
         	}
             // Not linked, need to link
-            linkShadow(focusContext.getOid(), projOid, focusObjectContext, task, result);
+            linkShadow(focusContext.getOid(), projOid, focusObjectContext, projCtx, task, result);
             //be sure, that the situation is set correctly
             LOGGER.trace("Updating situation after shadow was linked.");
             updateSituationInShadow(task, SynchronizationSituationType.LINKED, focusObjectContext, projCtx, result);
         }
     }
 
-    private <F extends ObjectType> void linkShadow(String userOid, String shadowOid, LensElementContext<F> focusContext, Task task, OperationResult parentResult) throws ObjectNotFoundException,
+    private <F extends ObjectType> void linkShadow(String userOid, String shadowOid, LensElementContext<F> focusContext, LensProjectionContext projCtx, Task task, OperationResult parentResult) throws ObjectNotFoundException,
             SchemaException {
 
         Class<F> typeClass = focusContext.getObjectTypeClass();
@@ -538,7 +538,7 @@ public class ChangeExecutor {
         linkRef.setOid(shadowOid);
         linkRef.setTargetType(ShadowType.COMPLEX_TYPE);
         Collection<? extends ItemDelta> linkRefDeltas = ReferenceDelta.createModificationAddCollection(
-        		FocusType.F_LINK_REF, getUserDefinition(), linkRef);
+				FocusType.F_LINK_REF, getUserDefinition(), linkRef);
 
         try {
             cacheRepositoryService.modifyObject(typeClass, userOid, linkRefDeltas, result);
@@ -547,8 +547,7 @@ public class ChangeExecutor {
         } finally {
         	result.computeStatus();
         	ObjectDelta<F> userDelta = ObjectDelta.createModifyDelta(userOid, linkRefDeltas, typeClass, prismContext);
-        	LensObjectDeltaOperation<F> userDeltaOp = new LensObjectDeltaOperation<F>(userDelta);
-            userDeltaOp.setExecutionResult(result);
+			LensObjectDeltaOperation<F> userDeltaOp = LensUtil.createObjectDeltaOperation(userDelta, result, focusContext, projCtx);
     		focusContext.addToExecutedDeltas(userDeltaOp);
         }
 
@@ -559,7 +558,7 @@ public class ChangeExecutor {
 	}
 
 	private <F extends ObjectType> void unlinkShadow(String focusOid, PrismReferenceValue accountRef, LensElementContext<F> focusContext,
-                                                     Task task, OperationResult parentResult) throws
+													 LensProjectionContext projCtx, Task task, OperationResult parentResult) throws
             ObjectNotFoundException, SchemaException {
 
         Class<F> typeClass = focusContext.getObjectTypeClass();
@@ -580,8 +579,7 @@ public class ChangeExecutor {
         } finally {
         	result.computeStatus();
         	ObjectDelta<F> userDelta = ObjectDelta.createModifyDelta(focusOid, accountRefDeltas, typeClass, prismContext);
-        	LensObjectDeltaOperation<F> userDeltaOp = new LensObjectDeltaOperation<F>(userDelta);
-            userDeltaOp.setExecutionResult(result);
+        	LensObjectDeltaOperation<F> userDeltaOp = LensUtil.createObjectDeltaOperation(userDelta, result, focusContext, projCtx);
     		focusContext.addToExecutedDeltas(userDeltaOp);
         }
  
@@ -693,8 +691,7 @@ public class ChangeExecutor {
     			if (!objectDelta.hasCompleteDefinition()){
     				throw new SchemaException("object delta does not have complete definition");
     			}
-	    		LensObjectDeltaOperation<T> objectDeltaOp = new LensObjectDeltaOperation<T>(objectDelta.clone());
-		        objectDeltaOp.setExecutionResult(result);
+	    		LensObjectDeltaOperation<T> objectDeltaOp = LensUtil.createObjectDeltaOperation(objectDelta.clone(), result, objectContext, null, resource);
 		        objectContext.addToExecutedDeltas(objectDeltaOp);
     		}
         

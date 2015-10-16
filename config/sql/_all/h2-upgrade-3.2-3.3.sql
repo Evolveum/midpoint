@@ -44,3 +44,10 @@ create index iOrgRefTargetOid on m_assignment (orgRef_targetOid);
 create index iResourceRefTargetOid on m_assignment (resourceRef_targetOid);
 
 create index iTimestampValue on m_audit_event (timestampValue);
+
+alter table m_audit_delta add objectName_norm varchar(255);
+alter table m_audit_delta add objectName_orig varchar(255);
+alter table m_audit_delta add resourceName_norm varchar(255);
+alter table m_audit_delta add resourceName_orig varchar(255);
+alter table m_audit_delta add resourceOid varchar(36);
+

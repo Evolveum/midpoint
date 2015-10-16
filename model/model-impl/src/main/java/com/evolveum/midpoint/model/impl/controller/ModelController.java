@@ -466,7 +466,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
 			PolicyViolationException, SecurityViolationException {
 
-        Collection<ObjectDeltaOperation<? extends ObjectType>> retval = new ArrayList<>();
+        Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = new ArrayList<>();
 
 		OperationResult result = parentResult.createSubresult(EXECUTE_CHANGES);
 		result.addParam(OperationResult.PARAM_OPTIONS, options);
@@ -514,148 +514,158 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				// Go directly to repository
 				AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.EXECUTE_CHANGES_RAW, AuditEventStage.REQUEST);
 				auditRecord.addDeltas(ObjectDeltaOperation.cloneDeltaCollection(deltas));
+				// we don't know auxiliary information (resource, objectName) at this moment -- so we do nothing
 				auditService.audit(auditRecord, task);
-				for(ObjectDelta<? extends ObjectType> delta: deltas) {
-                    OperationResult result1 = result.createSubresult(EXECUTE_CHANGE);
+				try {
+					for (ObjectDelta<? extends ObjectType> delta : deltas) {
+						OperationResult result1 = result.createSubresult(EXECUTE_CHANGE);
 
-					// MID-2486
-					if (delta.getObjectTypeClass() == ShadowType.class || delta.getObjectTypeClass() == ResourceType.class) {
+						// MID-2486
+						if (delta.getObjectTypeClass() == ShadowType.class || delta.getObjectTypeClass() == ResourceType.class) {
+							try {
+								provisioning.applyDefinition(delta, result1);
+							} catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | RuntimeException e) {
+								// we can tolerate this - if there's a real problem with definition, repo call below will fail
+								LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't apply definition on shadow/resource raw-mode delta {} -- continuing the operation.", e, delta);
+								result1.muteLastSubresultError();
+							}
+						}
+
+						PrismObject objectToDetermineDetailsForAudit = null;
 						try {
-							provisioning.applyDefinition(delta, result1);
-						} catch (SchemaException|ObjectNotFoundException|CommunicationException|ConfigurationException|RuntimeException e) {
-							// we can tolerate this - if there's a real problem with definition, repo call below will fail
-							LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't apply definition on shadow/resource raw-mode delta {} -- continuing the operation.", e, delta);
-							result1.muteLastSubresultError();
+							if (delta.isAdd()) {
+								RepoAddOptions repoOptions = new RepoAddOptions();
+								if (ModelExecuteOptions.isNoCrypt(options)) {
+									repoOptions.setAllowUnencryptedValues(true);
+								}
+								if (ModelExecuteOptions.isOverwrite(options)) {
+									repoOptions.setOverwrite(true);
+								}
+								PrismObject<? extends ObjectType> objectToAdd = delta.getObjectToAdd();
+								securityEnforcer.authorize(ModelAuthorizationAction.ADD.getUrl(), null, objectToAdd, null, null, null, result1);
+								String oid = cacheRepositoryService.addObject(objectToAdd, repoOptions, result1);
+								delta.setOid(oid);
+								objectToDetermineDetailsForAudit = objectToAdd;
+							} else if (delta.isDelete()) {
+								QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);  // MID-2218
+								try {
+									if (!securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null)) {
+										// getting the object is avoided in case of administrator's request in order to allow deleting malformed (unreadable) objects
+										PrismObject<? extends ObjectType> existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result1);
+										securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(), null, existingObject, null, null, null, result1);
+										objectToDetermineDetailsForAudit = existingObject;
+									}    // TODO get object name also when running as administrator?
+									if (ObjectTypes.isClassManagedByProvisioning(delta.getObjectTypeClass())) {
+										Utils.clearRequestee(task);
+										provisioning.deleteObject(delta.getObjectTypeClass(), delta.getOid(),
+												ProvisioningOperationOptions.createRaw(), null, task, result1);
+									} else {
+										cacheRepositoryService.deleteObject(delta.getObjectTypeClass(), delta.getOid(),
+												result1);
+									}
+								} finally {
+									QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
+								}
+							} else if (delta.isModify()) {
+								QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);  // MID-2218
+								try {
+									PrismObject existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result1);
+									objectToDetermineDetailsForAudit = existingObject;
+									securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(), null, existingObject, delta, null, null, result1);
+									cacheRepositoryService.modifyObject(delta.getObjectTypeClass(), delta.getOid(),
+											delta.getModifications(), result1);
+								} finally {
+									QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
+								}
+								if (ModelExecuteOptions.isReevaluateSearchFilters(options)) {    // treat filters that already exist in the object (case #2 above)
+									reevaluateSearchFilters(delta.getObjectTypeClass(), delta.getOid(), result1);
+								}
+							} else {
+								throw new IllegalArgumentException("Wrong delta type " + delta.getChangeType() + " in " + delta);
+							}
+						} catch (ObjectAlreadyExistsException | SchemaException | ObjectNotFoundException | ConfigurationException | CommunicationException | SecurityViolationException | RuntimeException e) {
+							ModelUtils.recordFatalError(result1, e);
+							throw e;
+						} finally {		// to have a record with the failed delta as well
+							result1.computeStatus();
+							ObjectDeltaOperation<? extends ObjectType> odoToAudit = new ObjectDeltaOperation<>(delta, result1);
+							if (objectToDetermineDetailsForAudit != null) {
+								odoToAudit.setObjectName(objectToDetermineDetailsForAudit.getName());
+								if (objectToDetermineDetailsForAudit.asObjectable() instanceof ShadowType) {
+									ShadowType shadow = (ShadowType) objectToDetermineDetailsForAudit.asObjectable();
+									odoToAudit.setResourceOid(ShadowUtil.getResourceOid(shadow));
+									odoToAudit.setResourceName(ShadowUtil.getResourceName(shadow));
+								}
+							}
+							executedDeltas.add(odoToAudit);
 						}
 					}
-
-					try {
-                        if (delta.isAdd()) {
-                            RepoAddOptions repoOptions = new RepoAddOptions();
-                            if (ModelExecuteOptions.isNoCrypt(options)) {
-                                repoOptions.setAllowUnencryptedValues(true);
-                            }
-                            if (ModelExecuteOptions.isOverwrite(options)) {
-                                repoOptions.setOverwrite(true);
-                            }
-                            securityEnforcer.authorize(ModelAuthorizationAction.ADD.getUrl(), null, delta.getObjectToAdd(), null, null, null, result1);
-                            String oid = cacheRepositoryService.addObject(delta.getObjectToAdd(), repoOptions, result1);
-                            delta.setOid(oid);
-                        } else if (delta.isDelete()) {
-                            QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);  // MID-2218
-                            try {
-                                if (!securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null)) {
-                                    // getting the object is avoided in case of administrator's request in order to allow deleting malformed (unreadable) objects
-                                    PrismObject<? extends ObjectType> existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result1);
-                                    securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(), null, existingObject, null, null, null, result1);
-                                }
-                                if (ObjectTypes.isClassManagedByProvisioning(delta.getObjectTypeClass())) {
-                                    Utils.clearRequestee(task);
-                                    provisioning.deleteObject(delta.getObjectTypeClass(), delta.getOid(),
-                                            ProvisioningOperationOptions.createRaw(), null, task, result1);
-                                } else {
-                                    cacheRepositoryService.deleteObject(delta.getObjectTypeClass(), delta.getOid(),
-                                            result1);
-                                }
-                            } finally {
-                                QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
-                            }
-                        } else if (delta.isModify()) {
-                            QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);  // MID-2218
-                            try {
-                                PrismObject existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result1);
-                                securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(), null, existingObject, delta, null, null, result1);
-                                cacheRepositoryService.modifyObject(delta.getObjectTypeClass(), delta.getOid(),
-                                        delta.getModifications(), result1);
-                            } finally {
-                                QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
-                            }
-							if (ModelExecuteOptions.isReevaluateSearchFilters(options)) {	// treat filters that already exist in the object (case #2 above)
-								reevaluateSearchFilters(delta.getObjectTypeClass(), delta.getOid(), result1);
-							}
-                        } else {
-                            throw new IllegalArgumentException("Wrong delta type "+delta.getChangeType()+" in "+delta);
-                        }
-                    } catch (ObjectAlreadyExistsException|SchemaException|ObjectNotFoundException|ConfigurationException|CommunicationException|SecurityViolationException|RuntimeException e) {
-                        ModelUtils.recordFatalError(result1, e);
-                        throw e;
-                    }
-                    result1.computeStatus();
-                    retval.add(new ObjectDeltaOperation<>(delta, result1));
+				} finally {
+					cleanupOperationResult(result);
+					auditRecord.setTimestamp(System.currentTimeMillis());
+					auditRecord.setOutcome(result.getStatus());
+					auditRecord.setEventStage(AuditEventStage.EXECUTION);
+					auditRecord.getDeltas().clear();
+					auditRecord.getDeltas().addAll(executedDeltas);
+					auditService.audit(auditRecord, task);
 				}
-				auditRecord.setTimestamp(null);
-				auditRecord.setOutcome(OperationResultStatus.SUCCESS);
-				auditRecord.setEventStage(AuditEventStage.EXECUTION);
-				auditService.audit(auditRecord, task);
-				
+
 			} else {
 
-				LensContext<? extends ObjectType> context = contextFactory.createContext(deltas, options, task, result);
+				try {
+					LensContext<? extends ObjectType> context = contextFactory.createContext(deltas, options, task, result);
 
-				if (ModelExecuteOptions.isReevaluateSearchFilters(options)) {
-					String m = "ReevaluateSearchFilters option is not fully supported for non-raw operations yet. Filters already present in the object will not be touched.";
-					LOGGER.warn("{} Context = {}", m, context.debugDump());
-					result.createSubresult(CLASS_NAME_WITH_DOT+"reevaluateSearchFilters").recordWarning(m);
+					if (ModelExecuteOptions.isReevaluateSearchFilters(options)) {
+						String m = "ReevaluateSearchFilters option is not fully supported for non-raw operations yet. Filters already present in the object will not be touched.";
+						LOGGER.warn("{} Context = {}", m, context.debugDump());
+						result.createSubresult(CLASS_NAME_WITH_DOT+"reevaluateSearchFilters").recordWarning(m);
+					}
+
+					context.setProgressListeners(statusListeners);
+					// Note: Request authorization happens inside clockwork
+
+					clockwork.run(context, task, result);
+
+					// prepare return value
+					if (context.getFocusContext() != null) {
+						executedDeltas.addAll(context.getFocusContext().getExecutedDeltas());
+					}
+					for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
+						executedDeltas.addAll(projectionContext.getExecutedDeltas());
+					}
+
+					cleanupOperationResult(result);
+
+				} catch (ObjectAlreadyExistsException|ObjectNotFoundException|SchemaException|ExpressionEvaluationException|
+						CommunicationException|ConfigurationException|PolicyViolationException|SecurityViolationException|RuntimeException e) {
+					ModelUtils.recordFatalError(result, e);
+					throw e;
 				}
-
-				context.setProgressListeners(statusListeners);
-				// Note: Request authorization happens inside clockwork
-				clockwork.run(context, task, result);
-
-                // prepare return value
-                if (context.getFocusContext() != null) {
-                    retval.addAll(context.getFocusContext().getExecutedDeltas());
-                }
-                for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
-                    retval.addAll(projectionContext.getExecutedDeltas());
-                }
 			}
 
-            // Clockwork.run sets "in-progress" flag just at the root level
-            // and result.computeStatus() would erase it.
-            // So we deal with it in a special way, in order to preserve this information for the user.
-            if (result.isInProgress()) {
-                result.computeStatus();
-                if (result.isSuccess()) {
-                    result.recordInProgress();
-                }
-            } else {
-                result.computeStatus();
-            }
-            
-            result.cleanupResult();
-			
-		} catch (ObjectAlreadyExistsException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (ObjectNotFoundException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (SchemaException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (ExpressionEvaluationException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (CommunicationException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (ConfigurationException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (PolicyViolationException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (SecurityViolationException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (RuntimeException e) {
+		} catch (RuntimeException e) {		// just for sure (TODO split this method into two: raw and non-raw case)
 			ModelUtils.recordFatalError(result, e);
 			throw e;
 		} finally {
 			RepositoryCache.exit();
 		}
-        return retval;
+        return executedDeltas;
+	}
+
+	protected void cleanupOperationResult(OperationResult result) {
+		// Clockwork.run sets "in-progress" flag just at the root level
+		// and result.computeStatus() would erase it.
+		// So we deal with it in a special way, in order to preserve this information for the user.
+		if (result.isInProgress()) {
+            result.computeStatus();
+            if (result.isSuccess()) {
+                result.recordInProgress();
+            }
+        } else {
+            result.computeStatus();
+        }
+
+		result.cleanupResult();
 	}
 
 	private <T extends ObjectType> void reevaluateSearchFilters(Class<T> objectTypeClass, String oid, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {

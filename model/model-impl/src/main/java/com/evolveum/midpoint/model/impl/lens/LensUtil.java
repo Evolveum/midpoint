@@ -27,8 +27,11 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.mutable.MutableBoolean;
 
@@ -1298,5 +1301,46 @@ public class LensUtil {
 			return;
 		}
 		PrismUtil.setDeltaOldValue(ctx.getObjectOld(), itemDelta);
+	}
+
+	public static <F extends ObjectType> LensObjectDeltaOperation<F> createObjectDeltaOperation(ObjectDelta<F> focusDelta, OperationResult result,
+																								LensElementContext<F> focusContext, LensProjectionContext projCtx) {
+		return createObjectDeltaOperation(focusDelta, result, focusContext, projCtx, null);
+	}
+
+	// projCtx may or may not be present (object itself can be focus or projection)
+	public static <T extends ObjectType> LensObjectDeltaOperation<T> createObjectDeltaOperation(ObjectDelta<T> objectDelta, OperationResult result,
+																								LensElementContext<T> objectContext,
+																								LensProjectionContext projCtx,
+																								ResourceType resource) {
+		LensObjectDeltaOperation<T> objectDeltaOp = new LensObjectDeltaOperation<T>(objectDelta.clone());
+		objectDeltaOp.setExecutionResult(result);
+		PrismObject<T> object = objectContext.getObjectAny();
+		if (object != null) {
+			PolyString name = object.getName();
+			if (name == null && object.asObjectable() instanceof ShadowType) {
+				try {
+					name = ShadowUtil.determineShadowName((PrismObject<ShadowType>) object);
+					if (name == null) {
+						LOGGER.debug("No name for shadow:\n{}", object.debugDump());
+					} else if (name.getNorm() == null) {
+						name.recompute(new PrismDefaultPolyStringNormalizer());
+					}
+				} catch (SchemaException e) {
+					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine name for shadow -- continuing with no name; shadow:\n{}", e, object.debugDump());
+				}
+			}
+			objectDeltaOp.setObjectName(name);
+		}
+		if (resource == null && projCtx != null) {
+			resource = projCtx.getResource();
+		}
+		if (resource != null) {
+			objectDeltaOp.setResourceOid(resource.getOid());
+			objectDeltaOp.setResourceName(PolyString.toPolyString(resource.getName()));
+		} else if (objectContext instanceof LensProjectionContext) {
+			objectDeltaOp.setResourceOid(((LensProjectionContext) objectContext).getResourceOid());
+		}
+		return objectDeltaOp;
 	}
 }

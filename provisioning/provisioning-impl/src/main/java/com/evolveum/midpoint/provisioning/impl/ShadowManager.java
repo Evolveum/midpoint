@@ -23,14 +23,12 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import org.aspectj.weaver.patterns.NamePattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -53,7 +51,6 @@ import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.Visitor;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
-import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
@@ -723,7 +720,7 @@ public class ShadowManager {
 		}
 
 		if (repoShadowType.getName() == null) {
-			repoShadowType.setName(new PolyStringType(ProvisioningUtil.determineShadowName(shadow)));
+			repoShadowType.setName(new PolyStringType(ShadowUtil.determineShadowName(shadow)));
 		}
 
 		if (repoShadowType.getObjectClass() == null) {

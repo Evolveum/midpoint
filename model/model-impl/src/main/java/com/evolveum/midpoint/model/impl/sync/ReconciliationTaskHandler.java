@@ -715,6 +715,8 @@ public class ReconciliationTaskHandler implements TaskHandler {
             }
 		}
 
+		task.setExpectedTotal(null);		// for next phases, it looks strangely to see progress e.g. 2/1
+
 		// for each try the operation again
 
 		String message = "Processing unfinished operations done. Out of " + shadows.size() + " objects, "

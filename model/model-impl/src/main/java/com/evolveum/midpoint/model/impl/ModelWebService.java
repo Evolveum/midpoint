@@ -188,9 +188,7 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
             Collection<ObjectDeltaOperation<? extends ObjectType>> objectDeltaOperations = modelController.executeChanges((Collection) deltas, options, task, operationResult);        // brutally eliminating type-safety compiler barking
 			ObjectDeltaOperationListType retval = new ObjectDeltaOperationListType();
             for (ObjectDeltaOperation objectDeltaOperation : objectDeltaOperations) {
-                ObjectDeltaOperationType objectDeltaOperationType = new ObjectDeltaOperationType();
-                objectDeltaOperationType.setObjectDelta(DeltaConvertor.toObjectDeltaType(objectDeltaOperation.getObjectDelta()));
-                objectDeltaOperationType.setExecutionResult(objectDeltaOperation.getExecutionResult().createOperationResultType());
+                ObjectDeltaOperationType objectDeltaOperationType = DeltaConvertor.toObjectDeltaOperationType(objectDeltaOperation, null);
                 retval.getDeltaOperation().add(objectDeltaOperationType);
             }
             return retval;

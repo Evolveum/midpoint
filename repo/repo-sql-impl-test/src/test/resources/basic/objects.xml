@@ -1060,6 +1060,13 @@
         </automaticallyApproved>
     </role>
 
+    <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+        <name>Pirate</name>
+        <roleType>business</roleType>
+    </role>
+
 	<org oid="00000000-8888-6666-0000-100000000085">
 		<name>F0085</name>
 		<description>The office of the most respectful Governor.</description>

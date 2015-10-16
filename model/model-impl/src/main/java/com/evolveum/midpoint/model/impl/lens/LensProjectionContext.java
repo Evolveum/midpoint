@@ -1344,4 +1344,14 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	public void setToBeArchived(boolean toBeArchived) {
 		this.toBeArchived = toBeArchived;
 	}
+
+	public String getResourceOid() {
+		if (resource != null) {
+			return resource.getOid();
+		} else if (resourceShadowDiscriminator != null) {
+			return resourceShadowDiscriminator.getResourceOid();
+		} else {
+			return null;
+		}
+	}
 }

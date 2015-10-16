@@ -30,7 +30,6 @@ import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.model.common.expression.evaluator.caching.AbstractSearchExpressionEvaluatorCache;
 import com.evolveum.midpoint.model.common.expression.evaluator.caching.AssociationSearchExpressionEvaluatorCache;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
@@ -114,7 +113,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * @author semancik
@@ -696,7 +694,7 @@ public class Clockwork {
 		} else {
 			Collection<LensProjectionContext> projectionContexts = context.getProjectionContexts();
 			if (projectionContexts == null || projectionContexts.isEmpty()) {
-				throw new IllegalStateException("No focus and no projectstions in "+context);
+				throw new IllegalStateException("No focus and no projections in "+context);
 			}
 			if (projectionContexts.size() > 1) {
 				throw new IllegalStateException("No focus and more than one projection in "+context);
@@ -733,7 +731,9 @@ public class Clockwork {
 		auditRecord.setChannel(context.getChannel());
 		
 		if (stage == AuditEventStage.REQUEST) {
-			auditRecord.addDeltas(ObjectDeltaOperation.cloneDeltaCollection(context.getPrimaryChanges()));
+			Collection<ObjectDeltaOperation<? extends ObjectType>> clonedDeltas = ObjectDeltaOperation.cloneDeltaCollection(context.getPrimaryChanges());
+			checkNamesArePresent(clonedDeltas, primaryObject);
+			auditRecord.addDeltas(clonedDeltas);
 		} else if (stage == AuditEventStage.EXECUTION) {
 			auditRecord.setOutcome(result.getComputeStatus());
 			Collection<ObjectDeltaOperation<? extends ObjectType>> unauditedExecutedDeltas = context.getUnauditedExecutedDeltas();
@@ -741,7 +741,9 @@ public class Clockwork {
 				// No deltas, nothing to audit in this wave
 				return;
 			}
-			auditRecord.addDeltas(ObjectDeltaOperation.cloneCollection(unauditedExecutedDeltas));
+			Collection<ObjectDeltaOperation<? extends ObjectType>> clonedDeltas = ObjectDeltaOperation.cloneCollection(unauditedExecutedDeltas);
+			checkNamesArePresent(clonedDeltas, primaryObject);
+			auditRecord.addDeltas(clonedDeltas);
 		} else {
 			throw new IllegalStateException("Unknown audit stage "+stage);
 		}
@@ -764,7 +766,17 @@ public class Clockwork {
 			throw new IllegalStateException("Unknown audit stage "+stage);
 		}
 	}
-	
+
+	private void checkNamesArePresent(Collection<ObjectDeltaOperation<? extends ObjectType>> deltas, PrismObject<? extends ObjectType> primaryObject) {
+		if (primaryObject != null) {
+            for (ObjectDeltaOperation<? extends ObjectType> delta : deltas) {
+                if (delta.getObjectName() == null) {
+                    delta.setObjectName(primaryObject.getName());
+                }
+            }
+        }
+	}
+
 	/**
 	 * Adds a message to the record by pulling the messages from individual delta results.
 	 */
