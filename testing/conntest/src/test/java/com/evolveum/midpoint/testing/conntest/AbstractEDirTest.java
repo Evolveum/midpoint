@@ -201,11 +201,14 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	
 	@Test
     public void test000Sanity() throws Exception {
+		final String TEST_NAME = "test000Sanity";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
 		assertLdapPassword(ACCOUNT_JACK_UID, ACCOUNT_JACK_PASSWORD);
 		assertEDirGroupMember(ACCOUNT_JACK_UID, GROUP_PIRATES_NAME);
-		cleanupDelete(toDn(USER_BARBOSSA_USERNAME));
-		cleanupDelete(toDn(USER_CPTBARBOSSA_USERNAME));
-		cleanupDelete(toDn(USER_GUYBRUSH_USERNAME));
+		cleanupDelete(toAccountDn(USER_BARBOSSA_USERNAME));
+		cleanupDelete(toAccountDn(USER_CPTBARBOSSA_USERNAME));
+		cleanupDelete(toAccountDn(USER_GUYBRUSH_USERNAME));
 		cleanupDelete(toGroupDn("Mêlée Island"));
 	}
 
@@ -249,7 +252,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         
         PrismObject<ShadowType> shadow = shadows.get(0);
         display("Shadow", shadow);
-        assertAccountShadow(shadow, toDn(ACCOUNT_JACK_UID));
+        assertAccountShadow(shadow, toAccountDn(ACCOUNT_JACK_UID));
         assertLockout(shadow, LockoutStatusType.NORMAL);
         jackAccountOid = shadow.getOid();
         
@@ -322,7 +325,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 		result.computeStatus();
 		TestUtil.assertSuccess(result);		
         display("Shadow", shadow);
-        assertAccountShadow(shadow, toDn(ACCOUNT_JACK_UID));
+        assertAccountShadow(shadow, toAccountDn(ACCOUNT_JACK_UID));
         assertLockout(shadow, LockoutStatusType.NORMAL);
         assertPasswordAllowChange(shadow, null);
         jackAccountOid = shadow.getOid();
@@ -367,7 +370,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         
         PrismObject<ShadowType> shadow = shadows.get(0);
         display("Shadow", shadow);
-        assertAccountShadow(shadow, toDn(ACCOUNT_JACK_UID));
+        assertAccountShadow(shadow, toAccountDn(ACCOUNT_JACK_UID));
         assertLockout(shadow, LockoutStatusType.LOCKED);
         
         assertConnectorOperationIncrement(1);
@@ -424,7 +427,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         
         PrismObject<ShadowType> shadow = searchResultList.get(0);
         display("Shadow", shadow);
-        assertAccountShadow(shadow, toDn(ACCOUNT_JACK_UID));
+        assertAccountShadow(shadow, toAccountDn(ACCOUNT_JACK_UID));
         assertLockout(shadow, LockoutStatusType.LOCKED);
         
         SearchResultMetadata metadata = searchResultList.getMetadata();
@@ -468,7 +471,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         
         assertEquals("Wrong ICFS UID", MiscUtil.binaryToHex(entry.get(getPrimaryIdentifierAttributeName()).getBytes()), accountBarbossaIcfUid);
         
-        assertLdapPassword(USER_BARBOSSA_USERNAME, "deadjacktellnotales");
+        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_PASSWORD);
         assertPasswordAllowChange(shadow, null);
         
         ResourceAttribute<Long> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimestamp"));
@@ -891,7 +894,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         
         PrismObject<ShadowType> shadow = shadows.get(0);
         display("Shadow", shadow);
-        assertAccountShadow(shadow, toDn(ACCOUNT_JACK_UID));
+        assertAccountShadow(shadow, toAccountDn(ACCOUNT_JACK_UID));
         assertLockout(shadow, LockoutStatusType.NORMAL);
         
         assertConnectorOperationIncrement(1);
@@ -947,7 +950,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         assertEquals("Unexpected search result: "+shadows, 1, shadows.size());
         PrismObject<ShadowType> shadowLocked = shadows.get(0);
         display("Locked shadow", shadowLocked);
-        assertAccountShadow(shadowLocked, toDn(ACCOUNT_JACK_UID));
+        assertAccountShadow(shadowLocked, toAccountDn(ACCOUNT_JACK_UID));
         assertLockout(shadowLocked, LockoutStatusType.LOCKED);
 		
         rememberConnectorOperationCount();
@@ -969,7 +972,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 		
 		PrismObject<ShadowType> shadowAfter = getObject(ShadowType.class, shadowLocked.getOid());
         display("Shadow after", shadowAfter);
-        assertAccountShadow(shadowAfter, toDn(ACCOUNT_JACK_UID));
+        assertAccountShadow(shadowAfter, toAccountDn(ACCOUNT_JACK_UID));
         assertLockout(shadowAfter, LockoutStatusType.NORMAL);
 
         assertLdapPassword(ACCOUNT_JACK_UID, ACCOUNT_JACK_PASSWORD);
@@ -1062,7 +1065,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	}
 	
 	private void makeBadLoginAttempt(String uid) throws LdapException {
-		LdapNetworkConnection conn = ldapConnect(toDn(uid), "thisIsAwRoNgPASSW0RD");
+		LdapNetworkConnection conn = ldapConnect(toAccountDn(uid), "thisIsAwRoNgPASSW0RD");
 		if (conn.isAuthenticated()) {
 			AssertJUnit.fail("Bad authentication went good for "+uid);
 		}
