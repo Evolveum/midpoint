@@ -15,6 +15,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
@@ -65,6 +67,8 @@ public class PageSelfCredentials extends PageSelf {
     private static final String ID_SAVE_BUTTON = "save";
     private static final String ID_CANCEL_BUTTON = "cancel";
     private static final String ID_PANEL = "panel";
+
+    private static final Trace LOGGER = TraceManager.getTrace(PageSelfCredentials.class);
     private static final String DOT_CLASS = PageSelfCredentials.class.getName() + ".";
     private static final String OPERATION_LOAD_USER_WITH_ACCOUNTS = DOT_CLASS + "loadUserWithAccounts";
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
@@ -101,7 +105,7 @@ public class PageSelfCredentials extends PageSelf {
     }
 
     private MyPasswordsDto loadPageModel() {
-//        LOGGER.debug("Loading user and accounts.");
+        LOGGER.debug("Loading user and accounts.");
         MyPasswordsDto dto = new MyPasswordsDto();
         OperationResult result = new OperationResult(OPERATION_LOAD_USER_WITH_ACCOUNTS);
         try {
@@ -115,7 +119,7 @@ public class PageSelfCredentials extends PageSelf {
 
             PrismReference reference = user.findReference(UserType.F_LINK_REF);
             if (reference == null || reference.getValues() == null) {
-//                LOGGER.debug("No accounts found for user {}.", new Object[]{userOid});
+                LOGGER.debug("No accounts found for user {}.", new Object[]{userOid});
                 return dto;
             }
 
@@ -136,17 +140,14 @@ public class PageSelfCredentials extends PageSelf {
                     dto.getAccounts().add(createPasswordAccountDto(account));
                     subResult.recordSuccessIfUnknown();
                 } catch (Exception ex) {
-//                    LoggingUtils.logException(LOGGER, "Couldn't load account", ex);
+                    LoggingUtils.logException(LOGGER, "Couldn't load account", ex);
                     subResult.recordFatalError("Couldn't load account.", ex);
                 }
             }
 
-            List<ShadowType> shadowTypeList = loadShadowTypeList();
-
-
             result.recordSuccessIfUnknown();
         } catch (Exception ex) {
-//            LoggingUtils.logException(LOGGER, "Couldn't load accounts", ex);
+            LoggingUtils.logException(LOGGER, "Couldn't load accounts", ex);
             result.recordFatalError("Couldn't load accounts", ex);
         } finally {
             result.recomputeStatus();
@@ -294,7 +295,7 @@ public class PageSelfCredentials extends PageSelf {
 
             result.recordSuccess();
         } catch (Exception ex) {
-//            LoggingUtils.logException(LOGGER, "Couldn't save password changes", ex);
+            LoggingUtils.logException(LOGGER, "Couldn't save password changes", ex);
             result.recordFatalError("Couldn't save password changes.", ex);
         } finally {
             result.recomputeStatus();
@@ -350,6 +351,7 @@ public class PageSelfCredentials extends PageSelf {
                 PrismObject<ShadowType> shadow = WebModelUtils.loadObject(ShadowType.class, reference.getOid(), options, this, task, subResult);
                 shadowTypeList.add(shadow.asObjectable());
             } catch (Exception ex) {
+                LoggingUtils.logException(LOGGER, "Couldn't load account", ex);
                 subResult.recordFatalError("Couldn't load account." + ex.getMessage(), ex);
             } finally {
                 subResult.computeStatus();

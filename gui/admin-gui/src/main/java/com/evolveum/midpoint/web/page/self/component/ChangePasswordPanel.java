@@ -38,12 +38,6 @@ public class ChangePasswordPanel extends SimplePanel<MyPasswordsDto> {
     public static final String SELECTED_ACCOUNT_ICON_CSS = "fa fa-check-square-o";
     public static final String DESELECTED_ACCOUNT_ICON_CSS = "fa fa-square-o";
     public static final String PROPAGATED_ACCOUNT_ICON_CSS = "fa fa-sign-out";
-    private static final Trace LOGGER = TraceManager.getTrace(ChangePasswordPanel.class);
-
-    private static final String DOT_CLASS = ChangePasswordPanel.class.getName() + ".";
-    private static final String OPERATION_LOAD_USER_WITH_ACCOUNTS = DOT_CLASS + "loadUserWithAccounts";
-    private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
-    private static final String OPERATION_LOAD_ACCOUNT = DOT_CLASS + "loadAccount";
 
     private LoadableModel<MyPasswordsDto> model;
     private boolean midpointAccountSelected = true;
