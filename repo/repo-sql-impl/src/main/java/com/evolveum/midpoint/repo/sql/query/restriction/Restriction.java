@@ -23,6 +23,8 @@ import com.evolveum.midpoint.repo.sql.query.QueryContext;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.NotNullExpression;
+import org.hibernate.criterion.NullExpression;
 import org.hibernate.criterion.Restrictions;
 
 /**
@@ -80,6 +82,9 @@ public abstract class Restriction<T extends ObjectFilter> {
      * TODO implement for restrictions other than PropertyRestriction.
      */
     protected Criterion addIsNotNullIfNecessary(Criterion criterion, String propertyPath) {
+        if (criterion instanceof NullExpression || criterion instanceof NotNullExpression) {
+            return criterion;
+        }
         if (!isNegated()) {
             return criterion;
         }
