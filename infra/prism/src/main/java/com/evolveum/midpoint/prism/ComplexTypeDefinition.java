@@ -230,7 +230,7 @@ public class ComplexTypeDefinition extends Definition {
         }
         QName firstName = ((NameItemPathSegment)path.first()).getName();
         for (ItemDefinition def : getDefinitions()) {
-            if (firstName.equals(def.getName())) {
+            if (firstName != null && firstName.equals(def.getName())) {
                 return (ID) def.findItemDefinition(path.rest(), clazz);
             }
         }
