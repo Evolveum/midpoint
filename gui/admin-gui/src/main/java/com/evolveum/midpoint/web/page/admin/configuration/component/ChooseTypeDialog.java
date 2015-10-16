@@ -306,6 +306,6 @@ public class ChooseTypeDialog extends ModalWindow{
      *  provides search property to the search filter
      * */
     public QName getSearchProperty(){
-        return null;
+        return ObjectType.F_NAME;
     }
 }

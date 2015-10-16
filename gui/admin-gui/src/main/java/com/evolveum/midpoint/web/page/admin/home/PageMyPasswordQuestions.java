@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -436,8 +438,13 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 	}
 
 	private void cancelPerformed(AjaxRequestTarget target){
-		setResponsePage(PageDashboard.class);		
-	}
+        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
+                AuthorizationConstants.AUTZ_UI_HOME_ALL_URL)) {
+            setResponsePage(PageDashboard.class);
+        } else {
+            setResponsePage(PageSelfDashboard.class);
+        }
+    }
 
 	private ObjectWrapper loadUserWrapper(PrismObject<UserType> userToEdit) {
 		OperationResult result = new OperationResult(OPERATION_LOAD_USER);

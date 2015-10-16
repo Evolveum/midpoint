@@ -14,6 +14,7 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -443,8 +444,13 @@ public class PageSecurityQuestions extends PageBase {
 	}
 
 	private void cancelPerformed(AjaxRequestTarget target) {
-		setResponsePage(PageDashboard.class);
-	}
+        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
+                AuthorizationConstants.AUTZ_UI_HOME_ALL_URL)) {
+            setResponsePage(PageDashboard.class);
+        } else {
+            setResponsePage(PageSelfDashboard.class);
+        }
+    }
 
 	// TODO securityQuestionList'i cikar
 

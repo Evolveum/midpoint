@@ -2,41 +2,28 @@ package com.evolveum.midpoint.web.page.self.component;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.input.PasswordPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.page.admin.certification.PageCertCampaign;
-import com.evolveum.midpoint.web.page.admin.certification.dto.CertDecisionDto;
-import com.evolveum.midpoint.web.page.admin.home.dto.AssignmentItemDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.MyPasswordsDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.TooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
-import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.*;
 
@@ -48,7 +35,9 @@ public class ChangePasswordPanel extends SimplePanel<MyPasswordsDto> {
     private static final String ID_PASSWORD_LABEL = "passwordLabel";
     private static final String ID_CONFIRM_PASSWORD_LABEL = "confirmPasswordLabel";
     public static final String ID_ACCOUNTS_TABLE = "accounts";
-    public static final String ID_CHANGE_ALL_PASSWORDS = "changeAllPasswords";
+    public static final String SELECTED_ACCOUNT_ICON_CSS = "fa fa-check-square-o";
+    public static final String DESELECTED_ACCOUNT_ICON_CSS = "fa fa-square-o";
+    public static final String PROPAGATED_ACCOUNT_ICON_CSS = "fa fa-sign-out";
     private static final Trace LOGGER = TraceManager.getTrace(ChangePasswordPanel.class);
 
     private static final String DOT_CLASS = ChangePasswordPanel.class.getName() + ".";
@@ -56,20 +45,20 @@ public class ChangePasswordPanel extends SimplePanel<MyPasswordsDto> {
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
     private static final String OPERATION_LOAD_ACCOUNT = DOT_CLASS + "loadAccount";
 
-    private PasswordAccountDto midpointAccountDto;
     private LoadableModel<MyPasswordsDto> model;
-    MyPasswordsDto myPasswordsDto = new MyPasswordsDto();
+    private boolean midpointAccountSelected = true;
+
     public ChangePasswordPanel(String id) {
         super(id);
     }
-    public ChangePasswordPanel(String id, LoadableModel<MyPasswordsDto> model,MyPasswordsDto myPasswordsDto) {
+
+    public ChangePasswordPanel(String id, LoadableModel<MyPasswordsDto> model, MyPasswordsDto myPasswordsDto) {
         super(id, model);
     }
 
     @Override
     protected void initLayout() {
         model = (LoadableModel) getModel();
-        MyPasswordsDto dto = model.getObject();
 
         Label passwordLabel = new Label(ID_PASSWORD_LABEL, createStringResource("PageSelfCredentials.passwordLabel1"));
         add(passwordLabel);
@@ -88,66 +77,107 @@ public class ChangePasswordPanel extends SimplePanel<MyPasswordsDto> {
         accounts.setShowPaging(false);
         add(accounts);
     }
+
     private List<IColumn<PasswordAccountDto, String>> initColumns() {
         List<IColumn<PasswordAccountDto, String>> columns = new ArrayList<IColumn<PasswordAccountDto, String>>();
 
-        IColumn column = new CheckBoxHeaderColumn<PasswordAccountDto>();
-        column = new IconColumn<PasswordAccountDto>(createStringResource("PageCertDecisions.table.campaignName")) {
+        IColumn column = new IconColumn<PasswordAccountDto>(new Model<String>()) {
             @Override
             protected IModel<String> createIconModel(final IModel<PasswordAccountDto> rowModel) {
                 return new AbstractReadOnlyModel<String>() {
-
                     @Override
                     public String getObject() {
                         PasswordAccountDto item = rowModel.getObject();
-//                        if (item.getType() == null) {
-                            return "silk-error";
-//                        }
-
-//                        switch (item.getType()) {
-//                            case ACCOUNT_CONSTRUCTION:
-//                                return "silk-drive";
-//                            case ORG_UNIT:
-//                                return "silk-building";
-//                            case ROLE:
-//                                return "silk-user_suit";
-//                            default:
-//                                return "silk-error";
-//                        }
+                        if (item.getCssClass() == null || item.getCssClass().trim().equals("")) {
+                            if (item.isMidpoint()) {
+                                item.setCssClass(SELECTED_ACCOUNT_ICON_CSS);
+                            } else if (item.isPasswordOutbound()) {
+                                item.setCssClass(PROPAGATED_ACCOUNT_ICON_CSS);
+                            } else {
+                                item.setCssClass(DESELECTED_ACCOUNT_ICON_CSS);
+                            }
+                        }
+                        return item.getCssClass();
                     }
                 };
+            }
+
+            @Override
+            public void populateItem(Item<ICellPopulator<PasswordAccountDto>> item, String componentId,
+                                     final IModel<PasswordAccountDto> rowModel) {
+                super.populateItem(item, componentId, rowModel);
+                final ImagePanel imagePanel = (ImagePanel) item.get(0);
+
+                final PasswordAccountDto passwordAccountDto = rowModel.getObject();
+
+                imagePanel.add(new AjaxEventBehavior("onclick") {
+                                   protected void onEvent(final AjaxRequestTarget target) {
+                                       if (!passwordAccountDto.isMidpoint()) {
+                                           if (passwordAccountDto.getCssClass().equals(PROPAGATED_ACCOUNT_ICON_CSS)) {
+                                               passwordAccountDto.setCssClass(SELECTED_ACCOUNT_ICON_CSS);
+                                           } else if (passwordAccountDto.getCssClass().equals(SELECTED_ACCOUNT_ICON_CSS)
+                                                   && passwordAccountDto.isPasswordOutbound() &&
+                                                   midpointAccountSelected) {
+                                               passwordAccountDto.setCssClass(PROPAGATED_ACCOUNT_ICON_CSS);
+                                           }  else if (passwordAccountDto.getCssClass().equals(SELECTED_ACCOUNT_ICON_CSS)) {
+                                               passwordAccountDto.setCssClass(DESELECTED_ACCOUNT_ICON_CSS);
+                                           } else if (passwordAccountDto.getCssClass().equals(DESELECTED_ACCOUNT_ICON_CSS)) {
+                                               passwordAccountDto.setCssClass(SELECTED_ACCOUNT_ICON_CSS);
+                                           }
+                                           target.add(imagePanel);
+                                       } else {
+                                           midpointAccountSelected = !midpointAccountSelected;
+                                           if (passwordAccountDto.getCssClass().equals(SELECTED_ACCOUNT_ICON_CSS)) {
+                                               passwordAccountDto.setCssClass(DESELECTED_ACCOUNT_ICON_CSS);
+                                               updatePropagatedAccountIconsCssClass(DESELECTED_ACCOUNT_ICON_CSS);
+                                               target.add(imagePanel.findParent(SelectableDataTable.class));
+                                           } else if (passwordAccountDto.getCssClass().equals(DESELECTED_ACCOUNT_ICON_CSS)) {
+                                               passwordAccountDto.setCssClass(SELECTED_ACCOUNT_ICON_CSS);
+                                               updatePropagatedAccountIconsCssClass(PROPAGATED_ACCOUNT_ICON_CSS);
+                                               target.add(imagePanel.findParent(SelectableDataTable.class));
+                                           }
+                                       }
+                                   }
+                               }
+                );
             }
         };
         columns.add(column);
 
-        columns.add(new AbstractColumn<PasswordAccountDto, String>(createStringResource("PageMyPasswords.name")) {
+        columns.add(new AbstractColumn<PasswordAccountDto, String>(createStringResource("ChangePasswordPanel.name")) {
 
-                        @Override
-                        public void populateItem(Item<ICellPopulator<PasswordAccountDto>> item, String componentId,
-                                                 final IModel<PasswordAccountDto> rowModel) {
-                            item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
+            @Override
+            public void populateItem(Item<ICellPopulator<PasswordAccountDto>> item, String componentId,
+                                     final IModel<PasswordAccountDto> rowModel) {
+                item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
 
-                                @Override
-                                public Object getObject() {
-                                    PasswordAccountDto dto = rowModel.getObject();
-                                    return dto.getDisplayName();
-                                }
-                            }));
-                        }
-                    });
-//            column = new PropertyColumn(createStringResource("PageMyPasswords.name"),
-//                PasswordAccountDto.F_DISPLAY_NAME);
-//        columns.add(column);
+                    @Override
+                    public Object getObject() {
+                        PasswordAccountDto dto = rowModel.getObject();
+                        return dto.getDisplayName();
+                    }
+                }));
+            }
+        });
 
-        column = new PropertyColumn(createStringResource("PageMyPasswords.resourceName"),
+        column = new PropertyColumn(createStringResource("ChangePasswordPanel.resourceName"),
                 PasswordAccountDto.F_RESOURCE_NAME);
         columns.add(column);
 
-        CheckBoxColumn enabled = new CheckBoxColumn(createStringResource("PageMyPasswords.enabled"),
+        CheckBoxColumn enabled = new CheckBoxColumn(createStringResource("ChangePasswordPanel.enabled"),
                 PasswordAccountDto.F_ENABLED);
         enabled.setEnabled(false);
         columns.add(enabled);
 
         return columns;
+    }
+
+    private void updatePropagatedAccountIconsCssClass(String cssClassName) {
+        MyPasswordsDto dto = model.getObject();
+        for (PasswordAccountDto passwordAccountDto : dto.getAccounts()) {
+            if (passwordAccountDto.isPasswordOutbound()) {
+                passwordAccountDto.setCssClass(cssClassName);
+            }
+        }
     }
 }

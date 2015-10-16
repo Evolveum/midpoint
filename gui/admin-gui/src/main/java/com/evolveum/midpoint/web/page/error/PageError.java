@@ -16,11 +16,14 @@
 
 package com.evolveum.midpoint.web.page.error;
 
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
+import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
@@ -93,7 +96,12 @@ public class PageError extends PageBase {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                setResponsePage(PageDashboard.class);
+                if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
+                        AuthorizationConstants.AUTZ_UI_HOME_ALL_URL)) {
+                    setResponsePage(PageDashboard.class);
+                } else {
+                    setResponsePage(PageSelfDashboard.class);
+                }
             }
         };
         add(back);

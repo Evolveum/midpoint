@@ -19,31 +19,8 @@
 <body>
 <wicket:extend>
     <div wicket:id="deleteTasksPopup" />
-    <form wicket:id="searchForm" class="form-inline pull-right search-form">
-        <div class="form-group">
-            <label class="sr-only"><wicket:message key="pageTasks.state"/></label>
-            <select class="form-control input-sm" wicket:id="state"/>
-        </div>
-        <div class="form-group">
-            <label class="sr-only"><wicket:message key="pageTasks.category"/></label>
-            <select class="form-control input-sm" wicket:id="category"/>
-        </div>
-        <div class="checkbox">
-            <label>
-                <input type="checkbox" wicket:id="showSubtasks"/>
-                <wicket:message key="pageTasks.subtasks"/>
-            </label>
-        </div>
 
-        <span class="btn-group">
-            <a class="btn btn-danger btn-sm" wicket:message="title:PageBase.button.tooltip.clearSearch" wicket:id="searchClear">
-                <i class="fa fa-remove"/>
-            </a>
-        </span>
-    </form>
-
-    <form wicket:id="mainForm" class="clearfix form-horizontal">
-        <h3><wicket:message key="pageTasks.tasks"/></h3>
+    <form wicket:id="mainForm" class="form-inline">
         <div wicket:id="taskTable"/>
 
         <h3><wicket:message key="pageTasks.nodes"/></h3>
@@ -56,6 +33,33 @@
         <a class="btn btn-default" wicket:id="synchronizeTasks"/>
         <a class="btn btn-default" wicket:id="refreshTasks"/>
     </div>
+
+
+    <wicket:fragment wicket:id="tableHeader">
+        <form wicket:id="searchForm" class="form-inline pull-right search-form">
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" wicket:id="showSubtasks"/>
+                    <wicket:message key="pageTasks.subtasks"/>
+                </label>
+            </div>
+            <div class="form-group">
+                <label class="sr-only"><wicket:message key="pageTasks.state"/></label>
+                <select class="form-control input-sm" wicket:id="state"/>
+            </div>
+            <div class="form-group">
+                <label class="sr-only"><wicket:message key="pageTasks.category"/></label>
+                <select class="form-control input-sm" wicket:id="category"/>
+            </div>
+
+            <span class="btn-group">
+                <a class="btn btn-danger btn-sm" wicket:message="title:PageBase.button.tooltip.clearSearch"
+                   wicket:id="searchClear">
+                    <i class="fa fa-remove"/>
+                </a>
+            </span>
+        </form>
+    </wicket:fragment>
 </wicket:extend>
 </body>
 </html>
