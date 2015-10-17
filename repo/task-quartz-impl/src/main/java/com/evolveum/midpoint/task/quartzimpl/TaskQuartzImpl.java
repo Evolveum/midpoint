@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -46,6 +47,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
 import com.evolveum.midpoint.schema.statistics.OperationalInformation;
 import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
+import com.evolveum.midpoint.schema.statistics.ActionsExecutedInformation;
 import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
 import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
@@ -74,6 +76,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActionsExecutedInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
@@ -129,6 +132,7 @@ public class TaskQuartzImpl implements Task {
 	private OperationalInformation operationalInformation = new OperationalInformation();
 	private SynchronizationInformation synchronizationInformation;				// has to be explicitly enabled
 	private IterativeTaskInformation iterativeTaskInformation;					// has to be explicitly enabled
+	private ActionsExecutedInformation actionsExecutedInformation;			// has to be explicitly enabled
 
 	/**
 	 * Lightweight asynchronous subtasks.
@@ -2570,6 +2574,10 @@ public class TaskQuartzImpl implements Task {
 		return iterativeTaskInformation;
 	}
 
+	public ActionsExecutedInformation getActionsExecutedInformation() {
+		return actionsExecutedInformation;
+	}
+
 	@Override
 	public OperationalInformationType getAggregateOperationalInformation() {
 		if (operationalInformation == null) {
@@ -2622,6 +2630,23 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	@Override
+	public ActionsExecutedInformationType getAggregateActionsExecutedInformation() {
+		if (actionsExecutedInformation == null) {
+			return null;
+		}
+		ActionsExecutedInformationType rv = new ActionsExecutedInformationType();
+		ActionsExecutedInformation.addTo(rv, actionsExecutedInformation.getAggregatedValue());
+		for (Task subtask : getLightweightAsynchronousSubtasks()) {
+			ActionsExecutedInformation info = ((TaskQuartzImpl) subtask).getActionsExecutedInformation();
+			if (info != null) {
+				ActionsExecutedInformation.addTo(rv, info.getAggregatedValue());
+			}
+		}
+		rv.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
+		return rv;
+	}
+
+	@Override
 	public void recordState(String message) {
 		if (LOGGER.isDebugEnabled()) {		// TODO consider this
 			LOGGER.debug("{}", message);
@@ -2649,7 +2674,6 @@ public class TaskQuartzImpl implements Task {
 
 	@Override
 	public synchronized void recordSynchronizationOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started, Throwable exception, SynchronizationInformation.Record increment) {
-		recordIterativeOperationEnd(objectName, objectDisplayName, objectType, objectOid, started, exception);
 		if (synchronizationInformation != null) {
 			synchronizationInformation.recordSynchronizationOperationEnd(objectName, objectDisplayName, objectType, objectOid, started, exception, increment);
 		}
@@ -2657,7 +2681,6 @@ public class TaskQuartzImpl implements Task {
 
 	@Override
 	public synchronized void recordSynchronizationOperationStart(String objectName, String objectDisplayName, QName objectType, String objectOid) {
-		recordIterativeOperationStart(objectName, objectDisplayName, objectType, objectOid);
 		if (synchronizationInformation != null) {
 			synchronizationInformation.recordSynchronizationOperationStart(objectName, objectDisplayName, objectType, objectOid);
 		}
@@ -2690,6 +2713,55 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	@Override
+	public void recordObjectActionExecuted(String objectName, String objectDisplayName, QName objectType, String objectOid, ChangeType changeType, String channel, Throwable exception) {
+		if (actionsExecutedInformation != null) {
+			actionsExecutedInformation.recordObjectActionExecuted(objectName, objectDisplayName, objectType, objectOid, changeType, channel, exception);
+		}
+	}
+
+	@Override
+	public void recordObjectActionExecuted(PrismObject<? extends ObjectType> object, ChangeType changeType, Throwable exception) {
+		recordObjectActionExecuted(object, changeType, getChannel(), exception);
+	}
+
+	@Override
+	public void recordObjectActionExecuted(PrismObject<? extends ObjectType> object, ChangeType changeType, String channel, Throwable exception) {
+		recordObjectActionExecuted(object, null, null, changeType, getChannel(), exception);
+	}
+
+	@Override
+	public <T extends ObjectType> void recordObjectActionExecuted(PrismObject<T> object, Class<T> objectTypeClass, String defaultOid, ChangeType changeType, String channel, Throwable exception) {
+		if (actionsExecutedInformation != null) {
+			String name, displayName, oid;
+			PrismObjectDefinition definition;
+			Class<T> clazz;
+			if (object != null) {
+				name = PolyString.getOrig(object.getName());
+				displayName = StatisticsUtil.getDisplayName(object);
+				definition = object.getDefinition();
+				clazz = object.getCompileTimeClass();
+				oid = object.getOid();
+			} else {
+				name = null;
+				displayName = null;
+				definition = null;
+				clazz = objectTypeClass;
+				oid = defaultOid;
+			}
+			if (definition == null && clazz != null) {
+				definition = getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz);
+			}
+			QName typeQName;
+			if (definition != null) {
+				typeQName = definition.getTypeName();
+			} else {
+				typeQName = ObjectType.COMPLEX_TYPE;
+			}
+			actionsExecutedInformation.recordObjectActionExecuted(name, displayName, typeQName, oid, changeType, channel, exception);
+		}
+	}
+
+	@Override
 	public void resetOperationalInformation(OperationalInformationType value) {
 		operationalInformation = new OperationalInformation(value);
 	}
@@ -2702,5 +2774,10 @@ public class TaskQuartzImpl implements Task {
 	@Override
 	public void resetIterativeTaskInformation(IterativeTaskInformationType value) {
 		iterativeTaskInformation = new IterativeTaskInformation(value);
+	}
+
+	@Override
+	public void resetActionsExecutedInformation(ActionsExecutedInformationType value) {
+		actionsExecutedInformation = new ActionsExecutedInformation(value);
 	}
 }

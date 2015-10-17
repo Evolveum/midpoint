@@ -22,8 +22,8 @@ import javax.annotation.PostConstruct;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.PolicyViolationException;
@@ -42,7 +42,6 @@ import com.evolveum.midpoint.prism.query.GreaterFilter;
 import com.evolveum.midpoint.prism.query.LessFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -159,7 +158,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 								LOGGER.warn("Trigger without handler URI in {}", object);
 							} else {
 								fireTrigger(handlerUri, object, task, result);
-								removeTrigger(object, triggerCVal);
+								removeTrigger(object, triggerCVal, task);
 							}
 						} else {
 							LOGGER.trace("Trigger {} is not hot (timestamp={}, thisScanTimestamp={}, lastScanTimestamp={})", 
@@ -201,7 +200,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 		}
 	}
 
-	private void removeTrigger(PrismObject<ObjectType> object, PrismContainerValue<TriggerType> triggerCVal) {
+	private void removeTrigger(PrismObject<ObjectType> object, PrismContainerValue<TriggerType> triggerCVal, Task task) {
 		PrismContainerDefinition<TriggerType> triggerContainerDef = triggerCVal.getParent().getDefinition();
 		ContainerDelta<TriggerType> triggerDelta = (ContainerDelta<TriggerType>) triggerContainerDef.createEmptyDelta(new ItemPath(ObjectType.F_TRIGGER));
 		triggerDelta.addValuesToDelete(triggerCVal.clone());
@@ -209,16 +208,23 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 		// This is detached result. It will not take part of the task result. We do not really care.
 		OperationResult result = new OperationResult(TriggerScannerTaskHandler.class.getName()+".removeTrigger");
 		try {
-			repositoryService.modifyObject(object.getCompileTimeClass(), object.getOid(), modifications , result);
+			repositoryService.modifyObject(object.getCompileTimeClass(), object.getOid(), modifications, result);
 			result.computeStatus();
+			task.recordObjectActionExecuted(object, ChangeType.MODIFY, null);
 		} catch (ObjectNotFoundException e) {
 			// Object is gone. Ergo there are no triggers left. Ergo the trigger was removed.
 			// Ergo this is not really an error.
+			task.recordObjectActionExecuted(object, ChangeType.MODIFY, e);
 			LOGGER.trace("Unable to remove trigger from {}: {} (but this is probably OK)", new Object[]{object, e.getMessage(), e});
 		} catch (SchemaException e) {
+			task.recordObjectActionExecuted(object, ChangeType.MODIFY, e);
 			LOGGER.error("Unable to remove trigger from {}: {}", new Object[]{object, e.getMessage(), e});
 		} catch (ObjectAlreadyExistsException e) {
+			task.recordObjectActionExecuted(object, ChangeType.MODIFY, e);
 			LOGGER.error("Unable to remove trigger from {}: {}", new Object[]{object, e.getMessage(), e});
+		} catch (Throwable t) {
+			task.recordObjectActionExecuted(object, ChangeType.MODIFY, t);
+			throw t;
 		}
 	}
 

@@ -16,12 +16,12 @@
 
 package com.evolveum.midpoint.schema.statistics;
 
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
-import com.evolveum.midpoint.schema.statistics.OperationalInformation;
-import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
-import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActionsExecutedInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
 
@@ -48,6 +48,8 @@ public interface StatisticsCollector {
     IterativeTaskInformationType getAggregateIterativeTaskInformation();
 
     SynchronizationInformationType getAggregateSynchronizationInformation();
+
+    ActionsExecutedInformationType getAggregateActionsExecutedInformation();
 
     /**
      * Records various kinds of operational information.
@@ -82,6 +84,18 @@ public interface StatisticsCollector {
     void recordSynchronizationOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started, Throwable exception, SynchronizationInformation.Record increment);
 
     /**
+     * Records information about repository (focal) events.
+     */
+
+    void recordObjectActionExecuted(String objectName, String objectDisplayName, QName objectType, String objectOid, ChangeType changeType, String channel, Throwable exception);
+
+    void recordObjectActionExecuted(PrismObject<? extends ObjectType> object, ChangeType changeType, Throwable exception);
+
+    void recordObjectActionExecuted(PrismObject<? extends ObjectType> object, ChangeType changeType, String channel, Throwable exception);
+
+    <T extends ObjectType> void recordObjectActionExecuted(PrismObject<T> object, Class<T> objectTypeClass, String defaultOid, ChangeType changeType, String channel, Throwable exception);
+
+    /**
      * Sets initial values for statistics.
      */
 
@@ -90,4 +104,7 @@ public interface StatisticsCollector {
     void resetSynchronizationInformation(SynchronizationInformationType value);
 
     void resetIterativeTaskInformation(IterativeTaskInformationType value);
+
+    void resetActionsExecutedInformation(ActionsExecutedInformationType value);
+
 }

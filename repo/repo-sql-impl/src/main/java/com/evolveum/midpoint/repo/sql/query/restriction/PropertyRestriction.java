@@ -76,7 +76,9 @@ public class PropertyRestriction extends ItemRestriction<ValueFilter> {
 
         Object value = getValueFromFilter(filter, def);
 
-        return createCriterion(sb.toString(), value, filter);
+        String propertyPath = sb.toString();
+        Criterion criterion = createCriterion(propertyPath, value, filter);
+        return addIsNotNullIfNecessary(criterion, propertyPath);
     }
 
     @Override

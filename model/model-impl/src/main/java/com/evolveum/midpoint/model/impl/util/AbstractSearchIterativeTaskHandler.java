@@ -73,6 +73,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
     private boolean preserveStatistics = true;
     private boolean enableIterationStatistics = true;   // beware, this controls whether task stores these statistics; see also recordIterationStatistics in AbstractSearchIterativeResultHandler
     private boolean enableSynchronizationStatistics = false;
+    private boolean enableActionsExecutedStatistics = false;
 
 	// If you need to store fields specific to task instance or task run the ResultHandler is a good place to do that.
 	
@@ -124,6 +125,14 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
         this.enableSynchronizationStatistics = enableSynchronizationStatistics;
     }
 
+    public boolean isEnableActionsExecutedStatistics() {
+        return enableActionsExecutedStatistics;
+    }
+
+    public void setEnableActionsExecutedStatistics(boolean enableActionsExecutedStatistics) {
+        this.enableActionsExecutedStatistics = enableActionsExecutedStatistics;
+    }
+
     public void setPreserveStatistics(boolean preserveStatistics) {
         this.preserveStatistics = preserveStatistics;
     }
@@ -135,11 +144,12 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 	@Override
 	public TaskRunResult run(Task coordinatorTask) {
         LOGGER.trace("{} run starting (coordinator task {})", taskName, coordinatorTask);
-        TaskHandlerUtil.fetchAllStatistics(coordinatorTask, isPreserveStatistics(), isEnableIterationStatistics(), isEnableSynchronizationStatistics());
+        TaskHandlerUtil.fetchAllStatistics(coordinatorTask, isPreserveStatistics(), isEnableIterationStatistics(), isEnableSynchronizationStatistics(),
+                isEnableActionsExecutedStatistics());
         try {
             return runInternal(coordinatorTask);
         } finally {
-            TaskHandlerUtil.storeAllStatistics(coordinatorTask, isEnableIterationStatistics(), isEnableSynchronizationStatistics());
+            TaskHandlerUtil.storeAllStatistics(coordinatorTask, isEnableIterationStatistics(), isEnableSynchronizationStatistics(), isEnableActionsExecutedStatistics());
         }
     }
 
@@ -157,6 +167,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
         // copying relevant configuration items from task to handler
         resultHandler.setEnableIterationStatistics(isEnableIterationStatistics());
         resultHandler.setEnableSynchronizationStatistics(isEnableSynchronizationStatistics());
+        resultHandler.setEnableActionsExecutedStatistics(isEnableActionsExecutedStatistics());
 		
 		boolean cont = initializeRun(resultHandler, runResult, coordinatorTask, opResult);
 		if (!cont) {
@@ -224,7 +235,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
             } else {
                 repositoryService.searchObjectsIterative(type, query, (ResultHandler) resultHandler, null, false, opResult);    // TODO think about this
             }
-            resultHandler.completeProcessing(opResult);
+            resultHandler.completeProcessing(coordinatorTask, opResult);
 
         } catch (ObjectNotFoundException ex) {
             LOGGER.error("{}: Object not found: {}", new Object[]{taskName, ex.getMessage(), ex});

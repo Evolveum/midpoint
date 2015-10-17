@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.SerializationContext;
 import com.evolveum.midpoint.prism.SerializationOptions;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.prism.Item;
@@ -141,6 +142,13 @@ public class DeltaConvertor {
         if (objectDeltaOperationType.getExecutionResult() != null) {
             retval.setExecutionResult(OperationResult.createOperationResult(objectDeltaOperationType.getExecutionResult()));
         }
+        if (objectDeltaOperationType.getObjectName() != null) {
+            retval.setObjectName(objectDeltaOperationType.getObjectName().toPolyString());
+        }
+        retval.setResourceOid(objectDeltaOperationType.getResourceOid());
+        if (objectDeltaOperationType.getResourceName() != null) {
+            retval.setObjectName(objectDeltaOperationType.getResourceName().toPolyString());
+        }
         return retval;
     }
 
@@ -246,16 +254,29 @@ public class DeltaConvertor {
 
 
     public static ObjectDeltaOperationType toObjectDeltaOperationType(ObjectDeltaOperation objectDeltaOperation) throws SchemaException {
-        ObjectDeltaOperationType retval = new ObjectDeltaOperationType();
-        if (objectDeltaOperation.getObjectDelta() != null) {
-            retval.setObjectDelta(toObjectDeltaType(objectDeltaOperation.getObjectDelta()));
-        }
-        if (objectDeltaOperation.getExecutionResult() != null) {
-            retval.setExecutionResult(objectDeltaOperation.getExecutionResult().createOperationResultType());
-        }
-        return retval;
+        return toObjectDeltaOperationType(objectDeltaOperation, null);
     }
-    
+
+    public static ObjectDeltaOperationType toObjectDeltaOperationType(ObjectDeltaOperation objectDeltaOperation, DeltaConversionOptions options) throws SchemaException {
+        ObjectDeltaOperationType rv = new ObjectDeltaOperationType();
+        toObjectDeltaOperationType(objectDeltaOperation, rv, options);
+        return rv;
+    }
+
+    public static void toObjectDeltaOperationType(ObjectDeltaOperation delta, ObjectDeltaOperationType odo, DeltaConversionOptions options) throws SchemaException {
+        odo.setObjectDelta(DeltaConvertor.toObjectDeltaType(delta.getObjectDelta(), options));
+        if (delta.getExecutionResult() != null){
+            odo.setExecutionResult(delta.getExecutionResult().createOperationResultType());
+        }
+        if (delta.getObjectName() != null) {
+            odo.setObjectName(new PolyStringType(delta.getObjectName()));
+        }
+        odo.setResourceOid(delta.getResourceOid());
+        if (delta.getResourceName() != null) {
+            odo.setResourceName(new PolyStringType(delta.getResourceName()));
+        }
+    }
+
 	private static ChangeTypeType convertChangeType(ChangeType changeType) {
 		if (changeType == ChangeType.ADD) {
 			return ChangeTypeType.ADD;

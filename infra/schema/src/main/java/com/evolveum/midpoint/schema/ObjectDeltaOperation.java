@@ -21,6 +21,7 @@ import java.util.Collection;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -34,6 +35,9 @@ public class ObjectDeltaOperation<T extends ObjectType> implements DebugDumpable
 
 	private ObjectDelta<T> objectDelta;
 	private OperationResult executionResult;
+	private PolyString objectName;
+	private String resourceOid;
+	private PolyString resourceName;
 	
 	public ObjectDeltaOperation() {
 		super();
@@ -66,6 +70,30 @@ public class ObjectDeltaOperation<T extends ObjectType> implements DebugDumpable
 		this.executionResult = executionResult;
 	}
 
+	public PolyString getObjectName() {
+		return objectName;
+	}
+
+	public void setObjectName(PolyString objectName) {
+		this.objectName = objectName;
+	}
+
+	public String getResourceOid() {
+		return resourceOid;
+	}
+
+	public void setResourceOid(String resourceOid) {
+		this.resourceOid = resourceOid;
+	}
+
+	public PolyString getResourceName() {
+		return resourceName;
+	}
+
+	public void setResourceName(PolyString resourceName) {
+		this.resourceName = resourceName;
+	}
+
 	public boolean containsDelta(ObjectDelta<T> delta) {
 		return objectDelta.equals(delta);
 	}
@@ -93,6 +121,9 @@ public class ObjectDeltaOperation<T extends ObjectType> implements DebugDumpable
 			clone.objectDelta = this.objectDelta.clone();
 		}
 		clone.executionResult = this.executionResult;
+		clone.objectName = this.objectName;
+		clone.resourceOid = this.resourceOid;
+		clone.resourceName = this.resourceName;
 	}
 
 	public static void checkConsistence(Collection<? extends ObjectDeltaOperation<?>> deltas) {
@@ -133,6 +164,9 @@ public class ObjectDeltaOperation<T extends ObjectType> implements DebugDumpable
 		int result = 1;
 		result = prime * result + ((executionResult == null) ? 0 : executionResult.hashCode());
 		result = prime * result + ((objectDelta == null) ? 0 : objectDelta.hashCode());
+		result = prime * result + ((objectName == null) ? 0 : objectName.hashCode());
+		result = prime * result + ((resourceOid == null) ? 0 : resourceOid.hashCode());
+		result = prime * result + ((resourceName == null) ? 0 : resourceName.hashCode());
 		return result;
 	}
 
@@ -154,6 +188,22 @@ public class ObjectDeltaOperation<T extends ObjectType> implements DebugDumpable
 			if (other.objectDelta != null)
 				return false;
 		} else if (!objectDelta.equals(other.objectDelta))
+			return false;
+		// TODO are the following fields relevant for equality test?
+		if (objectName == null) {
+			if (other.objectName != null)
+				return false;
+		} else if (!objectName.equals(other.objectName))
+			return false;
+		if (resourceOid == null) {
+			if (other.resourceOid != null)
+				return false;
+		} else if (!resourceOid.equals(other.resourceOid))
+			return false;
+		if (resourceName == null) {
+			if (other.resourceName != null)
+				return false;
+		} else if (!resourceName.equals(other.resourceName))
 			return false;
 		return true;
 	}
@@ -177,11 +227,16 @@ public class ObjectDeltaOperation<T extends ObjectType> implements DebugDumpable
 		DebugUtil.debugDumpWithLabel(sb, "Delta", objectDelta, indent + 1);
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "Execution result", executionResult, indent + 1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "Object name", objectName, indent + 1);
+		if (resourceName != null || resourceOid != null) {
+			sb.append("\n");
+			DebugUtil.debugDumpWithLabel(sb, "Resource", resourceName + " (" + resourceOid + ")", indent + 1);
+		}
 		return sb.toString();
 	}
 
     protected String getDebugDumpClassName() {
         return "ObjectDeltaOperation";
     }
-	
 }

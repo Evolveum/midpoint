@@ -10289,6 +10289,34 @@
         <xsd:sequence>
             <xsd:element name="objectDelta" type="t:ObjectDeltaType" minOccurs="0"/>
             <xsd:element name="executionResult" type="tns:OperationResultType" minOccurs="0"/>
+            <xsd:element name="objectName" type="t:PolyStringType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the object that was the target of this delta, if known.
+                        As for other similar attributes, it may become obsolete.
+                        Useful for informational purposes, typically in audit records.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="resourceOid" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        OID of the resource that is related to this operation - typically
+                        if the object being processed is a shadow of a resource object.
+                        Useful for informational purposes, typically in audit records.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="resourceName" type="t:PolyStringType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the resource that is related to this operation - typically
+                        if the object being processed is a shadow of a resource object.
+                        As for other similar attributes, it may become obsolete.
+                        Useful for informational purposes, typically in audit records.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -13122,6 +13150,42 @@
         </xsd:sequence>
     </xsd:complexType>
 
+    <xsd:complexType name="ActionsExecutedInformationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="objectsEntry" type="tns:ActionsExecutedObjectsEntryType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="timestamp" type="xsd:dateTime" />
+            <xsd:element name="fromMemory" type="xsd:boolean" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ActionsExecutedObjectsEntryType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="objectType" type="xsd:QName" />
+            <xsd:element name="operation" type="t:ChangeTypeType" />
+            <xsd:element name="channel" type="xsd:string" minOccurs="0" />
+            <xsd:element name="totalSuccessCount" type="xsd:int" />
+            <xsd:element name="lastSuccessObjectName" type="xsd:string" minOccurs="0" />
+            <xsd:element name="lastSuccessObjectDisplayName" type="xsd:string" minOccurs="0" />
+            <xsd:element name="lastSuccessObjectOid" type="xsd:string" minOccurs="0" />
+            <xsd:element name="lastSuccessTimestamp" type="xsd:dateTime" minOccurs="0" />
+            <xsd:element name="totalFailureCount" type="xsd:int"  />
+            <xsd:element name="lastFailureObjectName" type="xsd:string" minOccurs="0" />
+            <xsd:element name="lastFailureObjectDisplayName" type="xsd:string" minOccurs="0" />
+            <xsd:element name="lastFailureObjectOid" type="xsd:string" minOccurs="0" />
+            <xsd:element name="lastFailureExceptionMessage" type="xsd:string" minOccurs="0" />
+            <xsd:element name="lastFailureTimestamp" type="xsd:dateTime" minOccurs="0" />
+        </xsd:sequence>
+    </xsd:complexType>
     
     <xsd:complexType name="SequenceType">
         <xsd:annotation>

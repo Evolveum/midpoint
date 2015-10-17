@@ -324,14 +324,12 @@ public class AuditEventRecord implements DebugDumpable {
     	for (ObjectDeltaOperation delta : deltas){
     		ObjectDeltaOperationType odo = new ObjectDeltaOperationType();
     		try {
-    			odo.setObjectDelta(DeltaConvertor.toObjectDeltaType(delta.getObjectDelta(), DeltaConversionOptions.createSerializeReferenceNames()));
-    			if (delta.getExecutionResult() != null){
-    				odo.setExecutionResult(delta.getExecutionResult().createOperationResultType());
-    			}
+				DeltaConvertor.toObjectDeltaOperationType(delta, odo, DeltaConversionOptions.createSerializeReferenceNames());
 				auditRecordType.getDelta().add(odo);
 			} catch (Exception e) {
 				if (tolerateInconsistencies){
 					if (delta.getExecutionResult() != null){
+						// TODO does this even work? [med]
 						delta.getExecutionResult().setMessage("Could not show audit record, bad data in delta: " + delta.getObjectDelta());
 					} else {
 						OperationResult result = new OperationResult("Create audit event record type");

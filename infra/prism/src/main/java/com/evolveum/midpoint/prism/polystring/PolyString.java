@@ -254,4 +254,7 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 		}
 	}
 
+	public static PolyString toPolyString(PolyStringType value) {
+		return value != null ? value.toPolyString() : null;
+	}
 }

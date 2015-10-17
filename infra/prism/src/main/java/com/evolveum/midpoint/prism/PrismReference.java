@@ -22,6 +22,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -150,6 +151,10 @@ public class PrismReference extends Item<PrismReferenceValue,PrismReferenceDefin
 	public String getOid() {
     	return getValue().getOid();
     }
+
+	public PolyString getTargetName() {
+		return getValue().getTargetName();
+	}
     
     public PrismReferenceValue findValueByOid(String oid) {
     	for (PrismReferenceValue pval: getValues()) {

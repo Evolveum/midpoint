@@ -66,10 +66,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeExecutionStatusT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActionsExecutedInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang.Validate;
@@ -82,8 +82,6 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -986,10 +984,16 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         if (iterativeTaskInformationType != null) {
             iterativeTaskInformationType.setFromMemory(true);
         }
+        ActionsExecutedInformationType actionsExecutedInformationType = taskInMemory.getAggregateActionsExecutedInformation();
+        if (actionsExecutedInformationType != null) {
+            actionsExecutedInformationType.setFromMemory(true);
+        }
 
         task.setExtensionPropertyValueTransient(SchemaConstants.MODEL_EXTENSION_OPERATIONAL_INFORMATION_PROPERTY_NAME, operationalInformationType);
         task.setExtensionPropertyValueTransient(SchemaConstants.MODEL_EXTENSION_SYNCHRONIZATION_INFORMATION_PROPERTY_NAME, synchronizationInformationType);
         task.setExtensionPropertyValueTransient(SchemaConstants.MODEL_EXTENSION_ITERATIVE_TASK_INFORMATION_PROPERTY_NAME, iterativeTaskInformationType);
+        task.setExtensionPropertyValueTransient(SchemaConstants.MODEL_EXTENSION_ACTIONS_EXECUTED_INFORMATION_PROPERTY_NAME, actionsExecutedInformationType);
+        task.setProgressTransient(taskInMemory.getProgress());
     }
 
     private void fillInSubtasks(Task task, ClusterStatusInformation clusterStatusInformation, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {

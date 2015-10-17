@@ -23,7 +23,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.progress.StatisticsDtoModel;
 import com.evolveum.midpoint.web.component.progress.StatisticsPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
@@ -31,12 +30,9 @@ import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
-import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
@@ -87,6 +83,7 @@ public class TaskStatePanel extends SimplePanel<TaskCurrentStateDto> {
     private static final String ID_OBJECTS_TOTAL = "objectsTotal";
 
     private static final String ID_SYNCHRONIZATION_INFORMATION_PANEL = "synchronizationInformationPanel";
+    private static final String ID_ACTIONS_EXECUTED_INFORMATION_PANEL = "actionsExecutedInformationPanel";
     private static final String ID_STATISTICS_PANEL = "statisticsPanel";
 
     private static final String ID_WORKER_THREADS_TABLE = "workerThreadsTable";
@@ -95,8 +92,10 @@ public class TaskStatePanel extends SimplePanel<TaskCurrentStateDto> {
     private static final String ID_OPERATION_RESULT = "operationResult";
 
     // ugly hack - TODO replace with something serious
+    // we cannot work with handler uri, because it exists only as long as the task executes
     private static final Collection<String> WALL_CLOCK_AVG_CATEGORIES = Arrays.asList(
-            TaskCategory.BULK_ACTIONS, TaskCategory.IMPORTING_ACCOUNTS, TaskCategory.RECOMPUTATION, TaskCategory.RECONCILIATION
+            TaskCategory.BULK_ACTIONS, TaskCategory.IMPORTING_ACCOUNTS, TaskCategory.RECOMPUTATION, TaskCategory.RECONCILIATION,
+            TaskCategory.UTIL       // this is a megahack: only utility tasks that count objects are DeleteTask and ShadowIntegrityCheck
     );
 
     private StatisticsDtoModel statisticsDtoModel;
@@ -465,6 +464,30 @@ public class TaskStatePanel extends SimplePanel<TaskCurrentStateDto> {
         });
         add(synchronizationInformationPanel);
 
+        ActionsExecutedInformationPanel actionsExecutedInformationPanel = new ActionsExecutedInformationPanel(
+                ID_ACTIONS_EXECUTED_INFORMATION_PANEL,
+                new AbstractReadOnlyModel<ActionsExecutedInformationDto>() {
+                    @Override
+                    public ActionsExecutedInformationDto getObject() {
+                        TaskCurrentStateDto dto = getModelObject();
+                        if (dto == null) {
+                            return null;
+                        }
+                        if (dto.getActionsExecutedInformationType() == null) {
+                            return null;
+                        }
+                        return new ActionsExecutedInformationDto(dto.getActionsExecutedInformationType());
+                    }
+                });
+        actionsExecutedInformationPanel.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                TaskCurrentStateDto dto = getModelObject();
+                return dto != null && dto.getActionsExecutedInformationType() != null;
+            }
+        });
+        add(actionsExecutedInformationPanel);
+
         Label countersSource = new Label(ID_COUNTERS_SOURCE, new AbstractReadOnlyModel<String>() {
             @Override
             public String getObject() {
@@ -557,8 +580,6 @@ public class TaskStatePanel extends SimplePanel<TaskCurrentStateDto> {
             Long finished = taskDto.getLastRunFinishTimestampLong();
             if (started != null && (finished == null || finished < started)) {
                 showAgo = true;     // for all running tasks
-            } else if (finished != null && (System.currentTimeMillis()-finished < 60000L)) {
-                showAgo = true;     // for tasks finished just a while ago
             }
         }
         return showAgo;

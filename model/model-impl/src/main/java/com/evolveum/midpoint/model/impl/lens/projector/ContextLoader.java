@@ -856,6 +856,7 @@ public class ContextLoader {
 				ShadowType.F_DEAD, true));
 		try {
 			cacheRepositoryService.modifyObject(ShadowType.class, oid, modifications, result);
+			// TODO report to task?
 		} catch (ObjectNotFoundException e) {
 			// Done already
 			result.muteLastSubresultError();

@@ -45,3 +45,11 @@ create index iOrgRefTargetOid on m_assignment (orgRef_targetOid);
 create index iResourceRefTargetOid on m_assignment (resourceRef_targetOid);
 
 create index iTimestampValue on m_audit_event (timestampValue);
+
+alter table m_audit_delta add
+    objectName_norm nvarchar(255) collate database_default,
+    objectName_orig nvarchar(255) collate database_default,
+    resourceName_norm nvarchar(255) collate database_default,
+    resourceName_orig nvarchar(255) collate database_default,
+    resourceOid nvarchar(36) collate database_default;
+

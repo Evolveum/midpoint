@@ -111,6 +111,7 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
         setPreserveStatistics(false);
         setEnableIterationStatistics(true);
         setEnableSynchronizationStatistics(true);
+        setEnableActionsExecutedStatistics(true);
     }
 
     @PostConstruct

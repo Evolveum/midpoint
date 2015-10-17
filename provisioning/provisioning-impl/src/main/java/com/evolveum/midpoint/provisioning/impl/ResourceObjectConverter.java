@@ -869,7 +869,7 @@ public class ResourceObjectConverter {
 //				if (!newName.equals(shadow.asObjectable().getName().getOrig())){
 					
 					PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, shadow.getDefinition(), 
-							ProvisioningUtil.determineShadowName(shadow));
+							ShadowUtil.determineShadowName(shadow));
 					operation = new PropertyModificationOperation(shadowNameDelta);
 		  			// TODO matchingRuleQName handling - but it should not be necessary here
 					deltas.add(operation);

@@ -100,6 +100,14 @@ public class RPolyString implements Serializable {
         return new RPolyString(string.getOrig(), string.getNorm());
     }
 
+    public static RPolyString toRepo(PolyString string) {
+        if (string == null) {
+            return null;
+        }
+
+        return new RPolyString(string.getOrig(), string.getNorm());
+    }
+
     public static PolyStringType copyToJAXB(RPolyString string) {
         if (string == null) {
             return null;
@@ -110,5 +118,13 @@ public class RPolyString implements Serializable {
         poly.setNorm(string.getNorm());
 
         return poly;
+    }
+
+    public static PolyString fromRepo(RPolyString string) {
+        if (string == null) {
+            return null;
+        }
+
+        return new PolyString(string.getOrig(), string.getNorm());
     }
 }

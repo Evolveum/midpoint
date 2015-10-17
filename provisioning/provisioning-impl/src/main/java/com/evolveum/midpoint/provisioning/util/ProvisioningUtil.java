@@ -113,67 +113,6 @@ public class ProvisioningUtil {
 
 	}
 
-	public static <T extends ShadowType> PolyString determineShadowName(ShadowType shadow)
-			throws SchemaException {
-		return determineShadowName(shadow.asPrismObject());
-	}
-
-	public static <T extends ShadowType> PolyString determineShadowName(PrismObject<T> shadow)
-			throws SchemaException {
-		String stringName = determineShadowStringName(shadow);
-		if (stringName == null) {
-			return null;
-		}
-		return new PolyString(stringName);
-	}
-
-	public static <T extends ShadowType> String determineShadowStringName(PrismObject<T> shadow)
-			throws SchemaException {
-		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
-		ResourceAttribute<String> namingAttribute = attributesContainer.getNamingAttribute();
-		if (namingAttribute == null || namingAttribute.isEmpty()) {
-			// No naming attribute defined. Try to fall back to identifiers.
-			Collection<ResourceAttribute<?>> identifiers = attributesContainer.getIdentifiers();
-			// We can use only single identifiers (not composite)
-			if (identifiers.size() == 1) {
-				PrismProperty<?> identifier = identifiers.iterator().next();
-				// Only single-valued identifiers
-				Collection<PrismPropertyValue<?>> values = (Collection) identifier.getValues();
-				if (values.size() == 1) {
-					PrismPropertyValue<?> value = values.iterator().next();
-					// and only strings
-					if (value.getValue() instanceof String) {
-						return (String) value.getValue();
-					}
-				}
-			} else {
-				return attributesContainer.findAttribute(ConnectorFactoryIcfImpl.ICFS_NAME)
-						.getValue(String.class).getValue();
-			}
-			// Identifier is not usable as name
-			// TODO: better identification of a problem
-			throw new SchemaException("No naming attribute defined (and identifier not usable)");
-		}
-		// TODO: Error handling
-		List<PrismPropertyValue<String>> possibleValues = namingAttribute.getValues();
-
-		if (possibleValues.size() > 1) {
-			throw new SchemaException(
-					"Cannot determine name of shadow. Found more than one value for naming attribute (attr: "
-							+ namingAttribute.getElementName() + ", values: {}" + possibleValues + ")");
-		}
-
-		PrismPropertyValue<String> value = possibleValues.iterator().next();
-
-		if (value == null) {
-			throw new SchemaException("Naming attribute has no value. Could not determine shadow name.");
-		}
-
-		return value.getValue();
-		// return
-		// attributesContainer.getNamingAttribute().getValue().getValue();
-	}
-
 	public static PrismObjectDefinition<ShadowType> getResourceObjectShadowDefinition(
 			PrismContext prismContext) {
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);

@@ -135,6 +135,8 @@ public class ReferenceRestriction extends ItemRestriction<RefFilter> {
                     ClassMapper.getHQLTypeForQName(refValue.getTargetType())));
         }
 
+        // TODO what about isNotNull if necessary ?
+
         return conjunction;
     }
 

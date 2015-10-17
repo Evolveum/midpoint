@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.sql.data.common.OperationResultFull;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RChangeType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
@@ -62,9 +63,15 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
     private String checksum;
     private String deltaOid;
     private RChangeType deltaType;
+
     //operation result
     private ROperationResultStatus status;
     private String fullResult;
+
+    // additional info from ObjectDeltaOperationType
+    private RPolyString objectName;
+    private String resourceOid;
+    private RPolyString resourceName;
 
 
     @ForeignKey(name = "none")
@@ -128,6 +135,21 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
         return status;
     }
 
+    @Embedded
+    public RPolyString getObjectName() {
+        return objectName;
+    }
+
+    @Column(length = RUtil.COLUMN_LENGTH_OID)
+    public String getResourceOid() {
+        return resourceOid;
+    }
+
+    @Embedded
+    public RPolyString getResourceName() {
+        return resourceName;
+    }
+
     @Transient
     @Override
     public Boolean isTransient() {
@@ -175,6 +197,18 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
         this.deltaOid = deltaOid;
     }
 
+    public void setObjectName(RPolyString objectName) {
+        this.objectName = objectName;
+    }
+
+    public void setResourceOid(String resourceOid) {
+        this.resourceOid = resourceOid;
+    }
+
+    public void setResourceName(RPolyString resourceName) {
+        this.resourceName = resourceName;
+    }
+
     @Transient
     private void recomputeChecksum() {
         checksum = RUtil.computeChecksum(delta, fullResult);
@@ -195,6 +229,9 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
         if (status != that.status) return false;
         if (deltaType != null ? !deltaType.equals(that.deltaType) : that.deltaType != null) return false;
         if (deltaOid != null ? !deltaOid.equals(that.deltaOid) : that.deltaOid != null) return false;
+        if (objectName != null ? !objectName.equals(that.objectName) : that.objectName != null) return false;
+        if (resourceOid != null ? !resourceOid.equals(that.resourceOid) : that.resourceOid != null) return false;
+        if (resourceName != null ? !resourceName.equals(that.resourceName) : that.resourceName != null) return false;
 
         return true;
     }
@@ -207,6 +244,9 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
         result1 = 31 * result1 + (fullResult != null ? fullResult.hashCode() : 0);
         result1 = 31 * result1 + (deltaOid != null ? deltaOid.hashCode() : 0);
         result1 = 31 * result1 + (deltaType != null ? deltaType.hashCode() : 0);
+        result1 = 31 * result1 + (objectName != null ? objectName.hashCode() : 0);
+        result1 = 31 * result1 + (resourceOid != null ? resourceOid.hashCode() : 0);
+        result1 = 31 * result1 + (resourceName != null ? resourceName.hashCode() : 0);
         return result1;
     }
 
@@ -229,30 +269,35 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
                 RUtil.copyResultFromJAXB(def, SchemaConstantsGenerated.C_OPERATION_RESULT, operation.getExecutionResult().createOperationResultType(),
                         auditDelta, prismContext);
             }
+
+            auditDelta.setObjectName(RPolyString.toRepo(operation.getObjectName()));
+            auditDelta.setResourceOid(operation.getResourceOid());
+            auditDelta.setResourceName(RPolyString.toRepo(operation.getResourceName()));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
 
         return auditDelta;
     }
-    
-   	public static ObjectDeltaOperation fromRepo(RObjectDeltaOperation operation, PrismContext prismContext) throws DtoTranslationException {
-   		ObjectDeltaOperation odo = new ObjectDeltaOperation();
-   		try{
-   		
-   			if (operation.getDelta() !=null){
-   		ObjectDeltaType delta = prismContext.parseAtomicValue(operation.getDelta(), ObjectDeltaType.COMPLEX_TYPE);
-   		odo.setObjectDelta(DeltaConvertor.createObjectDelta(delta, prismContext));
-   			}
-   			if (operation.getFullResult() != null){
-   		OperationResultType resultType = prismContext.parseAtomicValue(operation.getFullResult(), OperationResultType.COMPLEX_TYPE);
-   		
-   		odo.setExecutionResult(OperationResult.createOperationResult(resultType));
-   			}
-   		} catch (Exception ex) {
-   			throw new DtoTranslationException(ex.getMessage(), ex);
-   		}
-   		
-   		return odo;
-   	}
+
+    public static ObjectDeltaOperation fromRepo(RObjectDeltaOperation operation, PrismContext prismContext) throws DtoTranslationException {
+        ObjectDeltaOperation odo = new ObjectDeltaOperation();
+        try {
+            if (operation.getDelta() != null) {
+                ObjectDeltaType delta = prismContext.parseAtomicValue(operation.getDelta(), ObjectDeltaType.COMPLEX_TYPE);
+                odo.setObjectDelta(DeltaConvertor.createObjectDelta(delta, prismContext));
+            }
+            if (operation.getFullResult() != null) {
+                OperationResultType resultType = prismContext.parseAtomicValue(operation.getFullResult(), OperationResultType.COMPLEX_TYPE);
+                odo.setExecutionResult(OperationResult.createOperationResult(resultType));
+            }
+            odo.setObjectName(RPolyString.fromRepo(operation.getObjectName()));
+            odo.setResourceOid(operation.getResourceOid());
+            odo.setResourceName(RPolyString.fromRepo(operation.getResourceName()));
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
+        }
+
+        return odo;
+    }
 }

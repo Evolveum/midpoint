@@ -432,7 +432,9 @@ class IcfUtil {
 	private static void addAllExceptionsToMessage(StringBuilder sb, Throwable ex) {
 		sb.append(ex.getClass().getName());
 		sb.append("(");
-		sb.append(ex.getMessage());
+		// Make sure that no non-printable chars shall pass
+		// e.g. AD LDAP produces non-printable chars in the messages
+		sb.append(ex.getMessage().replaceAll("\\p{C}", "?"));
 		sb.append(")");
 		if (ex.getCause() != null) {
 			sb.append("->");
