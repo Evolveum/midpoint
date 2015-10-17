@@ -250,7 +250,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 
 		System.out.println("---------------------------------------------------------------------");
 
-		assertEquals("Unexpected number of connectors discovered", 5, connectors.size());
+		assertEquals("Unexpected number of connectors discovered", 6, connectors.size());
 	}
 	
 	@Test
