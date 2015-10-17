@@ -62,11 +62,13 @@ public class PageSelfDashboard extends PageSelf {
     private static final int MAX_WORK_ITEMS = 1000;
     private static final int MAX_REQUESTS = 1000;
     private final Model<PrismObject<UserType>> principalModel = new Model<PrismObject<UserType>>();
+    private IModel<List<RichHyperlinkType>> linksPanelModel = null;
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
     private static final String TASK_GET_SYSTEM_CONFIG = DOT_CLASS + "getSystemConfiguration";
 
     public PageSelfDashboard() {
         principalModel.setObject(loadUser());
+        createLinksPanelModel();
         initLayout();
     }
 
@@ -79,34 +81,7 @@ public class PageSelfDashboard extends PageSelf {
                 AuthorizationConstants.AUTZ_UI_TASKS_URL)) {
             dashboardSearchPanel.setVisible(false);
         }
-        final AsyncDashboardPanel<Object, List<RichHyperlinkType>> linksPanel =
-                new AsyncDashboardPanel<Object, List<RichHyperlinkType>>(ID_LINKS_PANEL, null,
-                        "", DashboardColor.GRAY) {
-
-                   @Override
-                    protected SecurityContextAwareCallable<CallableResult<List<RichHyperlinkType>>> createCallable(
-                            Authentication auth, IModel callableParameterModel) {
-
-                        return new SecurityContextAwareCallable<CallableResult<List<RichHyperlinkType>>>(
-                                getSecurityEnforcer(), auth) {
-
-                            @Override
-                            public CallableResult<List<RichHyperlinkType>> callWithContextPrepared() throws Exception {
-                                return loadLinksList();
-                            }
-                        };
-                    }
-
-                    @Override
-                    protected Component getMainComponent(String markupId) {
-                        LinksPanel panel = new LinksPanel(markupId, new PropertyModel<List<RichHyperlinkType>>(getModel(), CallableResult.F_VALUE));
-                        WebMarkupContainer dashboardTitle = (WebMarkupContainer) get(
-                                createComponentPath(AsyncDashboardPanel.ID_DASHBOARD_PARENT, AsyncDashboardPanel.ID_DASHBOARD_TITLE));
-                        dashboardTitle.setVisible(false);
-
-                        return panel;
-                    }
-                };
+        LinksPanel linksPanel = new LinksPanel(ID_LINKS_PANEL, linksPanelModel, linksPanelModel.getObject());
         add(linksPanel);
 
         AsyncDashboardPanel<Object, List<WorkItemDto>> workItemsPanel =
@@ -287,29 +262,44 @@ public class PageSelfDashboard extends PageSelf {
         return user;
     }
 
-    private CallableResult<List<RichHyperlinkType>> loadLinksList(){
-        CallableResult callableResult = new CallableResult();
+    private List<RichHyperlinkType> loadLinksList(){
         List<RichHyperlinkType> list = new ArrayList<RichHyperlinkType>();
 
         PrismObject<UserType> user = principalModel.getObject();
         if (user == null) {
-            return callableResult;
+            return list;
         }
 
         OperationResult result = new OperationResult(OPERATION_LOAD_WORK_ITEMS);
-        callableResult.setResult(result);
 
         Task task = createSimpleTask(TASK_GET_SYSTEM_CONFIG);
         try{
             AdminGuiConfigurationType adminGuiConfig = getModelInteractionService().getAdminGuiConfiguration(task, result);
             list = adminGuiConfig.getUserDashboardLink();
-            callableResult.setValue(list);
             result.recordSuccess();
         } catch(Exception ex){
             LoggingUtils.logException(LOGGER, "Couldn't load system configuration", ex);
             result.recordFatalError("Couldn't load system configuration.", ex);
         }
-        return callableResult;
+        return list;
     }
 
+    private void createLinksPanelModel(){
+        linksPanelModel = new IModel<List<RichHyperlinkType>>() {
+            @Override
+            public List<RichHyperlinkType> getObject() {
+                return loadLinksList();
+            }
+
+            @Override
+            public void setObject(List<RichHyperlinkType> richHyperlinkTypes) {
+
+            }
+
+            @Override
+            public void detach() {
+
+            }
+        };
+    }
 }

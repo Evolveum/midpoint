@@ -41,8 +41,6 @@ public class DashboardSearchPanel extends SimplePanel<T> {
     private static final int RESOURCE_INDEX = 1;
     private static final int TASK_INDEX = 2;
 
-    private String selected = "Google";
-
     public DashboardSearchPanel(String id) {
         this(id, null);
     }

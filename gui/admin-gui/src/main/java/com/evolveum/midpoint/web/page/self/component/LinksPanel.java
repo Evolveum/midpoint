@@ -28,11 +28,13 @@ public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
     private static final String ID_LINKS_COLUMN = "linksColumn";
     private static final String OPERATION_LOAD_LINKS = DOT_CLASS + "loadLinks";
 
+    IModel<List<RichHyperlinkType>> model;
+
     public LinksPanel(String id) {
         super(id, null);
     }
 
-    public LinksPanel(String id, IModel<List<RichHyperlinkType>> model) {
+    public LinksPanel(String id, IModel<List<RichHyperlinkType>> model, final List<RichHyperlinkType> linksList) {
         super(id, model);
     }
 
