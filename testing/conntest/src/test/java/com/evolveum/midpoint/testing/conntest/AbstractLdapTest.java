@@ -56,7 +56,9 @@ import org.apache.commons.lang.mutable.MutableInt;
 import org.apache.directory.api.ldap.codec.api.BinaryAttributeDetector;
 import org.apache.directory.api.ldap.codec.api.DefaultConfigurableBinaryAttributeDetector;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
+import org.apache.directory.api.ldap.model.cursor.CursorLdapReferralException;
 import org.apache.directory.api.ldap.model.cursor.EntryCursor;
+import org.apache.directory.api.ldap.model.cursor.SearchCursor;
 import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.DefaultEntry;
 import org.apache.directory.api.ldap.model.entry.DefaultModification;
@@ -72,6 +74,11 @@ import org.apache.directory.api.ldap.model.message.BindResponse;
 import org.apache.directory.api.ldap.model.message.ModifyDnRequest;
 import org.apache.directory.api.ldap.model.message.ModifyDnRequestImpl;
 import org.apache.directory.api.ldap.model.message.ModifyDnResponse;
+import org.apache.directory.api.ldap.model.message.Response;
+import org.apache.directory.api.ldap.model.message.ResultCodeEnum;
+import org.apache.directory.api.ldap.model.message.SearchRequest;
+import org.apache.directory.api.ldap.model.message.SearchRequestImpl;
+import org.apache.directory.api.ldap.model.message.SearchResultEntry;
 import org.apache.directory.api.ldap.model.message.SearchScope;
 import org.apache.directory.api.ldap.model.name.Dn;
 import org.apache.directory.api.ldap.model.name.Rdn;
@@ -156,6 +163,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	protected static final String USER_BARBOSSA_OID = "c0c010c0-d34d-b33f-f00d-111111111112";
 	protected static final String USER_BARBOSSA_USERNAME = "barbossa";
 	protected static final String USER_BARBOSSA_FULL_NAME = "Hector Barbossa";
+	protected static final String USER_BARBOSSA_PASSWORD = "deadjack.tellnotales123";
 	
 	// Barbossa after rename
 	protected static final String USER_CPTBARBOSSA_USERNAME = "cptbarbossa";
@@ -435,11 +443,19 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	}
 		
 	protected Entry getLdapAccountByUid(String uid) throws LdapException, IOException, CursorException {
+		return searchLdapAccount("(uid="+uid+")");
+	}
+	
+	protected Entry getLdapAccountByCn(String cn) throws LdapException, IOException, CursorException {
+		return searchLdapAccount("(cn="+cn+")");
+	}
+	
+	protected Entry searchLdapAccount(String filter) throws LdapException, IOException, CursorException {
 		LdapNetworkConnection connection = ldapConnect();
-		List<Entry> entries = ldapSearch(connection, "(uid="+uid+")");
+		List<Entry> entries = ldapSearch(connection, filter);
 		ldapDisconnect(connection);
 
-		assertEquals("Unexpected number of entries for uid="+uid+": "+entries, 1, entries.size());
+		assertEquals("Unexpected number of entries for "+filter+": "+entries, 1, entries.size());
 		Entry entry = entries.get(0);
 
 		return entry;
@@ -549,17 +565,38 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	}
 	
 	protected List<Entry> ldapSearch(LdapNetworkConnection connection, String baseDn, String filter, SearchScope scope, String... attributes) throws LdapException, CursorException {
+		LOGGER.trace("LDAP search base={}, filter={}, scope={}, attributes={}",
+				new Object[]{baseDn, filter, scope, attributes});
+		
+		SearchRequest searchRequest = new SearchRequestImpl();
+		searchRequest.setBase(new Dn(baseDn));
+		searchRequest.setFilter(filter);
+		searchRequest.setScope(scope);
+		searchRequest.addAttributes(attributes);
+		searchRequest.ignoreReferrals();
+		
 		List<Entry> entries = new ArrayList<Entry>();
-		EntryCursor entryCursor = connection.search( baseDn, filter, scope, attributes );
-		Entry entry = null;
-		while (entryCursor.next()) {
-			entries.add(entryCursor.get());
+		try {
+			SearchCursor searchCursor = connection.search(searchRequest);
+			while (searchCursor.next()) {
+				Response response = searchCursor.get();
+				if (response instanceof SearchResultEntry) {
+					Entry entry = ((SearchResultEntry)response).getEntry();
+					entries.add(entry);
+				}
+			}
+		} catch (CursorLdapReferralException e) {
+			throw new IllegalStateException("Got referral to: "+e.getReferralInfo(), e);
 		}
 		return entries;
 	}
 	
 	protected void assertLdapPassword(String uid, String password) throws LdapException, IOException, CursorException {
 		Entry entry = getLdapAccountByUid(uid);
+		assertLdapPassword(entry, password);
+	}
+	
+	protected void assertLdapPassword(Entry entry, String password) throws LdapException, IOException, CursorException {
 		LdapNetworkConnection conn = ldapConnect(entry.getDn().toString(), password);
 		assertTrue("Not connected", conn.isConnected());
 		assertTrue("Not authenticated", conn.isAuthenticated());
@@ -575,7 +612,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	}
 
 	protected Entry createAccountEntry(String uid, String cn, String givenName, String sn) throws LdapException {
-		Entry entry = new DefaultEntry(toDn(uid),
+		Entry entry = new DefaultEntry(toAccountDn(uid),
 				"objectclass", LDAP_ACCOUNT_OBJECTCLASS,
 				"uid", uid,
 				"cn", cn,
@@ -622,7 +659,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		ldapDisconnect(connection);
 	}
 	
-	protected String toDn(String username) {
+	protected String toAccountDn(String username) {
 		return "uid="+username+","+getPeopleLdapSuffix();
 	}
 	
@@ -643,6 +680,8 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	}
 	
 	protected LdapNetworkConnection ldapConnect(String bindDn, String bindPassword) throws LdapException {
+		LOGGER.trace("LDAP connect to {}:{} as {}",
+				getLdapServerHost(), getLdapServerPort(), bindDn);
 		LdapConnectionConfig config = new LdapConnectionConfig();
 		config.setLdapHost(getLdapServerHost());
 		config.setLdapPort(getLdapServerPort());
@@ -671,10 +710,16 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		if (!connected) {
 			AssertJUnit.fail("Cannot connect to LDAP server "+getLdapServerHost()+":"+getLdapServerPort());
 		}
+		LOGGER.trace("LDAP connected to {}:{}, executing bind as {}",
+				getLdapServerHost(), getLdapServerPort(), bindDn);
 		BindRequest bindRequest = new BindRequestImpl();
 		bindRequest.setDn(new Dn(bindDn));
 		bindRequest.setCredentials(bindPassword);
+		bindRequest.setSimple(true);
 		BindResponse bindResponse = connection.bind(bindRequest);
+		assertTrue("Bind as "+bindDn+" failed: "+bindResponse.getLdapResult().getDiagnosticMessage()+" ("+bindResponse.getLdapResult().getResultCode()+")", bindResponse.getLdapResult().getResultCode() == ResultCodeEnum.SUCCESS);
+		LOGGER.trace("LDAP connected to {}:{}, bound as {}",
+				getLdapServerHost(), getLdapServerPort(), bindDn);
 		return connection;
 	}
 

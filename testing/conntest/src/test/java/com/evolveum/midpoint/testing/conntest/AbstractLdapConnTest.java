@@ -194,8 +194,8 @@ public abstract class AbstractLdapConnTest extends AbstractLdapTest {
 	@Test
     public void test000Sanity() throws Exception {
 		cleanupDelete(toGroupDn(GROUP_MONKEYS_CN));
-		cleanupDelete(toDn(USER_BARBOSSA_USERNAME));
-		cleanupDelete(toDn(USER_CPTBARBOSSA_USERNAME));
+		cleanupDelete(toAccountDn(USER_BARBOSSA_USERNAME));
+		cleanupDelete(toAccountDn(USER_CPTBARBOSSA_USERNAME));
 	}
 	
 	@Test
@@ -221,7 +221,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapTest {
         assertEquals("Unexpected search result: "+shadows, 1, shadows.size());
         
         PrismObject<ShadowType> shadow = shadows.get(0);
-        assertAccountShadow(shadow, toDn(ACCOUNT_0_UID));
+        assertAccountShadow(shadow, toAccountDn(ACCOUNT_0_UID));
         
         assertConnectorOperationIncrement(1);
         assertConnectorSimulatedPagingSearchIncrement(0);
@@ -429,8 +429,8 @@ public abstract class AbstractLdapConnTest extends AbstractLdapTest {
         
 		SearchResultList<PrismObject<ShadowType>> shadows = doSearch(TEST_NAME, query, 50, task, result);
         
-        assertAccountShadow(shadows.get(0), toDn(isIdmAdminInteOrgPerson()?ACCOUNT_18_UID:ACCOUNT_19_UID));
-        assertAccountShadow(shadows.get(49), toDn(isIdmAdminInteOrgPerson()?ACCOUNT_67_UID:ACCOUNT_68_UID));
+        assertAccountShadow(shadows.get(0), toAccountDn(isIdmAdminInteOrgPerson()?ACCOUNT_18_UID:ACCOUNT_19_UID));
+        assertAccountShadow(shadows.get(49), toAccountDn(isIdmAdminInteOrgPerson()?ACCOUNT_67_UID:ACCOUNT_68_UID));
         
         assertConnectorOperationIncrement(1);
         assertConnectorSimulatedPagingSearchIncrement(0);
@@ -464,8 +464,8 @@ public abstract class AbstractLdapConnTest extends AbstractLdapTest {
         
 		SearchResultList<PrismObject<ShadowType>> shadows = doSearch(TEST_NAME, query, 222, task, result);
         
-        assertAccountShadow(shadows.get(0), toDn(isIdmAdminInteOrgPerson()?ACCOUNT_18_UID:ACCOUNT_19_UID));
-        assertAccountShadow(shadows.get(221), toDn(isIdmAdminInteOrgPerson()?ACCOUNT_239_UID:ACCOUNT_240_UID));
+        assertAccountShadow(shadows.get(0), toAccountDn(isIdmAdminInteOrgPerson()?ACCOUNT_18_UID:ACCOUNT_19_UID));
+        assertAccountShadow(shadows.get(221), toAccountDn(isIdmAdminInteOrgPerson()?ACCOUNT_239_UID:ACCOUNT_240_UID));
                 
         assertConnectorOperationIncrement(1);
         assertConnectorSimulatedPagingSearchIncrement(0);
@@ -541,7 +541,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapTest {
         
         assertEquals("Wrong ICFS UID", getAttributeAsString(entry, getPrimaryIdentifierAttributeName()), accountBarbossaEntryId);
         
-        assertLdapPassword(USER_BARBOSSA_USERNAME, "deadjacktellnotales");
+        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_PASSWORD);
         
         ResourceAttribute<Long> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimestamp"));
         assertNotNull("No createTimestamp in "+shadow, createTimestampAttribute);
@@ -645,7 +645,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapTest {
         
         String repoPrimaryIdentifier = ShadowUtil.getAttributeValue(repoShadow, getPrimaryIdentifierAttributeQName());
         if ("dn".equals(getPrimaryIdentifierAttributeName())) {
-        	assertEquals("Entry DN (primary identifier) was not updated in the shadow", toDn(USER_CPTBARBOSSA_USERNAME), repoPrimaryIdentifier);
+        	assertEquals("Entry DN (primary identifier) was not updated in the shadow", toAccountDn(USER_CPTBARBOSSA_USERNAME), repoPrimaryIdentifier);
         } else {
         	assertEquals("Entry ID changed after rename", accountBarbossaEntryId, repoPrimaryIdentifier);
         }
@@ -752,7 +752,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapTest {
         TestUtil.displayWhen(TEST_NAME);
         LdapNetworkConnection connection = ldapConnect();
         Modification modCn = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "cn", "Horatio Torquemeda Marley");
-        connection.modify(toDn(ACCOUNT_HT_UID), modCn);
+        connection.modify(toAccountDn(ACCOUNT_HT_UID), modCn);
 		ldapDisconnect(connection);
 
 		waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
@@ -820,12 +820,12 @@ public abstract class AbstractLdapConnTest extends AbstractLdapTest {
         LdapNetworkConnection connection = ldapConnect();
         
         ModifyDnRequest modDnRequest = new ModifyDnRequestImpl();
-        modDnRequest.setName(new Dn(toDn(ACCOUNT_HT_UID)));
+        modDnRequest.setName(new Dn(toAccountDn(ACCOUNT_HT_UID)));
         modDnRequest.setNewRdn(new Rdn("uid=htm"));
         modDnRequest.setDeleteOldRdn(true);
 		ModifyDnResponse modDnResponse = connection.modifyDn(modDnRequest);
         
-		display("Modified "+toDn(ACCOUNT_HT_UID)+" -> uid=htm: "+modDnResponse);
+		display("Modified "+toAccountDn(ACCOUNT_HT_UID)+" -> uid=htm: "+modDnResponse);
 		
 		ldapDisconnect(connection);
 
@@ -862,7 +862,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapTest {
         
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        deleteLdapEntry(toDn("htm"));
+        deleteLdapEntry(toAccountDn("htm"));
 
 		waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
         
@@ -985,7 +985,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapTest {
         TestUtil.displayWhen(TEST_NAME);
         LdapNetworkConnection connection = ldapConnect();
         Modification modCn = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "cn", "Horatio Torquemeda Marley");
-        connection.modify(toDn(ACCOUNT_HT_UID), modCn);
+        connection.modify(toAccountDn(ACCOUNT_HT_UID), modCn);
 		ldapDisconnect(connection);
 
 		waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
@@ -1021,12 +1021,12 @@ public abstract class AbstractLdapConnTest extends AbstractLdapTest {
         LdapNetworkConnection connection = ldapConnect();
         
         ModifyDnRequest modDnRequest = new ModifyDnRequestImpl();
-        modDnRequest.setName(new Dn(toDn(ACCOUNT_HT_UID)));
+        modDnRequest.setName(new Dn(toAccountDn(ACCOUNT_HT_UID)));
         modDnRequest.setNewRdn(new Rdn("uid=htm"));
         modDnRequest.setDeleteOldRdn(true);
 		ModifyDnResponse modDnResponse = connection.modifyDn(modDnRequest);
         
-		display("Modified "+toDn(ACCOUNT_HT_UID)+" -> uid=htm: "+modDnResponse);
+		display("Modified "+toAccountDn(ACCOUNT_HT_UID)+" -> uid=htm: "+modDnResponse);
 		
 		ldapDisconnect(connection);
 
@@ -1065,7 +1065,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapTest {
         
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        deleteLdapEntry(toDn("htm"));
+        deleteLdapEntry(toAccountDn("htm"));
 
 		waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
         
