@@ -147,6 +147,15 @@
 			</attribute>
 			
 			<attribute>
+					<ref>ri:pwdLastSet</ref>
+					<outbound>
+					<expression>
+						<value>-1</value>
+					</expression>
+				</outbound>
+			</attribute>
+			
+			<attribute>
 				<ref>ri:createTimeStamp</ref>
 				<fetchStrategy>explicit</fetchStrategy>
 			</attribute>
@@ -162,6 +171,12 @@
                 <shortcutAssociationAttribute>ri:memberOf</shortcutAssociationAttribute>
             	<shortcutValueAttribute>ri:dn</shortcutValueAttribute>
             </association>
+            
+            <activation>
+				<administrativeStatus>
+					<outbound/>
+				</administrativeStatus>
+			</activation>
 
             <credentials>
                 <password>

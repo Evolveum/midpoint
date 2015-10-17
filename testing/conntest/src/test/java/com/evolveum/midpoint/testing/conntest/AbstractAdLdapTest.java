@@ -24,6 +24,7 @@ import static org.testng.AssertJUnit.assertFalse;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
@@ -457,408 +458,395 @@ public abstract class AbstractAdLdapTest extends AbstractLdapTest {
         
         assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD);
         
+        assertAttribute(entry, "userAccountControl", "512");
+        
         ResourceAttribute<Long> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimeStamp"));
         assertNotNull("No createTimestamp in "+shadow, createTimestampAttribute);
         Long createTimestamp = createTimestampAttribute.getRealValue();
         // LDAP server may be on a different host. Allow for some clock offset.
-        TestUtil.assertBetween("Wrong createTimestamp in "+shadow, roundTsDown(tsStart)-1000, roundTsUp(tsEnd)+1000, createTimestamp);
+        TestUtil.assertBetween("Wrong createTimestamp in "+shadow, roundTsDown(tsStart)-5000, roundTsUp(tsEnd)+5000, createTimestamp);
 	}
 	
-//	@Test
-//    public void test210ModifyAccountBarbossaTitle() throws Exception {
-//		final String TEST_NAME = "test210ModifyAccountBarbossaTitle";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//        
-//        ObjectDelta<ShadowType> delta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
-//        QName attrQName = new QName(MidPointConstants.NS_RI, "title");
-//        ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
-//        PropertyDelta<String> attrDelta = PropertyDelta.createModificationReplaceProperty(
-//        		new ItemPath(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
-//        delta.addModification(attrDelta);
-//        
-//        // WHEN
-//        TestUtil.displayWhen(TEST_NAME);
-//        modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
-//        
-//        // THEN
-//        TestUtil.displayThen(TEST_NAME);
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//
-//        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
-//        assertAttribute(entry, "title", "Captain");
-//        
-//        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
-//        String shadowOid = getSingleLinkOid(user);
-//        assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
-//	}
-//	
-//	@Test
-//    public void test220ModifyUserBarbossaPassword() throws Exception {
-//		final String TEST_NAME = "test220ModifyUserBarbossaPassword";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//        
-//        ProtectedStringType userPasswordPs = new ProtectedStringType();
-//        userPasswordPs.setClearValue("hereThereBeMonsters");
-//        
-//        // WHEN
-//        TestUtil.displayWhen(TEST_NAME);
-//        modifyUserReplace(USER_BARBOSSA_OID, 
-//        		new ItemPath(UserType.F_CREDENTIALS,  CredentialsType.F_PASSWORD, PasswordType.F_VALUE), 
-//        		task, result, userPasswordPs);
-//        
-//        // THEN
-//        TestUtil.displayThen(TEST_NAME);
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//
-//        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
-//        assertAttribute(entry, "title", "Captain");
-//        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, "hereThereBeMonsters");
-//        
-//        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
-//        String shadowOid = getSingleLinkOid(user);
-//        assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
-//	}
-//	
-//	@Test
-//    public void test230DisableBarbossa() throws Exception {
-//		final String TEST_NAME = "test230DisableBarbossa";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//        
-//        // WHEN
-//        TestUtil.displayWhen(TEST_NAME);
-//        modifyUserReplace(USER_BARBOSSA_OID, 
-//        		new ItemPath(UserType.F_ACTIVATION,  ActivationType.F_ADMINISTRATIVE_STATUS), 
-//        		task, result, ActivationStatusType.DISABLED);
-//        
-//        // THEN
-//        TestUtil.displayThen(TEST_NAME);
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//        
-//        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
-//        assertAdministrativeStatus(user, ActivationStatusType.DISABLED);
-//
-//        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
-//        assertAttribute(entry, "loginDisabled", "TRUE");
-//        
-//        String shadowOid = getSingleLinkOid(user);
-//        PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
-//        assertAdministrativeStatus(shadow, ActivationStatusType.DISABLED);
-//	}
-//	
-//	@Test
-//    public void test239EnableBarbossa() throws Exception {
-//		final String TEST_NAME = "test239EnableBarbossa";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//        
-//        // WHEN
-//        TestUtil.displayWhen(TEST_NAME);
-//        modifyUserReplace(USER_BARBOSSA_OID, 
-//        		new ItemPath(UserType.F_ACTIVATION,  ActivationType.F_ADMINISTRATIVE_STATUS), 
-//        		task, result, ActivationStatusType.ENABLED);
-//        
-//        // THEN
-//        TestUtil.displayThen(TEST_NAME);
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//        
-//        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
-//        assertAdministrativeStatus(user, ActivationStatusType.ENABLED);
-//
-//        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
-//        assertAttribute(entry, "loginDisabled", "FALSE");
-//        
-//        String shadowOid = getSingleLinkOid(user);
-//        PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
-//        assertAdministrativeStatus(shadow, ActivationStatusType.ENABLED);
-//	}
-//
-//
-////	/**
-////	 * This should create account with a group. And disabled.
-////	 */
-////	@Test
-////    public void test250AssignGuybrushPirates() throws Exception {
-////		final String TEST_NAME = "test250AssignGuybrushPirates";
-////        TestUtil.displayTestTile(this, TEST_NAME);
-////        
-////        // GIVEN
-////        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
-////        OperationResult result = task.getResult();
-////        
-////        modifyUserReplace(USER_GUYBRUSH_OID, 
-////        		new ItemPath(UserType.F_ACTIVATION,  ActivationType.F_ADMINISTRATIVE_STATUS), 
-////        		task, result, ActivationStatusType.DISABLED);
-////        
-////        // WHEN
-////        TestUtil.displayWhen(TEST_NAME);
-////        assignRole(USER_GUYBRUSH_OID, ROLE_PIRATES_OID, task, result);
-////        
-////        // THEN
-////        TestUtil.displayThen(TEST_NAME);
-////        result.computeStatus();
-////        TestUtil.assertSuccess(result);
-////
-////        Entry entry = assertLdapAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME);
-////        display("Entry", entry);
-////        assertAttribute(entry, "loginDisabled", "TRUE");
-////        
-////        assertEDirGroupMember(entry, GROUP_PIRATES_NAME);
-////        
-////        PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
-////        assertAdministrativeStatus(user, ActivationStatusType.DISABLED);
-////        String shadowOid = getSingleLinkOid(user);
-////        
-////        PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
-////        IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
-////        assertAdministrativeStatus(shadow, ActivationStatusType.DISABLED);
-////	}
-//	
-//	@Test
-//    public void test260EnableGyubrush() throws Exception {
-//		final String TEST_NAME = "test260EnableGyubrush";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//        
-//        // WHEN
-//        TestUtil.displayWhen(TEST_NAME);
-//        modifyUserReplace(USER_GUYBRUSH_OID, 
-//        		new ItemPath(UserType.F_ACTIVATION,  ActivationType.F_ADMINISTRATIVE_STATUS), 
-//        		task, result, ActivationStatusType.ENABLED);
-//        
-//        // THEN
-//        TestUtil.displayThen(TEST_NAME);
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//        
-//        PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
-//        assertAdministrativeStatus(user, ActivationStatusType.ENABLED);
-//
-//        Entry entry = assertLdapAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME);
-//        assertAttribute(entry, "loginDisabled", "FALSE");
-//        
-//        String shadowOid = getSingleLinkOid(user);
-//        PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
-//        assertAdministrativeStatus(shadow, ActivationStatusType.ENABLED);
-//	}
-//
-////	@Test
-////    public void test300AssignBarbossaPirates() throws Exception {
-////		final String TEST_NAME = "test300AssignBarbossaPirates";
-////        TestUtil.displayTestTile(this, TEST_NAME);
-////        
-////        // GIVEN
-////        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
-////        OperationResult result = task.getResult();
-////        
-////        // WHEN
-////        TestUtil.displayWhen(TEST_NAME);
-////        assignRole(USER_BARBOSSA_OID, ROLE_PIRATES_OID, task, result);
-////        
-////        // THEN
-////        TestUtil.displayThen(TEST_NAME);
-////        result.computeStatus();
-////        TestUtil.assertSuccess(result);
-////
-////        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
-////        display("Entry", entry);
-////        assertAttribute(entry, "title", "Captain");
-////        
-////        assertEDirGroupMember(entry, GROUP_PIRATES_NAME);
-////        
-////        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
-////        String shadowOid = getSingleLinkOid(user);
-////        assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
-////        
-////        PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
-////        IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
-////        
-////	}
-//	
-//	@Test
-//    public void test390ModifyUserBarbossaRename() throws Exception {
-//		final String TEST_NAME = "test390ModifyUserBarbossaRename";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//        
-//        // WHEN
-//        TestUtil.displayWhen(TEST_NAME);
-//        modifyUserReplace(USER_BARBOSSA_OID, UserType.F_NAME, task, result, PrismTestUtil.createPolyString(USER_CPTBARBOSSA_USERNAME));
-//        
-//        // THEN
-//        TestUtil.displayThen(TEST_NAME);
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//
-//        Entry entry = assertLdapAccount(USER_CPTBARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
-//        assertAttribute(entry, "title", "Captain");
-//        
-//        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
-//        String shadowOid = getSingleLinkOid(user);
-//        assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
-//        PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
-//        display("Shadow after rename (model)", shadow);
-//        
-//        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, shadowOid, null, result);
-//        display("Shadow after rename (repo)", repoShadow);
-//        
-//        assertNoLdapAccount(USER_BARBOSSA_USERNAME);
-//	}
-//	
-//	// TODO: create account with a group membership
-//	
-//	@Test
-//    public void test500AddOrgMeleeIsland() throws Exception {
-//		final String TEST_NAME = "test500AddOrgMeleeIsland";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//        
-//        PrismObject<OrgType> org = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(OrgType.class).instantiate();
-//        OrgType orgType = org.asObjectable();
-//        orgType.setName(new PolyStringType(GROUP_MELEE_ISLAND_NAME));
-//        AssignmentType metaroleAssignment = new AssignmentType();
-//        ObjectReferenceType metaroleRef = new ObjectReferenceType();
-//        metaroleRef.setOid(ROLE_META_ORG_OID);
-//        metaroleRef.setType(RoleType.COMPLEX_TYPE);
-//		metaroleAssignment.setTargetRef(metaroleRef);
-//		orgType.getAssignment().add(metaroleAssignment);
-//        
-//        // WHEN
-//        TestUtil.displayWhen(TEST_NAME);
-//        addObject(org, task, result);
-//        
-//        // THEN
-//        TestUtil.displayThen(TEST_NAME);
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//
-//        orgMeleeIslandOid = org.getOid();
-//        Entry entry = assertLdapGroup(GROUP_MELEE_ISLAND_NAME);
-//        
-//        org = getObject(OrgType.class, orgMeleeIslandOid);
-//        groupMeleeOid = getSingleLinkOid(org);
-//        PrismObject<ShadowType> shadow = getShadowModel(groupMeleeOid);
-//        display("Shadow (model)", shadow);
-//	}
-//	
-////	@Test
-////    public void test510AssignGuybrushMeleeIsland() throws Exception {
-////		final String TEST_NAME = "test510AssignGuybrushMeleeIsland";
-////        TestUtil.displayTestTile(this, TEST_NAME);
-////        
-////        // GIVEN
-////        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
-////        OperationResult result = task.getResult();
-////        
-////        // WHEN
-////        TestUtil.displayWhen(TEST_NAME);
-////        assignOrg(USER_GUYBRUSH_OID, orgMeleeIslandOid, task, result);
-////        
-////        // THEN
-////        TestUtil.displayThen(TEST_NAME);
-////        result.computeStatus();
-////        TestUtil.assertSuccess(result);
-////
-////        Entry entry = assertLdapAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME);
-////        
-////        PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
-////        String shadowOid = getSingleLinkOid(user);
-////        PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
-////        display("Shadow (model)", shadow);
-////        
-////        assertEDirGroupMember(entry, GROUP_PIRATES_NAME);
-////
-////        IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupMeleeOid);
-////	}
-//	
-//	
-////	@Test
-////    public void test890UnAssignBarbossaPirates() throws Exception {
-////		final String TEST_NAME = "test890UnAssignBarbossaPirates";
-////        TestUtil.displayTestTile(this, TEST_NAME);
-////
-////        // TODO: do this on another account. There is a bad interference with rename.
-////        
-////        // GIVEN
-////        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
-////        OperationResult result = task.getResult();
-////        
-////        // WHEN
-////        TestUtil.displayWhen(TEST_NAME);
-////        unassignRole(USER_BARBOSSA_OID, ROLE_PIRATES_OID, task, result);
-////        
-////        // THEN
-////        TestUtil.displayThen(TEST_NAME);
-////        result.computeStatus();
-////        TestUtil.assertSuccess(result);
-////
-////        Entry entry = assertLdapAccount(USER_CPTBARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
-////        display("Entry", entry);
-////        assertAttribute(entry, "title", "Captain");
-////        
-////        assertEDirNoGroupMember(entry, GROUP_PIRATES_NAME);
-////        
-////        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
-////        String shadowOid = getSingleLinkOid(user);
-////        assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
-////        
-////        PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
-////        IntegrationTestTools.assertNoAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
-////        
-////	}
-//	
-//	@Test
-//    public void test899UnAssignAccountBarbossa() throws Exception {
-//		final String TEST_NAME = "test899UnAssignAccountBarbossa";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//        
-//        // WHEN
-//        TestUtil.displayWhen(TEST_NAME);
-//        unassignAccount(USER_BARBOSSA_OID, getResourceOid(), null, task, result);
-//        
-//        // THEN
-//        TestUtil.displayThen(TEST_NAME);
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//
-//        assertNoLdapAccount(USER_BARBOSSA_USERNAME);
-//        assertNoLdapAccount(USER_CPTBARBOSSA_USERNAME);
-//        
-//        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
-//        assertNoLinkedAccount(user);
-//	}
-//	
+	@Test
+    public void test210ModifyAccountBarbossaTitle() throws Exception {
+		final String TEST_NAME = "test210ModifyAccountBarbossaTitle";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectDelta<ShadowType> delta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
+        QName attrQName = new QName(MidPointConstants.NS_RI, "title");
+        ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
+        PropertyDelta<String> attrDelta = PropertyDelta.createModificationReplaceProperty(
+        		new ItemPath(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
+        delta.addModification(attrDelta);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        assertAttribute(entry, "title", "Captain");
+        assertAttribute(entry, "userAccountControl", "512");
+        
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        String shadowOid = getSingleLinkOid(user);
+        assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
+	}
+	
+	@Test
+    public void test220ModifyUserBarbossaPassword() throws Exception {
+		final String TEST_NAME = "test220ModifyUserBarbossaPassword";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ProtectedStringType userPasswordPs = new ProtectedStringType();
+        userPasswordPs.setClearValue("here.There.Be.Monsters");
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_BARBOSSA_OID, 
+        		new ItemPath(UserType.F_CREDENTIALS,  CredentialsType.F_PASSWORD, PasswordType.F_VALUE), 
+        		task, result, userPasswordPs);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        assertAttribute(entry, "title", "Captain");
+        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, "here.There.Be.Monsters");
+        assertAttribute(entry, "userAccountControl", "512");
+        
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        String shadowOid = getSingleLinkOid(user);
+        assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
+	}
+	
+	@Test
+    public void test230DisableBarbossa() throws Exception {
+		final String TEST_NAME = "test230DisableBarbossa";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_BARBOSSA_OID, 
+        		new ItemPath(UserType.F_ACTIVATION,  ActivationType.F_ADMINISTRATIVE_STATUS), 
+        		task, result, ActivationStatusType.DISABLED);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        assertAdministrativeStatus(user, ActivationStatusType.DISABLED);
+
+        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        assertAttribute(entry, "userAccountControl", "514");
+        
+        String shadowOid = getSingleLinkOid(user);
+        PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
+        assertAdministrativeStatus(shadow, ActivationStatusType.DISABLED);
+        
+        try {
+        	assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, "here.There.Be.Monsters");
+        	AssertJUnit.fail("Password authentication works, but it should fail");
+        } catch (SecurityException e) {
+        	// this is expected
+        }
+	}
+	
+	@Test
+    public void test239EnableBarbossa() throws Exception {
+		final String TEST_NAME = "test239EnableBarbossa";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_BARBOSSA_OID, 
+        		new ItemPath(UserType.F_ACTIVATION,  ActivationType.F_ADMINISTRATIVE_STATUS), 
+        		task, result, ActivationStatusType.ENABLED);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        assertAdministrativeStatus(user, ActivationStatusType.ENABLED);
+
+        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        assertAttribute(entry, "userAccountControl", "512");
+        
+        String shadowOid = getSingleLinkOid(user);
+        PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
+        assertAdministrativeStatus(shadow, ActivationStatusType.ENABLED);
+	}
+
+
+	/**
+	 * This should create account with a group. And disabled.
+	 */
+	@Test
+    public void test250AssignGuybrushPirates() throws Exception {
+		final String TEST_NAME = "test250AssignGuybrushPirates";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        modifyUserReplace(USER_GUYBRUSH_OID, 
+        		new ItemPath(UserType.F_ACTIVATION,  ActivationType.F_ADMINISTRATIVE_STATUS), 
+        		task, result, ActivationStatusType.DISABLED);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(USER_GUYBRUSH_OID, ROLE_PIRATES_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        Entry entry = assertLdapAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME);
+        display("Entry", entry);
+        assertAttribute(entry, "userAccountControl", "514");
+        
+        assertLdapGroupMember(entry, GROUP_PIRATES_NAME);
+        
+        PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
+        assertAdministrativeStatus(user, ActivationStatusType.DISABLED);
+        String shadowOid = getSingleLinkOid(user);
+        
+        PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
+        IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
+        assertAdministrativeStatus(shadow, ActivationStatusType.DISABLED);
+	}
+	
+	@Test
+    public void test255ModifyUserGuybrushPassword() throws Exception {
+		final String TEST_NAME = "test255ModifyUserGuybrushPassword";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ProtectedStringType userPasswordPs = new ProtectedStringType();
+        userPasswordPs.setClearValue("wanna.be.a.123");
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_GUYBRUSH_OID, 
+        		new ItemPath(UserType.F_CREDENTIALS,  CredentialsType.F_PASSWORD, PasswordType.F_VALUE), 
+        		task, result, userPasswordPs);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        Entry entry = assertLdapAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME);
+        assertAttribute(entry, "userAccountControl", "514");
+
+        try {
+        	assertLdapPassword(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, "wanna.be.a.123");
+        	AssertJUnit.fail("Password authentication works, but it should fail");
+        } catch (SecurityException e) {
+        	// this is expected, account is disabled
+        }
+	}
+	
+	@Test
+    public void test260EnableGyubrush() throws Exception {
+		final String TEST_NAME = "test260EnableGyubrush";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_GUYBRUSH_OID, 
+        		new ItemPath(UserType.F_ACTIVATION,  ActivationType.F_ADMINISTRATIVE_STATUS), 
+        		task, result, ActivationStatusType.ENABLED);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
+        assertAdministrativeStatus(user, ActivationStatusType.ENABLED);
+
+        Entry entry = assertLdapAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME);
+        assertAttribute(entry, "userAccountControl", "512");
+        
+        String shadowOid = getSingleLinkOid(user);
+        PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
+        assertAdministrativeStatus(shadow, ActivationStatusType.ENABLED);
+        
+        assertLdapPassword(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, "wanna.be.a.123");
+	}
+
+	@Test
+    public void test300AssignBarbossaPirates() throws Exception {
+		final String TEST_NAME = "test300AssignBarbossaPirates";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(USER_BARBOSSA_OID, ROLE_PIRATES_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        display("Entry", entry);
+        assertAttribute(entry, "title", "Captain");
+        
+        assertLdapGroupMember(entry, GROUP_PIRATES_NAME);
+        
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        String shadowOid = getSingleLinkOid(user);
+        assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
+        
+        PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
+        IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
+        
+	}
+	
+	@Test
+    public void test390ModifyUserBarbossaRename() throws Exception {
+		final String TEST_NAME = "test390ModifyUserBarbossaRename";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_BARBOSSA_OID, UserType.F_NAME, 
+        		PrismTestUtil.createPolyString(USER_CPTBARBOSSA_USERNAME));
+        objectDelta.addModificationReplaceProperty(UserType.F_FULL_NAME,
+        		PrismTestUtil.createPolyString(USER_CPTBARBOSSA_FULL_NAME));
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
+		
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modelService.executeChanges(deltas, null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        Entry entry = assertLdapAccount(USER_CPTBARBOSSA_USERNAME, USER_CPTBARBOSSA_FULL_NAME);
+        assertAttribute(entry, "title", "Captain");
+        
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        String shadowOid = getSingleLinkOid(user);
+        assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
+        PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
+        display("Shadow after rename (model)", shadow);
+        
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, shadowOid, null, result);
+        display("Shadow after rename (repo)", repoShadow);
+        
+        assertNoLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+	}
+	
+	// TODO: create account with a group membership
+	
+	
+	@Test
+    public void test890UnAssignBarbossaPirates() throws Exception {
+		final String TEST_NAME = "test890UnAssignBarbossaPirates";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // TODO: do this on another account. There is a bad interference with rename.
+        
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        unassignRole(USER_BARBOSSA_OID, ROLE_PIRATES_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        Entry entry = assertLdapAccount(USER_CPTBARBOSSA_USERNAME, USER_CPTBARBOSSA_FULL_NAME);
+        display("Entry", entry);
+        assertAttribute(entry, "title", "Captain");
+        
+        assertLdapNoGroupMember(entry, GROUP_PIRATES_NAME);
+        
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        String shadowOid = getSingleLinkOid(user);
+        assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
+        
+        PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
+        IntegrationTestTools.assertNoAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
+        
+	}
+	
+	@Test
+    public void test899UnAssignAccountBarbossa() throws Exception {
+		final String TEST_NAME = "test899UnAssignAccountBarbossa";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        unassignAccount(USER_BARBOSSA_OID, getResourceOid(), null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        assertNoLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        assertNoLdapAccount(USER_CPTBARBOSSA_USERNAME, USER_CPTBARBOSSA_FULL_NAME);
+        
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        assertNoLinkedAccount(user);
+	}
+	
 
 	@Override
 	protected void assertAccountShadow(PrismObject<ShadowType> shadow, String dn) throws SchemaException {
@@ -876,7 +864,21 @@ public abstract class AbstractAdLdapTest extends AbstractLdapTest {
 		assertAttribute(entry, ATTRIBUTE_SAM_ACCOUNT_NAME_NAME, samAccountName);
 		return entry;
 	}
-		
+
+	@Override
+	protected void assertNoLdapAccount(String uid) throws LdapException, IOException, CursorException {
+		throw new UnsupportedOperationException("Boom! Cannot do this here. This is bloody AD! We need full name!");
+	}
+	
+	protected void assertNoLdapAccount(String uid, String cn) throws LdapException, IOException, CursorException {
+		LdapNetworkConnection connection = ldapConnect();
+		List<Entry> entriesCn = ldapSearch(connection, "(cn="+cn+")");
+		List<Entry> entriesSamAccountName = ldapSearch(connection, "(sAMAccountName="+uid+")");
+		ldapDisconnect(connection);
+
+		assertEquals("Unexpected number of entries for cn="+cn+": "+entriesCn, 0, entriesCn.size());
+		assertEquals("Unexpected number of entries for sAMAccountName="+uid+": "+entriesSamAccountName, 0, entriesSamAccountName.size());
+	}
 
 	@Override
 	protected String toAccountDn(String username) {
