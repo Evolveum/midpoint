@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActionsExecutedInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
@@ -31,6 +32,7 @@ public class TaskCurrentStateDto {
     private TaskDto taskDto;
     private SynchronizationInformationType synchronizationInformationType;
     private IterativeTaskInformationType iterativeTaskInformationType;
+    private ActionsExecutedInformationType actionsExecutedInformationType;
     private Long currentProgress;
 
     public TaskCurrentStateDto(TaskDto taskDto) {
@@ -49,6 +51,7 @@ public class TaskCurrentStateDto {
         }
         synchronizationInformationType = extension.getPropertyRealValue(SchemaConstants.MODEL_EXTENSION_SYNCHRONIZATION_INFORMATION_PROPERTY_NAME, SynchronizationInformationType.class);
         iterativeTaskInformationType = extension.getPropertyRealValue(SchemaConstants.MODEL_EXTENSION_ITERATIVE_TASK_INFORMATION_PROPERTY_NAME, IterativeTaskInformationType.class);
+        actionsExecutedInformationType = extension.getPropertyRealValue(SchemaConstants.MODEL_EXTENSION_ACTIONS_EXECUTED_INFORMATION_PROPERTY_NAME, ActionsExecutedInformationType.class);
     }
 
     public TaskDto getTaskDto() {
@@ -61,6 +64,10 @@ public class TaskCurrentStateDto {
 
     public IterativeTaskInformationType getIterativeTaskInformationType() {
         return iterativeTaskInformationType;
+    }
+
+    public ActionsExecutedInformationType getActionsExecutedInformationType() {
+        return actionsExecutedInformationType;
     }
 
     public Long getCurrentProgress() {

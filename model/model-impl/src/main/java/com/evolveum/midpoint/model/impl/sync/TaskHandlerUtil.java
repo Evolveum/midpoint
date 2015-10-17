@@ -28,6 +28,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActionsExecutedInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
 
 /**
@@ -38,18 +39,18 @@ public class TaskHandlerUtil {
     private static final transient Trace LOGGER = TraceManager.getTrace(TaskHandlerUtil.class);
 
     public static void initAllStatistics(Task task) {
-        fetchAllStatistics(task, false, true, true);
+        fetchAllStatistics(task, false, true, true, true);
     }
 
-    public static void initAllStatistics(Task task, boolean enableIterationStatistics, boolean enableSynchronizationStatistics) {
-        fetchAllStatistics(task, false, enableIterationStatistics, enableSynchronizationStatistics);
+    public static void initAllStatistics(Task task, boolean enableIterationStatistics, boolean enableSynchronizationStatistics, boolean enableActionsExecutedStatistics) {
+        fetchAllStatistics(task, false, enableIterationStatistics, enableSynchronizationStatistics, enableActionsExecutedStatistics);
     }
 
     public static void fetchAllStatistics(Task task) {
-        fetchAllStatistics(task, true, true, true);
+        fetchAllStatistics(task, true, true, true, true);
     }
 
-    public static void fetchAllStatistics(Task task, boolean preserveStatistics, boolean enableIterationStatistics, boolean enableSynchronizationStatistics) {
+    public static void fetchAllStatistics(Task task, boolean preserveStatistics, boolean enableIterationStatistics, boolean enableSynchronizationStatistics, boolean enableActionsExecutedStatistics) {
         if (preserveStatistics) {
             fetchOperationalInformation(task);
             if (enableIterationStatistics) {
@@ -58,6 +59,9 @@ public class TaskHandlerUtil {
             if (enableSynchronizationStatistics) {
                 fetchSynchronizationInformation(task);
             }
+            if (enableActionsExecutedStatistics) {
+                fetchActionsExecutedInformation(task);
+            }
         } else {
             if (enableIterationStatistics) {
                 task.resetIterativeTaskInformation(null);
@@ -65,14 +69,17 @@ public class TaskHandlerUtil {
             if (enableSynchronizationStatistics) {
                 task.resetSynchronizationInformation(null);
             }
+            if (enableActionsExecutedStatistics) {
+                task.resetActionsExecutedInformation(null);
+            }
         }
     }
 
     public static void storeAllStatistics(Task task) {
-        storeAllStatistics(task, true, true);
+        storeAllStatistics(task, true, true, true);
     }
 
-    public static void storeAllStatistics(Task task, boolean enableIterationStatistics, boolean enableSynchronizationStatistics) {
+    public static void storeAllStatistics(Task task, boolean enableIterationStatistics, boolean enableSynchronizationStatistics, boolean enableActionsExecutedStatistics) {
         try {
             storeOperationalInformation(task);
             if (enableIterationStatistics) {
@@ -81,6 +88,10 @@ public class TaskHandlerUtil {
             if (enableSynchronizationStatistics) {
                 storeSynchronizationInformation(task);
             }
+            if (enableActionsExecutedStatistics) {
+                storeActionsExecutedInformation(task);
+            }
+
             task.savePendingModifications(new OperationResult(TaskHandlerUtil.class.getSimpleName()+".storeAllStatistics"));    // TODO fixme
         } catch (SchemaException|ObjectNotFoundException |ObjectAlreadyExistsException |RuntimeException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't store statistical information into task {}", e, task);
@@ -114,6 +125,15 @@ public class TaskHandlerUtil {
         }
     }
 
+    public static void fetchActionsExecutedInformation(Task task) {
+        PrismProperty<ActionsExecutedInformationType> property = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_ACTIONS_EXECUTED_INFORMATION_PROPERTY_NAME);
+        if (property == null || property.isEmpty()) {
+            task.resetActionsExecutedInformation(null);
+        } else {
+            task.resetActionsExecutedInformation(property.getValue().getValue());
+        }
+    }
+
     public static void storeOperationalInformation(Task task) throws SchemaException {
         OperationalInformationType operationalInformationType = task.getAggregateOperationalInformation();
         task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_OPERATIONAL_INFORMATION_PROPERTY_NAME, operationalInformationType);
@@ -128,4 +148,10 @@ public class TaskHandlerUtil {
         IterativeTaskInformationType iterativeTaskInformationType = task.getAggregateIterativeTaskInformation();
         task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_ITERATIVE_TASK_INFORMATION_PROPERTY_NAME, iterativeTaskInformationType);
     }
+
+    public static void storeActionsExecutedInformation(Task task) throws SchemaException {
+        ActionsExecutedInformationType actionsExecutedInformationType = task.getAggregateActionsExecutedInformation();
+        task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_ACTIONS_EXECUTED_INFORMATION_PROPERTY_NAME, actionsExecutedInformationType);
+    }
+
 }

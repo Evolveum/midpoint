@@ -532,7 +532,9 @@ public class ChangeExecutor {
             return;
         }
 
-        LOGGER.debug("Linking shadow " + shadowOid + " to focus " + userOid);
+		String channel = focusContext.getLensContext().getChannel();
+
+		LOGGER.debug("Linking shadow " + shadowOid + " to focus " + userOid);
         OperationResult result = parentResult.createSubresult(OPERATION_LINK_ACCOUNT);
         PrismReferenceValue linkRef = new PrismReferenceValue();
         linkRef.setOid(shadowOid);
@@ -541,10 +543,15 @@ public class ChangeExecutor {
 				FocusType.F_LINK_REF, getUserDefinition(), linkRef);
 
         try {
-            cacheRepositoryService.modifyObject(typeClass, userOid, linkRefDeltas, result);
+			cacheRepositoryService.modifyObject(typeClass, userOid, linkRefDeltas, result);
+			task.recordObjectActionExecuted(focusContext.getObjectAny(), typeClass, userOid, ChangeType.MODIFY, channel, null);
         } catch (ObjectAlreadyExistsException ex) {
-            throw new SystemException(ex);
-        } finally {
+			task.recordObjectActionExecuted(focusContext.getObjectAny(), typeClass, userOid, ChangeType.MODIFY, channel, ex);
+			throw new SystemException(ex);
+		} catch (Throwable t) {
+			task.recordObjectActionExecuted(focusContext.getObjectAny(), typeClass, userOid, ChangeType.MODIFY, channel, t);
+			throw t;
+		} finally {
         	result.computeStatus();
         	ObjectDelta<F> userDelta = ObjectDelta.createModifyDelta(userOid, linkRefDeltas, typeClass, prismContext);
 			LensObjectDeltaOperation<F> userDeltaOp = LensUtil.createObjectDeltaOperation(userDelta, result, focusContext, projCtx);
@@ -566,6 +573,8 @@ public class ChangeExecutor {
             return;
         }
 
+		String channel = focusContext.getLensContext().getChannel();
+
         LOGGER.debug("Unlinking shadow " + accountRef.getOid() + " from focus " + focusOid);
         OperationResult result = parentResult.createSubresult(OPERATION_UNLINK_ACCOUNT);
         Collection<? extends ItemDelta> accountRefDeltas = ReferenceDelta.createModificationDeleteCollection(
@@ -573,9 +582,14 @@ public class ChangeExecutor {
         
         try {
             cacheRepositoryService.modifyObject(typeClass, focusOid, accountRefDeltas, result);
+			task.recordObjectActionExecuted(focusContext.getObjectAny(), typeClass, focusOid, ChangeType.MODIFY, channel, null);
         } catch (ObjectAlreadyExistsException ex) {
-        	result.recordFatalError(ex);
-            throw new SystemException(ex);
+			task.recordObjectActionExecuted(focusContext.getObjectAny(), typeClass, focusOid, ChangeType.MODIFY, channel, ex);
+			result.recordFatalError(ex);
+			throw new SystemException(ex);
+		} catch (Throwable t) {
+			task.recordObjectActionExecuted(focusContext.getObjectAny(), typeClass, focusOid, ChangeType.MODIFY, channel, t);
+			throw t;
         } finally {
         	result.computeStatus();
         	ObjectDelta<F> userDelta = ObjectDelta.createModifyDelta(focusOid, accountRefDeltas, typeClass, prismContext);
@@ -961,53 +975,59 @@ public class ChangeExecutor {
             }
             change.getModifications().clear();
         }
-        
+
         OwnerResolver ownerResolver = createOwnerResolver(context);
-		securityEnforcer.authorize(ModelAuthorizationAction.ADD.getUrl(), AuthorizationPhaseType.EXECUTION,
-        		objectToAdd, null, null, ownerResolver, result);
+		try {
+			securityEnforcer.authorize(ModelAuthorizationAction.ADD.getUrl(), AuthorizationPhaseType.EXECUTION,
+        			objectToAdd, null, null, ownerResolver, result);
 
-        T objectTypeToAdd = objectToAdd.asObjectable();
+        	T objectTypeToAdd = objectToAdd.asObjectable();
 
-    	applyMetadata(context, task, objectTypeToAdd, result);
+    		applyMetadata(context, task, objectTypeToAdd, result);
     	
-    	if (options == null && context != null) {
-    		options = context.getOptions();
-    	}
-    	
-        String oid;
-        if (objectTypeToAdd instanceof TaskType) {
-            oid = addTask((TaskType) objectTypeToAdd, result);
-        } else if (objectTypeToAdd instanceof NodeType) {
-            throw new UnsupportedOperationException("NodeType cannot be added using model interface");
-        } else if (ObjectTypes.isManagedByProvisioning(objectTypeToAdd)) {
-        	ProvisioningOperationOptions provisioningOptions = copyFromModelOptions(options);
-        	
-        	// TODO: this is probably wrong. We should not have special case for a channel!
-        	if (context != null && context.getChannel() != null && context.getChannel().equals(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON))){
-        		provisioningOptions.setCompletePostponed(false);
+    		if (options == null && context != null) {
+    			options = context.getOptions();
     		}
-            
-        	oid = addProvisioningObject(objectToAdd, context, objectContext, provisioningOptions, resource, task, result);
-            if (oid == null) {
-            	throw new SystemException("Provisioning addObject returned null OID while adding " + objectToAdd);
-            }
-            result.addReturn("createdAccountOid", oid);
-        } else {
-			FocusConstraintsChecker.clearCacheFor(objectToAdd.asObjectable().getName());
 
-        	RepoAddOptions addOpt = new RepoAddOptions();
-        	if (ModelExecuteOptions.isOverwrite(options)){
-        		addOpt.setOverwrite(true);
-        	}
-        	if (ModelExecuteOptions.isNoCrypt(options)){
-        		addOpt.setAllowUnencryptedValues(true);
-        	}
-            oid = cacheRepositoryService.addObject(objectToAdd, addOpt, result);
-            if (oid == null) {
-            	throw new SystemException("Repository addObject returned null OID while adding " + objectToAdd);
-            }
-        }
-        change.setOid(oid);
+			String oid;
+			if (objectTypeToAdd instanceof TaskType) {
+				oid = addTask((TaskType) objectTypeToAdd, result);
+			} else if (objectTypeToAdd instanceof NodeType) {
+				throw new UnsupportedOperationException("NodeType cannot be added using model interface");
+			} else if (ObjectTypes.isManagedByProvisioning(objectTypeToAdd)) {
+				ProvisioningOperationOptions provisioningOptions = copyFromModelOptions(options);
+
+				// TODO: this is probably wrong. We should not have special case for a channel!
+				if (context != null && context.getChannel() != null && context.getChannel().equals(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON))) {
+					provisioningOptions.setCompletePostponed(false);
+				}
+
+				oid = addProvisioningObject(objectToAdd, context, objectContext, provisioningOptions, resource, task, result);
+				if (oid == null) {
+					throw new SystemException("Provisioning addObject returned null OID while adding " + objectToAdd);
+				}
+				result.addReturn("createdAccountOid", oid);
+			} else {
+				FocusConstraintsChecker.clearCacheFor(objectToAdd.asObjectable().getName());
+
+				RepoAddOptions addOpt = new RepoAddOptions();
+				if (ModelExecuteOptions.isOverwrite(options)) {
+					addOpt.setOverwrite(true);
+				}
+				if (ModelExecuteOptions.isNoCrypt(options)) {
+					addOpt.setAllowUnencryptedValues(true);
+				}
+				oid = cacheRepositoryService.addObject(objectToAdd, addOpt, result);
+				if (oid == null) {
+					throw new SystemException("Repository addObject returned null OID while adding " + objectToAdd);
+				}
+			}
+			change.setOid(oid);
+			task.recordObjectActionExecuted(objectToAdd, objectToAdd.getCompileTimeClass(), oid, ChangeType.ADD, context.getChannel(), null);
+		} catch (Throwable t) {
+			task.recordObjectActionExecuted(objectToAdd, objectToAdd.getCompileTimeClass(), null, ChangeType.ADD, context.getChannel(), t);
+			throw t;
+		}
     }
 
     
@@ -1021,31 +1041,37 @@ public class ChangeExecutor {
         
         PrismObject<T> objectOld = objectContext.getObjectOld();
         OwnerResolver ownerResolver = createOwnerResolver(context);
-        securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(), AuthorizationPhaseType.EXECUTION,
-        		objectOld, null, null, ownerResolver, result);
+		try {
+			securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(), AuthorizationPhaseType.EXECUTION,
+					objectOld, null, null, ownerResolver, result);
 
-        if (TaskType.class.isAssignableFrom(objectTypeClass)) {
-            taskManager.deleteTask(oid, result);
-        } else if (NodeType.class.isAssignableFrom(objectTypeClass)) {
-            taskManager.deleteNode(oid, result);
-        } else if (ObjectTypes.isClassManagedByProvisioning(objectTypeClass)) {
-        	if (options == null) {
-        		options = context.getOptions();
-        	}
-        	ProvisioningOperationOptions provisioningOptions = copyFromModelOptions(options);
-        	if (context != null && context.getChannel() != null && context.getChannel().equals(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON))){
-        		provisioningOptions.setCompletePostponed(false);
-    		}
-        	try {
-        		deleteProvisioningObject(objectTypeClass, oid, context, objectContext, provisioningOptions, resource, task, result);
-        	} catch (ObjectNotFoundException e) {
-        		// HACK. We wanted to delete something that is not there. So in fact this is OK. Almost.
-        		LOGGER.trace("Attempt to delete object {} that is already gone", oid);
-        		result.getLastSubresult().setStatus(OperationResultStatus.HANDLED_ERROR);
-        	}
-        } else {
-            cacheRepositoryService.deleteObject(objectTypeClass, oid, result);
-        }
+			if (TaskType.class.isAssignableFrom(objectTypeClass)) {
+				taskManager.deleteTask(oid, result);
+			} else if (NodeType.class.isAssignableFrom(objectTypeClass)) {
+				taskManager.deleteNode(oid, result);
+			} else if (ObjectTypes.isClassManagedByProvisioning(objectTypeClass)) {
+				if (options == null) {
+					options = context.getOptions();
+				}
+				ProvisioningOperationOptions provisioningOptions = copyFromModelOptions(options);
+				if (context != null && context.getChannel() != null && context.getChannel().equals(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON))) {
+					provisioningOptions.setCompletePostponed(false);
+				}
+				try {
+					deleteProvisioningObject(objectTypeClass, oid, context, objectContext, provisioningOptions, resource, task, result);
+				} catch (ObjectNotFoundException e) {
+					// HACK. We wanted to delete something that is not there. So in fact this is OK. Almost.
+					LOGGER.trace("Attempt to delete object {} that is already gone", oid);
+					result.getLastSubresult().setStatus(OperationResultStatus.HANDLED_ERROR);
+				}
+			} else {
+				cacheRepositoryService.deleteObject(objectTypeClass, oid, result);
+			}
+			task.recordObjectActionExecuted(objectOld, objectTypeClass, oid, ChangeType.DELETE, context.getChannel(), null);
+		} catch (Throwable t) {
+			task.recordObjectActionExecuted(objectOld, objectTypeClass, oid, ChangeType.DELETE, context.getChannel(), t);
+			throw t;
+		}
     }
 
     private <T extends ObjectType, F extends ObjectType> void executeModification(ObjectDelta<T> change,
@@ -1060,32 +1086,38 @@ public class ChangeExecutor {
         
         PrismObject<T> objectNew = objectContext.getObjectNew();
         OwnerResolver ownerResolver = createOwnerResolver(context);
-        securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(), AuthorizationPhaseType.EXECUTION,
-        		objectNew, change, null, ownerResolver, result);
-        	
-    	applyMetadata(change, objectContext, objectTypeClass, task, context, result);
-        
-        if (TaskType.class.isAssignableFrom(objectTypeClass)) {
-            taskManager.modifyTask(change.getOid(), change.getModifications(), result);
-        } else if (NodeType.class.isAssignableFrom(objectTypeClass)) {
-            throw new UnsupportedOperationException("NodeType is not modifiable using model interface");
-        } else if (ObjectTypes.isClassManagedByProvisioning(objectTypeClass)) {
-        	if (options == null && context != null) {
-        		options = context.getOptions();
-        	}
-        	ProvisioningOperationOptions provisioningOptions = copyFromModelOptions(options);
-        	if (context != null && context.getChannel() != null && context.getChannel().equals(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON))){
-        		provisioningOptions.setCompletePostponed(false);
-    		}
-            String oid = modifyProvisioningObject(objectTypeClass, change.getOid(), change.getModifications(), context, objectContext,
-                    provisioningOptions, resource, task, result);
-            if (!oid.equals(change.getOid())){
-                change.setOid(oid);
-            }
-        } else {
-			FocusConstraintsChecker.clearCacheForDelta(change.getModifications());
-            cacheRepositoryService.modifyObject(objectTypeClass, change.getOid(), change.getModifications(), result);
-        }
+		try {
+			securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(), AuthorizationPhaseType.EXECUTION,
+					objectNew, change, null, ownerResolver, result);
+
+			applyMetadata(change, objectContext, objectTypeClass, task, context, result);
+
+			if (TaskType.class.isAssignableFrom(objectTypeClass)) {
+				taskManager.modifyTask(change.getOid(), change.getModifications(), result);
+			} else if (NodeType.class.isAssignableFrom(objectTypeClass)) {
+				throw new UnsupportedOperationException("NodeType is not modifiable using model interface");
+			} else if (ObjectTypes.isClassManagedByProvisioning(objectTypeClass)) {
+				if (options == null && context != null) {
+					options = context.getOptions();
+				}
+				ProvisioningOperationOptions provisioningOptions = copyFromModelOptions(options);
+				if (context != null && context.getChannel() != null && context.getChannel().equals(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON))) {
+					provisioningOptions.setCompletePostponed(false);
+				}
+				String oid = modifyProvisioningObject(objectTypeClass, change.getOid(), change.getModifications(), context, objectContext,
+						provisioningOptions, resource, task, result);
+				if (!oid.equals(change.getOid())) {
+					change.setOid(oid);
+				}
+			} else {
+				FocusConstraintsChecker.clearCacheForDelta(change.getModifications());
+				cacheRepositoryService.modifyObject(objectTypeClass, change.getOid(), change.getModifications(), result);
+			}
+			task.recordObjectActionExecuted(objectNew, objectTypeClass, change.getOid(), ChangeType.MODIFY, context.getChannel(), null);
+		} catch (Throwable t) {
+			task.recordObjectActionExecuted(objectNew, objectTypeClass, change.getOid(), ChangeType.MODIFY, context.getChannel(), t);
+			throw t;
+		}
     }
     
 	private <T extends ObjectType, F extends ObjectType> void applyMetadata(LensContext<F> context, Task task, T objectTypeToAdd, OperationResult result) throws SchemaException {

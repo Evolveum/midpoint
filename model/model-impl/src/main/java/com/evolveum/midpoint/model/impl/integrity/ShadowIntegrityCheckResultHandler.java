@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
@@ -518,7 +519,13 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
     private void applyFix(ShadowCheckResult checkResult, PrismObject<ShadowType> shadow, Task workerTask, OperationResult result) throws CommonException {
         LOGGER.info("Applying shadow fix{}:\n{}", skippedForDryRun(), DebugUtil.debugDump(checkResult.getFixDeltas()));
         if (!dryRun) {
-            repositoryService.modifyObject(ShadowType.class, shadow.getOid(), checkResult.getFixDeltas(), result);
+            try {
+                repositoryService.modifyObject(ShadowType.class, shadow.getOid(), checkResult.getFixDeltas(), result);
+                workerTask.recordObjectActionExecuted(shadow, ChangeType.MODIFY, null);
+            } catch (Throwable t) {
+                workerTask.recordObjectActionExecuted(shadow, ChangeType.MODIFY, t);
+                throw t;
+            }
         }
     }
 
@@ -608,7 +615,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         return statistics;
     }
 
-    private String reportOrFixUniqueness(OperationResult result) {
+    private String reportOrFixUniqueness(Task task, OperationResult result) {
 
         StringBuilder details = new StringBuilder();
         StringBuilder stat = new StringBuilder();
@@ -658,7 +665,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
 
                     if (fixUniqueness && shadowsToConsider.size() > 1) {
                         DuplicateShadowsTreatmentInstruction instruction = duplicateShadowsResolver.determineDuplicateShadowsTreatment(shadowsToConsider);
-                        deleteShadows(instruction, details, result);
+                        deleteShadows(instruction, details, task, result);
                     }
                 }
             }
@@ -675,7 +682,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
     }
 
     // shadowsToDelete do not contain 'already deleted shadows'
-    private void deleteShadows(DuplicateShadowsTreatmentInstruction instruction, StringBuilder sb, OperationResult result) {
+    private void deleteShadows(DuplicateShadowsTreatmentInstruction instruction, StringBuilder sb, Task task, OperationResult result) {
 
         LOGGER.trace("Going to delete shadows:\n{}", instruction);
         if (instruction == null || instruction.getShadowsToDelete() == null) {
@@ -699,12 +706,15 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
             if (!dryRun) {
                 try {
                     repositoryService.deleteObject(ShadowType.class, oid, result);
+                    task.recordObjectActionExecuted(shadowToDelete, ChangeType.DELETE, null);
                     duplicateShadowsDeleted.add(oid);
                 } catch (ObjectNotFoundException e) {
                     // suspicious, but not a big deal
+                    task.recordObjectActionExecuted(shadowToDelete, ChangeType.DELETE, e);
                     LoggingUtils.logExceptionAsWarning(LOGGER, "Shadow {} couldn't be deleted, because it does not exist anymore", e, ObjectTypeUtil.toShortString(shadowToDelete));
                     continue;
                 } catch (RuntimeException e) {
+                    task.recordObjectActionExecuted(shadowToDelete, ChangeType.DELETE, e);
                     LoggingUtils.logUnexpectedException(LOGGER, "Shadow {} couldn't be deleted because of an unexpected exception", e, ObjectTypeUtil.toShortString(shadowToDelete));
                     continue;
                 }
@@ -728,7 +738,9 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
                 if (!dryRun) {
                     try {
                         repositoryService.modifyObject((Class) owner.getClass(), owner.getOid(), modifications, result);
+                        task.recordObjectActionExecuted(owner, ChangeType.MODIFY, null);
                     } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException | RuntimeException e) {
+                        task.recordObjectActionExecuted(owner, ChangeType.MODIFY, e);
                         LoggingUtils.logUnexpectedException(LOGGER, "Focal object {} (owner of {}) couldn't be updated", e, ObjectTypeUtil.toShortString(owner),
                                 ObjectTypeUtil.toShortString(shadowToDelete));
                     }
@@ -739,12 +751,12 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
     }
 
     @Override
-    public void completeProcessing(OperationResult result) {
-        super.completeProcessing(result);
+    public void completeProcessing(Task task, OperationResult result) {
+        super.completeProcessing(task, result);
 
         String uniquenessReport = null;
         if (checkUniqueness) {
-            uniquenessReport = reportOrFixUniqueness(result);
+            uniquenessReport = reportOrFixUniqueness(task, result);
         }
 
         logConfiguration("Shadow integrity check finished. It was run with the configuration:");

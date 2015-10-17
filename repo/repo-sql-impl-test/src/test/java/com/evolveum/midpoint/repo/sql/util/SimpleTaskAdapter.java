@@ -24,10 +24,9 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
-import com.evolveum.midpoint.schema.statistics.OperationalInformation;
 import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
 import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.task.api.LightweightTaskHandler;
@@ -45,6 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActionsExecutedInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
@@ -747,5 +747,30 @@ public class SimpleTaskAdapter implements Task {
 
     @Override
     public void recordIterativeOperationStart(ShadowType shadow) {
+    }
+
+    @Override
+    public ActionsExecutedInformationType getAggregateActionsExecutedInformation() {
+        return null;
+    }
+
+    @Override
+    public void recordObjectActionExecuted(String objectName, String objectDisplayName, QName objectType, String objectOid, ChangeType changeType, String channel, Throwable exception) {
+    }
+
+    @Override
+    public void resetActionsExecutedInformation(ActionsExecutedInformationType value) {
+    }
+
+    @Override
+    public void recordObjectActionExecuted(PrismObject<? extends ObjectType> object, ChangeType changeType, Throwable exception) {
+    }
+
+    @Override
+    public void recordObjectActionExecuted(PrismObject<? extends ObjectType> object, ChangeType changeType, String channel, Throwable exception) {
+    }
+
+    @Override
+    public <T extends ObjectType> void recordObjectActionExecuted(PrismObject<T> objectOld, Class<T> objectTypeClass, String oid, ChangeType delete, String channel, Throwable o) {
     }
 }

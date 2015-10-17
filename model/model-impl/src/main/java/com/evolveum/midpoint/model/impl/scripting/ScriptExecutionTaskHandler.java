@@ -72,7 +72,7 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
         }
 
         try {
-            TaskHandlerUtil.initAllStatistics(task, true, false);
+            TaskHandlerUtil.initAllStatistics(task, true, false, true);
             task.setProgress(0);
             ScriptExecutionResult executionResult = scriptingService.evaluateExpression(executeScriptProperty.getValue().getValue().getScriptingExpression().getValue(), task, result);
             LOGGER.debug("Execution output: {} item(s)", executionResult.getDataOutput().size());
@@ -84,7 +84,7 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
             LoggingUtils.logException(LOGGER, "Couldn't execute script", e);
             runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR);
         } finally {
-            TaskHandlerUtil.storeAllStatistics(task, true, false);
+            TaskHandlerUtil.storeAllStatistics(task, true, false, true);
         }
 
         task.getResult().computeStatus();

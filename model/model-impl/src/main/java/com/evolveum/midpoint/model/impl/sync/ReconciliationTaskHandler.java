@@ -21,6 +21,7 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -72,7 +73,6 @@ import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
-import com.evolveum.midpoint.util.Handler;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -475,7 +475,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 			handler.createWorkerThreads(coordinatorTask, searchResult);
 			provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, coordinatorTask, searchResult);               // note that progress is incremented within the handler, as it extends AbstractSearchIterativeResultHandler
-			handler.completeProcessing(searchResult);
+			handler.completeProcessing(coordinatorTask, searchResult);
 
 			interrupted = !coordinatorTask.canRun();
 
@@ -699,8 +699,10 @@ public class ReconciliationTaskHandler implements TaskHandler {
 								shadow.getDefinition(), shadow.asObjectable().getAttemptNumber() + 1);
 				try {
                     repositoryService.modifyObject(ShadowType.class, shadow.getOid(), modifications,
-                            provisioningResult);
+							provisioningResult);
+					task.recordObjectActionExecuted(shadow, ChangeType.MODIFY, SchemaConstants.CHANGE_CHANNEL_RECON_URI, null);
 				} catch(Exception e) {
+					task.recordObjectActionExecuted(shadow, ChangeType.MODIFY, SchemaConstants.CHANGE_CHANNEL_RECON_URI, e);
                     LoggingUtils.logException(LOGGER, "Failed to record finish operation failure with shadow: " + ObjectTypeUtil.toShortString(shadow.asObjectable()), e);
 				}
 			} finally {
