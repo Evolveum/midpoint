@@ -560,6 +560,16 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		assertEquals("Unexpected number of entries for uid="+uid+": "+entries, 0, entries.size());
 	}
 	
+	protected void assertLdapGroupMember(Entry accountEntry, String groupName) throws LdapException, IOException, CursorException {
+		Entry groupEntry = getLdapGroupByName(groupName);
+		assertAttributeContains(groupEntry, getLdapGroupMemberAttribute(), accountEntry.getDn().toString());
+	}
+	
+	protected void assertLdapNoGroupMember(Entry accountEntry, String groupName) throws LdapException, IOException, CursorException {
+		Entry groupEntry = getLdapGroupByName(groupName);
+		assertAttributeNotContains(groupEntry, getLdapGroupMemberAttribute(), accountEntry.getDn().toString());
+	}
+	
 	protected List<Entry> ldapSearch(LdapNetworkConnection connection, String filter) throws LdapException, CursorException {
 		return ldapSearch(connection, getLdapSuffix(), filter, SearchScope.SUBTREE, "*", getPrimaryIdentifierAttributeName());
 	}
@@ -717,7 +727,9 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		bindRequest.setCredentials(bindPassword);
 		bindRequest.setSimple(true);
 		BindResponse bindResponse = connection.bind(bindRequest);
-		assertTrue("Bind as "+bindDn+" failed: "+bindResponse.getLdapResult().getDiagnosticMessage()+" ("+bindResponse.getLdapResult().getResultCode()+")", bindResponse.getLdapResult().getResultCode() == ResultCodeEnum.SUCCESS);
+		if (bindResponse.getLdapResult().getResultCode() != ResultCodeEnum.SUCCESS) {
+			throw new SecurityException("Bind as "+bindDn+" failed: "+bindResponse.getLdapResult().getDiagnosticMessage()+" ("+bindResponse.getLdapResult().getResultCode()+")");
+		}
 		LOGGER.trace("LDAP connected to {}:{}, bound as {}",
 				getLdapServerHost(), getLdapServerPort(), bindDn);
 		return connection;
