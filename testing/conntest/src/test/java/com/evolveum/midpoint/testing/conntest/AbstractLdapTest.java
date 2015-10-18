@@ -173,7 +173,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	protected static final String USER_GUYBRUSH_USERNAME = "guybrush";
 	protected static final String USER_GUYBRUSH_FULL_NAME = "Guybrush Threepwood";
 			
-	private static final String LDAP_ACCOUNT_OBJECTCLASS = "inetOrgPerson";
+	private static final String LDAP_INETORGPERSON_OBJECTCLASS = "inetOrgPerson";
 		
 	@Autowired(required = true)
 	protected MatchingRuleRegistry matchingRuleRegistry;
@@ -238,7 +238,11 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	protected abstract String getSyncTaskOid();
 	
 	protected QName getAccountObjectClass() {
-		return new QName(MidPointConstants.NS_RI, LDAP_ACCOUNT_OBJECTCLASS);
+		return new QName(MidPointConstants.NS_RI, getLdapAccountObjectClass());
+	}
+	
+	protected String getLdapAccountObjectClass() {
+		return LDAP_INETORGPERSON_OBJECTCLASS;
 	}
 	
 	protected QName getGroupObjectClass() {
@@ -615,15 +619,21 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	protected Entry addLdapAccount(String uid, String cn, String givenName, String sn) throws LdapException, IOException, CursorException {
 		LdapNetworkConnection connection = ldapConnect();
 		Entry entry = createAccountEntry(uid, cn, givenName, sn);
-		connection.add(entry);
-		display("Added LDAP account:"+entry);
+		try {
+			connection.add(entry);
+			display("Added LDAP account:\n"+entry);
+		} catch (Exception e) {
+			display("Error adding entry:\n"+entry+"\nError: "+e.getMessage());
+			ldapDisconnect(connection);
+			throw e;
+		}
 		ldapDisconnect(connection);
 		return entry;
 	}
 
 	protected Entry createAccountEntry(String uid, String cn, String givenName, String sn) throws LdapException {
 		Entry entry = new DefaultEntry(toAccountDn(uid),
-				"objectclass", LDAP_ACCOUNT_OBJECTCLASS,
+				"objectclass", getLdapAccountObjectClass(),
 				"uid", uid,
 				"cn", cn,
 				"givenName", givenName,
@@ -667,6 +677,10 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 			display("Cleaning up LDAP entry: "+dn);
 		}
 		ldapDisconnect(connection);
+	}
+	
+	protected String toAccountDn(String username, String fullName) {
+		return toAccountDn(username);
 	}
 	
 	protected String toAccountDn(String username) {

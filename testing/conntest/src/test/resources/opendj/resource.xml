@@ -344,7 +344,7 @@
 				<q:equal>
 					<q:path>c:name</q:path>
 					<expression>
-					<path>$shadow/attributes/cn</path>
+						<path>$shadow/attributes/cn</path>
 					</expression>
 				</q:equal>
 			</correlation>

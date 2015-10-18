@@ -229,5 +229,87 @@
         </objectType>
 
     </schemaHandling>
+    
+    	<synchronization>
+
+		<objectSynchronization>
+			<name>Account sync</name>
+			<objectClass>ri:user</objectClass>
+			<kind>account</kind>
+			<intent>default</intent>
+			<focusType>UserType</focusType>
+			<enabled>true</enabled>
+			<correlation>
+				<q:and>
+					<q:equal>
+						<q:path>c:employeeNumber</q:path>
+						<expression>
+							<path>$shadow/attributes/employeeNumber</path>
+							<allowEmptyValues>true</allowEmptyValues>
+						</expression>
+					</q:equal>
+					<q:not>
+						<q:equal>
+							<q:path>c:employeeNumber</q:path>
+							<q:value/>
+						</q:equal>
+					</q:not>
+				</q:and>
+			</correlation>
+			
+			<reaction>
+	            <situation>linked</situation>
+	            <synchronize>true</synchronize>
+	        </reaction>
+	        <reaction>
+	            <situation>deleted</situation>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus"/>
+	        </reaction>
+	        <reaction>
+	            <situation>unlinked</situation>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#link"/>
+	        </reaction>
+	        <reaction>
+	            <situation>unmatched</situation>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus"/>
+	        </reaction>
+
+		</objectSynchronization>
+		
+		<objectSynchronization>
+			<name>Group sync</name>
+			<objectClass>ri:group</objectClass>
+			<kind>entitlement</kind>
+			<intent>group</intent>
+			<focusType>RoleType</focusType>
+			<enabled>true</enabled>
+			<correlation>
+				<q:equal>
+					<q:path>c:name</q:path>
+					<expression>
+						<path>$shadow/attributes/cn</path>
+					</expression>
+				</q:equal>
+			</correlation>
+			
+			<reaction>
+	            <situation>linked</situation>
+	            <synchronize>true</synchronize>
+	        </reaction>
+	        <reaction>
+	            <situation>deleted</situation>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus"/>
+	        </reaction>
+	        <reaction>
+	            <situation>unlinked</situation>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#link"/>
+	        </reaction>
+	        <reaction>
+	            <situation>unmatched</situation>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus"/>
+	        </reaction>
+
+		</objectSynchronization>
+	</synchronization>
 
 </resource>
