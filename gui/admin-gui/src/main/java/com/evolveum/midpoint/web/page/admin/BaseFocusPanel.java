@@ -587,7 +587,7 @@ public LoadableModel<ObjectWrapper<F>> getFocusModel() {
 	            }
 	        }
 
-	        target.add(getFeedbackPanel(), get(createComponentPath(ID_MAIN_FORM, ID_SHADOWS)));
+	        target.add(getFeedbackPanel(), get(createComponentPath(ID_SHADOWS)));
 	    }
 
 	    private void addSelectedResourceAssignPerformed(ResourceType resource) {
