@@ -19,9 +19,12 @@
 <body>
 <wicket:extend>
 
-    <div class="clearfix">
-        <form wicket:id="searchForm" class="form-inline pull-right search-form">
+    <form wicket:id="mainForm" class="form-inline">
+        <div wicket:id="decisionsTable"/>
+    </form>
 
+    <wicket:fragment wicket:id="tableHeader">
+        <form class="form-inline pull-right search-form" wicket:id="searchForm">
             <div class="checkbox">
                 <label>
                     <input type="checkbox" wicket:id="showNotDecidedOnly"/>
@@ -29,12 +32,7 @@
                 </label>
             </div>
         </form>
-    </div>
-
-    <form wicket:id="mainForm" class="clearfix form-horizontal">
-        <div wicket:id="decisionsTable"/>
-    </form>
-
+    </wicket:fragment>
 </wicket:extend>
 </body>
 </html>
