@@ -19,9 +19,12 @@ package com.evolveum.midpoint.web.page.admin.server.currentState;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -42,19 +45,61 @@ public class ActionsExecutedInformationPanel extends SimplePanel<ActionsExecuted
     private static final String ID_LAST_SUCCESS_OBJECT = "lastSuccessObject";
     private static final String ID_LAST_SUCCESS_TIMESTAMP = "lastSuccessTimestamp";
     private static final String ID_FAILURE_COUNT = "failureCount";
+    private static final String ID_SHOW_RESULTING_ACTIONS_ONLY_LABEL = "showResultingActionsOnlyLabel";
+    private static final String ID_SHOW_RESULTING_ACTIONS_ONLY_LINK = "showResultingActionsOnlyLink";
 
     public ActionsExecutedInformationPanel(String id, IModel<ActionsExecutedInformationDto> model) {
         super(id, model);
     }
 
+    boolean showResultingActionsOnly = true;
+
     @Override
     protected void initLayout() {
 
-        ListView tableLines = new ListView<ActionsExecutedObjectsTableLineDto>(ID_OBJECT_TABLE_LINES, new PropertyModel<List<ActionsExecutedObjectsTableLineDto>>(getModel(), ActionsExecutedInformationDto.F_OBJECTS_TABLE_LINES)) {
+        ListView tableLines = new ListView<ActionsExecutedObjectsTableLineDto>(ID_OBJECT_TABLE_LINES,
+                new AbstractReadOnlyModel<List<? extends ActionsExecutedObjectsTableLineDto>>() {
+                    @Override
+                    public List<? extends ActionsExecutedObjectsTableLineDto> getObject() {
+                        if (showResultingActionsOnly) {
+                            return getModelObject().getUniqueObjectsTableLines();
+                        } else {
+                            return getModelObject().getObjectsTableLines();
+                        }
+                    }
+                }
+        ) {
             protected void populateItem(final ListItem<ActionsExecutedObjectsTableLineDto> item) {
-                item.add(new Label(ID_OBJECT_TYPE, new PropertyModel<String>(item.getModel(), ActionsExecutedObjectsTableLineDto.F_OBJECT_TYPE)));
-                item.add(new Label(ID_OPERATION, new PropertyModel<String>(item.getModel(), ActionsExecutedObjectsTableLineDto.F_OPERATION)));
-                item.add(new Label(ID_CHANNEL, new PropertyModel<String>(item.getModel(), ActionsExecutedObjectsTableLineDto.F_CHANNEL)));
+                item.add(new Label(ID_OBJECT_TYPE, new AbstractReadOnlyModel<String>() {
+                    @Override
+                    public String getObject() {
+                        String key = item.getModelObject().getObjectTypeLocalizationKey();
+                        if (key != null) {
+                            return createStringResource(key).getString();
+                        } else {
+                            return item.getModelObject().getObjectType().getLocalPart();
+                        }
+                    }
+                }));
+                item.add(new Label(ID_OPERATION, new AbstractReadOnlyModel<String>() {
+                    @Override
+                    public String getObject() {
+                        return createStringResource(item.getModelObject().getOperation()).getString();
+                    }
+                }));
+                item.add(new Label(ID_CHANNEL, new AbstractReadOnlyModel<String>() {
+                    @Override
+                    public String getObject() {
+                        String channel = item.getModelObject().getChannel();
+                        if (channel != null && !channel.isEmpty()) {
+                            String key = "Channel." + channel;
+                            return createStringResource(key).getString();
+                        } else {
+                            return "";
+                        }
+                    }
+                }));
+
                 item.add(new Label(ID_SUCCESS_COUNT, new PropertyModel<String>(item.getModel(), ActionsExecutedObjectsTableLineDto.F_SUCCESS_COUNT)));
                 item.add(new Label(ID_LAST_SUCCESS_OBJECT, new PropertyModel<String>(item.getModel(), ActionsExecutedObjectsTableLineDto.F_LAST_SUCCESS_OBJECT)));
                 item.add(new Label(ID_LAST_SUCCESS_TIMESTAMP, new PropertyModel<String>(item.getModel(), ActionsExecutedObjectsTableLineDto.F_LAST_SUCCESS_TIMESTAMP)));
@@ -62,5 +107,29 @@ public class ActionsExecutedInformationPanel extends SimplePanel<ActionsExecuted
             }
         };
         add(tableLines);
+
+        add(new Label(ID_SHOW_RESULTING_ACTIONS_ONLY_LABEL, new AbstractReadOnlyModel<String>() {
+            @Override
+            public String getObject() {
+                return showResultingActionsOnly ?
+                        createStringResource("ActionsExecutedInformationPanel.showingResultingActionsOnly").getString() :
+                        createStringResource("ActionsExecutedInformationPanel.showingAllActions").getString();
+            }
+        }));
+        add(new AjaxFallbackLink<String>(ID_SHOW_RESULTING_ACTIONS_ONLY_LINK) {
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                showResultingActionsOnly = !showResultingActionsOnly;
+                ajaxRequestTarget.add(this);
+            }
+        });
+    }
+
+    public boolean isShowResultingActionsOnly() {
+        return showResultingActionsOnly;
+    }
+
+    public void setShowResultingActionsOnly(boolean showResultingActionsOnly) {
+        this.showResultingActionsOnly = showResultingActionsOnly;
     }
 }

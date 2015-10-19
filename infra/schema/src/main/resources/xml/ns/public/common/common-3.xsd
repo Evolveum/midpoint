@@ -13157,13 +13157,14 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="objectsEntry" type="tns:ActionsExecutedObjectsEntryType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="objectActionsEntry" type="tns:ObjectActionsExecutedEntryType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="resultingObjectActionsEntry" type="tns:ObjectActionsExecutedEntryType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="timestamp" type="xsd:dateTime" />
             <xsd:element name="fromMemory" type="xsd:boolean" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="ActionsExecutedObjectsEntryType">
+    <xsd:complexType name="ObjectActionsExecutedEntryType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO

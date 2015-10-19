@@ -21,77 +21,89 @@
     <form wicket:id="mainForm" class="clearfix form-horizontal">
         <div class="row">
             <div class="col-md-6">
-                <h2><wicket:message key="PageCertCampaign.basic"/></h2>
-                <table class="table table-condensed table-striped">
-                    <tr>
-                        <td><wicket:message key="PageCertCampaign.name"/></td>
-                        <td style="padding-left: 20px;"><div wicket:id="campaignName" /></td>
-                    </tr>
-                    <tr>
-                        <td><wicket:message key="PageCertCampaign.description"/></td>
-                        <td style="padding-left: 20px;"><div wicket:id="campaignDescription" /></td>
-                    </tr>
-                    <tr>
-                        <td><wicket:message key="PageCertCampaign.owner"/></td>
-                        <td style="padding-left: 20px;"><div wicket:id="campaignOwner" /></td>
-                    </tr>
-                    <tr>
-                        <td><wicket:message key="PageCertCampaign.time"/></td>
-                        <td style="padding-left: 20px;"><div wicket:id="campaignTime"/></td>
-                    </tr>
-                    <tr>
-                        <td><wicket:message key="PageCertCampaign.numberOfStages"/></td>
-                        <td style="padding-left: 20px;"><div wicket:id="campaignNumberOfStages" /></td>
-                    </tr>
-                    <tr>
-                        <td><wicket:message key="PageCertCampaign.currentState"/></td>
-                        <td style="padding-left: 20px;"><div wicket:id="campaignCurrentState" /></td>
-                    </tr>
-                    <tr>
-                        <td><wicket:message key="PageCertCampaign.stageTime"/></td>
-                        <td style="padding-left: 20px;"><div wicket:id="stageTime"/></td>
-                    </tr>
-                </table>
+                <div class="box box-success">
+                    <div class="box-header with-border">
+                        <h3 class="box-title"><wicket:message key="PageCertCampaign.basic"/></h3>
+                    </div>
+                    <div class="box-body no-padding">
+                        <table class="table table-striped">
+                            <tr>
+                                <td><wicket:message key="PageCertCampaign.name"/></td>
+                                <td><div wicket:id="campaignName" /></td>
+                            </tr>
+                            <tr>
+                                <td><wicket:message key="PageCertCampaign.description"/></td>
+                                <td><div wicket:id="campaignDescription" /></td>
+                            </tr>
+                            <tr>
+                                <td><wicket:message key="PageCertCampaign.owner"/></td>
+                                <td><div wicket:id="campaignOwner" /></td>
+                            </tr>
+                            <tr>
+                                <td><wicket:message key="PageCertCampaign.time"/></td>
+                                <td><div wicket:id="campaignTime"/></td>
+                            </tr>
+                            <tr>
+                                <td><wicket:message key="PageCertCampaign.numberOfStages"/></td>
+                                <td><div wicket:id="campaignNumberOfStages" /></td>
+                            </tr>
+                            <tr>
+                                <td><wicket:message key="PageCertCampaign.currentState"/></td>
+                                <td><div wicket:id="campaignCurrentState" /></td>
+                            </tr>
+                            <tr>
+                                <td><wicket:message key="PageCertCampaign.stageTime"/></td>
+                                <td><div wicket:id="stageTime"/></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
             </div>
             <div class="col-md-6">
-                <h2><wicket:message key="PageCertCampaign.statistics"/></h2>
-                <table class="table table-condensed table-striped">
-                    <tr>
-                        <th><wicket:message key="PageCertCampaign.statistics.response" /></th>
-                        <th><wicket:message key="PageCertCampaign.statistics.items" /></th>
-                        <th><wicket:message key="PageCertCampaign.statistics.remedied" /></th>
-                    </tr>
-                    <tr>
-                        <td><wicket:message key="PageCertCampaign.statistics.accept" /></td>
-                        <td><span wicket:id="statAccept" /></td>
-                        <td/>
-                    </tr>
-                    <tr>
-                        <td><wicket:message key="PageCertCampaign.statistics.revoke" /></td>
-                        <td><span wicket:id="statRevoke" /></td>
-                        <td><span wicket:id="statRevokeRemedied" /></td>
-                    </tr>
-                    <tr>
-                        <td><wicket:message key="PageCertCampaign.statistics.reduce" /></td>
-                        <td><span wicket:id="statReduce" /></td>
-                        <td><span wicket:id="statReduceRemedied" /></td>
-                    </tr>
-                    <tr>
-                        <td><wicket:message key="PageCertCampaign.statistics.delegate" /></td>
-                        <td><span wicket:id="statDelegate" /></td>
-                        <td/>
-                    </tr>
-                    <tr>
-                        <td><wicket:message key="PageCertCampaign.statistics.noDecision" /></td>
-                        <td><span wicket:id="statNoDecision" /></td>
-                        <td/>
-                    </tr>
-                    <tr>
-                        <td><wicket:message key="PageCertCampaign.statistics.noResponse" /></td>
-                        <td><span wicket:id="statNoResponse" /></td>
-                        <td/>
-                    </tr>
-                </table>
+                <div class="box box-danger">
+                    <div class="box-header with-border">
+                        <h3 class="box-title"><wicket:message key="PageCertCampaign.statistics"/></h3>
+                    </div>
+                    <div class="box-body no-padding">
+                        <table class="table table-striped">
+                            <tr>
+                                <th><wicket:message key="PageCertCampaign.statistics.response" /></th>
+                                <th><wicket:message key="PageCertCampaign.statistics.items" /></th>
+                                <th><wicket:message key="PageCertCampaign.statistics.remedied" /></th>
+                            </tr>
+                            <tr>
+                                <td><wicket:message key="PageCertCampaign.statistics.accept" /></td>
+                                <td><span wicket:id="statAccept" /></td>
+                                <td/>
+                            </tr>
+                            <tr>
+                                <td><wicket:message key="PageCertCampaign.statistics.revoke" /></td>
+                                <td><span wicket:id="statRevoke" /></td>
+                                <td><span wicket:id="statRevokeRemedied" /></td>
+                            </tr>
+                            <tr>
+                                <td><wicket:message key="PageCertCampaign.statistics.reduce" /></td>
+                                <td><span wicket:id="statReduce" /></td>
+                                <td><span wicket:id="statReduceRemedied" /></td>
+                            </tr>
+                            <tr>
+                                <td><wicket:message key="PageCertCampaign.statistics.delegate" /></td>
+                                <td><span wicket:id="statDelegate" /></td>
+                                <td/>
+                            </tr>
+                            <tr>
+                                <td><wicket:message key="PageCertCampaign.statistics.noDecision" /></td>
+                                <td><span wicket:id="statNoDecision" /></td>
+                                <td/>
+                            </tr>
+                            <tr>
+                                <td><wicket:message key="PageCertCampaign.statistics.noResponse" /></td>
+                                <td><span wicket:id="statNoResponse" /></td>
+                                <td/>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
         <div wicket:id="decisionsTable"/>

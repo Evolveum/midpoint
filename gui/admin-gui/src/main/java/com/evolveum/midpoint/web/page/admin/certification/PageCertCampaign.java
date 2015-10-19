@@ -28,7 +28,8 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn.BUTTON_COLOR_CLASS;
 import com.evolveum.midpoint.web.component.data.column.MultiButtonColumn;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
@@ -44,6 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -83,7 +85,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 /**
  * @author mederly
  */
-@PageDescriptor(url = "/admin/certificationCampaign",
+@PageDescriptor(url = "/admin/certification/campaign",
 		action = {
 				@AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
 						label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,
@@ -251,7 +253,7 @@ public class PageCertCampaign extends PageAdminCertification {
 		CertCaseDtoProvider provider = new CertCaseDtoProvider(PageCertCampaign.this);
 		provider.setQuery(createCaseQuery());
 		provider.setCampaignOid(getCampaignOid());
-		TablePanel table = new TablePanel<>(ID_DECISIONS_TABLE, provider, initColumns());
+		BoxedTablePanel table = new BoxedTablePanel<>(ID_DECISIONS_TABLE, provider, initColumns());
 		table.setShowPaging(true);
 		table.setOutputMarkupId(true);
 		mainForm.add(table);
@@ -479,7 +481,7 @@ public class PageCertCampaign extends PageAdminCertification {
 		statModel.reset();
 		campaignModel.reset();
 		target.add(get(createComponentPath(ID_MAIN_FORM)));
-		target.add(getDecisionsTable());		// ???
+		target.add((Component) getDecisionsTable());		// ???
 		target.add(getFeedbackPanel());
 	}
 
@@ -489,8 +491,8 @@ public class PageCertCampaign extends PageAdminCertification {
 		return query;
 	}
 
-	private TablePanel getDecisionsTable() {
-		return (TablePanel) get(createComponentPath(ID_MAIN_FORM, ID_DECISIONS_TABLE));
+	private Table getDecisionsTable() {
+		return (Table) get(createComponentPath(ID_MAIN_FORM, ID_DECISIONS_TABLE));
 	}
 
 	private String getCampaignOid() {

@@ -18,6 +18,10 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <h3><wicket:message key="ActionsExecutedInformationPanel.title"/></h3>
+
+    <span wicket:id="showResultingActionsOnlyLabel"/>
+    <a wicket:id="showResultingActionsOnlyLink" ><wicket:message key="ActionsExecutedInformationPanel.changeShowingActions"/></a>
+
     <table class="table table-striped table-condensed" style="width: auto;">
         <thead>
             <th><wicket:message key="ActionsExecutedInformationPanel.objectType"/></th>

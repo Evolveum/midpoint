@@ -18,14 +18,17 @@ package com.evolveum.midpoint.schema.statistics;
 
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActionsExecutedObjectsEntryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectActionsExecutedEntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActionsExecutedInformationType;
 import org.apache.commons.lang.StringUtils;
 
 import javax.xml.datatype.DatatypeConstants;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -41,8 +44,16 @@ public class ActionsExecutedInformation {
 
     private final ActionsExecutedInformationType startValue;
 
-    // key-related fields in value objects (objectType, channel, ...) are not used
-    private Map<ActionsExecutedObjectsKey,ActionsExecutedObjectsEntryType> data = new HashMap<>();
+    // Note: key-related fields in value objects (objectType, channel, ...) are filled-in but ignored in the following two maps
+    // allObjectActions: all executed actions
+    private Map<ActionsExecutedObjectsKey,ObjectActionsExecutedEntryType> allObjectActions = new HashMap<>();
+    // resultingObjectActions: "cleaned up" actions - i.e. if an object is added and then modified (in one "logical" operation),
+    // we count it as 1xADD
+    private Map<ActionsExecutedObjectsKey,ObjectActionsExecutedEntryType> resultingObjectActions = new HashMap<>();
+
+    // operations executed in the current scope: we "clean them up" when markObjectActionExecutedBoundary is called
+    // (indexed by object oid)
+    private Map<String,List<ObjectActionExecuted>> currentScopeObjectActions = new HashMap<>();
 
     public ActionsExecutedInformation(ActionsExecutedInformationType value) {
         startValue = value;
@@ -80,17 +91,22 @@ public class ActionsExecutedInformation {
     }
 
     public static void addTo(ActionsExecutedInformationType sum, ActionsExecutedInformationType delta) {
-        for (ActionsExecutedObjectsEntryType entry : delta.getObjectsEntry()) {
-            ActionsExecutedObjectsEntryType matchingEntry = findEntry(sum, entry);
+        addTo(sum.getObjectActionsEntry(), delta.getObjectActionsEntry());
+        addTo(sum.getResultingObjectActionsEntry(), delta.getResultingObjectActionsEntry());
+    }
+
+    public static void addTo(List<ObjectActionsExecutedEntryType> sumEntries, List<ObjectActionsExecutedEntryType> deltaEntries) {
+        for (ObjectActionsExecutedEntryType entry : deltaEntries) {
+            ObjectActionsExecutedEntryType matchingEntry = findEntry(sumEntries, entry);
             if (matchingEntry != null) {
                 addToEntry(matchingEntry, entry);
             } else {
-                sum.getObjectsEntry().add(entry);
+                sumEntries.add(entry);
             }
         }
     }
 
-    private static void addToEntry(ActionsExecutedObjectsEntryType sum, ActionsExecutedObjectsEntryType delta) {
+    private static void addToEntry(ObjectActionsExecutedEntryType sum, ObjectActionsExecutedEntryType delta) {
         sum.setTotalSuccessCount(sum.getTotalSuccessCount() + delta.getTotalSuccessCount());
         if (delta.getLastSuccessTimestamp() != null && 
                 (sum.getLastSuccessTimestamp() == null || delta.getLastSuccessTimestamp().compare(sum.getLastSuccessTimestamp()) == DatatypeConstants.GREATER)) {
@@ -110,8 +126,8 @@ public class ActionsExecutedInformation {
         }
     }
 
-    private static ActionsExecutedObjectsEntryType findEntry(ActionsExecutedInformationType informationType, ActionsExecutedObjectsEntryType entry) {
-        for (ActionsExecutedObjectsEntryType e : informationType.getObjectsEntry()) {
+    private static ObjectActionsExecutedEntryType findEntry(List<ObjectActionsExecutedEntryType> entries, ObjectActionsExecutedEntryType entry) {
+        for (ObjectActionsExecutedEntryType e : entries) {
             if (entry.getObjectType().equals(e.getObjectType()) &&
                     entry.getOperation().equals(e.getOperation()) &&
                     StringUtils.equals(entry.getChannel(), e.getChannel())) {
@@ -128,37 +144,106 @@ public class ActionsExecutedInformation {
     }
 
     private void toJaxb(ActionsExecutedInformationType rv) {
-        for (Map.Entry<ActionsExecutedObjectsKey,ActionsExecutedObjectsEntryType> entry : data.entrySet()) {
-            ActionsExecutedObjectsEntryType e = entry.getValue().clone();
+        mapToJaxb(allObjectActions, rv.getObjectActionsEntry());
+        mapToJaxb(resultingObjectActions, rv.getResultingObjectActionsEntry());
+    }
+
+    private void mapToJaxb(Map<ActionsExecutedObjectsKey, ObjectActionsExecutedEntryType> map, List<ObjectActionsExecutedEntryType> list) {
+        for (Map.Entry<ActionsExecutedObjectsKey,ObjectActionsExecutedEntryType> entry : map.entrySet()) {
+            ObjectActionsExecutedEntryType e = entry.getValue().clone();
             e.setObjectType(entry.getKey().getObjectType());
             e.setOperation(ChangeType.toChangeTypeType(entry.getKey().getOperation()));
             e.setChannel(entry.getKey().getChannel());
-            rv.getObjectsEntry().add(e);
+            list.add(e);
         }
     }
 
     public synchronized void recordObjectActionExecuted(String objectName, String objectDisplayName, QName objectType, String objectOid, ChangeType changeType, String channel, Throwable exception) {
+        XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar(new Date());
+        ObjectActionExecuted action = new ObjectActionExecuted(objectName, objectDisplayName, objectType, objectOid, changeType, channel, exception, now);
 
-        ActionsExecutedObjectsKey key = new ActionsExecutedObjectsKey(objectType, changeType, channel);
-        ActionsExecutedObjectsEntryType entry = data.get(key);
-        if (entry == null) {
-            entry = new ActionsExecutedObjectsEntryType();
-            data.put(key, entry);
+        addEntry(allObjectActions, action);
+
+        if (action.objectOid == null) {
+            action.objectOid = "dummy-" + ((int) Math.random() * 10000000);     // hack for unsuccessful ADDs
         }
-        if (exception == null) {
+        addAction(action);
+    }
+
+    protected void addAction(ObjectActionExecuted action) {
+        List<ObjectActionExecuted> actions = currentScopeObjectActions.get(action.objectOid);
+        if (actions == null) {
+            actions = new ArrayList<>();
+            currentScopeObjectActions.put(action.objectOid, actions);
+        }
+        actions.add(action);
+    }
+
+    protected void addEntry(Map<ActionsExecutedObjectsKey,ObjectActionsExecutedEntryType> target, ObjectActionExecuted a) {
+        ActionsExecutedObjectsKey key = new ActionsExecutedObjectsKey(a.objectType, a.changeType, a.channel);
+        ObjectActionsExecutedEntryType entry = target.get(key);
+        if (entry == null) {
+            entry = new ObjectActionsExecutedEntryType();
+            target.put(key, entry);
+        }
+
+        if (a.exception == null) {
             entry.setTotalSuccessCount(entry.getTotalSuccessCount() + 1);
-            entry.setLastSuccessObjectName(objectName);
-            entry.setLastSuccessObjectDisplayName(objectDisplayName);
-            entry.setLastSuccessObjectOid(objectOid);
-            entry.setLastSuccessTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
+            entry.setLastSuccessObjectName(a.objectName);
+            entry.setLastSuccessObjectDisplayName(a.objectDisplayName);
+            entry.setLastSuccessObjectOid(a.objectOid);
+            entry.setLastSuccessTimestamp(a.timestamp);
         } else {
             entry.setTotalFailureCount(entry.getTotalFailureCount() + 1);
-            entry.setLastFailureObjectName(objectName);
-            entry.setLastFailureObjectDisplayName(objectDisplayName);
-            entry.setLastFailureObjectOid(objectOid);
-            entry.setLastFailureTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
-            entry.setLastFailureExceptionMessage(exception.getMessage());
+            entry.setLastFailureObjectName(a.objectName);
+            entry.setLastFailureObjectDisplayName(a.objectDisplayName);
+            entry.setLastFailureObjectOid(a.objectOid);
+            entry.setLastFailureTimestamp(a.timestamp);
+            entry.setLastFailureExceptionMessage(a.exception.getMessage());
         }
     }
 
+    public synchronized void markObjectActionExecutedBoundary() {
+        for (Map.Entry<String,List<ObjectActionExecuted>> entry : currentScopeObjectActions.entrySet()) {
+            // Last non-modify operation determines the result
+            List<ObjectActionExecuted> actions = entry.getValue();
+            assert actions.size() > 0;
+            int relevant;
+            for (relevant = actions.size()-1; relevant>=0; relevant--) {
+                if (actions.get(relevant).changeType != ChangeType.MODIFY) {
+                    break;
+                }
+            }
+            if (relevant < 0) {
+                // all are "modify" -> take any (we currently don't care whether successful or not; TODO fix this)
+                ObjectActionExecuted actionExecuted = actions.get(actions.size()-1);
+                addEntry(resultingObjectActions, actionExecuted);
+            } else {
+                addEntry(resultingObjectActions, actions.get(relevant));
+            }
+        }
+        currentScopeObjectActions.clear();
+    }
+
+    private static class ObjectActionExecuted {
+        String objectName;
+        String objectDisplayName;
+        QName objectType;
+        String objectOid;
+        ChangeType changeType;
+        String channel;
+        Throwable exception;
+        XMLGregorianCalendar timestamp;
+
+        public ObjectActionExecuted(String objectName, String objectDisplayName, QName objectType, String objectOid, ChangeType changeType, String channel, Throwable exception, XMLGregorianCalendar timestamp) {
+            this.objectName = objectName;
+            this.objectDisplayName = objectDisplayName;
+            this.objectType = objectType;
+            this.objectOid = objectOid;
+            this.changeType = changeType;
+            this.channel = channel;
+            this.exception = exception;
+            this.timestamp = timestamp;
+        }
+    }
 }

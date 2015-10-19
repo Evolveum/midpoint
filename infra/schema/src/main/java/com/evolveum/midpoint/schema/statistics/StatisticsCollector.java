@@ -95,6 +95,8 @@ public interface StatisticsCollector {
 
     <T extends ObjectType> void recordObjectActionExecuted(PrismObject<T> object, Class<T> objectTypeClass, String defaultOid, ChangeType changeType, String channel, Throwable exception);
 
+    void markObjectActionExecutedBoundary();
+
     /**
      * Sets initial values for statistics.
      */

@@ -594,6 +594,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 					auditRecord.getDeltas().clear();
 					auditRecord.getDeltas().addAll(executedDeltas);
 					auditService.audit(auditRecord, task);
+
+					task.markObjectActionExecutedBoundary();
 				}
 
 			} else {
@@ -626,6 +628,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 						CommunicationException|ConfigurationException|PolicyViolationException|SecurityViolationException|RuntimeException e) {
 					ModelUtils.recordFatalError(result, e);
 					throw e;
+				} finally {
+					task.markObjectActionExecutedBoundary();
 				}
 			}
 
