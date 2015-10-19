@@ -18,14 +18,14 @@ import static com.codeborne.selenide.Condition.*;
  */
 public class OrganizationTests extends AbstractSelenideTest {
     //Organization fields' names
-    public static final String ORGANIZATION_NAME_FIELD = "name:textWrapper:text";
-    public static final String ORGANIZATION_DISPLAY_NAME_FIELD = "displayName:textWrapper:text";
-    public static final String ORGANIZATION_DESCRIPTION_FIELD = "description:textWrapper:text";
-    public static final String ORGANIZATION_ORG_TYPE_FIELD = "orgType:repeater:0:textWrapper:text";
-    public static final String ORGANIZATION_IDENTIFIER_FIELD = "identifier:textWrapper:text";
-    public static final String ORGANIZATION_COST_CENTER_FIELD = "costCenter:textWrapper:text";
-    public static final String ORGANIZATION_LOCALITY_FIELD = "locality:textWrapper:text";
-    public static final String ORGANIZATION_MAIL_DOMAIN_FIELD = "mailDomain:repeater:0:textWrapper:text";
+    public static final String ORGANIZATION_NAME_FIELD = "tabPanel:panel:focusForm:body:containers:0:container:properties:0:property:values:0:value:valueContainer:input:input";
+    public static final String ORGANIZATION_DISPLAY_NAME_FIELD = "tabPanel:panel:focusForm:body:containers:0:container:properties:1:property:values:0:value:valueContainer:input:input";
+    public static final String ORGANIZATION_DESCRIPTION_FIELD = "tabPanel:panel:focusForm:body:containers:0:container:properties:2:property:values:0:value:valueContainer:input:input";
+    public static final String ORGANIZATION_ORG_TYPE_FIELD = "tabPanel:panel:focusForm:body:containers:0:container:properties:4:property:values:0:value:valueContainer:input:input";
+    public static final String ORGANIZATION_IDENTIFIER_FIELD = "tabPanel:panel:focusForm:body:containers:0:container:properties:3:property:values:0:value:valueContainer:input:input";
+    public static final String ORGANIZATION_COST_CENTER_FIELD = "tabPanel:panel:focusForm:body:containers:0:container:properties:6:property:values:0:value:valueContainer:input:input";
+    public static final String ORGANIZATION_LOCALITY_FIELD = "tabPanel:panel:focusForm:body:containers:0:container:properties:7:property:values:0:value:valueContainer:input:input";
+    public static final String ORGANIZATION_MAIL_DOMAIN_FIELD = "tabPanel:panel:focusForm:body:containers:0:container:properties:8:property:values:0:value:valueContainer:input:input";
     //Organization fields' values
     public static final String ORGANIZATION_NAME_VALUE = "TestOrganization";
     public static final String SUB_ORGANIZATION_NAME_VALUE = "TestSubOrganization";
@@ -55,6 +55,9 @@ public class OrganizationTests extends AbstractSelenideTest {
         organizationFieldsMap.put(ORGANIZATION_COST_CENTER_FIELD, ORGANIZATION_COST_CENTER_VALUE);
         organizationFieldsMap.put(ORGANIZATION_LOCALITY_FIELD, ORGANIZATION_LOCALITY_VALUE);
         organizationFieldsMap.put(ORGANIZATION_MAIL_DOMAIN_FIELD, ORGANIZATION_MAIL_DOMAIN_VALUE);
+        // TODO: display order, risk level, ...
+        //click Org. structure menu
+        $(By.partialLinkText("Org. structure")).shouldBe(visible).click();
         //create organization
         createOrganization(organizationFieldsMap, "");
         //check if Success message appears
@@ -135,16 +138,17 @@ public class OrganizationTests extends AbstractSelenideTest {
 
 
     public void createOrganization(Map<String, String> organizationFieldsMap, String parentOrgName){
-        //click Users menu
-        $(By.partialLinkText("Users")).shouldBe(visible).click();
         //click New organization menu
         $(By.partialLinkText("New organization")).shouldBe(visible).click();
         setFieldValues(organizationFieldsMap);
         if (parentOrgName != null && !parentOrgName.isEmpty()){
             //click Edit button for Parent org. units field
-            $(byText("Edit")).shouldBe(visible).click();
+//            $(byText("Edit")).shouldBe(visible).click();
+            $(By.xpath("/html/body/div[1]/div/section[2]/form/div[2]/div/div/div[7]/div[1]/div/div/div/div[3]/div[1]/div[1]/div[11]/div/div[2]/div/div[1]/div[1]/div[2]/div/span/button"))
+                    .shouldBe(visible).click();
+
             //click on the parent organization name in the opened Choose object window
-            $(By.linkText(ORGANIZATION_NAME_VALUE)).shouldBe(visible).click();
+            $(By.partialLinkText(ORGANIZATION_NAME_VALUE)).shouldBe(visible).click();
             //wait till Choose object window close
             $(byText("Choose object")).should(disappear);
         }
