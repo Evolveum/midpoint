@@ -559,8 +559,12 @@ public class PrismValuePanel extends Panel {
 //        	((PrismReferenceDefinition) item.getDefinition()).
         	Class typeFromName = null;
         	PrismContext prismContext = item.getPrismContext();
-        	if (((PrismReferenceDefinition)item.getDefinition()).getTargetTypeName() != null){
-        		 typeFromName = prismContext.getSchemaRegistry().determineCompileTimeClass(((PrismReferenceDefinition) item.getDefinition()).getTargetTypeName());
+            if (prismContext == null) {
+                prismContext = pageBase.getPrismContext();
+            }
+            QName targetTypeName = ((PrismReferenceDefinition) item.getDefinition()).getTargetTypeName();
+            if (targetTypeName != null && prismContext != null) {
+                typeFromName = prismContext.getSchemaRegistry().determineCompileTimeClass(targetTypeName);
         	}
         	final Class typeClass = typeFromName != null ? typeFromName : (item.getDefinition().getTypeClassIfKnown() != null ? item.getDefinition().getTypeClassIfKnown() : FocusType.class);
         	panel = new ValueChoosePanel(id,

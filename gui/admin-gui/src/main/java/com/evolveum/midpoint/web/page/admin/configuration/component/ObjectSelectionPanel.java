@@ -33,16 +33,20 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.ChooseTypeSearchDto;
+import com.evolveum.midpoint.web.page.PageDialog;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectSearchDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.Page;
+import org.apache.wicket.PageReference;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
@@ -54,9 +58,9 @@ import java.util.List;
 /**
  *  @author shood
  * */
-public class ChooseTypeDialog extends ModalWindow{
+public class ObjectSelectionPanel extends Panel {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ChooseTypeDialog.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ObjectSelectionPanel.class);
 
     private static final String DEFAULT_SORTABLE_PROPERTY = null;
 
@@ -68,49 +72,29 @@ public class ChooseTypeDialog extends ModalWindow{
 
     private Class<? extends ObjectType> objectType;
     private boolean initialized;
-    private IModel<ChooseTypeSearchDto> searchModel;
+    private IModel<ObjectSearchDto> searchModel;
 
-    public ChooseTypeDialog(String id, Class<? extends ObjectType> type){
+    public ObjectSelectionPanel(String id, Class<? extends ObjectType> type, PageBase pageBase){
         super(id);
 
-        searchModel = new LoadableModel<ChooseTypeSearchDto>(false) {
+        searchModel = new LoadableModel<ObjectSearchDto>(false) {
 
             @Override
-            protected ChooseTypeSearchDto load() {
-                return new ChooseTypeSearchDto();
+            protected ObjectSearchDto load() {
+                return new ObjectSearchDto();
             }
         };
 
         objectType = type;
 
-        setTitle(createStringResource("chooseTypeDialog.title"));
-        showUnloadConfirmation(false);
-        setCssClassName(ModalWindow.CSS_CLASS_GRAY);
-        setCookieName(ChooseTypeDialog.class.getSimpleName() + ((int) (Math.random() * 100)));
-        setInitialWidth(500);
-        setInitialHeight(500);
-        setWidthUnit("px");
-
-        WebMarkupContainer content = new WebMarkupContainer(getContentId());
-        setContent(content);
-    }
-
-    @Override
-    protected void onBeforeRender(){
-        super.onBeforeRender();
-
-        if(initialized){
-            return;
-        }
-
-        initLayout((WebMarkupContainer) get(getContentId()));
+        initLayout(pageBase);
         initialized = true;
     }
 
-    public void initLayout(WebMarkupContainer content){
+    public void initLayout(PageBase pageBase){
         Form searchForm = new Form(ID_SEARCH_FORM);
         searchForm.setOutputMarkupId(true);
-        content.add(searchForm);
+        add(searchForm);
         searchForm.add(new VisibleEnableBehaviour(){
 
             @Override
@@ -119,33 +103,33 @@ public class ChooseTypeDialog extends ModalWindow{
             }
         });
 
-        BasicSearchPanel<ChooseTypeSearchDto> basicSearch = new BasicSearchPanel<ChooseTypeSearchDto>(ID_BASIC_SEARCH) {
+        BasicSearchPanel<ObjectSearchDto> basicSearch = new BasicSearchPanel<ObjectSearchDto>(ID_BASIC_SEARCH) {
 
             @Override
             protected IModel<String> createSearchTextModel() {
-                return new PropertyModel<>(searchModel, ChooseTypeSearchDto.F_SEARCH_TEXT);
+                return new PropertyModel<>(searchModel, ObjectSearchDto.F_SEARCH_TEXT);
             }
 
             @Override
             protected void searchPerformed(AjaxRequestTarget target) {
-                typeSearchPerformed(target);
+                ObjectSelectionPanel.this.searchPerformed(target);
             }
 
             @Override
             protected void clearSearchPerformed(AjaxRequestTarget target) {
-                typeClearSearchPerformed(target);
+                ObjectSelectionPanel.this.clearSearchPerformed(target);
             }
         };
         searchForm.add(basicSearch);
 
-        content.add(createExtraContentContainer(ID_EXTRA_CONTENT_CONTAINER));
+        add(createExtraContentContainer(ID_EXTRA_CONTENT_CONTAINER));
 
         List<IColumn<SelectableBean<ObjectType>, String>> columns = initColumns();
-        ObjectDataProvider provider = new ObjectDataProvider(getPageBase(), this.objectType);
+        ObjectDataProvider provider = new ObjectDataProvider(pageBase, this.objectType);
         provider.setQuery(getDataProviderQuery());
         TablePanel table = new TablePanel<>(ID_TABLE, provider, columns);
         table.setOutputMarkupId(true);
-        content.addOrReplace(table);
+        addOrReplace(table);
 
         AjaxButton cancelButton = new AjaxButton(ID_BUTTON_CANCEL,
                 createStringResource("chooseTypeDialog.button.cancel")) {
@@ -155,10 +139,10 @@ public class ChooseTypeDialog extends ModalWindow{
                 cancelPerformed(ajaxRequestTarget);
             }
         };
-        content.add(cancelButton);
+        add(cancelButton);
     }
 
-    private List<IColumn<SelectableBean<ObjectType>, String>> initColumns(){
+    private List<IColumn<SelectableBean<ObjectType>, String>> initColumns() {
         List<IColumn<SelectableBean<ObjectType>, String>> columns = new ArrayList<>();
 
         IColumn column = new LinkColumn<SelectableBean<ObjectType>>(createStringResource("chooseTypeDialog.column.name"), getSortableProperty(), "value.name"){
@@ -182,26 +166,26 @@ public class ChooseTypeDialog extends ModalWindow{
         return container;
     }
 
-    private TablePanel getTablePanel(){
-        return (TablePanel) get(StringUtils.join(new String[]{CONTENT_ID, ID_TABLE}, ":"));
+    private TablePanel getTablePanel() {
+        return (TablePanel) get(StringUtils.join(new String[]{ID_TABLE}, ":"));
     }
 
     private Form getSearchForm(){
-        return (Form) get(StringUtils.join(new String[]{CONTENT_ID, ID_SEARCH_FORM}, ":"));
+        return (Form) get(StringUtils.join(new String[]{ID_SEARCH_FORM}, ":"));
     }
 
     private WebMarkupContainer getExtraContentContainer(){
-        return (WebMarkupContainer) get(StringUtils.join(new String[]{CONTENT_ID, ID_EXTRA_CONTENT_CONTAINER}, ":"));
+        return (WebMarkupContainer) get(StringUtils.join(new String[]{ID_EXTRA_CONTENT_CONTAINER}, ":"));
     }
 
-    public void updateTableByTypePerformed(AjaxRequestTarget target, Class<? extends ObjectType> newType){
+    public void updateTableByTypePerformed(AjaxRequestTarget target, Class<? extends ObjectType> newType) {
         this.objectType = newType;
         TablePanel table = getTablePanel();
         DataTable dataTable = table.getDataTable();
         ObjectDataProvider provider = (ObjectDataProvider)dataTable.getDataProvider();
         provider.setType(objectType);
 
-        target.add(get(CONTENT_ID), getPageBase().getFeedbackPanel(), table);
+        target.add(this, getPageBase().getFeedbackPanel(), table);
     }
 
     public void updateTablePerformed(AjaxRequestTarget target, ObjectQuery query){
@@ -210,7 +194,7 @@ public class ChooseTypeDialog extends ModalWindow{
         ObjectDataProvider provider = (ObjectDataProvider)dataTable.getDataProvider();
         provider.setQuery(query);
 
-        target.add(get(CONTENT_ID), getPageBase().getFeedbackPanel(), table);
+        target.add(this, getPageBase().getFeedbackPanel(), table);
     }
 
     protected ObjectQuery getDataProviderQuery(){
@@ -221,8 +205,8 @@ public class ChooseTypeDialog extends ModalWindow{
         return DEFAULT_SORTABLE_PROPERTY;
     }
 
-    private void cancelPerformed(AjaxRequestTarget target) {
-        close(target);
+    protected void cancelPerformed(AjaxRequestTarget target) {
+        // subclasses should close the modal window here
     }
 
     protected void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object){}
@@ -232,10 +216,17 @@ public class ChooseTypeDialog extends ModalWindow{
     }
 
     private PageBase getPageBase() {
-         return (PageBase) getPage();
+        Page page = getPage();
+        if (page instanceof PageBase) {
+            return (PageBase) page;
+        } else if (page instanceof PageDialog) {
+            return ((PageDialog) page).getPageBase();
+        } else {
+            throw new IllegalStateException("Couldn't determine page base for " + page);
+        }
     }
 
-    private void typeSearchPerformed(AjaxRequestTarget target){
+    private void searchPerformed(AjaxRequestTarget target){
         ObjectQuery query = createObjectQuery();
         TablePanel panel = getTablePanel();
         DataTable table = panel.getDataTable();
@@ -245,11 +236,11 @@ public class ChooseTypeDialog extends ModalWindow{
         target.add(panel);
     }
 
-    private ObjectQuery createObjectQuery(){
-        ChooseTypeSearchDto dto = searchModel.getObject();
+    private ObjectQuery createObjectQuery() {
+        ObjectSearchDto dto = searchModel.getObject();
         ObjectQuery query = null;
 
-        if(StringUtils.isEmpty(dto.getText())){
+        if(StringUtils.isEmpty(dto.getText())) {
             if(getDataProviderQuery() != null){
                 return getDataProviderQuery();
             } else {
@@ -257,7 +248,7 @@ public class ChooseTypeDialog extends ModalWindow{
             }
         }
 
-        try{
+        try {
             PolyStringNormalizer normalizer = getPageBase().getPrismContext().getDefaultPolyStringNormalizer();
             String normalized = normalizer.normalize(dto.getText());
 
@@ -279,8 +270,8 @@ public class ChooseTypeDialog extends ModalWindow{
         return query;
     }
 
-    private void typeClearSearchPerformed(AjaxRequestTarget target){
-        searchModel.setObject(new ChooseTypeSearchDto());
+    private void clearSearchPerformed(AjaxRequestTarget target) {
+        searchModel.setObject(new ObjectSearchDto());
 
         TablePanel panel = getTablePanel();
         DataTable table = panel.getDataTable();
@@ -307,5 +298,18 @@ public class ChooseTypeDialog extends ModalWindow{
      * */
     public QName getSearchProperty(){
         return ObjectType.F_NAME;
+    }
+
+    protected <T extends Component> T theSameForPage(T object, PageReference containingPageReference) {
+        Page containingPage = containingPageReference.getPage();
+        if (containingPage == null) {
+            throw new IllegalStateException("Containing page cannot be determined");
+        }
+        String path = object.getPageRelativePath();
+        T retval = (T) containingPage.get(path);
+        if (retval == null) {
+            throw new IllegalStateException("There is no component like " + object + " (path '" + path + "') on " + containingPage);
+        }
+        return retval;
     }
 }
