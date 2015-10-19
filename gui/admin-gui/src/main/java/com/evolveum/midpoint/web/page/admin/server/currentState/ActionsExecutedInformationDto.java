@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.server.currentState;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActionsExecutedObjectsEntryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectActionsExecutedEntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActionsExecutedInformationType;
 
 import java.util.ArrayList;
@@ -38,7 +38,16 @@ public class ActionsExecutedInformationDto {
 
     public List<ActionsExecutedObjectsTableLineDto> getObjectsTableLines() {
         List<ActionsExecutedObjectsTableLineDto> rv = new ArrayList<>();
-        for (ActionsExecutedObjectsEntryType entry : actionsExecutedInformationType.getObjectsEntry()) {
+        for (ObjectActionsExecutedEntryType entry : actionsExecutedInformationType.getObjectActionsEntry()) {
+            rv.add(new ActionsExecutedObjectsTableLineDto(entry));
+        }
+        Collections.sort(rv);
+        return rv;
+    }
+
+    public List<ActionsExecutedObjectsTableLineDto> getUniqueObjectsTableLines() {
+        List<ActionsExecutedObjectsTableLineDto> rv = new ArrayList<>();
+        for (ObjectActionsExecutedEntryType entry : actionsExecutedInformationType.getResultingObjectActionsEntry()) {
             rv.add(new ActionsExecutedObjectsTableLineDto(entry));
         }
         Collections.sort(rv);

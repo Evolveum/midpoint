@@ -2762,6 +2762,13 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	@Override
+	public void markObjectActionExecutedBoundary() {
+		if (actionsExecutedInformation != null) {
+			actionsExecutedInformation.markObjectActionExecutedBoundary();
+		}
+	}
+
+	@Override
 	public void resetOperationalInformation(OperationalInformationType value) {
 		operationalInformation = new OperationalInformation(value);
 	}

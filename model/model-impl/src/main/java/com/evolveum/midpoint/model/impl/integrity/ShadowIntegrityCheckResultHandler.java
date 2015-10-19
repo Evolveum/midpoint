@@ -283,6 +283,8 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
             LoggingUtils.logUnexpectedException(LOGGER, "Unexpected error while checking shadow {} integrity", e, ObjectTypeUtil.toShortString(shadow));
             result.recordPartialError("Unexpected error while checking shadow integrity", e);
             statistics.incrementShadowsWithErrors();
+        } finally {
+            workerTask.markObjectActionExecutedBoundary();
         }
 
         statistics.registerProblemCodeOccurrences(checkResult.getProblemCodes());

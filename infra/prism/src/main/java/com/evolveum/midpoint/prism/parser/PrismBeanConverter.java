@@ -289,7 +289,13 @@ public class PrismBeanConverter {
 				// for a getter that returns a collection (Collection<Whatever>)
 				getter = inspector.findPropertyGetter(beanClass, fieldName);
 				if (getter == null) {
-					throw new SchemaException("Cannot find setter or getter for field "+fieldName+" in "+beanClass);
+					String m = "Cannot find setter or getter for field " + fieldName + " in " + beanClass;
+					if (mode == XNodeProcessorEvaluationMode.COMPAT) {
+						LOGGER.warn("{}", m);
+						continue;
+					} else {
+						throw new SchemaException(m);
+					}
 				}
 				Class<?> getterReturnType = getter.getReturnType();
 				if (!Collection.class.isAssignableFrom(getterReturnType)) {
