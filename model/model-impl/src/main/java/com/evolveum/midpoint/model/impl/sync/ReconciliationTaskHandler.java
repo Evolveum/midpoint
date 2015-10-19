@@ -706,6 +706,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
                     LoggingUtils.logException(LOGGER, "Failed to record finish operation failure with shadow: " + ObjectTypeUtil.toShortString(shadow.asObjectable()), e);
 				}
 			} finally {
+				task.markObjectActionExecutedBoundary();
 				RepositoryCache.exit();
 			}
 

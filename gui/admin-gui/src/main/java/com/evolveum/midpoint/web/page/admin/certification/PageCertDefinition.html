@@ -19,26 +19,32 @@
 <body>
 <wicket:extend>
     <form wicket:id="mainForm" class="clearfix form-horizontal">
-
-        <h2><wicket:message key="PageCertDefinition.basicInformation"/></h2>
-        <table class="table table-condensed table-striped">
-            <tr>
-                <td><wicket:message key="PageCertDefinition.name"/></td>
-                <td style="padding-left: 20px;"><div wicket:id="name" /></td>
-            </tr>
-            <tr>
-                <td><wicket:message key="PageCertDefinition.description"/></td>
-                <td style="padding-left: 20px;"><div wicket:id="description" /></td>
-            </tr>
-            <tr>
-                <td><wicket:message key="PageCertDefinition.owner"/></td>
-                <td style="padding-left: 20px;"><div wicket:id="owner" /></td>
-            </tr>
-            <tr>
-                <td><wicket:message key="PageCertDefinition.numberOfStages"/></td>
-                <td style="padding-left: 20px;"><div wicket:id="numberOfStages" /></td>
-            </tr>
-        </table>
+        <div class="box box-success">
+            <div class="box-header with-border">
+                <h3 class="box-title"><wicket:message key="PageCertDefinition.basicInformation"/></h3>
+            </div>
+            <div class="box-body no-padding">
+                <table class="table table-striped">
+                    <tr>
+                        <td><wicket:message key="PageCertDefinition.name"/></td>
+                        <td><div wicket:id="name" /></td>
+                    </tr>
+                    <tr>
+                        <td><wicket:message key="PageCertDefinition.description"/></td>
+                        <td><div wicket:id="description" /></td>
+                    </tr>
+                    <tr>
+                        <td><wicket:message key="PageCertDefinition.owner"/></td>
+                        <td><div wicket:id="owner" /></td>
+                    </tr>
+                    <tr>
+                        <td><wicket:message key="PageCertDefinition.numberOfStages"/></td>
+                        <td><div wicket:id="numberOfStages" /></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        
         <h2><wicket:message key="PageCertDefinition.xmlDefinition"/></h2>
         <textarea wicket:id="aceEditor"/>
 

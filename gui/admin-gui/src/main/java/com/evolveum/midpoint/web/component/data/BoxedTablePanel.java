@@ -116,6 +116,14 @@ public class BoxedTablePanel<T> extends SimplePanel implements Table {
         }
     }
 
+    public WebMarkupContainer getHeader() {
+        return (WebMarkupContainer) get(ID_HEADER);
+    }
+
+    public WebMarkupContainer getFooter() {
+        return (WebMarkupContainer) get(ID_FOOTER);
+    }
+
     protected WebMarkupContainer createHeader(String headerId) {
         WebMarkupContainer header = new WebMarkupContainer(headerId);
         header.setVisible(false);

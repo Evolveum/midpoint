@@ -773,4 +773,8 @@ public class SimpleTaskAdapter implements Task {
     @Override
     public <T extends ObjectType> void recordObjectActionExecuted(PrismObject<T> objectOld, Class<T> objectTypeClass, String oid, ChangeType delete, String channel, Throwable o) {
     }
+
+    @Override
+    public void markObjectActionExecutedBoundary() {
+    }
 }

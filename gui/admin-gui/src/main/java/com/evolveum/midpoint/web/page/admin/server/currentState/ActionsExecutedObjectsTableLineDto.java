@@ -16,10 +16,13 @@
 
 package com.evolveum.midpoint.web.page.admin.server.currentState;
 
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActionsExecutedObjectsEntryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectActionsExecutedEntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -35,7 +38,7 @@ import java.util.Date;
  */
 public class ActionsExecutedObjectsTableLineDto implements Comparable<ActionsExecutedObjectsTableLineDto> {
 
-    public static final String F_OBJECT_TYPE = "objectType";
+    //public static final String F_OBJECT_TYPE = "objectType";
     public static final String F_OPERATION = "operation";
     public static final String F_CHANNEL = "channel";
     public static final String F_SUCCESS_COUNT = "successCount";
@@ -48,18 +51,28 @@ public class ActionsExecutedObjectsTableLineDto implements Comparable<ActionsExe
             ResourceType.COMPLEX_TYPE, ReportType.COMPLEX_TYPE
     };
 
-    private ActionsExecutedObjectsEntryType entry;
+    private ObjectActionsExecutedEntryType entry;
 
-    public ActionsExecutedObjectsTableLineDto(ActionsExecutedObjectsEntryType entry) {
+    public ActionsExecutedObjectsTableLineDto(ObjectActionsExecutedEntryType entry) {
         this.entry = entry;
     }
 
-    public String getObjectType() {
-        return entry.getObjectType().getLocalPart();
+    public String getObjectTypeLocalizationKey() {
+        ObjectTypes type = ObjectTypes.getObjectTypeFromTypeQName(entry.getObjectType());
+        ObjectTypeGuiDescriptor descriptor = ObjectTypeGuiDescriptor.getDescriptor(type);
+        if (descriptor != null) {
+            return descriptor.getLocalizationKey();
+        } else {
+            return null;
+        }
     }
 
-    public String getOperation() {
-        return entry.getOperation().toString();
+    public QName getObjectType() {
+        return entry.getObjectType();
+    }
+
+    public ChangeType getOperation() {
+        return ChangeType.toChangeType(entry.getOperation());
     }
 
     public String getChannel() {

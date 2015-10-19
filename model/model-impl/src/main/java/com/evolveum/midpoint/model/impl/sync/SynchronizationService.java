@@ -256,6 +256,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 					task.recordObjectActionExecuted(object, ChangeType.MODIFY, null);
 				} catch (Throwable t) {
 					task.recordObjectActionExecuted(object, ChangeType.MODIFY, t);
+				} finally {
+					task.markObjectActionExecutedBoundary();
 				}
 				subResult.recordSuccess();
 				eventInfo.record(task);
@@ -278,6 +280,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			subResult.recordFatalError(ex);
 			throw new SystemException(ex);
 		} finally {
+			task.markObjectActionExecutedBoundary();
 //			if (LOGGER.isTraceEnabled()) {
 //				LOGGER.trace(subResult.dump());
 //			}

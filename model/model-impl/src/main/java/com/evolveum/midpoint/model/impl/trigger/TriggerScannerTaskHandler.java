@@ -225,6 +225,8 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 		} catch (Throwable t) {
 			task.recordObjectActionExecuted(object, ChangeType.MODIFY, t);
 			throw t;
+		} finally {
+			task.markObjectActionExecutedBoundary();		// maybe OK (absolute correctness is not quite important here)
 		}
 	}
 
