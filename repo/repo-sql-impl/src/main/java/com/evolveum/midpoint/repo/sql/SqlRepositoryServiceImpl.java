@@ -82,6 +82,7 @@ import com.evolveum.midpoint.prism.parser.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
+import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
@@ -950,9 +951,15 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             if (filter instanceof NoneFilter) {
                 subResult.recordSuccess();
                 return new SearchResultList(new ArrayList<PrismObject<T>>(0));
+                //shouldn't be this in ObjectQueryUtil.simplify?
+            } else if (filter instanceof AllFilter){
+            	query = query.cloneEmpty();
+            	query.setFilter(null);
+            } else {
+	            query = query.cloneEmpty();
+	            query.setFilter(filter);
             }
-            query = query.cloneEmpty();
-            query.setFilter(filter);
+            
         }
 
         SqlPerformanceMonitor pm = getPerformanceMonitor();
@@ -1879,9 +1886,14 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             if (filter instanceof NoneFilter) {
                 subResult.recordSuccess();
                 return null;
+                //shouldn't be this in ObjectQueryUtil.simplify?
+            } else if (filter instanceof AllFilter){
+            	query = query.cloneEmpty();
+            	query.setFilter(null);
+            } else {
+            	query = query.cloneEmpty();
+            	query.setFilter(filter);
             }
-            query = query.cloneEmpty();
-            query.setFilter(filter);
         }
 
         if (getConfiguration().isIterativeSearchByPaging()) {
