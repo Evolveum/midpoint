@@ -32,8 +32,14 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.entry.DefaultEntry;
+import org.apache.directory.api.ldap.model.entry.DefaultModification;
 import org.apache.directory.api.ldap.model.entry.Entry;
+import org.apache.directory.api.ldap.model.entry.Modification;
+import org.apache.directory.api.ldap.model.entry.ModificationOperation;
 import org.apache.directory.api.ldap.model.exception.LdapException;
+import org.apache.directory.api.ldap.model.exception.LdapInvalidDnException;
+import org.apache.directory.api.ldap.model.name.Ava;
+import org.apache.directory.api.ldap.model.name.Rdn;
 import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
@@ -48,6 +54,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -120,6 +127,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	
 	protected static final int NUMBER_OF_ACCOUNTS = 14;
 	private static final String ASSOCIATION_GROUP_NAME = "group";
+	
+	private boolean allowDuplicateSearchResults = false;
 	
 	protected String jackAccountOid;
 	protected String groupPiratesOid;
@@ -205,6 +214,16 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	
 	private QName getAssociationGroupQName() {
 		return new QName(MidPointConstants.NS_RI, ASSOCIATION_GROUP_NAME);
+	}
+	
+	@Override
+	protected boolean allowDuplicateSearchResults() {
+		return allowDuplicateSearchResults;
+	}
+	
+	@Override
+	protected File getSyncTaskInetOrgPersonFile() {
+		return new File(getBaseDir(), "task-sync-user.xml");
 	}
 	
 	@Override
@@ -432,6 +451,193 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         	assertFalse(metadata.isPartialResults());
         }
     }
+	
+	/**
+	 * Blocksize is 5, so this is in one block.
+	 */
+	@Test
+    public void test152SeachFirst2Accounts() throws Exception {
+		final String TEST_NAME = "test152SeachFirst2Accounts";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        
+        ObjectPaging paging = ObjectPaging.createEmptyPaging();
+        paging.setMaxSize(2);
+		query.setPaging(paging);
+        
+		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 2, task, result);
+                
+        assertConnectorOperationIncrement(1);
+        assertConnectorSimulatedPagingSearchIncrement(0);
+        
+        SearchResultMetadata metadata = searchResultList.getMetadata();
+        if (metadata != null) {
+        	assertFalse(metadata.isPartialResults());
+        }
+    }
+	
+	/**
+	 * Blocksize is 5, so this gets more than two blocks.
+	 */
+	@Test
+    public void test154SeachFirst11Accounts() throws Exception {
+		final String TEST_NAME = "test154SeachFirst11Accounts";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        
+        ObjectPaging paging = ObjectPaging.createEmptyPaging();
+        paging.setMaxSize(11);
+		query.setPaging(paging);
+		
+		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 11, task, result);
+                
+        assertConnectorOperationIncrement(1);
+        assertConnectorSimulatedPagingSearchIncrement(0);
+        
+        SearchResultMetadata metadata = searchResultList.getMetadata();
+        if (metadata != null) {
+        	assertFalse(metadata.isPartialResults());
+        }
+    }
+	
+	@Test
+    public void test162SeachFirst2AccountsOffset0() throws Exception {
+		final String TEST_NAME = "test162SeachFirst2AccountsOffset0";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        
+        ObjectPaging paging = ObjectPaging.createEmptyPaging();
+        paging.setOffset(0);
+        paging.setMaxSize(2);
+		query.setPaging(paging);
+        
+		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 2, task, result);
+        
+        assertConnectorOperationIncrement(1);
+        assertConnectorSimulatedPagingSearchIncrement(0);
+        
+        SearchResultMetadata metadata = searchResultList.getMetadata();
+        if (metadata != null) {
+        	assertFalse(metadata.isPartialResults());
+        }
+        
+    }
+	
+	/**
+	 * Blocksize is 5, so this is in one block.
+	 * There is offset, so VLV should be used.
+	 * No explicit sorting.
+	 */
+	@Test
+    public void test172Search2AccountsOffset1() throws Exception {
+		final String TEST_NAME = "test172Search2AccountsOffset1";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        
+        ObjectPaging paging = ObjectPaging.createPaging(1, 2);
+		query.setPaging(paging);
+        
+		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 2, task, result);
+        
+        assertConnectorOperationIncrement(1);
+        assertConnectorSimulatedPagingSearchIncrement(0);
+        
+        SearchResultMetadata metadata = searchResultList.getMetadata();
+        if (metadata != null) {
+        	assertFalse(metadata.isPartialResults());
+        }
+    }
+	
+	/**
+	 * Blocksize is 5, so this gets more than two blocks.
+	 * There is offset, so VLV should be used.
+	 * No explicit sorting.
+	 */
+	@Test
+    public void test174SeachFirst11AccountsOffset2() throws Exception {
+		final String TEST_NAME = "test174SeachFirst11AccountsOffset2";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        
+        ObjectPaging paging = ObjectPaging.createPaging(2, 11);
+		query.setPaging(paging);
+        
+		allowDuplicateSearchResults = true;
+		
+		// WHEN
+		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 11, task, result);
+        
+		// THEN
+		allowDuplicateSearchResults = false;
+		
+        assertConnectorOperationIncrement(1);
+        assertConnectorSimulatedPagingSearchIncrement(0);
+        
+        SearchResultMetadata metadata = searchResultList.getMetadata();
+        if (metadata != null) {
+        	assertFalse(metadata.isPartialResults());
+        }
+    }
+	
+	/**
+	 * Blocksize is 5, so this is in one block.
+	 * There is offset, so VLV should be used.
+	 * Explicit sorting.
+	 */
+	@Test
+    public void test182Search2AccountsOffset1SortCn() throws Exception {
+		final String TEST_NAME = "test182Search2AccountsOffset1SortCn";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        
+        ObjectPaging paging = ObjectPaging.createPaging(1, 2);
+        paging.setOrderBy(getAttributeQName(resource, "cn"));
+		query.setPaging(paging);
+        
+		SearchResultList<PrismObject<ShadowType>> shadows = doSearch(TEST_NAME, query, 2, task, result);
+        
+        assertAccountShadow(shadows.get(0), "CN=Adalbert Meduza,OU=evolveum,DC=win,DC=evolveum,DC=com");
+        assertAccountShadow(shadows.get(1), "CN=Adalbert Meduza1,OU=evolveum,DC=win,DC=evolveum,DC=com");
+        
+        assertConnectorOperationIncrement(1);
+        assertConnectorSimulatedPagingSearchIncrement(0);
+        
+        SearchResultMetadata metadata = shadows.getMetadata();
+        if (metadata != null) {
+        	assertFalse(metadata.isPartialResults());
+        }
+
+    }
 		
 	@Test
     public void test200AssignAccountBarbossa() throws Exception {
@@ -476,7 +682,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         assertNotNull("No createTimestamp in "+shadow, createTimestampAttribute);
         Long createTimestamp = createTimestampAttribute.getRealValue();
         // LDAP server may be on a different host. Allow for some clock offset.
-        TestUtil.assertBetween("Wrong createTimestamp in "+shadow, roundTsDown(tsStart)-5000, roundTsUp(tsEnd)+5000, createTimestamp);
+        TestUtil.assertBetween("Wrong createTimestamp in "+shadow, roundTsDown(tsStart)-10000, roundTsUp(tsEnd)+10000, createTimestamp);
 	}
 	
 	@Test
@@ -859,7 +1065,19 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         assertNoLinkedAccount(user);
 	}
 	
+	@Override
+	protected void doAdditionalRenameModifications(LdapNetworkConnection connection) throws LdapException {
+		Modification mod = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, 
+				ATTRIBUTE_SAM_ACCOUNT_NAME_NAME, ACCOUNT_HTM_UID);
+		connection.modify(toAccountDn(ACCOUNT_HTM_UID, ACCOUNT_HTM_CN), mod);
+		display("Modified "+toAccountDn(ACCOUNT_HT_UID, ACCOUNT_HT_CN)+" " + ATTRIBUTE_SAM_ACCOUNT_NAME_NAME + 
+				" -> "+ACCOUNT_HTM_UID+": "+mod);
+	}
 	
+	@Override
+	protected String getAccountHtmCnAfterRename() {
+		return ACCOUNT_HTM_CN;
+	}
 	
 	@Override
 	protected void assertAccountShadow(PrismObject<ShadowType> shadow, String dn) throws SchemaException {
@@ -898,10 +1116,20 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 		throw new UnsupportedOperationException("Boom! Cannot do this here. This is bloody AD! We need full name!");
 	}
 	
+	@Override
 	protected String toAccountDn(String username, String fullName) {
 		return "CN="+fullName+","+getPeopleLdapSuffix();
 	}
 	
+	@Override
+	protected Rdn toAccountRdn(String username, String fullName) {
+		try {
+			return new Rdn(new Ava("CN", fullName));
+		} catch (LdapInvalidDnException e) {
+			throw new IllegalStateException(e.getMessage(),e);
+		}
+	}
+
 	protected void assertLdapPassword(String uid, String fullName, String password) throws LdapException, IOException, CursorException {
 		Entry entry = getLdapAccountByCn(fullName);
 		assertLdapPassword(entry, password);
@@ -917,6 +1145,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 		return query;
 	}
 	
+	@Override
 	protected Entry createAccountEntry(String uid, String cn, String givenName, String sn) throws LdapException {
 		byte[] password = encodePassword("Secret.123");
 		Entry entry = new DefaultEntry(toAccountDn(uid, cn),
@@ -952,4 +1181,5 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 		TestUtil.assertSuccess(result);
 	}
 
+	
 }

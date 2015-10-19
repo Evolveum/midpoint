@@ -60,8 +60,8 @@
 	        <package>com.evolveum.polygon.connector.ldap</package>
       	</classLogger>
         <classLogger>
-	        <level>TRACE</level>
-	        <package>com.evolveum.polygon.connector.ldap.SchemaTranslator</package>
+	        <level>DEBUG</level>
+	        <package>com.evolveum.polygon.connector.ldap.schema.SchemaTranslator</package>
       	</classLogger>
         <classLogger>
 	        <level>DEBUG</level>
