@@ -21,8 +21,24 @@
 	<div wicket:id="confirmDeletePopup" />
     <div wicket:id="confirmDeleteAll" />
 
-    <div class="clearfix">
-        <form wicket:id="searchForm" class="form-inline pull-right search-form">
+    <form wicket:id="mainForm" class="form-inline">
+        <div wicket:id="table"/>
+    </form>
+
+    <wicket:fragment wicket:id="tableHeader">
+        <div class="pull-left">
+            <div class="form-group" style="margin-right: 10px;">
+                <label class="control-label"><wicket:message key="pageDebugList.options"/></label>
+            </div>
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" wicket:id="zipCheck">
+                    <wicket:message key="pageDebugList.zipCheck" />
+                </label>
+            </div>
+        </div>
+
+        <form class="form-inline pull-right search-form" wicket:id="searchForm">
             <div class="form-group">
                 <label class="sr-only"><wicket:message key="pageDebugList.objectType"/></label>
                 <select class="form-control input-sm" wicket:id="choice"/>
@@ -35,26 +51,9 @@
                 </div>
             </wicket:enclosure>
 
-            <div wicket:id="basicSearch" />
+            <div wicket:id="basicSearch"/>
         </form>
-    </div>
-
-    <form wicket:id="mainForm" class="clearfix form-horizontal">
-        <div wicket:id="table"/>
-
-        <div class="form-group">
-            <label class="col-lg-2 control-label"><wicket:message key="pageDebugList.options"/></label>
-
-            <div class="col-lg-8">
-                <div>
-                    <label class="col-lg-2 checkbox-inline">
-                        <input type="checkbox" wicket:id="zipCheck">
-                        <wicket:message key="pageDebugList.zipCheck" />
-                    </label>
-                </div>
-            </div>
-        </div>
-    </form>
+    </wicket:fragment>
 </wicket:extend>
 </body>
 </html>

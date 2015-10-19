@@ -43,8 +43,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.BasicSearchPanel;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.RepositoryObjectDataProvider;
-import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
@@ -70,6 +71,8 @@ import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -80,10 +83,12 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColu
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.*;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -121,6 +126,7 @@ public class PageDebugList extends PageAdminConfiguration {
     private static final String ID_BASIC_SEARCH = "basicSearch";
     private static final String ID_DELETE_ALL_DIALOG = "confirmDeleteAll";
     private static final String ID_RESOURCE = "resource";
+    private static final String ID_TABLE_HEADER = "tableHeader";
 
     private static final Integer DELETE_LOG_INTERVAL = 50;
 
@@ -232,11 +238,6 @@ public class PageDebugList extends PageAdminConfiguration {
         };
         add(deleteConfirm);
 
-        Form searchForm = new Form(ID_SEARCH_FORM);
-        add(searchForm);
-        searchForm.setOutputMarkupId(true);
-        initSearchForm(searchForm);
-
         Form main = new Form(ID_MAIN_FORM);
         add(main);
 
@@ -250,14 +251,6 @@ public class PageDebugList extends PageAdminConfiguration {
                 storage.setDebugSearchPaging(paging);
             }
         });
-
-        AjaxCheckBox zipCheck = new AjaxCheckBox(ID_ZIP_CHECK, new Model<>(false)) {
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-            }
-        };
-        main.add(zipCheck);
 
         PageDebugDownloadBehaviour ajaxDownloadBehavior = new PageDebugDownloadBehaviour();
         main.add(ajaxDownloadBehavior);
@@ -277,8 +270,15 @@ public class PageDebugList extends PageAdminConfiguration {
         provider.setQuery(createQuery());
         Form mainForm = (Form) get(ID_MAIN_FORM);
 
-        TablePanel table = new TablePanel(ID_TABLE, provider, initColumns(provider.getType()),
-                UserProfileStorage.TableId.CONF_DEBUG_LIST_PANEL, getItemsPerPage(UserProfileStorage.TableId.CONF_DEBUG_LIST_PANEL));
+        BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider, initColumns(provider.getType()),
+                UserProfileStorage.TableId.CONF_DEBUG_LIST_PANEL,
+                (int) getItemsPerPage(UserProfileStorage.TableId.CONF_DEBUG_LIST_PANEL)) {
+
+            @Override
+            protected WebMarkupContainer createHeader(String headerId) {
+                return new SearchFragment(headerId, ID_TABLE_HEADER, PageDebugList.this, searchModel, resourcesModel);
+            }
+        };
         table.setOutputMarkupId(true);
 
         ConfigurationStorage storage = getSessionStorage().getConfiguration();
@@ -436,124 +436,15 @@ public class PageDebugList extends PageAdminConfiguration {
     }
 
     private boolean hasToZip() {
-        AjaxCheckBox zipCheck = (AjaxCheckBox) get(createComponentPath(ID_MAIN_FORM, ID_ZIP_CHECK));
+        BoxedTablePanel table = (BoxedTablePanel) getListTable();
+        SearchFragment header = (SearchFragment) table.getHeader();
+        AjaxCheckBox zipCheck = header.getZipCheck();
+
         return zipCheck.getModelObject();
     }
 
-    private IChoiceRenderer<ObjectViewDto> createResourceRenderer() {
-        return new IChoiceRenderer<ObjectViewDto>() {
-
-            @Override
-            public Object getDisplayValue(ObjectViewDto object) {
-                if (object == null) {
-                    return getString("pageDebugList.resource");
-                }
-                return object.getName();
-            }
-
-            @Override
-            public String getIdValue(ObjectViewDto object, int index) {
-                return Integer.toString(index);
-            }
-        };
-    }
-
-    private void initSearchForm(final Form searchForm) {
-        IChoiceRenderer<ObjectTypes> renderer = new IChoiceRenderer<ObjectTypes>() {
-
-            @Override
-            public Object getDisplayValue(ObjectTypes object) {
-                ObjectTypeGuiDescriptor descr = ObjectTypeGuiDescriptor.getDescriptor(object);
-                String key = descr != null ? descr.getLocalizationKey() : ObjectTypeGuiDescriptor.ERROR_LOCALIZATION_KEY;
-
-                return new StringResourceModel(key, PageDebugList.this, null).getString();
-            }
-
-            @Override
-            public String getIdValue(ObjectTypes object, int index) {
-                return object.getClassDefinition().getSimpleName();
-            }
-        };
-
-        DropDownChoice choice = new DropDownChoice(ID_CHOICE, new PropertyModel(searchModel, DebugSearchDto.F_TYPE),
-                createChoiceModel(renderer), renderer);
-        searchForm.add(choice);
-        choice.add(new OnChangeAjaxBehavior() {
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                target.add(searchForm);
-                listObjectsPerformed(target);
-            }
-        });
-
-        DropDownChoice resource = new DropDownChoice(ID_RESOURCE, new PropertyModel(searchModel, DebugSearchDto.F_RESOURCE_OID),
-                resourcesModel, createResourceRenderer());
-        resource.setNullValid(true);
-        resource.add(new AjaxFormComponentUpdatingBehavior("onblur") {
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                //nothing to do, it's here just to update model
-            }
-        });
-        resource.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                DebugSearchDto dto = searchModel.getObject();
-                return ObjectTypes.SHADOW.equals(dto.getType());
-            }
-        });
-        searchForm.add(resource);
-
-        BasicSearchPanel<DebugSearchDto> basicSearch = new BasicSearchPanel<DebugSearchDto>(ID_BASIC_SEARCH) {
-
-            @Override
-            protected IModel<String> createSearchTextModel() {
-                return new PropertyModel<>(searchModel, DebugSearchDto.F_TEXT);
-            }
-
-            @Override
-            protected void searchPerformed(AjaxRequestTarget target) {
-                listObjectsPerformed(target);
-            }
-
-            @Override
-            protected void clearSearchPerformed(AjaxRequestTarget target) {
-                PageDebugList.this.clearSearchPerformed(target);
-            }
-        };
-        searchForm.add(basicSearch);
-    }
-
-    private IModel<List<ObjectTypes>> createChoiceModel(final IChoiceRenderer<ObjectTypes> renderer) {
-        return new LoadableModel<List<ObjectTypes>>(false) {
-
-            @Override
-            protected List<ObjectTypes> load() {
-                List<ObjectTypes> choices = new ArrayList<>();
-
-                Collections.addAll(choices, ObjectTypes.values());
-                choices.remove(ObjectTypes.OBJECT);
-
-                Collections.sort(choices, new Comparator<ObjectTypes>() {
-
-                    @Override
-                    public int compare(ObjectTypes o1, ObjectTypes o2) {
-                        String str1 = (String) renderer.getDisplayValue(o1);
-                        String str2 = (String) renderer.getDisplayValue(o2);
-                        return String.CASE_INSENSITIVE_ORDER.compare(str1, str2);
-                    }
-                });
-
-                return choices;
-            }
-        };
-    }
-
-    private TablePanel getListTable() {
-        return (TablePanel) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
+    private Table getListTable() {
+        return (Table) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
     }
 
     private void listObjectsPerformed(AjaxRequestTarget target) {
@@ -572,8 +463,8 @@ public class PageDebugList extends PageAdminConfiguration {
         ConfigurationStorage storage = getSessionStorage().getConfiguration();
         storage.setDebugSearchDto(dto);
 
-        TablePanel table = getListTable();
-        target.add(table);
+        Table table = getListTable();
+        target.add((Component) table);
     }
 
     private ObjectQuery createQuery() {
@@ -616,7 +507,7 @@ public class PageDebugList extends PageAdminConfiguration {
     }
 
     private RepositoryObjectDataProvider getTableDataProvider() {
-        TablePanel tablePanel = getListTable();
+        Table tablePanel = getListTable();
         DataTable table = tablePanel.getDataTable();
         return (RepositoryObjectDataProvider) table.getDataProvider();
     }
@@ -826,7 +717,7 @@ public class PageDebugList extends PageAdminConfiguration {
         provider.clearCache();
 
         showResult(result);
-        target.add(getListTable());
+        target.add((Component) getListTable());
         target.add(getFeedbackPanel());
     }
 
@@ -834,7 +725,6 @@ public class PageDebugList extends PageAdminConfiguration {
         DebugSearchDto dto = searchModel.getObject();
         dto.setText(null);
 
-        target.add(get(ID_SEARCH_FORM));
         listObjectsPerformed(target);
     }
 
@@ -919,5 +809,149 @@ public class PageDebugList extends PageAdminConfiguration {
 
         TaskManager taskManager = getTaskManager();
         taskManager.switchToBackground(task, result);
+    }
+
+    private static class SearchFragment extends Fragment {
+
+        public SearchFragment(String id, String markupId, MarkupContainer markupProvider,
+                              IModel<DebugSearchDto> model, IModel<List<ObjectViewDto>> resourcesModel) {
+            super(id, markupId, markupProvider, model);
+
+            initLayout(resourcesModel);
+        }
+
+        private void initLayout(IModel<List<ObjectViewDto>> resourcesModel) {
+            final Form searchForm = new Form(ID_SEARCH_FORM);
+            add(searchForm);
+            searchForm.setOutputMarkupId(true);
+
+            final IModel<DebugSearchDto> model = (IModel) getDefaultModel();
+
+            BasicSearchPanel<DebugSearchDto> basicSearch = new BasicSearchPanel<DebugSearchDto>(ID_BASIC_SEARCH, model) {
+
+                @Override
+                protected IModel<String> createSearchTextModel() {
+                    return new PropertyModel<>(model, DebugSearchDto.F_TEXT);
+                }
+
+                @Override
+                protected void searchPerformed(AjaxRequestTarget target) {
+                    PageDebugList page = (PageDebugList) getPage();
+                    page.listObjectsPerformed(target);
+                }
+
+                @Override
+                protected void clearSearchPerformed(AjaxRequestTarget target) {
+                    PageDebugList page = (PageDebugList) getPage();
+                    page.clearSearchPerformed(target);
+                }
+            };
+            searchForm.add(basicSearch);
+
+            IChoiceRenderer<ObjectTypes> renderer = new IChoiceRenderer<ObjectTypes>() {
+
+                @Override
+                public Object getDisplayValue(ObjectTypes object) {
+                    ObjectTypeGuiDescriptor descr = ObjectTypeGuiDescriptor.getDescriptor(object);
+                    String key = descr != null ? descr.getLocalizationKey() : ObjectTypeGuiDescriptor.ERROR_LOCALIZATION_KEY;
+
+                    return new StringResourceModel(key, getPage(), null).getString();
+                }
+
+                @Override
+                public String getIdValue(ObjectTypes object, int index) {
+                    return object.getClassDefinition().getSimpleName();
+                }
+            };
+
+            DropDownChoice choice = new DropDownChoice(ID_CHOICE,
+                    new PropertyModel(model, DebugSearchDto.F_TYPE),
+                    createChoiceModel(renderer), renderer);
+            searchForm.add(choice);
+            choice.add(new OnChangeAjaxBehavior() {
+
+                @Override
+                protected void onUpdate(AjaxRequestTarget target) {
+                    PageDebugList page = (PageDebugList) getPage();
+                    page.listObjectsPerformed(target);
+                }
+            });
+
+            DropDownChoice resource = new DropDownChoice(ID_RESOURCE,
+                    new PropertyModel(model, DebugSearchDto.F_RESOURCE_OID),
+                    resourcesModel, createResourceRenderer());
+            resource.setNullValid(true);
+            resource.add(new AjaxFormComponentUpdatingBehavior("onblur") {
+
+                @Override
+                protected void onUpdate(AjaxRequestTarget target) {
+                    //nothing to do, it's here just to update model
+                }
+            });
+            resource.add(new VisibleEnableBehaviour() {
+
+                @Override
+                public boolean isVisible() {
+                    DebugSearchDto dto = model.getObject();
+                    return ObjectTypes.SHADOW.equals(dto.getType());
+                }
+            });
+            searchForm.add(resource);
+
+            AjaxCheckBox zipCheck = new AjaxCheckBox(ID_ZIP_CHECK, new Model<>(false)) {
+
+                @Override
+                protected void onUpdate(AjaxRequestTarget target) {
+                }
+            };
+            add(zipCheck);
+        }
+
+        public AjaxCheckBox getZipCheck() {
+            return (AjaxCheckBox) get(ID_ZIP_CHECK);
+        }
+
+        private IModel<List<ObjectTypes>> createChoiceModel(final IChoiceRenderer<ObjectTypes> renderer) {
+            return new LoadableModel<List<ObjectTypes>>(false) {
+
+                @Override
+                protected List<ObjectTypes> load() {
+                    List<ObjectTypes> choices = new ArrayList<>();
+
+                    Collections.addAll(choices, ObjectTypes.values());
+                    choices.remove(ObjectTypes.OBJECT);
+
+                    Collections.sort(choices, new Comparator<ObjectTypes>() {
+
+                        @Override
+                        public int compare(ObjectTypes o1, ObjectTypes o2) {
+                            String str1 = (String) renderer.getDisplayValue(o1);
+                            String str2 = (String) renderer.getDisplayValue(o2);
+                            return String.CASE_INSENSITIVE_ORDER.compare(str1, str2);
+                        }
+                    });
+
+                    return choices;
+                }
+            };
+        }
+
+        private IChoiceRenderer<ObjectViewDto> createResourceRenderer() {
+            return new IChoiceRenderer<ObjectViewDto>() {
+
+                @Override
+                public Object getDisplayValue(ObjectViewDto object) {
+                    if (object == null) {
+                        return getString("pageDebugList.resource");
+                    }
+                    return object.getName();
+                }
+
+                @Override
+                public String getIdValue(ObjectViewDto object, int index) {
+                    return Integer.toString(index);
+                }
+            };
+        }
     }
 }

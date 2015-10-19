@@ -58,34 +58,7 @@ public class TestFilterExpression extends AbstractModelIntegrationTest {
 		}
 	 
 	
-  @Test
-  public void testEvaluateExpressionToUndefinedFilterAllowedNull() throws Exception {
-  	final String TEST_NAME = "testEvaluateExpressionToUndefinedFilterAllowedNull";
-  	TestUtil.displayTestTile(TEST_NAME);
-  	PrismContext prismContext = PrismTestUtil.getPrismContext();
-  	// GIVEN
-  	OperationResult result = new OperationResult(TestFilterExpression.class.getName()+"."+TEST_NAME);
-  	Task task = taskManager.createTaskInstance(TEST_NAME);
-  	
-  	String filename = "expression-to-undefined-filter-allowed-null.xml";
-  	
-  	SearchFilterType filterType = PrismTestUtil.parseAtomicValue(
-              new File(TEST_DIR, filename), SearchFilterType.COMPLEX_TYPE);
-  	
-  	ObjectFilter filter = QueryJaxbConvertor.createObjectFilter(UserType.class, filterType, prismContext);
-  	
-  	Map<QName, Object> params = new HashMap<>();
-  	params.put(UserType.F_NAME, null);
-  	
-  	ExpressionVariables variables = new ExpressionVariables();
-		variables.addVariableDefinitions(params);
-  	
-  	ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(filter, variables, expressionFactory, prismContext, "evaluating filter with null value not allowed", task, result);
-
-  	AssertJUnit.assertTrue("Expression should be evaluated to NoneFilter", (evaluatedFilter instanceof UndefinedFilter));
-  }
-	
-	@Test
+ 	@Test
   public void testEvaluateExpressionToUndefinedFilterAllowedFalse() throws Exception {
   	final String TEST_NAME = "testEvaluateExpressionToUndefinedFilterAllowedFalse";
   	TestUtil.displayTestTile(TEST_NAME);
@@ -142,4 +115,34 @@ public class TestFilterExpression extends AbstractModelIntegrationTest {
   	AssertJUnit.assertNull("Expected NO values in filter, but found " + equalFilter.getValues(), equalFilter.getValues());
   	
   }
+	
+	 @Test
+	  public void testEvaluateExpressionToEmptyFilterAllowedNull() throws Exception {
+	  	final String TEST_NAME = "testEvaluateExpressionToEmptyFilterAllowedNull";
+	  	TestUtil.displayTestTile(TEST_NAME);
+	  	PrismContext prismContext = PrismTestUtil.getPrismContext();
+	  	// GIVEN
+	  	OperationResult result = new OperationResult(TestFilterExpression.class.getName()+"."+TEST_NAME);
+	  	Task task = taskManager.createTaskInstance(TEST_NAME);
+	  	
+	  	String filename = "expression-to-empty-filter-allowed-null.xml";
+	  	
+	  	SearchFilterType filterType = PrismTestUtil.parseAtomicValue(
+	              new File(TEST_DIR, filename), SearchFilterType.COMPLEX_TYPE);
+	  	
+	  	ObjectFilter filter = QueryJaxbConvertor.createObjectFilter(UserType.class, filterType, prismContext);
+	  	
+	  	Map<QName, Object> params = new HashMap<>();
+	  	params.put(UserType.F_NAME, null);
+	  	
+	  	ExpressionVariables variables = new ExpressionVariables();
+			variables.addVariableDefinitions(params);
+	  	
+	  	ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(filter, variables, expressionFactory, prismContext, "evaluating filter with null value not allowed", task, result);
+
+	  	AssertJUnit.assertTrue("Expression should be evaluated to EqualFilter " + evaluatedFilter, (evaluatedFilter instanceof EqualFilter));
+	  	
+	  	EqualFilter equalFilter = (EqualFilter) evaluatedFilter;
+	  	AssertJUnit.assertNull("Expected NO values in filter, but found " + equalFilter.getValues(), equalFilter.getValues());
+	  }
 }
