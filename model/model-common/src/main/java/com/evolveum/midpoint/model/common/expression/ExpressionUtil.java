@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.common.expression;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -490,7 +491,7 @@ public class ExpressionUtil {
 	}
 	
 	private static ObjectFilter evaluateFilter(ObjectFilter filter, ExpressionType valueExpression){
-		if (valueExpression.isAllowEmptyValues() == null || !valueExpression.isAllowEmptyValues()){
+		if (valueExpression.isAllowEmptyValues() != null && !valueExpression.isAllowEmptyValues()){
         	return UndefinedFilter.createUndefined();
         }
 		
@@ -498,9 +499,14 @@ public class ExpressionUtil {
         	PropertyValueFilter evaluatedFilter = (PropertyValueFilter) filter.clone();
         	evaluatedFilter.setExpression(null);
         	return evaluatedFilter;
+        } else if (filter instanceof InOidFilter){
+        	InOidFilter evaluatedFilter = (InOidFilter) filter.clone();
+        	evaluatedFilter.setExpression(null);
+        	evaluatedFilter.setOids(Collections.EMPTY_LIST);
+        	return evaluatedFilter;
         }
      
-        return UndefinedFilter.createUndefined();
+        throw new IllegalArgumentException("Unknow filter to evaluate: " + filter);
 	}
 
 	private static <V extends PrismValue> V  evaluateExpression(ExpressionVariables variables, PrismContext prismContext,

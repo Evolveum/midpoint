@@ -345,7 +345,7 @@ public class ObjectQueryUtil {
 			TypeFilter simplifiedFilter = (TypeFilter) ((TypeFilter) filter).clone();
 			simplifiedFilter.setFilter(simplifiedSubfilter);
 			return simplifiedFilter;
-		} else if (filter instanceof UndefinedFilter) {
+		} else if (filter instanceof UndefinedFilter || filter instanceof AllFilter) {
 			return null;
 		} else {
 			// Cannot simplify
