@@ -40,12 +40,8 @@
 	        <package>com.evolveum.midpoint</package>
       	</classLogger>
         <classLogger>
-	        <level>INFO</level>
+	        <level>DEBUG</level>
 	        <package>com.evolveum.midpoint.model</package>
-      	</classLogger>
-        <classLogger>
-	        <level>INFO</level>
-	        <package>com.evolveum.midpoint.provisioning</package>
       	</classLogger>
         <classLogger>
 	        <level>INFO</level>

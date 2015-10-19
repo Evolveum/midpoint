@@ -23,12 +23,15 @@ import static org.testng.AssertJUnit.assertFalse;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
+import org.apache.directory.api.ldap.model.entry.DefaultEntry;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.ldap.client.api.LdapNetworkConnection;
@@ -39,6 +42,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -60,6 +64,7 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
@@ -68,6 +73,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -88,7 +94,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  *
  */
 @Listeners({com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class})
-public abstract class AbstractAdLdapTest extends AbstractLdapTest {
+public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest {
 	
 	protected static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "ad-ldap");
 	
@@ -98,7 +104,10 @@ public abstract class AbstractAdLdapTest extends AbstractLdapTest {
 	protected static final File ROLE_META_ORG_FILE = new File(TEST_DIR, "role-meta-org.xml");
 	protected static final String ROLE_META_ORG_OID = "f2ad0ace-45d7-11e5-af54-001e8c717e5b";
 	
+	public static final String ATTRIBUTE_OBJECT_GUID_NAME = "objectGUID";
 	public static final String ATTRIBUTE_SAM_ACCOUNT_NAME_NAME = "sAMAccountName";
+	public static final String ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME = "userAccountControl";
+	public static final String ATTRIBUTE_UNICODE_PWD_NAME = "unicodePwd";
 	
 	protected static final String ACCOUNT_JACK_SAM_ACCOUNT_NAME = "jack";
 	protected static final String ACCOUNT_JACK_FULL_NAME = "Jack Sparrow";
@@ -136,7 +145,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapTest {
 
 	@Override
 	protected String getSyncTaskOid() {
-		return null;
+		return "cd1e0ff2-0099-11e5-9e22-001e8c717e5b";
 	}
 	
 	@Override
@@ -180,8 +189,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapTest {
 	}
 
 	@Override
-	protected QName getAccountObjectClass() {
-		return new QName(MidPointConstants.NS_RI, "user");
+	protected String getLdapAccountObjectClass() {
+		return "user";
 	}
 
 	@Override
@@ -202,7 +211,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapTest {
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 		
-		binaryAttributeDetector.addBinaryAttribute("GUID");
+		binaryAttributeDetector.addBinaryAttribute(ATTRIBUTE_OBJECT_GUID_NAME);
+		binaryAttributeDetector.addBinaryAttribute(ATTRIBUTE_UNICODE_PWD_NAME);
 		
 		// Users
 		repoAddObjectFromFile(USER_BARBOSSA_FILE, UserType.class, initResult);
@@ -215,9 +225,11 @@ public abstract class AbstractAdLdapTest extends AbstractLdapTest {
 	}
 	
 	@Test
+	@Override
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
         TestUtil.displayTestTile(this, TEST_NAME);
+        super.test000Sanity();
         
 		assertLdapPassword(ACCOUNT_JACK_SAM_ACCOUNT_NAME, ACCOUNT_JACK_FULL_NAME, ACCOUNT_JACK_PASSWORD);
 		cleanupDelete(toAccountDn(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME));
@@ -458,7 +470,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapTest {
         
         assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD);
         
-        assertAttribute(entry, "userAccountControl", "512");
+        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
         
         ResourceAttribute<Long> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimeStamp"));
         assertNotNull("No createTimestamp in "+shadow, createTimestampAttribute);
@@ -494,7 +506,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapTest {
 
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
         assertAttribute(entry, "title", "Captain");
-        assertAttribute(entry, "userAccountControl", "512");
+        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
         
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         String shadowOid = getSingleLinkOid(user);
@@ -527,7 +539,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapTest {
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
         assertAttribute(entry, "title", "Captain");
         assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, "here.There.Be.Monsters");
-        assertAttribute(entry, "userAccountControl", "512");
+        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
         
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         String shadowOid = getSingleLinkOid(user);
@@ -558,7 +570,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapTest {
         assertAdministrativeStatus(user, ActivationStatusType.DISABLED);
 
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
-        assertAttribute(entry, "userAccountControl", "514");
+        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "514");
         
         String shadowOid = getSingleLinkOid(user);
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
@@ -596,7 +608,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapTest {
         assertAdministrativeStatus(user, ActivationStatusType.ENABLED);
 
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
-        assertAttribute(entry, "userAccountControl", "512");
+        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
         
         String shadowOid = getSingleLinkOid(user);
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
@@ -631,7 +643,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapTest {
 
         Entry entry = assertLdapAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME);
         display("Entry", entry);
-        assertAttribute(entry, "userAccountControl", "514");
+        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "514");
         
         assertLdapGroupMember(entry, GROUP_PIRATES_NAME);
         
@@ -668,7 +680,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapTest {
         TestUtil.assertSuccess(result);
 
         Entry entry = assertLdapAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME);
-        assertAttribute(entry, "userAccountControl", "514");
+        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "514");
 
         try {
         	assertLdapPassword(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, "wanna.be.a.123");
@@ -702,7 +714,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapTest {
         assertAdministrativeStatus(user, ActivationStatusType.ENABLED);
 
         Entry entry = assertLdapAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME);
-        assertAttribute(entry, "userAccountControl", "512");
+        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
         
         String shadowOid = getSingleLinkOid(user);
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
@@ -788,8 +800,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapTest {
 	
 	
 	@Test
-    public void test890UnAssignBarbossaPirates() throws Exception {
-		final String TEST_NAME = "test890UnAssignBarbossaPirates";
+    public void test395UnAssignBarbossaPirates() throws Exception {
+		final String TEST_NAME = "test395UnAssignBarbossaPirates";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // TODO: do this on another account. There is a bad interference with rename.
@@ -823,8 +835,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapTest {
 	}
 	
 	@Test
-    public void test899UnAssignAccountBarbossa() throws Exception {
-		final String TEST_NAME = "test899UnAssignAccountBarbossa";
+    public void test399UnAssignAccountBarbossa() throws Exception {
+		final String TEST_NAME = "test399UnAssignAccountBarbossa";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -847,7 +859,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapTest {
         assertNoLinkedAccount(user);
 	}
 	
-
+	
+	
 	@Override
 	protected void assertAccountShadow(PrismObject<ShadowType> shadow, String dn) throws SchemaException {
 		super.assertAccountShadow(shadow, dn);
@@ -903,4 +916,40 @@ public abstract class AbstractAdLdapTest extends AbstractLdapTest {
 		ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter(ATTRIBUTE_SAM_ACCOUNT_NAME_NAME, samAccountName));
 		return query;
 	}
+	
+	protected Entry createAccountEntry(String uid, String cn, String givenName, String sn) throws LdapException {
+		byte[] password = encodePassword("Secret.123");
+		Entry entry = new DefaultEntry(toAccountDn(uid, cn),
+				"objectclass", getLdapAccountObjectClass(),
+				ATTRIBUTE_SAM_ACCOUNT_NAME_NAME, uid,
+				"cn", cn,
+				"givenName", givenName,
+				"sn", sn,
+				ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512",
+				ATTRIBUTE_UNICODE_PWD_NAME, password);
+		return entry;
+	}
+	
+	private byte[] encodePassword(String password) {
+		String quotedPassword = "\"" + password + "\"";
+		try {
+			return quotedPassword.getBytes("UTF-16LE");
+		} catch (UnsupportedEncodingException e) {
+			throw new SystemException(e.getMessage(), e);
+		}
+	}
+
+	@Override
+	protected void assertStepSyncToken(String syncTaskOid, int step, long tsStart, long tsEnd) throws ObjectNotFoundException,
+			SchemaException {
+		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".assertSyncToken");
+		Task task = taskManager.getTask(syncTaskOid, result);
+		PrismProperty<String> syncTokenProperty = task.getExtensionProperty(SchemaConstants.SYNC_TOKEN);
+		assertNotNull("No sync token", syncTokenProperty);
+		assertNotNull("No sync token value", syncTokenProperty.getRealValue());
+		assertNotNull("Empty sync token value", StringUtils.isBlank(syncTokenProperty.getRealValue()));
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+	}
+
 }
