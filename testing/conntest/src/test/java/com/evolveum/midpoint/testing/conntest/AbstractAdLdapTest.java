@@ -1075,6 +1075,11 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	}
 	
 	@Override
+	protected String getAccountHtmCnAfterRename() {
+		return ACCOUNT_HTM_CN;
+	}
+	
+	@Override
 	protected void assertAccountShadow(PrismObject<ShadowType> shadow, String dn) throws SchemaException {
 		super.assertAccountShadow(shadow, dn);
 		ResourceAttribute<String> primaryIdAttr = ShadowUtil.getAttribute(shadow, getPrimaryIdentifierAttributeQName());

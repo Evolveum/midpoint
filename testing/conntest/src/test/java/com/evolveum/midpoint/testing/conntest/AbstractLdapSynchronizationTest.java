@@ -330,13 +330,17 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_HTM_UID);
         assertNotNull("No user "+ACCOUNT_HTM_UID+" created", user);
-        assertUser(user, user.getOid(), ACCOUNT_HTM_UID, ACCOUNT_HTM_CN, ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN_MODIFIED);
+        assertUser(user, user.getOid(), ACCOUNT_HTM_UID, getAccountHtmCnAfterRename(), ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN_MODIFIED);
         assertNull("User "+ACCOUNT_HT_UID+" still exist", findUserByUsername(ACCOUNT_HT_UID));
 
         assertStepSyncToken(getSyncTaskOid(), 4, tsStart, tsEnd);
 
 	}
 	
+	protected String getAccountHtmCnAfterRename() {
+		return ACCOUNT_HT_CN;
+	}
+
 	protected void doAdditionalRenameModifications(LdapNetworkConnection connection) throws LdapException {
 		// Nothing to do here
 	}
@@ -536,7 +540,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_HTM_UID);
         assertNotNull("No user "+ACCOUNT_HTM_UID+" created", user);
-        assertUser(user, user.getOid(), ACCOUNT_HTM_UID, ACCOUNT_HTM_CN, ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN_MODIFIED);
+        assertUser(user, user.getOid(), ACCOUNT_HTM_UID, getAccountHtmCnAfterRename(), ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN_MODIFIED);
         assertNull("User "+ACCOUNT_HT_UID+" still exist", findUserByUsername(ACCOUNT_HT_UID));
 
         assertStepSyncToken(getSyncTaskOid(), 8, tsStart, tsEnd);
