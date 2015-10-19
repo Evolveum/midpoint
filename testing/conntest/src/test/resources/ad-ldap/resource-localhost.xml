@@ -43,6 +43,7 @@
             <icfcldap:bindPassword>
                 <t:clearValue>mAZadlo911</t:clearValue>
             </icfcldap:bindPassword>
+            <icfcldap:pagingBlockSize>5</icfcldap:pagingBlockSize> <!-- ridiculously small, just to test paging -->
         </icfc:configurationProperties>
         <icfc:resultsHandlerConfiguration>
 			<icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
@@ -95,6 +96,11 @@
 							<path>$user/name</path>
 						</source>
 					</outbound>
+					<inbound>
+						<target>
+							<path>name</path>
+						</target>
+					</inbound>
 			</attribute>
 			
 			<attribute>
@@ -107,6 +113,11 @@
 						<path>fullName</path>
 					</source>
 				</outbound>
+				<inbound>
+					<target>
+						<path>fullName</path>
+					</target>
+				</inbound>
 			</attribute>
 
 			<attribute>
@@ -119,6 +130,11 @@
 						<path>familyName</path>
 					</source>
 				</outbound>
+				<inbound>
+					<target>
+						<path>familyName</path>
+					</target>
+				</inbound>
 			</attribute>
 
 			<attribute>
@@ -128,6 +144,11 @@
 						<path>givenName</path>
 					</source>
 				</outbound>
+				<inbound>
+					<target>
+						<path>givenName</path>
+					</target>
+				</inbound>
 			</attribute>
 
 			<attribute>
@@ -216,6 +237,11 @@
                         <path>$focus/name</path>
                     </source>
                 </outbound>
+                <inbound>
+					<target>
+						<path>name</path>
+					</target>
+				</inbound>
             </attribute>
             <attribute>
                 <ref>ri:description</ref>
@@ -225,6 +251,11 @@
                         <path>description</path>
                     </source>
                 </outbound>
+                <inbound>
+					<target>
+						<path>description</path>
+					</target>
+				</inbound>
             </attribute>
         </objectType>
 
@@ -251,7 +282,6 @@
 					<q:not>
 						<q:equal>
 							<q:path>c:employeeNumber</q:path>
-							<q:value/>
 						</q:equal>
 					</q:not>
 				</q:and>

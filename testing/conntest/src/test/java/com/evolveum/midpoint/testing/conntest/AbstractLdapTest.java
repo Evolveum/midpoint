@@ -68,6 +68,7 @@ import org.apache.directory.api.ldap.model.entry.ModificationOperation;
 import org.apache.directory.api.ldap.model.entry.Value;
 import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.api.ldap.model.exception.LdapInvalidAttributeValueException;
+import org.apache.directory.api.ldap.model.exception.LdapInvalidDnException;
 import org.apache.directory.api.ldap.model.message.BindRequest;
 import org.apache.directory.api.ldap.model.message.BindRequestImpl;
 import org.apache.directory.api.ldap.model.message.BindResponse;
@@ -80,6 +81,7 @@ import org.apache.directory.api.ldap.model.message.SearchRequest;
 import org.apache.directory.api.ldap.model.message.SearchRequestImpl;
 import org.apache.directory.api.ldap.model.message.SearchResultEntry;
 import org.apache.directory.api.ldap.model.message.SearchScope;
+import org.apache.directory.api.ldap.model.name.Ava;
 import org.apache.directory.api.ldap.model.name.Dn;
 import org.apache.directory.api.ldap.model.name.Rdn;
 import org.apache.directory.ldap.client.api.LdapConnectionConfig;
@@ -287,12 +289,20 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	
 	protected abstract String getLdapGroupMemberAttribute();
 	
+	protected boolean needsGroupFakeMemeberEntry() {
+		return false;
+	}
+	
 	protected String getScriptDirectoryName() {
 		return "/opt/Bamboo/local/conntest";
 	}
 	
 	protected boolean isImportResourceAtInit() {
 		return true;
+	}
+	
+	protected boolean allowDuplicateSearchResults() {
+		return false;
 	}
 	
 	@Override
@@ -414,7 +424,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 //				LOGGER.trace("Found {}", object);
 				String name = object.asObjectable().getName().getOrig();
 				for(PrismObject<ShadowType> foundShadow: foundObjects) {
-					if (foundShadow.asObjectable().getName().getOrig().equals(name)) {
+					if (!allowDuplicateSearchResults() && foundShadow.asObjectable().getName().getOrig().equals(name)) {
 						AssertJUnit.fail("Duplicate name "+name);
 					}
 				}
@@ -641,21 +651,23 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		return entry;
 	}
 	
-	protected Entry addLdapGroup(String cn, String description, String memberDn) throws LdapException, IOException, CursorException {
+	protected Entry addLdapGroup(String cn, String description, String... memberDns) throws LdapException, IOException, CursorException {
 		LdapNetworkConnection connection = ldapConnect();
-		Entry entry = createGroupEntry(cn, description, memberDn);
+		Entry entry = createGroupEntry(cn, description, memberDns);
 		connection.add(entry);
 		display("Added LDAP group:"+entry);
 		ldapDisconnect(connection);
 		return entry;
 	}
 
-	protected Entry createGroupEntry(String cn, String description, String memberDn) throws LdapException {
+	protected Entry createGroupEntry(String cn, String description, String... memberDns) throws LdapException {
 		Entry entry = new DefaultEntry(toGroupDn(cn),
 				"objectclass", getLdapGroupObjectClass(),
 				"cn", cn,
-				"description", description,
-				getLdapGroupMemberAttribute(), memberDn);
+				"description", description);
+		if (memberDns != null && memberDns.length > 0) {
+			entry.add(getLdapGroupMemberAttribute(), memberDns);
+		}
 		return entry;
 	}
 
@@ -685,6 +697,14 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	
 	protected String toAccountDn(String username) {
 		return "uid="+username+","+getPeopleLdapSuffix();
+	}
+	
+	protected Rdn toAccountRdn(String username, String fullName) {
+		try {
+			return new Rdn(new Ava("uid", username));
+		} catch (LdapInvalidDnException e) {
+			throw new IllegalStateException(e.getMessage(),e);
+		}
 	}
 	
 	protected String toGroupDn(String cn) {
