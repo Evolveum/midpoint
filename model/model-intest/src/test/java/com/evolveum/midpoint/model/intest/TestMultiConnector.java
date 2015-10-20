@@ -114,7 +114,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess("getObject result", result);
         
-        assertEquals("Unexpected number of connectors", 6, connectors.size());
+        assertEquals("Unexpected number of connectors", 7, connectors.size());
         for(PrismObject<ConnectorType> connector: connectors) {
         	display("Connector", connector);
         	ConnectorType connectorType = connector.asObjectable();
