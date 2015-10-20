@@ -365,213 +365,213 @@ public class TestLdap extends AbstractModelIntegrationTest {
         assertNoOpenDjAccount(ACCOUNT_LECHUCK_NAME);
 	}
 	
-//	@Test
-//    public void test800BigLdapSearch() throws Exception {
-//		final String TEST_NAME = "test800BigLdapSearch";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        
-//        loadEntries("a");
-//        
-//        Task task = taskManager.createTaskInstance(TestLdap.class.getName() + "." + TEST_NAME);
-//        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
-//        OperationResult result = task.getResult();
-//        
-//        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_OPENDJ_OID, 
-//        		new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), prismContext);
-//        
-//        final MutableInt count = new MutableInt(0);
-//        ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
-//			@Override
-//			public boolean handle(PrismObject<ShadowType> shadow, OperationResult parentResult) {
-//				count.increment();
-//				display("Found",shadow);
-//				return true;
-//			}
-//		};
-//        
-//        // WHEN
-//        TestUtil.displayWhen(TEST_NAME);
-//		modelService.searchObjectsIterative(ShadowType.class, query, handler, null, task, result);
-//        
-//        // THEN
-//        TestUtil.displayThen(TEST_NAME);
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//        
-//        // THEN
-//        TestUtil.displayThen(TEST_NAME);
-//        
-//        assertEquals("Unexpected number of search results", NUM_LDAP_ENTRIES + 8, count.getValue());
-//	}
-//
-//	@Test
-//    public void test810BigImport() throws Exception {
-//		final String TEST_NAME = "test810BigImport";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        
-//        loadEntries("u");
-//        
-//        Task task = taskManager.createTaskInstance(TestLdap.class.getName() + "." + TEST_NAME);
-//        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
-//        OperationResult result = task.getResult();
-//        
-//        // WHEN
-//        TestUtil.displayWhen(TEST_NAME);
-//        //task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, 2);
-//        modelService.importFromResource(RESOURCE_OPENDJ_OID, 
-//        		new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), task, result);
-//        
-//        // THEN
-//        TestUtil.displayThen(TEST_NAME);
+	@Test
+    public void test800BigLdapSearch() throws Exception {
+		final String TEST_NAME = "test800BigLdapSearch";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        
+        loadEntries("a");
+        
+        Task task = taskManager.createTaskInstance(TestLdap.class.getName() + "." + TEST_NAME);
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
+        OperationResult result = task.getResult();
+        
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_OPENDJ_OID, 
+        		new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), prismContext);
+        
+        final MutableInt count = new MutableInt(0);
+        ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
+			@Override
+			public boolean handle(PrismObject<ShadowType> shadow, OperationResult parentResult) {
+				count.increment();
+				display("Found",shadow);
+				return true;
+			}
+		};
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+		modelService.searchObjectsIterative(ShadowType.class, query, handler, null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        
+        assertEquals("Unexpected number of search results", NUM_LDAP_ENTRIES + 8, count.getValue());
+	}
+
+	@Test
+    public void test810BigImport() throws Exception {
+		final String TEST_NAME = "test810BigImport";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        
+        loadEntries("u");
+        
+        Task task = taskManager.createTaskInstance(TestLdap.class.getName() + "." + TEST_NAME);
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        //task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, 2);
+        modelService.importFromResource(RESOURCE_OPENDJ_OID, 
+        		new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        OperationResult subresult = result.getLastSubresult();
+        TestUtil.assertInProgress("importAccountsFromResource result", subresult);
+        
+        waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES*2000);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        
+        int userCount = modelService.countObjects(UserType.class, null, null, task, result);
+        display("Users", userCount);
+        assertEquals("Unexpected number of users", 2*NUM_LDAP_ENTRIES + 8, userCount);
+	}
+
+    @Test
+    public void test820BigReconciliation() throws Exception {
+        final String TEST_NAME = "test820BigReconciliation";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+
+        Task task = taskManager.createTaskInstance(TestLdap.class.getName() + "." + TEST_NAME);
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
+        OperationResult result = task.getResult();
+
+//        System.out.println("openDJController.isRunning = " + openDJController.isRunning());
+//        OperationResult testResult = modelService.testResource(RESOURCE_OPENDJ_OID, task);
+//        System.out.println("Test resource result = " + testResult.debugDump());
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        //task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, 2);
+
+        ResourceType resource = modelService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result).asObjectable();
+        reconciliationTaskHandler.launch(resource,
+                new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
 //        OperationResult subresult = result.getLastSubresult();
-//        TestUtil.assertInProgress("importAccountsFromResource result", subresult);
-//        
-//        waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES*2000);
-//        
-//        // THEN
-//        TestUtil.displayThen(TEST_NAME);
-//        
-//        int userCount = modelService.countObjects(UserType.class, null, null, task, result);
-//        display("Users", userCount);
-//        assertEquals("Unexpected number of users", 2*NUM_LDAP_ENTRIES + 8, userCount);
-//	}
-//
-//    @Test
-//    public void test820BigReconciliation() throws Exception {
-//        final String TEST_NAME = "test820BigReconciliation";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//
-//        Task task = taskManager.createTaskInstance(TestLdap.class.getName() + "." + TEST_NAME);
-//        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
-//        OperationResult result = task.getResult();
-//
-////        System.out.println("openDJController.isRunning = " + openDJController.isRunning());
-////        OperationResult testResult = modelService.testResource(RESOURCE_OPENDJ_OID, task);
-////        System.out.println("Test resource result = " + testResult.debugDump());
-//
-//        // WHEN
-//        TestUtil.displayWhen(TEST_NAME);
-//        //task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, 2);
-//
-//        ResourceType resource = modelService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result).asObjectable();
-//        reconciliationTaskHandler.launch(resource,
-//                new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), task, result);
-//
-//        // THEN
-//        TestUtil.displayThen(TEST_NAME);
-////        OperationResult subresult = result.getLastSubresult();
-////        TestUtil.assertInProgress("reconciliation launch result", subresult);
-//
-//        waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES*2000);
-//
-//        // THEN
-//        TestUtil.displayThen(TEST_NAME);
-//
-//        int userCount = modelService.countObjects(UserType.class, null, null, task, result);
-//        display("Users", userCount);
-//        assertEquals("Unexpected number of users", 2*NUM_LDAP_ENTRIES + 8, userCount);
-//    }
-//
-//    @Test
-//    public void test900DeleteShadows() throws Exception {
-//        final String TEST_NAME = "test900DeleteShadows";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//
-//        Task task = taskManager.createTaskInstance(TestLdap.class.getName() + "." + TEST_NAME);
-//        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
-//        OperationResult result = task.getResult();
-//        
-//        rememberShadowFetchOperationCount();
-//
-//        // WHEN
-//        TestUtil.displayWhen(TEST_NAME);
-//        importObjectFromFile(TASK_DELETE_OPENDJ_SHADOWS_FILE);
-//		
-//        // THEN
-//        TestUtil.displayThen(TEST_NAME);
-//        
-//        waitForTaskFinish(TASK_DELETE_OPENDJ_SHADOWS_OID, true, 20000 + NUM_LDAP_ENTRIES*2000);
-//        
-//        // THEN
-//        TestUtil.displayThen(TEST_NAME);
-//        
-//        assertShadowFetchOperationCountIncrement(0);
-//        
-//        
-//        
-//        PrismObject<TaskType> deleteTask = getTask(TASK_DELETE_OPENDJ_SHADOWS_OID);
-//        OperationResultType deleteTaskResultType = deleteTask.asObjectable().getResult();
-//        display("Final delete task result", deleteTaskResultType);
-//        TestUtil.assertSuccess(deleteTaskResultType);
-//        OperationResult deleteTaskResult = OperationResult.createOperationResult(deleteTaskResultType);
-//        TestUtil.assertSuccess(deleteTaskResult);
-//        List<OperationResult> opExecResults = deleteTaskResult.findSubresults(ModelService.EXECUTE_CHANGES);
-//        assertEquals(1, opExecResults.size());
-//        OperationResult opExecResult = opExecResults.get(0);
-//        TestUtil.assertSuccess(opExecResult);
-//        assertEquals("Wrong exec operation count", 2*NUM_LDAP_ENTRIES+8, opExecResult.getCount());
-//        assertTrue("Too many subresults: "+deleteTaskResult.getSubresults().size(), deleteTaskResult.getSubresults().size() < 10);
-//        
-//        assertOpenDjAccountShadows(0, true, task, result);
-//        assertUsers(2*NUM_LDAP_ENTRIES + 8);
-//        
-//        // Check that the actual accounts were NOT deleted
-//        // (This also re-creates shadows)
-//        assertOpenDjAccountShadows(2*NUM_LDAP_ENTRIES+8, false, task, result);
-//    }
-//    
-//    @Test
-//    public void test910DeleteAccounts() throws Exception {
-//        final String TEST_NAME = "test910DeleteAccounts";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestLdap.class.getName() + "." + TEST_NAME);
-//        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
-//        OperationResult result = task.getResult();
-//        
-//        rememberShadowFetchOperationCount();
-//
-//        // WHEN
-//        TestUtil.displayWhen(TEST_NAME);
-//        importObjectFromFile(TASK_DELETE_OPENDJ_ACCOUNTS_FILE);
-//		
-//        // THEN
-//        TestUtil.displayThen(TEST_NAME);
-//        
-//        waitForTaskFinish(TASK_DELETE_OPENDJ_ACCOUNTS_OID, true, 20000 + NUM_LDAP_ENTRIES*3000);
-//        
-//        // THEN
-//        TestUtil.displayThen(TEST_NAME);
-//        
-//        assertShadowFetchOperationCountIncrement((2*NUM_LDAP_ENTRIES)/100+2);
-//        
-//        
-//        PrismObject<TaskType> deleteTask = getTask(TASK_DELETE_OPENDJ_SHADOWS_OID);
-//        OperationResultType deleteTaskResultType = deleteTask.asObjectable().getResult();
-//        display("Final delete task result", deleteTaskResultType);
-//        TestUtil.assertSuccess(deleteTaskResultType);
-//        OperationResult deleteTaskResult = OperationResult.createOperationResult(deleteTaskResultType);
-//        TestUtil.assertSuccess(deleteTaskResult);
-//        List<OperationResult> opExecResults = deleteTaskResult.findSubresults(ModelService.EXECUTE_CHANGES);
-//        assertEquals(1, opExecResults.size());
-//        OperationResult opExecResult = opExecResults.get(0);
-//        TestUtil.assertSuccess(opExecResult);
-//        assertEquals("Wrong exec operation count", 2*NUM_LDAP_ENTRIES + 8, opExecResult.getCount());
-//        assertTrue("Too many subresults: "+deleteTaskResult.getSubresults().size(), deleteTaskResult.getSubresults().size() < 10);
-//        
-//        assertOpenDjAccountShadows(1, true, task, result);
-//        assertUsers(2*NUM_LDAP_ENTRIES + 8);
-//        assertOpenDjAccountShadows(1, false, task, result);
-//    }
+//        TestUtil.assertInProgress("reconciliation launch result", subresult);
+
+        waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES*2000);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+
+        int userCount = modelService.countObjects(UserType.class, null, null, task, result);
+        display("Users", userCount);
+        assertEquals("Unexpected number of users", 2*NUM_LDAP_ENTRIES + 8, userCount);
+    }
+
+    @Test
+    public void test900DeleteShadows() throws Exception {
+        final String TEST_NAME = "test900DeleteShadows";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+
+        Task task = taskManager.createTaskInstance(TestLdap.class.getName() + "." + TEST_NAME);
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
+        OperationResult result = task.getResult();
+        
+        rememberShadowFetchOperationCount();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        importObjectFromFile(TASK_DELETE_OPENDJ_SHADOWS_FILE);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        
+        waitForTaskFinish(TASK_DELETE_OPENDJ_SHADOWS_OID, true, 20000 + NUM_LDAP_ENTRIES*2000);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        
+        assertShadowFetchOperationCountIncrement(0);
+        
+        
+        
+        PrismObject<TaskType> deleteTask = getTask(TASK_DELETE_OPENDJ_SHADOWS_OID);
+        OperationResultType deleteTaskResultType = deleteTask.asObjectable().getResult();
+        display("Final delete task result", deleteTaskResultType);
+        TestUtil.assertSuccess(deleteTaskResultType);
+        OperationResult deleteTaskResult = OperationResult.createOperationResult(deleteTaskResultType);
+        TestUtil.assertSuccess(deleteTaskResult);
+        List<OperationResult> opExecResults = deleteTaskResult.findSubresults(ModelService.EXECUTE_CHANGES);
+        assertEquals(1, opExecResults.size());
+        OperationResult opExecResult = opExecResults.get(0);
+        TestUtil.assertSuccess(opExecResult);
+        assertEquals("Wrong exec operation count", 2*NUM_LDAP_ENTRIES+8, opExecResult.getCount());
+        assertTrue("Too many subresults: "+deleteTaskResult.getSubresults().size(), deleteTaskResult.getSubresults().size() < 10);
+        
+        assertOpenDjAccountShadows(0, true, task, result);
+        assertUsers(2*NUM_LDAP_ENTRIES + 8);
+        
+        // Check that the actual accounts were NOT deleted
+        // (This also re-creates shadows)
+        assertOpenDjAccountShadows(2*NUM_LDAP_ENTRIES+8, false, task, result);
+    }
+    
+    @Test
+    public void test910DeleteAccounts() throws Exception {
+        final String TEST_NAME = "test910DeleteAccounts";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestLdap.class.getName() + "." + TEST_NAME);
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
+        OperationResult result = task.getResult();
+        
+        rememberShadowFetchOperationCount();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        importObjectFromFile(TASK_DELETE_OPENDJ_ACCOUNTS_FILE);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        
+        waitForTaskFinish(TASK_DELETE_OPENDJ_ACCOUNTS_OID, true, 20000 + NUM_LDAP_ENTRIES*3000);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        
+        assertShadowFetchOperationCountIncrement((2*NUM_LDAP_ENTRIES)/100+2);
+        
+        
+        PrismObject<TaskType> deleteTask = getTask(TASK_DELETE_OPENDJ_SHADOWS_OID);
+        OperationResultType deleteTaskResultType = deleteTask.asObjectable().getResult();
+        display("Final delete task result", deleteTaskResultType);
+        TestUtil.assertSuccess(deleteTaskResultType);
+        OperationResult deleteTaskResult = OperationResult.createOperationResult(deleteTaskResultType);
+        TestUtil.assertSuccess(deleteTaskResult);
+        List<OperationResult> opExecResults = deleteTaskResult.findSubresults(ModelService.EXECUTE_CHANGES);
+        assertEquals(1, opExecResults.size());
+        OperationResult opExecResult = opExecResults.get(0);
+        TestUtil.assertSuccess(opExecResult);
+        assertEquals("Wrong exec operation count", 2*NUM_LDAP_ENTRIES + 8, opExecResult.getCount());
+        assertTrue("Too many subresults: "+deleteTaskResult.getSubresults().size(), deleteTaskResult.getSubresults().size() < 10);
+        
+        assertOpenDjAccountShadows(1, true, task, result);
+        assertUsers(2*NUM_LDAP_ENTRIES + 8);
+        assertOpenDjAccountShadows(1, false, task, result);
+    }
     
     private void assertOpenDjAccountShadows(int expected, boolean raw, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
     	ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_OPENDJ_OID, 

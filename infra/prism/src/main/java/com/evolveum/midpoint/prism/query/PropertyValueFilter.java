@@ -227,9 +227,9 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 	}
 
 	@Override
-	public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+	public boolean match(PrismContainerValue cvalue, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
 
-		Item item = getObjectItem(value);
+		Item item = getObjectItem(cvalue);
 
 		boolean filterItemIsEmpty = getValues() == null || getValues().isEmpty();
 		boolean objectItemIsEmpty = item == null || item.isEmpty();

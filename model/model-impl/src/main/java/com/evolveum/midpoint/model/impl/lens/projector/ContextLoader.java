@@ -56,6 +56,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -354,7 +355,12 @@ public class ContextLoader {
         	throw new IllegalArgumentException("No OID in primary focus delta");
         }
 
-        PrismObject<F> object = cacheRepositoryService.getObject(focusContext.getObjectTypeClass(), userOid, null, result);
+        // Always load a complete object here, including the not-returned-by-default properties.
+        // This is temporary measure to make sure that the mappings will have all they need.
+        // See MID-2635
+        Collection<SelectorOptions<GetOperationOptions>> options = 
+        		SelectorOptions.createCollection(GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+		PrismObject<F> object = cacheRepositoryService.getObject(focusContext.getObjectTypeClass(), userOid, options, result);
         focusContext.setLoadedObject(object);
         focusContext.setFresh(true);
 		LOGGER.trace("Focal object loaded: {}", object);
