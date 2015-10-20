@@ -927,6 +927,7 @@ public class PageTaskEdit extends PageAdminTasks {
 				return edit;
 			}
 		});
+        mainForm.setDefaultButton(saveButton);
 		mainForm.add(saveButton);
 
         AjaxButton editButton = new AjaxButton("editButton",
