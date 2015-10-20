@@ -509,6 +509,7 @@ public class PageTaskAdd extends PageAdminTasks {
                 target.add(getFeedbackPanel());
             }
         };
+        mainForm.setDefaultButton(saveButton);
         mainForm.add(saveButton);
 
         AjaxButton backButton = new AjaxButton(ID_BUTTON_BACK,
