@@ -152,6 +152,9 @@ public class AssignmentProcessor {
     private MappingFactory mappingFactory;
     
     @Autowired(required = true)
+    private MappingEvaluator mappingEvaluator;
+    
+    @Autowired(required = true)
     private ProvisioningService provisioningService;
     
     @Autowired(required = true)
@@ -270,6 +273,7 @@ public class AssignmentProcessor {
         assignmentEvaluator.setObjectResolver(objectResolver);
         assignmentEvaluator.setPrismContext(prismContext);
         assignmentEvaluator.setMappingFactory(mappingFactory);
+        assignmentEvaluator.setMappingEvaluator(mappingEvaluator);
         assignmentEvaluator.setActivationComputer(activationComputer);
         assignmentEvaluator.setNow(now);
         assignmentEvaluator.setSystemConfiguration(context.getSystemConfiguration());

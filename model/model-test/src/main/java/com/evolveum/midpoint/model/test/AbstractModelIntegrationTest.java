@@ -141,6 +141,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.ConfigAttribute;
@@ -2462,18 +2463,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertTrue("Unexpected values for attribute " + attributeName + " of dummy account " + username + ": " + values, values == null || values.isEmpty());
 	}
     
-	protected String assertOpenDjAccount(String uid, String cn, Boolean active) throws DirectoryException {
-		SearchResultEntry entry = openDJController.searchByUid(uid);
+	protected Entry assertOpenDjAccount(String uid, String cn, Boolean active) throws DirectoryException {
+		Entry entry = openDJController.searchByUid(uid);
 		assertNotNull("OpenDJ accoun with uid "+uid+" not found", entry);
 		openDJController.assertAttribute(entry, "cn", cn);
 		if (active != null) {
 			openDJController.assertActive(entry, active);
 		}
-		return entry.getDN().toString();
+		return entry;
 	}
 	
 	protected void assertNoOpenDjAccount(String uid) throws DirectoryException {
-		SearchResultEntry entry = openDJController.searchByUid(uid);
+		Entry entry = openDJController.searchByUid(uid);
 		assertNull("Expected that OpenDJ account with uid " + uid + " will be gone, but it is still there", entry);
 	}
 	

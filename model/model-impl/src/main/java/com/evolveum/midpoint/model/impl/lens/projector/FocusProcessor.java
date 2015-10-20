@@ -120,7 +120,7 @@ public class FocusProcessor {
 	private transient RepositoryService cacheRepositoryService;
 	
 	@Autowired(required = true)
-    private MappingEvaluationHelper mappingHelper;
+    private MappingEvaluator mappingHelper;
 
 	<O extends ObjectType, F extends FocusType> void processFocus(LensContext<O> context, String activityDescription, 
 			XMLGregorianCalendar now, Task task, OperationResult result) throws ObjectNotFoundException,

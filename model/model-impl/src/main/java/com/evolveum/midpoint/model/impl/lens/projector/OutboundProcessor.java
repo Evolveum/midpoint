@@ -86,6 +86,9 @@ public class OutboundProcessor {
 
     @Autowired(required = true)
     private MappingFactory mappingFactory;
+    
+    @Autowired(required = true)
+    private MappingEvaluator mappingEvaluator;
 
     public <F extends FocusType> void processOutbound(LensContext<F> context, LensProjectionContext projCtx, Task task, OperationResult result) throws SchemaException,
             ExpressionEvaluationException, ObjectNotFoundException {
@@ -270,7 +273,7 @@ public class OutboundProcessor {
 			mapping.setConditionMaskNew(false);
 		}
 		
-		LensUtil.evaluateMapping(mapping, context, task, result);
+		mappingEvaluator.evaluateMapping(mapping, context, task, result);
     	
 		return mapping;
     }

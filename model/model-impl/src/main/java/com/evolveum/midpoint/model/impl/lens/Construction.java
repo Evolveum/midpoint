@@ -31,6 +31,7 @@ import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
+import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.Item;
@@ -103,6 +104,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 	private ResourceType resource;
 	private ObjectResolver objectResolver;
 	private MappingFactory mappingFactory;
+	private MappingEvaluator mappingEvaluator;
 	private Collection<Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>>> attributeMappings;
 	private Collection<Mapping<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>> associationMappings;
 	private RefinedObjectClassDefinition refinedObjectClassDefinition;
@@ -188,6 +190,14 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 
 	public void setMappingFactory(MappingFactory mappingFactory) {
 		this.mappingFactory = mappingFactory;
+	}
+
+	public MappingEvaluator getMappingEvaluator() {
+		return mappingEvaluator;
+	}
+
+	public void setMappingEvaluator(MappingEvaluator mappingEvaluator) {
+		this.mappingEvaluator = mappingEvaluator;
 	}
 
 	public PrismObject<SystemConfigurationType> getSystemConfiguration() {
@@ -537,7 +547,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 			mapping.setConditionMaskNew(false);
 		}
 
-		LensUtil.evaluateMapping(mapping, lensContext, task, result);
+		mappingEvaluator.evaluateMapping(mapping, lensContext, task, result);
 
 		return mapping;
 	}
