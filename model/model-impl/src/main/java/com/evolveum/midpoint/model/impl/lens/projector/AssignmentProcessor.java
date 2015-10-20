@@ -1260,16 +1260,18 @@ public class AssignmentProcessor {
 		ItemPath orgRefPath = new ItemPath(FocusType.F_PARENT_ORG_REF);
 
         // check if parentOrgRef recon is needed - it is when something inside OrgType assignment has changed
-        boolean forceRecon = false;
-        for (EvaluatedAssignmentImpl assignment: evaluatedAssignmentTriple.getAllValues()) {
-            if (assignment.isForceRecon() &&
-                    assignment.getAssignmentType() != null &&
-                    assignment.getAssignmentType().getTargetRef() != null &&
-                    OrgType.COMPLEX_TYPE.equals(assignment.getAssignmentType().getTargetRef().getType())) {
-                forceRecon = true;
-                break;
-            }
-        }
+        boolean forceRecon = context.isDoReconciliationForAllProjections();		// this is directly influenced by Reconcile model execution option
+		if (!forceRecon) {
+			for (EvaluatedAssignmentImpl assignment : evaluatedAssignmentTriple.getAllValues()) {
+				if (assignment.isForceRecon() &&
+						assignment.getAssignmentType() != null &&
+						assignment.getAssignmentType().getTargetRef() != null &&
+						OrgType.COMPLEX_TYPE.equals(assignment.getAssignmentType().getTargetRef().getType())) {
+					forceRecon = true;
+					break;
+				}
+			}
+		}
         // for zero and minus sets we check isForceRecon for all non-construction-related assignments (MID-2242)
         if (!forceRecon) {
             for (EvaluatedAssignmentImpl assignment: evaluatedAssignmentTriple.getNonPositiveValues()) {

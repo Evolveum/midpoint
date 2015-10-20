@@ -20,7 +20,7 @@ import static com.codeborne.selenide.Selenide.close;
 public class SuperUserTests extends AbstractSelenideTest {
     public static final String SUPER_ROLE_NAME = "Superuser";
     public static final String SUPER_USER_NAME = "SuperUser";
-    public static final String ASSIGN_ROLE_LINKTEXT = "Assign role";
+    public static final String ASSIGN_ROLE_LINKTEXT = "Assign Role";
 
     /**
      * Create user with assigned Superuser role.
@@ -40,14 +40,14 @@ public class SuperUserTests extends AbstractSelenideTest {
         $(By.linkText(SUPER_USER_NAME)).shouldBe(visible).click();
 
         //click on the menu icon in the User details section
-        $(byText("User details")).parent().parent().find(byAttribute("about", "dropdownMenu"))
+        $(byText("Details")).parent().parent().find(byAttribute("about", "dropdownMenu"))
                 .shouldBe(visible).click();
         //click on Show empty fields menu item
         $(By.linkText("Show empty fields")).shouldBe(visible).click();
         //set Password fields with value
-        $(By.name("userForm:body:containers:7:container:properties:0:property:values:0:value:valueContainer:input:password2"))
+        $(By.name(AbstractSelenideTest.PASSWORD1_FIELD_NAME))
                 .shouldBe(visible).setValue(PASSWORD1_FIELD_VALUE);
-        $(By.name("userForm:body:containers:7:container:properties:0:property:values:0:value:valueContainer:input:password1"))
+        $(By.name(AbstractSelenideTest.PASSWORD2_FIELD_NAME))
                 .shouldBe(visible).setValue(PASSWORD1_FIELD_VALUE);
 
         //assign Superuser role to user
@@ -95,7 +95,7 @@ public class SuperUserTests extends AbstractSelenideTest {
         $(byText("Success")).shouldBe(visible);
 
         //log out
-        logout(ADMIN_LOGIN);
+        logout();
 
         //try to log in to the system with disabled super user
         login(SUPER_USER_NAME, PASSWORD1_FIELD_VALUE);
@@ -126,7 +126,7 @@ public class SuperUserTests extends AbstractSelenideTest {
         $(byText("Success")).shouldBe(visible);
 
         //log out
-        logout(ADMIN_LOGIN);
+        logout();
 
         //log in to the system after super user was enabled
         login(SUPER_USER_NAME, PASSWORD1_FIELD_VALUE);
