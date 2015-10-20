@@ -315,7 +315,7 @@ public class PageResources extends PageAdminResources {
         };
         columns.add(column);
 
-        columns.add(new PropertyColumn(createStringResource("pageResources.bundle"), "bundle"));
+        columns.add(new PropertyColumn(createStringResource("pageResources.connectorType"), "type"));
         columns.add(new PropertyColumn(createStringResource("pageResources.version"), "version"));
 
         column = new LinkIconColumn<ResourceDto>(createStringResource("pageResources.status")) {
