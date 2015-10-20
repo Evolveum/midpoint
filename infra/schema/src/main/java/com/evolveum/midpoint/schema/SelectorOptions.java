@@ -153,9 +153,11 @@ public class SelectorOptions<T> implements Serializable {
 
         for (SelectorOptions<GetOperationOptions> option : retrieveOptions) {
             ObjectSelector selector = option.getSelector();
-            ItemPath selected = selector.getPath();
-            if (!isPathInSelected(path, selected)) {
-                continue;
+            if (selector != null) {
+	            ItemPath selected = selector.getPath();
+	            if (!isPathInSelected(path, selected)) {
+	                continue;
+	            }
             }
 
             RetrieveOption retrieveOption = option.getOptions().getRetrieve();

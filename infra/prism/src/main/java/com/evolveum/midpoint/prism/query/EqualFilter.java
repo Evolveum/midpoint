@@ -196,13 +196,17 @@ public class EqualFilter<T extends Object> extends PropertyValueFilter<PrismProp
 	}
 
 	@Override
-	public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+	public boolean match(PrismContainerValue cvalue, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
 		Item filterItem = getFilterItem();
-		if (!super.match(value, matchingRuleRegistry)){
+		if (!super.match(cvalue, matchingRuleRegistry)){
 			return false;
 		}
 
-		List<Object> values = getObjectItem(value).getValues();
+		Item objectItem = getObjectItem(cvalue);
+		if (objectItem == null) {
+			return true;
+		}
+		List<Object> values = objectItem.getValues();
 		if (values == null){
 			return true;
 		}

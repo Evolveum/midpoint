@@ -2132,6 +2132,7 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin impl
 			}
 		};
 		progressReporter.registerSaveButton(saveButton);
+        mainForm.setDefaultButton(saveButton);
 		mainForm.add(saveButton);
 
 		AjaxSubmitButton abortButton = new AjaxSubmitButton("abort", createStringResource("pageAdminFocus.button.abort")) {

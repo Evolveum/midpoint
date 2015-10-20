@@ -111,7 +111,7 @@ public class ObjectTemplateProcessor {
 	private transient RepositoryService cacheRepositoryService;
 	
 	@Autowired(required = true)
-    private MappingEvaluationHelper mappingHelper;
+    private MappingEvaluator mappingEvaluator;
 
 	@Autowired
 	private MatchingRuleRegistry matchingRuleRegistry;
@@ -379,7 +379,7 @@ public class ObjectTemplateProcessor {
 				continue;
 			}
 			
-			LensUtil.evaluateMapping(mapping, context, task, result);
+			mappingEvaluator.evaluateMapping(mapping, context, task, result);
 			
 			ItemPath itemPath = mapping.getOutputPath();
             if (itemPath == null) {

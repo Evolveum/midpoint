@@ -44,7 +44,7 @@ import org.apache.commons.lang.StringUtils;
 import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.opends.server.types.Entry;
-import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.Entry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -752,7 +752,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		openDJController.executeRenameChange(TEST_DIR_NAME + "/rename.ldif");
 		
-		SearchResultEntry entry = openDJController.fetchEntry("uid=will123,ou=People,dc=example,dc=com");
+		Entry entry = openDJController.fetchEntry("uid=will123,ou=People,dc=example,dc=com");
 		assertNotNull("Entry with dn uid=will123,ou=People,dc=example,dc=com does not exist", entry);
 		
 		ShadowType repoShadowType =  repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID,
@@ -904,7 +904,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		// Check if object was modified in LDAP
 		
-		SearchResultEntry response = openDJController.searchAndAssertByEntryUuid(uid);			
+		Entry response = openDJController.searchAndAssertByEntryUuid(uid);			
 		display("LDAP account", response);
 		
 		OpenDJController.assertAttribute(response, "sn", "First");
@@ -944,7 +944,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 		
-		SearchResultEntry entry = openDJController.searchByUid("rename");
+		Entry entry = openDJController.searchByUid("rename");
 		display("LDAP Entry", entry);
 		byte[] jpegPhotoLdap = OpenDJController.getAttributeValueBinary(entry, "jpegPhoto");
 		assertNotNull("No jpegPhoto in LDAP entry", jpegPhotoLdap);
@@ -991,7 +991,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		uid = ShadowUtil.getSingleStringAttributeValue(accountType, getPrimaryIdentifierQName());
 		assertNotNull(uid);
 		
-		SearchResultEntry entryBefore = openDJController.searchAndAssertByEntryUuid(uid);			
+		Entry entryBefore = openDJController.searchAndAssertByEntryUuid(uid);			
 		display("LDAP account before", entryBefore);
 
 		String passwordBefore = OpenDJController.getAttributeValue(entryBefore, "userPassword");
@@ -1010,7 +1010,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		TestUtil.displayThen(TEST_NAME);
 		
 		// Check if object was modified in LDAP
-		SearchResultEntry entryAfter = openDJController.searchAndAssertByEntryUuid(uid);			
+		Entry entryAfter = openDJController.searchAndAssertByEntryUuid(uid);			
 		display("LDAP account after", entryAfter);
 
 		String passwordAfter = OpenDJController.getAttributeValue(entryAfter, "userPassword");
@@ -1059,7 +1059,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		// Check if object was created in LDAP and that there is a password
 		
-		SearchResultEntry entryAfter = openDJController.searchAndAssertByEntryUuid(uid);			
+		Entry entryAfter = openDJController.searchAndAssertByEntryUuid(uid);			
 		display("LDAP account after", entryAfter);
 
 		String passwordAfter = OpenDJController.getAttributeValue(entryAfter, "userPassword");
@@ -1186,7 +1186,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		// Check if object was modified in LDAP
 		
-		SearchResultEntry response = openDJController.searchAndAssertByEntryUuid(uid);
+		Entry response = openDJController.searchAndAssertByEntryUuid(uid);
 		display("LDAP account", response);
 		
 		String disabled = openDJController.getAttributeValue(response, "ds-pwp-account-disabled");
@@ -1235,7 +1235,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		// Check if object was modified in LDAP
 		
-		SearchResultEntry response = openDJController.searchAndAssertByEntryUuid(uid);
+		Entry response = openDJController.searchAndAssertByEntryUuid(uid);
 		display("LDAP account", response);
 		
 		String disabled = openDJController.getAttributeValue(response, "ds-pwp-account-disabled");
@@ -1286,7 +1286,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		// Check if object was modified in LDAP
 		
-		SearchResultEntry response = openDJController.searchAndAssertByEntryUuid(uid);
+		Entry response = openDJController.searchAndAssertByEntryUuid(uid);
 		display("LDAP account", response);
 		
 		String disabled = openDJController.getAttributeValue(response, "ds-pwp-account-disabled");
@@ -1368,7 +1368,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		// Check if object was modified in LDAP
 		
-		SearchResultEntry response = openDJController.searchAndAssertByEntryUuid(uid);
+		Entry response = openDJController.searchAndAssertByEntryUuid(uid);
 		display("LDAP account", response);
 		
 		String pager = openDJController.getAttributeValue(response, "pager");
@@ -1717,7 +1717,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		// Check if object was modified in LDAP
 		
-		SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(uid);			
+		Entry entry = openDJController.searchAndAssertByEntryUuid(uid);			
 		display("LDAP account", entry);
 		OpenDJController.assertAttribute(entry, "cn", "Haggis McMutton");
 		OpenDJController.assertAttribute(entry, "sn", "McMutton");
@@ -1764,7 +1764,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		// Check if object was modified in LDAP
 		
-		SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(uid);			
+		Entry entry = openDJController.searchAndAssertByEntryUuid(uid);			
 		display("LDAP account", entry);
 		OpenDJController.assertAttribute(entry, "cn", "Haggis McMutton");
 		OpenDJController.assertAttribute(entry, "homeDirectory", "/home/caribbean");
@@ -1892,7 +1892,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		ResourceAttribute<Object> memberAttr = ShadowUtil.getAttribute(provisioningShadow, new QName(RESOURCE_OPENDJ_NS, GROUP_MEMBER_ATTR_NAME));
 		assertNull("Member attribute sneaked in", memberAttr);
 		
-		SearchResultEntry ldapEntry = openDJController.searchAndAssertByEntryUuid(uid);
+		Entry ldapEntry = openDJController.searchAndAssertByEntryUuid(uid);
 		display("LDAP group", ldapEntry);
 		assertNotNull("No LDAP group entry");
 		String groupDn = ldapEntry.getDN().toString();
@@ -1935,13 +1935,13 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		ShadowAssociationType association = associations.get(0);
 		assertEquals("Wrong group OID in association", GROUP_SWASHBUCKLERS_OID, association.getShadowRef().getOid());
 		
-		SearchResultEntry accountEntry = openDJController.searchAndAssertByEntryUuid(uid);
+		Entry accountEntry = openDJController.searchAndAssertByEntryUuid(uid);
 		display("LDAP account", accountEntry);
 		assertNotNull("No LDAP account entry");
 		String accountDn = accountEntry.getDN().toString();
 		assertEquals("Wrong account DN", ACCOUNT_MORGAN_DN, accountDn);
 		
-		SearchResultEntry groupEntry = openDJController.fetchEntry(GROUP_SWASHBUCKLERS_DN);
+		Entry groupEntry = openDJController.fetchEntry(GROUP_SWASHBUCKLERS_DN);
 		display("LDAP group", groupEntry);
 		assertNotNull("No LDAP group entry");
 		openDJController.assertUniqueMember(groupEntry, accountDn);
@@ -1973,7 +1973,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		ResourceAttribute<Object> memberAttr = ShadowUtil.getAttribute(provisioningShadow, new QName(RESOURCE_OPENDJ_NS, GROUP_MEMBER_ATTR_NAME));
 		assertNull("Member attribute sneaked in", memberAttr);
 		
-		SearchResultEntry ldapEntry = openDJController.searchAndAssertByEntryUuid(uid);
+		Entry ldapEntry = openDJController.searchAndAssertByEntryUuid(uid);
 		display("LDAP group", ldapEntry);
 		assertNotNull("No LDAP group entry");
 		String groupDn = ldapEntry.getDN().toString();
@@ -2104,7 +2104,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
 		
-		SearchResultEntry groupEntry = openDJController.fetchEntry(GROUP_CORSAIRS_DN);
+		Entry groupEntry = openDJController.fetchEntry(GROUP_CORSAIRS_DN);
 		display("LDAP group", groupEntry);
 		assertNotNull("No LDAP group entry");
 		openDJController.assertUniqueMember(groupEntry, ACCOUNT_MORGAN_DN);
@@ -2172,7 +2172,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
             assertTrue(ex.getMessage().contains(ACCOUNT_MORGAN_OID));
 		}
 		
-		SearchResultEntry groupEntry = openDJController.fetchEntry(GROUP_SWASHBUCKLERS_DN);
+		Entry groupEntry = openDJController.fetchEntry(GROUP_SWASHBUCKLERS_DN);
 		display("LDAP group", groupEntry);
 		assertNotNull("No LDAP group entry");
 		openDJController.assertNoUniqueMember(groupEntry, ACCOUNT_MORGAN_DN);
