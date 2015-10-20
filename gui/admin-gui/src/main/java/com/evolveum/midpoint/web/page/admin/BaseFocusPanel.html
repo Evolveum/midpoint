@@ -22,7 +22,9 @@
 		<div wicket:id="resourcePopup" />
 		<div wicket:id="assignablePopup" />
 		<div wicket:id="assignableOrgPopup" />
+		<div wicket:id="addOrgPopup" />
 
+		<div wicket:id="confirmDeleteOrgPopup" />
 		<div wicket:id="confirmDeleteShadowPopup" />
 		<div wicket:id="confirmDeleteAssignmentPopup" />
 
@@ -48,11 +50,22 @@
 						<div wicket:id="shadow" />
 					</div>
 				</div>
-<!-- 			</div> -->
-<!-- 			<div class="col-md-6"> -->
-<!-- 				<div class="row"> -->
-<!--             		<a class="btn btn-info" wicket:id="recomputeAssignments" /> -->
-<!--         		</div> -->
+				
+				<div wicket:id="orgs">
+					<div class="row assignable-header">
+						<div class="col-xs-10">
+							<input type="checkbox" wicket:id="orgCheckAll" />
+							<h3>
+								<wicket:message key="pageAdminFocus.organizations" />
+							</h3>
+						</div>
+						<div class="col-xs-2 cog" wicket:id="orgMenu"
+							about="orgMenu" />
+					</div>
+					<div wicket:id="orgList">
+						<div wicket:id="org" />
+					</div>
+				</div>
 
 				<div class="row assignable-header">
 					<div wicket:id="assignmentsContainer">
@@ -60,24 +73,6 @@
 					</div>
 				</div>
 			</div>
-			<!--                     <div class="row assignable-header"> -->
-			<!--                         <div class="col-xs-10"> -->
-			<!--                             <input type="checkbox" wicket:id="assignmentCheckAll"/> -->
-			<!--                             <h3><wicket:message key="pageUser.assignments"/></h3> -->
-			<!--                         </div> -->
-			<!--                         <div class="col-xs-2 cog" wicket:id="assignmentMenu"/> -->
-			<!--                     </div> -->
-			<!--                     <div wicket:id="assignmentList"> -->
-			<!--                         <div wicket:id="assignmentEditor" class="assignment-item" /> -->
-			<!--                     </div> -->
-			<!--                 </div> -->
-
-			<!--                 <div wicket:id="tasks"> -->
-			<!--                     <h3><wicket:message key="pageUser.tasks"/></h3> -->
-			<!--                     <div wicket:id="taskTable"/> -->
-			<!--                 </div> -->
-			<!--             </div> -->
-
 		</div>
 		 
 	</wicket:panel>

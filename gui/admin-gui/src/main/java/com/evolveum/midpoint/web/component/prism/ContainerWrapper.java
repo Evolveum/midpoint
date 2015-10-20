@@ -76,7 +76,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 
 	private static final List<QName> INHERITED_OBJECT_ATTRIBUTES = Arrays.asList(ObjectType.F_NAME,
 			ObjectType.F_DESCRIPTION, ObjectType.F_FETCH_RESULT, ObjectType.F_PARENT_ORG,
-			ObjectType.F_PARENT_ORG_REF);
+			ObjectType.F_PARENT_ORG_REF, FocusType.F_LINK, FocusType.F_LINK_REF);
 
 	private static final String DOT_CLASS = ContainerWrapper.class.getName() + ".";
 	private static final String CREATE_PROPERTIES = DOT_CLASS + "createProperties";
@@ -336,7 +336,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 					} else if (itemDef instanceof PrismReferenceDefinition){
 						PrismReferenceDefinition def = (PrismReferenceDefinition) itemDef;
 						
-						if (FocusType.F_LINK_REF.equals(def.getName())){
+						if (INHERITED_OBJECT_ATTRIBUTES.contains(def.getName())){
 							continue;
 						}
 						

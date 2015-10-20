@@ -26,7 +26,7 @@ import java.io.Serializable;
 /**
  * @author lazyman
  */
-public class FocusShadowDto implements Serializable {
+public class FocusProjectionDto implements Serializable {
 
     private ObjectWrapper object;
     private UserDtoStatus status;
@@ -35,12 +35,12 @@ public class FocusShadowDto implements Serializable {
     private String description;
     private OperationResult result;
 
-    public FocusShadowDto(ObjectWrapper object, UserDtoStatus status) {
+    public FocusProjectionDto(ObjectWrapper object, UserDtoStatus status) {
         setObject(object);
         setStatus(status);
     }
 
-    public FocusShadowDto(boolean loaded, String description, OperationResult result){
+    public FocusProjectionDto(boolean loaded, String description, OperationResult result){
         setLoadedOK(loaded);
         setDescription(description);
         this.result = result;
