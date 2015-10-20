@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.web.page.admin.configuration.component.ObjectSelectionPage;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import org.apache.wicket.Page;
 import org.apache.wicket.PageReference;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -121,104 +122,77 @@ public class ValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
 	// for ModalWindow treatment see comments in ChooseTypePanel
 	private void initGenericDialog(final Class<C> type, final List<PrismReferenceValue> values) {
 		final ModalWindow dialog = new ModalWindow(MODAL_ID_OBJECT_SELECTION_POPUP);
-		dialog.setPageCreator(new ModalWindow.PageCreator() {
-			public Page createPage() {
-				final PageReference callingPageReference = getPage().getPageReference();
-				ObjectSelectionPanel selectionPanel = new ObjectSelectionPanel(
-						ObjectSelectionPage.ID_OBJECT_SELECTION_PANEL, type, getPageBase()) {
 
-					private ValueChoosePanel getRealParent() {
-						return theSameForPage(ValueChoosePanel.this, callingPageReference);
-					}
+		ObjectSelectionPanel.Context context = new ObjectSelectionPanel.Context(this) {
 
-					@Override
-					protected void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object) {
-						getRealParent().choosePerformed(target, (C) object);
-					}
-
-					@Override
-					protected ObjectQuery getDataProviderQuery() {
-						return getRealParent().createChooseQuery(values);
-					}
-
-					@Override
-					public boolean isSearchEnabled() {
-						return true;
-					}
-
-					@Override
-					protected void cancelPerformed(AjaxRequestTarget target) {
-						super.cancelPerformed(target);
-						dialog.close(target);
-					}
-				};
-				return new ObjectSelectionPage(selectionPanel, getPageBase());
+			// See analogous discussion in ChooseTypePanel
+			public ValueChoosePanel getRealParent() {
+				return WebMiscUtil.theSameForPage(ValueChoosePanel.this, getCallingPageReference());
 			}
-		});
-		dialog.setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
-			public void onClose(AjaxRequestTarget target) {
-				target.add(ValueChoosePanel.this.get(ID_TEXT_WRAPPER));
+
+			@Override
+			public void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object) {
+				getRealParent().choosePerformed(target, object);
 			}
-		});
-		dialog.setTitle(createStringResource("chooseTypeDialog.title"));
-		dialog.showUnloadConfirmation(false);
-		dialog.setCssClassName(ModalWindow.CSS_CLASS_GRAY);
-		dialog.setCookieName(ObjectSelectionPanel.class.getSimpleName() + ((int) (Math.random() * 100)));
-		dialog.setInitialWidth(500);
-		dialog.setInitialHeight(500);
-		dialog.setWidthUnit("px");
+
+			@Override
+			public ObjectQuery getDataProviderQuery() {
+				return getRealParent().createChooseQuery(values);
+			}
+
+			@Override
+			public boolean isSearchEnabled() {
+				return true;
+			}
+
+			@Override
+			public Class<? extends ObjectType> getObjectTypeClass() {
+				return type;
+			}
+
+		};
+
+		ObjectSelectionPage.prepareDialog(dialog, context, this, "chooseTypeDialog.title", ID_TEXT_WRAPPER);
 		add(dialog);
 	}
 
 
 	private void initUserOrgDialog() {
 		final ModalWindow dialog = new ModalWindow(MODAL_ID_OBJECT_SELECTION_POPUP);
-		dialog.setPageCreator(new ModalWindow.PageCreator() {
-			public Page createPage() {
-				final PageReference callingPageReference = getPage().getPageReference();
-				ObjectSelectionPanel selectionPanel = new ObjectSelectionPanel(
-						ObjectSelectionPage.ID_OBJECT_SELECTION_PANEL, UserType.class, getPageBase()) {
+		ObjectSelectionPanel.Context context = new ObjectSelectionPanel.Context(this) {
 
-					private ValueChoosePanel getRealParent() {
-						return theSameForPage(ValueChoosePanel.this, callingPageReference);
-					}
+			// See analogous discussion in ChooseTypePanel
+			public ValueChoosePanel getRealParent() {
+				return WebMiscUtil.theSameForPage(ValueChoosePanel.this, getCallingPageReference());
+			}
 
+			@Override
+			public void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object) {
+				getRealParent().choosePerformed(target, object);
+			}
+
+			@Override
+			public boolean isSearchEnabled() {
+				return true;
+			}
+
+			@Override
+			public Class<? extends ObjectType> getObjectTypeClass() {
+				return UserType.class;
+			}
+
+			@Override
+			protected WebMarkupContainer createExtraContentContainer(String extraContentId, final ObjectSelectionPanel objectSelectionPanel) {
+				return new UserOrgReferenceChoosePanel(extraContentId, Boolean.FALSE) {
 					@Override
-					protected void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object) {
-						getRealParent().choosePerformed(target, (C) object);
-					}
-
-					@Override
-					protected WebMarkupContainer createExtraContentContainer(String extraContentId) {
-						return new UserOrgReferenceChoosePanel(extraContentId, Boolean.FALSE) {
-							@Override
-							protected void onReferenceTypeChangePerformed(AjaxRequestTarget target, Boolean newValue) {
-								updateTableByTypePerformed(target, Boolean.FALSE.equals(newValue) ? UserType.class : OrgType.class);
-							}
-						};
-					}
-
-					@Override
-					protected void cancelPerformed(AjaxRequestTarget target) {
-						super.cancelPerformed(target);
-						dialog.close(target);
+					protected void onReferenceTypeChangePerformed(AjaxRequestTarget target, Boolean newValue) {
+						objectSelectionPanel.updateTableByTypePerformed(target, Boolean.FALSE.equals(newValue) ? UserType.class : OrgType.class);
 					}
 				};
-				return new ObjectSelectionPage(selectionPanel, getPageBase());
 			}
-		});
-		dialog.setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
-			public void onClose(AjaxRequestTarget target) {
-				target.add(ValueChoosePanel.this.get(ID_TEXT_WRAPPER));
-			}
-		});
-		dialog.setTitle(createStringResource("chooseTypeDialog.title"));
-		dialog.showUnloadConfirmation(false);
-		dialog.setCssClassName(ModalWindow.CSS_CLASS_GRAY);
-		dialog.setCookieName(ObjectSelectionPanel.class.getSimpleName() + ((int) (Math.random() * 100)));
-		dialog.setInitialWidth(500);
-		dialog.setInitialHeight(500);
-		dialog.setWidthUnit("px");
+		};
+
+		ObjectSelectionPage.prepareDialog(dialog, context, this, "chooseTypeDialog.title", ID_TEXT_WRAPPER);
 		add(dialog);
 	}
 

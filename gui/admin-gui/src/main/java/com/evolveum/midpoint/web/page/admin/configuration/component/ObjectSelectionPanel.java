@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.component;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.AndFilter;
@@ -35,6 +36,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.PageDialog;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectSearchDto;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.commons.lang.StringUtils;
@@ -42,6 +44,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.Page;
 import org.apache.wicket.PageReference;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -52,6 +55,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
 import javax.xml.namespace.QName;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,9 +77,66 @@ public class ObjectSelectionPanel extends Panel {
     private Class<? extends ObjectType> objectType;
     private boolean initialized;
     private IModel<ObjectSearchDto> searchModel;
+    private ModalWindow modalWindow;
+    private Context context;
 
-    public ObjectSelectionPanel(String id, Class<? extends ObjectType> type, PageBase pageBase){
+    public static abstract class Context implements Serializable {
+
+        protected PageReference callingPageReference;
+        protected Component callingComponent;
+
+        public Context(Component callingComponent) {
+            this.callingComponent = callingComponent;
+        }
+
+        //public abstract Panel getRealParent();
+        public abstract void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object);
+
+        public ObjectQuery getDataProviderQuery() {
+            return null;
+        }
+
+        /**
+         *  Determines if search capabilities in this modal window are or are not enabled
+         * */
+        public boolean isSearchEnabled(){
+            return false;
+        }
+
+        /**
+         *  provides search property to the search filter
+         * */
+        public QName getSearchProperty(){
+            return ObjectType.F_NAME;
+        }
+
+        public String getSortableProperty(){
+            return DEFAULT_SORTABLE_PROPERTY;
+        }
+
+        public abstract Class<? extends ObjectType> getObjectTypeClass();
+
+        public PageReference getCallingPageReference() {
+            return callingPageReference;
+        }
+
+        public PageBase getCallingPage() {
+            return (PageBase) callingComponent.getPage();
+        }
+
+        protected WebMarkupContainer createExtraContentContainer(String extraContentId, ObjectSelectionPanel objectSelectionPanel) {
+            WebMarkupContainer container = new WebMarkupContainer(extraContentId);
+            container.setOutputMarkupId(true);
+            container.setOutputMarkupPlaceholderTag(true);
+            return container;
+        }
+    }
+
+    public ObjectSelectionPanel(String id, Class<? extends ObjectType> type, ModalWindow modalWindow, Context context) {
         super(id);
+
+        this.modalWindow = modalWindow;
+        this.context = context;
 
         searchModel = new LoadableModel<ObjectSearchDto>(false) {
 
@@ -87,7 +148,7 @@ public class ObjectSelectionPanel extends Panel {
 
         objectType = type;
 
-        initLayout(pageBase);
+        initLayout(context.getCallingPage());
         initialized = true;
     }
 
@@ -99,7 +160,7 @@ public class ObjectSelectionPanel extends Panel {
 
             @Override
             public boolean isVisible() {
-                return isSearchEnabled();
+                return context.isSearchEnabled();
             }
         });
 
@@ -122,11 +183,11 @@ public class ObjectSelectionPanel extends Panel {
         };
         searchForm.add(basicSearch);
 
-        add(createExtraContentContainer(ID_EXTRA_CONTENT_CONTAINER));
+        add(context.createExtraContentContainer(ID_EXTRA_CONTENT_CONTAINER, this));
 
         List<IColumn<SelectableBean<ObjectType>, String>> columns = initColumns();
         ObjectDataProvider provider = new ObjectDataProvider(pageBase, this.objectType);
-        provider.setQuery(getDataProviderQuery());
+        provider.setQuery(context.getDataProviderQuery());
         TablePanel table = new TablePanel<>(ID_TABLE, provider, columns);
         table.setOutputMarkupId(true);
         addOrReplace(table);
@@ -136,7 +197,7 @@ public class ObjectSelectionPanel extends Panel {
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                cancelPerformed(ajaxRequestTarget);
+                modalWindow.close(ajaxRequestTarget);
             }
         };
         add(cancelButton);
@@ -145,25 +206,18 @@ public class ObjectSelectionPanel extends Panel {
     private List<IColumn<SelectableBean<ObjectType>, String>> initColumns() {
         List<IColumn<SelectableBean<ObjectType>, String>> columns = new ArrayList<>();
 
-        IColumn column = new LinkColumn<SelectableBean<ObjectType>>(createStringResource("chooseTypeDialog.column.name"), getSortableProperty(), "value.name"){
+        IColumn column = new LinkColumn<SelectableBean<ObjectType>>(createStringResource("chooseTypeDialog.column.name"), context.getSortableProperty(), "value.name"){
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<SelectableBean<ObjectType>> rowModel){
                 ObjectType object = rowModel.getObject().getValue();
-                chooseOperationPerformed(target, object);
+                context.chooseOperationPerformed(target, object);
             }
 
         };
         columns.add(column);
 
         return columns;
-    }
-
-    protected WebMarkupContainer createExtraContentContainer(String extraContentId){
-        WebMarkupContainer container = new WebMarkupContainer(extraContentId);
-        container.setOutputMarkupId(true);
-        container.setOutputMarkupPlaceholderTag(true);
-        return container;
     }
 
     private TablePanel getTablePanel() {
@@ -185,7 +239,7 @@ public class ObjectSelectionPanel extends Panel {
         ObjectDataProvider provider = (ObjectDataProvider)dataTable.getDataProvider();
         provider.setType(objectType);
 
-        target.add(this, getPageBase().getFeedbackPanel(), table);
+        target.add(this, WebMiscUtil.getPageBase(this).getFeedbackPanel(), table);
     }
 
     public void updateTablePerformed(AjaxRequestTarget target, ObjectQuery query){
@@ -194,36 +248,11 @@ public class ObjectSelectionPanel extends Panel {
         ObjectDataProvider provider = (ObjectDataProvider)dataTable.getDataProvider();
         provider.setQuery(query);
 
-        target.add(this, getPageBase().getFeedbackPanel(), table);
+        target.add(this, WebMiscUtil.getPageBase(this).getFeedbackPanel(), table);
     }
-
-    protected ObjectQuery getDataProviderQuery(){
-        return null;
-    }
-
-    public String getSortableProperty(){
-        return DEFAULT_SORTABLE_PROPERTY;
-    }
-
-    protected void cancelPerformed(AjaxRequestTarget target) {
-        // subclasses should close the modal window here
-    }
-
-    protected void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object){}
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
         return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
-    }
-
-    private PageBase getPageBase() {
-        Page page = getPage();
-        if (page instanceof PageBase) {
-            return (PageBase) page;
-        } else if (page instanceof PageDialog) {
-            return ((PageDialog) page).getPageBase();
-        } else {
-            throw new IllegalStateException("Couldn't determine page base for " + page);
-        }
     }
 
     private void searchPerformed(AjaxRequestTarget target){
@@ -241,22 +270,24 @@ public class ObjectSelectionPanel extends Panel {
         ObjectQuery query = null;
 
         if(StringUtils.isEmpty(dto.getText())) {
-            if(getDataProviderQuery() != null){
-                return getDataProviderQuery();
+            if(context.getDataProviderQuery() != null){
+                return context.getDataProviderQuery();
             } else {
                 return query;
             }
         }
 
         try {
-            PolyStringNormalizer normalizer = getPageBase().getPrismContext().getDefaultPolyStringNormalizer();
+            PageBase pageBase = WebMiscUtil.getPageBase(this);
+            PrismContext prismContext = pageBase.getPrismContext();
+            PolyStringNormalizer normalizer = prismContext.getDefaultPolyStringNormalizer();
             String normalized = normalizer.normalize(dto.getText());
 
-            SubstringFilter filter = SubstringFilter.createSubstring(getSearchProperty(), objectType, getPageBase().getPrismContext(),
+            SubstringFilter filter = SubstringFilter.createSubstring(context.getSearchProperty(), objectType, prismContext,
                     PolyStringNormMatchingRule.NAME, normalized);
 
-            if(getDataProviderQuery() != null){
-                AndFilter and = AndFilter.createAnd(getDataProviderQuery().getFilter(), filter);
+            if(context.getDataProviderQuery() != null){
+                AndFilter and = AndFilter.createAnd(context.getDataProviderQuery().getFilter(), filter);
                 query = ObjectQuery.createObjectQuery(and);
             } else {
                 query = ObjectQuery.createObjectQuery(filter);
@@ -277,8 +308,8 @@ public class ObjectSelectionPanel extends Panel {
         DataTable table = panel.getDataTable();
         ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
 
-        if(getDataProviderQuery() != null){
-            provider.setQuery(getDataProviderQuery());
+        if(context.getDataProviderQuery() != null){
+            provider.setQuery(context.getDataProviderQuery());
         } else {
             provider.setQuery(null);
         }
@@ -286,30 +317,4 @@ public class ObjectSelectionPanel extends Panel {
         target.add(panel, getSearchForm());
     }
 
-    /**
-     *  Determines if search capabilities in this modal window are or are not enabled
-     * */
-    public boolean isSearchEnabled(){
-        return false;
-    }
-
-    /**
-     *  provides search property to the search filter
-     * */
-    public QName getSearchProperty(){
-        return ObjectType.F_NAME;
-    }
-
-    protected <T extends Component> T theSameForPage(T object, PageReference containingPageReference) {
-        Page containingPage = containingPageReference.getPage();
-        if (containingPage == null) {
-            throw new IllegalStateException("Containing page cannot be determined");
-        }
-        String path = object.getPageRelativePath();
-        T retval = (T) containingPage.get(path);
-        if (retval == null) {
-            throw new IllegalStateException("There is no component like " + object + " (path '" + path + "') on " + containingPage);
-        }
-        return retval;
-    }
 }

@@ -52,8 +52,10 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.wf.processes.itemApproval.ItemApprovalPanel;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.PageDialog;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
+import com.evolveum.midpoint.web.page.admin.configuration.component.ObjectSelectionPanel;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -62,9 +64,7 @@ import com.sun.management.OperatingSystemMXBean;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.apache.wicket.Component;
-import org.apache.wicket.MarkupContainer;
-import org.apache.wicket.Session;
+import org.apache.wicket.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
 import org.apache.wicket.authroles.authorization.strategies.role.Roles;
@@ -826,5 +826,29 @@ public final class WebMiscUtil {
         }
 
         table.getDataTable().setCurrentPage(page);
+    }
+
+    public static PageBase getPageBase(Component component) {
+        Page page = component.getPage();
+        if (page instanceof PageBase) {
+            return (PageBase) page;
+        } else if (page instanceof PageDialog) {
+            return ((PageDialog) page).getPageBase();
+        } else {
+            throw new IllegalStateException("Couldn't determine page base for " + page);
+        }
+    }
+
+    public static <T extends Component> T theSameForPage(T object, PageReference containingPageReference) {
+        Page containingPage = containingPageReference.getPage();
+        if (containingPage == null) {
+            throw new IllegalStateException("Containing page cannot be determined");
+        }
+        String path = object.getPageRelativePath();
+        T retval = (T) containingPage.get(path);
+        if (retval == null) {
+            throw new IllegalStateException("There is no component like " + object + " (path '" + path + "') on " + containingPage);
+        }
+        return retval;
     }
 }

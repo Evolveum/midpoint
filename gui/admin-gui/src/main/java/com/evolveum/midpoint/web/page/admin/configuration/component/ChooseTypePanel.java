@@ -24,8 +24,6 @@ import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-import org.apache.wicket.Page;
-import org.apache.wicket.PageReference;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -43,7 +41,7 @@ import javax.xml.namespace.QName;
  *  Distinguish between chooser panels that reside on "main page" and
  *  the one that resides in the popup window (ObjectSelectionPanel).
  */
-public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectViewDto>{
+public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectViewDto> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ChooseTypePanel.class);
 
@@ -103,73 +101,43 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
 
     private void initDialog() {
         final ModalWindow dialog = new ModalWindow(MODAL_ID_OBJECT_SELECTION_POPUP);
-        // Page creator is used to eliminate "form in a form problem" (MID-2589) - when
-        // an object hierarchy contains form1 -> modal window -> form2, then while submitting
-        // form2, the form1 gets updated with inappropriate search query, leading to zeroing
-        // nullable dropdown boxes. The solution can be factoring out modal window out of form1,
-        // but this is quite problematic when there is a rich hierarchy of panels between
-        // form1 -> ... (panels) ... -> modal window. So, the other solution is
-        // to break the hierarchy by introducing a page hosting the modal window content.
-        dialog.setPageCreator(new ModalWindow.PageCreator() {
-            public Page createPage() {
-                final PageReference callingPageReference = getPage().getPageReference();
 
-                ObjectSelectionPanel selectionPanel = new ObjectSelectionPanel(
-                        ObjectSelectionPage.ID_OBJECT_SELECTION_PANEL,
-                        getObjectTypeClass(), getPageBase()) {
+        ObjectSelectionPanel.Context context = new ObjectSelectionPanel.Context(this) {
 
-                    // It seems that when modal window is open, ChooseTypePanel.this points to
-                    // wrong instance of ChooseTypePanel (the one that will not be used afterwards -
-                    // any changes made to its models are simply lost). So we want to get the reference to the "correct" one.
-                    private ChooseTypePanel getRealParent() {
-                        return theSameForPage(ChooseTypePanel.this, callingPageReference);
-                    }
-
-                    @Override
-                    protected void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object){
-                        getRealParent().choosePerformed(target, object);
-                    }
-
-                    @Override
-                    protected ObjectQuery getDataProviderQuery(){
-                        return getRealParent().getChooseQuery();
-                    }
-
-                    @Override
-                    public boolean isSearchEnabled() {
-                        return getRealParent().isSearchEnabled();
-                    }
-
-                    @Override
-                    public QName getSearchProperty() {
-                        return getRealParent().getSearchProperty();
-                    }
-
-                    @Override
-                    protected void cancelPerformed(AjaxRequestTarget target) {
-                        super.cancelPerformed(target);
-                        dialog.close(target);
-                    }
-                };
-
-                return new ObjectSelectionPage(selectionPanel, getPageBase());
+            // It seems that when modal window is open, ChooseTypePanel.this points to
+            // wrong instance of ChooseTypePanel (the one that will not be used afterwards -
+            // any changes made to its models are simply lost). So we want to get the reference to the "correct" one.
+            public ChooseTypePanel getRealParent() {
+                return WebMiscUtil.theSameForPage(ChooseTypePanel.this, getCallingPageReference());
             }
-        });
-        dialog.setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
-            // We are not able to refresh targets residing in the parent page
-            // from inside the modal window -> so we have to do it in this
-            // context, when the modal window is being closed.
-            public void onClose(AjaxRequestTarget target) {
-                target.add(ChooseTypePanel.this.get(ID_OBJECT_NAME));
+
+            @Override
+            public void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object) {
+                getRealParent().choosePerformed(target, object);
             }
-        });
-        dialog.setTitle(createStringResource("chooseTypeDialog.title"));
-        dialog.showUnloadConfirmation(false);
-        dialog.setCssClassName(ModalWindow.CSS_CLASS_GRAY);
-        dialog.setCookieName(ObjectSelectionPanel.class.getSimpleName() + ((int) (Math.random() * 100)));
-        dialog.setInitialWidth(500);
-        dialog.setInitialHeight(500);
-        dialog.setWidthUnit("px");
+
+            @Override
+            public ObjectQuery getDataProviderQuery() {
+                return getRealParent().getChooseQuery();
+            }
+
+            public boolean isSearchEnabled() {
+                return getRealParent().isSearchEnabled();
+            }
+
+            @Override
+            public QName getSearchProperty() {
+                return getRealParent().getSearchProperty();
+            }
+
+            @Override
+            public Class<? extends ObjectType> getObjectTypeClass() {
+                return getRealParent().getObjectTypeClass();
+            }
+
+        };
+
+        ObjectSelectionPage.prepareDialog(dialog, context, this, "chooseTypeDialog.title", ID_OBJECT_NAME);
         add(dialog);
     }
 
@@ -212,11 +180,7 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
         getModel().setObject(dto);
     }
 
-    private Class<T> getObjectTypeClass(){
-        return getModel().getObject().getType();
-    }
-
-    public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-        return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
+    public Class<T> getObjectTypeClass(){
+        return ChooseTypePanel.this.getModelObject().getType();
     }
 }
