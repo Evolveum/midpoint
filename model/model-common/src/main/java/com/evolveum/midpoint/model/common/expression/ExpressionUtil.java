@@ -54,6 +54,7 @@ import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ExpressionWrapper;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.LogicalFilter;
+import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
@@ -406,7 +407,11 @@ public class ExpressionUtil {
 			ExpressionWrapper expressionWrapper = ((InOidFilter) filter).getExpression();
 			if (expressionWrapper == null || expressionWrapper.getExpression() == null) {
 				LOGGER.warn("No valueExpression in filter in {}. Returning original filter", shortDesc);
-				return filter.clone();
+				InOidFilter inOidFilter = (InOidFilter) filter;
+				if (inOidFilter.getOids() != null && !inOidFilter.getOids().isEmpty()){
+					return filter.clone();
+				}
+				return NoneFilter.createNone();
 			}
 
 			if (!(expressionWrapper.getExpression() instanceof ExpressionType)) {
@@ -531,10 +536,7 @@ public class ExpressionUtil {
 			evaluatedFilter.setExpression(null);
 			return evaluatedFilter;
 		} else if (filter instanceof InOidFilter) {
-			InOidFilter evaluatedFilter = (InOidFilter) filter.clone();
-			evaluatedFilter.setExpression(null);
-			evaluatedFilter.setOids(Collections.EMPTY_LIST);
-			return evaluatedFilter;
+			return NoneFilter.createNone();
 		}
 
 		throw new IllegalArgumentException("Unknow filter to evaluate: " + filter);
