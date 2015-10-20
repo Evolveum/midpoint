@@ -300,7 +300,6 @@
 					<q:not>
 						<q:equal>
 							<q:path>c:employeeNumber</q:path>
-							<q:value/>
 						</q:equal>
 					</q:not>
 				</q:and>
