@@ -457,6 +457,25 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertTrue("NAME definition not in secondary identifiers", accountDef.getSecondaryIdentifiers().contains(posixIdSecondaryDef));
 		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Name.NAME, posixIdSecondaryDef.getFrameworkAttributeName());
 
+		ObjectClassComplexTypeDefinition normalDef = resourceSchema.findObjectClassDefinition(new QName(RESOURCE_NS, "normalTestingObjectClass"));
+		display("normalTestingObjectClass object class def", normalDef);
+		assertNotNull("No definition for normalTestingObjectClass", normalDef);
+		assertNotNull("The cn attribute missing in normalTestingObjectClass",
+				normalDef.findAttributeDefinition(new QName(normalDef.getTypeName().getNamespaceURI(), "cn")));
+		
+		ObjectClassComplexTypeDefinition hybridDef = resourceSchema.findObjectClassDefinition(new QName(RESOURCE_NS, "hybridTestingObjectClass"));
+		display("Hybrid object class def", hybridDef);
+		assertNotNull("No definition for hybridTestingObjectClass", hybridDef);
+		assertNotNull("The cn attribute missing in hybridTestingObjectClass",
+				hybridDef.findAttributeDefinition(new QName(hybridDef.getTypeName().getNamespaceURI(), "cn")));
+		assertNotNull("The uuidIdentifiedAttribute attribute missing in hybridTestingObjectClass",
+				hybridDef.findAttributeDefinition(new QName(hybridDef.getTypeName().getNamespaceURI(), "uuidIdentifiedAttribute")));
+		
+		ObjectClassComplexTypeDefinition uuidDef = resourceSchema.findObjectClassDefinition(new QName(RESOURCE_NS, "uuidIdentifiedObjectClass"));
+		display("uuidIdentifiedObjectClass object class def", uuidDef);
+		assertNotNull("No definition for uuidIdentifiedObjectClass", uuidDef);
+		assertNotNull("The uuidIdentifiedAttribute attribute missing in uuidIdentifiedObjectClass",
+				uuidDef.findAttributeDefinition(new QName(uuidDef.getTypeName().getNamespaceURI(), "uuidIdentifiedAttribute")));
 		
 		assertShadows(1);
 	}
