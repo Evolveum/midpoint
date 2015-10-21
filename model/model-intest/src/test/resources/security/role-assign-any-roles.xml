@@ -13,11 +13,11 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<role oid="00000000-0000-0000-0000-00000000aa0c"
+<role oid="00000000-0000-0000-0000-00000000ab0c"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
-    <name>Assign Application Roles</name>    
+    <name>Assign Any Role</name>    
     <authorization>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
     </authorization>
@@ -27,26 +27,6 @@
     	<phase>request</phase>
     	<target>
     		<type>RoleType</type>
-    		<filter>
-    			<q:or>
-	    			<q:equal>
-	    				<q:path>roleType</q:path>
-	    				<q:value>application</q:value>
-	    			</q:equal>
-	    			<q:equal>
-	    				<!-- This role does not even exists. 
-	    				     But it does not change the result and it replicates MID-2549 -->
-	    				<q:path>name</q:path>
-	    				<q:value>nonexistent</q:value>
-	    			</q:equal>
-	    			<q:equal>
-	    				<!-- This role type does not even exists. 
-	    				     But it does not change the result and it replicates MID-2549 -->
-	    				<q:path>roleType</q:path>
-	    				<q:value>nonexistent</q:value>
-	    			</q:equal>
-    			</q:or>
-    		</filter>
     	</target>
     </authorization>
     <authorization>

@@ -158,14 +158,14 @@
                        </plugins>
                    </configuration>
                </plugin>  -->
-            <plugin>
-                <!-- Used to pull XSD files from the JAR -->
+            <!-- <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.10</version>
                 <executions>
                     <execution>
                         <id>unpack-prism-schema-files</id>
-                        <phase>initialize</phase>
+                        <phase>compile</phase>
                         <goals>
                             <goal>unpack</goal>
                         </goals>
@@ -178,6 +178,34 @@
                                     <type>jar</type>
                                 </artifactItem>
                             </artifactItems>
+                            <includes>**/*.xsd,**/*.dtd,**/*.wsdl</includes>
+                            <outputDirectory>${project.basedir}/target/additional-schemas/prism</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin> -->
+            <plugin>
+                <!-- Used to pull XSD files from the JAR -->
+                <groupId>com.evolveum.midpoint.tools</groupId>
+                <artifactId>schema-dist-maven-plugin</artifactId>
+                <version>${project.version}</version>
+                <executions>
+                    <execution>
+                        <id>schemadist-prism</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>schemadist</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>com.evolveum.midpoint.infra</groupId>
+                                    <artifactId>prism</artifactId>
+                                    <version>${project.version}</version>
+                                    <type>jar</type>
+                                </artifactItem>
+                            </artifactItems>
+                            <translateSchemaLocation>false</translateSchemaLocation>
                             <includes>**/*.xsd,**/*.dtd,**/*.wsdl</includes>
                             <outputDirectory>${project.basedir}/target/additional-schemas/prism</outputDirectory>
                         </configuration>
