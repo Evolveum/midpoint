@@ -1336,6 +1336,10 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin
 						refValue.setTargetType(OrgType.COMPLEX_TYPE);
 						refDelta.addValueToAdd(refValue);
 						break;
+					case DELETE:
+						break;
+					case MODIFY:
+						break;
 					case UNLINK:
 						refValue.setOid(delta.getOid());
 						refValue.setTargetType(OrgType.COMPLEX_TYPE);
