@@ -105,9 +105,9 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  *
  */
 @Component("modelInteractionService")
-public class ModelInterationServiceImpl implements ModelInteractionService {
+public class ModelInteractionServiceImpl implements ModelInteractionService {
 	
-	private static final Trace LOGGER = TraceManager.getTrace(ModelInterationServiceImpl.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ModelInteractionServiceImpl.class);
 
 	@Autowired(required = true)
 	private ContextFactory contextFactory;
@@ -454,7 +454,10 @@ public class ModelInterationServiceImpl implements ModelInteractionService {
 	}
 
 	private Collection<DisplayableValue<String>> getRoleSelectionSpec(ObjectFilter filter) throws SchemaException {
-		if (filter instanceof EqualFilter<?>) {
+		LOGGER.trace("getRoleSelectionSpec({})", filter);
+		if (filter == null || filter instanceof AllFilter) {
+			return null;
+		} else if (filter instanceof EqualFilter<?>) {
 			return createSingleDisplayableValueCollection(getRoleSelectionSpecEq((EqualFilter)filter));
 		} else if (filter instanceof AndFilter) {
 			for (ObjectFilter subfilter: ((AndFilter)filter).getConditions()) {
