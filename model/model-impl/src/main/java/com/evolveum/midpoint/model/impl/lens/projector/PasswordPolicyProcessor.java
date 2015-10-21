@@ -196,33 +196,38 @@ public class PasswordPolicyProcessor {
 	private ValuePolicyType determineValuePolicy(ObjectDelta<UserType> userDelta, Task task, OperationResult result)
 			throws SchemaException {
 		ReferenceDelta orgDelta = userDelta.findReferenceModification(UserType.F_PARENT_ORG_REF);
-		ValuePolicyType passwordPolicy = null;
+
 		LOGGER.trace("Determining password policy from org delta.");
-		if (orgDelta != null) {
-			PrismReferenceValue orgRefValue = orgDelta.getAnyValue();
+		if (orgDelta == null) {
+			return null;
+		}
 
-			try {
-				PrismObject<OrgType> org = resolver.resolve(orgRefValue,
-						"resolving parent org ref", null, null, result);
-				OrgType orgType = org.asObjectable();
-				ObjectReferenceType ref = orgType.getPasswordPolicyRef();
-				if (ref != null) {
-					LOGGER.trace("Org {} has specified password policy.", orgType);
-					passwordPolicy = resolver.resolve(ref, ValuePolicyType.class, null,
-							"resolving password policy for organization", task, result);
-					LOGGER.trace("Resolved password policy {}", passwordPolicy);
-				}
+		PrismReferenceValue orgRefValue = orgDelta.getAnyValue();
+		if (orgRefValue == null) {		// delta may be of type "replace to null"
+			return null;
+		}
 
-				if (passwordPolicy == null) {
-					passwordPolicy = determineValuePolicy(org, task, result);
-				}
-
-			} catch (ObjectNotFoundException e) {
-				throw new IllegalStateException(e);
+		ValuePolicyType passwordPolicy = null;
+		try {
+			PrismObject<OrgType> org = resolver.resolve(orgRefValue,
+					"resolving parent org ref", null, null, result);
+			OrgType orgType = org.asObjectable();
+			ObjectReferenceType ref = orgType.getPasswordPolicyRef();
+			if (ref != null) {
+				LOGGER.trace("Org {} has specified password policy.", orgType);
+				passwordPolicy = resolver.resolve(ref, ValuePolicyType.class, null,
+						"resolving password policy for organization", task, result);
+				LOGGER.trace("Resolved password policy {}", passwordPolicy);
 			}
 
+			if (passwordPolicy == null) {
+				passwordPolicy = determineValuePolicy(org, task, result);
+			}
+
+		} catch (ObjectNotFoundException e) {
+			throw new IllegalStateException(e);
 		}
-		
+
 		return passwordPolicy;
 	}
 	

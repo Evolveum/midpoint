@@ -33,31 +33,31 @@ public class AbstractSelenideTest{
     public static final String ADMIN_LOGIN = "administrator";
     public static final String ADMIN_PASSWORD = "5ecr3t";
     //User's attributes' fields' names
-    public static final String USER_NAME_FIELD_NAME = "userForm:body:containers:0:container:properties:0:property:values:0:value:valueContainer:input:input";
+    public static final String USER_NAME_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:0:property:values:0:value:valueContainer:input:input";
 
 
-    public static final String DESCRIPTION_FIELD_NAME = "userForm:body:containers:0:container:properties:1:property:values:0:value:valueContainer:input:input";
-    public static final String FULL_NAME_FIELD_NAME = "userForm:body:containers:0:container:properties:2:property:values:0:value:valueContainer:input:input";
-    public static final String GIVEN_NAME_FIELD_NAME = "userForm:body:containers:0:container:properties:3:property:values:0:value:valueContainer:input:input";
-    public static final String FAMILY_NAME_FIELD_NAME = "userForm:body:containers:0:container:properties:4:property:values:0:value:valueContainer:input:input";
-    public static final String ADDITIONAL_NAME_FIELD_NAME = "userForm:body:containers:0:container:properties:5:property:values:0:value:valueContainer:input:input";
-    public static final String NICKNAME_FIELD_NAME = "userForm:body:containers:0:container:properties:6:property:values:0:value:valueContainer:input:input";
-    public static final String HONORIFIC_PREFIX_FIELD_NAME = "userForm:body:containers:0:container:properties:7:property:values:0:value:valueContainer:input:input";
-    public static final String HONORIFIC_SUFFIX_FIELD_NAME = "userForm:body:containers:0:container:properties:8:property:values:0:value:valueContainer:input:input";
-    public static final String TITLE_FIELD_NAME = "userForm:body:containers:0:container:properties:9:property:values:0:value:valueContainer:input:input";
-    public static final String PREFERRED_LANGUAGE_FIELD_NAME = "userForm:body:containers:0:container:properties:10:property:values:0:value:valueContainer:input:input";
-    public static final String LOCALE_FIELD_NAME = "userForm:body:containers:0:container:properties:11:property:values:0:value:valueContainer:input:input";
-    public static final String TIMEZONE_FIELD_NAME = "userForm:body:containers:0:container:properties:12:property:values:0:value:valueContainer:input:input";
-    public static final String EMAIL_ADDRESS_FIELD_NAME = "userForm:body:containers:0:container:properties:13:property:values:0:value:valueContainer:input:input";
-    public static final String TELEPHONE_NUMBER_FIELD_NAME = "userForm:body:containers:0:container:properties:14:property:values:0:value:valueContainer:input:input";
-    public static final String EMPLOYEE_NUMBER_FIELD_NAME = "userForm:body:containers:0:container:properties:15:property:values:0:value:valueContainer:input:input";
-    public static final String EMPLOYEE_TYPE_FIELD_NAME = "userForm:body:containers:0:container:properties:16:property:values:0:value:valueContainer:input:input";
-    public static final String COST_CENTER_FIELD_NAME = "userForm:body:containers:0:container:properties:17:property:values:0:value:valueContainer:input:input";
-    public static final String ORGANIZATION_FIELD_NAME = "userForm:body:containers:0:container:properties:18:property:values:0:value:valueContainer:input:input";
-    public static final String ORGANIZATIONAL_UNIT_FIELD_NAME = "userForm:body:containers:0:container:properties:19:property:values:0:value:valueContainer:input:input";
-    public static final String LOCALITY_FIELD_NAME = "userForm:body:containers:0:container:properties:20:property:values:0:value:valueContainer:input:input";
-    public static final String PASSWORD1_FIELD_NAME = "userForm:body:containers:7:container:properties:0:property:values:0:value:valueContainer:input:password1";
-    public static final String PASSWORD2_FIELD_NAME = "userForm:body:containers:7:container:properties:0:property:values:0:value:valueContainer:input:password2";
+    public static final String DESCRIPTION_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:1:property:values:0:value:valueContainer:input:input";
+    public static final String FULL_NAME_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:2:property:values:0:value:valueContainer:input:input";
+    public static final String GIVEN_NAME_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:3:property:values:0:value:valueContainer:input:input";
+    public static final String FAMILY_NAME_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:4:property:values:0:value:valueContainer:input:input";
+    public static final String ADDITIONAL_NAME_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:5:property:values:0:value:valueContainer:input:input";
+    public static final String NICKNAME_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:6:property:values:0:value:valueContainer:input:input";
+    public static final String HONORIFIC_PREFIX_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:7:property:values:0:value:valueContainer:input:input";
+    public static final String HONORIFIC_SUFFIX_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:8:property:values:0:value:valueContainer:input:input";
+    public static final String TITLE_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:9:property:values:0:value:valueContainer:input:input";
+    public static final String PREFERRED_LANGUAGE_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:10:property:values:0:value:valueContainer:input:input";
+    public static final String LOCALE_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:11:property:values:0:value:valueContainer:input:input";
+    public static final String TIMEZONE_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:12:property:values:0:value:valueContainer:input:input";
+    public static final String EMAIL_ADDRESS_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:15:property:values:0:value:valueContainer:input:input";
+    public static final String TELEPHONE_NUMBER_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:16:property:values:0:value:valueContainer:input:input";
+    public static final String EMPLOYEE_NUMBER_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:17:property:values:0:value:valueContainer:input:input";
+    public static final String EMPLOYEE_TYPE_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:18:property:values:0:value:valueContainer:input:input";
+    public static final String COST_CENTER_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:19:property:values:0:value:valueContainer:input:input";
+    public static final String ORGANIZATION_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:20:property:values:0:value:valueContainer:input:input";
+    public static final String ORGANIZATIONAL_UNIT_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:21:property:values:0:value:valueContainer:input:input";
+    public static final String LOCALITY_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:22:property:values:0:value:valueContainer:input:input";
+    public static final String PASSWORD1_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:7:container:properties:0:property:values:0:value:valueContainer:input:inputContainer:password1";
+    public static final String PASSWORD2_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:7:container:properties:0:property:values:0:value:valueContainer:input:inputContainer:password2";
 
     //User's attributes' fields' values
     public static final String DESCRIPTION_FIELD_VALUE = "test description";
@@ -84,7 +84,7 @@ public class AbstractSelenideTest{
     public static final String PASSWORD2_FIELD_VALUE = "password";
     public static final String UPDATED_VALUE = "_updated";
     //Assign role link text
-    public static final String ASSIGN_ROLE_LINKTEXT = "Assign role";
+    public static final String ASSIGN_ROLE_LINKTEXT = "Assign Role";
 
     Logger LOGGER = Logger.getLogger(AbstractSelenideTest.class);
 
@@ -107,6 +107,7 @@ public class AbstractSelenideTest{
     }
 
     protected void login(String username, String password){
+        System.setProperty("selenide.timeout","12000");
         //perform login
         login(siteUrl, username, password);
     }
@@ -143,6 +144,9 @@ public class AbstractSelenideTest{
         userAttributes.put(ORGANIZATION_FIELD_NAME, ORGANIZATION_FIELD_VALUE);
         userAttributes.put(ORGANIZATIONAL_UNIT_FIELD_NAME, ORGANIZATIONAL_UNIT_FIELD_VALUE);
         userAttributes.put(LOCALITY_FIELD_NAME, LOCALITY_FIELD_VALUE);
+        userAttributes.put(PASSWORD1_FIELD_NAME, PASSWORD1_FIELD_VALUE);
+        userAttributes.put(PASSWORD2_FIELD_NAME, PASSWORD2_FIELD_VALUE);
+        //TODO: Activation, Photo, Parent Organization, Tenant
         return userAttributes;
     }
 
@@ -165,11 +169,11 @@ public class AbstractSelenideTest{
     /**
      * Log out from MP
      */
-    protected void logout(String username){
-        //click user's name in the upper right corner of the window
-        $(By.linkText(username + " ")).shouldBe(visible).click();
+    protected void logout(){
+        //click user's name in the upper right corner
+        $(By.className("dropdown-toggle")).shouldBe(visible).click();
         //click on Log out menu item
-        $(By.linkText("Log out")).shouldBe(visible).click();
+        $(By.partialLinkText("Log out")).shouldBe(visible).click();
     }
 
     /**
@@ -204,10 +208,11 @@ public class AbstractSelenideTest{
      */
     public void createUser(String userName, Map<String, String> userFields){
         //click Users menu
-        $(By.partialLinkText("Users")).shouldBe(visible).click();
+        if (!$(By.partialLinkText("New user")).isDisplayed())
+            $(By.partialLinkText("Users")).shouldBe(visible).click();
 
         //click New user menu item
-        $(By.linkText("New user")).click();
+        $(By.partialLinkText("New user")).click();
 
         //set value to Name field
         $(By.name(USER_NAME_FIELD_NAME)).shouldBe(visible).setValue(userName);
@@ -223,10 +228,11 @@ public class AbstractSelenideTest{
      */
     public void openListUsersPage(){
         //click Users menu
-        $(By.partialLinkText("Users")).shouldBe(visible).click();
+        if (!$(By.partialLinkText("List users")).isDisplayed())
+            $(By.partialLinkText("Users")).shouldBe(visible).click();
 
         //click List users menu item
-        $(By.linkText("List users")).shouldBe(visible).click();
+        $(By.partialLinkText("List users")).shouldBe(visible).click();
     }
 
     /**
@@ -237,11 +243,11 @@ public class AbstractSelenideTest{
      */
     public void assignObjectToUser(String linkText, String objectName){
         //click on the menu icon next to Assignments section
-        $(byText("Assignments")).parent().parent().find(byAttribute("about", "dropdownMenu")).click();
+        $(byAttribute("about", "assignments")).find(byAttribute("about", "dropdownMenu")).click();
         //click Assign menu item with the specified linkText
         $(By.linkText(linkText)).shouldBe(visible).click();
         //search for object by objectName in the opened Select object(s) window
-        searchForElement(objectName);
+        searchForElement(objectName, "tabPanel:panel:assignmentsContainer:assignmentsPanel:assignablePopup:content:searchForm:basicSearch:searchText");
         //select checkbox for the found object
         $(byAttribute("about", "table")).find(By.tagName("tbody")).find(By.tagName("input")).shouldBe(visible).click();
         //click Assign button
@@ -278,16 +284,29 @@ public class AbstractSelenideTest{
      */
     public void searchForElement(String searchText){
         //search for element in search form
-        $(By.name("basicSearch:searchText")).shouldBe(visible).setValue(searchText);
+        searchForElement(searchText, "table:header:searchForm:basicSearch:searchText");
+    }
+
+    /**
+     * Looks for the element with specified searchText in specified name
+     * and returns the first element from the search results
+     * @param searchText
+     * @param name
+     * @return
+     */
+    public void searchForElement(String searchText, String name){
+        //search for element in search form
+        $(By.name(name)).shouldBe(visible).setValue(searchText);
         $(By.linkText("Search")).shouldBe(visible).click();
     }
 
     public void importObjectFromFile(String filePath){
         //click Configuration menu
-        $(By.partialLinkText("Configuration")).shouldBe(visible).click();
+        if (!$(By.partialLinkText("Import object")).isDisplayed())
+            $(By.partialLinkText("Configuration")).shouldBe(visible).click();
 
         //click Import object menu item
-        $(By.linkText("Import object")).click();
+        $(By.partialLinkText("Import object")).click();
 
         //select Overwrite existing object check box
         $(By.name("importOptions:overwriteExistingObject")).setSelected(true);
@@ -314,19 +333,19 @@ public class AbstractSelenideTest{
      */
     public void editObjectPolicy(String objectType, String objectTemplate, List<String> propertyConstraintList){
         //click Configuration menu
-        $(By.partialLinkText("Configuration")).shouldBe(visible).click();
+//        $(By.partialLinkText("Configuration")).shouldBe(visible).click(); // clicked in previous step
         //click Basic menu item
-        $(By.linkText("Basic")).click();
+        $(By.partialLinkText("Basic")).click();
         //click on the Edit button in the Object Policies row
         //Note: this Edit button click affects only modifying of the first row
         //of Object Policies
         $(byAttribute("placeholder", "Insert object policy")).parent().find(By.tagName("button"))
                 .shouldBe(visible).click();
         //select Object Type value from drop-down list
-        $(By.name("tabPanel:panel:mainForm:objectPolicyEditor:templateConfigModal:content:mainForm:type:selectWrapper:select"))
+        $(By.name("tabPanel:panel:objectPolicyEditor:templateConfigModal:content:mainForm:type:selectWrapper:select"))
                 .shouldBe(visible).selectOption(objectType);
         //select Object Template value from drop-down list
-        $(By.name("tabPanel:panel:mainForm:objectPolicyEditor:templateConfigModal:content:mainForm:objectTemplate:selectWrapper:select"))
+        $(By.name("tabPanel:panel:objectPolicyEditor:templateConfigModal:content:mainForm:objectTemplate:selectWrapper:select"))
                 .shouldBe(visible).selectOption(objectTemplate);
         if (propertyConstraintList != null && propertyConstraintList.size() > 0){
             for (int i = 0; i < propertyConstraintList.size(); i++){

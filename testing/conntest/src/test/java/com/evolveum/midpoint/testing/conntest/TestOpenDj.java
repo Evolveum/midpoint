@@ -107,6 +107,11 @@ public class TestOpenDj extends AbstractLdapConnTest {
 	protected String getLdapGroupMemberAttribute() {
 		return "uniqueMember";
 	}
+	
+	@Override
+	protected boolean needsGroupFakeMemeberEntry() {
+		return true;
+	}
 
 	@Override
 	protected String getSyncTaskOid() {

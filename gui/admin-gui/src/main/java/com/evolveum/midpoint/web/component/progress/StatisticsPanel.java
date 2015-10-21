@@ -16,14 +16,9 @@
 
 package com.evolveum.midpoint.web.component.progress;
 
-import com.evolveum.midpoint.schema.statistics.StatusMessage;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.page.admin.server.currentState.TaskCurrentStateDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentalPerformanceInformationType;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -32,7 +27,6 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -159,27 +153,27 @@ public class StatisticsPanel extends SimplePanel<StatisticsDto> {
         Label lastMessage = new Label(ID_LAST_MESSAGE, new PropertyModel<>(getModel(), StatisticsDto.F_LAST_MESSAGE));
         contentsPanel.add(lastMessage);
 
-        Label source = new Label(ID_SOURCE, new AbstractReadOnlyModel<String>() {
-            @Override
-            public String getObject() {
-                StatisticsDto dto = getModelObject();
-                if (dto == null) {
-                    return null;
-                }
-                OperationalInformationType info = dto.getOperationalInformationType();
-                if (info == null) {
-                    return null;
-                }
-                if (Boolean.TRUE.equals(info.isFromMemory())) {
-                    return getString("Message.SourceMemory",
-                            WebMiscUtil.formatDate(info.getTimestamp()));
-                } else {
-                    return getString("Message.SourceRepository",
-                            WebMiscUtil.formatDate(info.getTimestamp()));
-                }
-            }
-        });
-        contentsPanel.add(source);
+//        Label source = new Label(ID_SOURCE, new AbstractReadOnlyModel<String>() {
+//            @Override
+//            public String getObject() {
+//                StatisticsDto dto = getModelObject();
+//                if (dto == null) {
+//                    return null;
+//                }
+//                EnvironmentalPerformanceInformationType info = dto.getEnvironmentalPerformanceInformationType();
+//                if (info == null) {
+//                    return null;
+//                }
+//                if (Boolean.TRUE.equals(info.isFromMemory())) {
+//                    return getString("Message.SourceMemory",
+//                            WebMiscUtil.formatDate(info.getTimestamp()));
+//                } else {
+//                    return getString("Message.SourceRepository",
+//                            WebMiscUtil.formatDate(info.getTimestamp()));
+//                }
+//            }
+//        });
+//        contentsPanel.add(source);
     }
 
     // Note: do not setVisible(false) on the progress panel itself - it will disable AJAX refresh functionality attached to it.

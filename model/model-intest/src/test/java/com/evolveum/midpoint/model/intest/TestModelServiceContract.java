@@ -134,8 +134,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 			throws Exception {
 		super.initSystem(initTask, initResult);
 		InternalMonitor.reset();
-		InternalMonitor.setTraceShadowFetchOperation(true);
-		InternalMonitor.setTraceResourceSchemaOperations(true);
+//		InternalMonitor.setTraceShadowFetchOperation(true);
+//		InternalMonitor.setTraceResourceSchemaOperations(true);
 	}
 		
 	@Test
@@ -2328,10 +2328,12 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
 		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, 
         		PrismTestUtil.createPolyString("Magnificent Captain Jack Sparrow"));
 		
 		// THEN
+        TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         // Strong mappings
@@ -2366,9 +2368,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         dummyAuditService.assertOldValue(ChangeType.MODIFY, UserType.class,
         		UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Jack Sparrow"));
-        // This is not reconciliation. We are not reading old value.
-//        dummyAuditService.assertOldValue(ChangeType.MODIFY, ShadowType.class, 
-//        		dummyResourceCtl.getAttributeFullnamePath(), "Jack Sparrow");
+        // We have full account here. It is loaded because of strong mapping.
+        dummyAuditService.assertOldValue(ChangeType.MODIFY, ShadowType.class, 
+        		dummyResourceCtl.getAttributeFullnamePath(), "Cpt. Jack Sparrow");
         
         dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();

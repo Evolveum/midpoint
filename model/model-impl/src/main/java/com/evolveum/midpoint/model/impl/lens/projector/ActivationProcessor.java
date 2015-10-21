@@ -100,7 +100,7 @@ public class ActivationProcessor {
     private PrismContext prismContext;
 
     @Autowired(required = true)
-    private MappingEvaluationHelper mappingHelper;
+    private MappingEvaluator mappingHelper;
 
     public <O extends ObjectType, F extends FocusType> void processActivation(LensContext<O> context,
     		LensProjectionContext projectionContext, XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
@@ -511,7 +511,7 @@ public class ActivationProcessor {
 			}
 		};
         
-        MappingEvaluatorHelperParams<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>, ShadowType, F> params = new MappingEvaluatorHelperParams<>();
+        MappingEvaluatorParams<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>, ShadowType, F> params = new MappingEvaluatorParams<>();
         params.setMappingTypes(outbound);
         params.setMappingDesc("outbound existence mapping in projection " + accCtxDesc);
         params.setNow(now);
@@ -630,7 +630,7 @@ public class ActivationProcessor {
 
 		};
 
-		MappingEvaluatorHelperParams<PrismPropertyValue<T>, PrismPropertyDefinition<T>, ShadowType, F> params = new MappingEvaluatorHelperParams<>();
+		MappingEvaluatorParams<PrismPropertyValue<T>, PrismPropertyDefinition<T>, ShadowType, F> params = new MappingEvaluatorParams<>();
 		params.setMappingTypes(outbound);
 		params.setMappingDesc(desc + " outbound activation mapping in projection " + accCtxDesc);
 		params.setNow(now);

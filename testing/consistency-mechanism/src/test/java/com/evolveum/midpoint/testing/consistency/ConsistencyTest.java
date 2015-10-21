@@ -45,7 +45,7 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.Entry;
-import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.Entry;
 import org.opends.server.util.EmbeddedUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -742,7 +742,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		// check if account was created in LDAP
 
-		SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(uid);
+		Entry entry = openDJController.searchAndAssertByEntryUuid(uid);
 
 		display("LDAP account", entry);
 	
@@ -860,7 +860,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		// GIVEN
 		OperationResult parentResult = new OperationResult("Add account already exist unlinked.");
 		Entry entry = openDJController.addEntryFromLdifFile(LDIF_WILL_FILENAME);
-		SearchResultEntry searchResult = openDJController.searchByUid("wturner");
+		Entry searchResult = openDJController.searchByUid("wturner");
 		OpenDJController.assertAttribute(searchResult, "l", "Caribbean");
 		OpenDJController.assertAttribute(searchResult, "givenName", "Will");
 		OpenDJController.assertAttribute(searchResult, "sn", "Turner");
@@ -1285,7 +1285,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		openDJController.start();
 	
 		Entry entry = openDJController.addEntryFromLdifFile(LDIF_ELAINE_FILENAME);
-		SearchResultEntry searchResult = openDJController.searchByUid("elaine");
+		Entry searchResult = openDJController.searchByUid("elaine");
 		OpenDJController.assertAttribute(searchResult, "l", "Caribbean");
 		OpenDJController.assertAttribute(searchResult, "givenName", "Elaine");
 		OpenDJController.assertAttribute(searchResult, "sn", "Marley");
@@ -1731,7 +1731,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		assertTrue(EmbeddedUtils.isRunning());
 		
 		Entry entry = openDJController.addEntryFromLdifFile(LDIF_DISCOVERY_FILENAME);
-		SearchResultEntry searchResult = openDJController.searchByUid("discovery");
+		Entry searchResult = openDJController.searchByUid("discovery");
 		OpenDJController.assertAttribute(searchResult, "l", "Caribbean");
 		OpenDJController.assertAttribute(searchResult, "givenName", "discovery");
 		OpenDJController.assertAttribute(searchResult, "sn", "discovery");
@@ -2153,7 +2153,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		
 		openDJController.executeRenameChange(LDIF_MODIFY_RENAME_FILENAME);
 		LOGGER.info("rename ended");
-//		SearchResultEntry res = openDJController.searchByUid("e");
+//		Entry res = openDJController.searchByUid("e");
 //		LOGGER.info("E OBJECT AFTER RENAME " + res.toString());
 		
 		LOGGER.info("start running task");

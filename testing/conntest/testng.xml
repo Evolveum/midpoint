@@ -26,6 +26,7 @@
             <class name="com.evolveum.midpoint.testing.conntest.Test389DsNsUniqueIdBacchus"/>
             <class name="com.evolveum.midpoint.testing.conntest.Test389DsDnBacchus"/>
             <class name="com.evolveum.midpoint.testing.conntest.TestEDirDeimos"/>
+            <class name="com.evolveum.midpoint.testing.conntest.TestAdLdapMedusa"/>
         </classes>
     </test>
 </suite>

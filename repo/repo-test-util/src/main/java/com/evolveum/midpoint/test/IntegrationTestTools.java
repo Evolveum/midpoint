@@ -401,7 +401,7 @@ public class IntegrationTestTools {
 		display(response);
 	}
 
-	public static void display(SearchResultEntry response) {
+	public static void display(Entry response) {
 		System.out.println(response == null ? "null" : response.toLDIFString());
 		LOGGER.debug(response == null ? "null" : response.toLDIFString());
 	}

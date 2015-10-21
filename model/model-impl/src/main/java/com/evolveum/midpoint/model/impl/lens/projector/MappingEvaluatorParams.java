@@ -34,7 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * @author semancik
  *
  */
-public class MappingEvaluatorHelperParams<V extends PrismValue, D extends ItemDefinition, T extends ObjectType, F extends FocusType> {
+public class MappingEvaluatorParams<V extends PrismValue, D extends ItemDefinition, T extends ObjectType, F extends FocusType> {
 	
 	private Collection<MappingType> mappingTypes;
 	private String mappingDesc;

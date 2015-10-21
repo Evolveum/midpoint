@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.page.admin.users.dto.FocusShadowDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.FocusProjectionDto;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -29,7 +29,7 @@ import org.apache.wicket.model.IModel;
 /**
  *  @author shood
  * */
-public class SimpleErrorPanel extends SimplePanel<FocusShadowDto>{
+public class SimpleErrorPanel extends SimplePanel<FocusProjectionDto>{
 
 //    private static final String ID_CHECK = "check";
     private static final String ID_ICON = "icon";
@@ -37,7 +37,7 @@ public class SimpleErrorPanel extends SimplePanel<FocusShadowDto>{
     private static final String ID_LINK = "link";
     private static final String ID_SHOW_MORE = "showMore";
 
-    public SimpleErrorPanel(String id, IModel<FocusShadowDto> model){
+    public SimpleErrorPanel(String id, IModel<FocusProjectionDto> model){
         super(id, model);
 
         add(AttributeModifier.append("class", "check-table-header"));

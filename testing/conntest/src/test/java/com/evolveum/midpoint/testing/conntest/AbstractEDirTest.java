@@ -1065,9 +1065,13 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	}
 	
 	private void makeBadLoginAttempt(String uid) throws LdapException {
-		LdapNetworkConnection conn = ldapConnect(toAccountDn(uid), "thisIsAwRoNgPASSW0RD");
-		if (conn.isAuthenticated()) {
-			AssertJUnit.fail("Bad authentication went good for "+uid);
+		try {
+			LdapNetworkConnection conn = ldapConnect(toAccountDn(uid), "thisIsAwRoNgPASSW0RD");
+			if (conn.isAuthenticated()) {
+				AssertJUnit.fail("Bad authentication went good for "+uid);
+			}
+		} catch (SecurityException e) {
+			// this is expected
 		}
 	}
 	

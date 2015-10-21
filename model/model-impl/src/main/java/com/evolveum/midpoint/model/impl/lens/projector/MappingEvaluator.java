@@ -29,6 +29,8 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
+import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
@@ -62,9 +64,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
  *
  */
 @Component
-public class MappingEvaluationHelper {
+public class MappingEvaluator {
 	
-	private static final Trace LOGGER = TraceManager.getTrace(MappingEvaluationHelper.class);
+	private static final Trace LOGGER = TraceManager.getTrace(MappingEvaluator.class);
 	
 	@Autowired(required = true)
     private PrismContext prismContext;
@@ -72,22 +74,35 @@ public class MappingEvaluationHelper {
     @Autowired(required = true)
     private MappingFactory mappingFactory;
 
-    /**
-     * strongMappingWasUsed: Returns true here if the value was (at least partly) determined by a strong mapping.
-     * Used to know whether (when doing reconciliation) this value should be forcibly put onto the resource, even
-     * if it was not changed (i.e. if it's only in the zero set).
-     */
-//	public <V extends PrismValue, F extends FocusType, O extends ObjectType> void evaluateMappingSetProjection(
-//			Collection<MappingType> mappingTypes, String mappingDesc,
-//			XMLGregorianCalendar now, MappingInitializer<V> initializer, MappingOutputProcessor<V> processor,
-//			Item<V> aPrioriValue, ItemDelta<V> aPrioriDelta, PrismObject<? extends ObjectType> aPrioriObject,
-//			Boolean evaluateCurrent, MutableBoolean strongMappingWasUsed,
-//			LensContext<F> context, LensElementContext<O> targetContext, 
-//			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-
+    public <V extends PrismValue, D extends ItemDefinition, F extends ObjectType> void evaluateMapping(
+			Mapping<V,D> mapping, LensContext<F> lensContext, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		ModelExpressionThreadLocalHolder.pushLensContext(lensContext);
+		ModelExpressionThreadLocalHolder.pushCurrentResult(parentResult);
+		ModelExpressionThreadLocalHolder.pushCurrentTask(task);
+		String objectOid = mapping.getOriginObject() != null ? mapping.getOriginObject().getOid() : null;
+		String objectName = mapping.getOriginObject() != null ? String.valueOf(mapping.getOriginObject().getName()) : null;
+		String mappingName = mapping.getItemName() != null ? mapping.getItemName().getLocalPart() : null;
+		long start = System.currentTimeMillis();
+		try {
+			task.recordState("Started evaluation of mapping " + mapping.getMappingContextDescription() + ".");
+			mapping.evaluate(task, parentResult);
+			task.recordState("Successfully finished evaluation of mapping " + mapping.getMappingContextDescription() + " in " + (System.currentTimeMillis()-start) + " ms.");
+		} catch (IllegalArgumentException e) {
+			task.recordState("Evaluation of mapping " + mapping.getMappingContextDescription() + " finished with error in " + (System.currentTimeMillis()-start) + " ms.");
+			throw new IllegalArgumentException(e.getMessage()+" in "+mapping.getContextDescription(), e);
+		} finally {
+			task.recordMappingOperation(objectOid, objectName, mappingName, System.currentTimeMillis() - start);
+			ModelExpressionThreadLocalHolder.popLensContext();
+			ModelExpressionThreadLocalHolder.popCurrentResult();
+			ModelExpressionThreadLocalHolder.popCurrentTask();
+			if (lensContext.getDebugListener() != null) {
+				lensContext.getDebugListener().afterMappingEvaluation(lensContext, mapping);
+			}
+		}
+	}
 		
 	public <V extends PrismValue, D extends ItemDefinition, T extends ObjectType, F extends FocusType> void evaluateMappingSetProjection(
-			MappingEvaluatorHelperParams<V,D,T,F> params,
+			MappingEvaluatorParams<V,D,T,F> params,
 			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		
 		String mappingDesc = params.getMappingDesc();
@@ -157,7 +172,7 @@ public class MappingEvaluationHelper {
 		        }
 			}
 						
-			LensUtil.evaluateMapping(mapping, params.getContext(), task, result);
+			evaluateMapping(mapping, params.getContext(), task, result);
 			
 			PrismValueDeltaSetTriple<V> mappingOutputTriple = mapping.getOutputTriple();
 			if (mappingOutputTriple != null) {
@@ -210,7 +225,7 @@ public class MappingEvaluationHelper {
 					continue;
 				}
 
-				LensUtil.evaluateMapping(mapping, params.getContext(), task, result);
+				evaluateMapping(mapping, params.getContext(), task, result);
 
 				PrismValueDeltaSetTriple<V> mappingOutputTriple = mapping.getOutputTriple();
 				if (mappingOutputTriple != null) {

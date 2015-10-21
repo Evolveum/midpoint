@@ -157,6 +157,15 @@
                     </target>
 				</inbound>
 			</attribute>
+			<attribute>
+				<ref>ri:jpegPhoto</ref>
+				<displayName>Photo</displayName>
+				<outbound>
+					<source>
+						<c:path>jpegPhoto</c:path>
+					</source>
+				</outbound>
+			</attribute>
 			
 			 <association>
             	<ref>ri:group</ref>
@@ -291,7 +300,6 @@
 					<q:not>
 						<q:equal>
 							<q:path>c:employeeNumber</q:path>
-							<q:value/>
 						</q:equal>
 					</q:not>
 				</q:and>

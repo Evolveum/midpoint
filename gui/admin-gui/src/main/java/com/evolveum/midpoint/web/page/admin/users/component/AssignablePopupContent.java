@@ -32,6 +32,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.StringResourceModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,8 +61,7 @@ public abstract class AssignablePopupContent extends BasePanel {
         Panel panel = createPopupContent();
         add(panel);
         
-        AjaxButton addButton = new AjaxButton(ID_ADD,
-                createStringResource("assignablePopupContent.button.add")) {
+        AjaxButton addButton = new AjaxButton(ID_ADD, createStringResource(getKey())) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -69,6 +69,10 @@ public abstract class AssignablePopupContent extends BasePanel {
             }
         };
         add(addButton);
+    }
+    
+    protected String getKey(){
+    	return "assignablePopupContent.button.assign";
     }
 
     protected List<IColumn> createMultiSelectColumns() {

@@ -17,8 +17,12 @@ package com.evolveum.midpoint.web.component.input;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
+
+import java.io.InputStream;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
@@ -29,16 +33,18 @@ import org.apache.wicket.markup.html.form.upload.FileUploadField;
 /**
  * @author shood
  * @author lazyman
+ * @author katkav
  */
-public class UploadPanel extends InputPanel {
+public class UploadDownloadPanel extends InputPanel {
 
-    private static final Trace LOGGER = TraceManager.getTrace(UploadPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(UploadDownloadPanel.class);
 
     private static final String ID_BUTTON_UPLOAD = "upload";
+    private static final String ID_BUTTON_DOWNLOAD = "download";
     private static final String ID_BUTTON_DELETE = "remove";
     private static final String ID_INPUT_FILE = "fileInput";
 
-    public UploadPanel(String id) {
+    public UploadDownloadPanel(String id) {
         super(id);
         initLayout();
     }
@@ -47,6 +53,15 @@ public class UploadPanel extends InputPanel {
         FileUploadField fileUpload = new FileUploadField(ID_INPUT_FILE);
         add(fileUpload);
 
+        final AjaxDownloadBehaviorFromStream downloadBehavior = new AjaxDownloadBehaviorFromStream() {
+			
+			@Override
+			protected InputStream initStream() {
+				return getStream();
+			}
+		};
+		add(downloadBehavior);
+		
         add(new AjaxSubmitButton(ID_BUTTON_UPLOAD) {
 
             @Override
@@ -58,6 +73,16 @@ public class UploadPanel extends InputPanel {
             protected void onError(AjaxRequestTarget target, Form<?> form) {
                 uploadFileFailed(target);
             }
+        });
+        
+        add(new AjaxSubmitButton(ID_BUTTON_DOWNLOAD) {
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                downloadPerformed(downloadBehavior, target);
+            }
+
+			
         });
 
         add(new AjaxSubmitButton(ID_BUTTON_DELETE) {
@@ -110,4 +135,13 @@ public class UploadPanel extends InputPanel {
 
     public void updateValue(byte[] file) {
     }
+    
+    public InputStream getStream() {
+    	return null;
+    }
+    
+    private void downloadPerformed(AjaxDownloadBehaviorFromStream downloadBehavior,
+			AjaxRequestTarget target) {
+		downloadBehavior.initiate(target);
+	}
 }

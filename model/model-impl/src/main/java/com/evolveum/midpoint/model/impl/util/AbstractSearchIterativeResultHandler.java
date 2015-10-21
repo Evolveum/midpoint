@@ -367,9 +367,9 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 				if (requestQueue != null) {
 					workerTask.setProgress(workerTask.getProgress()+1);
 				}
+				// todo report current op result?
 				if (shouldReportProgress()) {
-					TaskHandlerUtil.storeAllStatistics(coordinatorTask, isEnableIterationStatistics(), isEnableSynchronizationStatistics(),
-							isEnableActionsExecutedStatistics());
+					coordinatorTask.storeOperationStats();
 					// includes savePendingModifications - this is necessary for the progress to be immediately available in GUI
 				}
 			}
