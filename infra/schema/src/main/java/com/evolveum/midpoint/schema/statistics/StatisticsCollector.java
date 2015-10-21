@@ -20,8 +20,9 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentalPerformanceInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActionsExecutedInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
 
@@ -43,13 +44,7 @@ public interface StatisticsCollector {
      * Gets information from the current task and its transient subtasks (aka worker threads).
      */
 
-    OperationalInformationType getAggregateOperationalInformation();
-
-    IterativeTaskInformationType getAggregateIterativeTaskInformation();
-
-    SynchronizationInformationType getAggregateSynchronizationInformation();
-
-    ActionsExecutedInformationType getAggregateActionsExecutedInformation();
+    OperationStatsType getAggregatedLiveOperationStats();
 
     /**
      * Records various kinds of operational information.
@@ -101,7 +96,7 @@ public interface StatisticsCollector {
      * Sets initial values for statistics.
      */
 
-    void resetOperationalInformation(OperationalInformationType value);
+    void resetEnvironmentalPerformanceInformation(EnvironmentalPerformanceInformationType value);
 
     void resetSynchronizationInformation(SynchronizationInformationType value);
 

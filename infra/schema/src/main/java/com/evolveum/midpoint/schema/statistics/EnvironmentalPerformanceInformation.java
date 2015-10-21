@@ -18,19 +18,17 @@ package com.evolveum.midpoint.schema.statistics;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentalPerformanceInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsStatisticsEntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsStatisticsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationsStatisticsEntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationsStatisticsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningStatisticsEntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningStatisticsType;
 import org.apache.commons.lang.StringUtils;
 
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +36,7 @@ import java.util.Map;
 /**
  * @author Pavol Mederly
  */
-public class OperationalInformation {
+public class EnvironmentalPerformanceInformation {
 
     /*
      * Thread safety: Instances of this class may be accessed from more than one thread at once.
@@ -47,7 +45,7 @@ public class OperationalInformation {
      *
      * We ensure synchronization by making public methods synchronized. We don't expect much contention on this.
      */
-    private final OperationalInformationType startValue;        // this object is concurrently read (that is thread-safe), not written
+    private final EnvironmentalPerformanceInformationType startValue;        // this object is concurrently read (that is thread-safe), not written
 
     private Map<ProvisioningStatisticsKey,ProvisioningStatisticsData> provisioningData = new HashMap<>();
     private Map<NotificationsStatisticsKey,GenericStatisticsData> notificationsData = new HashMap<>();
@@ -55,33 +53,31 @@ public class OperationalInformation {
 
     private StatusMessage lastMessage;
 
-    public OperationalInformation(OperationalInformationType value) {
+    public EnvironmentalPerformanceInformation(EnvironmentalPerformanceInformationType value) {
         startValue = value;
     }
 
-    public OperationalInformation() {
+    public EnvironmentalPerformanceInformation() {
         this(null);
     }
 
-    public OperationalInformationType getStartValue() {
+    public EnvironmentalPerformanceInformationType getStartValue() {
         return startValue;
     }
 
-    public synchronized OperationalInformationType getDeltaValue() {
-        OperationalInformationType rv = toOperationalInformationType();
-        rv.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
+    public synchronized EnvironmentalPerformanceInformationType getDeltaValue() {
+        EnvironmentalPerformanceInformationType rv = toOperationalInformationType();
         return rv;
     }
 
-    public synchronized OperationalInformationType getAggregatedValue() {
-        OperationalInformationType delta = toOperationalInformationType();
-        OperationalInformationType rv = aggregate(startValue, delta);
-        rv.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
+    public synchronized EnvironmentalPerformanceInformationType getAggregatedValue() {
+        EnvironmentalPerformanceInformationType delta = toOperationalInformationType();
+        EnvironmentalPerformanceInformationType rv = aggregate(startValue, delta);
         return rv;
     }
 
-    private OperationalInformationType toOperationalInformationType() {
-        OperationalInformationType rv = new OperationalInformationType();
+    private EnvironmentalPerformanceInformationType toOperationalInformationType() {
+        EnvironmentalPerformanceInformationType rv = new EnvironmentalPerformanceInformationType();
         rv.setProvisioningStatistics(toProvisioningStatisticsType());
         rv.setMappingsStatistics(toMappingsStatisticsType());
         rv.setNotificationsStatistics(toNotificationsStatisticsType());
@@ -261,17 +257,17 @@ public class OperationalInformation {
         e.setTotalTime(e.getTotalTime() + totalDuration);
     }
 
-    private OperationalInformationType aggregate(OperationalInformationType startValue, OperationalInformationType delta) {
+    private EnvironmentalPerformanceInformationType aggregate(EnvironmentalPerformanceInformationType startValue, EnvironmentalPerformanceInformationType delta) {
         if (startValue == null) {
             return delta;
         }
-        OperationalInformationType rv = new OperationalInformationType();
+        EnvironmentalPerformanceInformationType rv = new EnvironmentalPerformanceInformationType();
         addTo(rv, startValue);
         addTo(rv, delta);
         return rv;
     }
 
-    public static void addTo(OperationalInformationType rv, OperationalInformationType delta) {
+    public static void addTo(EnvironmentalPerformanceInformationType rv, EnvironmentalPerformanceInformationType delta) {
         addProvisioningTo(rv, delta.getProvisioningStatistics());
         addMappingsTo(rv, delta.getMappingsStatistics());
         addNotificationsTo(rv, delta.getNotificationsStatistics());
@@ -283,7 +279,7 @@ public class OperationalInformation {
         }
     }
 
-    private static void addNotificationsTo(OperationalInformationType rv, NotificationsStatisticsType delta) {
+    private static void addNotificationsTo(EnvironmentalPerformanceInformationType rv, NotificationsStatisticsType delta) {
         if (delta == null) {
             return;
         }
@@ -325,7 +321,7 @@ public class OperationalInformation {
     }
 
 
-    private static void addMappingsTo(OperationalInformationType rv, MappingsStatisticsType delta) {
+    private static void addMappingsTo(EnvironmentalPerformanceInformationType rv, MappingsStatisticsType delta) {
         if (delta == null) {
             return;
         }
@@ -364,7 +360,7 @@ public class OperationalInformation {
         return null;
     }
 
-    private static void addProvisioningTo(OperationalInformationType rv, ProvisioningStatisticsType delta) {
+    private static void addProvisioningTo(EnvironmentalPerformanceInformationType rv, ProvisioningStatisticsType delta) {
         if (delta == null) {
             return;
         }
