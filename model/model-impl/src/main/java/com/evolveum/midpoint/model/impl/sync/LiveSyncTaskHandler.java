@@ -78,11 +78,11 @@ public class LiveSyncTaskHandler implements TaskHandler {
 
 	@Override
 	public TaskRunResult run(Task task) {
-	    TaskHandlerUtil.fetchAllStatistics(task);
+		task.startCollectingOperationStatsFromStoredValues(true, true, true);
 		try {
 			return runInternal(task);
 		} finally {
-			TaskHandlerUtil.storeAllStatistics(task);
+			task.storeOperationStats();
 		}
 	}
 

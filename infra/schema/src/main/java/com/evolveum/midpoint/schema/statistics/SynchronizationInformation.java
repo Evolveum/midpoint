@@ -29,7 +29,7 @@ import java.util.Date;
 public class SynchronizationInformation {
 
     /*
-     * Thread safety: Just like OperationalInformation, instances of this class may be accessed from
+     * Thread safety: Just like EnvironmentalPerformanceInformation, instances of this class may be accessed from
      * more than one thread at once. Updates are invoked in the context of the thread executing the task.
      * Queries are invoked either from this thread, or from some observer (task manager or GUI thread).
      */
@@ -104,14 +104,12 @@ public class SynchronizationInformation {
 
     public synchronized SynchronizationInformationType getDeltaValue() {
         SynchronizationInformationType rv = toSynchronizationInformationType();
-        rv.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
         return rv;
     }
 
     public synchronized SynchronizationInformationType getAggregatedValue() {
         SynchronizationInformationType delta = toSynchronizationInformationType();
         SynchronizationInformationType rv = aggregate(startValue, delta);
-        rv.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
         return rv;
     }
 

@@ -158,11 +158,11 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	@Override
 	public TaskRunResult run(Task coordinatorTask) {
 		LOGGER.trace("ReconciliationTaskHandler.run starting");
-		TaskHandlerUtil.initAllStatistics(coordinatorTask);
+		coordinatorTask.startCollectingOperationStatsFromZero(true, true, true);
 		try {
 			return runInternal(coordinatorTask);
 		} finally {
-			TaskHandlerUtil.storeAllStatistics(coordinatorTask);
+			coordinatorTask.storeOperationStats();
 		}
 	}
 

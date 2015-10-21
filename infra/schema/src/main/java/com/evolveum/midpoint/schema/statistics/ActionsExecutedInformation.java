@@ -37,7 +37,7 @@ import java.util.Map;
 public class ActionsExecutedInformation {
 
     /*
-     * Thread safety: Just like OperationalInformation, instances of this class may be accessed from
+     * Thread safety: Just like EnvironmentalPerformanceInformation, instances of this class may be accessed from
      * more than one thread at once. Updates are invoked in the context of the thread executing the task.
      * Queries are invoked either from this thread, or from some observer (task manager or GUI thread).
      */
@@ -69,14 +69,12 @@ public class ActionsExecutedInformation {
 
     public synchronized ActionsExecutedInformationType getDeltaValue() {
         ActionsExecutedInformationType rv = toActionsExecutedInformationType();
-        rv.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
         return rv;
     }
 
     public synchronized ActionsExecutedInformationType getAggregatedValue() {
         ActionsExecutedInformationType delta = toActionsExecutedInformationType();
         ActionsExecutedInformationType rv = aggregate(startValue, delta);
-        rv.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
         return rv;
     }
 
