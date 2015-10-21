@@ -30,8 +30,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
-
 import com.evolveum.midpoint.util.logging.LoggingUtils;
+
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.mutable.MutableBoolean;
 
@@ -1272,7 +1272,20 @@ public class LensUtil {
 		if (itemDelta.getEstimatedOldValues() != null) {
 			return;
 		}
-		PrismUtil.setDeltaOldValue(ctx.getObjectOld(), itemDelta);
+		if (ctx.getObjectOld() != null) {
+			Item<PrismValue, ItemDefinition> itemOld = ctx.getObjectOld().findItem(itemDelta.getPath());
+			if (itemOld != null) {
+				itemDelta.setEstimatedOldValues((Collection) PrismValue.cloneCollection(itemOld.getValues()));
+			} else {
+				// get the old data from current object. Still better estimate than nothing
+				if (ctx.getObjectCurrent() != null) {
+					 itemOld = ctx.getObjectCurrent().findItem(itemDelta.getPath());
+					 if (itemOld != null) {
+						 itemDelta.setEstimatedOldValues((Collection) PrismValue.cloneCollection(itemOld.getValues()));
+					 }
+				}
+			}
+		}
 	}
 
 	public static <F extends ObjectType> LensObjectDeltaOperation<F> createObjectDeltaOperation(ObjectDelta<F> focusDelta, OperationResult result,
