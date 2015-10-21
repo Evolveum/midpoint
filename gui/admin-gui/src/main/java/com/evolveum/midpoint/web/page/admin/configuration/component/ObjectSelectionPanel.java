@@ -80,8 +80,16 @@ public class ObjectSelectionPanel extends Panel {
     private ModalWindow modalWindow;
     private Context context;
 
+    /**
+     * Used to communicate between this panel (shown in a popup window) and the calling component (panel).
+     * Above all, this is the place where customization of popup behavior is done, by overriding methods
+     * in this class. (Originally this was done by subclassing the panel itself; it is not possible anymore.)
+     */
     public static abstract class Context implements Serializable {
 
+        // It is not possible to refer to the calling page using Java object, because it is (seemingly)
+        // reinstantiated by the wicket during processing. So we have to use the reference, and the
+        // context.getCallingPage() method.
         protected PageReference callingPageReference;
         protected Component callingComponent;
 
@@ -89,7 +97,6 @@ public class ObjectSelectionPanel extends Panel {
             this.callingComponent = callingComponent;
         }
 
-        //public abstract Panel getRealParent();
         public abstract void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object);
 
         public ObjectQuery getDataProviderQuery() {

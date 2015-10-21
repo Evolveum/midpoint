@@ -206,15 +206,18 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     }
         
     public Map<String, Object> getUserData() {
+		if (userData == null) {
+			userData = new HashMap<>();
+		}
 		return userData;
 	}
     
     public Object getUserData(String key) {
-		return userData.get(key);
+		return getUserData().get(key);
 	}
     
     public void setUserData(String key, Object value) {
-    	userData.put(key, value);
+    	getUserData().put(key, value);
     }
 
 	public List<V> getValues() {

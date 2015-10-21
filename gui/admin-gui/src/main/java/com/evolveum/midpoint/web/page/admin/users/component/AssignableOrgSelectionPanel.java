@@ -12,6 +12,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxTabbedPanel;
 import com.evolveum.midpoint.web.component.org.OrgTreeTablePanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTableDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -30,17 +31,17 @@ import org.apache.wicket.model.Model;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AssignableOrgPopupContent extends AssignablePopupContent{
+public class AssignableOrgSelectionPanel extends AbstractAssignableSelectionPanel {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AssignableOrgPopupContent.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AssignableOrgSelectionPanel.class);
 
-    private static final String DOT_CLASS = AssignableOrgPopupContent.class.getName() + ".";
+    private static final String DOT_CLASS = AssignableOrgSelectionPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_ORG_UNITS = DOT_CLASS + "loadOrgUnits";
 
 	private final static String ID_TABS = "tabs";
 	
-	public AssignableOrgPopupContent(String id) {
-		super(id);
+	public AssignableOrgSelectionPanel(String id, Context context) {
+		super(id, context);
 	}
 
 	protected Panel createPopupContent(){
@@ -86,11 +87,12 @@ public class AssignableOrgPopupContent extends AssignablePopupContent{
 	private List<PrismObject<OrgType>> loadOrgRoots() {
         OperationResult result = new OperationResult(OPERATION_LOAD_ORG_UNITS);
 
-        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ORG_UNITS);
+        PageBase pageBase = WebMiscUtil.getPageBase(this);
+        Task task = pageBase.createSimpleTask(OPERATION_LOAD_ORG_UNITS);
         List<PrismObject<OrgType>> list = new ArrayList<>();
         try {
-            ObjectQuery query = ObjectQueryUtil.createRootOrgQuery(getPageBase().getPrismContext());
-            list = getPageBase().getModelService().searchObjects(OrgType.class, query, null, task, result);
+            ObjectQuery query = ObjectQueryUtil.createRootOrgQuery(pageBase.getPrismContext());
+            list = pageBase.getModelService().searchObjects(OrgType.class, query, null, task, result);
 
             if (list.isEmpty()) {
                 warn(getString("assignablePopupContent.message.noOrgStructureDefined"));
