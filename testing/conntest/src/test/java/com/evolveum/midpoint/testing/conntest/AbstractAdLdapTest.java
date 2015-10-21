@@ -682,7 +682,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         assertNotNull("No createTimestamp in "+shadow, createTimestampAttribute);
         Long createTimestamp = createTimestampAttribute.getRealValue();
         // LDAP server may be on a different host. Allow for some clock offset.
-        TestUtil.assertBetween("Wrong createTimestamp in "+shadow, roundTsDown(tsStart)-10000, roundTsUp(tsEnd)+10000, createTimestamp);
+        TestUtil.assertBetween("Wrong createTimestamp in "+shadow, roundTsDown(tsStart)-20000, roundTsUp(tsEnd)+20000, createTimestamp);
 	}
 	
 	@Test
