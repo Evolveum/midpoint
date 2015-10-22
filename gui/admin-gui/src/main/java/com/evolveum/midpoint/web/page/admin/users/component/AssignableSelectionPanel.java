@@ -2,6 +2,7 @@ package com.evolveum.midpoint.web.page.admin.users.component;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
@@ -20,17 +21,20 @@ import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.util.LookupPropertyModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Application;
+import org.apache.wicket.Component;
 import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.core.util.lang.PropertyResolver;
 import org.apache.wicket.core.util.lang.PropertyResolverConverter;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -43,11 +47,11 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AssignableRolePopupContent extends AssignablePopupContent{
+public class AssignableSelectionPanel extends AbstractAssignableSelectionPanel {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AssignableRolePopupContent.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AssignableSelectionPanel.class);
 
-    private static final String DOT_CLASS = AssignableRolePopupContent.class.getName() + ".";
+    private static final String DOT_CLASS = AssignableSelectionPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_ROLE_TYPES = DOT_CLASS + "loadRoleTypes";
 
     private QName searchParameter = RoleType.F_NAME;
@@ -57,9 +61,31 @@ public class AssignableRolePopupContent extends AssignablePopupContent{
     private static final String ID_TYPE_SEARCH = "typeSelect";
     private static final String ID_BASIC_SEARCH = "basicSearch";
 
-	public AssignableRolePopupContent(String id) {
-		super(id);
+	public AssignableSelectionPanel(String id, AbstractAssignableSelectionPanel.Context context) {
+		super(id, context);
 	}
+
+    public static abstract class Context extends AbstractAssignableSelectionPanel.Context {
+        protected QName defaultSearchParameter;
+
+        public Context(Component callingComponent) {
+            super(callingComponent);
+        }
+
+        public void setSearchParameter(QName searchParameter) {
+            defaultSearchParameter = searchParameter;
+            if (modalWindowPageReference != null) {
+                AssignableSelectionPanel panel = (AssignableSelectionPanel) modalWindowPageReference.getPage().get(AssignableSelectionPage.ID_ASSIGNABLE_SELECTION_PANEL);
+                if (panel != null) {
+                    panel.setSearchParameter(searchParameter);
+                }
+            }
+        }
+
+        public QName getDefaultSearchParameter() {
+            return defaultSearchParameter;
+        }
+    }
 
 	protected Panel createPopupContent(){
 		Form searchForm = new Form(ID_SEARCH_FORM);
@@ -148,7 +174,7 @@ public class AssignableRolePopupContent extends AssignablePopupContent{
 
     private List<DisplayableValue<String>> getLookupDisplayableList(){
         List<DisplayableValue<String>> list = new ArrayList<>();
-        ModelInteractionService interactionService = getPageBase().getModelInteractionService();
+        ModelInteractionService interactionService = WebMiscUtil.getPageBase(this).getModelInteractionService();
         OperationResult result = new OperationResult(OPERATION_LOAD_ROLE_TYPES);
 
         try {
@@ -177,7 +203,7 @@ public class AssignableRolePopupContent extends AssignablePopupContent{
     }
 
     protected PrismObject<UserType> getUserDefinition(){
-        return null;
+        return context.getUserDefinition();
     }
 	
     private void assignmentSearchPerformed(AjaxRequestTarget target){
@@ -213,7 +239,7 @@ public class AssignableRolePopupContent extends AssignablePopupContent{
 	  
 	private TablePanel createTable() {
 	    List<IColumn> columns = createMultiSelectColumns();
-	    ObjectDataProvider provider = new ObjectDataProvider(getPageBase(), getType()){
+	    ObjectDataProvider provider = new ObjectDataProvider(WebMiscUtil.getPageBase(this), getType()){
 
 	        @Override
 	        protected void handleNotSuccessOrHandledErrorInIterator(OperationResult result) {
@@ -242,16 +268,17 @@ public class AssignableRolePopupContent extends AssignablePopupContent{
             }
 
             if(dto.getText() != null && StringUtils.isNotEmpty(dto.getText())){
-                PolyStringNormalizer normalizer = getPageBase().getPrismContext().getDefaultPolyStringNormalizer();
+                PrismContext prismContext = WebMiscUtil.getPageBase(this).getPrismContext();
+                PolyStringNormalizer normalizer = prismContext.getDefaultPolyStringNormalizer();
                 String normalized = normalizer.normalize(dto.getText());
 
-                SubstringFilter substring = SubstringFilter.createSubstring(searchParameter, type, getPageBase().getPrismContext(),
+                SubstringFilter substring = SubstringFilter.createSubstring(searchParameter, type, prismContext,
                         PolyStringNormMatchingRule.NAME, normalized);
                 filters.add(substring);
             }
 
             if(dto.getType() != null){
-                EqualFilter typeEquals = EqualFilter.createEqual(RoleType.F_ROLE_TYPE, RoleType.class, getPageBase().getPrismContext(),
+                EqualFilter typeEquals = EqualFilter.createEqual(RoleType.F_ROLE_TYPE, RoleType.class, WebMiscUtil.getPageBase(this).getPrismContext(),
                         null, dto.getType());
                 filters.add(typeEquals);
             }

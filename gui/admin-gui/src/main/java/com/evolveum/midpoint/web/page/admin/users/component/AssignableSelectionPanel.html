@@ -17,9 +17,15 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-	<div class="popupWindow">
+    <div class="popupWindow">
 
         <div class="clearfix">
+            <form class="form-inline pull-left" style="padding: 5px;">
+                <div class="form-group">
+                    <select class="form-control input-sm" wicket:id="typeSelect" />
+                </div>
+            </form>
+
             <form wicket:id="searchForm" class="form-inline pull-right"
                   style="padding: 5px;">
 
@@ -28,7 +34,7 @@
         </div>
 
         <div class="clearfix">
-            <div wicket:id="table" about="resourcePopupTable"/>
+            <div wicket:id="table"/>
         </div>
 
         <p align="center">

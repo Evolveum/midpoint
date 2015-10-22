@@ -80,7 +80,7 @@ public abstract class PageTemplate extends WebPage {
     private static final String ID_PAGE_SUBTITLE = "pageSubtitle";
     private static final String ID_DEBUG_PANEL = "debugPanel";
     private static final String ID_VERSION = "version";
-    private static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
+    public static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
     private static final String ID_FEEDBACK = "feedback";
     private static final String ID_TEMP_FEEDBACK = "tempFeedback";
     private static final String ID_DEBUG_BAR = "debugBar";

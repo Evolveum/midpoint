@@ -21,7 +21,7 @@ import java.io.Serializable;
 /**
  *  @author shood
  * */
-public class ChooseTypeSearchDto implements Serializable{
+public class ObjectSearchDto implements Serializable{
 
     public static final String F_SEARCH_TEXT = "text";
 

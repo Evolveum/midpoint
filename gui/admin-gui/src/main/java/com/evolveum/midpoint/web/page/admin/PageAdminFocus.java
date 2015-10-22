@@ -15,16 +15,64 @@
  */
 package com.evolveum.midpoint.web.page.admin;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-
-import javax.xml.namespace.QName;
-
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.context.EvaluatedAbstractRole;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.api.context.EvaluatedConstruction;
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RetrieveOption;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.FocusSummaryPanel;
+import com.evolveum.midpoint.web.component.TabbedPanel;
+import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
+import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
+import com.evolveum.midpoint.web.component.assignment.AssignmentEditorPanel;
+import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
+import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.component.progress.ProgressReporter;
+import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
+import com.evolveum.midpoint.web.page.admin.users.component.*;
+import com.evolveum.midpoint.web.page.admin.users.dto.FocusProjectionDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.SimpleUserResourceProvider;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
+import com.evolveum.midpoint.web.resource.img.ImgResources;
+import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.web.util.WebModelUtils;
+import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
+import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -47,125 +95,9 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.context.EvaluatedAbstractRole;
-import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
-import com.evolveum.midpoint.model.api.context.EvaluatedConstruction;
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.NotFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RetrieveOption;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.NoFocusNameSchemaException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.FocusSummaryPanel;
-import com.evolveum.midpoint.web.component.TabbedPanel;
-import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
-import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
-import com.evolveum.midpoint.web.component.assignment.AssignmentEditorPanel;
-import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
-import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.prism.CheckTableHeader;
-import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
-import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
-import com.evolveum.midpoint.web.component.prism.SimpleErrorPanel;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
-import com.evolveum.midpoint.web.component.progress.ProgressReporter;
-import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
-import com.evolveum.midpoint.web.page.admin.users.component.AssignableOrgPopupContent;
-import com.evolveum.midpoint.web.page.admin.users.component.AssignablePopupContent;
-import com.evolveum.midpoint.web.page.admin.users.component.AssignableRolePopupContent;
-import com.evolveum.midpoint.web.page.admin.users.component.AssignmentPreviewDialog;
-import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
-import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
-import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
-import com.evolveum.midpoint.web.page.admin.users.component.ResourcesPopup;
-import com.evolveum.midpoint.web.page.admin.users.dto.FocusProjectionDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.SimpleUserResourceProvider;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import com.evolveum.midpoint.web.resource.img.ImgResources;
-import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
-import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
-import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import javax.xml.namespace.QName;
+import java.io.Serializable;
+import java.util.*;
 
 public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin
 		implements ProgressReportingAwarePage {
@@ -192,10 +124,8 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin
 	private static final String OPERATION_LOAD_ASSIGNMENT = DOT_CLASS + "loadAssignment";
 	private static final String OPERATION_SAVE = DOT_CLASS + "save";
 	private static final String OPERATION_SEND_TO_SUBMIT = DOT_CLASS + "sendToSubmit";
-	// private static final String OPERATION_MODIFY_ACCOUNT = DOT_CLASS +
-	// "modifyAccount";
-	// private static final String OPERATION_PREPARE_ACCOUNTS = DOT_CLASS +
-	// "getAccountsForSubmit";
+	// private static final String OPERATION_MODIFY_ACCOUNT = DOT_CLASS + "modifyAccount";
+	// private static final String OPERATION_PREPARE_ACCOUNTS = DOT_CLASS + "getAccountsForSubmit";
 	private static final String OPERATION_RECOMPUTE_ASSIGNMENTS = DOT_CLASS + "recomputeAssignments";
 
 	private static final String OPERATION_LOAD_SHADOW = DOT_CLASS + "loadShadow";
@@ -215,9 +145,6 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin
 	private static final String ID_ASSIGNMENT_CHECK_ALL = "assignmentCheckAll";
 	protected static final String ID_SUMMARY_PANEL = "summaryPanel";
 
-	private static final String MODAL_ID_RESOURCE = "resourcePopup";
-	private static final String MODAL_ID_ASSIGNABLE = "assignablePopup";
-	private static final String MODAL_ID_ASSIGNABLE_ORG = "assignableOrgPopup";
 	private static final String MODAL_ID_CONFIRM_DELETE_SHADOW = "confirmDeleteShadowPopup";
 	private static final String MODAL_ID_CONFIRM_DELETE_ASSIGNMENT = "confirmDeleteAssignmentPopup";
 
@@ -1650,214 +1577,6 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin
 		return dto;
 	}
 
-	private void initShadows(final WebMarkupContainer accounts) {
-		InlineMenu accountMenu = new InlineMenu(ID_SHADOW_MENU, new Model((Serializable) createShadowMenu()));
-		accounts.add(accountMenu);
-
-		final ListView<FocusProjectionDto> accountList = new ListView<FocusProjectionDto>(ID_SHADOW_LIST,
-				shadowModel) {
-
-			@Override
-			protected void populateItem(final ListItem<FocusProjectionDto> item) {
-				PackageResourceReference packageRef;
-				final FocusProjectionDto dto = item.getModelObject();
-
-				Panel panel;
-
-				if (dto.isLoadedOK()) {
-					packageRef = new PackageResourceReference(ImgResources.class, ImgResources.HDD_PRISM);
-
-					panel = new PrismObjectPanel<ShadowType>("shadow",
-							new PropertyModel<ObjectWrapper<ShadowType>>(item.getModel(), "object"),
-							packageRef, (Form) PageAdminFocus.this.get(ID_MAIN_FORM), PageAdminFocus.this) {
-
-						@Override
-						protected Component createHeader(String id, IModel<ObjectWrapper<ShadowType>> model) {
-							return new CheckTableHeader(id, (IModel) model) {
-
-								@Override
-								protected List<InlineMenuItem> createMenuItems() {
-									return createDefaultMenuItems(getModel());
-								}
-							};
-						}
-					};
-				} else {
-					panel = new SimpleErrorPanel("shadow", item.getModel()) {
-
-						@Override
-						public void onShowMorePerformed(AjaxRequestTarget target) {
-							OperationResult fetchResult = dto.getResult();
-							if (fetchResult != null) {
-								showResult(fetchResult);
-								target.add(getPageBase().getFeedbackPanel());
-							}
-						}
-					};
-				}
-
-				panel.setOutputMarkupId(true);
-				item.add(panel);
-			}
-		};
-
-		AjaxCheckBox accountCheckAll = new AjaxCheckBox(ID_SHADOW_CHECK_ALL, new Model()) {
-
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				for (FocusProjectionDto dto : accountList.getModelObject()) {
-					if (dto.isLoadedOK()) {
-						ObjectWrapper accModel = dto.getObject();
-						accModel.setSelected(getModelObject());
-					}
-				}
-
-				target.add(accounts);
-			}
-		};
-		accounts.add(accountCheckAll);
-
-		accounts.add(accountList);
-	}
-
-	private void initAssignments(final WebMarkupContainer assignments) {
-		InlineMenu accountMenu = new InlineMenu(ID_ASSIGNMENT_MENU,
-				new Model((Serializable) createAssignmentsMenu()));
-		assignments.add(accountMenu);
-
-		final ListView<AssignmentEditorDto> assignmentList = new ListView<AssignmentEditorDto>(
-				ID_ASSIGNMENT_LIST, assignmentsModel) {
-
-			@Override
-			protected void populateItem(final ListItem<AssignmentEditorDto> item) {
-				AssignmentEditorPanel assignmentEditor = new AssignmentEditorPanel(ID_ASSIGNMENT_EDITOR,
-						item.getModel());
-				item.add(assignmentEditor);
-			}
-		};
-		assignmentList.setOutputMarkupId(true);
-		assignments.add(assignmentList);
-
-		AjaxCheckBox assignmentCheckAll = new AjaxCheckBox(ID_ASSIGNMENT_CHECK_ALL, new Model()) {
-
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				for (AssignmentEditorDto item : assignmentList.getModelObject()) {
-					item.setSelected(this.getModelObject());
-				}
-
-				target.add(assignments);
-			}
-		};
-		assignmentCheckAll.setOutputMarkupId(true);
-		assignments.add(assignmentCheckAll);
-	}
-
-	private List<InlineMenuItem> createAssignmentsMenu() {
-		List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
-		InlineMenuItem item = new InlineMenuItem(createStringResource("pageAdminFocus.menu.assignShadow"),
-				new InlineMenuItemAction() {
-
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						showAssignablePopup(target, ResourceType.class);
-					}
-				});
-		items.add(item);
-		item = new InlineMenuItem(createStringResource("pageAdminFocus.menu.assignRole"),
-				new InlineMenuItemAction() {
-
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						showAssignablePopup(target, RoleType.class);
-					}
-				});
-		items.add(item);
-		item = new InlineMenuItem(createStringResource("pageAdminFocus.menu.assignOrg"),
-				new InlineMenuItemAction() {
-
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						showAssignableOrgPopup(target);
-					}
-				});
-		items.add(item);
-		items.add(new InlineMenuItem());
-		item = new InlineMenuItem(createStringResource("pageAdminFocus.menu.unassign"),
-				new InlineMenuItemAction() {
-
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						deleteAssignmentPerformed(target);
-					}
-				});
-		items.add(item);
-
-		return items;
-	}
-
-	private List<InlineMenuItem> createShadowMenu() {
-		List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
-		InlineMenuItem item = new InlineMenuItem(createStringResource("pageAdminFocus.button.addShadow"),
-				new InlineMenuItemAction() {
-
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						showModalWindow(MODAL_ID_RESOURCE, target);
-					}
-				});
-		items.add(item);
-		items.add(new InlineMenuItem());
-		item = new InlineMenuItem(createStringResource("pageAdminFocus.button.enable"),
-				new InlineMenuItemAction() {
-
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						updateShadowActivation(target, getSelectedAccounts(), true);
-					}
-				});
-		items.add(item);
-		item = new InlineMenuItem(createStringResource("pageAdminFocus.button.disable"),
-				new InlineMenuItemAction() {
-
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						updateShadowActivation(target, getSelectedAccounts(), false);
-					}
-				});
-		items.add(item);
-		item = new InlineMenuItem(createStringResource("pageAdminFocus.button.unlink"),
-				new InlineMenuItemAction() {
-
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						unlinkShadowPerformed(target, getSelectedAccounts());
-					}
-				});
-		items.add(item);
-		item = new InlineMenuItem(createStringResource("pageAdminFocus.button.unlock"),
-				new InlineMenuItemAction() {
-
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						unlockShadowPerformed(target, getSelectedAccounts());
-					}
-				});
-		items.add(item);
-		items.add(new InlineMenuItem());
-		item = new InlineMenuItem(createStringResource("pageAdminFocus.button.delete"),
-				new InlineMenuItemAction() {
-
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						deleteShadowPerformed(target);
-					}
-				});
-		items.add(item);
-
-		return items;
-	}
-
 	private List<FocusProjectionDto> getSelectedAccounts() {
 		List<FocusProjectionDto> selected = new ArrayList<FocusProjectionDto>();
 
@@ -1882,64 +1601,6 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin
 		}
 
 		return selected;
-	}
-
-	private void addSelectedAccountPerformed(AjaxRequestTarget target, List<ResourceType> newResources) {
-		ModalWindow window = (ModalWindow) get(MODAL_ID_RESOURCE);
-		window.close(target);
-
-		if (newResources.isEmpty()) {
-			warn(getString("pageUser.message.noResourceSelected"));
-			target.add(getFeedbackPanel());
-			return;
-		}
-
-		for (ResourceType resource : newResources) {
-			try {
-				ShadowType shadow = new ShadowType();
-				shadow.setResource(resource);
-
-				RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(
-						resource.asPrismObject(), LayerType.PRESENTATION, getPrismContext());
-				if (refinedSchema == null) {
-					error(getString("pageAdminFocus.message.couldntCreateAccountNoSchema",
-							resource.getName()));
-					continue;
-				}
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Refined schema for {}\n{}", resource, refinedSchema.debugDump());
-				}
-
-				QName objectClass = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT)
-						.getObjectClassDefinition().getTypeName();
-				shadow.setObjectClass(objectClass);
-
-				getPrismContext().adopt(shadow);
-
-				ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(
-						WebMiscUtil.getOrigStringFromPoly(resource.getName()), null, shadow.asPrismObject(),
-						ContainerStatus.ADDING, this);
-				// ObjectWrapper wrapper = new
-				// ObjectWrapper(WebMiscUtil.getOrigStringFromPoly(resource.getName()),
-				// null,
-				// shadow.asPrismObject(), ContainerStatus.ADDING);
-				if (wrapper.getResult() != null
-						&& !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
-					showResultInSession(wrapper.getResult());
-				}
-
-				wrapper.setShowEmpty(true);
-				wrapper.setMinimalized(false);
-				shadowModel.getObject().add(new FocusProjectionDto(wrapper, UserDtoStatus.ADD));
-				setResponsePage(getPage());
-			} catch (Exception ex) {
-				error(getString("pageAdminFocus.message.couldntCreateAccount", resource.getName(),
-						ex.getMessage()));
-				LoggingUtils.logException(LOGGER, "Couldn't create account", ex);
-			}
-		}
-
-		target.add(getFeedbackPanel(), get(createComponentPath(ID_MAIN_FORM, ID_SHADOWS)));
 	}
 
 	private void addSelectedResourceAssignPerformed(ResourceType resource) {
@@ -2130,145 +1791,6 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin
 		}
 
 		showModalWindow(MODAL_ID_CONFIRM_DELETE_ASSIGNMENT, target);
-	}
-
-	private void showAssignablePopup(AjaxRequestTarget target, Class<? extends ObjectType> type) {
-		ModalWindow modal = (ModalWindow) get(MODAL_ID_ASSIGNABLE);
-		AssignablePopupContent content = (AssignableRolePopupContent) modal.get(modal.getContentId());
-		content.setType(type);
-		showModalWindow(MODAL_ID_ASSIGNABLE, target);
-		target.add(getFeedbackPanel());
-	}
-
-	private void showAssignableOrgPopup(AjaxRequestTarget target) {
-		ModalWindow modal = (ModalWindow) get(MODAL_ID_ASSIGNABLE_ORG);
-		AssignablePopupContent content = (AssignableOrgPopupContent) modal.get(modal.getContentId());
-		content.setType(OrgType.class);
-		showModalWindow(MODAL_ID_ASSIGNABLE_ORG, target);
-		target.add(getFeedbackPanel());
-	}
-
-	private void initResourceModal() {
-		ModalWindow window = createModalWindow(MODAL_ID_RESOURCE,
-				createStringResource("pageAdminFocus.title.selectResource"), 1100, 560);
-
-		final SimpleUserResourceProvider provider = new SimpleUserResourceProvider(this, shadowModel) {
-
-			@Override
-			protected void handlePartialError(OperationResult result) {
-				showResult(result);
-			}
-		};
-		window.setContent(new ResourcesPopup(window.getContentId()) {
-
-			@Override
-			public SimpleUserResourceProvider getProvider() {
-				return provider;
-			}
-
-			@Override
-			protected void addPerformed(AjaxRequestTarget target, List<ResourceType> newResources) {
-				addSelectedAccountPerformed(target, newResources);
-			}
-		});
-		add(window);
-	}
-
-	private void initAssignableModal() {
-		ModalWindow window = createModalWindow(MODAL_ID_ASSIGNABLE,
-				createStringResource("pageAdminFocus.title.selectAssignable"), 1100, 560);
-		window.setContent(new AssignableRolePopupContent(window.getContentId()) {
-
-			@Override
-			protected void handlePartialError(OperationResult result) {
-				showResult(result);
-			}
-
-			@Override
-			protected void addPerformed(AjaxRequestTarget target, List<ObjectType> selected) {
-				addSelectedAssignablePerformed(target, selected, MODAL_ID_ASSIGNABLE);
-			}
-
-			@Override
-			protected PrismObject<UserType> getUserDefinition() {
-				return (PrismObject<UserType>) focusModel.getObject().getObject();
-			}
-		});
-		add(window);
-
-		window = createModalWindow(MODAL_ID_ASSIGNABLE_ORG,
-				createStringResource("pageAdminFocus.title.selectAssignable"), 1150, 600);
-		window.setContent(new AssignableOrgPopupContent(window.getContentId()) {
-
-			@Override
-			protected void handlePartialError(OperationResult result) {
-				showResult(result);
-			}
-
-			@Override
-			protected void addPerformed(AjaxRequestTarget target, List<ObjectType> selected) {
-				addSelectedAssignablePerformed(target, selected, MODAL_ID_ASSIGNABLE_ORG);
-			}
-		});
-		add(window);
-
-		// ModalWindow assignmentPreviewPopup = new
-		// AssignmentPreviewDialog(MODAL_ID_ASSIGNMENTS_PREVIEW, null, null);
-		// add(assignmentPreviewPopup);
-	}
-
-	private void initTasks(WebMarkupContainer tasks) {
-		List<IColumn<TaskDto, String>> taskColumns = initTaskColumns();
-		final TaskDtoProvider taskDtoProvider = new TaskDtoProvider(PageAdminFocus.this,
-				TaskDtoProviderOptions.minimalOptions());
-		taskDtoProvider.setQuery(createTaskQuery(null));
-		TablePanel taskTable = new TablePanel<TaskDto>(ID_TASK_TABLE, taskDtoProvider, taskColumns) {
-
-			@Override
-			protected void onInitialize() {
-				super.onInitialize();
-				StringValue oidValue = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
-
-				taskDtoProvider.setQuery(createTaskQuery(oidValue != null ? oidValue.toString() : null));
-			}
-		};
-		tasks.add(taskTable);
-
-		tasks.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return taskDtoProvider.size() > 0;
-			}
-		});
-	}
-
-	private ObjectQuery createTaskQuery(String oid) {
-		List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
-
-		if (oid == null) {
-			oid = "non-existent"; // TODO !!!!!!!!!!!!!!!!!!!!
-		}
-		try {
-			filters.add(RefFilter.createReferenceEqual(TaskType.F_OBJECT_REF, TaskType.class,
-					getPrismContext(), oid));
-			filters.add(NotFilter.createNot(EqualFilter.createEqual(TaskType.F_EXECUTION_STATUS,
-					TaskType.class, getPrismContext(), null, TaskExecutionStatusType.CLOSED)));
-			filters.add(EqualFilter.createEqual(TaskType.F_PARENT, TaskType.class, getPrismContext(), null));
-		} catch (SchemaException e) {
-			throw new SystemException("Unexpected SchemaException when creating task filter", e);
-		}
-
-		return new ObjectQuery().createObjectQuery(AndFilter.createAnd(filters));
-	}
-
-	private List<IColumn<TaskDto, String>> initTaskColumns() {
-		List<IColumn<TaskDto, String>> columns = new ArrayList<IColumn<TaskDto, String>>();
-
-		columns.add(PageTasks.createTaskNameColumn(this, "pageAdminFocus.task.name"));
-		columns.add(PageTasks.createTaskCategoryColumn(this, "pageAdminFocus.task.category"));
-		columns.add(PageTasks.createTaskExecutionStatusColumn(this, "pageAdminFocus.task.execution"));
-		columns.add(PageTasks.createTaskResultStatusColumn(this, "pageAdminFocus.task.status"));
-		return columns;
 	}
 
 	private void initButtons(final Form mainForm) {

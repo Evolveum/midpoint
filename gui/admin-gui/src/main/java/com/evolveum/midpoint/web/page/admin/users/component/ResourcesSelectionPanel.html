@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright (c) 2010-2013 Evolveum
   ~
@@ -14,17 +15,25 @@
   ~ limitations under the License.
   -->
 
-<wicket:panel xmlns:wicket="http://wicket.apache.org">
-    <div wicket:id="content" style="padding: 10px;">
-        <form wicket:id="searchForm" class="form-inline pull-right">
-            <div wicket:id="basicSearch" />
-        </form>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+	<div class="popupWindow">
 
-        <div wicket:id="extraContentContainer" />
-        <div wicket:id="table" />
+        <div class="clearfix">
+            <form wicket:id="searchForm" class="form-inline pull-right"
+                  style="padding: 5px;">
 
-        <p align="right">
-            <a class="btn btn-default btn-sm" wicket:id="cancelButton"/>
+                <div wicket:id="basicSearch" />
+            </form>
+        </div>
+
+        <div class="clearfix">
+            <div wicket:id="table" about="resourcePopupTable"/>
+        </div>
+
+        <p align="center">
+            <a class="btn btn-success" wicket:id="add" />
         </p>
-    </div>
+   	</div>
 </wicket:panel>
+</html>
