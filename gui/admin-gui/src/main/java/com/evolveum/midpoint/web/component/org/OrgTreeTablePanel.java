@@ -383,8 +383,13 @@ public class OrgTreeTablePanel extends SimplePanel{
         TablePanel orgTable = getOrgChildTable();
         orgTable.setCurrentPage(null);
 
-        target.add(getOrgChildContainer());
-        target.add(get(ID_SEARCH_FORM));
+        WebMarkupContainer orgChildContainer = getOrgChildContainer();
+        if (target != null) {
+            if (orgChildContainer != null) {
+                target.add(orgChildContainer);
+            }
+            target.add(get(ID_SEARCH_FORM));
+        }
     }
 
     private ObjectQuery createOrgChildQuery() {

@@ -16,20 +16,14 @@
 
 package com.evolveum.midpoint.web.component.progress;
 
-import com.evolveum.midpoint.schema.statistics.OperationalInformation;
-import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
-import com.evolveum.midpoint.schema.statistics.ProvisioningStatisticsData;
-import com.evolveum.midpoint.schema.statistics.ProvisioningStatisticsKey;
-import com.evolveum.midpoint.schema.statistics.ProvisioningStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalInformationType;
+import com.evolveum.midpoint.schema.statistics.EnvironmentalPerformanceInformation;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentalPerformanceInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningStatisticsEntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningStatisticsType;
-import org.apache.commons.lang.StringUtils;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Pavol Mederly
@@ -212,9 +206,9 @@ public class ProvisioningStatisticsLineDto {
         return totalTime;
     }
 
-    public static List<ProvisioningStatisticsLineDto> extractFromOperationalInformation(OperationalInformation operationalInformation) {
-        OperationalInformationType operationalInformationType = operationalInformation.getAggregatedValue();
-        ProvisioningStatisticsType provisioningStatisticsType = operationalInformationType.getProvisioningStatistics();
+    public static List<ProvisioningStatisticsLineDto> extractFromOperationalInformation(EnvironmentalPerformanceInformation environmentalPerformanceInformation) {
+        EnvironmentalPerformanceInformationType environmentalPerformanceInformationType = environmentalPerformanceInformation.getAggregatedValue();
+        ProvisioningStatisticsType provisioningStatisticsType = environmentalPerformanceInformationType.getProvisioningStatistics();
         return extractFromOperationalInformation(provisioningStatisticsType);
     }
 

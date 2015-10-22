@@ -55,6 +55,7 @@ import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProduc
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
+import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -100,6 +101,9 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 
 	@Autowired(required=true)
 	private MappingFactory mappingFactory;
+	
+	@Autowired(required=true)
+	private MappingEvaluator mappingEvaluator;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -673,6 +677,7 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 		assignmentEvaluator.setActivationComputer(activationComputer);
 		assignmentEvaluator.setNow(clock.currentTimeXMLGregorianCalendar());
 		assignmentEvaluator.setMappingFactory(mappingFactory);
+		assignmentEvaluator.setMappingEvaluator(mappingEvaluator);
 		// Fake
 		assignmentEvaluator.setLensContext(new LensContext<>(UserType.class, prismContext, provisioningService));
 		return assignmentEvaluator;

@@ -61,7 +61,7 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.Uid;
-import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.Entry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
@@ -683,7 +683,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		// THEN
 
 		String entryUuid = (String) resourceObject.getIdentifier().getValue().getValue();
-		SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(entryUuid);
+		Entry entry = openDJController.searchAndAssertByEntryUuid(entryUuid);
 		display("Entry before change", entry);
 		String passwordAfter = OpenDJController.getAttributeValue(entry, "userPassword");
 
@@ -709,7 +709,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		cc.addObject(shadow, null, null, addResult);
 
 		String entryUuid = (String) resourceObject.getIdentifier().getValue().getValue();
-		SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(entryUuid);
+		Entry entry = openDJController.searchAndAssertByEntryUuid(entryUuid);
 		display("Entry before change", entry);
 		String passwordBefore = OpenDJController.getAttributeValue(entry, "userPassword");
 		// We have set no password during create, therefore the password should

@@ -62,7 +62,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.RawModification;
 import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.Entry;
 import org.opends.server.types.SearchScope;
 import org.opends.server.util.ChangeRecordEntry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1077,7 +1077,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // check if account was created in LDAP
 
-        SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(uid);
+        Entry entry = openDJController.searchAndAssertByEntryUuid(uid);
 
         display("LDAP account", entry);
 
@@ -1408,16 +1408,16 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertOpenDJAccountJack(uid, "jack");
     }
     
-    private SearchResultEntry assertOpenDJAccountJack(String entryUuid, String uid) throws DirectoryException {
-    	SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(entryUuid);
+    private Entry assertOpenDJAccountJack(String entryUuid, String uid) throws DirectoryException {
+    	Entry entry = openDJController.searchAndAssertByEntryUuid(entryUuid);
     	return assertOpenDJAccountJack(entry, uid);
     }
     
-    private SearchResultEntry assertOpenDJAccountJack(SearchResultEntry entry, String uid) throws DirectoryException {
+    private Entry assertOpenDJAccountJack(Entry entry, String uid) throws DirectoryException {
     	return assertOpenDJAccountJack(entry, uid, "Jack");
     }
     
-    private SearchResultEntry assertOpenDJAccountJack(SearchResultEntry entry, String uid, String givenName) throws DirectoryException {
+    private Entry assertOpenDJAccountJack(Entry entry, String uid, String givenName) throws DirectoryException {
         display(entry);
         
 	    OpenDJController.assertDn(entry, "uid="+uid+",ou=people,dc=example,dc=com");
@@ -1537,7 +1537,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         String uid = checkRepoShadow(repoShadow);
 
         // Check if LDAP account was updated
-        SearchResultEntry entry = assertOpenDJAccountJack(uid, "jack");
+        Entry entry = assertOpenDJAccountJack(uid, "jack");
         
         String ldapPasswordAfter = OpenDJController.getAttributeValue(entry, "userPassword");
         assertNotNull(ldapPasswordAfter);
@@ -1593,7 +1593,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         String uid = checkRepoShadow(repoShadow);
 
         // Check if LDAP account was updated
-        SearchResultEntry jackLdapEntry = assertOpenDJAccountJack(uid, "jack");
+        Entry jackLdapEntry = assertOpenDJAccountJack(uid, "jack");
         OpenDJController.assertAttribute(jackLdapEntry, "roomNumber", expectedVal);
     }
 
@@ -1640,7 +1640,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         String uid = checkRepoShadow(repoShadow);
 
         // Check if LDAP account was updated
-        SearchResultEntry jackLdapEntry = assertOpenDJAccountJack(uid, "jack");
+        Entry jackLdapEntry = assertOpenDJAccountJack(uid, "jack");
         OpenDJController.assertAttribute(jackLdapEntry, "roomNumber", "upperdeck");
     }
 
@@ -1656,7 +1656,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         ObjectDeltaType objectChange = unmarshallValueFromFile(
                 REQUEST_USER_MODIFY_ACTIVATION_DISABLE_FILENAME, ObjectDeltaType.class);
 
-        SearchResultEntry entry = openDJController.searchByUid("jack");
+        Entry entry = openDJController.searchByUid("jack");
         assertOpenDJAccountJack(entry, "jack");
 
         String pwpAccountDisabled = OpenDJController.getAttributeValue(entry, "ds-pwp-account-disabled");
@@ -1850,7 +1850,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // Check if LDAP account was updated
 
-        SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(uid);
+        Entry entry = openDJController.searchAndAssertByEntryUuid(uid);
         assertOpenDJAccountJack(entry, "jack");
 
         // The value of ds-pwp-account-disabled should have been removed
@@ -2081,7 +2081,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         String uid = checkRepoShadow(repoShadow);
 
         // Check if LDAP account was updated
-        SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(uid);
+        Entry entry = openDJController.searchAndAssertByEntryUuid(uid);
         assertOpenDJAccountJack(entry, "jsparrow", null);
     }
 
@@ -2206,7 +2206,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // check if account was created in LDAP
 
-        SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
+        Entry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
 
         display("LDAP account", entry);
 
@@ -2305,7 +2305,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // check if account is still in LDAP
 
-        SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
+        Entry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
 
         display("LDAP account", entry);
 
@@ -2387,7 +2387,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // check if account is still in LDAP
 
-        SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
+        Entry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
 
         display("LDAP account", entry);
 
@@ -2470,7 +2470,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // check if LDAP account was modified
 
-        SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
+        Entry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
 
         display("LDAP account", entry);
 
@@ -2600,7 +2600,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // check if account is still in LDAP
 
-        SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
+        Entry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
 
         display("LDAP account", entry);
 
@@ -2685,7 +2685,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // check if account is still in LDAP
 
-        SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
+        Entry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
 
         display("LDAP account", entry);
 
@@ -2770,7 +2770,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // check if account was deleted from LDAP
 
-        SearchResultEntry entry = openDJController.searchByEntryUuid(accountGuybrushOpendjEntryUuuid);
+        Entry entry = openDJController.searchByEntryUuid(accountGuybrushOpendjEntryUuuid);
 
         display("LDAP account", entry);
 
@@ -3442,7 +3442,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // check if account was created in LDAP
 
-        SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
+        Entry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
 
         display("LDAP account", entry);
 
@@ -3593,7 +3593,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // check if account was created in LDAP
 
-        SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
+        Entry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
 
         display("LDAP account", entry);
 

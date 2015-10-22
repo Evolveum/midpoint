@@ -36,8 +36,12 @@ import javax.xml.namespace.QName;
 
 /**
  *  @author shood
- * */
-public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectViewDto>{
+ *
+ *  TODO use a better name (ChooseObjectPanel ? ObjectChoosePanel ?)
+ *  Distinguish between chooser panels that reside on "main page" and
+ *  the one that resides in the popup window (ObjectSelectionPanel).
+ */
+public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectViewDto> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ChooseTypePanel.class);
 
@@ -45,14 +49,14 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
     private static final String ID_LINK_CHOOSE = "choose";
     private static final String ID_LINK_REMOVE = "remove";
 
-    private static final String MODAL_ID_SHOW_CHOOSE_OPTIONS = "showOptionsPopup";
+    private static final String MODAL_ID_OBJECT_SELECTION_POPUP = "objectSelectionPopup";
 
     public ChooseTypePanel(String id, IModel<ObjectViewDto> model){
         super(id, model);
     }
 
     @Override
-    protected void initLayout(){
+    protected void initLayout() {
 
         final Label name = new Label(ID_OBJECT_NAME, new AbstractReadOnlyModel<String>(){
 
@@ -60,9 +64,9 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
             public String getObject(){
                 ObjectViewDto dto = getModel().getObject();
 
-                if(dto.getName() != null)
+                if (dto.getName() != null)
                     return getModel().getObject().getName();
-                else if(ObjectViewDto.BAD_OID.equals(dto.getOid())){
+                else if (ObjectViewDto.BAD_OID.equals(dto.getOid())){
                     return createStringResource("chooseTypePanel.ObjectNameValue.badOid").getString();
                 } else {
                     return createStringResource("chooseTypePanel.ObjectNameValue.null").getString();
@@ -95,30 +99,45 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
         initDialog();
     }
 
-    private void initDialog(){
-        ModalWindow dialog = new ChooseTypeDialog(MODAL_ID_SHOW_CHOOSE_OPTIONS, getObjectTypeClass()){
+    private void initDialog() {
+        final ModalWindow dialog = new ModalWindow(MODAL_ID_OBJECT_SELECTION_POPUP);
 
-            @Override
-            protected void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object){
-                choosePerformed(target, object);
+        ObjectSelectionPanel.Context context = new ObjectSelectionPanel.Context(this) {
+
+            // It seems that when modal window is open, ChooseTypePanel.this points to
+            // wrong instance of ChooseTypePanel (the one that will not be used afterwards -
+            // any changes made to its models are simply lost). So we want to get the reference to the "correct" one.
+            public ChooseTypePanel getRealParent() {
+                return WebMiscUtil.theSameForPage(ChooseTypePanel.this, getCallingPageReference());
             }
 
             @Override
-            protected ObjectQuery getDataProviderQuery(){
-                return getChooseQuery();
+            public void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object) {
+                getRealParent().choosePerformed(target, object);
             }
 
             @Override
+            public ObjectQuery getDataProviderQuery() {
+                return getRealParent().getChooseQuery();
+            }
+
             public boolean isSearchEnabled() {
-                return ChooseTypePanel.this.isSearchEnabled();
+                return getRealParent().isSearchEnabled();
             }
 
             @Override
             public QName getSearchProperty() {
-                return ChooseTypePanel.this.getSearchProperty();
+                return getRealParent().getSearchProperty();
             }
+
+            @Override
+            public Class<? extends ObjectType> getObjectTypeClass() {
+                return getRealParent().getObjectTypeClass();
+            }
+
         };
 
+        ObjectSelectionPage.prepareDialog(dialog, context, this, "chooseTypeDialog.title", ID_OBJECT_NAME);
         add(dialog);
     }
 
@@ -135,7 +154,7 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
     }
 
     private void choosePerformed(AjaxRequestTarget target, ObjectType object){
-        ModalWindow window = (ModalWindow) get(MODAL_ID_SHOW_CHOOSE_OPTIONS);
+        ModalWindow window = (ModalWindow) get(MODAL_ID_OBJECT_SELECTION_POPUP);
         window.close(target);
 
         ObjectViewDto o = getModel().getObject();
@@ -144,14 +163,14 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
         o.setOid(object.getOid());
 
         if(LOGGER.isTraceEnabled()){
-            LOGGER.trace("Choose operation performed.");
+            LOGGER.trace("Choose operation performed: {} ({})", o.getName(), o.getOid());
         }
 
         target.add(get(ID_OBJECT_NAME));
     }
 
     private void changeOptionPerformed(AjaxRequestTarget target){
-        ModalWindow window = (ModalWindow)get(MODAL_ID_SHOW_CHOOSE_OPTIONS);
+        ModalWindow window = (ModalWindow)get(MODAL_ID_OBJECT_SELECTION_POPUP);
         window.show(target);
     }
 
@@ -161,11 +180,7 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
         getModel().setObject(dto);
     }
 
-    private Class<T> getObjectTypeClass(){
-        return getModel().getObject().getType();
-    }
-
-    public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-        return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
+    public Class<T> getObjectTypeClass(){
+        return ChooseTypePanel.this.getModelObject().getType();
     }
 }

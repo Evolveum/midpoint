@@ -1336,6 +1336,13 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="operationStats" type="tns:OperationStatsType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Operation statistics/state.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="stalledSince" type="xsd:dateTime" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -1412,6 +1419,41 @@
     </xsd:complexType>
 
     <xsd:element name="task" type="tns:TaskType" substitutionGroup="c:object"/>
+
+    <xsd:complexType name="OperationStatsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Operation execution statistics/state. Contains various statistical and state information about execution
+                of the operation or operations that are carried out in the scope of the task.
+
+                Not all parts of this structure are relevant for all task types. TODO handle this by subtyping - later.
+
+                EXPERIMENTAL.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="environmentalPerformanceInformation" type="tns:EnvironmentalPerformanceInformationType" minOccurs="0"/>
+            <xsd:element name="iterativeTaskInformation" type="tns:IterativeTaskInformationType" minOccurs="0"/>
+            <xsd:element name="synchronizationInformation" type="tns:SynchronizationInformationType" minOccurs="0"/>
+            <xsd:element name="actionsExecutedInformation" type="tns:ActionsExecutedInformationType" minOccurs="0"/>
+
+            <xsd:element name="timestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When this information was collected from the "living" task.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="liveInformation" type="xsd:boolean" minOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Source of the information - is it from repository or directly from the "living" task?
+                        TRANSIENT INFORMATION, not stored in the repository. Filled in by task manager when fetching the task.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
 
     <xsd:simpleType name="TaskExecutionStatusType">
         <xsd:annotation>
@@ -12976,10 +13018,17 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="OperationalInformationType">
+    <xsd:complexType name="EnvironmentalPerformanceInformationType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Statistics related to performance and state of external environment, namely provisioning via connectors,
+                mappings (as these might contain code that invokes external systems), and notifications.
+
+                These are meant to diagnose performance problems that could stem from factors that are outside midPoint.
+
+                LastMessage can be used to diagnose seemingly "frozen" midPoint that waits e.g. for completion of an external operation.
+                These messages contain information about start and end of external calls: ICF operations, mappings invocation, notification
+                invocation.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -12988,8 +13037,6 @@
             <xsd:element name="notificationsStatistics" type="tns:NotificationsStatisticsType" minOccurs="0" />
             <xsd:element name="lastMessageTimestamp" type="xsd:dateTime" minOccurs="0" />
             <xsd:element name="lastMessage" type="xsd:string" minOccurs="0" />
-            <xsd:element name="timestamp" type="xsd:dateTime" />
-            <xsd:element name="fromMemory" type="xsd:boolean" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -13094,7 +13141,15 @@
     <xsd:complexType name="IterativeTaskInformationType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                High-level information about execution of actions that are carried out iteratively on a set of objects.
+                This may be any iterative task: live sync, reconciliation, focus recomputation, etc.
+                Even bulk actions can be seen as iterative tasks, even though they can contain multiple nested or subsequent
+                iterations.
+                In future, GUI actions on a set of selected objects can be also described in this structure.
+
+                This type describes processing of the objects as individual and atomic items: it says how many objects
+                were processed successfully or not, how long did it take, and what was last object in each category.
+                Also what is the currently processed object.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -13122,16 +13177,14 @@
             <xsd:element name="currentObjectType" type="xsd:QName" minOccurs="0" />
             <xsd:element name="currentObjectOid" type="xsd:string" minOccurs="0" />
             <xsd:element name="currentObjectStartTimestamp" type="xsd:dateTime" minOccurs="0" />
-
-            <xsd:element name="timestamp" type="xsd:dateTime" />
-            <xsd:element name="fromMemory" type="xsd:boolean" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="SynchronizationInformationType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Information about synchronization situations of objects processed by synchronization-related tasks:
+                live sync, import, reconciliation. Currently it shows just counters for possible sync situations.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -13144,30 +13197,49 @@
             <xsd:element name="countLinked" type="xsd:int" minOccurs="1" />
             <xsd:element name="countUnlinked" type="xsd:int" minOccurs="1" />
             <xsd:element name="countUnmatched" type="xsd:int" minOccurs="1" />
-
-            <xsd:element name="timestamp" type="xsd:dateTime" />
-            <xsd:element name="fromMemory" type="xsd:boolean" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="ActionsExecutedInformationType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Shows what actions were executed. Currently there are only basic actions (ADD, MODIFY, DELETE) carried out on
+                basic categories of objects (object types, e.g. UserType, RoleType, OrgType, ShadowType, ...).
+
+                This gives a quick overview what e.g. import, livesync or reconciliation task is really doing.
+                For example, if it really creates new users, or if it deletes anything, etc.
+
+                Two categories of statistics are described: "all" and "resulting".
+                The former describes all operations carried out, whereas the latter describes only the "high-level" or "externally visible" ones.
+                An example: if a live sync task detects a new resource objects, creates appropriate user, and modifies it twice (because of
+                outbound/inbound/template/etc interplay), the "all" category would contain 1xADD and 2xMODIFY for that user. However,
+                the "resulting" category shows what the external observer would expect - that 1 user was added (so, 1xADD).
+                Note that the behavior of "resulting" action determination is still experimental, and need to be specified more
+                precisely, e.g. with regards to operation failures.
+
+                In future it would be nice to distinguish e.g. between shadows on different resources.
+
+                Also, the semantics of operations on ShadowType should be defined more precisely - namely,
+                whether an operation means "operation on repository shadow" or "operation on resource object".
+                Currently, it means both of them. And some of the shadow related operations are not counted,
+                namely those that are carried out autonomously by the provisioning module - e.g. creating repo
+                shadows when resource objects are discovered. Also, displaying the result of operations that
+                are handled by consistency mechanism is defined quite well.
+
+                Overall, while counters related to focal objects (users, roles, orgs) are relatively well defined,
+                counters related to shadows need some clarification.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="objectActionsEntry" type="tns:ObjectActionsExecutedEntryType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="resultingObjectActionsEntry" type="tns:ObjectActionsExecutedEntryType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="timestamp" type="xsd:dateTime" />
-            <xsd:element name="fromMemory" type="xsd:boolean" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="ObjectActionsExecutedEntryType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Actions executed on a given object type, with given operation (change type) and via given channel.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>

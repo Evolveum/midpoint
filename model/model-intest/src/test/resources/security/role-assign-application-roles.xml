@@ -34,6 +34,12 @@
 	    				<q:value>application</q:value>
 	    			</q:equal>
 	    			<q:equal>
+	    				<!-- This role does not even exists. 
+	    				     But it does not change the result and it replicates MID-2549 -->
+	    				<q:path>name</q:path>
+	    				<q:value>nonexistent</q:value>
+	    			</q:equal>
+	    			<q:equal>
 	    				<!-- This role type does not even exists. 
 	    				     But it does not change the result and it replicates MID-2549 -->
 	    				<q:path>roleType</q:path>

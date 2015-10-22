@@ -28,6 +28,7 @@ import com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensContextPlaceholder;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
+import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -82,8 +83,11 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
     private ObjectResolver objectResolver;
     
     @Autowired(required = true)
-    private MappingFactory valueConstructionFactory;
-    
+    private MappingFactory mappingFactory;
+
+    @Autowired(required = true)
+    private MappingEvaluator mappingEvaluator;
+
     @Autowired(required = true)
     private UserComputer userComputer;
     
@@ -170,7 +174,8 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         assignmentEvaluator.setChannel(null);
         assignmentEvaluator.setObjectResolver(objectResolver);
         assignmentEvaluator.setPrismContext(prismContext);
-        assignmentEvaluator.setMappingFactory(valueConstructionFactory);
+        assignmentEvaluator.setMappingFactory(mappingFactory);
+        assignmentEvaluator.setMappingEvaluator(mappingEvaluator);
         assignmentEvaluator.setActivationComputer(activationComputer);
         assignmentEvaluator.setNow(clock.currentTimeXMLGregorianCalendar());
         

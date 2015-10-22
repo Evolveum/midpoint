@@ -65,6 +65,11 @@
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>repo-ninja</artifactId>
             <version>3.3-SNAPSHOT</version>
+        </dependency> 
+    	<dependency><!-- Not used, but required for surefire plugin not to complain -->
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
     <build>

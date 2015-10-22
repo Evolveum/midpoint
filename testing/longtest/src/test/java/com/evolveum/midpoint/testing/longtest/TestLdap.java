@@ -18,10 +18,14 @@ package com.evolveum.midpoint.testing.longtest;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +35,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
 
 import org.apache.commons.io.IOUtils;
@@ -47,16 +52,20 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -124,6 +133,8 @@ public class TestLdap extends AbstractModelIntegrationTest {
     
     protected static final File TASK_DELETE_OPENDJ_ACCOUNTS_FILE = new File(TEST_DIR, "task-delete-opendj-accounts.xml");
     protected static final String TASK_DELETE_OPENDJ_ACCOUNTS_OID = "b22c5d72-18d4-11e5-b266-001e8c717e5b";
+    
+    public static final String DOT_JPG_FILENAME = "src/test/resources/common/dot.jpg";
 	
 	// Make it at least 1501 so it will go over the 3000 entries size limit
 	private static final int NUM_LDAP_ENTRIES = 1600;
@@ -224,12 +235,13 @@ public class TestLdap extends AbstractModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        String accountDn = assertOpenDjAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
+        String accountDn = assertOpenDjAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true).getDN().toString();
         openDJController.assertUniqueMember(LDAP_GROUP_PIRATES_DN, accountDn);
 	}
 	
 	/**
-	 * Just a first step for the following test
+	 * Just a first step for the following test.
+	 * Also, Guybrush has a photo. Check that binary property mapping works.
 	 */
 	@Test
     public void test202AssignLdapAccountToGuybrush() throws Exception {
@@ -240,6 +252,19 @@ public class TestLdap extends AbstractModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestLdap.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
+        byte[] photoIn = Files.readAllBytes(Paths.get(DOT_JPG_FILENAME));
+		display("Photo in", MiscUtil.binaryToHex(photoIn));
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_JPEG_PHOTO, task, result, 
+        		photoIn);
+        
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
+        		UserType.F_JPEG_PHOTO, GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+		PrismObject<UserType> userBefore = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, options, task, result);
+        display("User before", userBefore);
+        byte[] userJpegPhotoBefore = userBefore.asObjectable().getJpegPhoto();
+        assertEquals("Photo byte length changed (user before)", photoIn.length, userJpegPhotoBefore.length);
+		assertTrue("Photo bytes do not match (user before)", Arrays.equals(photoIn, userJpegPhotoBefore));
+        
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         assignAccount(USER_GUYBRUSH_OID, RESOURCE_OPENDJ_OID, null, task, result);
@@ -249,7 +274,26 @@ public class TestLdap extends AbstractModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        String accountDn = assertOpenDjAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
+        Entry entry = assertOpenDjAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
+        byte[] jpegPhotoLdap = OpenDJController.getAttributeValueBinary(entry, "jpegPhoto");
+		assertNotNull("No jpegPhoto in LDAP entry", jpegPhotoLdap);
+		assertEquals("Byte length changed (LDAP)", photoIn.length, jpegPhotoLdap.length);
+		assertTrue("Bytes do not match (LDAP)", Arrays.equals(photoIn, jpegPhotoLdap));
+		
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, options, task, result);
+		display("User after", userAfter);
+		String accountOid = getSingleLinkOid(userAfter);
+		PrismObject<ShadowType> shadow = getShadowModel(accountOid);
+		
+		PrismContainer<?> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+		QName jpegPhotoQName = new QName(RESOURCE_OPENDJ_NAMESPACE, "jpegPhoto");
+		PrismProperty<byte[]> jpegPhotoAttr = attributesContainer.findProperty(jpegPhotoQName);
+		byte[] photoBytesOut = jpegPhotoAttr.getValues().get(0).getValue();
+		
+		display("Photo bytes out", MiscUtil.binaryToHex(photoBytesOut));
+		
+		assertEquals("Photo byte length changed (shadow)", photoIn.length, photoBytesOut.length);
+		assertTrue("Photo bytes do not match (shadow)", Arrays.equals(photoIn, photoBytesOut));
 	}
 
 	/**
@@ -280,7 +324,7 @@ public class TestLdap extends AbstractModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        String accountDn = assertOpenDjAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
+        String accountDn = assertOpenDjAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true).getDN().toString();
         openDJController.assertUniqueMember(LDAP_GROUP_PIRATES_DN, accountDn);
 	}
 

@@ -18,7 +18,6 @@ package com.evolveum.midpoint.schema.statistics;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
 
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.namespace.QName;
@@ -30,7 +29,7 @@ import java.util.Date;
 public class IterativeTaskInformation {
 
     /*
-     * Thread safety: Just like OperationalInformation, instances of this class may be accessed from
+     * Thread safety: Just like EnvironmentalPerformanceInformation, instances of this class may be accessed from
      * more than one thread at once. Updates are invoked in the context of the thread executing the task.
      * Queries are invoked either from this thread, or from some observer (task manager or GUI thread).
      */
@@ -77,14 +76,12 @@ public class IterativeTaskInformation {
 
     public synchronized IterativeTaskInformationType getDeltaValue() {
         IterativeTaskInformationType rv = toIterativeTaskInformationType();
-        rv.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
         return rv;
     }
 
     public synchronized IterativeTaskInformationType getAggregatedValue() {
         IterativeTaskInformationType delta = toIterativeTaskInformationType();
         IterativeTaskInformationType rv = aggregate(startValue, delta);
-        rv.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
         return rv;
     }
 

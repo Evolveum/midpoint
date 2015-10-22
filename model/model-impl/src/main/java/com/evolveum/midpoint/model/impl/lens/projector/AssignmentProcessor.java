@@ -152,6 +152,9 @@ public class AssignmentProcessor {
     private MappingFactory mappingFactory;
     
     @Autowired(required = true)
+    private MappingEvaluator mappingEvaluator;
+    
+    @Autowired(required = true)
     private ProvisioningService provisioningService;
     
     @Autowired(required = true)
@@ -270,6 +273,7 @@ public class AssignmentProcessor {
         assignmentEvaluator.setObjectResolver(objectResolver);
         assignmentEvaluator.setPrismContext(prismContext);
         assignmentEvaluator.setMappingFactory(mappingFactory);
+        assignmentEvaluator.setMappingEvaluator(mappingEvaluator);
         assignmentEvaluator.setActivationComputer(activationComputer);
         assignmentEvaluator.setNow(now);
         assignmentEvaluator.setSystemConfiguration(context.getSystemConfiguration());
@@ -1339,7 +1343,6 @@ public class AssignmentProcessor {
 
             LOGGER.trace("Reconciliation requested, collecting all non-negative values");
 
-            ItemDelta orgRefDelta = orgRefDef.createEmptyDelta(orgRefPath);
             Set<PrismReferenceValue> valuesToReplace = new HashSet<>();
 
             for (EvaluatedAssignmentImpl assignment : evaluatedAssignmentTriple.getNonNegativeValues()) {
@@ -1349,15 +1352,36 @@ public class AssignmentProcessor {
                     valuesToReplace.add(canonical);     // if valuesToReplace would be a list, we should check for duplicates!
                 }
             }
-            orgRefDelta.setValuesToReplace(valuesToReplace);
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Created parentOrgRef delta:\n{}", orgRefDelta.debugDump());
-            }
-            focusContext.swallowToProjectionWaveSecondaryDelta(orgRefDelta);
+			PrismObject<F> objectNew = focusContext.getObjectNew();
+			if (parentOrgRefDiffers(objectNew, valuesToReplace)) {
+				ItemDelta orgRefDelta = orgRefDef.createEmptyDelta(orgRefPath);
+				orgRefDelta.setValuesToReplace(valuesToReplace);
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Created parentOrgRef delta:\n{}", orgRefDelta.debugDump());
+				}
+				focusContext.swallowToProjectionWaveSecondaryDelta(orgRefDelta);
+			} else {
+				LOGGER.trace("Computed parentOrgRef is the same as the value in objectNew -- skipping application of the delta");
+			}
         }
         LOGGER.trace("Processing org assignments into parentOrgRef delta(s) done.");
 	}
-	
+
+	private <F extends ObjectType> boolean parentOrgRefDiffers(PrismObject<F> objectNew, Set<PrismReferenceValue> valuesToReplace) {
+		if (objectNew == null) {
+			return true;		// the result is probably irrelevant, as the object is going to be deleted - but it's safer not to skip parentOrgRef delta
+		}
+		PrismReference parentOrgRef = objectNew.findReference(ObjectType.F_PARENT_ORG_REF);
+		List<PrismReferenceValue> existingValues;
+		if (parentOrgRef != null) {
+			existingValues = parentOrgRef.getValues();
+		} else {
+			existingValues = new ArrayList<>();
+		}
+		boolean equal = MiscUtil.unorderedCollectionEquals(existingValues, valuesToReplace);
+		return !equal;
+	}
+
 	public <F extends ObjectType> void checkForAssignmentConflicts(LensContext<F> context, 
 			OperationResult result) throws PolicyViolationException {
 		for(LensProjectionContext projectionContext: context.getProjectionContexts()) {

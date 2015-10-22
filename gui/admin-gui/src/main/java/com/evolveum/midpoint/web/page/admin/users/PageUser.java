@@ -42,7 +42,7 @@ import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.component.UserSummaryPanel;
-import com.evolveum.midpoint.web.page.admin.users.dto.FocusShadowDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.FocusProjectionDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -136,11 +136,11 @@ public class PageUser extends PageAdminFocus<UserType> {
         }
     }
 
-    private List<FocusShadowDto> getSelectedAccounts() {
-        List<FocusShadowDto> selected = new ArrayList<FocusShadowDto>();
+    private List<FocusProjectionDto> getSelectedAccounts() {
+        List<FocusProjectionDto> selected = new ArrayList<FocusProjectionDto>();
 
-        List<FocusShadowDto> all = getFocusShadows();
-        for (FocusShadowDto account : all) {
+        List<FocusProjectionDto> all = getFocusShadows();
+        for (FocusProjectionDto account : all) {
             if (account.isLoadedOK() && account.getObject().isSelected()) {
                 selected.add(account);
             }

@@ -441,12 +441,26 @@ public class PrismAsserts {
 		return delta;
 	}
 	
+	public static <T> void assertOrigin(ObjectDelta<?> objectDelta, final OriginType... expectedOriginTypes) {
+		assertOrigin(objectDelta, null, expectedOriginTypes);
+	}
+	
 	public static <T> void assertOrigin(Visitable visitableItem, final OriginType... expectedOriginTypes) {
 		assertOrigin(visitableItem, null, expectedOriginTypes);
 	}
 	
-	public static <T> void assertOrigin(final Visitable visitableItem, final Objectable expectedOriginObject, final OriginType... expectedOriginTypes) {
-		Visitor visitor = new Visitor() {
+	public static void assertOrigin(ObjectDelta<?> objectDelta, final Objectable expectedOriginObject, final OriginType... expectedOriginTypes) {
+		Visitor visitor = createOriginVisitor(objectDelta, expectedOriginObject, expectedOriginTypes);
+		objectDelta.accept(visitor, false);
+	}
+	
+	public static <T> void assertOrigin(Visitable visitableItem, final Objectable expectedOriginObject, final OriginType... expectedOriginTypes) {
+		Visitor visitor = createOriginVisitor(visitableItem, expectedOriginObject, expectedOriginTypes);
+		visitableItem.accept(visitor);
+	}
+	
+	private static <T> Visitor createOriginVisitor(final Visitable visitableItem, final Objectable expectedOriginObject, final OriginType... expectedOriginTypes) {
+		return new Visitor() {
 			@Override
 			public void visit(Visitable visitable) {
 				if (visitable instanceof PrismValue) {
@@ -461,7 +475,6 @@ public class PrismAsserts {
 				}
 			}
 		};
-		visitableItem.accept(visitor);
 	}
 	
 	public static void asserHasDelta(String message, Collection<? extends ObjectDelta<? extends Objectable>> deltas, ChangeType expectedChangeType, Class<?> expectedClass) {

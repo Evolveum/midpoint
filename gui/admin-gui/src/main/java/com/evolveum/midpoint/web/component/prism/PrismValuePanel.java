@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -77,7 +79,7 @@ import com.evolveum.midpoint.web.component.input.TextAreaPanel;
 import com.evolveum.midpoint.web.component.input.TextDetailsPanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.input.TriStateComboPanel;
-import com.evolveum.midpoint.web.component.input.UploadPanel;
+import com.evolveum.midpoint.web.component.input.UploadDownloadPanel;
 import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
 import com.evolveum.midpoint.web.component.model.delta.ModificationsPanel;
 import com.evolveum.midpoint.web.component.util.LookupPropertyModel;
@@ -472,8 +474,15 @@ public class PrismValuePanel extends Panel {
                   panel = inputPanel;
                   
               } else if(DOMUtil.XSD_BASE64BINARY.equals(valueType)) {
-                  panel = new UploadPanel(id){
+                  panel = new UploadDownloadPanel(id){
 
+                	  
+                	  @Override
+                	public InputStream getStream() {
+                		return new ByteArrayInputStream((byte[]) ((PrismPropertyValue) model.getObject().getValue()).getValue());
+//                		return super.getStream();
+                	}
+                	  
                       @Override
                       public void updateValue(byte[] file) {
                           ((PrismPropertyValue) model.getObject().getValue()).setValue(file);
@@ -594,8 +603,12 @@ public class PrismValuePanel extends Panel {
 //        	((PrismReferenceDefinition) item.getDefinition()).
         	Class typeFromName = null;
         	PrismContext prismContext = item.getPrismContext();
-        	if (((PrismReferenceDefinition)item.getDefinition()).getTargetTypeName() != null){
-        		 typeFromName = prismContext.getSchemaRegistry().determineCompileTimeClass(((PrismReferenceDefinition) item.getDefinition()).getTargetTypeName());
+            if (prismContext == null) {
+                prismContext = pageBase.getPrismContext();
+            }
+            QName targetTypeName = ((PrismReferenceDefinition) item.getDefinition()).getTargetTypeName();
+            if (targetTypeName != null && prismContext != null) {
+                typeFromName = prismContext.getSchemaRegistry().determineCompileTimeClass(targetTypeName);
         	}
         	final Class typeClass = typeFromName != null ? typeFromName : (item.getDefinition().getTypeClassIfKnown() != null ? item.getDefinition().getTypeClassIfKnown() : FocusType.class);
         	panel = new ValueChoosePanel(id,

@@ -93,6 +93,9 @@ public class CredentialsProcessor {
     private MappingFactory mappingFactory;
     
     @Autowired(required = true)
+    private MappingEvaluator mappingEvaluator;
+    
+    @Autowired(required = true)
     private PasswordPolicyProcessor passwordPolicyProcessor;
 
     public <F extends ObjectType> void processFocusCredentials(LensContext<F> context, 
@@ -223,7 +226,7 @@ public class CredentialsProcessor {
 		};
 		passwordMapping.setStringPolicyResolver(stringPolicyResolver);
 		
-		LensUtil.evaluateMapping(passwordMapping, context, task, result);
+		mappingEvaluator.evaluateMapping(passwordMapping, context, task, result);
         
         PrismProperty<ProtectedStringType> accountPasswordNew = (PrismProperty) passwordMapping.getOutput();
         if (accountPasswordNew == null || accountPasswordNew.isEmpty()) {

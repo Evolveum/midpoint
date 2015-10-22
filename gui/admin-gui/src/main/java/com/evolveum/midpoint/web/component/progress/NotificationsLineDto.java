@@ -16,17 +16,13 @@
 
 package com.evolveum.midpoint.web.component.progress;
 
-import com.evolveum.midpoint.schema.statistics.GenericStatisticsData;
-import com.evolveum.midpoint.schema.statistics.NotificationsStatisticsKey;
-import com.evolveum.midpoint.schema.statistics.OperationalInformation;
+import com.evolveum.midpoint.schema.statistics.EnvironmentalPerformanceInformation;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationsStatisticsEntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationsStatisticsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalInformationType;
-import org.apache.commons.lang.StringUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentalPerformanceInformationType;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Pavol Mederly
@@ -94,9 +90,9 @@ public class NotificationsLineDto {
         return totalTime;
     }
 
-    public static List<NotificationsLineDto> extractFromOperationalInformation(OperationalInformation operationalInformation) {
-        OperationalInformationType operationalInformationType = operationalInformation.getAggregatedValue();
-        NotificationsStatisticsType notificationsStatisticsType = operationalInformationType.getNotificationsStatistics();
+    public static List<NotificationsLineDto> extractFromOperationalInformation(EnvironmentalPerformanceInformation environmentalPerformanceInformation) {
+        EnvironmentalPerformanceInformationType environmentalPerformanceInformationType = environmentalPerformanceInformation.getAggregatedValue();
+        NotificationsStatisticsType notificationsStatisticsType = environmentalPerformanceInformationType.getNotificationsStatistics();
         return extractFromOperationalInformation(notificationsStatisticsType);
     }
 
