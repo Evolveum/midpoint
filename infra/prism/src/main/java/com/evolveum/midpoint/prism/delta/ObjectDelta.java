@@ -90,13 +90,17 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     }
     
     @Override
-    public void accept(Visitor visitor){
+    public void accept(Visitor visitor) {
+    	accept(visitor, true);
+    }
+    
+    public void accept(Visitor visitor, boolean includeOldValues) {
     	visitor.visit(this);
     	if (isAdd()) {
     		objectToAdd.accept(visitor);
     	} else if (isModify()) {
 	    	for (ItemDelta<?,?> delta : getModifications()){
-	    		delta.accept(visitor);
+	    		delta.accept(visitor, includeOldValues);
 	    	}
     	}
     	// Nothing to visit for delete

@@ -146,6 +146,10 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 
 	@Override
 	public void accept(Visitor visitor) {
+		accept(visitor, true);
+	}
+	
+	public void accept(Visitor visitor, boolean includeOldValues) {
 		visitor.visit(this);
 		if (getValuesToAdd() != null) {
 			for (V pval : getValuesToAdd()) {
@@ -162,7 +166,7 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 				pval.accept(visitor);
 			}
 		}
-		if (getEstimatedOldValues() != null) {
+		if (includeOldValues && getEstimatedOldValues() != null) {
 			for (V pval : getEstimatedOldValues()) {
 				pval.accept(visitor);
 			}
