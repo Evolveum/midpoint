@@ -40,6 +40,8 @@ public abstract class AutoCompleteTextPanel<T> extends InputPanel {
 
         AutoCompleteSettings autoCompleteSettings = new AutoCompleteSettings();
         autoCompleteSettings.setShowListOnEmptyInput(true);
+        autoCompleteSettings.setShowListOnFocusGain(true);
+        autoCompleteSettings.setShowCompleteListOnFocusGain(true);
         final AutoCompleteTextField<T> input = new AutoCompleteTextField<T>(ID_INPUT, model, autoCompleteSettings) {
 
             @Override

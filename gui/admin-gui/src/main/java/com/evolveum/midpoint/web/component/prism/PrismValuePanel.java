@@ -29,7 +29,9 @@ import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTextField;
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -545,12 +547,45 @@ public class PrismValuePanel extends Panel {
 
                       panel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<String>(model, baseExpression, lookupTable.asObjectable()), type) {
 
+
                           @Override
                           public Iterator<String> getIterator(String input) {
                               return prepareAutoCompleteList(input, lookupTable).iterator();
                           }
                       };
 
+                      final AutoCompleteTextField component = (AutoCompleteTextField)panel.get(0);
+                      component.add(new OnChangeAjaxBehavior(){
+                          @Override
+                          protected void onUpdate(AjaxRequestTarget target) {
+                                            ValueWrapper valueWrapper = model.getObject();
+                                            valueWrapper.getItem();
+                                            Iterator<String> lookupTableValuesIterator = prepareAutoCompleteList("", lookupTable).iterator();
+
+                                            String value = component.getInput();
+                                            boolean isValueExist = false;
+                                            if (value != null) {
+                                                if (value.trim().equals("")){
+                                                    isValueExist = true;
+                                                } else {
+                                                    while (lookupTableValuesIterator.hasNext()) {
+                                                        String lookupTableValue = lookupTableValuesIterator.next();
+                                                        if (value.trim().equals(lookupTableValue)) {
+                                                            isValueExist = true;
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            if (isValueExist){
+                                                component.setModelValue(new String[]{value});
+                                                target.add(PrismValuePanel.this.get(ID_FEEDBACK));
+                                            } else {
+                                                component.error("Entered value doesn't match any of available values and will not be saved.");
+                                                target.add(PrismValuePanel.this.get(ID_FEEDBACK));
+                                            }
+                                        }
+                      });
                   } else {
                       panel = new TextPanel<>(id, new PropertyModel<String>(model, baseExpression), type);
                   }
