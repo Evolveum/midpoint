@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -293,8 +293,9 @@ public class XPathTest {
         AssertJUnit.assertEquals("foo:foofoo/x:bar", xpath.getXPathWithoutDeclarations());
 
         System.out.println("ROUND TRIP: "+xpath.getXPathWithDeclarations());
-        AssertJUnit.assertEquals("declare default namespace 'http://default.com/'; declare namespace foo='http://ff.com/'; declare namespace bar='http://www.b.com'; declare namespace x='http://xxx.com/'; foo:foofoo/x:bar",
-                xpath.getXPathWithDeclarations());
+        AssertJUnit.assertTrue("Unexpected path with declarations: "+xpath.getXPathWithDeclarations(),
+        		   "declare default namespace 'http://default.com/'; declare namespace foo='http://ff.com/'; declare namespace bar='http://www.b.com'; declare namespace x='http://xxx.com/'; foo:foofoo/x:bar".equals(xpath.getXPathWithDeclarations())   // java7
+        		|| "declare default namespace 'http://default.com/'; declare namespace bar='http://www.b.com'; declare namespace foo='http://ff.com/'; declare namespace x='http://xxx.com/'; foo:foofoo/x:bar".equals(xpath.getXPathWithDeclarations())); // java8
         
     }
 
