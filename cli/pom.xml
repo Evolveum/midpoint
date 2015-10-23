@@ -104,4 +104,11 @@
             </resource>
         </resources>
     </build>
+    <dependencies> 
+    	<dependency> <!-- Not used, but required for surefire plugin not to complain -->
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 </project>

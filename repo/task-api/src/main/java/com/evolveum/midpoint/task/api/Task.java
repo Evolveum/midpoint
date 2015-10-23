@@ -745,6 +745,8 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
     void setProgressTransient(long value);
 
+    public OperationStatsType getStoredOperationStats();
+
     /**
      * Returns expected total progress.
      * @return
@@ -945,4 +947,10 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      */
     void startLightweightHandler();
 
+
+    void startCollectingOperationStatsFromZero(boolean enableIterationStatistics, boolean enableSynchronizationStatistics, boolean enableActionsExecutedStatistics);
+
+    void startCollectingOperationStatsFromStoredValues(boolean enableIterationStatistics, boolean enableSynchronizationStatistics, boolean enableActionsExecutedStatistics);
+
+    void storeOperationStats();
 }

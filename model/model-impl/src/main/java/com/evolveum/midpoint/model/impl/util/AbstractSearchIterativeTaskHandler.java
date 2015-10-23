@@ -144,12 +144,17 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 	@Override
 	public TaskRunResult run(Task coordinatorTask) {
         LOGGER.trace("{} run starting (coordinator task {})", taskName, coordinatorTask);
-        TaskHandlerUtil.fetchAllStatistics(coordinatorTask, isPreserveStatistics(), isEnableIterationStatistics(), isEnableSynchronizationStatistics(),
-                isEnableActionsExecutedStatistics());
+        if (isPreserveStatistics()) {
+            coordinatorTask.startCollectingOperationStatsFromStoredValues(isEnableIterationStatistics(), isEnableSynchronizationStatistics(),
+                    isEnableActionsExecutedStatistics());
+        } else {
+            coordinatorTask.startCollectingOperationStatsFromZero(isEnableIterationStatistics(), isEnableSynchronizationStatistics(),
+                    isEnableActionsExecutedStatistics());
+        }
         try {
             return runInternal(coordinatorTask);
         } finally {
-            TaskHandlerUtil.storeAllStatistics(coordinatorTask, isEnableIterationStatistics(), isEnableSynchronizationStatistics(), isEnableActionsExecutedStatistics());
+            coordinatorTask.storeOperationStats();
         }
     }
 

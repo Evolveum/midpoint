@@ -16,17 +16,13 @@
 
 package com.evolveum.midpoint.web.component.progress;
 
-import com.evolveum.midpoint.schema.statistics.GenericStatisticsData;
-import com.evolveum.midpoint.schema.statistics.MappingsStatisticsKey;
-import com.evolveum.midpoint.schema.statistics.OperationalInformation;
+import com.evolveum.midpoint.schema.statistics.EnvironmentalPerformanceInformation;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsStatisticsEntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsStatisticsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalInformationType;
-import org.apache.commons.lang.StringUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentalPerformanceInformationType;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Pavol Mederly
@@ -86,9 +82,9 @@ public class MappingsLineDto {
         return totalTime;
     }
 
-    public static List<MappingsLineDto> extractFromOperationalInformation(OperationalInformation operationalInformation) {
-        OperationalInformationType operationalInformationType = operationalInformation.getAggregatedValue();
-        MappingsStatisticsType mappingsStatisticsType = operationalInformationType.getMappingsStatistics();
+    public static List<MappingsLineDto> extractFromOperationalInformation(EnvironmentalPerformanceInformation environmentalPerformanceInformation) {
+        EnvironmentalPerformanceInformationType environmentalPerformanceInformationType = environmentalPerformanceInformation.getAggregatedValue();
+        MappingsStatisticsType mappingsStatisticsType = environmentalPerformanceInformationType.getMappingsStatistics();
         return extractFromOperationalInformation(mappingsStatisticsType);
     }
 

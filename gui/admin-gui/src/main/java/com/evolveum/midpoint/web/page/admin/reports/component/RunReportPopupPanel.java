@@ -398,7 +398,7 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
             }
         } else {
             for (LookupTableRowType row : rows) {
-                if (WebMiscUtil.getOrigStringFromPoly(row.getLabel()).startsWith(input)) {
+                if (WebMiscUtil.getOrigStringFromPoly(row.getLabel()).toLowerCase().startsWith(input.toLowerCase() )) {
                     values.add(WebMiscUtil.getOrigStringFromPoly(row.getLabel()));
                 }
 

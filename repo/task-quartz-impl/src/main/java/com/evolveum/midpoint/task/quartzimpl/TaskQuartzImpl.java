@@ -44,8 +44,8 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.EnvironmentalPerformanceInformation;
 import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
-import com.evolveum.midpoint.schema.statistics.OperationalInformation;
 import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
 import com.evolveum.midpoint.schema.statistics.ActionsExecutedInformation;
 import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
@@ -75,8 +75,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentalPerformanceInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActionsExecutedInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
@@ -129,7 +130,7 @@ public class TaskQuartzImpl implements Task {
 
     private PrismObject<UserType> requestee;                                  // temporary information
 
-	private OperationalInformation operationalInformation = new OperationalInformation();
+	private EnvironmentalPerformanceInformation environmentalPerformanceInformation = new EnvironmentalPerformanceInformation();
 	private SynchronizationInformation synchronizationInformation;				// has to be explicitly enabled
 	private IterativeTaskInformation iterativeTaskInformation;					// has to be explicitly enabled
 	private ActionsExecutedInformation actionsExecutedInformation;			// has to be explicitly enabled
@@ -428,7 +429,31 @@ public class TaskQuartzImpl implements Task {
 				taskManager.getTaskObjectDefinition(), TaskType.F_PROGRESS, value) : null;
 	}
 
-    @Override
+	@Override
+	public OperationStatsType getStoredOperationStats() {
+		return taskPrism.asObjectable().getOperationStats();
+	}
+
+	public void setOperationStatsTransient(OperationStatsType value) {
+		try {
+			taskPrism.setPropertyRealValue(TaskType.F_OPERATION_STATS, value);
+		} catch (SchemaException e) {
+			// This should not happen
+			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+		}
+	}
+
+	public void setOperationStats(OperationStatsType value) {
+		processModificationBatched(setOperationStatsAndPrepareDelta(value));
+	}
+
+	private PropertyDelta<?> setOperationStatsAndPrepareDelta(OperationStatsType value) {
+		setOperationStatsTransient(value);
+		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
+				taskManager.getTaskObjectDefinition(), TaskType.F_OPERATION_STATS, value) : null;
+	}
+
+	@Override
     public Long getExpectedTotal() {
         Long value = taskPrism.getPropertyRealValue(TaskType.F_EXPECTED_TOTAL, Long.class);
         return value != null ? value : 0;
@@ -2562,8 +2587,8 @@ public class TaskQuartzImpl implements Task {
 
 	// Operational data
 
-	private OperationalInformation getOperationalInformation() {
-		return operationalInformation;
+	private EnvironmentalPerformanceInformation getEnvironmentalPerformanceInformation() {
+		return environmentalPerformanceInformation;
 	}
 
 	private SynchronizationInformation getSynchronizationInformation() {
@@ -2579,24 +2604,39 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	@Override
-	public OperationalInformationType getAggregateOperationalInformation() {
-		if (operationalInformation == null) {
+	public OperationStatsType getAggregatedLiveOperationStats() {
+		EnvironmentalPerformanceInformationType env = getAggregateEnvironmentalPerformanceInformation();
+		IterativeTaskInformationType itit = getAggregateIterativeTaskInformation();
+		SynchronizationInformationType sit = getAggregateSynchronizationInformation();
+		ActionsExecutedInformationType aeit = getAggregateActionsExecutedInformation();
+		if (env == null && itit == null && sit == null && aeit == null) {
 			return null;
 		}
-		OperationalInformationType rv = new OperationalInformationType();
-		OperationalInformation.addTo(rv, operationalInformation.getAggregatedValue());
-		for (Task subtask : getLightweightAsynchronousSubtasks()) {
-			OperationalInformation info = ((TaskQuartzImpl) subtask).getOperationalInformation();
-			if (info != null) {
-				OperationalInformation.addTo(rv, info.getAggregatedValue());
-			}
-		}
+		OperationStatsType rv = new OperationStatsType();
+		rv.setEnvironmentalPerformanceInformation(env);
+		rv.setIterativeTaskInformation(itit);
+		rv.setSynchronizationInformation(sit);
+		rv.setActionsExecutedInformation(aeit);
 		rv.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
 		return rv;
 	}
 
-	@Override
-	public IterativeTaskInformationType getAggregateIterativeTaskInformation() {
+	private EnvironmentalPerformanceInformationType getAggregateEnvironmentalPerformanceInformation() {
+		if (environmentalPerformanceInformation == null) {
+			return null;
+		}
+		EnvironmentalPerformanceInformationType rv = new EnvironmentalPerformanceInformationType();
+		EnvironmentalPerformanceInformation.addTo(rv, environmentalPerformanceInformation.getAggregatedValue());
+		for (Task subtask : getLightweightAsynchronousSubtasks()) {
+			EnvironmentalPerformanceInformation info = ((TaskQuartzImpl) subtask).getEnvironmentalPerformanceInformation();
+			if (info != null) {
+				EnvironmentalPerformanceInformation.addTo(rv, info.getAggregatedValue());
+			}
+		}
+		return rv;
+	}
+
+	private IterativeTaskInformationType getAggregateIterativeTaskInformation() {
 		if (iterativeTaskInformation == null) {
 			return null;
 		}
@@ -2608,12 +2648,10 @@ public class TaskQuartzImpl implements Task {
 				IterativeTaskInformation.addTo(rv, info.getAggregatedValue(), false);
 			}
 		}
-		rv.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
 		return rv;
 	}
 
-	@Override
-	public SynchronizationInformationType getAggregateSynchronizationInformation() {
+	private SynchronizationInformationType getAggregateSynchronizationInformation() {
 		if (synchronizationInformation == null) {
 			return null;
 		}
@@ -2625,12 +2663,10 @@ public class TaskQuartzImpl implements Task {
 				SynchronizationInformation.addTo(rv, info.getAggregatedValue());
 			}
 		}
-		rv.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
 		return rv;
 	}
 
-	@Override
-	public ActionsExecutedInformationType getAggregateActionsExecutedInformation() {
+	private ActionsExecutedInformationType getAggregateActionsExecutedInformation() {
 		if (actionsExecutedInformation == null) {
 			return null;
 		}
@@ -2642,7 +2678,6 @@ public class TaskQuartzImpl implements Task {
 				ActionsExecutedInformation.addTo(rv, info.getAggregatedValue());
 			}
 		}
-		rv.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
 		return rv;
 	}
 
@@ -2654,22 +2689,22 @@ public class TaskQuartzImpl implements Task {
 		if (PERFORMANCE_ADVISOR.isDebugEnabled()) {
 			PERFORMANCE_ADVISOR.debug("{}", message);
 		}
-		operationalInformation.recordState(message);
+		environmentalPerformanceInformation.recordState(message);
 	}
 
 	@Override
 	public void recordProvisioningOperation(String resourceOid, String resourceName, QName objectClassName, ProvisioningOperation operation, boolean success, int count, long duration) {
-		operationalInformation.recordProvisioningOperation(resourceOid, resourceName, objectClassName, operation, success, count, duration);
+		environmentalPerformanceInformation.recordProvisioningOperation(resourceOid, resourceName, objectClassName, operation, success, count, duration);
 	}
 
 	@Override
 	public void recordNotificationOperation(String transportName, boolean success, long duration) {
-		operationalInformation.recordNotificationOperation(transportName, success, duration);
+		environmentalPerformanceInformation.recordNotificationOperation(transportName, success, duration);
 	}
 
 	@Override
 	public void recordMappingOperation(String objectOid, String objectName, String mappingName, long duration) {
-		operationalInformation.recordMappingOperation(objectOid, objectName, mappingName, duration);
+		environmentalPerformanceInformation.recordMappingOperation(objectOid, objectName, mappingName, duration);
 	}
 
 	@Override
@@ -2769,8 +2804,8 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	@Override
-	public void resetOperationalInformation(OperationalInformationType value) {
-		operationalInformation = new OperationalInformation(value);
+	public void resetEnvironmentalPerformanceInformation(EnvironmentalPerformanceInformationType value) {
+		environmentalPerformanceInformation = new EnvironmentalPerformanceInformation(value);
 	}
 
 	@Override
@@ -2786,5 +2821,53 @@ public class TaskQuartzImpl implements Task {
 	@Override
 	public void resetActionsExecutedInformation(ActionsExecutedInformationType value) {
 		actionsExecutedInformation = new ActionsExecutedInformation(value);
+	}
+
+	@Override
+	public void startCollectingOperationStatsFromZero(boolean enableIterationStatistics, boolean enableSynchronizationStatistics, boolean enableActionsExecutedStatistics) {
+		resetEnvironmentalPerformanceInformation(null);
+		if (enableIterationStatistics) {
+			resetIterativeTaskInformation(null);
+		}
+		if (enableSynchronizationStatistics) {
+			resetSynchronizationInformation(null);
+		}
+		if (enableActionsExecutedStatistics) {
+			resetActionsExecutedInformation(null);
+		}
+	}
+
+	@Override
+	public void startCollectingOperationStatsFromStoredValues(boolean enableIterationStatistics, boolean enableSynchronizationStatistics, boolean enableActionsExecutedStatistics) {
+		OperationStatsType stored = getStoredOperationStats();
+		if (stored == null) {
+			stored = new OperationStatsType();
+		}
+		resetEnvironmentalPerformanceInformation(stored.getEnvironmentalPerformanceInformation());
+		if (enableIterationStatistics) {
+			resetIterativeTaskInformation(stored.getIterativeTaskInformation());
+		} else {
+			iterativeTaskInformation = null;
+		}
+		if (enableSynchronizationStatistics) {
+			resetSynchronizationInformation(stored.getSynchronizationInformation());
+		} else {
+			synchronizationInformation = null;
+		}
+		if (enableActionsExecutedStatistics) {
+			resetActionsExecutedInformation(stored.getActionsExecutedInformation());
+		} else {
+			actionsExecutedInformation = null;
+		}
+	}
+
+	@Override
+	public void storeOperationStats() {
+		try {
+			setOperationStats(getAggregatedLiveOperationStats());
+			savePendingModifications(new OperationResult(DOT_INTERFACE + ".storeOperationStats"));    // TODO fixme
+		} catch (SchemaException|ObjectNotFoundException |ObjectAlreadyExistsException |RuntimeException e) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't store statistical information into task {}", e, this);
+		}
 	}
 }

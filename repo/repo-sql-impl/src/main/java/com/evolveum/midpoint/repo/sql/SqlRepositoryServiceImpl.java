@@ -1153,6 +1153,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Collection<SelectorOptions<GetOperationOptions>> filtered = SelectorOptions.filterRetrieveOptions(options);
         for (SelectorOptions<GetOperationOptions> option : filtered) {
             ObjectSelector selector = option.getSelector();
+            if (selector == null) {
+            	// Ignore this. These are top-level options. There will not
+            	// apply to lookup table
+            	continue;
+            }
             ItemPath selected = selector.getPath();
 
             if (tablePath.equivalent(selected)) {

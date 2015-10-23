@@ -17,12 +17,11 @@
 package com.evolveum.midpoint.web.component.progress;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.statistics.OperationalInformation;
+import com.evolveum.midpoint.schema.statistics.EnvironmentalPerformanceInformation;
 import com.evolveum.midpoint.schema.statistics.StatusMessage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentalPerformanceInformationType;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -36,7 +35,7 @@ public class StatisticsDto implements Serializable {
     public static final String F_NOTIFICATIONS_LINES = "notificationsLines";
     public static final String F_LAST_MESSAGE = "lastMessage";
 
-    private OperationalInformationType operationalInformationType;
+    private EnvironmentalPerformanceInformationType environmentalPerformanceInformationType;
     private List<ProvisioningStatisticsLineDto> provisioningLines;
     private List<MappingsLineDto> mappingsLines;
     private List<NotificationsLineDto> notificationsLines;
@@ -45,24 +44,24 @@ public class StatisticsDto implements Serializable {
     public StatisticsDto() {
     }
 
-    public StatisticsDto(OperationalInformationType operationalInformationType) {
-        this.operationalInformationType = operationalInformationType;
-        provisioningLines = ProvisioningStatisticsLineDto.extractFromOperationalInformation(operationalInformationType.getProvisioningStatistics());
-        mappingsLines = MappingsLineDto.extractFromOperationalInformation(operationalInformationType.getMappingsStatistics());
-        notificationsLines = NotificationsLineDto.extractFromOperationalInformation(operationalInformationType.getNotificationsStatistics());
-        lastMessage = extractLastMessageFromOperationalInformation(operationalInformationType);
+    public StatisticsDto(EnvironmentalPerformanceInformationType environmentalPerformanceInformationType) {
+        this.environmentalPerformanceInformationType = environmentalPerformanceInformationType;
+        provisioningLines = ProvisioningStatisticsLineDto.extractFromOperationalInformation(environmentalPerformanceInformationType.getProvisioningStatistics());
+        mappingsLines = MappingsLineDto.extractFromOperationalInformation(environmentalPerformanceInformationType.getMappingsStatistics());
+        notificationsLines = NotificationsLineDto.extractFromOperationalInformation(environmentalPerformanceInformationType.getNotificationsStatistics());
+        lastMessage = extractLastMessageFromOperationalInformation(environmentalPerformanceInformationType);
     }
 
-    private String extractLastMessageFromOperationalInformation(OperationalInformationType operationalInformationType) {
-        if (operationalInformationType.getLastMessageTimestamp() == null) {
+    private String extractLastMessageFromOperationalInformation(EnvironmentalPerformanceInformationType environmentalPerformanceInformationType) {
+        if (environmentalPerformanceInformationType.getLastMessageTimestamp() == null) {
             return null;
         }
-        Date timestamp = XmlTypeConverter.toDate(operationalInformationType.getLastMessageTimestamp());
-        return timestamp + ": " + operationalInformationType.getLastMessage();
+        Date timestamp = XmlTypeConverter.toDate(environmentalPerformanceInformationType.getLastMessageTimestamp());
+        return timestamp + ": " + environmentalPerformanceInformationType.getLastMessage();
     }
 
-    private String extractLastMessageFromOperationalInformation(OperationalInformation operationalInformation) {
-        StatusMessage lastStatusMessage = operationalInformation.getLastMessage();
+    private String extractLastMessageFromOperationalInformation(EnvironmentalPerformanceInformation environmentalPerformanceInformation) {
+        StatusMessage lastStatusMessage = environmentalPerformanceInformation.getLastMessage();
         if (lastStatusMessage == null) {
             return null;
         }
@@ -101,7 +100,7 @@ public class StatisticsDto implements Serializable {
         this.lastMessage = lastMessage;
     }
 
-    public OperationalInformationType getOperationalInformationType() {
-        return operationalInformationType;
+    public EnvironmentalPerformanceInformationType getEnvironmentalPerformanceInformationType() {
+        return environmentalPerformanceInformationType;
     }
 }

@@ -43,8 +43,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInforma
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentalPerformanceInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActionsExecutedInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
@@ -666,19 +667,8 @@ public class SimpleTaskAdapter implements Task {
     public void startLightweightHandler() {
     }
 
-
     @Override
-    public OperationalInformationType getAggregateOperationalInformation() {
-        return null;
-    }
-
-    @Override
-    public IterativeTaskInformationType getAggregateIterativeTaskInformation() {
-        return null;
-    }
-
-    @Override
-    public SynchronizationInformationType getAggregateSynchronizationInformation() {
+    public OperationStatsType getAggregatedLiveOperationStats() {
         return null;
     }
 
@@ -722,7 +712,7 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public void resetOperationalInformation(OperationalInformationType value) {
+    public void resetEnvironmentalPerformanceInformation(EnvironmentalPerformanceInformationType value) {
     }
 
     @Override
@@ -750,11 +740,6 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public ActionsExecutedInformationType getAggregateActionsExecutedInformation() {
-        return null;
-    }
-
-    @Override
     public void recordObjectActionExecuted(String objectName, String objectDisplayName, QName objectType, String objectOid, ChangeType changeType, String channel, Throwable exception) {
     }
 
@@ -776,5 +761,25 @@ public class SimpleTaskAdapter implements Task {
 
     @Override
     public void markObjectActionExecutedBoundary() {
+    }
+
+    @Override
+    public OperationStatsType getStoredOperationStats() {
+        return null;
+    }
+
+    @Override
+    public void startCollectingOperationStatsFromZero(boolean enableIterationStatistics, boolean enableSynchronizationStatistics, boolean enableActionsExecutedStatistics) {
+
+    }
+
+    @Override
+    public void startCollectingOperationStatsFromStoredValues(boolean enableIterationStatistics, boolean enableSynchronizationStatistics, boolean enableActionsExecutedStatistics) {
+
+    }
+
+    @Override
+    public void storeOperationStats() {
+
     }
 }
