@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package com.evolveum.midpoint.model.intest;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.assertFalse;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -170,6 +172,37 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         
 		assertEncryptedPassword(userJack, USER_PASSWORD_1_CLEAR);
 		assertPasswordMetadata(userJack, false, startCal, endCal);
+	}
+	
+	@Test
+    public void test060CheckJackPasswordModelInteraction() throws Exception {
+		final String TEST_NAME = "test060CheckJackPasswordModelInteraction";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestPassword.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        
+		// WHEN, THEN
+        ProtectedStringType userPasswordPsGood = new ProtectedStringType();
+        userPasswordPsGood.setClearValue(USER_PASSWORD_1_CLEAR);
+        assertTrue("Good password check failed",
+        		modelInteractionService.checkPassword(USER_JACK_OID, userPasswordPsGood, task, result));
+        
+        ProtectedStringType userPasswordPsBad = new ProtectedStringType();
+        userPasswordPsBad.setClearValue("this is not a password");        
+        assertFalse("Bad password check failed",
+        		modelInteractionService.checkPassword(USER_JACK_OID, userPasswordPsBad, task, result));
+
+        ProtectedStringType userPasswordPsEmpty = new ProtectedStringType();
+        assertFalse("Empty password check failed",
+        		modelInteractionService.checkPassword(USER_JACK_OID, userPasswordPsEmpty, task, result));
+        
+        assertFalse("Null password check failed",
+        		modelInteractionService.checkPassword(USER_JACK_OID, null, task, result));
+
 	}
 	
 

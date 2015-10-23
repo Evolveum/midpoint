@@ -45,6 +45,8 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AllFilter;
@@ -75,6 +77,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
@@ -99,6 +102,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * @author semancik
@@ -130,6 +134,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;
+	
+	@Autowired(required = true)
+	private Protector protector;
 
 	@Autowired(required = true)
 	private PrismContext prismContext;
@@ -547,6 +554,33 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			return null;
 		}
 		return systemConfiguration.asObjectable().getAdminGuiConfiguration();
+	}
+
+	@Override
+	public boolean checkPassword(String userOid, ProtectedStringType password, Task task, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException {
+		OperationResult result = parentResult.createMinorSubresult(CHECK_PASSWORD);
+		UserType userType;
+		try {
+			 userType = objectResolver.getObjectSimple(UserType.class, userOid, null, task, result);
+		} catch (ObjectNotFoundException e) {
+			result.recordFatalError(e);
+			throw e;
+		}
+		if (userType.getCredentials() == null || userType.getCredentials().getPassword() == null 
+				|| userType.getCredentials().getPassword().getValue() == null) {
+			return password == null;
+		}
+		ProtectedStringType currentPassword = userType.getCredentials().getPassword().getValue();
+		boolean cmp;
+		try {
+			cmp = protector.compare(password, currentPassword);
+		} catch (EncryptionException e) {
+			result.recordFatalError(e);
+			throw new SystemException(e.getMessage(),e);
+		}
+		result.recordSuccess();
+		return cmp;
 	}
 
 }
