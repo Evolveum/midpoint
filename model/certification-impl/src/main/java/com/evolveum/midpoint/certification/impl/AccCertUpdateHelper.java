@@ -216,7 +216,7 @@ public class AccCertUpdateHelper {
         repositoryService.modifyObject(AccessCertificationCampaignType.class, campaign.getOid(),
                 Arrays.asList(stateDelta, stageNumberDelta, triggerDelta), result);
 
-        AccessCertificationCampaignType updatedCampaign = updateCampaign(campaign, task, result);
+        AccessCertificationCampaignType updatedCampaign = refreshCampaign(campaign, task, result);
 //        if (currentState == IN_REMEDIATION) {
 //            eventHelper.onCampaignStageEnd(updatedCampaign, task, result);
 //        }
@@ -224,7 +224,7 @@ public class AccCertUpdateHelper {
     }
 
     // TODO implement more efficiently
-    public AccessCertificationCampaignType updateCampaign(AccessCertificationCampaignType campaign, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+    public AccessCertificationCampaignType refreshCampaign(AccessCertificationCampaignType campaign, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
         return repositoryService.getObject(AccessCertificationCampaignType.class, campaign.getOid(), null, result).asObjectable();
     }
 
@@ -523,7 +523,7 @@ public class AccCertUpdateHelper {
         repositoryService.modifyObject(AccessCertificationCampaignType.class, campaign.getOid(), itemDeltaList, result);
 
         // notifications
-        campaign = updateCampaign(campaign, task, result);
+        campaign = refreshCampaign(campaign, task, result);
         if (campaign.getCurrentStageNumber() == 1) {
             eventHelper.onCampaignStart(campaign, task, result);
         }
@@ -544,7 +544,7 @@ public class AccCertUpdateHelper {
         campaignDeltaList.add(triggerDelta);
         repositoryService.modifyObject(AccessCertificationCampaignType.class, campaign.getOid(), campaignDeltaList, result);
 
-        campaign = updateCampaign(campaign, task, result);
+        campaign = refreshCampaign(campaign, task, result);
         eventHelper.onCampaignStageEnd(campaign, task, result);
     }
 

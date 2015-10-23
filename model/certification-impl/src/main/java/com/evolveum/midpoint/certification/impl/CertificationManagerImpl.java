@@ -279,7 +279,7 @@ public class CertificationManagerImpl implements CertificationManager {
                 }
                 updateHelper.setStageNumberAndState(campaign, lastStageNumber + 1, IN_REMEDIATION, task, result);
 
-                campaign = updateHelper.updateCampaign(campaign, task, result);
+                campaign = updateHelper.refreshCampaign(campaign, task, result);
                 eventHelper.onCampaignStageStart(campaign, task, result);
             }
         } catch (RuntimeException e) {
