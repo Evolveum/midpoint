@@ -395,6 +395,10 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     	ItemDelta.removeItemDelta(modifications, propertyPath, deltaType);
     }
     
+    public <D extends ItemDelta> void removeModification(ItemDelta<?,?> itemDelta) {
+    	ItemDelta.removeItemDelta(modifications, itemDelta);
+    }
+    
     private <D extends ItemDelta> void removeModification(QName itemName, Class<D> deltaType) {
     	removeModification(new ItemPath(itemName), deltaType);
     }
