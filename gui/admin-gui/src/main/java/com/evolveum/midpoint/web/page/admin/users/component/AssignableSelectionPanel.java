@@ -25,6 +25,7 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Application;
@@ -44,6 +45,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 import javax.xml.namespace.QName;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -172,7 +174,7 @@ public class AssignableSelectionPanel extends AbstractAssignableSelectionPanel {
         return createTable();
 	}
 
-    private List<DisplayableValue<String>> getLookupDisplayableList(){
+    private List<? extends DisplayableValue<String>> getLookupDisplayableList(){
         List<DisplayableValue<String>> list = new ArrayList<>();
         ModelInteractionService interactionService = WebMiscUtil.getPageBase(this).getModelInteractionService();
         OperationResult result = new OperationResult(OPERATION_LOAD_ROLE_TYPES);
@@ -191,7 +193,7 @@ public class AssignableSelectionPanel extends AbstractAssignableSelectionPanel {
 
     private List<String> createAvailableRoleTypesList(){
         List<String> roleTypes = new ArrayList<>();
-        List<DisplayableValue<String>> displayableValues = getLookupDisplayableList();
+        List<? extends DisplayableValue<String>> displayableValues = getLookupDisplayableList();
 
         if (displayableValues != null) {
             for (DisplayableValue<String> displayable : displayableValues) {
