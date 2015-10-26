@@ -41,6 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * A service provided by the IDM Model that allows to improve the (user) interaction with the model.
@@ -61,6 +62,7 @@ public interface ModelInteractionService {
 	static final String GET_EDIT_OBJECT_DEFINITION = CLASS_NAME_WITH_DOT + "getEditObjectDefinition";
 	static final String GET_ASSIGNABLE_ROLE_SPECIFICATION = CLASS_NAME_WITH_DOT + "getAssignableRoleSpecification";
 	static final String GET_CREDENTIALS_POLICY = CLASS_NAME_WITH_DOT + "getCredentialsPolicy";
+	static final String CHECK_PASSWORD = CLASS_NAME_WITH_DOT + "checkPassword";
 	
 	/**
 	 * Computes the most likely changes triggered by the provided delta. The delta may be any change of any object, e.g.
@@ -152,4 +154,18 @@ public interface ModelInteractionService {
      * values applicable for current user, therefore the authorization might be considered to be implicit in this case.
      */
     AdminGuiConfigurationType getAdminGuiConfiguration(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+    
+    /**
+     * Checks if the supplied password matches with current user password. This method is NOT subject to any
+     * password expiration policies, it does not update failed login counters, it does not change any data or meta-data.
+     * This method is NOT SUPPOSED to be used to validate password on login. This method is supposed to check 
+     * old password when the password is changed by the user. We assume that the user already passed normal
+     * system authentication.
+     * 
+     * Note: no authorizations are checked in the implementation. It is assumed that authorizations will be
+     * enforced at the page level.
+     *  
+     * @return true if the password matches, false otherwise
+     */
+    boolean checkPassword(String userOid, ProtectedStringType password, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 }

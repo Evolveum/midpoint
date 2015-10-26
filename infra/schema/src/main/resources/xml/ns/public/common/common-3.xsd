@@ -9449,8 +9449,53 @@
 		<xsd:sequence>
 			<xsd:element name="resetMethod" type="c:CredentialsResetMethodType" minOccurs="0" maxOccurs="1">
 			</xsd:element>
+			<xsd:element name="propagationUserControl" type="c:CredentialsPropagationUserControlType" minOccurs="0" maxOccurs="1" default="userChoice">
+				<xsd:annotation>
+					<xsd:documentation>
+						Constraintes that define how propagation of the credentials can be controled by the
+						user. E.g. if user can choose where the password change will be propagated.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
+	
+	<xsd:simpleType name="CredentialsPropagationUserControlType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Constraintes that define how propagation of credentials can be controled by the
+						user. E.g. if user can choose where the password change will be propagated.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="mapping">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Credentials propagation will be determined by the mappings.
+                		User cannot choose where the credentials will be propagated.
+                		The credentials propagation dialog will not be shown.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MAPPING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="userChoice">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		The user can choose where the credentials will be propagated.
+                		The propagation dialog will be shown.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="USER_CHOICE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 	
 	<xsd:complexType name="CredentialsResetMethodType">
 		<xsd:annotation>
@@ -9536,10 +9581,52 @@
 							</xsd:appinfo>
 					    </xsd:annotation>
 					</xsd:element>
+					<xsd:element name="passwordChangeSecurity" type="c:PasswordChangeSecurityType" minOccurs="0" default="oldPassword">
+						<xsd:annotation>
+							<xsd:documentation>
+								Additional security applied when changing a password.
+								This applies when user is changing his own password. It does NOT apply
+								when administrator changes password of other user.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
+	
+	<xsd:simpleType name="PasswordChangeSecurityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Additional security applied when changing a password.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="none">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		No additional security. Password can be changed by supplying new value.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="oldPassword">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		User must supply old password to change the password.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OLD_PASSWORD"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 	
 	<xsd:complexType name="SecurityQuestionsCredentialsPolicyType">
 		<xsd:annotation>

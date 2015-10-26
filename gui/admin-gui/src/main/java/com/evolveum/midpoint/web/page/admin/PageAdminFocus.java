@@ -529,12 +529,20 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin
 						subResult);
 				LOGGER.trace("Loaded parent org with result {}",
 						new Object[] { subResult.getLastSubresult() });
+			} catch (AuthorizationException e) {
+				// This can happen if the user has permission to read parentOrgRef but it does not have
+				// the permission to read target org
+				// It is OK to just ignore it.
+				subResult.muteLastSubresultError();
+				LOGGER.debug("User {} does not have permission to read parent org unit {} (ignoring error)", task.getOwner().getName(), parentOrgRef.getOid());
 			} catch (Exception ex) {
 				subResult.recordWarning("Cannot load parent org " + parentOrgRef.getOid(), ex);
 				LOGGER.warn("Cannot load parent org {}: {}", parentOrgRef.getOid(), ex.getMessage(), ex);
 			}
 
-			wrapper.getParentOrgs().add(parentOrg);
+			if (parentOrg != null) {
+				wrapper.getParentOrgs().add(parentOrg);
+			}
 		}
 		subResult.computeStatus();
 	}
@@ -638,6 +646,10 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin
 
 				PrismObject<P> projection = WebModelUtils.loadObject(type, reference.getOid(), options, this,
 						task, subResult);
+				if (projection == null) {
+					// No access, just skip it
+					continue;
+				}
 				P projectionType = projection.asObjectable();
 
 				OperationResultType fetchResult = projectionType.getFetchResult();

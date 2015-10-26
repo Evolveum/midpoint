@@ -334,7 +334,7 @@ public class PasswordPolicyUtils {
 		}
 		if (sb.length() > 0) {
 			String msg = "Characters [ " + sb
-					+ " ] are not allowed to be use in password";
+					+ " ] are not allowed in password";
 			ret.addSubresult(new OperationResult("Check if password does not contain invalid characters",
 					OperationResultStatus.FATAL_ERROR, msg));
 			message.append(msg);
