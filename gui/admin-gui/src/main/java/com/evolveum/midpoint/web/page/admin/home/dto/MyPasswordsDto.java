@@ -20,6 +20,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPropagationUserControlType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
@@ -32,6 +33,7 @@ public class MyPasswordsDto implements Serializable {
 
     private List<PasswordAccountDto> accounts;
     private ProtectedStringType password;
+    private CredentialsPropagationUserControlType propagation;
 
     public List<PasswordAccountDto> getAccounts() {
         if (accounts == null) {
@@ -46,5 +48,13 @@ public class MyPasswordsDto implements Serializable {
 
     public void setPassword(ProtectedStringType password) {
         this.password = password;
+    }
+
+    public void setPropagation(CredentialsPropagationUserControlType propagation) {
+        this.propagation = propagation;
+    }
+
+    public CredentialsPropagationUserControlType getPropagation() {
+        return propagation;
     }
 }

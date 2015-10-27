@@ -30,7 +30,7 @@ public class PasswordAccountDto extends Selectable implements Comparable<Passwor
     private String oid;
     private String displayName;
     private String resourceName;
-    private String cssClass;
+    private String cssClass = "";
     private boolean enabled;
     private boolean passwordOutbound;
     /**

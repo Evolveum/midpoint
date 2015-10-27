@@ -11,6 +11,7 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.home.dto.MyPasswordsDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPropagationUserControlType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -18,6 +19,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulato
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -35,6 +37,7 @@ public class ChangePasswordPanel extends SimplePanel<MyPasswordsDto> {
     private static final String ID_PASSWORD_LABEL = "passwordLabel";
     private static final String ID_CONFIRM_PASSWORD_LABEL = "confirmPasswordLabel";
     public static final String ID_ACCOUNTS_TABLE = "accounts";
+    public static final String ID_ACCOUNTS_CONTAINER = "accountsContainer";
     public static final String SELECTED_ACCOUNT_ICON_CSS = "fa fa-check-square-o";
     public static final String DESELECTED_ACCOUNT_ICON_CSS = "fa fa-square-o";
     public static final String PROPAGATED_ACCOUNT_ICON_CSS = "fa fa-sign-out";
@@ -63,13 +66,20 @@ public class ChangePasswordPanel extends SimplePanel<MyPasswordsDto> {
         PasswordPanel passwordPanel = new PasswordPanel(ID_PASSWORD_PANEL, new PropertyModel<ProtectedStringType>(model, MyPasswordsDto.F_PASSWORD));
         add(passwordPanel);
 
+        WebMarkupContainer accountContainer = new WebMarkupContainer(ID_ACCOUNTS_CONTAINER);
+
         List<IColumn<PasswordAccountDto, String>> columns = initColumns();
         ListDataProvider<PasswordAccountDto> provider = new ListDataProvider<PasswordAccountDto>(this,
                 new PropertyModel<List<PasswordAccountDto>>(model, MyPasswordsDto.F_ACCOUNTS));
         TablePanel accounts = new TablePanel(ID_ACCOUNTS_TABLE, provider, columns);
         accounts.setItemsPerPage(30);
         accounts.setShowPaging(false);
-        add(accounts);
+        if (model.getObject().getPropagation() != null && model.getObject().getPropagation()
+                .equals(CredentialsPropagationUserControlType.MAPPING)){
+            accountContainer.setVisible(false);
+        }
+        accountContainer.add(accounts);
+        add(accountContainer);
     }
 
     private List<IColumn<PasswordAccountDto, String>> initColumns() {
