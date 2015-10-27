@@ -31,7 +31,7 @@ import org.apache.wicket.model.Model;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AssignableOrgSelectionPanel extends AbstractAssignableSelectionPanel {
+public class AssignableOrgSelectionPanel <T extends ObjectType> extends AbstractAssignableSelectionPanel<T> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignableOrgSelectionPanel.class);
 
@@ -138,7 +138,7 @@ public class AssignableOrgSelectionPanel extends AbstractAssignableSelectionPane
         return selected;
 	}
 	 
-	public void setType(Class<? extends ObjectType> type){
+	public void setType(Class<T> type){
 		Validate.notNull(type, "Class must not be null.");
 		this.type = type;
 

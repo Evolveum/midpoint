@@ -26,6 +26,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.ListUtils;
+import org.apache.commons.collections.SetUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Application;
@@ -46,10 +49,16 @@ import org.apache.wicket.model.PropertyModel;
 
 import javax.xml.namespace.QName;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
-public class AssignableSelectionPanel extends AbstractAssignableSelectionPanel {
+public class AssignableSelectionPanel <T extends ObjectType> extends AbstractAssignableSelectionPanel<T> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignableSelectionPanel.class);
 
@@ -62,7 +71,7 @@ public class AssignableSelectionPanel extends AbstractAssignableSelectionPanel {
     private static final String ID_SEARCH_FORM = "searchForm";
     private static final String ID_TYPE_SEARCH = "typeSelect";
     private static final String ID_BASIC_SEARCH = "basicSearch";
-
+    
 	public AssignableSelectionPanel(String id, AbstractAssignableSelectionPanel.Context context) {
 		super(id, context);
 	}
@@ -240,8 +249,9 @@ public class AssignableSelectionPanel extends AbstractAssignableSelectionPanel {
 	}
 	  
 	private TablePanel createTable() {
-	    List<IColumn> columns = createMultiSelectColumns();
-	    ObjectDataProvider provider = new ObjectDataProvider(WebMiscUtil.getPageBase(this), getType()){
+		
+		List<IColumn> columns = createMultiSelectColumns();
+		ObjectDataProvider<SelectableBean<T>, T> provider = new ObjectDataProvider<SelectableBean<T>, T>(WebMiscUtil.getPageBase(this), getType()){
 
 	        @Override
 	        protected void handleNotSuccessOrHandledErrorInIterator(OperationResult result) {
@@ -251,8 +261,10 @@ public class AssignableSelectionPanel extends AbstractAssignableSelectionPanel {
 	                super.handleNotSuccessOrHandledErrorInIterator(result);
 	            }
 	        }
+	        	        
 	    };
 	    provider.setQuery(getProviderQuery());
+	    
 	    TablePanel table = new TablePanel(ID_TABLE, provider, columns);
 	    table.setOutputMarkupId(true);
         return table;
@@ -295,18 +307,19 @@ public class AssignableSelectionPanel extends AbstractAssignableSelectionPanel {
 	    return query;
 	}
 	  
-	protected <T extends ObjectType> List<ObjectType> getSelectedObjects(){
-	    List<ObjectType> selected = new ArrayList<>();
+	protected List<T> getSelectedObjects(){
+	    List<T> selected = new ArrayList<>();
 	    TablePanel table = (TablePanel) getTablePanel();
 	    ObjectDataProvider<SelectableBean<T>, T> provider = (ObjectDataProvider) table.getDataTable().getDataProvider();
-	    for (SelectableBean<T> bean : provider.getAvailableData()) {
-	        if (!bean.isSelected()) {
-	            continue;
-	        }
-
-	        selected.add(bean.getValue());
-	    }
-	    return selected;
+//	    for (SelectableBean<T> bean : provider.getSelectedData()) {
+//	        if (!bean.isSelected()) {
+//	            continue;
+//	        }
+//
+//	        selected.add(bean.getValue());
+//	    }
+//	    return selected;
+	    return provider.getSelectedData();
 	}
 	  
 	public void setType(Class type){
