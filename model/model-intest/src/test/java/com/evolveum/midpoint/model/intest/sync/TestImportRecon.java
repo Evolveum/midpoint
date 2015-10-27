@@ -578,11 +578,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         display("Script history", dummyResource.getScriptHistory());
         
         ArrayList<ProvisioningScriptSpec> scripts = new ArrayList<ProvisioningScriptSpec>();
-        addReconScripts(scripts, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
-        addReconScripts(scripts, ACCOUNT_STAN_NAME, ACCOUNT_STAN_FULLNAME, false);
-        addReconScripts(scripts, USER_RAPP_USERNAME, "Rapp Scallion", false);
         addReconScripts(scripts, ACCOUNT_HERMAN_DUMMY_USERNAME, "Herman Toothrot", false);
+        addReconScripts(scripts, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
         addReconScripts(scripts, ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", false);
+        addReconScripts(scripts, USER_RAPP_USERNAME, "Rapp Scallion", false);
+        addReconScripts(scripts, ACCOUNT_STAN_NAME, ACCOUNT_STAN_FULLNAME, false);
         IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
         
         //assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_OID);
@@ -728,11 +728,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         display("Script history", dummyResource.getScriptHistory());
         
         ArrayList<ProvisioningScriptSpec> scripts = new ArrayList<ProvisioningScriptSpec>();
-        addReconScripts(scripts, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
-        addReconScripts(scripts, ACCOUNT_STAN_NAME, ACCOUNT_STAN_FULLNAME, false);
-        addReconScripts(scripts, USER_RAPP_USERNAME, "Rapp Scallion", false);
         addReconScripts(scripts, ACCOUNT_HERMAN_DUMMY_USERNAME, "Herman Toothrot", false);
+        addReconScripts(scripts, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
         addReconScripts(scripts, ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", false);
+        addReconScripts(scripts, USER_RAPP_USERNAME, "Rapp Scallion", false);
+        addReconScripts(scripts, ACCOUNT_STAN_NAME, ACCOUNT_STAN_FULLNAME, false);
         IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
         
         assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_OID);
@@ -799,12 +799,12 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         display("Script history", dummyResource.getScriptHistory());
         ArrayList<ProvisioningScriptSpec> scripts = new ArrayList<ProvisioningScriptSpec>();
+        addReconScripts(scripts, ACCOUNT_HERMAN_DUMMY_USERNAME, "Herman Toothrot", false);
         // Guybrush is broken.
         addReconScripts(scripts, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true, false);
-        addReconScripts(scripts, ACCOUNT_STAN_NAME, ACCOUNT_STAN_FULLNAME, false);
-        addReconScripts(scripts, USER_RAPP_USERNAME, "Rapp Scallion", false);
-        addReconScripts(scripts, ACCOUNT_HERMAN_DUMMY_USERNAME, "Herman Toothrot", false);
         addReconScripts(scripts, ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", false);
+        addReconScripts(scripts, USER_RAPP_USERNAME, "Rapp Scallion", false);
+        addReconScripts(scripts, ACCOUNT_STAN_NAME, ACCOUNT_STAN_FULLNAME, false);
         IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
         
         // Task result
@@ -884,11 +884,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         display("Script history", dummyResource.getScriptHistory());
         
         ArrayList<ProvisioningScriptSpec> scripts = new ArrayList<ProvisioningScriptSpec>();
-        addReconScripts(scripts, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
-        addReconScripts(scripts, ACCOUNT_STAN_NAME, ACCOUNT_STAN_FULLNAME, false);
-        addReconScripts(scripts, USER_RAPP_USERNAME, "Rapp Scallion", false);
         addReconScripts(scripts, ACCOUNT_HERMAN_DUMMY_USERNAME, "Herman Toothrot", false);
+        addReconScripts(scripts, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
         addReconScripts(scripts, ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", false);
+        addReconScripts(scripts, USER_RAPP_USERNAME, "Rapp Scallion", false);
+        addReconScripts(scripts, ACCOUNT_STAN_NAME, ACCOUNT_STAN_FULLNAME, false);
         IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
         
         assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_OID);
@@ -975,10 +975,10 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         ArrayList<ProvisioningScriptSpec> scripts = new ArrayList<ProvisioningScriptSpec>();
         addReconScripts(scripts, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", false);
-        addReconScripts(scripts, ACCOUNT_STAN_NAME, ACCOUNT_STAN_FULLNAME, false);
-        addReconScripts(scripts, USER_RAPP_USERNAME, "Rapp Scallion", false);
-        addReconScripts(scripts, ACCOUNT_HTM_NAME, ACCOUNT_HTM_FULL_NAME, true);
         addReconScripts(scripts, ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", false);
+        addReconScripts(scripts, USER_RAPP_USERNAME, "Rapp Scallion", false);
+        addReconScripts(scripts, ACCOUNT_STAN_NAME, ACCOUNT_STAN_FULLNAME, false);
+        addReconScripts(scripts, ACCOUNT_HTM_NAME, ACCOUNT_HTM_FULL_NAME, true);
         IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
         
         assertReconAuditModifications(2, TASK_RECONCILE_DUMMY_OID); // the second modification is unlink
