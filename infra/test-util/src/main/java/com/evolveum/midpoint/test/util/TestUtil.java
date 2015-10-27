@@ -48,6 +48,8 @@ import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeConstants;
@@ -83,6 +85,8 @@ public class TestUtil {
 	public static final String TEST_OUT_SECTION_SUFFIX = " --------------------------------------\n";
 	public static final String TEST_LOG_SECTION_PREFIX = "----- ";
 	public static final String TEST_LOG_SECTION_SUFFIX = " --------------------------------------";
+	
+	private static final Pattern JAVA_VERSION_PATTERN = Pattern.compile("1\\.(\\d+)\\.\\d+_\\d+");
 	
 	public static boolean checkResults = true;
 	
@@ -575,4 +579,15 @@ public class TestUtil {
         }
         return datatypeFactory;
     }
+	
+	public static int getJavaMajorVersion() {
+		String javaVersionString = System.getProperty("java.version");
+		Matcher matcher = JAVA_VERSION_PATTERN.matcher(javaVersionString);
+		if (matcher.matches()) {
+			return Integer.parseInt(matcher.group(1));
+		} else {
+			throw new IllegalStateException("Cannot match java version string '"+javaVersionString+"'");
+		}
+		
+	}
 }

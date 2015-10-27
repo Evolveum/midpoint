@@ -501,8 +501,6 @@ public class ConsolidationProcessor {
         		itemDelta.validate();            		
         	}
         	
-        	LensUtil.setDeltaOldValue(projCtx, itemDelta);
-        	
         	return itemDelta;
         }
 		

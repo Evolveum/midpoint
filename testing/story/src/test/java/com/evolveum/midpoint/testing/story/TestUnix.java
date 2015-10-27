@@ -30,6 +30,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -762,7 +763,7 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<ShadowType> shadow = getShadowModel(accountOid);
         display("Shadow (model)", shadow);
         String accountLArgoDn = assertPosixAccount(shadow, USER_LARGO_UID_NUMBER);
-        SearchResultEntry groupVillains = openDJController.fetchEntry(groupVillainsDn);
+        Entry groupVillains = openDJController.fetchEntry(groupVillainsDn);
         openDJController.assertAttribute(groupVillains, "memberUid", Integer.toString(USER_LARGO_UID_NUMBER));
 	}
 	
@@ -886,7 +887,7 @@ public class TestUnix extends AbstractStoryTest {
 				shadowType.getAuxiliaryObjectClass().isEmpty());
 		String dn = (String) ShadowUtil.getSecondaryIdentifiers(shadow).iterator().next().getRealValue();
 
-		SearchResultEntry entry = openDJController.fetchEntry(dn);
+		Entry entry = openDJController.fetchEntry(dn);
 		assertNotNull("No ou LDAP entry for "+dn);
 		display("Posix account entry", entry);
 		openDJController.assertObjectClass(entry, OPENDJ_ACCOUNT_STRUCTURAL_OBJECTCLASS_NAME.getLocalPart());
@@ -906,7 +907,7 @@ public class TestUnix extends AbstractStoryTest {
 		ResourceAttribute<Integer> gidNumberAttr = ShadowUtil.getAttribute(shadow, new QName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_GIDNUMBER_ATTRIBUTE_NAME));
 		PrismAsserts.assertPropertyValue(gidNumberAttr, expectedUid);
 
-		SearchResultEntry entry = openDJController.fetchEntry(dn);
+		Entry entry = openDJController.fetchEntry(dn);
 		assertNotNull("No ou LDAP entry for "+dn);
 		display("Posix account entry", entry);
 		openDJController.assertObjectClass(entry, OPENDJ_ACCOUNT_STRUCTURAL_OBJECTCLASS_NAME.getLocalPart());
@@ -952,7 +953,7 @@ public class TestUnix extends AbstractStoryTest {
 				shadowType.getAuxiliaryObjectClass().isEmpty());
 		String dn = (String) ShadowUtil.getSecondaryIdentifiers(shadow).iterator().next().getRealValue();
 
-		SearchResultEntry entry = openDJController.fetchEntry(dn);
+		Entry entry = openDJController.fetchEntry(dn);
 		assertNotNull("No group LDAP entry for "+dn);
 		display("Ldap group entry", entry);
 		openDJController.assertObjectClass(entry, OPENDJ_GROUP_STRUCTURAL_OBJECTCLASS_NAME.getLocalPart());
@@ -970,7 +971,7 @@ public class TestUnix extends AbstractStoryTest {
 		ResourceAttribute<Integer> gidNumberAttr = ShadowUtil.getAttribute(shadow, new QName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_GIDNUMBER_ATTRIBUTE_NAME));
 		PrismAsserts.assertPropertyValue(gidNumberAttr, expectedGidNumber);
 
-		SearchResultEntry entry = openDJController.fetchEntry(dn);
+		Entry entry = openDJController.fetchEntry(dn);
 		assertNotNull("No group LDAP entry for "+dn);
 		display("Posix account entry", entry);
 		openDJController.assertObjectClass(entry, OPENDJ_GROUP_UNIX_STRUCTURAL_OBJECTCLASS_NAME.getLocalPart());
