@@ -74,6 +74,7 @@ public class PageSelfCredentials extends PageSelf {
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
     private static final String OPERATION_LOAD_ACCOUNT = DOT_CLASS + "loadAccount";
     private static final String OPERATION_SAVE_PASSWORD = DOT_CLASS + "savePassword";
+    private static final String OPERATION_CHECK_PASSWORD = DOT_CLASS + "checkPassword";
     private static final String OPERATION_LOAD_SHADOW = DOT_CLASS + "loadShadow";
     private static final String OPERATION_GET_CREDENTIALS_POLICY = DOT_CLASS + "getCredentialsPolicy";
 
@@ -126,7 +127,13 @@ public class PageSelfCredentials extends PageSelf {
                     if (propagationUserControl != null) {
                         dto.setPropagation(propagationUserControl);
                     }
+                    PasswordChangeSecurityType passwordChangeSecurity = passwordCredentialsPolicy.getPasswordChangeSecurity();
+                    if (passwordChangeSecurity != null) {
+                        dto.setPasswordChangeSecurity(passwordChangeSecurity);
+                    }
+
                 }
+
             }
 
             if (dto.getPropagation() == null || dto.getPropagation().equals(CredentialsPropagationUserControlType.USER_CHOICE)) {
@@ -273,6 +280,30 @@ public class PageSelfCredentials extends PageSelf {
 
     private void onSavePerformed(AjaxRequestTarget target) {
         List<PasswordAccountDto> selectedAccounts = getSelectedAccountsList();
+
+        if (model.getObject().getPasswordChangeSecurity().equals(PasswordChangeSecurityType.OLD_PASSWORD)) {
+            LOGGER.debug("Check old password");
+            OperationResult checkPasswordResult = new OperationResult(OPERATION_CHECK_PASSWORD);
+            Task checkPasswordTask = createSimpleTask(OPERATION_CHECK_PASSWORD);
+            try {
+                ProtectedStringType oldPassword = new ProtectedStringType();
+                oldPassword.setClearValue(model.getObject().getOldPassword());
+                boolean isCorrectPassword = getModelInteractionService().checkPassword(user.getOid(), oldPassword,
+                        checkPasswordTask, checkPasswordResult);
+                if (!isCorrectPassword){
+                    warn(getString("PageSelfCredentials.incorrectOldPassword"));
+                    target.add(getFeedbackPanel());
+                    return;
+                }
+            } catch (Exception ex) {
+                LoggingUtils.logException(LOGGER, "Couldn't check password", ex);
+                checkPasswordResult.recordFatalError("Couldn't check password." + ex.getMessage(), ex);
+                target.add(getFeedbackPanel());
+                return;
+            } finally {
+                checkPasswordResult.computeStatus();
+            }
+        }
         if (selectedAccounts.isEmpty()) {
             warn(getString("PageSelfCredentials.noAccountSelected"));
             target.add(getFeedbackPanel());
