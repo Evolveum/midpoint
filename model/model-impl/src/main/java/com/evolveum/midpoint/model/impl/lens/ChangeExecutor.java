@@ -685,6 +685,8 @@ public class ChangeExecutor {
 
     	OperationResult result = parentResult.createSubresult(OPERATION_EXECUTE_DELTA);
     		
+    	LensUtil.setDeltaOldValue(objectContext, objectDelta);
+    	
     	try {
     		
 	        if (objectDelta.getChangeType() == ChangeType.ADD) {

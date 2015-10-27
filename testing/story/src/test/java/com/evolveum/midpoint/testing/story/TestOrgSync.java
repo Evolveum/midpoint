@@ -29,6 +29,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -1198,7 +1199,7 @@ public class TestOrgSync extends AbstractStoryTest {
 		display("Org "+orgName+" shadow", shadow);
 		// TODO assert shadow content
 
-		SearchResultEntry ouEntry = openDJController.searchSingle("ou="+orgName);
+		Entry ouEntry = openDJController.searchSingle("ou="+orgName);
 		assertNotNull("No ou LDAP entry for "+orgName);
 		display("OU entry", ouEntry);
 		openDJController.assertObjectClass(ouEntry, "organizationalUnit");
@@ -1235,7 +1236,7 @@ public class TestOrgSync extends AbstractStoryTest {
 		// TODO assert shadow content
 		
 		String groupDn = "cn="+respRoleName+",ou=groups,"+openDJController.getSuffix();
-		SearchResultEntry groupEntry = openDJController.fetchAndAssertEntry(groupDn, "groupOfUniqueNames");
+		Entry groupEntry = openDJController.fetchAndAssertEntry(groupDn, "groupOfUniqueNames");
 		display("Group entry", groupEntry);
 		
 		PrismReferenceValue accountLinkRef = getLinkRef(user, RESOURCE_OPENDJ_OID);
@@ -1261,7 +1262,7 @@ public class TestOrgSync extends AbstractStoryTest {
 		// TODO assert shadow content
 		
 		String groupDn = "cn="+respRoleName+",ou=groups,"+openDJController.getSuffix();
-		SearchResultEntry groupEntry = openDJController.fetchAndAssertEntry(groupDn, "groupOfUniqueNames");
+		Entry groupEntry = openDJController.fetchAndAssertEntry(groupDn, "groupOfUniqueNames");
 		display("Group entry", groupEntry);
 		
 		PrismReferenceValue accountLinkRef = getLinkRef(user, RESOURCE_OPENDJ_OID);

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.impl.controller;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -53,6 +54,7 @@ import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.NoneFilter;
+import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.TypeFilter;
@@ -387,8 +389,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 				result.recordSuccess();
 				return spec;
 			} else if (filter instanceof OrFilter) {
+				Collection<RoleSelectionSpecEntry> allRoleTypeDvals = new ArrayList<>();
 				for (ObjectFilter subfilter: ((OrFilter)filter).getConditions()) {
-					Collection<DisplayableValue<String>> roleTypeDvals =  getRoleSelectionSpec(subfilter);
+					Collection<RoleSelectionSpecEntry> roleTypeDvals =  getRoleSelectionSpecEntries(subfilter);
 					if (roleTypeDvals == null || roleTypeDvals.isEmpty()) {
 						// This branch of the OR clause does not have any constraint for roleType
 						// therefore all role types are possible (regardless of other branches, this is OR)
@@ -398,17 +401,18 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 						result.recordSuccess();
 						return spec;
 					} else {
-						spec.addRoleTypes(roleTypeDvals);
+						allRoleTypeDvals.addAll(roleTypeDvals);
 					}
 				}
+				addRoleTypeSpecEntries(spec, allRoleTypeDvals, result);
 			} else {
-				Collection<DisplayableValue<String>> roleTypeDvals = getRoleSelectionSpec(filter);
+				Collection<RoleSelectionSpecEntry> roleTypeDvals = getRoleSelectionSpecEntries(filter);
 				if (roleTypeDvals == null || roleTypeDvals.isEmpty()) {
 					getAllRoleTypesSpec(spec, result);
 					result.recordSuccess();
 					return spec;					
 				} else {
-					spec.addRoleTypes(roleTypeDvals);
+					addRoleTypeSpecEntries(spec, roleTypeDvals, result);
 				}
 			}
 			result.recordSuccess();
@@ -419,12 +423,48 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		}
 	}
 	
+	private void addRoleTypeSpecEntries(RoleSelectionSpecification spec, 
+			Collection<RoleSelectionSpecEntry> roleTypeDvals, OperationResult result) throws ObjectNotFoundException, SchemaException, ConfigurationException {
+		if (roleTypeDvals == null || roleTypeDvals.isEmpty()) {
+			getAllRoleTypesSpec(spec, result);
+		} else {
+			if (RoleSelectionSpecEntry.hasNegative(roleTypeDvals)) {
+				Collection<RoleSelectionSpecEntry> positiveList = RoleSelectionSpecEntry.getPositive(roleTypeDvals);
+				if (positiveList == null || positiveList.isEmpty()) {
+					positiveList = getRoleSpecEntriesForAllRoles(result);
+				}
+				if (positiveList == null || positiveList.isEmpty()) {
+					return;
+				}
+				for (RoleSelectionSpecEntry positiveEntry: positiveList) {
+					if (!RoleSelectionSpecEntry.hasNegativeValue(roleTypeDvals,positiveEntry.getValue())) {
+						spec.addRoleType(positiveEntry);
+					}
+				}
+				
+			} else {
+				spec.addRoleTypes(roleTypeDvals);
+			}
+		}
+	}
+
 	private RoleSelectionSpecification getAllRoleTypesSpec(RoleSelectionSpecification spec, OperationResult result) 
+			throws ObjectNotFoundException, SchemaException, ConfigurationException {
+		Collection<RoleSelectionSpecEntry> allEntries = getRoleSpecEntriesForAllRoles(result);
+		if (allEntries == null || allEntries.isEmpty()) {
+			return spec;
+		}
+		spec.addRoleTypes(allEntries);
+		return spec;
+	}
+	
+	private Collection<RoleSelectionSpecEntry> getRoleSpecEntriesForAllRoles(OperationResult result) 
 			throws ObjectNotFoundException, SchemaException, ConfigurationException {
 		ObjectTemplateType objectTemplateType = schemaTransformer.determineObjectTemplate(RoleType.class, AuthorizationPhaseType.REQUEST, result);
 		if (objectTemplateType == null) {
-			return spec;
+			return null;
 		}
+		Collection<RoleSelectionSpecEntry> allEntries = new ArrayList();
 		for(ObjectTemplateItemDefinitionType itemDef: objectTemplateType.getItem()) {
 			ItemPathType ref = itemDef.getRef();
 			if (ref == null) {
@@ -438,7 +478,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			if (QNameUtil.match(RoleType.F_ROLE_TYPE, itemName)) {
 				ObjectReferenceType valueEnumerationRef = itemDef.getValueEnumerationRef();
 				if (valueEnumerationRef == null || valueEnumerationRef.getOid() == null) {
-					return spec;
+					return allEntries;
 				}
 				Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_ROW,
 		    			GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
@@ -451,16 +491,16 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 					if (polyLabel != null) {
 						label = polyLabel.getOrig();
 					}
-					DisplayableValue<String> roleTypeDval = new DisplayableValueImpl<>(key, label, null);
-					spec.addRoleType(roleTypeDval);
+					RoleSelectionSpecEntry roleTypeDval = new RoleSelectionSpecEntry(key, label, null);
+					allEntries.add(roleTypeDval);
 				}
-				return spec;
+				return allEntries;
 			}
 		}
-		return spec;
+		return allEntries;
 	}
 
-	private Collection<DisplayableValue<String>> getRoleSelectionSpec(ObjectFilter filter) throws SchemaException {
+	private Collection<RoleSelectionSpecEntry> getRoleSelectionSpecEntries(ObjectFilter filter) throws SchemaException {
 		LOGGER.trace("getRoleSelectionSpec({})", filter);
 		if (filter == null || filter instanceof AllFilter) {
 			return null;
@@ -469,7 +509,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		} else if (filter instanceof AndFilter) {
 			for (ObjectFilter subfilter: ((AndFilter)filter).getConditions()) {
 				if (subfilter instanceof EqualFilter<?>) {
-					DisplayableValue<String> roleTypeDval = getRoleSelectionSpecEq((EqualFilter)subfilter);
+					RoleSelectionSpecEntry roleTypeDval = getRoleSelectionSpecEq((EqualFilter)subfilter);
 					if (roleTypeDval != null) {
 						return createSingleDisplayableValueCollection(roleTypeDval);
 					}
@@ -477,10 +517,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			}
 			return null;
 		} else if (filter instanceof OrFilter) {
-			Collection<DisplayableValue<String>> col = new ArrayList<>(((OrFilter)filter).getConditions().size());
+			Collection<RoleSelectionSpecEntry> col = new ArrayList<>(((OrFilter)filter).getConditions().size());
 			for (ObjectFilter subfilter: ((OrFilter)filter).getConditions()) {
 				if (subfilter instanceof EqualFilter<?>) {
-					DisplayableValue<String> roleTypeDval = getRoleSelectionSpecEq((EqualFilter)subfilter);
+					RoleSelectionSpecEntry roleTypeDval = getRoleSelectionSpecEq((EqualFilter)subfilter);
 					if (roleTypeDval != null) {
 						col.add(roleTypeDval);
 					}
@@ -488,27 +528,31 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			}
 			return col;
 		} else if (filter instanceof TypeFilter) {
-			return getRoleSelectionSpec(((TypeFilter)filter).getFilter());
+			return getRoleSelectionSpecEntries(((TypeFilter)filter).getFilter());
+		} else if (filter instanceof NotFilter) {
+			Collection<RoleSelectionSpecEntry> subRoleSelectionSpec = getRoleSelectionSpecEntries(((NotFilter)filter).getFilter());
+			RoleSelectionSpecEntry.negate(subRoleSelectionSpec);
+			return subRoleSelectionSpec;
 		} else {
 			throw new UnsupportedOperationException("Unexpected filter "+filter);
 		}
 	}
 	
-	private Collection<DisplayableValue<String>> createSingleDisplayableValueCollection(
-			DisplayableValue<String> dval) {
-		Collection<DisplayableValue<String>> col = new ArrayList<>(1);
+	private Collection<RoleSelectionSpecEntry> createSingleDisplayableValueCollection(
+			RoleSelectionSpecEntry dval) {
+		Collection<RoleSelectionSpecEntry> col = new ArrayList<>(1);
 		col.add(dval);
 		return col;
 	}
 
-	private DisplayableValue<String> getRoleSelectionSpecEq(EqualFilter<String> eqFilter) throws SchemaException {
+	private RoleSelectionSpecEntry getRoleSelectionSpecEq(EqualFilter<String> eqFilter) throws SchemaException {
 		if (QNameUtil.match(RoleType.F_ROLE_TYPE,eqFilter.getElementName())) {
 			List<PrismPropertyValue<String>> ppvs = eqFilter.getValues();
 			if (ppvs.size() > 1) {
 				throw new SchemaException("More than one value in roleType search filter");
 			}
 			String roleType = ppvs.get(0).getValue();
-			DisplayableValue<String> roleTypeDval = new DisplayableValueImpl<>(roleType, roleType, null);
+			RoleSelectionSpecEntry roleTypeDval = new RoleSelectionSpecEntry(roleType, roleType, null);
 			return roleTypeDval;
 		}
 		return null;

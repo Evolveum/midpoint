@@ -19,7 +19,9 @@ import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -28,6 +30,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.evolveum.midpoint.util.exception.SystemException;
+
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -110,10 +113,10 @@ public class DummyResource implements DebugDumpable {
 	private static Map<String, DummyResource> instances = new HashMap<String, DummyResource>();
 	
 	DummyResource() {
-		allObjects = new ConcurrentHashMap<String,DummyObject>();
-		accounts = new ConcurrentHashMap<String, DummyAccount>();
-		groups = new ConcurrentHashMap<String, DummyGroup>();
-		privileges = new ConcurrentHashMap<String, DummyPrivilege>();
+		allObjects = Collections.synchronizedMap(new LinkedHashMap<String,DummyObject>());
+		accounts = Collections.synchronizedMap(new LinkedHashMap<String, DummyAccount>());
+		groups = Collections.synchronizedMap(new LinkedHashMap<String, DummyGroup>());
+		privileges = Collections.synchronizedMap(new LinkedHashMap<String, DummyPrivilege>());
 		scriptHistory = new ArrayList<ScriptHistoryEntry>();
 		accountObjectClass = new DummyObjectClass();
 		groupObjectClass = new DummyObjectClass();
