@@ -311,6 +311,7 @@ public class ProvisioningUtil {
 		a.setValidityStatus(null);
 		a.setLockoutStatus(null);
 		a.setLockoutExpirationTimestamp(null);
+		a.setValidityChangeTimestamp(null);
 	}
 
 	public static void checkShadowActivationConsistency(PrismObject<ShadowType> shadow) {
@@ -331,7 +332,8 @@ public class ProvisioningUtil {
 				activation.getValidTo() != null ||
 				activation.getValidityStatus() != null ||
 				activation.getLockoutStatus() != null ||
-				activation.getLockoutExpirationTimestamp() != null) {
+				activation.getLockoutExpirationTimestamp() != null ||
+				activation.getValidityChangeTimestamp() != null) {
 			String m = "Unexpected content in shadow.activation for " + ObjectTypeUtil.toShortString(shadow) + ": " + activation;
 			LOGGER.warn("{}", m);
 			//throw new IllegalStateException(m);		// use only for testing

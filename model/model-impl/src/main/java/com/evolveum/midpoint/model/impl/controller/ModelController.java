@@ -513,9 +513,9 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 								String oid;
 								try {
 									oid = cacheRepositoryService.addObject(objectToAdd, repoOptions, result1);
-									task.recordObjectActionExecuted(objectToAdd, ChangeType.ADD, null);
+									task.recordObjectActionExecuted(objectToAdd, null, oid, ChangeType.ADD, task.getChannel(), null);
 								} catch (Throwable t) {
-									task.recordObjectActionExecuted(objectToAdd, ChangeType.ADD, t);
+									task.recordObjectActionExecuted(objectToAdd, null, null, ChangeType.ADD, task.getChannel(), t);
 									throw t;
 								}
 								delta.setOid(oid);

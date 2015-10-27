@@ -2756,11 +2756,6 @@ public class TaskQuartzImpl implements Task {
 
 	@Override
 	public void recordObjectActionExecuted(PrismObject<? extends ObjectType> object, ChangeType changeType, Throwable exception) {
-		recordObjectActionExecuted(object, changeType, getChannel(), exception);
-	}
-
-	@Override
-	public void recordObjectActionExecuted(PrismObject<? extends ObjectType> object, ChangeType changeType, String channel, Throwable exception) {
 		recordObjectActionExecuted(object, null, null, changeType, getChannel(), exception);
 	}
 
@@ -2776,6 +2771,9 @@ public class TaskQuartzImpl implements Task {
 				definition = object.getDefinition();
 				clazz = object.getCompileTimeClass();
 				oid = object.getOid();
+				if (oid == null) {		// in case of ADD operation
+					oid = defaultOid;
+				}
 			} else {
 				name = null;
 				displayName = null;
