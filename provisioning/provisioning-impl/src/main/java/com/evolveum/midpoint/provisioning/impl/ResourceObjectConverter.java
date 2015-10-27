@@ -1699,7 +1699,7 @@ public class ResourceObjectConverter {
 					ObjectTypeUtil.toShortString(resource));
 			if (parentResult != null) {
 				parentResult.recordPartialError("The " + ObjectTypeUtil.toShortString(resource)
-						+ " has native activation capability but noes not provide value for DISABLE attribute");
+						+ " has native activation capability but does not provide value for DISABLE attribute");
 			}
 
 			return;

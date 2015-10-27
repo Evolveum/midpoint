@@ -23,6 +23,9 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -175,8 +178,9 @@ public class ShadowManager {
 			// TODO: Better error handling later
 			throw new IllegalStateException("More than one shadow found for " + resourceShadow);
 		}
-
-		return results.get(0);
+		PrismObject<ShadowType> shadow = results.get(0);
+		checkConsistency(shadow);
+		return shadow;
 	}
 
 	public PrismObject<ShadowType> lookupShadowInRepository(ProvisioningContext ctx, ResourceAttributeContainer identifierContainer,
@@ -213,7 +217,9 @@ public class ShadowManager {
 			throw new IllegalStateException("More than one shadows found in repository for " + identifierContainer);
 		}
 
-		return results.get(0);
+		PrismObject<ShadowType> shadow = results.get(0);
+		checkConsistency(shadow);
+		return shadow;
 	}
 
 	public PrismObject<ShadowType> lookupShadowBySecondaryIdentifiers( 
@@ -223,7 +229,7 @@ public class ShadowManager {
 		Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(resourceShadow);
 //		ResourceAttribute<?> secondaryIdentifier = null;
 		if (secondaryIdentifiers.size() < 1){
-			LOGGER.trace("Shadow does not contain secondary idetifier. Skipping lookup shadows according to name.");
+			LOGGER.trace("Shadow does not contain secondary identifier. Skipping lookup shadows according to name.");
 			return null;
 		}
 		
@@ -291,7 +297,13 @@ public class ShadowManager {
 			throw new IllegalStateException("More than one shadows found for " + resourceShadow);
 		}
 
-		return conflictingShadows.get(0);
+		PrismObject<ShadowType> shadow = conflictingShadows.get(0);
+		checkConsistency(shadow);
+		return shadow;
+	}
+
+	private void checkConsistency(PrismObject<ShadowType> shadow) {
+		ProvisioningUtil.checkShadowActivationConsistency(shadow);
 	}
 
 	private <T> List<PrismPropertyValue<T>> getNormalizedValue(PrismProperty<T> attr, RefinedObjectClassDefinition rObjClassDef) throws SchemaException {
@@ -734,11 +746,13 @@ public class ShadowManager {
 		normalizeAttributes(repoShadow, ctx.getObjectClassDefinition());
 		
 		repoShadowType.setCachingMetadata(null);
-	
+
+		ProvisioningUtil.cleanupShadowActivation(repoShadowType);
+
 		return repoShadow;
 	}
 
-    public void setKindIfNecessary(ShadowType repoShadowType, RefinedObjectClassDefinition objectClassDefinition) {
+	public void setKindIfNecessary(ShadowType repoShadowType, RefinedObjectClassDefinition objectClassDefinition) {
         if (repoShadowType.getKind() == null && objectClassDefinition != null) {
             repoShadowType.setKind(objectClassDefinition.getKind());
         }

@@ -41,9 +41,11 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -53,6 +55,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionReturnMultiplicityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptArgumentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptType;
@@ -111,6 +114,7 @@ public class ProvisioningUtil {
 			normalizedContainer.getValue().add(p.clone());
 		}
 
+		cleanupShadowActivation(shadow);
 	}
 
 	public static PrismObjectDefinition<ShadowType> getResourceObjectShadowDefinition(
@@ -282,5 +286,55 @@ public class ProvisioningUtil {
 
 	public static boolean shouldStoreAtributeInShadow(ObjectClassComplexTypeDefinition objectClassDefinition, QName attributeName) {
 		return (objectClassDefinition.isIdentifier(attributeName) || objectClassDefinition.isSecondaryIdentifier(attributeName));
+	}
+
+	public static boolean shouldStoreActivationItemInShadow(QName elementName) {	// MID-2585
+		return QNameUtil.match(elementName, ActivationType.F_ARCHIVE_TIMESTAMP) ||
+				QNameUtil.match(elementName, ActivationType.F_DISABLE_TIMESTAMP) ||
+				QNameUtil.match(elementName, ActivationType.F_ENABLE_TIMESTAMP) ||
+				QNameUtil.match(elementName, ActivationType.F_DISABLE_REASON);
+	}
+
+	public static void cleanupShadowActivation(ShadowType repoShadowType) {
+		// cleanup activation - we don't want to store these data in repo shadow (MID-2585)
+		if (repoShadowType.getActivation() != null) {
+			cleanupShadowActivation(repoShadowType.getActivation());
+		}
+	}
+
+
+	public static void cleanupShadowActivation(ActivationType a) {
+		a.setAdministrativeStatus(null);
+		a.setEffectiveStatus(null);
+		a.setValidFrom(null);
+		a.setValidTo(null);
+		a.setValidityStatus(null);
+		a.setLockoutStatus(null);
+		a.setLockoutExpirationTimestamp(null);
+	}
+
+	public static void checkShadowActivationConsistency(PrismObject<ShadowType> shadow) {
+		if (shadow == null) {		// just for sure
+			return;
+		}
+		ActivationType activation = shadow.asObjectable().getActivation();
+		if (activation == null) {
+			return;
+		}
+		FailedOperationTypeType failedOperation = shadow.asObjectable().getFailedOperationType();
+		if (failedOperation == FailedOperationTypeType.ADD) {
+			return;		// in this case it's ok to have activation present
+		}
+		if (activation.getAdministrativeStatus() != null ||
+				activation.getEffectiveStatus() != null ||
+				activation.getValidFrom() != null ||
+				activation.getValidTo() != null ||
+				activation.getValidityStatus() != null ||
+				activation.getLockoutStatus() != null ||
+				activation.getLockoutExpirationTimestamp() != null) {
+			String m = "Unexpected content in shadow.activation for " + ObjectTypeUtil.toShortString(shadow) + ": " + activation;
+			LOGGER.warn("{}", m);
+			//throw new IllegalStateException(m);		// use only for testing
+		}
 	}
 }
