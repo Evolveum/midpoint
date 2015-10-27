@@ -5242,6 +5242,13 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="returnMultiplicity" type="tns:ExpressionReturnMultiplicityType" minOccurs="0"></xsd:element>
+            <xsd:element name="allowEmptyValues" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element ref="tns:expressionEvaluator" minOccurs="1" maxOccurs="unbounded">
             	<xsd:annotation>
             		<xsd:documentation>
@@ -5253,13 +5260,6 @@
             			other combination of evaluators.
             		</xsd:documentation>
             	</xsd:annotation>
-            </xsd:element>
-            <xsd:element name="allowEmptyValues" type="xsd:boolean" minOccurs="0" default="false">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
-                </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
@@ -5486,8 +5486,11 @@
             <xsd:element name="allowEmptyValues" type="xsd:boolean" minOccurs="0" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        DEPECATED. Used allowEmptyValues in ExpressionType instead.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:deprecated>true</a:deprecated>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
