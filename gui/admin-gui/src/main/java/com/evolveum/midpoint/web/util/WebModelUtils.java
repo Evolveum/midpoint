@@ -36,6 +36,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.AuthorizationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -121,6 +122,13 @@ public class WebModelUtils {
         	}
 //        	.createResolveNames();
             object = page.getModelService().getObject(type, oid, options, task, subResult);
+        } catch (AuthorizationException e) {
+        	// Not authorized to access the object. This is probably caused by a reference that
+        	// point to an object that the current user cannot read. This is no big deal.
+        	// Just do not display that object.
+        	subResult.recordHandledError(e);
+        	LOGGER.debug("User {} is not authorized to read {} {}", task.getOwner().getName(), type.getSimpleName(), oid);
+        	return null;
         } catch (Exception ex) {
             subResult.recordFatalError("WebModelUtils.couldntLoadObject", ex);
             LoggingUtils.logException(LOGGER, "Couldn't load object", ex);

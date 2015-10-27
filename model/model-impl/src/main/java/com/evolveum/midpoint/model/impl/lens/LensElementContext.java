@@ -305,9 +305,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		return ObjectDelta.union(getFixedPrimaryDelta(), getSecondaryDelta());
 	}
 
-	public ObjectDeltaObject<O> getObjectDeltaObject() throws SchemaException {
-		return new ObjectDeltaObject<O>(objectOld, getDelta(), objectNew);
-	}
+	abstract public ObjectDeltaObject<O> getObjectDeltaObject() throws SchemaException;
 
     @Override
     public String getOid() {

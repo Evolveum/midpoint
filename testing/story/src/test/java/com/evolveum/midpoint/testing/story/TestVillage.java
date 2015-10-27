@@ -810,8 +810,8 @@ public class TestVillage extends AbstractStoryTest {
         display("Org", org);
         assertLinks(org, 2);
         
-        SearchResultEntry ouEntry = openDJController.fetchAndAssertEntry("ou=Jolly Roger,dc=example,dc=com", "organizationalUnit");
-        SearchResultEntry groupEntry = openDJController.fetchAndAssertEntry("cn=admins,ou=Jolly Roger,dc=example,dc=com", "groupOfUniqueNames");
+        Entry ouEntry = openDJController.fetchAndAssertEntry("ou=Jolly Roger,dc=example,dc=com", "organizationalUnit");
+        Entry groupEntry = openDJController.fetchAndAssertEntry("cn=admins,ou=Jolly Roger,dc=example,dc=com", "groupOfUniqueNames");
       //TODO: more assertions
 	}
 	
@@ -948,7 +948,7 @@ public class TestVillage extends AbstractStoryTest {
 		
 		String groupCn = expOrg+":"+expLoc;
 		String groupDn = "cn="+groupCn+",ou=groups,"+openDJController.getSuffix();
-		SearchResultEntry groupEntry = openDJController.fetchAndAssertEntry(groupDn, "groupOfUniqueNames");
+		Entry groupEntry = openDJController.fetchAndAssertEntry(groupDn, "groupOfUniqueNames");
 		display("Group entry", groupEntry);
 		
 		PrismReferenceValue accountLinkRef = getLinkRef(user, RESOURCE_OPENDJ_OID);
@@ -962,7 +962,7 @@ public class TestVillage extends AbstractStoryTest {
 		
 		String groupCn = expOrg+":"+expLoc;
 		String groupDn = "cn="+groupCn+",ou=groups,"+openDJController.getSuffix();
-		SearchResultEntry groupEntry = openDJController.fetchAndAssertEntry(groupDn, "groupOfUniqueNames");
+		Entry groupEntry = openDJController.fetchAndAssertEntry(groupDn, "groupOfUniqueNames");
 		display("Group entry", groupEntry);
 		String accountDn = "uid="+userType.getName()+",ou=people,"+openDJController.getSuffix();
 		openDJController.assertNoUniqueMember(groupEntry, accountDn);

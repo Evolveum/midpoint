@@ -336,6 +336,10 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 	public <O extends ObjectType,T> void assertOldValue(ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T expectedValue) {
 		assertOldValue(null, 0, expectedChangeType, expectedClass, propPath, expectedValue);
 	}
+	
+	public <O extends ObjectType,T> void assertOldValue(int index, ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T expectedValue) {
+		assertOldValue(null, index, expectedChangeType, expectedClass, propPath, expectedValue);
+	}
 
 	public <O extends ObjectType,T> void assertOldValue(String message, int index, ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
 		ObjectDeltaOperation<O> deltaOp = getExecutionDelta(index, expectedChangeType, expectedClass);

@@ -17,35 +17,27 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="form-group" style="margin-right: 10px;">
+    <div class="form-group" style="margin-right: 10px; margin-left: 20px;">
         <label class="control-label"><wicket:message key="ExecuteChangeOptionsPanel.options"/></label>
     </div>
     <div class="checkbox">
-        <label>
+        <label style="margin-left:30px;">
             <input type="checkbox" wicket:id="force">
             <wicket:message key="ExecuteChangeOptionsPanel.label.force"/>
         </label>
-    </div>
-    <div class="checkbox">
-        <label wicket:id="reconcileLabel">
+        <label style="margin-left: 30px;" wicket:id="reconcileLabel">
             <input type="checkbox" wicket:id="reconcile">
             <wicket:message key="ExecuteChangeOptionsPanel.label.reconcile"/>
         </label>
-    </div>
-    <div class="checkbox">
-        <label wicket:id="reconcileAffectedLabel">
+        <label style="margin-left: 30px;" wicket:id="reconcileAffectedLabel">
             <input type="checkbox" wicket:id="reconcileAffected">
             <wicket:message key="ExecuteChangeOptionsPanel.label.reconcileAffected"/>
         </label>
-    </div>
-    <div class="checkbox">
-        <label>
+        <label style="margin-left: 30px;">
             <input type="checkbox" wicket:id="executeAfterAllApprovals">
             <wicket:message key="ExecuteChangeOptionsPanel.label.executeAfterAllApprovals"/>
         </label>
-    </div>
-    <div class="checkbox">
-        <label wicket:id="keepDisplayingResultsLabel">
+        <label style="margin-left: 30px;" wicket:id="keepDisplayingResultsLabel">
             <input type="checkbox" wicket:id="keepDisplayingResults">
             <wicket:message key="ExecuteChangeOptionsPanel.label.keepDisplayingResults"/>
         </label>

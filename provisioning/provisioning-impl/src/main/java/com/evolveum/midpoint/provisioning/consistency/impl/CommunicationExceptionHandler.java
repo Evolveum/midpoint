@@ -133,6 +133,8 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 				shadow.setAttemptNumber(getAttemptNumber(shadow));
 				shadow.setFailedOperationType(FailedOperationTypeType.ADD);
 				ConstraintsChecker.onShadowAddOperation(shadow);
+				// Unlike addObject calls during normal provisioning, here we preserve all activation information, including e.g. administrativeStatus.
+				// It is needed for shadow creation during error recovery.
 				String oid = cacheRepositoryService.addObject(shadow.asPrismObject(), null, operationResult);
 				shadow.setOid(oid);
 			

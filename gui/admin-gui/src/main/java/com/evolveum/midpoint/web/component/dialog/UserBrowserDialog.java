@@ -197,13 +197,13 @@ public class UserBrowserDialog<T extends FocusType> extends ModalWindow {
 	            @Override
 	            public void onClick(AjaxRequestTarget target) {
 	            	DataTable table = getTable().getDataTable();
-	            	List<SelectableBean> availableData = ((ObjectDataProvider)table.getDataProvider()).getAvailableData();
-	            	List<T> selected = new ArrayList<>();
-	            	for (SelectableBean o : availableData){
-	            		if (o.isSelected()){
-	            			selected.add((T)o.getValue());
-	            		}
-	            	}
+	            	List<T> selected = ((ObjectDataProvider)table.getDataProvider()).getSelectedData();
+//	            	List<T> selected = new ArrayList<>();
+//	            	for (SelectableBean o : availableData){
+//	            		if (o.isSelected()){
+//	            			selected.add((T)o.getValue());
+//	            		}
+//	            	}
 	                addPerformed(target, selected);
 	            }
 	        };

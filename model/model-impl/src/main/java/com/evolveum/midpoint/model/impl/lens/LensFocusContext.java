@@ -144,7 +144,12 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         return secondaryDeltas.get(wave);
     }
 
-    @Override
+	@Override
+	public ObjectDeltaObject<O> getObjectDeltaObject() throws SchemaException {
+		return new ObjectDeltaObject<O>(getObjectOld(), getDelta(), getObjectNew());
+	}
+
+	@Override
 	public void setSecondaryDelta(ObjectDelta<O> secondaryDelta) {
 		throw new UnsupportedOperationException("Cannot set secondary delta to focus without a wave number");
 	}

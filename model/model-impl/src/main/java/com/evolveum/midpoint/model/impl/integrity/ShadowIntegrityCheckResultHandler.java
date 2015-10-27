@@ -23,6 +23,7 @@ import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeResultHandle
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -59,6 +60,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -106,9 +109,11 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
     private boolean checkNormalization;
     private boolean checkFetch;
     private boolean checkOwners;
+    private boolean checkExtraData;
     private boolean fixIntents;
     private boolean fixUniqueness;
     private boolean fixNormalization;
+    private boolean fixExtraData;
 
     private boolean checkDuplicatesOnPrimaryIdentifiersOnly = false;
 
@@ -119,7 +124,8 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
     public static final String NORMALIZATION = "normalization";
     public static final String OWNERS = "owners";
     public static final String FETCH = "fetch";
-    public static final List<String> KNOWN_KEYS = Arrays.asList(INTENTS, UNIQUENESS, NORMALIZATION, OWNERS, FETCH);
+    public static final String EXTRA_DATA = "extraData";
+    public static final List<String> KNOWN_KEYS = Arrays.asList(INTENTS, UNIQUENESS, NORMALIZATION, OWNERS, FETCH, EXTRA_DATA);
 
     // resource oid + kind -> ROCD
     // we silently assume that all intents for a given kind share a common attribute definition
@@ -161,12 +167,14 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
             checkNormalization = true;
             checkOwners = true;
             checkFetch = false;
+            checkExtraData = true;
         } else {
             checkIntents = contains(diagnosePrismProperty, INTENTS);
             checkUniqueness = contains(diagnosePrismProperty, UNIQUENESS);
             checkNormalization = contains(diagnosePrismProperty, NORMALIZATION);
             checkOwners = contains(diagnosePrismProperty, OWNERS);
             checkFetch = contains(diagnosePrismProperty, FETCH);
+            checkExtraData = contains(diagnosePrismProperty, EXTRA_DATA);
             checkProperty(diagnosePrismProperty);
         }
         PrismProperty<String> fixPrismProperty = coordinatorTask.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_FIX);
@@ -174,10 +182,12 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
             fixIntents = false;
             fixUniqueness = false;
             fixNormalization = false;
+            fixExtraData = false;
         } else {
             fixIntents = contains(fixPrismProperty, INTENTS);
             fixUniqueness = contains(fixPrismProperty, UNIQUENESS);
             fixNormalization = contains(fixPrismProperty, NORMALIZATION);
+            fixExtraData = contains(fixPrismProperty, EXTRA_DATA);
             checkProperty(fixPrismProperty);
         }
 
@@ -189,6 +199,9 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         }
         if (fixNormalization) {
             checkNormalization = true;
+        }
+        if (fixExtraData) {
+            checkExtraData = true;
         }
 
         if (fixUniqueness) {
@@ -231,6 +244,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
                         "- normalization  diagnose={},\tfix={}\n" +
                         "- uniqueness     diagnose={},\tfix={} (primary identifiers only = {})\n" +
                         "- intents        diagnose={},\tfix={}\n" +
+                        "- extraData      diagnose={},\tfix={}\n" +
                         "- owners         diagnose={}\n" +
                         "- fetch          diagnose={}\n\n" +
                         "dryRun = {}\n",
@@ -238,6 +252,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
                 checkNormalization, fixNormalization,
                 checkUniqueness, fixUniqueness, checkDuplicatesOnPrimaryIdentifiersOnly,
                 checkIntents, fixIntents,
+                checkExtraData, fixExtraData,
                 checkOwners,
                 checkFetch,
                 dryRun);
@@ -337,6 +352,10 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
             // TODO or simply assume account?
             checkResult.recordError(Statistics.NO_KIND_SPECIFIED, new SchemaException("No kind specified"));
             return;
+        }
+
+        if (checkExtraData) {
+            checkOrFixShadowActivationConsistency(checkResult, shadow, fixExtraData);
         }
 
         PrismObject<ShadowType> fetchedShadow = null;
@@ -775,6 +794,42 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
 
         if (uniquenessReport != null) {
             LOGGER.info("Uniqueness report:\n{}", uniquenessReport);
+        }
+    }
+
+    // adapted from ProvisioningUtil
+    public void checkOrFixShadowActivationConsistency(ShadowCheckResult checkResult, PrismObject<ShadowType> shadow, boolean fix) {
+        if (shadow == null) {		// just for sure
+            return;
+        }
+        ActivationType activation = shadow.asObjectable().getActivation();
+        if (activation == null) {
+            return;
+        }
+        FailedOperationTypeType failedOperation = shadow.asObjectable().getFailedOperationType();
+        if (failedOperation == FailedOperationTypeType.ADD) {
+            return;		// in this case it's ok to have activation present
+        }
+
+        checkOrFixActivationItem(checkResult, shadow, activation.asPrismContainerValue(), ActivationType.F_ADMINISTRATIVE_STATUS);
+        checkOrFixActivationItem(checkResult, shadow, activation.asPrismContainerValue(), ActivationType.F_EFFECTIVE_STATUS);
+        checkOrFixActivationItem(checkResult, shadow, activation.asPrismContainerValue(), ActivationType.F_VALID_FROM);
+        checkOrFixActivationItem(checkResult, shadow, activation.asPrismContainerValue(), ActivationType.F_VALID_TO);
+        checkOrFixActivationItem(checkResult, shadow, activation.asPrismContainerValue(), ActivationType.F_VALIDITY_STATUS);
+        checkOrFixActivationItem(checkResult, shadow, activation.asPrismContainerValue(), ActivationType.F_VALIDITY_CHANGE_TIMESTAMP);
+        checkOrFixActivationItem(checkResult, shadow, activation.asPrismContainerValue(), ActivationType.F_LOCKOUT_STATUS);
+        checkOrFixActivationItem(checkResult, shadow, activation.asPrismContainerValue(), ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP);
+    }
+
+    private void checkOrFixActivationItem(ShadowCheckResult checkResult, PrismObject<ShadowType> shadow, PrismContainerValue<ActivationType> activation, QName itemName) {
+        PrismProperty property = activation.findProperty(new ItemPath(itemName));
+        if (property == null || property.isEmpty()) {
+            return;
+        }
+        checkResult.recordWarning(Statistics.EXTRA_ACTIVATION_DATA, "Unexpected activation item: " + property);
+        if (fixExtraData) {
+            PropertyDelta delta = PropertyDelta.createReplaceEmptyDelta(shadow.getDefinition(), new ItemPath(ShadowType.F_ACTIVATION, itemName));
+            checkResult.addFixDelta(delta, Statistics.EXTRA_ACTIVATION_DATA);
         }
     }
 

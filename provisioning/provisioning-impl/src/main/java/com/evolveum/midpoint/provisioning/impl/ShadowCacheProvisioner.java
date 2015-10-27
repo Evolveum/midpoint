@@ -19,8 +19,9 @@ package com.evolveum.midpoint.provisioning.impl;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import javax.xml.namespace.QName;
-
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -32,10 +33,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -45,7 +43,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
@@ -96,7 +93,7 @@ public class ShadowCacheProvisioner extends ShadowCache {
 
 	@Override
 	public void afterModifyOnResource(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException {
-		Collection<? extends ItemDelta> shadowChanges = getShadowChanges(ctx, shadow, modifications);
+		Collection<? extends ItemDelta> shadowChanges = extractRepoShadowChanges(ctx, shadow, modifications);
 		if (shadowChanges != null && !shadowChanges.isEmpty()) {
 			LOGGER.trace(
 					"Detected shadow changes. Start to modify shadow in the repository, applying modifications {}",
@@ -112,20 +109,33 @@ public class ShadowCacheProvisioner extends ShadowCache {
 	}
 	
 	@SuppressWarnings("rawtypes")
-	private Collection<? extends ItemDelta> getShadowChanges(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> objectChange)
+	private Collection<? extends ItemDelta> extractRepoShadowChanges(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> objectChange)
 			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
 
 		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
 		
 		Collection<ItemDelta> shadowChanges = new ArrayList<ItemDelta>();
 		for (ItemDelta itemDelta : objectChange) {
-			if ((new ItemPath(ShadowType.F_ATTRIBUTES).equivalent(itemDelta.getParentPath()) && !ProvisioningUtil.shouldStoreAtributeInShadow(objectClassDefinition, itemDelta.getElementName()))
-					|| SchemaConstants.PATH_PASSWORD.equivalent(itemDelta.getParentPath())) {
+			if (new ItemPath(ShadowType.F_ATTRIBUTES).equivalent(itemDelta.getParentPath())) {
+				if (!ProvisioningUtil.shouldStoreAtributeInShadow(objectClassDefinition, itemDelta.getElementName())) {
+					continue;
+				}
+			} else if (new ItemPath(ShadowType.F_ACTIVATION).equivalent(itemDelta.getParentPath())) {
+				if (!ProvisioningUtil.shouldStoreActivationItemInShadow(itemDelta.getElementName())) {
+					continue;
+				}
+			} else if (new ItemPath(ShadowType.F_ACTIVATION).equivalent(itemDelta.getPath())) {		// should not occur, but for completeness...
+				for (PrismContainerValue<ActivationType> valueToAdd : ((ContainerDelta<ActivationType>) itemDelta).getValuesToAdd()) {
+					ProvisioningUtil.cleanupShadowActivation(valueToAdd.asContainerable());
+				}
+				for (PrismContainerValue<ActivationType> valueToReplace : ((ContainerDelta<ActivationType>) itemDelta).getValuesToReplace()) {
+					ProvisioningUtil.cleanupShadowActivation(valueToReplace.asContainerable());
+				}
+			} else if (SchemaConstants.PATH_PASSWORD.equivalent(itemDelta.getParentPath())) {
 				continue;
-			} else {
-				shadowManager.normalizeDelta(itemDelta, objectClassDefinition);
-				shadowChanges.add(itemDelta);
 			}
+			shadowManager.normalizeDelta(itemDelta, objectClassDefinition);
+			shadowChanges.add(itemDelta);
 		}
 		return shadowChanges;
 	}

@@ -306,17 +306,19 @@ public class PasswordPolicyValidatorTest {
 	}
 
 	@Test
-	public void passwordValidationMultipleTest() throws JAXBException, SchemaException, IOException {
+	public void passwordValidationMultipleTest() throws Exception {
+		final String TEST_NAME = "passwordValidationMultipleTest";
+    	TestUtil.displayTestTile(TEST_NAME);
+    	
 		String filename = "password-policy-complex.xml";
 		String pathname = BASE_PATH + filename;
 		File file = new File(pathname);
 		
-		LOGGER.error("Positive testing: passwordGeneratorComplexTest");
 		ValuePolicyType pp = (ValuePolicyType) PrismTestUtil.parseObject(file).asObjectable();
 
 		String password = "582a**A";
 		
-		OperationResult op = new OperationResult("Password Validator with multiple policies");
+		OperationResult op = new OperationResult(TEST_NAME);
 		List<ValuePolicyType> pps = new ArrayList<ValuePolicyType>();
 		pps.add(pp);
 		pps.add(pp);

@@ -43,10 +43,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class AbstractAssignableSelectionPanel extends BasePanel {
+public abstract class AbstractAssignableSelectionPanel<T extends ObjectType> extends BasePanel {
 
     private static final String ID_ADD = "add";
-    protected Class<? extends ObjectType> type = RoleType.class;
+    protected Class<T> type = (Class<T>) RoleType.class;
     protected IModel<AssignmentSearchDto> searchModel;
 
     protected Context context;
@@ -159,14 +159,14 @@ public abstract class AbstractAssignableSelectionPanel extends BasePanel {
         return columns;
     }
 
-    public Class<? extends ObjectType> getType() {
+    public Class<T> getType() {
         return type;
     }
 
     /**
      *  Override to set the type of the of assignable popup window
      * */
-    public abstract void setType(Class<? extends ObjectType> type);
+    public abstract void setType(Class<T> type);
 
     /**
      *  Override to provide the content of such window - this should differ
@@ -184,7 +184,7 @@ public abstract class AbstractAssignableSelectionPanel extends BasePanel {
 
     protected abstract Panel getTablePanel();
 
-    protected abstract <T extends ObjectType> List<ObjectType> getSelectedObjects();
+    protected abstract <T extends ObjectType> List<T> getSelectedObjects();
     
     public ObjectQuery getProviderQuery(){
         return context.getProviderQuery();

@@ -109,10 +109,10 @@ public class StringPolicyUtils {
 	 */
 	public static ArrayList<String> stringTokenizer(String in) {
 		ArrayList<String> l = new ArrayList<String>();
-		String a[] = in.split("");
-		// Add all to list , STrat at 1 because a[0] contains ""
-		for (int i = 1; i < a.length; i++) {
-			l.add(a[i]);
+		for (String a: in.split("")) {
+			if (!a.isEmpty()) {
+				l.add(a);
+			}
 		}
 		return l;
 	}

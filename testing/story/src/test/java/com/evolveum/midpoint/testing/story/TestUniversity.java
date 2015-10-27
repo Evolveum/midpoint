@@ -44,7 +44,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -54,6 +56,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
+
 import java.io.File;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttribute;
@@ -522,12 +525,12 @@ public class TestUniversity extends AbstractStoryTest {
 		display("Org "+orgName+" group shadow", groupShadow);
 		// TODO assert shadow content
 
-		SearchResultEntry ouEntry = openDJController.searchSingle("ou="+orgName);
+		Entry ouEntry = openDJController.searchSingle("ou="+orgName);
 		assertNotNull("No ou LDAP entry for "+orgName, ouEntry);
 		display("OU entry", ouEntry);
 		openDJController.assertObjectClass(ouEntry, "organizationalUnit");
 
-		SearchResultEntry groupEntry = openDJController.searchSingle("cn=DL-"+orgName);
+		Entry groupEntry = openDJController.searchSingle("cn=DL-"+orgName);
 		assertNotNull("No group LDAP entry for "+orgName, groupEntry);
 		display("OU GROUP entry", groupEntry);
 		openDJController.assertObjectClass(groupEntry, "groupOfUniqueNames");

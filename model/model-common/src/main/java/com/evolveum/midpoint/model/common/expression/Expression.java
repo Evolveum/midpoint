@@ -25,9 +25,12 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -129,6 +132,14 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 			for (ExpressionEvaluator<?,?> evaluator: evaluators) {
 				PrismValueDeltaSetTriple<V> outputTriple = (PrismValueDeltaSetTriple<V>) evaluator.evaluate(processedParameters);
 				if (outputTriple != null) {
+					boolean allowEmptyRealValues = true;
+					if (expressionType != null) {
+						allowEmptyRealValues = BooleanUtils.isNotFalse(expressionType.isAllowEmptyValues());
+					}
+					outputTriple.removeEmptyValues(allowEmptyRealValues);
+					if (InternalsConfig.consistencyChecks) {
+						outputTriple.checkConsistence();
+					}
 					traceSuccess(context, processedVariables, outputTriple);
 					return outputTriple;
 				}

@@ -1183,10 +1183,17 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(3);
         dummyAuditService.assertAnyRequestDeltas();
+        
         dummyAuditService.assertExecutionDeltas(0, 1);
         dummyAuditService.assertHasDelta(0, ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertOldValue(0, ChangeType.MODIFY, ShadowType.class, 
+        		dummyResourceCtl.getAttributeFullnamePath(), "Jack Sparrow");
+//        dummyAuditService.assertOldValue(0, ChangeType.MODIFY, ShadowType.class, 
+//        		dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME));
+        
         dummyAuditService.assertExecutionDeltas(1, 1);
         dummyAuditService.assertHasDelta(1, ChangeType.MODIFY, UserType.class);
+        
         dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
 

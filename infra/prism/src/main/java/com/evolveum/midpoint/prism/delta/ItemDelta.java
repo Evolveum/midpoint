@@ -772,6 +772,19 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
         }
     }
     
+    public static <D extends ItemDelta> void removeItemDelta(Collection<? extends ItemDelta> deltas, ItemDelta deltaToRemove) {
+        if (deltas == null) {
+            return;
+        }
+        Iterator<? extends ItemDelta> deltasIterator = deltas.iterator();
+        while (deltasIterator.hasNext()) {
+        	ItemDelta<?,?> delta = deltasIterator.next();
+            if (delta.equals(deltaToRemove)) {
+                deltasIterator.remove();
+            }
+        }
+    }
+    
     /**
      * Filters out all delta values that are meaningless to apply. E.g. removes all values to add that the property already has,
      * removes all values to delete that the property does not have, etc. 
