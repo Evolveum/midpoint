@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
@@ -31,6 +33,7 @@ import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
+
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.markup.html.form.RequiredTextField;
@@ -43,6 +46,8 @@ import org.apache.wicket.model.Model;
 @PageDescriptor(url = "/login")
 public class PageLogin extends PageBase {
 
+	private static final Trace LOGGER = TraceManager.getTrace(PageLogin.class);
+	
     PageBase page = getPageBase();
     private static final String ID_LOGIN_FORM = "loginForm";
 
@@ -79,23 +84,19 @@ public class PageLogin extends PageBase {
         };
         OperationResult parentResult = new OperationResult(OPERATION_LOAD_RESET_PASSWORD_POLICY);
 
+        CredentialsPolicyType creds = null;
         try {
-            CredentialsPolicyType creds = getModelInteractionService().getCredentialsPolicy(null, (Task) null, parentResult);
-            BookmarkablePageLink<String> link = new BookmarkablePageLink<String>("forgetpassword", PageForgetPassword.class);
-            boolean linkIsVisible = false;
-            if (creds != null) {
-                if (creds.getSecurityQuestions().getQuestionNumber() != null) {
-                    linkIsVisible = true;
-
-                }
-
-            }
-            link.setVisible(linkIsVisible);
-            form.add(link);
+            creds = getModelInteractionService().getCredentialsPolicy(null, (Task) null, parentResult);
         } catch (ObjectNotFoundException | SchemaException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            LOGGER.warn("Cannot read credentials policy: "+e.getMessage(), e);
         }
+        BookmarkablePageLink<String> link = new BookmarkablePageLink<String>("forgetpassword", PageForgetPassword.class);
+        boolean linkIsVisible = false;
+        if (creds != null && creds.getSecurityQuestions() != null && creds.getSecurityQuestions().getQuestionNumber() != null) {
+            linkIsVisible = true;
+        }
+        link.setVisible(linkIsVisible);
+        form.add(link);
 
         form.add(new RequiredTextField(ID_USERNAME, new Model<String>()));
         form.add(new PasswordTextField(ID_PASSWORD, new Model<String>()));

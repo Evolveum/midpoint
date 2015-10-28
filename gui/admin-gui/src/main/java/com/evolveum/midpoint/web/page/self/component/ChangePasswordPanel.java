@@ -76,7 +76,7 @@ public class ChangePasswordPanel extends SimplePanel<MyPasswordsDto> {
         oldPasswordField.setResetPassword(false);
         add(oldPasswordField);
 
-        if (model.getObject().getPasswordChangeSecurity() == null ||
+        if (model.getObject().getPasswordChangeSecurity() != null &&
                 model.getObject().getPasswordChangeSecurity().equals(PasswordChangeSecurityType.NONE)){
             oldPasswordField.setVisible(false);
             oldPasswordLabel.setVisible(false);
