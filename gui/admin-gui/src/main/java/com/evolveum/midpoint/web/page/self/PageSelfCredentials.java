@@ -281,7 +281,8 @@ public class PageSelfCredentials extends PageSelf {
     private void onSavePerformed(AjaxRequestTarget target) {
         List<PasswordAccountDto> selectedAccounts = getSelectedAccountsList();
 
-        if (model.getObject().getPasswordChangeSecurity().equals(PasswordChangeSecurityType.OLD_PASSWORD)) {
+        if (model.getObject().getPasswordChangeSecurity() != null &&
+                model.getObject().getPasswordChangeSecurity().equals(PasswordChangeSecurityType.OLD_PASSWORD)) {
             LOGGER.debug("Check old password");
             if (model.getObject().getOldPassword() == null
                     || model.getObject().getOldPassword().trim().equals("")){
