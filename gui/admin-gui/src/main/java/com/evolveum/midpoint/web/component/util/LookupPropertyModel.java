@@ -84,7 +84,7 @@ public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
             String key;
 
             if (label != null && label.trim().equals("")){
-                PropertyResolver.setValue(expression, getInnermostModelOrObject(), "", prc);
+                PropertyResolver.setValue(expression, getInnermostModelOrObject(), null, prc);
             } else {
                 for (LookupTableRowType row : lookupTable.getRow()) {
                     if (label.equals(WebMiscUtil.getOrigStringFromPoly(row.getLabel()))) {
