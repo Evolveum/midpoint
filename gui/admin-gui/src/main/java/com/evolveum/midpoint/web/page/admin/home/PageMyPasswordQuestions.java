@@ -195,11 +195,15 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 		
 		//	PrismObject<SecurityPolicyType> securityPolicy = getModelService().getObject(SecurityPolicyType.class,config.asObjectable().getGlobalSecurityPolicyRef().getOid(), null, task, subResult);
 			//Global Policy set question numbers
-			questionNumber=	credPolicy.getSecurityQuestions().getQuestionNumber();
-			
-			// Actual Policy Question List										
-			policyQuestionList = credPolicy.getSecurityQuestions().getQuestion();
-			
+                if (credPolicy != null && credPolicy.getSecurityQuestions() != null) {
+                    questionNumber = credPolicy.getSecurityQuestions().getQuestionNumber();
+
+                    // Actual Policy Question List
+                    policyQuestionList = credPolicy.getSecurityQuestions().getQuestion();
+                } else {
+                    questionNumber = 0;
+                    policyQuestionList = new ArrayList<SecurityQuestionDefinitionType>();
+                }
 			}catch(Exception ex){
 				ex.printStackTrace();
 						
