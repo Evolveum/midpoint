@@ -139,39 +139,38 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 
 	public List<SecurityQuestionAnswerDTO> createUsersSecurityQuestionsList(PrismObject<UserType> user){
 		LOGGER.debug("Security Questions Loading for user: "+ user.getOid());
-		List<SecurityQuestionAnswerType> secQuestAnsList= user.asObjectable().getCredentials().getSecurityQuestions().getQuestionAnswer();
+        if (user.asObjectable().getCredentials() != null && user.asObjectable().getCredentials().getSecurityQuestions() != null) {
+            List<SecurityQuestionAnswerType> secQuestAnsList = user.asObjectable().getCredentials().getSecurityQuestions().getQuestionAnswer();
 
-		if (secQuestAnsList!=null){
-			
-			LOGGER.debug("User SecurityQuestion ANswer List is Not null");
-			List<SecurityQuestionAnswerDTO> secQuestAnswListDTO =new ArrayList<SecurityQuestionAnswerDTO>();
-			for (Iterator iterator = secQuestAnsList.iterator(); iterator
-					.hasNext();) {
-				SecurityQuestionAnswerType securityQuestionAnswerType = (SecurityQuestionAnswerType) iterator
-						.next();
-				
-				Protector protector = getPrismContext().getDefaultProtector();
-				String decoded="";
-				if (securityQuestionAnswerType.getQuestionAnswer().getEncryptedDataType() != null) {
-					try {
-						decoded = protector.decryptString(securityQuestionAnswerType.getQuestionAnswer());
+            if (secQuestAnsList != null) {
 
-					} catch (EncryptionException e) {
-						LoggingUtils.logException(LOGGER, "Couldn't decrypt user answer", e);
-						
-					}
-				}
-				//LOGGER.debug("SecAnswerIdentifier:"+securityQuestionAnswerType.getQuestionIdentifier());
-				secQuestAnswListDTO.add(new SecurityQuestionAnswerDTO(securityQuestionAnswerType.getQuestionIdentifier(), decoded)); 
-			}
+                LOGGER.debug("User SecurityQuestion ANswer List is Not null");
+                List<SecurityQuestionAnswerDTO> secQuestAnswListDTO = new ArrayList<SecurityQuestionAnswerDTO>();
+                for (Iterator iterator = secQuestAnsList.iterator(); iterator
+                        .hasNext(); ) {
+                    SecurityQuestionAnswerType securityQuestionAnswerType = (SecurityQuestionAnswerType) iterator
+                            .next();
 
-			return secQuestAnswListDTO;
-		}
-		else{
-			return null;
-		}
+                    Protector protector = getPrismContext().getDefaultProtector();
+                    String decoded = "";
+                    if (securityQuestionAnswerType.getQuestionAnswer().getEncryptedDataType() != null) {
+                        try {
+                            decoded = protector.decryptString(securityQuestionAnswerType.getQuestionAnswer());
 
-	}
+                        } catch (EncryptionException e) {
+                            LoggingUtils.logException(LOGGER, "Couldn't decrypt user answer", e);
+
+                        }
+                    }
+                    //LOGGER.debug("SecAnswerIdentifier:"+securityQuestionAnswerType.getQuestionIdentifier());
+                    secQuestAnswListDTO.add(new SecurityQuestionAnswerDTO(securityQuestionAnswerType.getQuestionIdentifier(), decoded));
+                }
+
+                return secQuestAnswListDTO;
+            }
+        }
+        return null;
+    }
 
 
 	public void initLayout(){
