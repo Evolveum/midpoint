@@ -22,6 +22,7 @@ import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.R
 import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
 
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ProgressInformation;
@@ -672,21 +673,23 @@ public class ChangeExecutor {
         	return;
         }
         
-        objectDelta.checkConsistence(ConsistencyCheckScope.fromBoolean(consistencyChecks));
+		if (InternalsConfig.consistencyChecks) {
+			objectDelta.checkConsistence(ConsistencyCheckScope.fromBoolean(consistencyChecks));
+		}
         
         // Other types than focus types may not be definition-complete (e.g. accounts and resources are completed in provisioning)
         if (FocusType.class.isAssignableFrom(objectDelta.getObjectTypeClass())) {
         	objectDelta.assertDefinitions();
         }
-        
+
+    	LensUtil.setDeltaOldValue(objectContext, objectDelta);
+    	
     	if (LOGGER.isTraceEnabled()) {
     		logDeltaExecution(objectDelta, context, resource, null, task);
     	}
 
     	OperationResult result = parentResult.createSubresult(OPERATION_EXECUTE_DELTA);
     		
-    	LensUtil.setDeltaOldValue(objectContext, objectDelta);
-    	
     	try {
     		
 	        if (objectDelta.getChangeType() == ChangeType.ADD) {
