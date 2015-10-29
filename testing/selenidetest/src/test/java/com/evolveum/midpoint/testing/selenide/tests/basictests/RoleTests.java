@@ -25,9 +25,9 @@ public class RoleTests extends AbstractSelenideTest {
     public static final String ROLE_NAME_FIELD = "tabPanel:panel:focusForm:body:containers:0:container:properties:0:property:values:0:value:valueContainer:input:input";
     public static final String ROLE_DISPLAY_NAME_FIELD = "tabPanel:panel:focusForm:body:containers:0:container:properties:1:property:values:0:value:valueContainer:input:input";
     public static final String ROLE_DESCRIPTION_FIELD = "tabPanel:panel:focusForm:body:containers:0:container:properties:2:property:values:0:value:valueContainer:input:input";
-    public static final String ROLE_TYPE_FIELD = "tabPanel:panel:focusForm:body:containers:0:container:properties:15:property:values:0:value:valueContainer:input:input";
+    public static final String ROLE_TYPE_FIELD = "tabPanel:panel:focusForm:body:containers:0:container:properties:14:property:values:0:value:valueContainer:input:input";
     public static final String ROLE_IDENTIFIER_FIELD = "tabPanel:panel:focusForm:body:containers:0:container:properties:3:property:values:0:value:valueContainer:input:input";
-    public static final String ROLE_RISK_LEVEL_FIELD = "tabPanel:panel:focusForm:body:containers:0:container:properties:12:property:values:0:value:valueContainer:input:input";
+    public static final String ROLE_RISK_LEVEL_FIELD = "tabPanel:panel:focusForm:body:containers:0:container:properties:11:property:values:0:value:valueContainer:input:input";
     //role values
     public static final String ROLE_NAME_VALUE = "TestRole";
     public static final String ROLE_DISPLAY_NAME_VALUE = "RoleDisplayName";

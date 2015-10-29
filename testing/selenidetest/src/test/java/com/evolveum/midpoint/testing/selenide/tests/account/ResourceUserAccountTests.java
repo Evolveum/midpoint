@@ -45,10 +45,6 @@ public class ResourceUserAccountTests extends AbstractSelenideTest {
         //import resource xml file
         importObjectFromFile(OPENDJ_RESOURCE_PATH);
 
-        //click to other module
-        $(By.partialLinkText("Roles")).click();
-        $(By.partialLinkText("List roles")).click();
-
         //open Resources -> List Resources
         if (!$(By.partialLinkText("List resources")).isDisplayed())
             $(By.partialLinkText("Resources")).shouldBe(visible).click(); // clicked in previous test
@@ -99,7 +95,8 @@ public class ResourceUserAccountTests extends AbstractSelenideTest {
         openUsersEditPage(USER_NAME);
 
         //click on the menu icon in the Accounts section
-        $(By.xpath("/html/body/div/div/section[2]/form/div[3]/div/div/div[7]/div[2]/div[1]/div/div[2]/ul/li/a")).shouldBe(visible).click();
+        $(By.xpath("/html/body/div[1]/div/section[2]/form/div[4]/div/div/div[9]/div[2]/div[1]/div/div[2]/ul/li/a"))
+                .shouldBe(visible).click();
         //click on the Add account menu item
         $(By.linkText("Add projection")).shouldBe(visible).click();
 
@@ -171,8 +168,8 @@ public class ResourceUserAccountTests extends AbstractSelenideTest {
         searchForElement(USER_NAME, "table:header:searchForm:basicSearch:searchText");
 
         //check if users attributes were updated
-        $(By.xpath("/html/body/div[4]/div/form/div[2]/table/tbody/tr/td[5]/div")).shouldHave(text(ACCOUNT_SURNAME_VALUE + UPDATED_VALUE));
-        $(By.xpath("/html/body/div[4]/div/form/div[2]/table/tbody/tr/td[6]/div")).shouldHave(text(ACCOUNT_COMMON_NAME_VALUE + UPDATED_VALUE));
+        $(By.xpath("/html/body/div[1]/div/section[2]/form/div[2]/div/div[2]/table/tbody/tr/td[5]/div")).shouldHave(text(ACCOUNT_SURNAME_VALUE + UPDATED_VALUE));
+        $(By.xpath("/html/body/div[1]/div/section[2]/form/div[2]/div/div[2]/table/tbody/tr/td[6]/div")).shouldHave(text(ACCOUNT_COMMON_NAME_VALUE + UPDATED_VALUE));
 
         //open user's Edit page
         $(By.linkText(USER_NAME)).shouldBe(visible).click();

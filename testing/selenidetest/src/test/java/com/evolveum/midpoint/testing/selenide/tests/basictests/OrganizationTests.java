@@ -77,7 +77,7 @@ public class OrganizationTests extends AbstractSelenideTest {
         //create sub organization
         subOrganizationFieldsMap.put(ORGANIZATION_NAME_FIELD, SUB_ORGANIZATION_NAME_VALUE);
         subOrganizationFieldsMap.put(ORGANIZATION_DISPLAY_NAME_FIELD, SUB_ORGANIZATION_DISPLAY_NAME_VALUE);
-        createOrganization(subOrganizationFieldsMap, ORGANIZATION_NAME_VALUE);
+        createOrganization(subOrganizationFieldsMap, ORGANIZATION_DISPLAY_NAME_VALUE);
         //check if Success message appears
         $(byText("Success")).shouldBe(visible);
         //check if sub organization appeared in the Children org. units section
@@ -95,8 +95,9 @@ public class OrganizationTests extends AbstractSelenideTest {
         updatedOrganizationFieldsMap.put(ORGANIZATION_COST_CENTER_FIELD, ORGANIZATION_COST_CENTER_VALUE + UPDATED_VALUE);
         updatedOrganizationFieldsMap.put(ORGANIZATION_LOCALITY_FIELD, ORGANIZATION_LOCALITY_VALUE + UPDATED_VALUE);
         updatedOrganizationFieldsMap.put(ORGANIZATION_MAIL_DOMAIN_FIELD, ORGANIZATION_MAIL_DOMAIN_VALUE + UPDATED_VALUE);
-        //click Users menu
-        $(By.partialLinkText("Users")).shouldBe(visible).click();
+        //click Org. structure  menu
+        if (!$(By.partialLinkText("Organization tree")).isDisplayed())
+            $(By.partialLinkText("Org. structure")).shouldBe(visible).click();
         //click Organization tree menu item
         $(By.partialLinkText("Organization tree")).shouldBe(visible).click();
         //open created organization tab
@@ -116,8 +117,10 @@ public class OrganizationTests extends AbstractSelenideTest {
 
     @Test (priority = 3, dependsOnMethods = {"test001createOrganisationTest", "test003updateOrganizationTest"})
     public void test004deleteOrganizationTest(){
-        //click Users menu
-        $(By.partialLinkText("Users")).shouldBe(visible).click();
+        //click Org. structure  menu
+        if (!$(By.partialLinkText("Organization tree")).isDisplayed()) {
+            $(By.partialLinkText("Org. structure")).shouldBe(visible).click();
+        }
         //click Organization tree menu item
         $(By.partialLinkText("Organization tree")).shouldBe(visible).click();
         //open created organization tab
@@ -137,22 +140,31 @@ public class OrganizationTests extends AbstractSelenideTest {
     }
 
 
-    public void createOrganization(Map<String, String> organizationFieldsMap, String parentOrgName){
-        //click New organization menu
-        $(By.partialLinkText("New organization")).shouldBe(visible).click();
-        setFieldValues(organizationFieldsMap);
-        if (parentOrgName != null && !parentOrgName.isEmpty()){
-            //click Edit button for Parent org. units field
-//            $(byText("Edit")).shouldBe(visible).click();
-            $(By.xpath("/html/body/div[1]/div/section[2]/form/div[2]/div/div/div[7]/div[1]/div/div/div/div[3]/div[1]/div[1]/div[11]/div/div[2]/div/div[1]/div[1]/div[2]/div/span/button"))
-                    .shouldBe(visible).click();
+    public void createOrganization(Map<String, String> organizationFieldsMap, String parentOrgDisplayName){
+        // must go over Organization tree
+        if (parentOrgDisplayName != null && !parentOrgDisplayName.isEmpty()){
+            // click Organization tree
+            $(By.partialLinkText("Organization tree")).shouldBe(visible).click();
+            // click to organization
+            $(By.linkText(parentOrgDisplayName)).shouldBe(visible).click();
 
-            //click on the parent organization name in the opened Choose object window
-            $(By.partialLinkText(ORGANIZATION_NAME_VALUE)).shouldBe(visible).click();
-            //wait till Choose object window close
-            $(byText("Choose object")).should(disappear);
+            //click on the menu icon in the Organisation section
+            $(By.xpath("/html/body/div[1]/div/section[2]/div[2]/div/div/div[4]/div[3]/div/div/form/div[2]/div[2]/table/thead/tr/th[6]/div/span[1]/ul/li/a"))
+                    .shouldBe(visible).click();
+            //click Add org. unit (root is selected)
+            $(By.linkText("Add org. unit")).shouldBe(visible).click();
+
+            setFieldValues(organizationFieldsMap);
+            //click Save button
+            $(By.linkText("Save")).shouldBe(visible).click();
         }
-        //click Save button
-        $(By.linkText("Save")).shouldBe(visible).click();
+        // create root org
+        else {
+            //click New organization menu
+            $(By.partialLinkText("New organization")).shouldBe(visible).click();
+            setFieldValues(organizationFieldsMap);
+            //click Save button
+            $(By.linkText("Save")).shouldBe(visible).click();
+        }
     }
 }

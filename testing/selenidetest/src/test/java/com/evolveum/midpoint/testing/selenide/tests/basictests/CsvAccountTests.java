@@ -62,7 +62,7 @@ public class CsvAccountTests extends AbstractSelenideTest {
         openUsersEditPage(USER_WITH_CSV_ACCOUNT_NAME);
         //click on the menu icon in the Projections section
 //        $(byAttribute("about", "accountMenu")).find(byAttribute("class", "dropdown-toggle")).shouldBe(visible).click();
-        $(By.xpath("/html/body/div[1]/div/section[2]/form/div[3]/div/div/div[7]/div[2]/div[1]/div/div[2]/ul/li/a/b"))
+        $(By.xpath("/html/body/div[1]/div/section[2]/form/div[4]/div/div/div[9]/div[2]/div[1]/div/div[2]/ul/li/a"))
                 .shouldBe(visible).click();
         //click on the Add projection menu item
         $(By.linkText("Add projection")).shouldBe(visible).click();
@@ -89,6 +89,7 @@ public class CsvAccountTests extends AbstractSelenideTest {
         //click Save button
         $(By.linkText("Save")).shouldBe(visible).click();
         //check if Success message appears
+        // if error occured, copy midpoint\testing\selenidetest\src\test\resources\mp-resources\midpoint-flatfile-orig.csv to midpoint-flatfile.csv
         $(byText("Success")).shouldBe(visible);
         //open user's Edit page by account name value
         openUsersEditPage(ACCOUNT_NAME_VALUE);
