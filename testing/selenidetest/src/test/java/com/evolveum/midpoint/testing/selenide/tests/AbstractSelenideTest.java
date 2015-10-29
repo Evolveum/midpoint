@@ -248,10 +248,7 @@ public class AbstractSelenideTest{
         //click Assign menu item with the specified linkText
         $(By.linkText(linkText)).shouldBe(visible).click();
         //search for object by objectName in the opened Select object(s) window
-        String searchBoxName = "tabPanel:panel:assignmentsContainer:assignmentsPanel:assignablePopup:content:searchForm:basicSearch:searchText";
-        if (OrganizationStructureTests.ASSIGN_ORG_UNIT_LINKTEXT.equals(linkText))
-            searchBoxName = "tabPanel:panel:assignmentsContainer:assignmentsPanel:assignableOrgPopup:content:tabs:panel:searchForm:basicSearch:searchText";
-        searchForElement(objectName, searchBoxName);
+        searchForElement(objectName, "basicSearch:searchText");
         //select checkbox for the found object
         $(byAttribute("about", "table")).find(By.tagName("tbody")).find(By.tagName("input")).shouldBe(visible).click();
         //click Assign button

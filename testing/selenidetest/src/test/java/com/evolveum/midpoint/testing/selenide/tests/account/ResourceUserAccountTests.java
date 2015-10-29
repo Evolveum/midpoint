@@ -94,14 +94,14 @@ public class ResourceUserAccountTests extends AbstractSelenideTest {
         //open user's Edit page
         openUsersEditPage(USER_NAME);
 
-        //click on the menu icon in the Accounts section
-        $(By.xpath("/html/body/div[1]/div/section[2]/form/div[4]/div/div/div[9]/div[2]/div[1]/div/div[2]/ul/li/a"))
+        //click on the menu icon in the Projection section
+        $(By.xpath("/html/body/div[1]/div/section[2]/form/div[4]/div/div/div[7]/div[2]/div[1]/div/div[2]/ul/li/a"))
                 .shouldBe(visible).click();
-        //click on the Add account menu item
+        //click on the Add projection menu item
         $(By.linkText("Add projection")).shouldBe(visible).click();
 
         //search for resource in resources list in the opened Select resource(s) window
-        searchForElement(OPENDJ_RESOURCE_NAME, "tabPanel:panel:resourcePopup:content:searchForm:basicSearch:searchText");
+        searchForElement(OPENDJ_RESOURCE_NAME, "basicSearch:searchText");
         $(By.xpath("/html/body/div[5]/form/div/div[2]/div/div/div/div[2]/div/div/div/div/div/div[2]/div/table/tbody/tr/td[2]/div"))
                 .shouldHave(text(OPENDJ_RESOURCE_NAME));
 
