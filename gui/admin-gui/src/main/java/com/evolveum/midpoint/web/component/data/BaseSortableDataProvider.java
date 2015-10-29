@@ -223,7 +223,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
             addCachedSize(cache, new CachedSize(size, System.currentTimeMillis()));
         }
 
-        LOGGER.trace("end::size()");
+        LOGGER.trace("end::size(): {}", size);
         return size;
     }
 
