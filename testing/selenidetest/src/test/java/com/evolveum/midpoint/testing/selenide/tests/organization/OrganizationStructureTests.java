@@ -72,7 +72,7 @@ public class OrganizationStructureTests extends AbstractSelenideTest {
         $(By.xpath("/html/body/div[1]/div/section[2]/div[2]/div/div/div[4]/div[2]/div/div/div[2]/div/table/tbody/tr[2]/td/div/div/div/div/span/a/span"))
                 .shouldBe(visible).click();
         //search for the user in the opened organization
-        searchForElement(USER_NAME, "basicSearch:searchText");
+        searchForElement(USER_NAME, "searchText");
         //check if user was found in the organization
         $(By.xpath("/html/body/div[1]/div/section[2]/div[2]/div/div/div[4]/div[3]/div/div//form/div[4]/div[2]/table/tbody/tr/td[3]/div/a/span"))
                 .shouldHave(text(USER_NAME));
@@ -111,7 +111,7 @@ public class OrganizationStructureTests extends AbstractSelenideTest {
         $(By.xpath("/html/body/div[1]/div/section[2]/div[2]/div/div/div[4]/div[2]/div/div/div[2]/div/table/tbody/tr[2]/td/div/div/div/div/span/a/span"))
                 .shouldBe(visible).click();
         //search for the user in the opened organization
-        searchForElement(USER_NAME, "basicSearch:searchText");
+        searchForElement(USER_NAME, "searchText");
         //check if user was not found in the organization, No matching result found message is shown
         $(By.xpath("/html/body/div[1]/div/section[2]/div[2]/div/div/div[4]/div[3]/div/div/form/div[4]/div[2]/table/tfoot/tr/td"))
                 .shouldHave(text("No matching result found."));

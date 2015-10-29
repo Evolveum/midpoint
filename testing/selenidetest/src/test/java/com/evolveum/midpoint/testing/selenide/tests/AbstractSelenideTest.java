@@ -243,11 +243,11 @@ public class AbstractSelenideTest{
      */
     public void assignObjectToUser(String linkText, String objectName){
         //click on the menu icon next to Assignments section
-        $(byAttribute("about", "assignments")).find(byAttribute("about", "dropdownMenu")).click();
+        $(byAttribute("about", "assignmentsContainer")).find(byAttribute("about", "dropdownMenu")).click();
         //click Assign menu item with the specified linkText
         $(By.linkText(linkText)).shouldBe(visible).click();
         //search for object by objectName in the opened Select object(s) window
-        searchForElement(objectName, "tabPanel:panel:assignmentsContainer:assignmentsPanel:assignablePopup:content:searchForm:basicSearch:searchText");
+        searchForElement(objectName, "searchText");
         //select checkbox for the found object
         $(byAttribute("about", "table")).find(By.tagName("tbody")).find(By.tagName("input")).shouldBe(visible).click();
         //click Assign button
@@ -284,19 +284,19 @@ public class AbstractSelenideTest{
      */
     public void searchForElement(String searchText){
         //search for element in search form
-        searchForElement(searchText, "table:header:searchForm:basicSearch:searchText");
+        searchForElement(searchText, "searchText");
     }
 
     /**
      * Looks for the element with specified searchText in specified name
      * and returns the first element from the search results
      * @param searchText
-     * @param name
+     * @param aboutTagValue
      * @return
      */
-    public void searchForElement(String searchText, String name){
+    public void searchForElement(String searchText, String aboutTagValue){
         //search for element in search form
-        $(By.name(name)).shouldBe(visible).setValue(searchText);
+        $(byAttribute("about", aboutTagValue)).shouldBe(visible).setValue(searchText);
         $(By.linkText("Search")).shouldBe(visible).click();
     }
 
