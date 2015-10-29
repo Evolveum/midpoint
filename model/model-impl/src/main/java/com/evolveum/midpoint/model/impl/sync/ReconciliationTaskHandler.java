@@ -158,11 +158,11 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	@Override
 	public TaskRunResult run(Task coordinatorTask) {
 		LOGGER.trace("ReconciliationTaskHandler.run starting");
-		TaskHandlerUtil.initAllStatistics(coordinatorTask);
+		coordinatorTask.startCollectingOperationStatsFromZero(true, true, true);
 		try {
 			return runInternal(coordinatorTask);
 		} finally {
-			TaskHandlerUtil.storeAllStatistics(coordinatorTask);
+			coordinatorTask.storeOperationStats();
 		}
 	}
 
@@ -700,9 +700,9 @@ public class ReconciliationTaskHandler implements TaskHandler {
 				try {
                     repositoryService.modifyObject(ShadowType.class, shadow.getOid(), modifications,
 							provisioningResult);
-					task.recordObjectActionExecuted(shadow, ChangeType.MODIFY, SchemaConstants.CHANGE_CHANNEL_RECON_URI, null);
+					task.recordObjectActionExecuted(shadow, null, null, ChangeType.MODIFY, SchemaConstants.CHANGE_CHANNEL_RECON_URI, null);
 				} catch(Exception e) {
-					task.recordObjectActionExecuted(shadow, ChangeType.MODIFY, SchemaConstants.CHANGE_CHANNEL_RECON_URI, e);
+					task.recordObjectActionExecuted(shadow, null, null, ChangeType.MODIFY, SchemaConstants.CHANGE_CHANNEL_RECON_URI, e);
                     LoggingUtils.logException(LOGGER, "Failed to record finish operation failure with shadow: " + ObjectTypeUtil.toShortString(shadow.asObjectable()), e);
 				}
 			} finally {

@@ -34,6 +34,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -51,6 +52,8 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
     private static final String OPERATION_SEARCH_OBJECTS = DOT_CLASS + "searchObjects";
     private static final String OPERATION_COUNT_OBJECTS = DOT_CLASS + "countObjects";
 
+    private Set<T> selected = new HashSet<>();
+    
     private Class<T> type;
     private Collection<SelectorOptions<GetOperationOptions>> options;
 
@@ -60,10 +63,46 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
         Validate.notNull(type);
         this.type = type;
     }
-
+    
+    public List<T> getSelectedData() {
+    	for (Serializable s : super.getAvailableData()){
+    		if (s instanceof SelectableBean){
+    			SelectableBean<T> selectable = (SelectableBean<T>) s;
+    			if (selectable.isSelected()){
+    				selected.add(selectable.getValue());
+    			}
+    		}
+    	}
+    	List<T> allSelected = new ArrayList<>();
+    	allSelected.addAll(selected);
+    	return allSelected;
+    }
+    
+   
     @Override
     public Iterator<W> internalIterator(long first, long count) {
         LOGGER.trace("begin::iterator() from {} count {}.", new Object[]{first, count});
+        
+        for (W available : getAvailableData()){
+        	if (available instanceof SelectableBean){
+        		SelectableBean<T> selectableBean = (SelectableBean<T>) available;
+        		if (selectableBean.isSelected()){
+        			selected.add(selectableBean.getValue());
+        		}
+        	}
+        }
+        
+        for (W available : getAvailableData()){
+        	if (available instanceof SelectableBean){
+        		SelectableBean<T> selectableBean = (SelectableBean<T>) available;
+        		if (!selectableBean.isSelected()){
+        			if (selected.contains(selectableBean.getValue())){
+        				selected.remove(selectableBean.getValue());
+        			}
+        		}
+        	}
+        }
+        
         getAvailableData().clear();
 
         OperationResult result = new OperationResult(OPERATION_SEARCH_OBJECTS);
@@ -77,9 +116,16 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
             }
             query.setPaging(paging);
 
-            LOGGER.trace("Query {} with {}", type.getSimpleName(), query.debugDump());
+            if (LOGGER.isTraceEnabled()) {
+            	LOGGER.trace("Query {} with {}", type.getSimpleName(), query.debugDump());
+            }
 
             List<PrismObject<T>> list = getModel().searchObjects(type, query, options, task, result);
+            
+            if (LOGGER.isTraceEnabled()) {
+            	LOGGER.trace("Query {} resulted in {} objects", type.getSimpleName(), list.size());
+            }
+            
             for (PrismObject<T> object : list) {
                 getAvailableData().add(createDataObjectWrapper(object));
             }
@@ -104,7 +150,11 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
     }
 
     public W createDataObjectWrapper(PrismObject<T> obj) {
-        return (W) new SelectableBean<T>(obj.asObjectable());
+    	SelectableBean<T> selectable = new SelectableBean<T>(obj.asObjectable());
+    	if (selected.contains(obj.asObjectable())){
+    		selectable.setSelected(true);
+    	}
+        return (W) selectable ;
     }
 
     @Override
@@ -127,7 +177,7 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
             throw new RestartResponseException(PageError.class);
         }
 
-        LOGGER.trace("end::internalSize()");
+        LOGGER.trace("end::internalSize(): {}", count);
         return count;
     }
 

@@ -1287,6 +1287,18 @@ public class LensUtil {
 			}
 		}
 	}
+	
+	public static <O extends ObjectType> void setDeltaOldValue(LensElementContext<O> ctx, ObjectDelta<O> objectDelta) {
+		if (objectDelta == null) {
+			return;
+		}
+		if (!objectDelta.isModify()) {
+			return;
+		}
+		for (ItemDelta<?, ?> modification: objectDelta.getModifications()) {
+			setDeltaOldValue(ctx, modification);
+		}
+	}
 
 	public static <F extends ObjectType> LensObjectDeltaOperation<F> createObjectDeltaOperation(ObjectDelta<F> focusDelta, OperationResult result,
 																								LensElementContext<F> focusContext, LensProjectionContext projCtx) {

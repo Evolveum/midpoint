@@ -248,9 +248,11 @@ public class PageResources extends PageAdminResources {
             }
         };
 
-        Collection<SelectorOptions<GetOperationOptions>> options =
-                SelectorOptions.createCollection(ResourceType.F_CONNECTOR, GetOperationOptions.createResolve());
-        provider.setOptions(options);
+        //fixes MID-2534;
+        // connector reference is set in the ResourceDto constructor
+//        Collection<SelectorOptions<GetOperationOptions>> options =
+//                SelectorOptions.createCollection(ResourceType.F_CONNECTOR, GetOperationOptions.createResolve());
+//        provider.setOptions(options);
         provider.setQuery(createQuery());
 
         return provider;

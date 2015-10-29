@@ -103,7 +103,7 @@ public class DeleteTaskHandler implements TaskHandler {
 	@Override
 	public TaskRunResult run(Task task) {
 		try {
-			TaskHandlerUtil.initAllStatistics(task, true, false, true);
+			task.startCollectingOperationStatsFromZero(true, false, true);
 			return runInternal(task);
 		} finally {
 			updateState(task);
@@ -330,7 +330,7 @@ public class DeleteTaskHandler implements TaskHandler {
 	}
 
 	private void updateState(Task task) {
-		TaskHandlerUtil.storeAllStatistics(task, true, false, true);
+		task.storeOperationStats();
 		// includes savePendingModifications - this is necessary for the progress to be immediately available in GUI
 	}
 	

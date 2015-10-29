@@ -21,6 +21,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActionsExecutedInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
@@ -30,47 +31,50 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 public class TaskCurrentStateDto {
 
     private TaskDto taskDto;
-    private SynchronizationInformationType synchronizationInformationType;
-    private IterativeTaskInformationType iterativeTaskInformationType;
-    private ActionsExecutedInformationType actionsExecutedInformationType;
-    private Long currentProgress;
 
     public TaskCurrentStateDto(TaskDto taskDto) {
         this.taskDto = taskDto;
-        if (taskDto == null) {
-            return;
-        }
-        this.currentProgress = taskDto.getProgress();
-        TaskType taskType = taskDto.getTaskType();
-        if (taskType == null) {
-            return;
-        }
-        PrismContainer<?> extension = taskType.asPrismObject().getExtension();
-        if (extension == null) {
-            return;
-        }
-        synchronizationInformationType = extension.getPropertyRealValue(SchemaConstants.MODEL_EXTENSION_SYNCHRONIZATION_INFORMATION_PROPERTY_NAME, SynchronizationInformationType.class);
-        iterativeTaskInformationType = extension.getPropertyRealValue(SchemaConstants.MODEL_EXTENSION_ITERATIVE_TASK_INFORMATION_PROPERTY_NAME, IterativeTaskInformationType.class);
-        actionsExecutedInformationType = extension.getPropertyRealValue(SchemaConstants.MODEL_EXTENSION_ACTIONS_EXECUTED_INFORMATION_PROPERTY_NAME, ActionsExecutedInformationType.class);
     }
 
     public TaskDto getTaskDto() {
         return taskDto;
     }
 
+    public OperationStatsType getOperationStatsType() {
+        if (taskDto == null || taskDto.getTaskType() == null) {
+            return null;
+        }
+        return taskDto.getTaskType().getOperationStats();
+    }
+
     public SynchronizationInformationType getSynchronizationInformationType() {
-        return synchronizationInformationType;
+        OperationStatsType stats = getOperationStatsType();
+        if (stats == null) {
+            return null;
+        }
+        return stats.getSynchronizationInformation();
     }
 
     public IterativeTaskInformationType getIterativeTaskInformationType() {
-        return iterativeTaskInformationType;
+        OperationStatsType stats = getOperationStatsType();
+        if (stats == null) {
+            return null;
+        }
+        return stats.getIterativeTaskInformation();
     }
 
     public ActionsExecutedInformationType getActionsExecutedInformationType() {
-        return actionsExecutedInformationType;
+        OperationStatsType stats = getOperationStatsType();
+        if (stats == null) {
+            return null;
+        }
+        return stats.getActionsExecutedInformation();
     }
 
     public Long getCurrentProgress() {
-        return currentProgress;
+        if (taskDto == null) {
+            return null;
+        }
+        return taskDto.getProgress();
     }
 }

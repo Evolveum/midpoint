@@ -683,21 +683,22 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 					lensContext.debugDump());
 		}
 		
-		executeActions(reactionDefinition, lensContext, situation, BeforeAfterType.BEFORE, resource, 
-				logDebug, task, parentResult);
-		
-				
 		if (willSynchronize) {
 
+			// there's no point in calling executeAction without context - so the actions are executed only if synchronize == true
+			executeActions(reactionDefinition, lensContext, situation, BeforeAfterType.BEFORE, resource,
+					logDebug, task, parentResult);
+
 			clockwork.run(lensContext, task, parentResult);
-			
+
+			// note: actions "AFTER" seem to be useless here (basically they modify lens context - which is relevant only if followed by clockwork run)
+			executeActions(reactionDefinition, lensContext, situation, BeforeAfterType.AFTER, resource,
+					logDebug, task, parentResult);
+
 		} else {
-			LOGGER.trace("Skipping clockwork run on {} for situation {}, sychronize is set to false.",
+			LOGGER.trace("Skipping clockwork run on {} for situation {}, synchronize is set to false.",
 					new Object[] { resource, situation.getSituation() });
 		}
-
-		executeActions(reactionDefinition, lensContext, situation, BeforeAfterType.AFTER, resource, 
-				logDebug, task, parentResult);
 
 	}
 

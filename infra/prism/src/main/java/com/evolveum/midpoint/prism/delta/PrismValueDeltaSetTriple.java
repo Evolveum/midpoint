@@ -15,13 +15,18 @@
  */
 package com.evolveum.midpoint.prism.delta;
 
+import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Itemable;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.Cloner;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -31,6 +36,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
+
+import javax.xml.namespace.QName;
 
 /**
  * DeltaSetTriple that is limited to hold prism values. By limiting to the PrismValue descendants we gain advantage to be
@@ -164,6 +172,43 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
 			}
 		}
 	}
+	
+	public void removeEmptyValues(boolean allowEmptyValues) {
+		removeEmptyValues(plusSet, allowEmptyValues);
+		removeEmptyValues(zeroSet, allowEmptyValues);
+		removeEmptyValues(minusSet, allowEmptyValues);
+	}
+
+
+	private void removeEmptyValues(Collection<V> set, boolean allowEmptyRealValues) {
+		if (set == null) {
+			return;
+		}
+		Iterator<V> iterator = set.iterator();
+		while (iterator.hasNext()) {
+			V val = iterator.next();
+			if (val.isEmpty()) {
+				iterator.remove();
+				continue;
+			}
+			if (!allowEmptyRealValues) {
+				if (val instanceof PrismPropertyValue<?>) {
+					Object realValue = ((PrismPropertyValue<?>)val).getValue();
+					if (realValue instanceof String) {
+						if (((String)realValue).isEmpty()) {
+							iterator.remove();
+							continue;
+						}
+					} else if (realValue instanceof PolyString) {
+						if (((PolyString)realValue).isEmpty()) {
+							iterator.remove();
+							continue;
+						}
+					}
+				}
+			}
+		}
+	}
 
 	public PrismValueDeltaSetTriple<V> clone() {
 		PrismValueDeltaSetTriple<V> clone = new PrismValueDeltaSetTriple<V>();
@@ -179,6 +224,20 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
 			}
 		};
 		super.copyValues(clone, cloner);
+	}
+	
+	public void checkConsistence() {
+		Visitor visitor = new Visitor() {
+			@Override
+			public void visit(Visitable visitable) {
+				if (visitable instanceof PrismValue) {
+					if (((PrismValue)visitable).isEmpty()) {
+						throw new IllegalStateException("Empty value "+visitable+" in triple "+PrismValueDeltaSetTriple.this);
+					}
+				}
+			}
+		};
+		accept(visitor);
 	}
 	
 	@Override

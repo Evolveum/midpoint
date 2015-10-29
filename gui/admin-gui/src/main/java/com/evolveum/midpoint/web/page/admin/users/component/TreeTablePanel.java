@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,73 +104,40 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * Used as a main component of the Org tree page.
+ * 
  * todo create function computeHeight() in midpoint.js, update height properly when in "mobile" mode... [lazyman]
  * todo implement midpoint theme for tree [lazyman]
  *
  * @author lazyman
  */
-public class TreeTablePanel extends SimplePanel<String> {
+public class TreeTablePanel extends AbstractTreeTablePanel {
 
     private static final Trace LOGGER = TraceManager.getTrace(TreeTablePanel.class);
 
-    private static final int CONFIRM_DELETE = 0;
-    private static final int CONFIRM_DELETE_ROOT = 1;
-
-    private static final String DOT_CLASS = TreeTablePanel.class.getName() + ".";
-    private static final String OPERATION_DELETE_OBJECTS = DOT_CLASS + "deleteObjects";
-    private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
-    private static final String OPERATION_MOVE_OBJECTS = DOT_CLASS + "moveObjects";
-    private static final String OPERATION_MOVE_OBJECT = DOT_CLASS + "moveObject";
-    private static final String OPERATION_UPDATE_OBJECTS = DOT_CLASS + "updateObjects";
-    private static final String OPERATION_UPDATE_OBJECT = DOT_CLASS + "updateObject";
-    private static final String OPERATION_RECOMPUTE = DOT_CLASS + "recompute";
-
-    private static final String ID_TREE = "tree";
-    private static final String ID_TREE_CONTAINER = "treeContainer";
-    private static final String ID_CONTAINER_CHILD_ORGS = "childOrgContainer";
-    private static final String ID_CONTAINER_MANAGER = "managerContainer";
-    private static final String ID_CONTAINER_MEMBER = "memberContainer";
-    private static final String ID_CHILD_TABLE = "childUnitTable";
-    private static final String ID_MANAGER_TABLE = "managerTable";
-    private static final String ID_MEMBER_TABLE = "memberTable";
-    private static final String ID_FORM = "form";
-    private static final String ID_CONFIRM_DELETE_POPUP = "confirmDeletePopup";
-    private static final String ID_MOVE_POPUP = "movePopup";
-    private static final String ID_ADD_DELETE_POPUP = "addDeletePopup";
-    private static final String ID_TREE_MENU = "treeMenu";
-    private static final String ID_TREE_HEADER = "treeHeader";
-    private static final String ID_SEARCH_FORM = "searchForm";
-    private static final String ID_BASIC_SEARCH = "basicSearch";
-    private static final String ID_SEARCH_SCOPE = "searchScope";
-
-    private static final String SEARCH_SCOPE_SUBTREE = "subtree";
-    private static final String SEARCH_SCOPE_ONE = "one";
-    private static final List<String> SEARCH_SCOPE_VALUES = Arrays.asList( SEARCH_SCOPE_SUBTREE, SEARCH_SCOPE_ONE);
-    
-    private IModel<OrgTreeDto> selected = new LoadableModel<OrgTreeDto>() {
-
-        @Override
-        protected OrgTreeDto load() {
-            TabbedPanel currentTabbedPanel = null;
-            MidPointAuthWebSession session = TreeTablePanel.this.getSession();
-            SessionStorage storage = session.getSessionStorage();
-            if (getTree().findParent(TabbedPanel.class) != null) {
-                currentTabbedPanel = getTree().findParent(TabbedPanel.class);
-                int tabId = currentTabbedPanel.getSelectedTab();
-                if (storage.getUsers().getSelectedTabId() != -1 && tabId != storage.getUsers().getSelectedTabId()){
-                    storage.getUsers().setSelectedItem(null);
-                }
-            }
-            if (storage.getUsers().getSelectedItem() != null){
-                return storage.getUsers().getSelectedItem();
-            } else {
-                return getRootFromProvider();
-            }
-        }
-    };
-
     public TreeTablePanel(String id, IModel<String> rootOid) {
         super(id, rootOid);
+        
+        selected = new LoadableModel<OrgTreeDto>() {
+            @Override
+            protected OrgTreeDto load() {
+                TabbedPanel currentTabbedPanel = null;
+                MidPointAuthWebSession session = TreeTablePanel.this.getSession();
+                SessionStorage storage = session.getSessionStorage();
+                if (getTree().findParent(TabbedPanel.class) != null) {
+                    currentTabbedPanel = getTree().findParent(TabbedPanel.class);
+                    int tabId = currentTabbedPanel.getSelectedTab();
+                    if (storage.getUsers().getSelectedTabId() != -1 && tabId != storage.getUsers().getSelectedTabId()){
+                        storage.getUsers().setSelectedItem(null);
+                    }
+                }
+                if (storage.getUsers().getSelectedItem() != null){
+                    return storage.getUsers().getSelectedItem();
+                } else {
+                    return getRootFromProvider();
+                }
+            }
+        };
     }
 
     @Override
@@ -455,34 +422,6 @@ public class TreeTablePanel extends SimplePanel<String> {
         memberContainer.add(memberTablePanel);
     }
 
-    /**
-     * TODO - test search
-     * */
-    private void initSearch() {
-        Form form = new Form(ID_SEARCH_FORM);
-        form.setOutputMarkupId(true);
-        add(form);
-        
-        
-        DropDownChoice<String> seachScrope = new DropDownChoice<String>(ID_SEARCH_SCOPE, Model.of(SEARCH_SCOPE_SUBTREE),
-        		SEARCH_SCOPE_VALUES, new StringResourceChoiceRenderer("TreeTablePanel.search.scope"));
-        form.add(seachScrope);
-
-        BasicSearchPanel basicSearch = new BasicSearchPanel(ID_BASIC_SEARCH, new Model()) {
-
-            @Override
-            protected void clearSearchPerformed(AjaxRequestTarget target) {
-                clearTableSearchPerformed(target);
-            }
-
-            @Override
-            protected void searchPerformed(AjaxRequestTarget target) {
-                tableSearchPerformed(target);
-            }
-        };
-        form.add(basicSearch);
-    }
-
     private List<InlineMenuItem> createTreeMenu() {
         List<InlineMenuItem> items = new ArrayList<>();
 
@@ -563,14 +502,6 @@ public class TreeTablePanel extends SimplePanel<String> {
                 return null;
             }
         };
-    }
-
-    private OrgTreeDto getRootFromProvider() {
-        TableTree<OrgTreeDto, String> tree = getTree();
-        ITreeProvider<OrgTreeDto> provider = tree.getProvider();
-        Iterator<? extends OrgTreeDto> iterator = provider.getRoots();
-
-        return iterator.hasNext() ? iterator.next() : null;
     }
 
     private List<IColumn<OrgTableDto, String>> createChildTableColumns() {
@@ -999,14 +930,6 @@ public class TreeTablePanel extends SimplePanel<String> {
         dialog.show(target);
     }
 
-    private PrismReferenceValue createPrismRefValue(OrgDto dto) {
-        PrismReferenceValue value = new PrismReferenceValue();
-        value.setOid(dto.getOid());
-        value.setRelation(dto.getRelation());
-        value.setTargetType(ObjectTypes.getObjectType(dto.getType()).getTypeQName());
-        return value;
-    }
-
     private ObjectDelta createMoveDelta(PrismObject<OrgType> orgUnit, OrgTreeDto oldParent, OrgTableDto newParent,
                                         OrgUnitBrowser.Operation operation) {
         ObjectDelta delta = orgUnit.createDelta(ChangeType.MODIFY);
@@ -1088,40 +1011,12 @@ public class TreeTablePanel extends SimplePanel<String> {
         refreshTabbedPanel(target);
     }
 
-    private void refreshTabbedPanel(AjaxRequestTarget target) {
-        PageBase page = getPageBase();
-
-        TabbedPanel tabbedPanel = findParent(TabbedPanel.class);
-        IModel<List<ITab>> tabs = tabbedPanel.getTabs();
-
-        if (tabs instanceof LoadableModel) {
-            ((LoadableModel) tabs).reset();
-        }
-
-        tabbedPanel.setSelectedTab(0);
-
-        target.add(tabbedPanel);
-        target.add(page.getFeedbackPanel());
-    }
-
-    private TableTree<OrgTreeDto, String> getTree() {
-        return (TableTree<OrgTreeDto, String>) get(createComponentPath(ID_TREE_CONTAINER, ID_TREE));
-    }
-
-    private WebMarkupContainer getOrgChildContainer() {
-        return (WebMarkupContainer) get(createComponentPath(ID_FORM, ID_CONTAINER_CHILD_ORGS));
-    }
-
     private WebMarkupContainer getMemberContainer() {
         return (WebMarkupContainer) get(createComponentPath(ID_FORM, ID_CONTAINER_MEMBER));
     }
 
     private WebMarkupContainer getManagerContainer() {
         return (WebMarkupContainer) get(createComponentPath(ID_FORM, ID_CONTAINER_MANAGER));
-    }
-
-    private TablePanel getOrgChildTable() {
-        return (TablePanel) get(createComponentPath(ID_FORM, ID_CONTAINER_CHILD_ORGS, ID_CHILD_TABLE));
     }
 
     private TablePanel getMemberTable() {
@@ -1149,52 +1044,6 @@ public class TreeTablePanel extends SimplePanel<String> {
         target.add(get(ID_SEARCH_FORM));
     }
 
-    private ObjectQuery createOrgChildQuery() {
-        OrgTreeDto dto = selected.getObject();
-        String oid = dto != null ? dto.getOid() : getModel().getObject();
-
-        BasicSearchPanel<String> basicSearch = (BasicSearchPanel) get(createComponentPath(ID_SEARCH_FORM, ID_BASIC_SEARCH));
-        String object = basicSearch.getModelObject();
-
-        DropDownChoice<String> searchScopeChoice = (DropDownChoice) get(createComponentPath(ID_SEARCH_FORM, ID_SEARCH_SCOPE));
-        String scope = searchScopeChoice.getModelObject();
-
-        if (StringUtils.isBlank(object)) {
-        	object = null;
-        }
-        
-        OrgFilter org;
-        if (object == null || SEARCH_SCOPE_ONE.equals(scope)) {
-        	org = OrgFilter.createOrg(oid, OrgFilter.Scope.ONE_LEVEL);
-        } else {
-        	org = OrgFilter.createOrg(oid, OrgFilter.Scope.SUBTREE);
-        }
-
-        if (object == null) {
-            return ObjectQuery.createObjectQuery(org);
-        }
-        
-        PageBase page = getPageBase();
-        PrismContext context = page.getPrismContext();
-
-        PolyStringNormalizer normalizer = context.getDefaultPolyStringNormalizer();
-        String normalizedString = normalizer.normalize(object);
-        if (StringUtils.isEmpty(normalizedString)) {
-            return ObjectQuery.createObjectQuery(org);
-        }
-
-        SubstringFilter substring =  SubstringFilter.createSubstring(ObjectType.F_NAME, ObjectType.class, context,
-                PolyStringNormMatchingRule.NAME, normalizedString);
-
-        AndFilter and = AndFilter.createAnd(org, substring);
-        ObjectQuery query = ObjectQuery.createObjectQuery(and);
-        
-        if(LOGGER.isTraceEnabled()){
-            LOGGER.trace("Searching child rgs of org {} with query:\n{}", oid, query.debugDump());
-        }
-
-        return query;
-    }
 
     private ObjectQuery createManagerTableQuery(){
         ObjectQuery query = null;
@@ -1356,7 +1205,8 @@ public class TreeTablePanel extends SimplePanel<String> {
         refreshTable(target);
     }
 
-    private void refreshTable(AjaxRequestTarget target) {
+    @Override
+    protected void refreshTable(AjaxRequestTarget target) {
         ObjectDataProvider orgProvider = (ObjectDataProvider) getOrgChildTable().getDataTable().getDataProvider();
         orgProvider.clearCache();
 
@@ -1487,17 +1337,6 @@ public class TreeTablePanel extends SimplePanel<String> {
         page.showResultInSession(result);
 
         refreshTabbedPanel(target);
-    }
-
-    private void clearTableSearchPerformed(AjaxRequestTarget target) {
-        BasicSearchPanel basicSearch = (BasicSearchPanel) get(createComponentPath(ID_SEARCH_FORM, ID_BASIC_SEARCH));
-        basicSearch.getModel().setObject(null);
-
-        refreshTable(target);
-    }
-
-    private void tableSearchPerformed(AjaxRequestTarget target) {
-        refreshTable(target);
     }
 
     private static class TreeStateModel extends AbstractReadOnlyModel<Set<OrgTreeDto>> {

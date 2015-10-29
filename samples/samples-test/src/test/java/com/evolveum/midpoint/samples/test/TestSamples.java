@@ -59,7 +59,9 @@ public class TestSamples {
 
 	public static final String SAMPLES_DIRECTORY_NAME = "..";
 	// TODO: FIXME: remove the "org" dir once the schema is updated
-	public static final String[] IGNORE_PATTERNS = new String[]{ "\\.svn", "pom.xml", "old", "experimental", "json", "misc", "org", "rest", "samples-test", "model-.*", "bulk-actions" };
+	public static final String[] IGNORE_PATTERNS = new String[]{ "\\.svn", "pom.xml", "old", 
+		"experimental", "json", "misc", "rest", "samples-test", "model-.*", "bulk-actions",
+		"testng.*\\.xml", "target"};
 	public static final String[] CHECK_PATTERNS = new String[]{ ".*.xml" };
 	public static final String OBJECT_RESULT_OPERATION_NAME = TestSamples.class.getName()+".validateObject";
 	private static final String RESULT_OPERATION_NAME = TestSamples.class.getName()+".validateFile";

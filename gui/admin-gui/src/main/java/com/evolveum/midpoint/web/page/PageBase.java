@@ -592,9 +592,10 @@ public abstract class PageBase extends PageTemplate {
         item = new MainMenuItem("fa fa-user",
                 createStringResource("PageAdmin.menu.profile"), PageSelfProfile.class);
         menu.getItems().add(item);
-        item = new MainMenuItem("fa fa-star",
-                createStringResource("PageAdmin.menu.assignments"), PageSelfAssignments.class);
-        menu.getItems().add(item);
+        //PageSelfAssignments is not implemented yet
+//        item = new MainMenuItem("fa fa-star",
+//                createStringResource("PageAdmin.menu.assignments"), PageSelfAssignments.class);
+//        menu.getItems().add(item);
         item = new MainMenuItem("fa fa-shield",
                 createStringResource("PageAdmin.menu.credentials"), PageSelfCredentials.class);
         menu.getItems().add(item);

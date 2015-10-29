@@ -74,7 +74,9 @@ public class PageSelfCredentials extends PageSelf {
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
     private static final String OPERATION_LOAD_ACCOUNT = DOT_CLASS + "loadAccount";
     private static final String OPERATION_SAVE_PASSWORD = DOT_CLASS + "savePassword";
+    private static final String OPERATION_CHECK_PASSWORD = DOT_CLASS + "checkPassword";
     private static final String OPERATION_LOAD_SHADOW = DOT_CLASS + "loadShadow";
+    private static final String OPERATION_GET_CREDENTIALS_POLICY = DOT_CLASS + "getCredentialsPolicy";
 
 
     private LoadableModel<MyPasswordsDto> model;
@@ -117,34 +119,52 @@ public class PageSelfCredentials extends PageSelf {
 
             dto.getAccounts().add(createDefaultPasswordAccountDto(user));
 
-            PrismReference reference = user.findReference(UserType.F_LINK_REF);
-            if (reference == null || reference.getValues() == null) {
-                LOGGER.debug("No accounts found for user {}.", new Object[]{userOid});
-                return dto;
+            CredentialsPolicyType credentialsPolicyType = getPasswordCredentialsPolicy();
+            if (credentialsPolicyType != null) {
+                PasswordCredentialsPolicyType passwordCredentialsPolicy = credentialsPolicyType.getPassword();
+                if (passwordCredentialsPolicy != null) {
+                    CredentialsPropagationUserControlType propagationUserControl = passwordCredentialsPolicy.getPropagationUserControl();
+                    if (propagationUserControl != null) {
+                        dto.setPropagation(propagationUserControl);
+                    }
+                    PasswordChangeSecurityType passwordChangeSecurity = passwordCredentialsPolicy.getPasswordChangeSecurity();
+                    if (passwordChangeSecurity != null) {
+                        dto.setPasswordChangeSecurity(passwordChangeSecurity);
+                    }
+
+                }
+
             }
 
-            final Collection<SelectorOptions<GetOperationOptions>> options =
-                    SelectorOptions.createCollection(ShadowType.F_RESOURCE, GetOperationOptions.createResolve());
+            if (dto.getPropagation() == null || dto.getPropagation().equals(CredentialsPropagationUserControlType.USER_CHOICE)) {
+                PrismReference reference = user.findReference(UserType.F_LINK_REF);
+                if (reference == null || reference.getValues() == null) {
+                    LOGGER.debug("No accounts found for user {}.", new Object[]{userOid});
+                    return dto;
+                }
 
-            List<PrismReferenceValue> values = reference.getValues();
-            for (PrismReferenceValue value : values) {
-                subResult = result.createSubresult(OPERATION_LOAD_ACCOUNT);
-                try {
-                    String accountOid = value.getOid();
-                    task = createSimpleTask(OPERATION_LOAD_ACCOUNT);
+                final Collection<SelectorOptions<GetOperationOptions>> options =
+                        SelectorOptions.createCollection(ShadowType.F_RESOURCE, GetOperationOptions.createResolve());
 
-                    PrismObject<ShadowType> account = getModelService().getObject(ShadowType.class,
-                            accountOid, options, task, subResult);
+                List<PrismReferenceValue> values = reference.getValues();
+                for (PrismReferenceValue value : values) {
+                    subResult = result.createSubresult(OPERATION_LOAD_ACCOUNT);
+                    try {
+                        String accountOid = value.getOid();
+                        task = createSimpleTask(OPERATION_LOAD_ACCOUNT);
+
+                        PrismObject<ShadowType> account = getModelService().getObject(ShadowType.class,
+                                accountOid, options, task, subResult);
 
 
-                    dto.getAccounts().add(createPasswordAccountDto(account));
-                    subResult.recordSuccessIfUnknown();
-                } catch (Exception ex) {
-                    LoggingUtils.logException(LOGGER, "Couldn't load account", ex);
-                    subResult.recordFatalError("Couldn't load account.", ex);
+                        dto.getAccounts().add(createPasswordAccountDto(account));
+                        subResult.recordSuccessIfUnknown();
+                    } catch (Exception ex) {
+                        LoggingUtils.logException(LOGGER, "Couldn't load account", ex);
+                        subResult.recordFatalError("Couldn't load account.", ex);
+                    }
                 }
             }
-
             result.recordSuccessIfUnknown();
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't load accounts", ex);
@@ -260,6 +280,38 @@ public class PageSelfCredentials extends PageSelf {
 
     private void onSavePerformed(AjaxRequestTarget target) {
         List<PasswordAccountDto> selectedAccounts = getSelectedAccountsList();
+
+        if ((model.getObject().getPasswordChangeSecurity() == null) || (model.getObject().getPasswordChangeSecurity() != null &&
+                model.getObject().getPasswordChangeSecurity().equals(PasswordChangeSecurityType.OLD_PASSWORD))) {
+            LOGGER.debug("Check old password");
+            if (model.getObject().getOldPassword() == null
+                    || model.getObject().getOldPassword().trim().equals("")){
+                warn(getString("PageSelfCredentials.specifyOldPasswordMessage"));
+                target.add(getFeedbackPanel());
+                return;
+            } else {
+                OperationResult checkPasswordResult = new OperationResult(OPERATION_CHECK_PASSWORD);
+                Task checkPasswordTask = createSimpleTask(OPERATION_CHECK_PASSWORD);
+                try {
+                    ProtectedStringType oldPassword = new ProtectedStringType();
+                    oldPassword.setClearValue(model.getObject().getOldPassword());
+                    boolean isCorrectPassword = getModelInteractionService().checkPassword(user.getOid(), oldPassword,
+                            checkPasswordTask, checkPasswordResult);
+                    if (!isCorrectPassword) {
+                        warn(getString("PageSelfCredentials.incorrectOldPassword"));
+                        target.add(getFeedbackPanel());
+                        return;
+                    }
+                } catch (Exception ex) {
+                    LoggingUtils.logException(LOGGER, "Couldn't check password", ex);
+                    checkPasswordResult.recordFatalError("Couldn't check password." + ex.getMessage(), ex);
+                    target.add(getFeedbackPanel());
+                    return;
+                } finally {
+                    checkPasswordResult.computeStatus();
+                }
+            }
+        }
         if (selectedAccounts.isEmpty()) {
             warn(getString("PageSelfCredentials.noAccountSelected"));
             target.add(getFeedbackPanel());
@@ -279,7 +331,6 @@ public class PageSelfCredentials extends PageSelf {
 
 
             for (PasswordAccountDto accDto : selectedAccounts) {
-                if (accDto.getCssClass().equals(ChangePasswordPanel.SELECTED_ACCOUNT_ICON_CSS)) {
                     PrismObjectDefinition objDef = accDto.isMidpoint() ?
                             registry.findObjectDefinitionByCompileTimeClass(UserType.class) :
                             registry.findObjectDefinitionByCompileTimeClass(ShadowType.class);
@@ -289,12 +340,16 @@ public class PageSelfCredentials extends PageSelf {
                     Class<? extends ObjectType> type = accDto.isMidpoint() ? UserType.class : ShadowType.class;
 
                     deltas.add(ObjectDelta.createModifyDelta(accDto.getOid(), delta, type, getPrismContext()));
-                }
             }
             getModelService().executeChanges(deltas, null, createSimpleTask(OPERATION_SAVE_PASSWORD), result);
 
             result.recordSuccess();
         } catch (Exception ex) {
+            MyPasswordsDto dto = model.getObject();
+            ProtectedStringType password = dto.getPassword();
+            if (password != null){
+                password.setEncryptedData(null);
+            }
             LoggingUtils.logException(LOGGER, "Couldn't save password changes", ex);
             result.recordFatalError("Couldn't save password changes.", ex);
         } finally {
@@ -318,9 +373,14 @@ public class PageSelfCredentials extends PageSelf {
     private List<PasswordAccountDto> getSelectedAccountsList(){
         List<PasswordAccountDto> passwordAccountDtos = model.getObject().getAccounts();
         List<PasswordAccountDto> selectedAccountList = new ArrayList<>();
-        for (PasswordAccountDto passwordAccountDto : passwordAccountDtos){
-            if (passwordAccountDto.getCssClass().equals(ChangePasswordPanel.SELECTED_ACCOUNT_ICON_CSS)){
-                selectedAccountList.add(passwordAccountDto);
+        if (model.getObject().getPropagation() != null
+                && model.getObject().getPropagation().equals(CredentialsPropagationUserControlType.MAPPING)){
+            selectedAccountList.addAll(passwordAccountDtos);
+        } else {
+            for (PasswordAccountDto passwordAccountDto : passwordAccountDtos) {
+                if (passwordAccountDto.getCssClass().equals(ChangePasswordPanel.SELECTED_ACCOUNT_ICON_CSS)) {
+                    selectedAccountList.add(passwordAccountDto);
+                }
             }
         }
         return selectedAccountList;
@@ -373,5 +433,26 @@ public class PageSelfCredentials extends PageSelf {
 
         }
         return false;
+    }
+
+    public PrismObject<UserType> getUser() {
+        return user;
+    }
+
+    private CredentialsPolicyType getPasswordCredentialsPolicy (){
+        LOGGER.debug("Getting credentials policy");
+        Task task = createSimpleTask(OPERATION_GET_CREDENTIALS_POLICY);
+        OperationResult result = new OperationResult(OPERATION_GET_CREDENTIALS_POLICY);
+        CredentialsPolicyType credentialsPolicyType = null;
+        try {
+            credentialsPolicyType = getModelInteractionService().getCredentialsPolicy(user, task, result);
+            result.recordSuccessIfUnknown();
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't load credentials policy", ex);
+            result.recordFatalError("Couldn't load credentials policy." + ex.getMessage(), ex);
+        } finally {
+            result.computeStatus();
+        }
+        return credentialsPolicyType;
     }
 }

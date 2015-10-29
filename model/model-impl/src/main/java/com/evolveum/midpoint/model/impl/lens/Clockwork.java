@@ -39,6 +39,9 @@ import com.evolveum.midpoint.model.impl.lens.projector.FocusConstraintsChecker;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.sync.RecomputeTaskHandler;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -88,6 +91,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.HookListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.HookType;
@@ -111,6 +115,7 @@ import javax.xml.namespace.QName;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -973,6 +978,7 @@ public class Clockwork {
 		ObjectDelta<O> primaryDelta = elementContext.getPrimaryDelta();
 		// If there is no delta then there is no request to authorize
 		if (primaryDelta != null) {
+			primaryDelta = primaryDelta.clone();
 			PrismObject<O> object = elementContext.getObjectNew();
 			if (primaryDelta.isDelete()) {
 				object = elementContext.getObjectCurrent();
@@ -1007,7 +1013,6 @@ public class Clockwork {
 					}
 					// assignments were authorized explicitly. Therefore we need to remove them from primary delta to avoid another
 					// authorization
-					primaryDelta = primaryDelta.clone();
 					if (primaryDelta.isAdd()) {
 						PrismObject<O> objectToAdd = primaryDelta.getObjectToAdd();
 						objectToAdd.removeContainer(FocusType.F_ASSIGNMENT);
@@ -1016,7 +1021,47 @@ public class Clockwork {
 					}
 				}
 			}
+
+			// Process credential changes explicitly. There is a special authorization for that.
 			
+			if (!primaryDelta.isDelete()) {
+				if (primaryDelta.isAdd()) {
+					PrismObject<O> objectToAdd = primaryDelta.getObjectToAdd();
+					PrismContainer<CredentialsType> credentialsContainer = objectToAdd.findContainer(UserType.F_CREDENTIALS);
+					if (credentialsContainer != null) {
+						for (Item<?,?> item: credentialsContainer.getValue().getItems()) {
+							ContainerDelta<?> cdelta = new ContainerDelta(item.getPath(), (PrismContainerDefinition)item.getDefinition(), prismContext);
+							cdelta.addValuesToAdd(((PrismContainer)item).getValue().clone());
+							AuthorizationDecisionType cdecision = evaluateCredentialDecision(securityConstraints, cdelta);
+							LOGGER.trace("AUTZ: credential add {} decision: {}", item.getPath(), cdecision);
+							if (cdecision == AuthorizationDecisionType.ALLOW) {
+								// Remove it from primary delta, so it will not be evaluated later
+								objectToAdd.removeContainer(item.getPath());
+							} else if (cdecision == AuthorizationDecisionType.DENY) {
+								throw new AuthorizationException("Access denied");
+							} else {
+								// Do nothing. The access will be evaluated later in a normal way
+							}
+						}
+					}
+				} else {
+					// modify
+					Collection<? extends ItemDelta<?, ?>> credentialChanges = primaryDelta.findItemDeltasSubPath(new ItemPath(UserType.F_CREDENTIALS));
+					for (ItemDelta credentialChange: credentialChanges) {
+						AuthorizationDecisionType cdecision = evaluateCredentialDecision(securityConstraints, credentialChange);
+						LOGGER.trace("AUTZ: credential delta {} decision: {}", credentialChange.getPath(), cdecision);
+						if (cdecision == AuthorizationDecisionType.ALLOW) {
+							// Remove it from primary delta, so it will not be evaluated later
+							primaryDelta.removeModification(credentialChange);
+						} else if (cdecision == AuthorizationDecisionType.DENY) {
+							throw new AuthorizationException("Access denied");
+						} else {
+							// Do nothing. The access will be evaluated later in a normal way
+						}
+					}
+				}
+			}
+
 			if (primaryDelta != null && !primaryDelta.isEmpty()) {
 				// TODO: optimize, avoid evaluating the constraints twice
 				securityEnforcer.authorize(operationUrl, AuthorizationPhaseType.REQUEST, object, primaryDelta, null, ownerResolver, result);
@@ -1026,6 +1071,11 @@ public class Clockwork {
 		} else {
 			return null;
 		}
+	}
+
+	private AuthorizationDecisionType evaluateCredentialDecision(ObjectSecurityConstraints securityConstraints, ItemDelta credentialChange) {
+		return securityConstraints.findItemDecision(credentialChange.getPath(),
+				ModelAuthorizationAction.CHANGE_CREDENTIALS.getUrl(), AuthorizationPhaseType.REQUEST);
 	}
 
 	private <F extends FocusType> void authorizeAssignmentRequest(String actionUrl, PrismObject object,

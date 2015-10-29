@@ -21,7 +21,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypeDialog;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.commons.lang.StringUtils;
@@ -45,6 +44,10 @@ import java.util.List;
 
 /**
  *  TODO - not finished, work in progress
+ *
+ *  [Mederly] When migrating ObjectSelectionPanel to a separate page (instead of panel),
+ *  this class was not updated, as it is currently unused. TODO implement it.
+ *
  *  @author shood
  * */
 public class MultiValueChoosePanel <T extends ObjectType> extends SimplePanel<List<T>>{
@@ -152,19 +155,20 @@ public class MultiValueChoosePanel <T extends ObjectType> extends SimplePanel<Li
     }
 
     protected void initDialog(Class<T> type){
-        ModalWindow dialog = new ChooseTypeDialog(MODAL_ID_CHOOSE_PANEL, type){
-
-            @Override
-            protected void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object){
-                choosePerformed(target, (T)object);
-            }
-
-            @Override
-            protected ObjectQuery getDataProviderQuery(){
-                return createChooseQuery();
-            }
-        };
-        add(dialog);
+        throw new UnsupportedOperationException();  // TODO implement this
+//        ModalWindow dialog = new ObjectSelectionPanel(MODAL_ID_CHOOSE_PANEL, type, getPageBase()){
+//
+//            @Override
+//            protected void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object){
+//                choosePerformed(target, (T)object);
+//            }
+//
+//            @Override
+//            protected ObjectQuery getDataProviderQuery(){
+//                return createChooseQuery();
+//            }
+//        };
+//        add(dialog);
     }
 
     protected ObjectQuery createChooseQuery(){
@@ -242,10 +246,11 @@ public class MultiValueChoosePanel <T extends ObjectType> extends SimplePanel<Li
     }
 
     protected void editValuePerformed(AjaxRequestTarget target){
-        ModalWindow window = (ModalWindow) get(MODAL_ID_CHOOSE_PANEL);
-        ChooseTypeDialog dialog = (ChooseTypeDialog)window;
-        dialog.updateTablePerformed(target, createChooseQuery());
-        window.show(target);
+        throw new UnsupportedOperationException();  // TODO implement this
+//        ModalWindow window = (ModalWindow) get(MODAL_ID_CHOOSE_PANEL);
+//        ObjectSelectionPanel dialog = (ObjectSelectionPanel)window;
+//        dialog.updateTablePerformed(target, createChooseQuery());
+//        window.show(target);
     }
 
     protected boolean isRemoveButtonVisible() {

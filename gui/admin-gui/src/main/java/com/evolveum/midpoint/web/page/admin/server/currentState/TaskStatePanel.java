@@ -33,6 +33,7 @@ import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
@@ -495,16 +496,16 @@ public class TaskStatePanel extends SimplePanel<TaskCurrentStateDto> {
                 if (dto == null) {
                     return null;
                 }
-                IterativeTaskInformationType info = dto.getIterativeTaskInformationType();
-                if (info == null) {
+                OperationStatsType stats = dto.getOperationStatsType();
+                if (stats == null) {
                     return null;
                 }
-                if (Boolean.TRUE.equals(info.isFromMemory())) {
+                if (stats.isLiveInformation()) {
                     return getString("TaskStatePanel.message.countersSourceMemory",
-                            formatDate(info.getTimestamp()));
+                            formatDate(stats.getTimestamp()));
                 } else {
                     return getString("TaskStatePanel.message.countersSourceRepository",
-                            formatDate(info.getTimestamp()));
+                            formatDate(stats.getTimestamp()));
                 }
             }
         });

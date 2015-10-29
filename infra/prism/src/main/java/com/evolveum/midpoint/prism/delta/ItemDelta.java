@@ -146,6 +146,10 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 
 	@Override
 	public void accept(Visitor visitor) {
+		accept(visitor, true);
+	}
+	
+	public void accept(Visitor visitor, boolean includeOldValues) {
 		visitor.visit(this);
 		if (getValuesToAdd() != null) {
 			for (V pval : getValuesToAdd()) {
@@ -162,7 +166,7 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 				pval.accept(visitor);
 			}
 		}
-		if (getEstimatedOldValues() != null) {
+		if (includeOldValues && getEstimatedOldValues() != null) {
 			for (V pval : getEstimatedOldValues()) {
 				pval.accept(visitor);
 			}
@@ -763,6 +767,19 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
         while (deltasIterator.hasNext()) {
         	ItemDelta<?,?> delta = deltasIterator.next();
             if (deltaType.isAssignableFrom(delta.getClass()) && delta.getPath().equivalent(propertyPath)) {
+                deltasIterator.remove();
+            }
+        }
+    }
+    
+    public static <D extends ItemDelta> void removeItemDelta(Collection<? extends ItemDelta> deltas, ItemDelta deltaToRemove) {
+        if (deltas == null) {
+            return;
+        }
+        Iterator<? extends ItemDelta> deltasIterator = deltas.iterator();
+        while (deltasIterator.hasNext()) {
+        	ItemDelta<?,?> delta = deltasIterator.next();
+            if (delta.equals(deltaToRemove)) {
                 deltasIterator.remove();
             }
         }

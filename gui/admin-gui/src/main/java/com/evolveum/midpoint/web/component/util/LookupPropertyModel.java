@@ -65,6 +65,7 @@ public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
                     return (T)WebMiscUtil.getOrigStringFromPoly(row.getLabel());
                 }
             }
+            return (T)key;
         }
 
         return null;
@@ -82,11 +83,15 @@ public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
             String label = (String) object;
             String key;
 
-            for(LookupTableRowType row: lookupTable.getRow()){
-                if(label.equals(WebMiscUtil.getOrigStringFromPoly(row.getLabel()))){
-                    key = row.getKey();
+            if (label != null && label.trim().equals("")){
+                PropertyResolver.setValue(expression, getInnermostModelOrObject(), null, prc);
+            } else {
+                for (LookupTableRowType row : lookupTable.getRow()) {
+                    if (label.equals(WebMiscUtil.getOrigStringFromPoly(row.getLabel()))) {
+                        key = row.getKey();
 
-                    PropertyResolver.setValue(expression, getInnermostModelOrObject(), key, prc);
+                        PropertyResolver.setValue(expression, getInnermostModelOrObject(), key, prc);
+                    }
                 }
             }
         }
