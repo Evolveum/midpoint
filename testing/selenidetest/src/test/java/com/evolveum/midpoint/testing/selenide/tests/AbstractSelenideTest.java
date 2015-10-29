@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.testing.selenide.tests;
 
+import com.evolveum.midpoint.testing.selenide.tests.organization.OrganizationStructureTests;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.log4j.xml.DOMConfigurator;
@@ -48,14 +49,14 @@ public class AbstractSelenideTest{
     public static final String PREFERRED_LANGUAGE_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:10:property:values:0:value:valueContainer:input:input";
     public static final String LOCALE_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:11:property:values:0:value:valueContainer:input:input";
     public static final String TIMEZONE_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:12:property:values:0:value:valueContainer:input:input";
-    public static final String EMAIL_ADDRESS_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:15:property:values:0:value:valueContainer:input:input";
-    public static final String TELEPHONE_NUMBER_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:16:property:values:0:value:valueContainer:input:input";
-    public static final String EMPLOYEE_NUMBER_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:17:property:values:0:value:valueContainer:input:input";
-    public static final String EMPLOYEE_TYPE_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:18:property:values:0:value:valueContainer:input:input";
-    public static final String COST_CENTER_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:19:property:values:0:value:valueContainer:input:input";
-    public static final String ORGANIZATION_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:20:property:values:0:value:valueContainer:input:input";
-    public static final String ORGANIZATIONAL_UNIT_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:21:property:values:0:value:valueContainer:input:input";
-    public static final String LOCALITY_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:22:property:values:0:value:valueContainer:input:input";
+    public static final String EMAIL_ADDRESS_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:14:property:values:0:value:valueContainer:input:input";
+    public static final String TELEPHONE_NUMBER_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:15:property:values:0:value:valueContainer:input:input";
+    public static final String EMPLOYEE_NUMBER_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:16:property:values:0:value:valueContainer:input:input";
+    public static final String EMPLOYEE_TYPE_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:17:property:values:0:value:valueContainer:input:input";
+    public static final String COST_CENTER_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:18:property:values:0:value:valueContainer:input:input";
+    public static final String ORGANIZATION_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:19:property:values:0:value:valueContainer:input:input";
+    public static final String ORGANIZATIONAL_UNIT_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:20:property:values:0:value:valueContainer:input:input";
+    public static final String LOCALITY_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:21:property:values:0:value:valueContainer:input:input";
     public static final String PASSWORD1_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:7:container:properties:0:property:values:0:value:valueContainer:input:inputContainer:password1";
     public static final String PASSWORD2_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:7:container:properties:0:property:values:0:value:valueContainer:input:inputContainer:password2";
 
@@ -107,12 +108,12 @@ public class AbstractSelenideTest{
     }
 
     protected void login(String username, String password){
-        System.setProperty("selenide.timeout","12000");
         //perform login
         login(siteUrl, username, password);
     }
 
     protected void login(String siteUrl, String username, String password) {
+        System.setProperty("selenide.timeout","12000");
         open(siteUrl);
         //enter login value
         $(By.name("username")).shouldBe(visible).setValue(username);

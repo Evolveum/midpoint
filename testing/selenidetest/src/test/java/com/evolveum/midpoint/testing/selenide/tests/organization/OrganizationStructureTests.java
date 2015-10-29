@@ -62,8 +62,8 @@ public class OrganizationStructureTests extends AbstractSelenideTest {
         //open user's Edit page
         openUsersEditPage(USER_NAME);
         //check if assigned org. unit is displayed in the Assignments section
-        $(By.xpath("/html/body/div[1]/div/section[2]/form/div[3]/div/div/div[7]/div[2]/div[2]/div/div/div[4]/div[2]/div/div[1]/div/a/span")).shouldBe(visible)
-                .shouldHave(text("F0002")); //" F0002, Ministry of Defense" //TODO: bug or feature?
+        $(By.xpath("/html/body/div[1]/div/section[2]/form/div[4]/div/div/div[9]/div[2]/div[2]/div[2]/div/div/div/div[2]/div[1]/a/span")).shouldBe(visible)
+                .shouldHave(text("Ministry of Defense"));
         //click Org. structure menu
         $(By.partialLinkText("Org. structure")).shouldBe(visible).click();
         //click Organization tree menu item
@@ -74,7 +74,7 @@ public class OrganizationStructureTests extends AbstractSelenideTest {
         //search for the user in the opened organization
         searchForElement(USER_NAME, "searchText");
         //check if user was found in the organization
-        $(By.xpath("/html/body/div[1]/div/section[2]/div[2]/div/div/div[4]/div[3]/div/div//form/div[4]/div[2]/table/tbody/tr/td[3]/div/a/span"))
+        $(By.xpath("/html/body/div[1]/div/section[2]/div[2]/div/div/div[4]/div[3]/div/div/form/div[4]/div[2]/table/tbody/tr/td[3]/div/a/span"))
                 .shouldHave(text(USER_NAME));
 
     }
