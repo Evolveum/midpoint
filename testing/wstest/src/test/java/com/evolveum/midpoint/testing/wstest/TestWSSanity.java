@@ -31,6 +31,7 @@ import org.apache.cxf.ws.security.wss4j.WSS4JOutInterceptor;
 import org.apache.wss4j.common.ext.WSPasswordCallback;
 import org.apache.wss4j.dom.WSConstants;
 import org.apache.wss4j.dom.handler.WSHandlerConstants;
+import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -303,7 +304,7 @@ public class TestWSSanity extends AbstractWebserviceTest {
         accountJackOid = getSingleLinkOid(userAfter);
         assertNotNull(accountJackOid);
         
-        SearchResultEntry ldapEntry = openDJController.fetchEntry("uid="+USER_JACK_USERNAME+","+openDJController.getSuffixPeople());
+        Entry ldapEntry = openDJController.fetchEntry("uid="+USER_JACK_USERNAME+","+openDJController.getSuffixPeople());
         display(ldapEntry.toLDIFString());
         OpenDJController.assertAttribute(ldapEntry, "uid", "jack");
         OpenDJController.assertAttribute(ldapEntry, "givenName", "Jack");
