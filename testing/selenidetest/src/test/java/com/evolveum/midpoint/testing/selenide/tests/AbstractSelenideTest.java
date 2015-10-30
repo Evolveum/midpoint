@@ -253,8 +253,7 @@ public class AbstractSelenideTest{
         $(By.linkText("Assign")).should(disappear);
 
         //switch to main window
-//        WebDriver driver = getWebDriver();
-        switchTo().defaultContent();//driver.getWindowHandle();
+        switchTo().defaultContent();
         //click Save button
         $(By.linkText("Save")).click();
 
