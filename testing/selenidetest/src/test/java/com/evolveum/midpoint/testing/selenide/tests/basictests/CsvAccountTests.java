@@ -68,7 +68,7 @@ public class CsvAccountTests extends AbstractSelenideTest {
         $(By.linkText("Add projection")).shouldBe(visible).click();
 
         //search for resource in resources list in the opened Select resource(s) window
-        searchForElement(CSV_RESOURCE_NAME, "searchText");
+        searchForElement(CSV_RESOURCE_NAME);
         //check if Localhost CSVfile resource was found
         $(byText("Localhost CSVfile")).shouldBe(visible);
 

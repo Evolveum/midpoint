@@ -38,7 +38,7 @@ public class EndUserTests extends AbstractSelenideTest{
         userAttributes.put(PASSWORD2_FIELD_NAME, PASSWORD2_FIELD_VALUE);
         createUser(END_USER_NAME, userAttributes);
         //search for the created user in users list
-        searchForElement(END_USER_NAME, "table:header:searchForm:basicSearch:searchText");
+        searchForElement(END_USER_NAME);
         //click on the found user link
         $(By.linkText(END_USER_NAME)).shouldBe(visible).click();
 

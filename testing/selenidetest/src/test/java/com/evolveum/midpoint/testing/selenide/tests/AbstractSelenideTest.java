@@ -1,22 +1,15 @@
 package com.evolveum.midpoint.testing.selenide.tests;
 
-import com.evolveum.midpoint.testing.selenide.tests.organization.OrganizationStructureTests;
+import com.codeborne.selenide.SelenideElement;
 import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
-import org.apache.log4j.xml.DOMConfigurator;
 import org.openqa.selenium.By;
-import org.springframework.stereotype.Component;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.ITestContext;
 import org.testng.annotations.BeforeClass;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import static com.codeborne.selenide.Selenide.switchTo;
 import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selectors.byAttribute;
 import static com.codeborne.selenide.Selectors.byText;
@@ -247,6 +240,10 @@ public class AbstractSelenideTest{
         $(byAttribute("about", "assignmentsContainer")).find(byAttribute("about", "dropdownMenu")).click();
         //click Assign menu item with the specified linkText
         $(By.linkText(linkText)).shouldBe(visible).click();
+
+        //switch to the opened modal window
+        switchToInnerFrame();
+
         //search for object by objectName in the opened Select object(s) window
         searchForElement(objectName, "searchText");
         //select checkbox for the found object
@@ -255,6 +252,9 @@ public class AbstractSelenideTest{
         $(By.linkText("Assign")).shouldBe(visible).click();
         $(By.linkText("Assign")).should(disappear);
 
+        //switch to main window
+//        WebDriver driver = getWebDriver();
+        switchTo().defaultContent();//driver.getWindowHandle();
         //click Save button
         $(By.linkText("Save")).click();
 
@@ -279,7 +279,6 @@ public class AbstractSelenideTest{
 
     /**
      * Looks for the element with specified searchText
-     * and returns the first element from the search results
      * @param searchText
      * @return
      */
@@ -290,7 +289,6 @@ public class AbstractSelenideTest{
 
     /**
      * Looks for the element with specified searchText in specified name
-     * and returns the first element from the search results
      * @param searchText
      * @param aboutTagValue
      * @return
@@ -367,4 +365,9 @@ public class AbstractSelenideTest{
     }
 
 
+    protected void switchToInnerFrame(){
+        SelenideElement element = $(byAttribute("class", "wicket_modal"));
+        String modalWindowId = element.getAttribute("id");
+        switchTo().innerFrame(modalWindowId);
+    }
 }

@@ -51,7 +51,7 @@ public class ResourceUserAccountTests extends AbstractSelenideTest {
         $(By.partialLinkText("List resources")).click();
 
         //search for resource in resources list
-        searchForElement(OPENDJ_RESOURCE_NAME, "searchText");
+        searchForElement(OPENDJ_RESOURCE_NAME);
         $(By.partialLinkText(OPENDJ_RESOURCE_NAME)).shouldBe(visible);
     }
 
@@ -66,7 +66,7 @@ public class ResourceUserAccountTests extends AbstractSelenideTest {
         $(By.partialLinkText("List resources")).click();
 
         //search for resource in resources list
-        searchForElement(OPENDJ_RESOURCE_NAME, "searchText");
+        searchForElement(OPENDJ_RESOURCE_NAME);
         //click on resource link
         $(By.partialLinkText(OPENDJ_RESOURCE_NAME)).click();
 
@@ -101,7 +101,7 @@ public class ResourceUserAccountTests extends AbstractSelenideTest {
         $(By.linkText("Add projection")).shouldBe(visible).click();
 
         //search for resource in resources list in the opened Select resource(s) window
-        searchForElement(OPENDJ_RESOURCE_NAME, "searchText");
+        searchForElement(OPENDJ_RESOURCE_NAME);
         $(By.xpath("/html/body/div[5]/form/div/div[2]/div/div/div/div[2]/div/div/div/div/div/div[2]/div/table/tbody/tr/td[2]/div"))
                 .shouldHave(text(OPENDJ_RESOURCE_NAME));
 
@@ -165,7 +165,7 @@ public class ResourceUserAccountTests extends AbstractSelenideTest {
         $(byText("Success")).shouldBe(visible);
 
         //search for user in users list
-        searchForElement(USER_NAME, "searchText");
+        searchForElement(USER_NAME);
 
         //check if users attributes were updated
         $(By.xpath("/html/body/div[1]/div/section[2]/form/div[2]/div/div[2]/table/tbody/tr/td[5]/div")).shouldHave(text(ACCOUNT_SURNAME_VALUE + UPDATED_VALUE));
