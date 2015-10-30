@@ -79,6 +79,7 @@
         <derby.version>10.11.1.1</derby.version>
         <wro4j.version>1.7.1</wro4j.version>
         <jackson.version>2.3.3</jackson.version>
+        <surefire.version>2.19</surefire.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -1052,7 +1053,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
-                        <version>2.18.1</version>
+                        <version>${surefire.version}</version>
                         <executions>
                         	<execution>
                         		<id>default-test</id> <!-- unit tests -->
@@ -1127,7 +1128,7 @@
                             <dependency>
                                 <groupId>org.apache.maven.surefire</groupId>
                                 <artifactId>surefire-testng</artifactId>
-                                <version>2.17</version>
+                                <version>${surefire.version}</version>
                             </dependency>
                         </dependencies>
                     </plugin>
@@ -1296,6 +1297,7 @@
 					<plugin>
 					  <!-- Skip all tests by default. We only want selected tests to run. -->
 					  <artifactId>maven-surefire-plugin</artifactId>
+					  <version>${surefire.version}</version>
 					  <configuration>
 					    <skip>true</skip>
 					  </configuration>
@@ -1310,6 +1312,7 @@
 					<plugin>
 					  <!-- Skip all tests by default. We only want selected tests to run. -->
 					  <artifactId>maven-surefire-plugin</artifactId>
+					  <version>${surefire.version}</version>
 					  <configuration>
 					    <skip>true</skip>
 					  </configuration>
@@ -1324,6 +1327,7 @@
 					<plugin>
 					  <!-- Skip all tests by default. We only want selected tests to run. -->
 					  <artifactId>maven-surefire-plugin</artifactId>
+					  <version>${surefire.version}</version>
 					  <configuration>
 					    <skip>true</skip>
 					  </configuration>
@@ -1338,6 +1342,7 @@
 					<plugin>
 					  <!-- Skip all tests by default. We only want selected tests to run. -->
 					  <artifactId>maven-surefire-plugin</artifactId>
+					  <version>${surefire.version}</version>
 					  <configuration>
 					    <skip>true</skip>
 					  </configuration>
@@ -1347,14 +1352,12 @@
 		</profile>
 		<profile>
 			<id>java8</id>
-			<activation>
-		      <jdk>1.8</jdk>
-		    </activation>
 			<build>
 				<plugins>
 					<plugin>
 					  <groupId>org.apache.maven.plugins</groupId>
 					  <artifactId>maven-javadoc-plugin</artifactId>
+					  <version>2.10.3</version>
 					  <executions>
 				        <execution>
 				            <id>javadoc-jar</id>
@@ -1363,6 +1366,7 @@
 				            </goals>
 				            <configuration>
 				                <additionalparam>-Xdoclint:none</additionalparam>
+				                <failOnError>false</failOnError>
 				            </configuration>
 				        </execution>
 				    </executions>
