@@ -2291,7 +2291,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
         }
 		OperationOptions options = optionsBuilder.build();
 
-		Filter filter = convertFilterToIcf(query, objectClassDefinition);
+		Filter filter;
+		try {
+			filter = convertFilterToIcf(query, objectClassDefinition);
+		} catch (SchemaException | RuntimeException e) {
+			result.recordFatalError(e);
+			throw e;
+		}
 		
 		// Connector operation cannot create result for itself, so we need to
 		// create result for it
