@@ -333,7 +333,7 @@ public class AbstractSelenideTest{
         //click Configuration menu
 //        $(By.partialLinkText("Configuration")).shouldBe(visible).click(); // clicked in previous step
         //click Basic menu item
-        $(By.partialLinkText("Basic")).click();
+        $(By.partialLinkText("System")).click();
         //click on the Edit button in the Object Policies row
         //Note: this Edit button click affects only modifying of the first row
         //of Object Policies
