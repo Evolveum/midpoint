@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,20 +30,18 @@ public class SynchronizationActionTypeDto implements Serializable{
         ACTION_UNLINK("http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink"),
         ACTION_ADD_FOCUS("http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus"),
         ACTION_DELETE_FOCUS("http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus"),
-        ACTION_INACTIVE_FOCUS("http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactiveFocus"),
+        ACTION_INACTIVATE_FOCUS("http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateFocus"),
         ACTION_DELETE_SHADOW("http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteShadow"),
-        ACTION_INACTIVE_SHADOW("http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactiveShadow"),
+        ACTION_INACTIVATE_SHADOW("http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateShadow"),
         ACTION_SYNCHRONIZE("http://midpoint.evolveum.com/xml/ns/public/model/action-3#synchronize"),
         ACTION_ADD_USER("http://midpoint.evolveum.com/xml/ns/public/model/action-3#adduser"),
         ACTION_MODIFY_USER("http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser"),
         ACTION_DISABLE_USER("http://midpoint.evolveum.com/xml/ns/public/model/action-3#disableUser"),
         ACTION_DELETE_USER("http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteUser"),
-        ACTION_ADD_ACCOUNT("http://midpoint.evolveum.com/xml/ns/public/model/action-3#addAccount"),
         ACTION_LINK_ACCOUNT("http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"),
         ACTION_UNLINK_ACCOUNT("http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount"),
         ACTION_DELETE_ACCOUNT("http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteAccount"),
-        ACTION_DISABLE_ACCOUNT("http://midpoint.evolveum.com/xml/ns/public/model/action-3#disableAccount"),
-        ACTION_MODIFY_PASSWORD("http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyPassword");
+        ACTION_DISABLE_ACCOUNT("http://midpoint.evolveum.com/xml/ns/public/model/action-3#disableAccount");
 
         protected String action;
 
