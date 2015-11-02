@@ -314,7 +314,8 @@ public class AbstractSelenideTest{
         $(By.name("input:inputFile:fileInput")).uploadFile(test);
 
         //click Import object button
-        $(By.linkText("Import object")).shouldBe(visible).click();
+//        $(By.linkText("Import object")).shouldBe(visible).click();
+        $(byAttribute("about", "importFileButton")).shouldBe(visible).click();
 
         //check if Success message appears after resource importing
         $(byText("Success")).shouldBe(visible);
