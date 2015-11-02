@@ -17,6 +17,7 @@ import static com.codeborne.selenide.Selectors.byAttribute;
 import static com.codeborne.selenide.Selectors.byText;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.close;
+import static com.codeborne.selenide.Selenide.switchTo;
 
 @Component
 public class ResourceUserAccountTests extends AbstractSelenideTest {
@@ -88,6 +89,8 @@ public class ResourceUserAccountTests extends AbstractSelenideTest {
      */
     @Test (priority = 2, dependsOnMethods = {"test001importResourceTest"})
     public void test003createAccountTest() {
+        close();
+        login();
         //create user with filled user name only
         createUser(USER_NAME, new HashMap<String, String>());
 
@@ -100,18 +103,22 @@ public class ResourceUserAccountTests extends AbstractSelenideTest {
         //click on the Add projection menu item
         $(By.linkText("Add projection")).shouldBe(visible).click();
 
+        //switch to the opened modal window
+        switchToInnerFrame();
         //search for resource in resources list in the opened Select resource(s) window
         searchForElement(OPENDJ_RESOURCE_NAME);
-        $(By.xpath("/html/body/div[5]/form/div/div[2]/div/div/div/div[2]/div/div/div/div/div/div[2]/div/table/tbody/tr/td[2]/div"))
-                .shouldHave(text(OPENDJ_RESOURCE_NAME));
+        //check if Localhost OpenDJ resource was found
+        $(byText(OPENDJ_RESOURCE_NAME)).shouldBe(visible);
 
         //select check box in the first row for "Localhost OpenDJ (no extension schema)" resource
-//        $(By.name("tabPanel:panel:resourcePopup:content:table:table:body:rows:3:cells:1:cell:check")).shouldBe(visible).click();
         $(byAttribute("about", "resourcePopupTable")).find(By.tagName("tbody")).find(By.tagName("input"))
                 .shouldBe(visible).click();
 
         //click Add resource(s) button
         $(By.linkText("Add resource(s)")).shouldBe(enabled).click();
+
+        //switch to main window
+        switchTo().defaultContent();
 
         //Fill in account fields: Common name, Surname, first and second password fields
         $(By.name("tabPanel:panel:shadows:shadowList:0:shadow:body:containers:0:container:properties:3:property:values:0:value:valueContainer:input:input"))

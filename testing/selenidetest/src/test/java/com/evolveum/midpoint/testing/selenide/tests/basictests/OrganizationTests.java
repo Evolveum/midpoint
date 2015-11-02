@@ -117,10 +117,6 @@ public class OrganizationTests extends AbstractSelenideTest {
 
     @Test (priority = 3, dependsOnMethods = {"test001createOrganisationTest", "test003updateOrganizationTest"})
     public void test004deleteOrganizationTest(){
-        //click Org. structure  menu
-        if (!$(By.partialLinkText("Organization tree")).isDisplayed()) {
-            $(By.partialLinkText("Org. structure")).shouldBe(visible).click();
-        }
         //click Organization tree menu item
         $(By.partialLinkText("Organization tree")).shouldBe(visible).click();
         //open created organization tab

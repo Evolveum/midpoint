@@ -62,7 +62,7 @@ public class OrganizationStructureTests extends AbstractSelenideTest {
         //open user's Edit page
         openUsersEditPage(USER_NAME);
         //check if assigned org. unit is displayed in the Assignments section
-        $(By.xpath("/html/body/div[1]/div/section[2]/form/div[4]/div/div/div[9]/div[2]/div[2]/div[2]/div/div/div/div[2]/div[1]/a/span")).shouldBe(visible)
+        $(By.xpath("/html/body/div[1]/div/section[2]/form/div[4]/div/div/div[7]/div[2]/div[2]/div[2]/div/div/div/div[2]/div[1]/a/span")).shouldBe(visible)
                 .shouldHave(text("Ministry of Defense"));
         //click Org. structure menu
         $(By.partialLinkText("Org. structure")).shouldBe(visible).click();
