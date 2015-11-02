@@ -272,4 +272,6 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 			throw new UsernameNotFoundException(e.getMessage(), e);
 		}
 	}
+	
+	
 }

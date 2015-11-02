@@ -190,7 +190,7 @@ public class AssignmentProcessor {
     	try {
     		processAssignmentsProjectionsWithFocus((LensContext<? extends FocusType>)context, now, task, result);
     	} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | PolicyViolationException | 
-    			CommunicationException | ConfigurationException | SecurityViolationException e) {
+    			CommunicationException | ConfigurationException | SecurityViolationException | RuntimeException | Error e) {
     		result.recordFatalError(e);
     		throw e;
     	}

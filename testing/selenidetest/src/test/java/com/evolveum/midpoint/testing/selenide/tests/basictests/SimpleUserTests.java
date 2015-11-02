@@ -57,6 +57,9 @@ public class SimpleUserTests extends AbstractSelenideTest {
      */
     @Test (priority = 1)
     public void test002createUserWithAllFieldsTest() {
+        //click elsewhere
+        $(By.partialLinkText("Dashboard")).click();
+
         //create user with filled user name only
         Map<String, String> userAttributesMap = getAllUserAttributesMap();
         createUser(ALL_FIELDS_USER_NAME, userAttributesMap);

@@ -51,6 +51,7 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.ExpressionWrapper;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.LogicalFilter;
@@ -85,6 +86,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.QueryInterpretationOfNoValueType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -428,7 +430,7 @@ public class ExpressionUtil {
 				if (expressionResult == null || expressionResult.isEmpty()) {
 					LOGGER.debug("Result of search filter expression was null or empty. Expression: {}",
 							valueExpression);
-					return evaluateFilter(filter, valueExpression);
+					return createFilterForNoValue(filter, valueExpression);
 				}
 				// TODO: log more context
 				LOGGER.trace("Search filter expression in the rule for {} evaluated to {}.",
@@ -482,7 +484,7 @@ public class ExpressionUtil {
 					LOGGER.debug("Result of search filter expression was null or empty. Expression: {}",
 							valueExpression);
 
-					return evaluateFilter(pvfilter, valueExpression);
+					return createFilterForNoValue(pvfilter, valueExpression);
 				}
 				// TODO: log more context
 				LOGGER.trace("Search filter expression in the rule for {} evaluated to {}.",
@@ -526,20 +528,42 @@ public class ExpressionUtil {
 
 	}
 
-	private static ObjectFilter evaluateFilter(ObjectFilter filter, ExpressionType valueExpression) {
-		if (valueExpression.isAllowEmptyValues() != null && !valueExpression.isAllowEmptyValues()) {
-			return UndefinedFilter.createUndefined();
+	private static ObjectFilter createFilterForNoValue(ObjectFilter filter, ExpressionType valueExpression) throws ExpressionEvaluationException {
+		QueryInterpretationOfNoValueType queryInterpretationOfNoValue = valueExpression.getQueryInterpretationOfNoValue();
+		if (queryInterpretationOfNoValue == null) {
+			queryInterpretationOfNoValue = QueryInterpretationOfNoValueType.FILTER_EQUAL_NULL;
 		}
-
-		if (filter instanceof PropertyValueFilter) {
-			PropertyValueFilter evaluatedFilter = (PropertyValueFilter) filter.clone();
-			evaluatedFilter.setExpression(null);
-			return evaluatedFilter;
-		} else if (filter instanceof InOidFilter) {
-			return NoneFilter.createNone();
+		
+		switch (queryInterpretationOfNoValue) {
+			
+			case FILTER_UNDEFINED:
+				return UndefinedFilter.createUndefined();
+			
+			case FILTER_NONE:
+				return NoneFilter.createNone();
+			
+			case FILTER_ALL:
+				return AllFilter.createAll();
+			
+			case FILTER_EQUAL_NULL:
+				if (filter instanceof PropertyValueFilter) {
+					PropertyValueFilter evaluatedFilter = (PropertyValueFilter) filter.clone();
+					evaluatedFilter.setExpression(null);
+					return evaluatedFilter;
+				} else if (filter instanceof InOidFilter) {
+					return NoneFilter.createNone();
+				} else {
+					throw new IllegalArgumentException("Unknow filter to evaluate: " + filter);
+				}
+			
+			case ERROR:
+				throw new ExpressionEvaluationException("Expression "+valueExpression+" evaluated to no value");
+				
+			default:
+				throw new IllegalArgumentException("Unknown value "+queryInterpretationOfNoValue+" in queryInterpretationOfNoValue in "+valueExpression);
+				
 		}
-
-		throw new IllegalArgumentException("Unknow filter to evaluate: " + filter);
+		
 	}
 
 	private static <V extends PrismValue> V evaluateExpression(ExpressionVariables variables,

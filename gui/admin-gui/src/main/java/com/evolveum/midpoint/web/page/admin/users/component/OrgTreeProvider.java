@@ -132,7 +132,7 @@ public class OrgTreeProvider extends SortableTreeProvider<OrgTreeDto, String> {
         String identifier = unit.getPropertyRealValue(OrgType.F_IDENTIFIER, String.class);
 
         //todo relation [lazyman]
-        return new OrgTreeDto(parent, unit.getOid(), null, name, description, displayName, identifier);
+        return new OrgTreeDto(parent, unit);
     }
 
     @Override

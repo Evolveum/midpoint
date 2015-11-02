@@ -139,39 +139,38 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 
 	public List<SecurityQuestionAnswerDTO> createUsersSecurityQuestionsList(PrismObject<UserType> user){
 		LOGGER.debug("Security Questions Loading for user: "+ user.getOid());
-		List<SecurityQuestionAnswerType> secQuestAnsList= user.asObjectable().getCredentials().getSecurityQuestions().getQuestionAnswer();
+        if (user.asObjectable().getCredentials() != null && user.asObjectable().getCredentials().getSecurityQuestions() != null) {
+            List<SecurityQuestionAnswerType> secQuestAnsList = user.asObjectable().getCredentials().getSecurityQuestions().getQuestionAnswer();
 
-		if (secQuestAnsList!=null){
-			
-			LOGGER.debug("User SecurityQuestion ANswer List is Not null");
-			List<SecurityQuestionAnswerDTO> secQuestAnswListDTO =new ArrayList<SecurityQuestionAnswerDTO>();
-			for (Iterator iterator = secQuestAnsList.iterator(); iterator
-					.hasNext();) {
-				SecurityQuestionAnswerType securityQuestionAnswerType = (SecurityQuestionAnswerType) iterator
-						.next();
-				
-				Protector protector = getPrismContext().getDefaultProtector();
-				String decoded="";
-				if (securityQuestionAnswerType.getQuestionAnswer().getEncryptedDataType() != null) {
-					try {
-						decoded = protector.decryptString(securityQuestionAnswerType.getQuestionAnswer());
+            if (secQuestAnsList != null) {
 
-					} catch (EncryptionException e) {
-						LoggingUtils.logException(LOGGER, "Couldn't decrypt user answer", e);
-						
-					}
-				}
-				//LOGGER.debug("SecAnswerIdentifier:"+securityQuestionAnswerType.getQuestionIdentifier());
-				secQuestAnswListDTO.add(new SecurityQuestionAnswerDTO(securityQuestionAnswerType.getQuestionIdentifier(), decoded)); 
-			}
+                LOGGER.debug("User SecurityQuestion ANswer List is Not null");
+                List<SecurityQuestionAnswerDTO> secQuestAnswListDTO = new ArrayList<SecurityQuestionAnswerDTO>();
+                for (Iterator iterator = secQuestAnsList.iterator(); iterator
+                        .hasNext(); ) {
+                    SecurityQuestionAnswerType securityQuestionAnswerType = (SecurityQuestionAnswerType) iterator
+                            .next();
 
-			return secQuestAnswListDTO;
-		}
-		else{
-			return null;
-		}
+                    Protector protector = getPrismContext().getDefaultProtector();
+                    String decoded = "";
+                    if (securityQuestionAnswerType.getQuestionAnswer().getEncryptedDataType() != null) {
+                        try {
+                            decoded = protector.decryptString(securityQuestionAnswerType.getQuestionAnswer());
 
-	}
+                        } catch (EncryptionException e) {
+                            LoggingUtils.logException(LOGGER, "Couldn't decrypt user answer", e);
+
+                        }
+                    }
+                    //LOGGER.debug("SecAnswerIdentifier:"+securityQuestionAnswerType.getQuestionIdentifier());
+                    secQuestAnswListDTO.add(new SecurityQuestionAnswerDTO(securityQuestionAnswerType.getQuestionIdentifier(), decoded));
+                }
+
+                return secQuestAnswListDTO;
+            }
+        }
+        return null;
+    }
 
 
 	public void initLayout(){
@@ -196,11 +195,15 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 		
 		//	PrismObject<SecurityPolicyType> securityPolicy = getModelService().getObject(SecurityPolicyType.class,config.asObjectable().getGlobalSecurityPolicyRef().getOid(), null, task, subResult);
 			//Global Policy set question numbers
-			questionNumber=	credPolicy.getSecurityQuestions().getQuestionNumber();
-			
-			// Actual Policy Question List										
-			policyQuestionList = credPolicy.getSecurityQuestions().getQuestion();
-			
+                if (credPolicy != null && credPolicy.getSecurityQuestions() != null) {
+                    questionNumber = credPolicy.getSecurityQuestions().getQuestionNumber();
+
+                    // Actual Policy Question List
+                    policyQuestionList = credPolicy.getSecurityQuestions().getQuestion();
+                } else {
+                    questionNumber = 0;
+                    policyQuestionList = new ArrayList<SecurityQuestionDefinitionType>();
+                }
 			}catch(Exception ex){
 				ex.printStackTrace();
 						
