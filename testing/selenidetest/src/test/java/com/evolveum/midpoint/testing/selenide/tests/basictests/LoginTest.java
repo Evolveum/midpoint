@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.testng.annotations.Test;
 
+import java.util.HashMap;
+
 import static com.codeborne.selenide.Selectors.by;
 import static com.codeborne.selenide.Selectors.byText;
 import static com.codeborne.selenide.Selenide.*;
@@ -16,6 +18,8 @@ import static com.codeborne.selenide.Condition.*;
  */
 //@Component
 public class LoginTest extends AbstractSelenideTest {
+
+    private static String USER_WITHOUT_PASSWORD = "UserWithoutPassword";
     /**
      * Log in to system as administrator/5ecr3t
      */
@@ -87,6 +91,38 @@ public class LoginTest extends AbstractSelenideTest {
         $(By.className("messages-error")).find(by("title", "Partial error")).shouldBe(visible);
 
         close();
+    }
+
+    /**
+     * Log in to system without password with user who don't have password
+     */
+    @Test (priority = 0)
+    public void test006loginWithoutPasswordWithUserWhoDontHavePasswordTest() {
+        close();
+        login();
+
+        //create user with filled user name only
+        createUser(USER_WITHOUT_PASSWORD, new HashMap<String, String>());
+
+        //check if Success message appears after user saving
+        $(byText("Success")).shouldBe(visible);
+
+        //search for the created user in users list
+        searchForElement(USER_WITHOUT_PASSWORD);
+        //click on the found user link
+        $(By.linkText(USER_WITHOUT_PASSWORD)).shouldBe(visible).click();
+
+        //assign End user role to user
+        assignObjectToUser(ASSIGN_ROLE_LINKTEXT, EndUserTests.ENDUSER_ROLE_NAME);
+
+        close();
+
+        //perform login
+        login(USER_WITHOUT_PASSWORD, "");
+
+        //check if error message appears
+        $(By.className("messages-error")).find(byText("'password' is required.")).shouldBe(visible);
+
     }
 
 

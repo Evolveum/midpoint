@@ -385,22 +385,24 @@ public class PageSecurityQuestions extends PageBase {
 			MyPasswordQuestionsPanel type = (MyPasswordQuestionsPanel) iterator.next();
 
 			List<SecurityQuestionAnswerDTO> userQuestionList = model.getObject().getSecurityAnswers();
-			for (Iterator iterator2 = userQuestionList.iterator(); iterator2.hasNext();) {
-				SecurityQuestionAnswerDTO securityQuestionAnswerDTO = (SecurityQuestionAnswerDTO) iterator2
-						.next();
-				// TODO do this in a proper way, what is this.
-				String results = StringEscapeUtils.unescapeHtml((type
-						.get(MyPasswordQuestionsPanel.F_QUESTION)).getDefaultModelObjectAsString());
-				if (getQuestionIdentifierFromQuestion(results).trim().equalsIgnoreCase(
-						securityQuestionAnswerDTO.getPwdQuestion().trim())) {
+            if (userQuestionList != null) {
+                for (Iterator iterator2 = userQuestionList.iterator(); iterator2.hasNext(); ) {
+                    SecurityQuestionAnswerDTO securityQuestionAnswerDTO = (SecurityQuestionAnswerDTO) iterator2
+                            .next();
+                    // TODO do this in a proper way, what is this.
+                    String results = StringEscapeUtils.unescapeHtml((type
+                            .get(MyPasswordQuestionsPanel.F_QUESTION)).getDefaultModelObjectAsString());
+                    if (getQuestionIdentifierFromQuestion(results).trim().equalsIgnoreCase(
+                            securityQuestionAnswerDTO.getPwdQuestion().trim())) {
 
-					if (((TextField<String>) type.get(MyPasswordQuestionsPanel.F_ANSWER)).getModelObject()
-							.equalsIgnoreCase(securityQuestionAnswerDTO.getPwdAnswer())) {
-						correctAnswers++;
-					}
-				}
+                        if (((TextField<String>) type.get(MyPasswordQuestionsPanel.F_ANSWER)).getModelObject()
+                                .equalsIgnoreCase(securityQuestionAnswerDTO.getPwdAnswer())) {
+                            correctAnswers++;
+                        }
+                    }
 
-			}
+                }
+            }
 
 		}
 

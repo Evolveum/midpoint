@@ -1,21 +1,15 @@
 package com.evolveum.midpoint.testing.selenide.tests;
 
+import com.codeborne.selenide.SelenideElement;
 import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
-import org.apache.log4j.xml.DOMConfigurator;
 import org.openqa.selenium.By;
-import org.springframework.stereotype.Component;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.ITestContext;
 import org.testng.annotations.BeforeClass;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import static com.codeborne.selenide.Selenide.switchTo;
 import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selectors.byAttribute;
 import static com.codeborne.selenide.Selectors.byText;
@@ -48,14 +42,14 @@ public class AbstractSelenideTest{
     public static final String PREFERRED_LANGUAGE_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:10:property:values:0:value:valueContainer:input:input";
     public static final String LOCALE_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:11:property:values:0:value:valueContainer:input:input";
     public static final String TIMEZONE_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:12:property:values:0:value:valueContainer:input:input";
-    public static final String EMAIL_ADDRESS_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:15:property:values:0:value:valueContainer:input:input";
-    public static final String TELEPHONE_NUMBER_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:16:property:values:0:value:valueContainer:input:input";
-    public static final String EMPLOYEE_NUMBER_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:17:property:values:0:value:valueContainer:input:input";
-    public static final String EMPLOYEE_TYPE_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:18:property:values:0:value:valueContainer:input:input";
-    public static final String COST_CENTER_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:19:property:values:0:value:valueContainer:input:input";
-    public static final String ORGANIZATION_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:20:property:values:0:value:valueContainer:input:input";
-    public static final String ORGANIZATIONAL_UNIT_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:21:property:values:0:value:valueContainer:input:input";
-    public static final String LOCALITY_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:22:property:values:0:value:valueContainer:input:input";
+    public static final String EMAIL_ADDRESS_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:14:property:values:0:value:valueContainer:input:input";
+    public static final String TELEPHONE_NUMBER_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:15:property:values:0:value:valueContainer:input:input";
+    public static final String EMPLOYEE_NUMBER_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:16:property:values:0:value:valueContainer:input:input";
+    public static final String EMPLOYEE_TYPE_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:17:property:values:0:value:valueContainer:input:input";
+    public static final String COST_CENTER_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:18:property:values:0:value:valueContainer:input:input";
+    public static final String ORGANIZATION_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:19:property:values:0:value:valueContainer:input:input";
+    public static final String ORGANIZATIONAL_UNIT_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:20:property:values:0:value:valueContainer:input:input";
+    public static final String LOCALITY_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:21:property:values:0:value:valueContainer:input:input";
     public static final String PASSWORD1_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:7:container:properties:0:property:values:0:value:valueContainer:input:inputContainer:password1";
     public static final String PASSWORD2_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:7:container:properties:0:property:values:0:value:valueContainer:input:inputContainer:password2";
 
@@ -107,12 +101,12 @@ public class AbstractSelenideTest{
     }
 
     protected void login(String username, String password){
-        System.setProperty("selenide.timeout","12000");
         //perform login
         login(siteUrl, username, password);
     }
 
     protected void login(String siteUrl, String username, String password) {
+        System.setProperty("selenide.timeout","12000");
         open(siteUrl);
         //enter login value
         $(By.name("username")).shouldBe(visible).setValue(username);
@@ -243,17 +237,23 @@ public class AbstractSelenideTest{
      */
     public void assignObjectToUser(String linkText, String objectName){
         //click on the menu icon next to Assignments section
-        $(byAttribute("about", "assignments")).find(byAttribute("about", "dropdownMenu")).click();
+        $(byAttribute("about", "assignmentsContainer")).find(byAttribute("about", "dropdownMenu")).click();
         //click Assign menu item with the specified linkText
         $(By.linkText(linkText)).shouldBe(visible).click();
+
+        //switch to the opened modal window
+        switchToInnerFrame();
+
         //search for object by objectName in the opened Select object(s) window
-        searchForElement(objectName, "tabPanel:panel:assignmentsContainer:assignmentsPanel:assignablePopup:content:searchForm:basicSearch:searchText");
+        searchForElement(objectName, "searchText");
         //select checkbox for the found object
         $(byAttribute("about", "table")).find(By.tagName("tbody")).find(By.tagName("input")).shouldBe(visible).click();
         //click Assign button
         $(By.linkText("Assign")).shouldBe(visible).click();
         $(By.linkText("Assign")).should(disappear);
 
+        //switch to main window
+        switchTo().defaultContent();
         //click Save button
         $(By.linkText("Save")).click();
 
@@ -278,25 +278,23 @@ public class AbstractSelenideTest{
 
     /**
      * Looks for the element with specified searchText
-     * and returns the first element from the search results
      * @param searchText
      * @return
      */
     public void searchForElement(String searchText){
         //search for element in search form
-        searchForElement(searchText, "table:header:searchForm:basicSearch:searchText");
+        searchForElement(searchText, "searchText");
     }
 
     /**
      * Looks for the element with specified searchText in specified name
-     * and returns the first element from the search results
      * @param searchText
-     * @param name
+     * @param aboutTagValue
      * @return
      */
-    public void searchForElement(String searchText, String name){
+    public void searchForElement(String searchText, String aboutTagValue){
         //search for element in search form
-        $(By.name(name)).shouldBe(visible).setValue(searchText);
+        $(byAttribute("about", aboutTagValue)).shouldBe(visible).setValue(searchText);
         $(By.linkText("Search")).shouldBe(visible).click();
     }
 
@@ -335,7 +333,7 @@ public class AbstractSelenideTest{
         //click Configuration menu
 //        $(By.partialLinkText("Configuration")).shouldBe(visible).click(); // clicked in previous step
         //click Basic menu item
-        $(By.partialLinkText("Basic")).click();
+        $(By.partialLinkText("System")).click();
         //click on the Edit button in the Object Policies row
         //Note: this Edit button click affects only modifying of the first row
         //of Object Policies
@@ -366,4 +364,9 @@ public class AbstractSelenideTest{
     }
 
 
+    protected void switchToInnerFrame(){
+        SelenideElement element = $(byAttribute("class", "wicket_modal"));
+        String modalWindowId = element.getAttribute("id");
+        switchTo().innerFrame(modalWindowId);
+    }
 }
