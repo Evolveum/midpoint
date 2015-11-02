@@ -381,4 +381,9 @@ public class RepositoryCache implements RepositoryService {
 			invalidateCacheEntry(SequenceType.class, oid);
 		}
 	}
+
+	@Override
+	public String executeArbitraryQuery(String query, OperationResult result) {
+		return repository.executeArbitraryQuery(query, result);
+	}
 }

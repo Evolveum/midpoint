@@ -2375,4 +2375,80 @@ main:       for (;;) {
         }
     }
 
+    @Override
+    public String executeArbitraryQuery(String query, OperationResult result) {
+        Validate.notEmpty(query, "Query must not be empty.");
+        Validate.notNull(result, "Operation result must not be null.");
+
+        LOGGER.debug("Executing arbitrary query '{}'.", query);
+
+        final String operation = "querying";
+        int attempt = 1;
+
+        OperationResult subResult = result.createMinorSubresult(EXECUTE_ARBITRARY_QUERY);
+        subResult.addParam("query", query);
+
+        SqlPerformanceMonitor pm = getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart("executeArbitraryQuery");
+
+        try {
+            while (true) {
+                try {
+                    return executeArbitraryQueryAttempt(query, subResult);
+                } catch (RuntimeException ex) {
+                    attempt = logOperationAttempt(null, operation, attempt, ex, subResult);
+                    pm.registerOperationNewTrial(opHandle, attempt);
+                }
+            }
+        } finally {
+            pm.registerOperationFinish(opHandle, attempt);
+        }
+    }
+
+    private String executeArbitraryQueryAttempt(String queryString, OperationResult result) {
+        LOGGER_PERFORMANCE.debug("> execute query {}", queryString);
+
+        Session session = null;
+        StringBuffer answer = new StringBuffer();
+        try {
+            session = beginReadOnlyTransaction();       // beware, not all databases support read-only transactions!
+
+            Query query = session.createQuery(queryString);
+            List results = query.list();
+            if (results != null) {
+                answer.append("Result: ").append(results.size()).append(" item(s):\n\n");
+                for (Object item : results) {
+                    if (item instanceof Object[]) {
+                        boolean first = true;
+                        for (Object item1 : (Object[]) item) {
+                            if (first) {
+                                first = false;
+                            } else {
+                                answer.append(",");
+                            }
+                            answer.append(item1);
+                        }
+                    } else {
+                        answer.append(item);
+                    }
+                    answer.append("\n");
+                }
+            }
+            session.getTransaction().rollback();
+        } catch (RuntimeException ex) {
+            handleGeneralException(ex, session, result);
+        } finally {
+            cleanupSessionAndResult(session, result);
+        }
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Executed query:\n{}\nwith result:\n{}", queryString, answer);
+        }
+
+        return answer.toString();
+    }
+
+
+
+
 }

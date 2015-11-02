@@ -392,4 +392,15 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
 
         MetadataFactory.fromJAXB(jaxb.getMetadata(), repo, prismContext);
     }
+
+    @Override
+    public String toString() {
+        return "RAssignment{" +
+                "id=" + id +
+                ", ownerOid='" + ownerOid + '\'' +
+                ", owner=" + owner +
+                ", targetRef=" + targetRef +
+                ", resourceRef=" + resourceRef +
+                '}';
+    }
 }

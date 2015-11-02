@@ -191,4 +191,16 @@ public class RLookupTableRow implements Container<RLookupTable> {
 
         return rRow;
     }
+
+    @Override
+    public String toString() {
+        return "RLookupTableRow{" +
+                "id=" + id +
+                ", owner=" + owner +
+                ", ownerOid='" + ownerOid + '\'' +
+                ", key='" + key + '\'' +
+                ", value='" + value + '\'' +
+                ", label=" + label +
+                '}';
+    }
 }

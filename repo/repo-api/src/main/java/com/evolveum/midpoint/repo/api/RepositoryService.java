@@ -146,6 +146,7 @@ public interface RepositoryService {
     String SEARCH_SHADOW_OWNER = CLASS_NAME_WITH_DOT + "searchShadowOwner";
 	String ADVANCE_SEQUENCE = CLASS_NAME_WITH_DOT + "advanceSequence";
 	String RETURN_UNUSED_VALUES_TO_SEQUENCE = CLASS_NAME_WITH_DOT + "returnUnusedValuesToSequence";
+	String EXECUTE_ARBITRARY_QUERY = CLASS_NAME_WITH_DOT + "executeArbitraryQuery";
 
 	/**
 	 * Returns object for provided OID.
@@ -540,4 +541,15 @@ public interface RepositoryService {
      * TODO this method is SQL service specific; it should be generalized/fixed somehow.
      */
     void testOrgClosureConsistency(boolean repairIfNecessary, OperationResult testResult);
+
+	/**
+	 * A bit of hack - execute arbitrary query, e.g. hibernate query in case of SQL repository.
+	 * Use with all the care!
+	 *
+	 * @param query
+	 * @param result
+	 * @return
+	 */
+	String executeArbitraryQuery(String query, OperationResult result);
+
 }
