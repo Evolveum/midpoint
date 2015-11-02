@@ -114,13 +114,13 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable {
     private ActivationStatusType createEffectiveActivationStatus() {
         //todo improve
 
-        CredentialsType credentials = user.getCredentials();
-        if (credentials == null || credentials.getPassword() == null){
-            return ActivationStatusType.DISABLED;
-        }
+//        CredentialsType credentials = user.getCredentials();
+//        if (credentials == null || credentials.getPassword() == null){
+//            return ActivationStatusType.DISABLED;
+//        }
 
         if (user.getActivation() == null) {
-            return ActivationStatusType.DISABLED;
+            return ActivationStatusType.ENABLED;
         }
 
         ActivationType activation = user.getActivation();
