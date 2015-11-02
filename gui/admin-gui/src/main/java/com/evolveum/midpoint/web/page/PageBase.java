@@ -354,7 +354,12 @@ public abstract class PageBase extends PageTemplate {
         }
 
         if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CONFIGURATION_URL,
-                AuthorizationConstants.AUTZ_UI_CONFIGURATION_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
+        		AuthorizationConstants.AUTZ_UI_CONFIGURATION_DEBUG_URL, AuthorizationConstants.AUTZ_UI_CONFIGURATION_DEBUGS_URL,
+        		AuthorizationConstants.AUTZ_UI_CONFIGURATION_IMPORT_URL, AuthorizationConstants.AUTZ_UI_CONFIGURATION_LOGGING_URL,
+        		AuthorizationConstants.AUTZ_UI_CONFIGURATION_SYSTEM_CONFIG_URL, AuthorizationConstants.AUTZ_UI_CONFIGURATION_ABOUT_URL,
+        		AuthorizationConstants.AUTZ_UI_CONFIGURATION_SYNCHRONIZATION_ACCOUNTS_URL,
+                AuthorizationConstants.AUTZ_UI_CONFIGURATION_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL, 
+                AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
             items.add(createConfigurationItems());
         }
 
