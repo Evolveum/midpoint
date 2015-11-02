@@ -144,12 +144,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
         	configAttributesToUse = configAttributes;
         }
 
-        try {
-        	securityEnforcer.decide(authentication, object, configAttributesToUse);
-        } catch (AccessDeniedException | InsufficientAuthenticationException e) {
-        	SecurityUtil.logSecurityDeny(object, ": "+e.getMessage(), e, SecurityUtil.getActions(configAttributesToUse));
-        	throw e;
-        }
+    	securityEnforcer.decide(authentication, object, configAttributesToUse);
     }
 
     private void addSecurityConfig(FilterInvocation filterInvocation, Collection<ConfigAttribute> guiConfigAttr,
