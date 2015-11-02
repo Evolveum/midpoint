@@ -24,6 +24,18 @@
 
 package com.evolveum.prism.xml.ns._public.types_3;
 
+import com.evolveum.midpoint.prism.Raw;
+import com.evolveum.midpoint.util.JAXBUtil;
+import com.evolveum.midpoint.util.MiscUtil;
+import org.w3c.dom.Element;
+
+import javax.activation.MimeType;
+import javax.activation.MimeTypeParseException;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.annotation.*;
+import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.Serializable;
 import java.lang.reflect.Array;
@@ -34,33 +46,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Currency;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.TimeZone;
-import java.util.UUID;
-
-import javax.activation.MimeType;
-import javax.activation.MimeTypeParseException;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAnyElement;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.datatype.Duration;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.Raw;
-import org.w3c.dom.Element;
-
-import com.evolveum.midpoint.util.JAXBUtil;
-import com.evolveum.midpoint.util.MiscUtil;
+import java.util.*;
 
 
 /**
@@ -323,7 +309,12 @@ public class ItemDeltaType implements Serializable, Cloneable {
         ItemDeltaType clone = new ItemDeltaType();
         clone.setModificationType(getModificationType());
         clone.setPath(getPath());  //TODO clone path
-        clone.getValue().addAll(getValue());
+		// If not to clone inside iteration, then in clone object would be an origin raw objects and manipulations with
+		// clones wail take effect on origin objects. For example parsing while taking data from raw objects.
+		// In our case it have bad side effect - equals doesn't work.
+		for (RawType rawType : getValue()) {
+			clone.getValue().add(rawType.clone());
+		}
 //        delta.setValue(value != null ? value.clone() : null);
         clone.getEstimatedOldValue().addAll(getEstimatedOldValue());
         return clone;
