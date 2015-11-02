@@ -180,7 +180,9 @@ public class AssignableSelectionPanel <T extends ObjectType> extends AbstractAss
         });
         add(typeSearch);
 
-        return createTable();
+        TablePanel table = createTable();
+        add(table);
+        return table;
 	}
 
     private List<? extends DisplayableValue<String>> getLookupDisplayableList(){
@@ -331,7 +333,7 @@ public class AssignableSelectionPanel <T extends ObjectType> extends AbstractAss
 	        provider.setType(type);
 
 	        //replace table with table with proper columns
-	        replace(createTable());
+	        addOrReplace(createTable());
 	    }
 	}
 	  

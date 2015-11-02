@@ -5249,6 +5249,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="queryInterpretationOfNoValue" type="tns:QueryInterpretationOfNoValueType" minOccurs="0" default="filterEqualNull">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element ref="tns:expressionEvaluator" minOccurs="1" maxOccurs="unbounded">
             	<xsd:annotation>
             		<xsd:documentation>
@@ -5300,6 +5307,72 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="MULTI"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:simpleType name="QueryInterpretationOfNoValueType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defined how the expression will be interpreted in queries when it returns
+                empty (or null) values.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="filterEqualNull">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The expression will be intepreted as an EQUAL filter
+                        that looks for entries with no (null) value.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FILTER_EQUAL_NULL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="filterUndefined">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The expression will be intepreted as an UNDEFINED filter.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FILTER_UNDEFINED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="filterNone">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The expression will be intepreted as an NONE filter.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FILTER_NONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="filterAll">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The expression will be intepreted as an NONE filter.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FILTER_ALL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="error">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Error will be thrown if the expression results in
+                        empty (null) values.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ERROR"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
