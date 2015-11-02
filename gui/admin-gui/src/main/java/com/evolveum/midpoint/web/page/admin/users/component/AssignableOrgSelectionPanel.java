@@ -9,17 +9,20 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxTabbedPanel;
 import com.evolveum.midpoint.web.component.org.OrgTreeTablePanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTableDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.OrgTreeDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -39,6 +42,7 @@ public class AssignableOrgSelectionPanel <T extends ObjectType> extends Abstract
     private static final String OPERATION_LOAD_ORG_UNITS = DOT_CLASS + "loadOrgUnits";
 
 	private final static String ID_TABS = "tabs";
+	private final static String ID_ASSIGN_ROOT = "assignRoot";
 	
 	public AssignableOrgSelectionPanel(String id, Context context) {
 		super(id, context);
@@ -80,7 +84,16 @@ public class AssignableOrgSelectionPanel <T extends ObjectType> extends Abstract
 
 	    AjaxTabbedPanel tabbedPanel = new AjaxTabbedPanel(ID_TABS, tabModel.getObject(), new Model<>(0));
 	    tabbedPanel.setOutputMarkupId(true);
+	     addOrReplace(tabbedPanel);
 	     
+	     AjaxButton assignRootButton = new AjaxButton(ID_ASSIGN_ROOT, createStringResource("AssignableOrgSelectionPanel.button.assignRoot")) {
+
+	            @Override
+	            public void onClick(AjaxRequestTarget target) {
+	                addPerformed(target, getSelectedRoot());
+	            }
+	        };
+	        add(assignRootButton);
 	     return tabbedPanel;
 	}
 	
@@ -137,6 +150,19 @@ public class AssignableOrgSelectionPanel <T extends ObjectType> extends Abstract
      	}
         return selected;
 	}
+	
+	public List<ObjectType> getSelectedRoot(){
+	    List<ObjectType> selected = new ArrayList<>();
+	    AjaxTabbedPanel orgPanel = (AjaxTabbedPanel) getTablePanel();
+//	    int selectedTab = orgPanel.getSelectedTab();
+//	    OrgTreeTablePanel orgPanels = (OrgTreeTablePanel) orgPanel.get(selectedTab);
+	    OrgTreeTablePanel orgPanels = (OrgTreeTablePanel) orgPanel.get("panel");
+    	OrgTreeDto org = orgPanels.getRootFromProvider();
+     	selected.add(org.getObject());
+        return selected;
+	}
+	
+	
 	 
 	public void setType(Class<T> type){
 		Validate.notNull(type, "Class must not be null.");
@@ -144,7 +170,8 @@ public class AssignableOrgSelectionPanel <T extends ObjectType> extends Abstract
 
         AjaxTabbedPanel table = (AjaxTabbedPanel) getTablePanel();
         if (table != null) {
-            replace(createPopupContent());
+        	createPopupContent();
+//            replace(createPopupContent());
         }
 	}
 }
