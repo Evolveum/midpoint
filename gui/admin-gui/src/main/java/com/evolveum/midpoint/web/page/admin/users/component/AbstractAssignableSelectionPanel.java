@@ -132,9 +132,7 @@ public abstract class AbstractAssignableSelectionPanel<T extends ObjectType> ext
     protected void initLayout() {
 
     	createPopupContent();
-//        Panel panel = 
-//        add(panel);
-        
+      
         AjaxButton addButton = new AjaxButton(ID_ADD, createStringResource(context.getSubmitKey())) {
 
             @Override
