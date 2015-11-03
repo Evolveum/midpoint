@@ -20,7 +20,7 @@
 		<path>employeeType</path>
 		<c:expression>
 			<c:queryInterpretationOfNoValue>filterNone</c:queryInterpretationOfNoValue>
-			<c:path>$employeeType</c:path>
+			<c:path>$input</c:path>
 		</c:expression>
 	</equal>
 </filter>

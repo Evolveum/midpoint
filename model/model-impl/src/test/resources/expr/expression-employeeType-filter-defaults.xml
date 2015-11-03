@@ -19,7 +19,7 @@
 	<equal>
 		<path>employeeType</path>
 		<c:expression>
-			<c:path>$employeeType</c:path>
+			<c:path>$input</c:path>
 		</c:expression>
 	</equal>
 </filter>
