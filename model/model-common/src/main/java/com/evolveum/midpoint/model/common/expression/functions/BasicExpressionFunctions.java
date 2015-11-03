@@ -521,7 +521,7 @@ public class BasicExpressionFunctions {
 			return null;
 		}
 		if (dns == null || dns.isEmpty()) {
-			throw new IllegalArgumentException("No dn argument specified");
+			return determineLdapSingleAttributeValue((String)null, attributeName, values);
 		}
 		if (dns.size() > 1) {
 			throw new IllegalArgumentException("Nore than one value ("+dns.size()+" for dn argument specified");
@@ -553,6 +553,10 @@ public class BasicExpressionFunctions {
 		
 		if (stringValues.size() == 1) {
 			return stringValues.iterator().next();
+		}
+		
+		if (StringUtils.isBlank(dn)) {
+			throw new IllegalArgumentException("No dn argument specified, cannot determine which of "+values.size()+" values to use");
 		}
 		
 		LdapName parsedDn =  new LdapName(dn);

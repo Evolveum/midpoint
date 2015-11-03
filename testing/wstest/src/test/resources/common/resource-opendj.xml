@@ -111,21 +111,10 @@ This is now the only account type that midPoint can work with. -->
 				<matchingRule>mr:stringIgnoreCase</matchingRule>
 			</attribute>
 
-            <!-- Definition of cn attribute handling. -->
             <attribute>
 
                 <ref>cn</ref>
                 <displayName>Common Name</displayName>
-
-                <!-- Outbound expression here is using "pure" XPath, without
-                    using functions. This is the simplest case, just copying
-                    the "fullName" property of user to the "cn" attribute of
-                    an account.
-
-                    Please note that this expression is not marked as "default".
-                    Therefore this value will be copied on every change,
-                    overwriting the original value of "cn" on the resource.
-                -->
 
                 <outbound>
                 	<source>
@@ -136,21 +125,13 @@ This is now the only account type that midPoint can work with. -->
                     </source>
                 </outbound>
 
-                <!-- Inbound expression. It is used to synchronize changes
-                    in the account to the user object in the IDM. This
-                    expression specifies to copy the cn attribute value
-                    from the account to the fullName property of the user.
-                -->
                 <inbound>
 					<expression>
 						<allowEmptyValues>false</allowEmptyValues>
 						<script>
 							<relativityMode>absolute</relativityMode>
-							<language>http://www.w3.org/TR/xpath/</language>
 							<code>
-								declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-	 							declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
-	 							func:determineLdapSingleAttributeValue($c:account/c:attributes/icfs:name, 'cn', $c:input)
+								basic.determineLdapSingleAttributeValue(basic.getAttributeValue(account,'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3','name'), 'cn', input)
 	 						</code>
 						</script>
 					</expression>
@@ -179,12 +160,8 @@ This is now the only account type that midPoint can work with. -->
                 		<allowEmptyValues>false</allowEmptyValues>
 						<script>
 							<relativityMode>absolute</relativityMode>
-							<language>http://www.w3.org/TR/xpath/</language>
 							<code>
-								declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-	 							declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
-	 							declare namespace func="http://midpoint.evolveum.com/xml/ns/public/function/basic-3";
-	 							func:determineLdapSingleAttributeValue($c:account/c:attributes/icfs:name, 'sn', $c:input)
+	 							basic.determineLdapSingleAttributeValue(basic.getAttributeValue(account,'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3','name'), 'sn', input)
  							</code>
 						</script>
 					</expression>
@@ -216,12 +193,9 @@ This is now the only account type that midPoint can work with. -->
                 		<allowEmptyValues>false</allowEmptyValues>
 						<script>
 							<relativityMode>absolute</relativityMode>
-							<language>http://www.w3.org/TR/xpath/</language>
  							<code>
-	 							declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-	 							declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
-	 							func:determineLdapSingleAttributeValue($c:account/c:attributes/icfs:name, 'givenName', $c:input)</code>  
-<!--							<code>func:logDebug($c:account/c:attributes/icfs:name, 'givenName', $c:input)</code> -->
+ 								basic.determineLdapSingleAttributeValue(basic.getAttributeValue(account,'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3','name'), 'givenName', input)
+	 						</code>  
 						</script>
 					</expression>
                     <target>
@@ -319,10 +293,9 @@ This is now the only account type that midPoint can work with. -->
                     <expression>
                     	<allowEmptyValues>false</allowEmptyValues>
                     	<script>
-                    		<language>http://www.w3.org/TR/xpath/</language>
 	                    	<returnType>scalar</returnType>
 	                    	<c:code>
-	                    		concat('','')
+	                    		'' + ''
 	                    	</c:code>
                     	</script>
                     </expression>
@@ -412,10 +385,6 @@ This is now the only account type that midPoint can work with. -->
             <attribute>
                 <ref>l</ref>
                 <c:tolerant>false</c:tolerant>
-
-                <!-- Outbound expression definition. This expression is using
-              a configuration object (set into an XPath variable) to
-              translate values. -->
                 <outbound>
                 	<strength>strong</strength>
                 	<source>
@@ -530,14 +499,11 @@ This is now the only account type that midPoint can work with. -->
 	            <q:equal>
 	                <q:path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";c:name</q:path>
 	                <expression>
-	                	<script>
-	                		<language>http://www.w3.org/TR/xpath/</language>
-		                    <code>
-			                    declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-			                    declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
-			                    $c:account/c:attributes/dj:uid
-		                    </code>
-						</script>
+	                    <path>
+		                    declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+		                    declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+		                    $c:account/c:attributes/dj:uid
+	                    </path>
 	                </expression>
 	            </q:equal>
 	        </c:correlation>

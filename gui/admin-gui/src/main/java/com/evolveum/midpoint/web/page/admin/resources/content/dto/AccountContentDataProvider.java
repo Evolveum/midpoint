@@ -29,6 +29,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.AuthorizationException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -212,10 +213,16 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Account
             dto.setIdentifiers(idList);
         }
 
-        PrismObject<UserType> owner = loadOwner(dto.getAccountOid(), result);
-        if (owner != null) {
-            dto.setOwnerName(WebMiscUtil.getName(owner));
-            dto.setOwnerOid(owner.getOid());
+        try {
+	        PrismObject<UserType> owner = loadOwner(dto.getAccountOid(), result);
+	        if (owner != null) {
+	            dto.setOwnerName(WebMiscUtil.getName(owner));
+	            dto.setOwnerOid(owner.getOid());
+	        }
+        } catch (AuthorizationException e) {
+        	// owner was found, but the current user is not authorized to read it
+        	result.muteLastSubresultError();
+        	dto.setOwnerName("(unauthorized)");
         }
 
         dto.setSituation(WebMiscUtil.getValue(object, ShadowType.F_SYNCHRONIZATION_SITUATION,
