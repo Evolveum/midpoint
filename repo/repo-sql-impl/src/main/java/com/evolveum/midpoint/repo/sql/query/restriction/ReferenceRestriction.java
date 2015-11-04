@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,15 +67,12 @@ public class ReferenceRestriction extends ItemRestriction<RefFilter> {
 
         // let's check the value (null is not supported yet)
         List<? extends PrismValue> values = filter.getValues();
-        if (values.size() > 1) {
+        if (values != null && values.size() > 1) {
             throw new QueryException("Ref filter '" + filter + "' contain more than one reference value (which is not supported for now).");
         }
         PrismReferenceValue refValue = null;
         if (values != null && !values.isEmpty()) {
             refValue = (PrismReferenceValue) values.get(0);
-        }
-        if (refValue == null) {
-            throw new QueryException("Ref filter '" + filter + "' doesn't contain reference value.");
         }
 
         QueryContext context = getContext();
@@ -116,23 +113,32 @@ public class ReferenceRestriction extends ItemRestriction<RefFilter> {
         }
         String prefix = sb.toString();
 
-        Conjunction conjunction = Restrictions.conjunction();
-        conjunction.add(handleEqOrNull(prefix + ObjectReference.F_TARGET_OID, refValue.getOid()));
-
-        QName relation = refValue.getRelation();
-        if (relation == null) {
-        	// Return only references without relation
-        	conjunction.add(Restrictions.eq(prefix + ObjectReference.F_RELATION, RUtil.QNAME_DELIMITER));
-        } else if (relation.equals(PrismConstants.Q_ANY)) {
-        	// Return all relations => no restriction
-        } else {
-        	// return references with specific relation
-            conjunction.add(handleEqOrNull(prefix + ObjectReference.F_RELATION, RUtil.qnameToString(relation)));
+        String refValueOid = null;
+        QName refValueRelation = null;
+        QName refValueTargetType = null;
+        if (refValue != null) {
+        	refValueOid = refValue.getOid();
+        	refValueRelation = refValue.getRelation();
+        	refValueTargetType = refValue.getTargetType();
         }
+        Conjunction conjunction = Restrictions.conjunction();
+        conjunction.add(handleEqOrNull(prefix + ObjectReference.F_TARGET_OID, refValueOid));
 
-        if (refValue.getTargetType() != null) {
-            conjunction.add(handleEqOrNull(prefix + ObjectReference.F_TYPE,
-                    ClassMapper.getHQLTypeForQName(refValue.getTargetType())));
+        if (refValueOid != null) {
+	        if (refValueRelation == null) {
+	        	// Return only references without relation
+	        	conjunction.add(Restrictions.eq(prefix + ObjectReference.F_RELATION, RUtil.QNAME_DELIMITER));
+	        } else if (refValueRelation.equals(PrismConstants.Q_ANY)) {
+	        	// Return all relations => no restriction
+	        } else {
+	        	// return references with specific relation
+	            conjunction.add(handleEqOrNull(prefix + ObjectReference.F_RELATION, RUtil.qnameToString(refValueRelation)));
+	        }
+	
+	        if (refValueTargetType != null) {
+	            conjunction.add(handleEqOrNull(prefix + ObjectReference.F_TYPE,
+	                    ClassMapper.getHQLTypeForQName(refValueTargetType)));
+	        }
         }
 
         // TODO what about isNotNull if necessary ?
