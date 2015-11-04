@@ -38,6 +38,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.BasicSearchPanel;
+import com.evolveum.midpoint.web.component.DropDownMultiChoice;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.column.*;
@@ -67,15 +68,18 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author lazyman
@@ -109,6 +113,7 @@ public class PageUsers extends PageAdminUsers {
     private static final String ID_SEARCH_FORM = "searchForm";
     private static final String ID_BASIC_SEARCH = "basicSearch";
     private static final String ID_TABLE_HEADER = "tableHeader";
+    private static final String ID_SEARCH_TYPE = "searchType";
 
     private UserListItemDto singleDelete;
     private LoadableModel<UsersDto> model;
@@ -729,6 +734,24 @@ public class PageUsers extends PageAdminUsers {
             searchForm.setOutputMarkupId(true);
 
             final IModel<UsersDto> model = (IModel) getDefaultModel();
+
+            IModel<Map<String, String>> options = new Model(null);
+            DropDownMultiChoice searchType = new DropDownMultiChoice<UsersDto.SearchType>(ID_SEARCH_TYPE,
+                    new PropertyModel<List<UsersDto.SearchType>>(model, UsersDto.F_TYPE),
+                    WebMiscUtil.createReadonlyModelFromEnum(UsersDto.SearchType.class),
+                    new IChoiceRenderer<UsersDto.SearchType>() {
+
+                        @Override
+                        public Object getDisplayValue(UsersDto.SearchType object) {
+                            return WebMiscUtil.createLocalizedModelForEnum(object, PageUsers.SearchFragment.this).getObject();
+                        }
+
+                        @Override
+                        public String getIdValue(UsersDto.SearchType object, int index) {
+                            return Integer.toString(index);
+                        }
+                    }, options);
+            searchForm.add(searchType);
 
             BasicSearchPanel<UsersDto> basicSearch = new BasicSearchPanel<UsersDto>(ID_BASIC_SEARCH, model) {
 
