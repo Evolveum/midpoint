@@ -35,6 +35,8 @@ import com.evolveum.midpoint.web.page.error.PageError401;
 import com.evolveum.midpoint.web.page.error.PageError403;
 import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.web.page.login.PageLogin;
+import com.evolveum.midpoint.web.page.self.PageSelf;
+import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
 import com.evolveum.midpoint.web.util.Utf8BundleStringResourceLoader;
@@ -185,8 +187,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     }
 
     @Override
-    public Class<PageDashboard> getHomePage() {
-        return PageDashboard.class;
+    public Class<PageSelfDashboard> getHomePage() {
+        return PageSelfDashboard.class;
     }
 
     @Override

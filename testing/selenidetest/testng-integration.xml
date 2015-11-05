@@ -17,7 +17,10 @@
   -->
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="selenidetests" parallel="false">
-    <parameter name="site.url" value="http://localhost:8080/midpoint"/>
+    <listeners>
+        <listener class-name="com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor"/>
+    </listeners>
+    <parameter name="site.url" value="http://localhost/midpoint"/>
     <suite-files>
         <suite-file path="./basic-tests-suite.xml"/>
     </suite-files>

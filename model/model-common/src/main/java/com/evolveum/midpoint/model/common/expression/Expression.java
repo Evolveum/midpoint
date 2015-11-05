@@ -132,9 +132,9 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 			for (ExpressionEvaluator<?,?> evaluator: evaluators) {
 				PrismValueDeltaSetTriple<V> outputTriple = (PrismValueDeltaSetTriple<V>) evaluator.evaluate(processedParameters);
 				if (outputTriple != null) {
-					boolean allowEmptyRealValues = true;
+					boolean allowEmptyRealValues = false;
 					if (expressionType != null) {
-						allowEmptyRealValues = BooleanUtils.isNotFalse(expressionType.isAllowEmptyValues());
+						allowEmptyRealValues = BooleanUtils.isTrue(expressionType.isAllowEmptyValues());
 					}
 					outputTriple.removeEmptyValues(allowEmptyRealValues);
 					if (InternalsConfig.consistencyChecks) {

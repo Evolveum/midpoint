@@ -623,7 +623,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         prepareNotifications();
         
         DummyAccount wallyDummyAccount = dummyResourceGreen.getAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
-                
+        
 		/// WHEN
         TestUtil.displayWhen(TEST_NAME);
         modifyUserReplace(userWallyOid, UserType.F_FULL_NAME, task, result, PrismTestUtil.createPolyString("Bloodnose"));
@@ -632,7 +632,13 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         waitForSyncTaskNextRunAssertSuccess(resourceDummy);
         waitForSyncTaskNextRunAssertSuccess(resourceDummyBlue);
         waitForSyncTaskNextRunAssertSuccess(resourceDummyGreen);
-		
+
+        // Run green recon twice here. If the recon already searched for current state of the
+        // wally account, the old value ("Wally B. Feed") is stored in the memory. Even if we rewrite
+        // the account state by this operation the value already read into memory will be used instead
+        // and it will be propagated to other resources. The next recon run should fix it.
+        waitForSyncTaskNextRunAssertSuccess(resourceDummyGreen);
+        
         // THEN
         TestUtil.displayThen(TEST_NAME);
                 

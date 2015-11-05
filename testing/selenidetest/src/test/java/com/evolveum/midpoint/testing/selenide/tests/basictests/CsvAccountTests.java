@@ -23,6 +23,7 @@ import static com.codeborne.selenide.Selectors.byAttribute;
 import static com.codeborne.selenide.Selectors.byText;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.close;
+import static com.codeborne.selenide.Selenide.switchTo;
 
 /**
  * Created by Kate on 24.08.2015.
@@ -62,22 +63,27 @@ public class CsvAccountTests extends AbstractSelenideTest {
         openUsersEditPage(USER_WITH_CSV_ACCOUNT_NAME);
         //click on the menu icon in the Projections section
 //        $(byAttribute("about", "accountMenu")).find(byAttribute("class", "dropdown-toggle")).shouldBe(visible).click();
-        $(By.xpath("/html/body/div[1]/div/section[2]/form/div[3]/div/div/div[7]/div[2]/div[1]/div/div[2]/ul/li/a/b"))
+        $(By.xpath("/html/body/div[1]/div/section[2]/form/div[4]/div/div/div[7]/div[2]/div[1]/div/div[2]/ul/li/a"))
                 .shouldBe(visible).click();
         //click on the Add projection menu item
         $(By.linkText("Add projection")).shouldBe(visible).click();
 
+        //switch to the opened modal window
+        switchToInnerFrame();
         //search for resource in resources list in the opened Select resource(s) window
-        searchForElement(CSV_RESOURCE_NAME, "tabPanel:panel:resourcePopup:content:searchForm:basicSearch:searchText");
+        searchForElement(CSV_RESOURCE_NAME);
         //check if Localhost CSVfile resource was found
-        $(byText("Localhost CSVfile")).shouldBe(visible);
+        $(byText(CSV_RESOURCE_NAME)).shouldBe(visible);
 
         //select check box in the first row for "Localhost CSVfile" resource
         $(byAttribute("about", "resourcePopupTable")).find(By.tagName("tbody")).find(By.tagName("input"))
                 .shouldBe(visible).click();
-//        $(By.name("resourcePopup:content:table:table:body:rows:3:cells:1:cell:check")).shouldBe(visible).click();
+
         //click Add resource(s) button
         $(By.linkText("Add resource(s)")).shouldBe(enabled).click();
+
+        //switch to main window
+        switchTo().defaultContent();
 
         //fill in account fields map
         accountFieldsMap.put(ACCOUNT_FIRST_NAME_FIELD, ACCOUNT_FIRST_NAME_VALUE);
@@ -89,6 +95,7 @@ public class CsvAccountTests extends AbstractSelenideTest {
         //click Save button
         $(By.linkText("Save")).shouldBe(visible).click();
         //check if Success message appears
+        // if error occured, copy midpoint\testing\selenidetest\src\test\resources\mp-resources\midpoint-flatfile-orig.csv to midpoint-flatfile.csv
         $(byText("Success")).shouldBe(visible);
         //open user's Edit page by account name value
         openUsersEditPage(ACCOUNT_NAME_VALUE);

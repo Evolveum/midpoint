@@ -192,10 +192,16 @@ public class ResourcesSelectionPanel extends BasePanel {
         }
 
         try{
-            PolyStringNormalizer normalizer = getPageBase().getPrismContext().getDefaultPolyStringNormalizer();
+            PageBase pageBase;
+            if (this instanceof ResourcesSelectionPanel){
+                pageBase =((ResourcesSelectionPage)this.getParent()).getPageBase();
+            } else {
+                pageBase = getPageBase();
+            }
+            PolyStringNormalizer normalizer = pageBase.getPrismContext().getDefaultPolyStringNormalizer();
             String normalized = normalizer.normalize(dto.getText());
 
-            SubstringFilter substring = SubstringFilter.createSubstring(ResourceType.F_NAME, ResourceType.class, getPageBase().getPrismContext(),
+            SubstringFilter substring = SubstringFilter.createSubstring(ResourceType.F_NAME, ResourceType.class, pageBase.getPrismContext(),
                     PolyStringNormMatchingRule.NAME, normalized);
 
             query = new ObjectQuery();

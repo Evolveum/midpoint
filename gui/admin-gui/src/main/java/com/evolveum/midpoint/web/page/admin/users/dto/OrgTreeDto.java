@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.web.page.admin.users.dto;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
@@ -35,17 +37,31 @@ public class OrgTreeDto implements Serializable, Comparable<OrgTreeDto>, OrgDto 
     private String displayName;
     private String identifier;
     private QName relation;
+    
+    private ObjectType object;
 
-    public OrgTreeDto(OrgTreeDto parent, String oid, QName relation, String name, String description,
-                      String displayName, String identifier) {
-        this.parent = parent;
-        this.oid = oid;
-        this.relation = relation;
-        this.name = name;
-        this.description = description;
-        this.displayName = displayName;
-        this.identifier = identifier;
-    }
+//    public OrgTreeDto(OrgTreeDto parent, String oid, QName relation, String name, String description,
+//                      String displayName, String identifier) {
+//        this.parent = parent;
+//        this.oid = oid;
+//        this.relation = relation;
+//        this.name = name;
+//        this.description = description;
+//        this.displayName = displayName;
+//        this.identifier = identifier;
+//    }
+    
+    public OrgTreeDto(OrgTreeDto parent, PrismObject<OrgType> object) {
+    	OrgType org = object.asObjectable();
+    	this.object = org;
+this.parent = parent;
+this.oid = org.getOid();
+//this.relation = relation;
+this.name = WebMiscUtil.getOrigStringFromPoly(org.getName());
+this.description = org.getDescription();
+this.displayName = WebMiscUtil.getOrigStringFromPoly(org.getDisplayName());
+this.identifier = org.getIdentifier();
+}
 
     public OrgTreeDto getParent() {
         return parent;
@@ -81,6 +97,14 @@ public class OrgTreeDto implements Serializable, Comparable<OrgTreeDto>, OrgDto 
     public void setRelation(QName relation) {
         this.relation = relation;
     }
+    
+    public ObjectType getObject() {
+		return object;
+	}
+    
+    public void setObject(ObjectType object) {
+		this.object = object;
+	}
 
     @Override
     public Class<? extends ObjectType> getType() {

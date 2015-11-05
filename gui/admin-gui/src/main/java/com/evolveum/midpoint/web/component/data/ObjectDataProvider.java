@@ -116,9 +116,16 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
             }
             query.setPaging(paging);
 
-            LOGGER.trace("Query {} with {}", type.getSimpleName(), query.debugDump());
+            if (LOGGER.isTraceEnabled()) {
+            	LOGGER.trace("Query {} with {}", type.getSimpleName(), query.debugDump());
+            }
 
             List<PrismObject<T>> list = getModel().searchObjects(type, query, options, task, result);
+            
+            if (LOGGER.isTraceEnabled()) {
+            	LOGGER.trace("Query {} resulted in {} objects", type.getSimpleName(), list.size());
+            }
+            
             for (PrismObject<T> object : list) {
                 getAvailableData().add(createDataObjectWrapper(object));
             }
@@ -170,7 +177,7 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
             throw new RestartResponseException(PageError.class);
         }
 
-        LOGGER.trace("end::internalSize()");
+        LOGGER.trace("end::internalSize(): {}", count);
         return count;
     }
 

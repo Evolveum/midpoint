@@ -15,6 +15,10 @@
  */
 package com.evolveum.midpoint.security.api;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
+import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -50,6 +54,52 @@ public class SecurityUtil {
 	public static boolean isAuthenticated() {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		return (authentication != null);
+	}
+	
+	public static Collection<String> getActions(Collection<ConfigAttribute> configAttributes) {
+		Collection<String> actions = new ArrayList<String>(configAttributes.size());
+		for (ConfigAttribute attr: configAttributes) {
+			actions.add(attr.getAttribute());
+		}
+		return actions;
+	}
+	
+	public static void logSecurityDeny(Object object, String message) {
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Denied access to {} by {} {}", object, getSubjectDescription(), message);
+		}
+	}
+	
+	public static void logSecurityDeny(Object object, String message, Throwable cause, Collection<String> requiredAuthorizations) {
+		if (LOGGER.isDebugEnabled()) {
+			String subjectDesc = getSubjectDescription();
+			LOGGER.debug("Denied access to {} by {} {}", object, subjectDesc, message);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Denied access to {} by {} {}; one of the following authorization actions is required: "+requiredAuthorizations, 
+						new Object[]{object, subjectDesc, message, cause});
+			}
+		}
+	}
+
+	/**
+	 * Returns short description of the subject suitable for log
+	 * and error messages.
+	 * Does not throw errors. Safe to toString-like methods.
+	 * May return null (means anonymous or unknown)
+	 */
+	public static String getSubjectDescription() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (authentication == null) {
+			return null;
+		}
+		Object principalObject = authentication.getPrincipal();
+		if (principalObject == null) {
+			return null;
+		}
+		if (!(principalObject instanceof MidPointPrincipal)) {
+			return principalObject.toString();
+		}
+		return ((MidPointPrincipal)principalObject).getUsername();
 	}
 	
 }

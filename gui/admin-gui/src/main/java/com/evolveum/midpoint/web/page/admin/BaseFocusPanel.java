@@ -518,26 +518,26 @@ public abstract class BaseFocusPanel<F extends FocusType> extends Panel {
 
 	private List<InlineMenuItem> createOrgMenu() {
 		List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
-		InlineMenuItem item = new InlineMenuItem(createStringResource("pageAdminFocus.button.addToOrg"),
-				new InlineMenuItemAction() {
-
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						showModalWindow(MODAL_ID_ADD_ORG, target);
-					}
-				});
-		items.add(item);
-		items.add(new InlineMenuItem());
-		item = new InlineMenuItem(createStringResource("pageAdminFocus.button.unlink"),
-				new InlineMenuItemAction() {
-
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						unlinkProjectionPerformed(target, orgModel, getSelectedProjections(orgModel), ID_ORGS);
-					}
-				});
-		items.add(item);
-		items.add(new InlineMenuItem());
+//		InlineMenuItem item = new InlineMenuItem(createStringResource("pageAdminFocus.button.addToOrg"),
+//				new InlineMenuItemAction() {
+//
+//					@Override
+//					public void onClick(AjaxRequestTarget target) {
+//						showModalWindow(MODAL_ID_ADD_ORG, target);
+//					}
+//				});
+//		items.add(item);
+//		items.add(new InlineMenuItem());
+//		item = new InlineMenuItem(createStringResource("pageAdminFocus.button.unlink"),
+//				new InlineMenuItemAction() {
+//
+//					@Override
+//					public void onClick(AjaxRequestTarget target) {
+//						unlinkProjectionPerformed(target, orgModel, getSelectedProjections(orgModel), ID_ORGS);
+//					}
+//				});
+//		items.add(item);
+//		items.add(new InlineMenuItem());
 		
 
 		return items;

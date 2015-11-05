@@ -71,7 +71,7 @@ public class ValueOperation extends Operation {
 					EqualFilter<T> eq = (EqualFilter<T>) objectFilter;
 					
 					Collection<Object> convertedValues = convertValues(propName, eq.getValues());
-					if (convertedValues.isEmpty()) {
+					if (convertedValues == null || convertedValues.isEmpty()) {
 						// See MID-1460
 						throw new UnsupportedOperationException("Equals filter with a null value is NOT supported by ICF");
 					} else {
@@ -150,6 +150,9 @@ public class ValueOperation extends Operation {
 	}
 
     private <T> Collection<Object> convertValues(QName propName, List<PrismPropertyValue<T>> values) throws SchemaException {
+    	if (values == null) {
+    		return null;
+    	}
         Collection<Object> convertedValues = new ArrayList<>();
         for (PrismValue value : values) {
             Object converted = UcfUtil.convertValueToIcf(value, null, propName);

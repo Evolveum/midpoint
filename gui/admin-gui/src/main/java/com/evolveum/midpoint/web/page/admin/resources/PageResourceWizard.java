@@ -47,7 +47,7 @@ import org.apache.wicket.util.string.StringValue;
         @AuthorizationAction(actionUri = PageAdminResources.AUTH_RESOURCE_ALL,
             label = PageAdminResources.AUTH_RESOURCE_ALL_LABEL,
             description = PageAdminResources.AUTH_RESOURCE_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCE_URL,
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCE_EDIT_URL,
             label = "PageResourceWizard.auth.resource.label",
             description = "PageResourceWizard.auth.resource.description")})
 public class PageResourceWizard extends PageAdminResources {

@@ -73,6 +73,7 @@ public class EndUserTests extends AbstractSelenideTest{
         //select Reset passwords menu item
         $(byText("Credentials")).shouldBe(visible).click();
         //set new password value
+        $(byAttribute("name", "tabPanel:panel:oldPassword")).shouldBe(visible).setValue(PASSWORD1_FIELD_VALUE);
         $(byAttribute("about", "password2")).shouldBe(visible).setValue(NEW_PASSWORD_VALUE);
         $(byAttribute("about", "password1")).shouldBe(visible).setValue(NEW_PASSWORD_VALUE);
         //select MidPoint account // default is selected

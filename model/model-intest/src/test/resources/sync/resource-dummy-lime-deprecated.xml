@@ -187,6 +187,10 @@
 				<inbound>
 					<authoritative>true</authoritative>
 					<strength>strong</strength>
+					<expression>
+						<allowEmptyValues>true</allowEmptyValues>
+						<asIs/>
+					</expression>
 					<target>
 						<path>costCenter</path>
 					</target>

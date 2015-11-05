@@ -104,7 +104,7 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 			throw new ExpressionEvaluationException("No script code in " + contextDescription);
 		}
 
-		boolean allowEmptyValues = true;
+		boolean allowEmptyValues = false;
 		if (expressionType.isAllowEmptyValues() != null) {
 			allowEmptyValues = expressionType.isAllowEmptyValues();
 		}
