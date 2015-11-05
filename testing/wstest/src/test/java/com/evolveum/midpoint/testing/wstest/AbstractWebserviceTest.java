@@ -273,8 +273,9 @@ public abstract class AbstractWebserviceTest {
 		if (serverLogFile == null) {
 			if (System.getProperty("midpoint.serverLogFile") != null) {
 				serverLogFile = new File(System.getProperty("midpoint.serverLogFile"));
+	    	} else {
+	    		serverLogFile = DEFAULT_SERVER_LOG_FILE;
 	    	}
-			serverLogFile = DEFAULT_SERVER_LOG_FILE;
 		}
 		return serverLogFile;
 	}
