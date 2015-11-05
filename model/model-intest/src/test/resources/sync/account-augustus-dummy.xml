@@ -27,6 +27,7 @@
 		<icfs:name>augustus</icfs:name>
 		<ri:fullname>Augustus DeWaat</ri:fullname>
 		<ri:location>Booty Island</ri:location>
+		<ri:ship>Boatum Mailum</ri:ship>
 	</attributes>
 	<activation>
 		<administrativeStatus>enabled</administrativeStatus>
