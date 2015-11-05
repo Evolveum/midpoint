@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -164,7 +164,6 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	private static final String REQUEST_DIR_NAME = "src/test/resources/request/";
 
 	private static final String SYSTEM_CONFIGURATION_FILENAME = REPO_DIR_NAME + "system-configuration.xml";
-//	private static final String SYSTEM_CONFIGURATION_OID = "00000000-0000-0000-0000-000000000001";
 	
 	private static final String ROLE_SUPERUSER_FILENAME = REPO_DIR_NAME + "role-superuser.xml";
     private static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
@@ -292,25 +291,14 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	
 	private static final String LDIF_MODIFY_RENAME_FILENAME = "src/test/resources/request/modify-rename.ldif";
 
-//	private static final QName IMPORT_OBJECTCLASS = new QName(
-//			"http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff",
-//			"AccountObjectClass");
-
 	private static final Trace LOGGER = TraceManager.getTrace(ConsistencyTest.class);
 
 	private static final String NS_MY = "http://whatever.com/my";
 	private static final QName MY_SHIP_STATE = new QName(NS_MY, "shipState");
 
-	/**
-	 * Unmarshalled resource definition to reach the embedded OpenDJ instance.
-	 * Used for convenience - the tests method may find it handy.
-	 */
 	private static ResourceType resourceTypeOpenDjrepo;
 	private static String accountShadowOidOpendj;
-//	private static String originalJacksPassword;
 
-	// private int lastSyncToken;
-	
 	// This will get called from the superclass to init the repository
 	// It will be called only once
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -327,22 +315,14 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		
 		login(USER_ADMINISTRATOR_NAME);
 
-		// We need to add config after calling postInit() so it will not be
-		// applied.
-		// we want original logging configuration from the test logback config
-		// file, not
+		// We need to add config after calling postInit() so it will not be applied.
+		// we want original logging configuration from the test logback config file, not
 		// the one from the system config.
 		repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, SystemConfigurationType.class, initResult);
 
-		// Add broken connector before importing resources
-		// addObjectFromFile(CONNECTOR_BROKEN_FILENAME, initResult);
-
 		// Need to import instead of add, so the (dynamic) connector reference
-		// will be resolved
-		// correctly
+		// will be resolved correctly
 		importObjectFromFile(RESOURCE_OPENDJ_FILENAME, initResult);
-		// importObjectFromFile(RESOURCE_DERBY_FILENAME, initResult);
-		// importObjectFromFile(RESOURCE_BROKEN_FILENAME, initResult);
 
 		repoAddObjectFromFile(SAMPLE_CONFIGURATION_OBJECT_FILENAME, GenericObjectType.class, initResult);
 		repoAddObjectFromFile(USER_TEMPLATE_FILENAME, ObjectTemplateType.class, initResult);
@@ -378,7 +358,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	 * @throws CommunicationException
 	 */
 	@Test
-	public void test000Integrity() throws ObjectNotFoundException, SchemaException, CommunicationException {
+	public void test000Integrity() throws Exception {
 		TestUtil.displayTestTile(this, "test000Integrity");
 		assertNotNull(modelWeb);
 		assertNotNull(modelService);
@@ -412,8 +392,6 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		PrismObject<ConnectorType> ldapConnector = repositoryService.getObject(ConnectorType.class,
 				ldapConnectorOid, null, result);
 		display("LDAP Connector: ", ldapConnector);
-
-//		repositoryService.getObject(GenericObjectType.class, SAMPLE_CONFIGURATION_OBJECT_OID, null, result);
 	}
 
 	/**
@@ -627,22 +605,6 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		// TODO: better checks
 	}
-
-//	private OperationResultType modifyUserAddAccount(String modifyUserRequest) throws FileNotFoundException,
-//			JAXBException, FaultMessage, ObjectNotFoundException, SchemaException, DirectoryException, ObjectAlreadyExistsException {
-//		checkRepoOpenDjResource();
-//		assertNoRepoCache();
-//
-//		ObjectModificationType objectChange = unmarshallJaxbFromFile(modifyUserRequest,
-//				ObjectModificationType.class);
-//
-//		// WHEN
-//		OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
-//
-//		// THEN
-//		assertNoRepoCache();
-//		return result;
-//	}
 	
 	private String assertUserOneAccountRef(String userOid) throws Exception{
 		OperationResult parentResult = new OperationResult("getObject from repo");
@@ -675,8 +637,6 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		return accountRef.getOid();
 
 	}
-
-	
 
 	/**
 	 * Add account to user. This should result in account provisioning. Check if
@@ -750,18 +710,6 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		OpenDJController.assertAttribute(entry, "givenName", "Jack");
 		OpenDJController.assertAttribute(entry, "sn", "Sparrow");
 		OpenDJController.assertAttribute(entry, "cn", "Jack Sparrow");
-		// The "l" attribute is assigned indirectly through schemaHandling and
-		// config object
-		// OpenDJController.assertAttribute(entry, "l", "middle of nowhere");
-
-		// originalJacksPassword = OpenDJController.getAttributeValue(entry,
-		// "userPassword");
-		// assertNotNull("Pasword was not set on create",
-		// originalJacksPassword);
-		// System.out.println("password after create: " +
-		// originalJacksPassword);
-
-		// Use getObject to test fetch of complete shadow
 
 		assertNoRepoCache();
 
@@ -805,15 +753,6 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		provisioningService.addObject(shadow.asPrismObject(), null, null, task, secondResult);
 
 		repoAddObjectFromFile(USER_DENIELS_FILENAME, UserType.class, secondResult);
-
-		// GIVEN
-		// result =
-		// modifyUserAddAccount(REQUEST_USER_MODIFY_ADD_ACCOUNT_OPENDJ_FILENAME);
-		// displayJaxb("modifyObject result", parentResult,
-		// SchemaConstants.C_RESULT);
-		// assertSuccess("modifyObject has failed", parentResult);
-
-		// Check if user object was modified in the repo
 
 	}
 
@@ -921,12 +860,6 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 			ObjectDeltaType omt = unmarshallValueFromFile(REQUEST_RESOURCE_MODIFY_SYNCHRONIZATION, ObjectDeltaType.class);
 			ObjectDelta objectDelta = DeltaConvertor.createObjectDelta(omt, prismContext);
-//			assertEquals(1, omt.getItemDelta().size());
-//			ItemDeltaType syncItemType = omt.getItemDelta().get(0);
-//			ItemDelta sd = DeltaConvertor.createItemDelta(syncItemType, resourceTypeOpenDjrepo.asPrismObject().getDefinition());
-//			Collection resSyncDelta = new ArrayList();
-//			resSyncDelta.add(sd);
-//			ObjectDelta resSyncDelta = DeltaConvertor.createObjectDelta(omt, resourceTypeOpenDjrepo.asPrismObject().getDefinition());
 			
 			repositoryService.modifyObject(ResourceType.class, RESOURCE_OPENDJ_OID, objectDelta.getModifications(), parentResult);
 			requestToExecuteChanges(REQUEST_RESOURCE_MODIFY_RESOURCE_SCHEMA,
@@ -1017,8 +950,6 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 			
 			LOGGER.info("Displaying execute changes result");
 			display(result);
-			
-//			assertEquals("Expected partial error. ", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
 			
 			// return the previous changes of resource back
 			Collection<? extends ItemDelta> schemaHandlingDelta = ContainerDelta
@@ -1888,14 +1819,6 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
         //REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM
         requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGNE_ACCOUNT, USER_HERMAN_OID, UserType.class, task, null, result);
         
-
-//        ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
-//        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
-//                
-//		// WHEN
-//        displayWhen(TEST_NAME);
-//		modelService.executeChanges(deltas, null, task, result);
-		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
