@@ -695,6 +695,12 @@
                         <groupId>org.bouncycastle</groupId>
                         <artifactId>bctsp-jdk14</artifactId>
                     </exclusion>
+                    <exclusion> <!-- Pulled in by castor-xml. Conflicts with itself (depends both on stax-api 1.0-2 and 1.0.1) 
+                                     Note: the 1.0-2 and 1.0.1 have differeng group IDs (but same java packages),
+                                           so dependency convergence will not detect this. -->
+                        <groupId>javax.xml.stream</groupId>
+                        <artifactId>stax-api</artifactId>
+                    </exclusion>
                     <!-- use in midPoint 3.2
                     <exclusion>
                         <groupId>org.apache.lucene</groupId>
