@@ -554,7 +554,8 @@ public class PrismValuePanel extends Panel {
                       final PrismObject<LookupTableType> lookupTable = WebModelUtils.loadObject(LookupTableType.class,
                               lookupTableUid, options, pageBase, task, result);
 
-                      panel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<String>(model, baseExpression, lookupTable.asObjectable()), type) {
+                      panel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<String>(model, baseExpression,
+                              lookupTable == null ? null : lookupTable.asObjectable()), type) {
 
 
                           @Override
