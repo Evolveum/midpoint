@@ -24,9 +24,12 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
+import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -73,6 +76,11 @@ public class ObjectQueryUtil {
         return createOrigNameQuery(polyName, prismContext);
     }
 
+    public static ObjectQuery createNormNameQuery(String name, PrismContext prismContext) throws SchemaException {
+        PolyString polyName = new PolyString(name);
+        return createNormNameQuery(polyName, prismContext);
+    }
+
     public static ObjectQuery createNameQuery(PolyStringType name, PrismContext prismContext) throws SchemaException {
     	return createNameQuery(name.toPolyString(), prismContext);
     }
@@ -88,6 +96,14 @@ public class ObjectQueryUtil {
 
     public static ObjectQuery createOrigNameQuery(PolyString name, PrismContext prismContext) throws SchemaException {
         EqualFilter filter = EqualFilter.createEqual(ObjectType.F_NAME, ObjectType.class, prismContext, PolyStringOrigMatchingRule.NAME, name);
+        return ObjectQuery.createObjectQuery(filter);
+    }
+
+    public static ObjectQuery createNormNameQuery(PolyString name, PrismContext prismContext) throws SchemaException {
+        PolyStringNormalizer normalizer = new PrismDefaultPolyStringNormalizer();
+        name.recompute(normalizer);
+
+        EqualFilter filter = EqualFilter.createEqual(ObjectType.F_NAME, ObjectType.class, prismContext, PolyStringNormMatchingRule.NAME, name);
         return ObjectQuery.createObjectQuery(filter);
     }
 
