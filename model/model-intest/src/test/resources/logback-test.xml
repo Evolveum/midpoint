@@ -46,6 +46,7 @@
 	<logger name="com.evolveum.midpoint.model.impl.lens.projector" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.projector.Projector" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.projector.FocusProcessor" level="DEBUG" />
+ 	<logger name="com.evolveum.midpoint.model.impl.lens.projector.InboundProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.FocusConstraintsChecker" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.FocusPolicyProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.ProjectionValuesProcessor" level="DEBUG" />
