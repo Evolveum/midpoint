@@ -171,6 +171,18 @@
 				</outbound>
 			</attribute>
 			<attribute>
+				<ref>ri:location</ref>
+				<displayName>Location</displayName>
+				<outbound>
+					<strength>weak</strength>
+					<source>
+						<path>
+							$user/locality
+						</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
 				<ref>ri:quote</ref>
 				<displayName>Quote</displayName>
 				<tolerant>true</tolerant>
