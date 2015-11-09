@@ -46,6 +46,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.AuthorizationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -162,11 +163,13 @@ public class SchemaTransformer {
 				LOGGER.trace("Security constrains for {}:\n{}", object, securityConstraints==null?"null":securityConstraints.debugDump());
 			}
 			if (securityConstraints == null) {
+				SecurityUtil.logSecurityDeny(object, "because no security constraints are defined (default deny)");
 				throw new AuthorizationException("Access denied");
 			}
 			AuthorizationDecisionType globalReadDecision = securityConstraints.getActionDecision(ModelAuthorizationAction.READ.getUrl(), phase);
 			if (globalReadDecision == AuthorizationDecisionType.DENY) {
 				// shortcut
+				SecurityUtil.logSecurityDeny(object, "because the authorization denies access");
 				throw new AuthorizationException("Access denied");
 			}
 			AuthorizationDecisionType globalAddDecision = securityConstraints.getActionDecision(ModelAuthorizationAction.ADD.getUrl(), phase);
@@ -175,6 +178,7 @@ public class SchemaTransformer {
 					globalAddDecision, globalModifyDecision, phase);
 			if (object.isEmpty()) {
 				// let's make it explicit
+				SecurityUtil.logSecurityDeny(object, "because the subject has not access to any item");
 				throw new AuthorizationException("Access denied");
 			}
 			

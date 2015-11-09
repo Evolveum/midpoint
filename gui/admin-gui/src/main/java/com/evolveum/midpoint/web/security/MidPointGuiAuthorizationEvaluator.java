@@ -25,10 +25,13 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.DescriptorLoader;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -49,6 +52,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
+	
+	private static final Trace LOGGER = TraceManager.getTrace(MidPointGuiAuthorizationEvaluator.class);
 
 	private SecurityEnforcer securityEnforcer;
 	
@@ -133,8 +138,13 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
         if (configAttributes == null || guiConfigAttr.isEmpty()) {
             return;
         }
+        
+        Collection<ConfigAttribute> configAttributesToUse = guiConfigAttr;
+        if (guiConfigAttr.isEmpty()) {
+        	configAttributesToUse = configAttributes;
+        }
 
-        securityEnforcer.decide(authentication, object, guiConfigAttr.isEmpty() ? configAttributes : guiConfigAttr);
+    	securityEnforcer.decide(authentication, object, configAttributesToUse);
     }
 
     private void addSecurityConfig(FilterInvocation filterInvocation, Collection<ConfigAttribute> guiConfigAttr,

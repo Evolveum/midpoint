@@ -385,6 +385,25 @@
 					</source>
 				</outbound>
 			</attribute>
+			<attribute>
+				<ref>ri:ship</ref>
+				<displayName>Ship</displayName>
+				<inbound>
+					<expression>
+						<script>
+							<code>'The crew of Titanicum ' + input + 'icum'</code>
+						</script>
+					</expression>
+					<target>
+						<path>organizationalUnit</path>
+					</target>
+					<condition>
+						<script>
+							<code>input != null</code>
+						</script>
+					</condition>
+				</inbound>
+			</attribute>
             
             <association>
             	<ref>ri:group</ref>

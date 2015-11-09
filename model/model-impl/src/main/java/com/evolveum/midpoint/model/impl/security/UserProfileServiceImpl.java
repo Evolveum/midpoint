@@ -145,7 +145,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 
     private PrismObject<UserType> findByUsername(String username) throws SchemaException, ObjectNotFoundException {
         PolyString usernamePoly = new PolyString(username);
-        ObjectQuery query = ObjectQueryUtil.createNameQuery(usernamePoly, prismContext);
+        ObjectQuery query = ObjectQueryUtil.createNormNameQuery(usernamePoly, prismContext);
         LOGGER.trace("Looking for user, query:\n" + query.debugDump());
 
         List<PrismObject<UserType>> list = repositoryService.searchObjects(UserType.class, query, null, 

@@ -96,6 +96,11 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 
 	}
 
+    public PageMyPasswordQuestions(IModel<PasswordQuestionsDto> model){
+        this.model = model;
+        initLayout();
+    }
+
 	public PageMyPasswordQuestions(final PrismObject<UserType> userToEdit) {
 		userModel = new LoadableModel<ObjectWrapper>(false) {
 

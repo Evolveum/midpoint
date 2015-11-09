@@ -176,8 +176,10 @@ public abstract class AbstractWebserviceTest {
     protected static ModelPortType modelPort;
     protected static SystemConfigurationType configurationType;
 
-	private static final File SERVER_LOG_FILE = new File("/opt/tomcat/logs/idm.log");
+	private static final File DEFAULT_SERVER_LOG_FILE = new File("/opt/tomcat/logs/idm.log");
 	private static final String AUDIT_LOGGER_NAME = "com.evolveum.midpoint.audit.log";
+	
+	private File serverLogFile = null;
 	
     @BeforeClass
     public void beforeTests() throws Exception {
@@ -265,6 +267,17 @@ public abstract class AbstractWebserviceTest {
 
 		assertSuccess(resultHolder.value);
         return (O) objectHolder.value;
+	}
+
+	private File getServerLogFile() {
+		if (serverLogFile == null) {
+			if (System.getProperty("midpoint.serverLogFile") != null) {
+				serverLogFile = new File(System.getProperty("midpoint.serverLogFile"));
+	    	} else {
+	    		serverLogFile = DEFAULT_SERVER_LOG_FILE;
+	    	}
+		}
+		return serverLogFile;
 	}
 
     
@@ -473,7 +486,7 @@ public abstract class AbstractWebserviceTest {
 	}
 
 	protected LogfileTestTailer createLogTailer() throws IOException {
-		return new LogfileTestTailer(SERVER_LOG_FILE, AUDIT_LOGGER_NAME, true);
+		return new LogfileTestTailer(getServerLogFile(), AUDIT_LOGGER_NAME, true);
 	}
 
 	private void checkAuditEnabled(SystemConfigurationType configurationType) throws FaultMessage {
