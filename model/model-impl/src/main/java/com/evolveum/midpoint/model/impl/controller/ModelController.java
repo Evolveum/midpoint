@@ -127,6 +127,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -1078,6 +1079,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	}
 	
 	@Override
+	@Deprecated
 	public PrismObject<UserType> findShadowOwner(String accountOid, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException {
 		Validate.notEmpty(accountOid, "Account oid must not be null or empty.");
@@ -1134,6 +1136,65 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		}
 		
 		return user;
+	}
+	
+	@Override
+	public PrismObject<? extends FocusType> searchShadowOwner(String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException {
+		Validate.notEmpty(shadowOid, "Account oid must not be null or empty.");
+		Validate.notNull(parentResult, "Result type must not be null.");
+
+		RepositoryCache.enter();
+
+		PrismObject<? extends FocusType> focus = null;
+		
+		LOGGER.trace("Listing account shadow owner for account with oid {}.", new Object[]{shadowOid});
+
+		OperationResult result = parentResult.createSubresult(LIST_ACCOUNT_SHADOW_OWNER);
+		result.addParams(new String[] { "accountOid" }, shadowOid);
+
+		try {
+			
+			focus = cacheRepositoryService.searchShadowOwner(shadowOid, options, result);
+			result.recordSuccess();
+		} catch (ObjectNotFoundException ex) {
+			LoggingUtils.logException(LOGGER, "Account with oid {} doesn't exists", ex, shadowOid);
+			result.recordFatalError("Account with oid '" + shadowOid + "' doesn't exists", ex);
+			throw ex;
+		} catch (RuntimeException ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
+					+ " for account with oid {}", ex, shadowOid);
+			result.recordFatalError("Couldn't list account shadow owner for account with oid '"
+					+ shadowOid + "'.", ex);
+			throw ex;
+		} catch (Error ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
+					+ " for account with oid {}", ex, shadowOid);
+			result.recordFatalError("Couldn't list account shadow owner for account with oid '"
+					+ shadowOid + "'.", ex);
+			throw ex;
+		} finally {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace(result.dump(false));
+			}
+			RepositoryCache.exit();
+			result.cleanupResult();
+		}
+
+		if (focus != null) {
+			try {
+				schemaTransformer.applySchemasAndSecurity(focus, null, null, task, result);
+			} catch (SchemaException | SecurityViolationException | ConfigurationException
+					| ObjectNotFoundException ex) {
+				LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
+						+ " for account with oid {}", ex, shadowOid);
+				result.recordFatalError("Couldn't list account shadow owner for account with oid '"
+						+ shadowOid + "'.", ex);
+				throw ex;
+			}
+		}
+		
+		return focus;
 	}
 
 	@Override

@@ -18,6 +18,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
+    <div wicket:id="resultPopup" />
     <form class="form-horizontal" wicket:id="mainForm">
         <div class="form-group">
             <label class="col-lg-2 control-label"><wicket:message key="PageAccounts.resource"/></label>
@@ -88,14 +89,24 @@
                 <label class="sr-only"><wicket:message key="PageAccounts.accounts.objectClass" /></label>
                 <input class="form-control input-sm" wicket:id="objectClassSearch" size="45"/>
             </div>
+            
+            <div class="form-group">
+                <label class="sr-only"><wicket:message key="PageAccounts.accounts.failedOperationType" /></label>
+                <select class="form-control input-sm" wicket:id="failedOperationSearch"/>
+            </div>
+            
 
             <div wicket:id="basicSearch" />
         </form>
     </div>
 
+	
+
     <form class="form-horizontal" wicket:id="accountForm">
+    	
+    
         <div wicket:id="accountsContainer" class="clearfix">
-            <div wicket:id="accounts"/>
+            <div class="table-responsive" wicket:id="accounts"/>
         </div>
 
         <hr/>
