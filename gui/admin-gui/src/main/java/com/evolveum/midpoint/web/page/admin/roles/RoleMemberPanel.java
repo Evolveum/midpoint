@@ -7,6 +7,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -28,7 +29,9 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.InOidFilter;
@@ -38,6 +41,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -55,6 +59,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
@@ -67,7 +72,9 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugSearchDto;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserListItemDto;
@@ -94,13 +101,16 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 
-	private enum QueryScope {ALL, SELECTED, TO_ADD}
-	
+	private enum QueryScope {
+		ALL, SELECTED, TO_ADD
+	}
+
 	private static String ID_OBJECT_TYPE = "type";
 	private static String ID_TABLE = "table";
 	private static String ID_TENANT = "tenant";
 	private static String ID_PROJECT = "project";
-	
+	private static String ID_BASIC_SEARCH = "basicSearch";
+
 	private static String MODAL_ID_MEMBER = "addMemberPopup";
 
 	private IModel<RoleMemberSearchDto> searchModel;
@@ -130,7 +140,6 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 			}
 		};
 
-	
 		initCustomLayout();
 	}
 
@@ -145,10 +154,10 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 	private Component getFeedbackPanel() {
 		return pageBase.getFeedbackPanel();
 	}
-	
-	private <V> DropDownChoice createDropDown(String id, String field, final List<V> values){
-		DropDownChoice listSelect = new DropDownChoice(id,
-				new PropertyModel(searchModel, field), new AbstractReadOnlyModel<List<V>>() {
+
+	private <V> DropDownChoice createDropDown(String id, String field, final List<V> values) {
+		DropDownChoice listSelect = new DropDownChoice(id, new PropertyModel(searchModel, field),
+				new AbstractReadOnlyModel<List<V>>() {
 
 					@Override
 					public List<V> getObject() {
@@ -156,18 +165,18 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 					}
 				},
 
-		new IChoiceRenderer<V>() {
+				new IChoiceRenderer<V>() {
 
-			@Override
-			public String getDisplayValue(V object) {
-				return getStringValue(object);
-			}
+					@Override
+					public String getDisplayValue(V object) {
+						return getStringValue(object);
+					}
 
-			@Override
-			public String getIdValue(V object, int index) {
-				return getValueForId(object);
-			};
-		});
+					@Override
+					public String getIdValue(V object, int index) {
+						return getValueForId(object);
+					};
+				});
 		listSelect.add(new OnChangeAjaxBehavior() {
 
 			@Override
@@ -180,64 +189,100 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 
 		return listSelect;
 	}
-	
-	private <V> String getStringValue(V value){
-		if (value instanceof QName){
+
+	private <V> String getStringValue(V value) {
+		if (value instanceof QName) {
 			return ((QName) value).getLocalPart();
-		} else if (value instanceof OrgType){
+		} else if (value instanceof OrgType) {
 			return ((OrgType) value).getName().getOrig();
-		} else 
-			return "unknown value: " + value;  
+		} else
+			return "unknown value: " + value;
 	}
-	
-	private <V> String getValueForId(V value){
-		if (value instanceof QName){
+
+	private <V> String getValueForId(V value) {
+		if (value instanceof QName) {
 			return ((QName) value).toString();
-		} else if (value instanceof OrgType){
+		} else if (value instanceof OrgType) {
 			return ((OrgType) value).getName().getOrig();
-		} else 
-			return "unknown value: " + value;  
-		
+		} else
+			return "unknown value: " + value;
+
 	}
 
 	private void initCustomLayout() {
-		
-		DropDownChoice typeSelect = createDropDown(ID_OBJECT_TYPE, RoleMemberSearchDto.F_TYPE, createTypeList());
+
+		BasicSearchPanel<RoleMemberSearchDto> basicSearch = new BasicSearchPanel<RoleMemberSearchDto>(
+				ID_BASIC_SEARCH, searchModel) {
+
+			@Override
+			protected IModel<String> createSearchTextModel() {
+				return new PropertyModel<>(searchModel, RoleMemberSearchDto.F_TEXT);
+			}
+
+			@Override
+			protected void searchPerformed(AjaxRequestTarget target) {
+				filterAccordingToNamePerformed(target);
+			}
+
+			@Override
+			protected void clearSearchPerformed(AjaxRequestTarget target) {
+				clearFilterAccordingToNamePerformed(target);
+			}
+		};
+		add(basicSearch);
+
+		DropDownChoice typeSelect = createDropDown(ID_OBJECT_TYPE, RoleMemberSearchDto.F_TYPE,
+				createTypeList());
 		add(typeSelect);
 
 		DropDownChoice tenant = createDropDown(ID_TENANT, RoleMemberSearchDto.F_TENANT, createTenantList());
 		add(tenant);
 
-		DropDownChoice project = createDropDown(ID_PROJECT, RoleMemberSearchDto.F_PROJECT, createProjectList());
+		DropDownChoice project = createDropDown(ID_PROJECT, RoleMemberSearchDto.F_PROJECT,
+				createProjectList());
 		add(project);
 
 		addOrReplace(initTable());
-		
+
 		initDialog();
 	}
 
-	 private void initDialog() {
-		 
-		  
-	        UserBrowserDialog<T> dialog = new UserBrowserDialog<T>(MODAL_ID_MEMBER, getClassFromType()) {
+	private void clearFilterAccordingToNamePerformed(AjaxRequestTarget target) {
+		RoleMemberSearchDto dto = searchModel.getObject();
+		dto.setText(null);
 
-	        	@Override
-	        	public void addPerformed(AjaxRequestTarget target, List<T> selected) {
-	        		super.addPerformed(target, selected);
-	        		addMembers(selected, target);
-	        		target.add(getFeedbackPanel());
-	        	}
-	            
-	            @Override
-	            protected boolean isCheckBoxVisible() {
-	            	return true;
-	            }
-	        };
-	        add(dialog);
-
-	        
-	    }
+		TablePanel table = initTable();
+		target.add(table);
+		
+		addOrReplace(table);
+	}
 	
+	private void filterAccordingToNamePerformed(AjaxRequestTarget target){
+		TablePanel table = initTable();
+		target.add(table);
+		addOrReplace(table);
+	}
+
+	private void initDialog() {
+
+		UserBrowserDialog<T> dialog = new UserBrowserDialog<T>(MODAL_ID_MEMBER, getClassFromType()) {
+
+			@Override
+			public void addPerformed(AjaxRequestTarget target, List<T> selected) {
+				super.addPerformed(target, selected);
+				addMembers(selected, target);
+				target.add(getFeedbackPanel());
+			}
+
+			@Override
+			protected boolean isCheckBoxVisible() {
+				return true;
+			}
+		};
+		add(dialog);
+
+	}
+
 	private List<OrgType> createTenantList() {
 		ObjectQuery query;
 		try {
@@ -261,10 +306,9 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 	private List<OrgType> createProjectList() {
 		ObjectQuery query;
 		try {
-			query = ObjectQuery.createObjectQuery(
-					OrFilter.createOr(
-							EqualFilter.createEqual(OrgType.F_TENANT, OrgType.class, getPrismContext(), true),
-							EqualFilter.createEqual(OrgType.F_TENANT, OrgType.class, getPrismContext(), null)));
+			query = ObjectQuery.createObjectQuery(OrFilter.createOr(
+					EqualFilter.createEqual(OrgType.F_TENANT, OrgType.class, getPrismContext(), true),
+					EqualFilter.createEqual(OrgType.F_TENANT, OrgType.class, getPrismContext(), null)));
 			List<PrismObject<OrgType>> orgs = WebModelUtils.searchObjects(OrgType.class, query,
 					new OperationResult("Tenant search"), pageBase);
 			List<OrgType> orgTypes = new ArrayList<>();
@@ -293,8 +337,8 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 
 		// add(table);
 	}
-	
-	private Class getClassFromType(){
+
+	private Class getClassFromType() {
 		QName typeName = searchModel.getObject().getType();
 		return getPrismContext().getSchemaRegistry().getCompileTimeClass(typeName);
 	}
@@ -311,7 +355,8 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 		provider.setQuery(createQuery());
 
 		List<IColumn<RoleType, String>> columns = initRoleColumns();
-		TablePanel table = new TablePanel<>(ID_TABLE, provider, columns, UserProfileStorage.TableId.TABLE_ROLES, 10);
+		TablePanel table = new TablePanel<>(ID_TABLE, provider, columns,
+				UserProfileStorage.TableId.TABLE_ROLES, 10);
 		table.setOutputMarkupId(true);
 
 		RoleMembersStorage storage = getSession().getSessionStorage().getRoleMembers();
@@ -333,7 +378,8 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 		provider.setQuery(createQuery());
 
 		List<IColumn<OrgType, String>> columns = initOrgColumns();
-		TablePanel table = new TablePanel<>(ID_TABLE, provider, columns, UserProfileStorage.TableId.TABLE_ROLES, 10);
+		TablePanel table = new TablePanel<>(ID_TABLE, provider, columns,
+				UserProfileStorage.TableId.TABLE_ROLES, 10);
 		table.setOutputMarkupId(true);
 
 		RoleMembersStorage storage = getSession().getSessionStorage().getRoleMembers();
@@ -363,7 +409,8 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 
 		List<IColumn<UserListItemDto, String>> columns = initUserColumns();
 
-		TablePanel table = new TablePanel(ID_TABLE, provider, columns, UserProfileStorage.TableId.PAGE_USERS_PANEL, 10); // getItemsPerPage
+		TablePanel table = new TablePanel(ID_TABLE, provider, columns,
+				UserProfileStorage.TableId.PAGE_USERS_PANEL, 10); // getItemsPerPage
 		table.setOutputMarkupId(true);
 
 		RoleMembersStorage storage = getSession().getSessionStorage().getRoleMembers();
@@ -374,31 +421,59 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 	}
 
 	private ObjectQuery createQuery() {
+		return createQuery(true);
+	}
+	
+	private ObjectQuery createQuery(boolean useNameFilter) {
 		ObjectQuery query;
 		try {
+			List<ObjectFilter> conditions = new ArrayList<>();
 			PrismReferenceValue roleRef = new PrismReferenceValue();
 			roleRef.setOid(roleId);
 			roleRef.setTargetType(RoleType.COMPLEX_TYPE);
 			ObjectFilter roleFilter = RefFilter.createReferenceEqual(
 					new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), UserType.class,
 					getPrismContext(), roleRef);
-			if (searchModel.getObject().getTenant() != null) {
+			conditions.add(roleFilter);
+			
+			RoleMemberSearchDto dto = searchModel.getObject();
+			if (dto.getTenant() != null) {
+				PrismReferenceValue tenantRef = new PrismReferenceValue();
+				tenantRef.setOid(dto.getTenant().getOid());
+				tenantRef.setTargetType(OrgType.COMPLEX_TYPE);
 				ObjectFilter tenantFilter = RefFilter.createReferenceEqual(
 						new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TENANT_REF), UserType.class,
-						getPrismContext(), searchModel.getObject().getTenant().getOid());
-				query = ObjectQuery.createObjectQuery(AndFilter.createAnd(roleFilter, tenantFilter));
-			} else {
-
-				query = ObjectQuery.createObjectQuery(roleFilter);
+						getPrismContext(), tenantRef);
+				conditions.add(tenantFilter);
 			}
 
+			if (dto.getProject() != null) {
+				PrismReferenceValue orgRef = new PrismReferenceValue();
+				orgRef.setOid(dto.getProject().getOid());
+				orgRef.setTargetType(OrgType.COMPLEX_TYPE);
+				ObjectFilter projectFilter = RefFilter.createReferenceEqual(
+						new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_ORG_REF), UserType.class,
+						getPrismContext(), orgRef);
+				conditions.add(projectFilter);
+			}
+
+			if (StringUtils.isNotBlank(dto.getText()) && useNameFilter) {
+				PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
+	            String normalizedString = normalizer.normalize(dto.getText());
+				ObjectFilter nameFilter = SubstringFilter.createSubstring(UserType.F_NAME, UserType.class,
+						getPrismContext(), PolyStringNormMatchingRule.NAME, normalizedString);
+				conditions.add(nameFilter);
+			}
+			
+			query = ObjectQuery.createObjectQuery(AndFilter.createAnd(conditions));
+			
 			return query;
 		} catch (SchemaException e) {
 			// TODO Auto-generated catch block
 			error(getString("pageUsers.message.queryError") + " " + e.getMessage());
 		}
 		return null;
-		
+
 	}
 
 	private List<IColumn<RoleType, String>> initRoleColumns() {
@@ -508,25 +583,28 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 		};
 		columns.add(column);
 
-		column = new PropertyColumn(createStringResource("UserType.givenName"), UserType.F_GIVEN_NAME.getLocalPart(),
-				UserListItemDto.F_GIVEN_NAME);
+		column = new PropertyColumn(createStringResource("UserType.givenName"),
+				UserType.F_GIVEN_NAME.getLocalPart(), UserListItemDto.F_GIVEN_NAME);
 		columns.add(column);
 
-		column = new PropertyColumn(createStringResource("UserType.familyName"), UserType.F_FAMILY_NAME.getLocalPart(),
-				UserListItemDto.F_FAMILY_NAME);
+		column = new PropertyColumn(createStringResource("UserType.familyName"),
+				UserType.F_FAMILY_NAME.getLocalPart(), UserListItemDto.F_FAMILY_NAME);
 		columns.add(column);
 
-		column = new PropertyColumn(createStringResource("UserType.fullName"), UserType.F_FULL_NAME.getLocalPart(),
-				UserListItemDto.F_FULL_NAME);
+		column = new PropertyColumn(createStringResource("UserType.fullName"),
+				UserType.F_FULL_NAME.getLocalPart(), UserListItemDto.F_FULL_NAME);
 		columns.add(column);
 
-		column = new PropertyColumn(createStringResource("AssignmentType.tenant"), null, UserListItemDto.F_TENANT);
+		column = new PropertyColumn(createStringResource("AssignmentType.tenant"), null,
+				UserListItemDto.F_TENANT);
 		columns.add(column);
 
-		column = new PropertyColumn(createStringResource("AssignmentType.project"), null, UserListItemDto.F_PROJECT);
+		column = new PropertyColumn(createStringResource("AssignmentType.project"), null,
+				UserListItemDto.F_PROJECT);
 		columns.add(column);
 
-		column = new PropertyColumn(createStringResource("UserType.emailAddress"), null, UserListItemDto.F_EMAIL);
+		column = new PropertyColumn(createStringResource("UserType.emailAddress"), null,
+				UserListItemDto.F_EMAIL);
 		columns.add(column);
 
 		column = new InlineMenuHeaderColumn(initInlineMenu());
@@ -537,8 +615,8 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 
 	private List<InlineMenuItem> initInlineMenu() {
 		List<InlineMenuItem> headerMenuItems = new ArrayList<InlineMenuItem>();
-		headerMenuItems.add(
-				new InlineMenuItem(createStringResource("roleMemberPanel.menu.add"), true, new HeaderMenuAction(this) {
+		headerMenuItems.add(new InlineMenuItem(createStringResource("roleMemberPanel.menu.add"), true,
+				new HeaderMenuAction(this) {
 
 					@Override
 					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
@@ -573,8 +651,8 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 					}
 				}));
 
-		headerMenuItems.add(new InlineMenuItem(createStringResource("roleMemberPanel.menu.recomputeAll"), true,
-				new HeaderMenuAction(this) {
+		headerMenuItems.add(new InlineMenuItem(createStringResource("roleMemberPanel.menu.recomputeAll"),
+				true, new HeaderMenuAction(this) {
 
 					@Override
 					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
@@ -590,7 +668,8 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 	private UserListItemDto createRowDto(PrismObject<UserType> obj) {
 		UserType user = obj.asObjectable();
 
-		UserListItemDto dto = new UserListItemDto(user.getOid(), WebMiscUtil.getOrigStringFromPoly(user.getName()),
+		UserListItemDto dto = new UserListItemDto(user.getOid(),
+				WebMiscUtil.getOrigStringFromPoly(user.getName()),
 				WebMiscUtil.getOrigStringFromPoly(user.getGivenName()),
 				WebMiscUtil.getOrigStringFromPoly(user.getFamilyName()),
 				WebMiscUtil.getOrigStringFromPoly(user.getFullName()), user.getEmailAddress());
@@ -613,12 +692,10 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 		}
 		dto.setTenant(tenantBuilder.toString());
 		dto.setProject(orgBuilder.toString());
-		
+
 		dto.setCredentials(obj.findContainer(UserType.F_CREDENTIALS));
 		dto.setIcon(WebMiscUtil.createUserIcon(obj));
 		dto.setIconTitle(WebMiscUtil.createUserIconTitle(obj));
-
-	
 
 		return dto;
 	}
@@ -646,52 +723,49 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 	private void addMembersPerformed(AjaxRequestTarget target, QueryScope scope) {
 		UserBrowserDialog window = (UserBrowserDialog) get(MODAL_ID_MEMBER);
 		window.setType(getClassFromType());
-        window.show(target);
-//		ObjectQuery query = createQueryForAdd(target);
-//		addMembers(query, target);
+		window.show(target);
+		// ObjectQuery query = createQueryForAdd(target);
+		// addMembers(query, target);
 	}
-	
-	
-	
-	private AssignmentType createAssignmentToModify() throws SchemaException{
+
+	private AssignmentType createAssignmentToModify() throws SchemaException {
 		AssignmentType assignmentToModify = new AssignmentType();
 		assignmentToModify.setTargetRef(ObjectTypeUtil.createObjectRef(roleId, ObjectTypes.ROLE));
 		if (getRoleMemberSearch() != null && getRoleMemberSearch().getTenant() != null) {
-			assignmentToModify.setTenantRef(
-					ObjectTypeUtil.createObjectRef(getRoleMemberSearch().getTenant().getOid(), ObjectTypes.ORG));
+			assignmentToModify.setTenantRef(ObjectTypeUtil
+					.createObjectRef(getRoleMemberSearch().getTenant().getOid(), ObjectTypes.ORG));
 		}
 		if (getRoleMemberSearch() != null && getRoleMemberSearch().getProject() != null) {
-			assignmentToModify.setOrgRef(
-					ObjectTypeUtil.createObjectRef(getRoleMemberSearch().getProject().getOid(), ObjectTypes.ORG));
+			assignmentToModify.setOrgRef(ObjectTypeUtil
+					.createObjectRef(getRoleMemberSearch().getProject().getOid(), ObjectTypes.ORG));
 		}
-		
+
 		getPrismContext().adopt(assignmentToModify);
 
 		return assignmentToModify;
 	}
 
-
-	private void addMembers(List<T> selected, AjaxRequestTarget target){
+	private void addMembers(List<T> selected, AjaxRequestTarget target) {
 		OperationResult parentResult = new OperationResult("Add members");
-		
+
 		try {
 			ObjectDelta delta = ObjectDelta.createModificationAddContainer(UserType.class, "fakeOid",
 					FocusType.F_ASSIGNMENT, getPrismContext(), createAssignmentToModify());
 
-			execute("Add member(s)", getActionQuery(QueryScope.TO_ADD, selected), delta, parentResult, target);
+			execute("Add member(s)", getActionQuery(QueryScope.TO_ADD, selected), delta, parentResult,
+					target);
 		} catch (SchemaException e) {
 			// TODO Auto-generated catch block
 			error(getString("pageUsers.message.nothingSelected") + e.getMessage());
 			target.add(getFeedbackPanel());
 		}
-		
+
 		parentResult.recordInProgress();
 		pageBase.showResult(parentResult);
 		target.add(getFeedbackPanel());
-		
-		
+
 	}
-	
+
 	private void removeMembersPerformed(AjaxRequestTarget target, QueryScope scope) {
 		OperationResult parentResult = new OperationResult("Remove members");
 		try {
@@ -708,17 +782,18 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 		pageBase.showResult(parentResult);
 		target.add(getFeedbackPanel());
 	}
-	
+
 	private void recomputeMembersPerformed(AjaxRequestTarget target, QueryScope scope) {
 		Task operationalTask = pageBase.createSimpleTask("Recompute all members");
 		OperationResult parentResult = operationalTask.getResult();
 
-		TaskType task = createTask("Recompute member(s)", getActionQuery(scope, null), null, TaskCategory.RECOMPUTATION, target);
+		TaskType task = createTask("Recompute member(s)", getActionQuery(scope, null), null,
+				TaskCategory.RECOMPUTATION, target);
 		try {
 			ObjectDelta<TaskType> delta = ObjectDelta.createAddDelta(task.asPrismObject());
 			pageBase.getPrismContext().adopt(delta);
-			pageBase.getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, operationalTask,
-					parentResult);
+			pageBase.getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null,
+					operationalTask, parentResult);
 		} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
 				| ExpressionEvaluationException | CommunicationException | ConfigurationException
 				| PolicyViolationException | SecurityViolationException e) {
@@ -731,17 +806,16 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 		target.add(getFeedbackPanel());
 	}
 
-	
-	private void execute(String taskName, ObjectQuery query, ObjectDelta deltaToExecute, OperationResult parentResult, AjaxRequestTarget target) {
+	private void execute(String taskName, ObjectQuery query, ObjectDelta deltaToExecute,
+			OperationResult parentResult, AjaxRequestTarget target) {
 		Task operationalTask = pageBase.createSimpleTask("Execute changes");
-		
 
 		TaskType task = createTask(taskName, query, deltaToExecute, TaskCategory.EXECUTE_CHANGES, target);
 		try {
 			ObjectDelta<TaskType> delta = ObjectDelta.createAddDelta(task.asPrismObject());
 			pageBase.getPrismContext().adopt(delta);
-			pageBase.getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, operationalTask,
-					parentResult);
+			pageBase.getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null,
+					operationalTask, parentResult);
 		} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
 				| ExpressionEvaluationException | CommunicationException | ConfigurationException
 				| PolicyViolationException | SecurityViolationException e) {
@@ -749,28 +823,28 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 			error(getString("pageUsers.message.nothingSelected") + e.getMessage());
 			target.add(getFeedbackPanel());
 		}
-//		pageBase.showResult(parentResult);
+		// pageBase.showResult(parentResult);
 	}
 
-	private ObjectQuery getActionQuery(QueryScope scope, List<T> selected){
-		switch (scope){
-		case ALL:
-			return createQuery();
-		case SELECTED:
-			return createRecomputeQuery();
-		case TO_ADD:
-			return createQueryForAdd(selected);
+	private ObjectQuery getActionQuery(QueryScope scope, List<T> selected) {
+		switch (scope) {
+			case ALL:
+				return createQuery(false);
+			case SELECTED:
+				return createRecomputeQuery();
+			case TO_ADD:
+				return createQueryForAdd(selected);
 		}
-		
+
 		return null;
 	}
-	
-	private ObjectQuery createQueryForAdd(List<T> selected){
+
+	private ObjectQuery createQueryForAdd(List<T> selected) {
 		List<String> oids = new ArrayList<>();
-		for (T selectable : selected){
+		for (T selectable : selected) {
 			oids.add(selectable.getOid());
 		}
-		
+
 		return ObjectQuery.createObjectQuery(InOidFilter.createInOid(oids));
 	}
 
@@ -794,16 +868,17 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 					oids.add(((UserListItemDto) d).getOid());
 				}
 			} else {
-//				throw new IllegalStateException("Nothing was selected");
+				// throw new IllegalStateException("Nothing was selected");
 				warn(getString("pageUsers.message.nothingSelected"));
-//				target.add(getFeedbackPanel());
+				// target.add(getFeedbackPanel());
 			}
 
 		}
 		return oids;
 	}
 
-	private TaskType createTask(String taskName, ObjectQuery query, ObjectDelta delta, String category, AjaxRequestTarget target) {
+	private TaskType createTask(String taskName, ObjectQuery query, ObjectDelta delta, String category,
+			AjaxRequestTarget target) {
 		TaskType task = new TaskType();
 
 		MidPointPrincipal owner = SecurityUtils.getPrincipalUser();
@@ -851,30 +926,30 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 
 	private void userDetailsPerformed(AjaxRequestTarget target, String oid) {
 		setPreviousPage();
-        setResponsePage(PageUser.class, getNextPageParams(oid));
+		setResponsePage(PageUser.class, getNextPageParams(oid));
 	}
 
 	private void roleDetailsPerformed(AjaxRequestTarget target, String oid) {
-        setPreviousPage();
-        setResponsePage(PageRole.class, getNextPageParams(oid));
+		setPreviousPage();
+		setResponsePage(PageRole.class, getNextPageParams(oid));
 	}
 
 	private void orgDetailsPerformed(AjaxRequestTarget target, String oid) {
 		setPreviousPage();
-        setResponsePage(PageOrgUnit.class, getNextPageParams(oid));
+		setResponsePage(PageOrgUnit.class, getNextPageParams(oid));
 	}
-	
-	private void setPreviousPage(){
+
+	private void setPreviousPage() {
 		getSession().getSessionStorage().setPreviousPage(PageRoles.class);
-//        PageParameters previousParams = new PageParameters();
-//        previousParams.add(OnePageParameterEncoder.PARAMETER, roleId);
-//        getSession().getSessionStorage().setPreviousPageParams(previousParams);
+		// PageParameters previousParams = new PageParameters();
+		// previousParams.add(OnePageParameterEncoder.PARAMETER, roleId);
+		// getSession().getSessionStorage().setPreviousPageParams(previousParams);
 	}
-	
-	private PageParameters getNextPageParams(String oid){
+
+	private PageParameters getNextPageParams(String oid) {
 		PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-        return parameters;
+		parameters.add(OnePageParameterEncoder.PARAMETER, oid);
+		return parameters;
 	}
 
 	private List<QName> createTypeList() {
