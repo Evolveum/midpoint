@@ -252,14 +252,6 @@ public class ObjectPolicyConfigurationEditor extends SimplePanel<List<ObjectPoli
 
                     if(ref != null){
                     	sb.append(WebMiscUtil.getOrigStringFromPoly(ref.getTargetName())).append(": ");
-//                        String oid = ref.getOid();
-//
-//                        PrismObject<ObjectTemplateType> template = WebModelUtils.loadObject(ObjectTemplateType.class, oid, result, getPageBase());
-//
-//                        if(template != null){
-//                            ObjectTemplateType tmp = template.asObjectable();
-//                            sb.append(WebMiscUtil.getOrigStringFromPoly(tmp.getName())).append(": ");
-//                        }
                     }
 
                     if(config.getType() != null){
