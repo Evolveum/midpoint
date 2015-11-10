@@ -51,6 +51,7 @@ import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
 import com.evolveum.midpoint.web.page.admin.reports.PageNewReport;
 import com.evolveum.midpoint.web.page.admin.reports.PageReport;
 import com.evolveum.midpoint.web.page.admin.reports.PageReports;
+import com.evolveum.midpoint.web.page.admin.resources.PageImportResource;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
@@ -424,7 +425,7 @@ public abstract class PageBase extends PageTemplate {
                 PageResourceWizard.class);
         submenu.add(created);
         MenuItem n = new MenuItem(createStringResource("PageAdmin.menu.top.resources.import"),
-                PageImportObject.class);
+                PageImportResource.class);
         submenu.add(n);
 
         return item;
