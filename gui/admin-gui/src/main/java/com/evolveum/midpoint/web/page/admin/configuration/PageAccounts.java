@@ -30,6 +30,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -39,13 +40,19 @@ import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromFile;
 import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxPanel;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.AceEditorDialog;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.AccountDetailsSearchDto;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
+import com.evolveum.midpoint.web.page.admin.reports.component.AceEditorPanel;
+import com.evolveum.midpoint.web.page.admin.reports.component.RunReportPopupPanel;
+import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ResourceItemDto;
+import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.session.ConfigurationStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -64,6 +71,7 @@ import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTextField;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -134,6 +142,8 @@ public class PageAccounts extends PageAdminConfiguration {
     private static final String ID_SEARCH_INTENT = "intentSearch";
     private static final String ID_SEARCH_OBJECT_CLASS = "objectClassSearch";
     private static final String ID_SEARCH_BASIC = "basicSearch";
+    private static final String ID_SEARCH_FAILED_OPERATION_TYPE = "failedOperationSearch";
+    private static final String ID_RESULT_DIALOG = "resultPopup";
 
     private static final Integer AUTO_COMPLETE_LIST_SIZE = 10;
 
@@ -237,6 +247,10 @@ public class PageAccounts extends PageAdminConfiguration {
         WebMarkupContainer filesContainer = new WebMarkupContainer(ID_FILES_CONTAINER);
         filesContainer.setOutputMarkupId(true);
         accForm.add(filesContainer);
+        
+        ModalWindow resultPopup = createModalWindow(ID_RESULT_DIALOG, createStringResource("PageAccounts.result.popoup"), 1100, 560);
+        resultPopup.setContent(new AceEditorDialog(resultPopup.getContentId()));
+        add(resultPopup);
 
         filesModel = createFilesModel();
         ListView<String> files = new ListView<String>(ID_FILES, filesModel) {
@@ -275,6 +289,8 @@ public class PageAccounts extends PageAdminConfiguration {
         });
         accounts.setItemsPerPage(50);
         accountsContainer.add(accounts);
+        
+        
     }
 
     private void initSearchForm(Form searchForm){
@@ -298,6 +314,20 @@ public class PageAccounts extends PageAdminConfiguration {
         basicSearch.setOutputMarkupId(true);
         searchForm.add(basicSearch);
 
+        DropDownChoice failedOperationType = new DropDownChoice<>(ID_SEARCH_FAILED_OPERATION_TYPE,
+                new PropertyModel<FailedOperationTypeType>(searchModel, AccountDetailsSearchDto.F_FAILED_OPERATION_TYPE),
+                WebMiscUtil.createReadonlyModelFromEnum(FailedOperationTypeType.class), new EnumChoiceRenderer<FailedOperationTypeType>(this));
+        failedOperationType.add(new OnChangeAjaxBehavior() {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                searchPerformed(target);
+            }
+        });
+        failedOperationType.setOutputMarkupId(true);
+        failedOperationType.setNullValid(true);
+        searchForm.add(failedOperationType);
+        
         DropDownChoice kind = new DropDownChoice<>(ID_SEARCH_KIND,
                 new PropertyModel<ShadowKindType>(searchModel, AccountDetailsSearchDto.F_KIND),
                 WebMiscUtil.createReadonlyModelFromEnum(ShadowKindType.class), new EnumChoiceRenderer<ShadowKindType>(this));
@@ -606,6 +636,33 @@ public class PageAccounts extends PageAdminConfiguration {
                 ShadowType.F_SYNCHRONIZATION_SITUATION.getLocalPart(), SelectableBean.F_VALUE + ".synchronizationSituation"));
         columns.add(new PropertyColumn<>(createStringResource("PageAccounts.accounts.synchronizationTimestamp"),
                 ShadowType.F_SYNCHRONIZATION_TIMESTAMP.getLocalPart(), SelectableBean.F_VALUE + ".synchronizationTimestamp"));
+//        columns.add(new PropertyColumn<>(createStringResource("PageAccounts.accounts.result"),
+//                ShadowType.F_RESULT.getLocalPart(), SelectableBean.F_VALUE + ".result.status"));
+
+        
+        columns.add(new LinkColumn<SelectableBean>(createStringResource("PageAccounts.accounts.result")){
+
+            @Override
+            protected IModel<String> createLinkModel(final IModel<SelectableBean> rowModel){
+                return new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                    	OperationResultType result = getResult(rowModel);
+                    	if (result == null){
+                    		return "";
+                    	}
+                        return createStringResource("OperationResultStatusType." + result.getStatus()).getObject();
+                    }
+                };
+            }
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean> rowModel) {
+                showShadowResult(target, rowModel);
+            }
+        });
+        
         columns.add(new LinkColumn<SelectableBean>(createStringResource("PageAccounts.accounts.owner")){
 
             @Override
@@ -614,8 +671,8 @@ public class PageAccounts extends PageAdminConfiguration {
 
                     @Override
                     public String getObject() {
-                        UserType user = loadShadowOwner(rowModel);
-                        return WebMiscUtil.getName(user);
+                        FocusType focus = loadShadowOwner(rowModel);
+                        return WebMiscUtil.getName(focus);
                     }
                 };
             }
@@ -627,6 +684,26 @@ public class PageAccounts extends PageAdminConfiguration {
         });
 
         return columns;
+    }
+    
+    private void showShadowResult(AjaxRequestTarget target, IModel<SelectableBean> rowModel){
+    	OperationResultType result = getResult(rowModel);
+    	String xml;
+    	ModalWindow aceDialog = (ModalWindow) get(createComponentPath(ID_RESULT_DIALOG));
+    	AceEditorDialog aceEditor = (AceEditorDialog) aceDialog.get(aceDialog.getContentId());
+    	
+    	
+		try {
+			xml = getPrismContext().serializeAtomicValue(result, ShadowType.F_RESULT, PrismContext.LANG_XML);
+			aceEditor.updateModel(new Model<String>(xml));
+		} catch (SchemaException e) {
+			LoggingUtils.logException(LOGGER, "Couldn't parse result", e);
+			aceEditor.updateModel(new Model<String>("Unable to show result. For more information see logs."));
+		}
+		
+		aceDialog.show(target);
+    	target.add(getFeedbackPanel());
+    	
     }
 
     private ObjectFilter createResourceAndQueryFilter(){
@@ -912,6 +989,7 @@ public class PageAccounts extends PageAdminConfiguration {
         ShadowKindType kind = dto.getKind();
         String intent = dto.getIntent();
         String objectClass = dto.getObjectClass();
+        FailedOperationTypeType failedOperatonType = dto.getFailedOperationType();
 
         if(StringUtils.isNotEmpty(searchText)){
             PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
@@ -932,6 +1010,12 @@ public class PageAccounts extends PageAdminConfiguration {
             ObjectFilter intentFilter = EqualFilter.createEqual(ShadowType.F_INTENT, ShadowType.class, getPrismContext(),
                     null, intent);
             filters.add(intentFilter);
+        }
+        
+        if (failedOperatonType != null){
+        	ObjectFilter failedOperationFilter = EqualFilter.createEqual(ShadowType.F_FAILED_OPERATION_TYPE, ShadowType.class, getPrismContext(),
+                    null, failedOperatonType);
+            filters.add(failedOperationFilter);
         }
 
         if(StringUtils.isNotEmpty(objectClass)){
@@ -980,15 +1064,25 @@ public class PageAccounts extends PageAdminConfiguration {
         target.add(getSearchPanel());
         target.add(getAccountsContainer());
     }
+    
+    private OperationResultType getResult(IModel<SelectableBean> model){
+    	 
+         ShadowType shadow = getShadow(model);
+         return shadow.getResult();
+    }
+    
+    private ShadowType getShadow(IModel<SelectableBean> model){
+    	 if(model == null || model.getObject() == null || model.getObject().getValue() == null){
+             return null;
+         }
+    	 
+    	 return (ShadowType) model.getObject().getValue();
+    }
 
-    private UserType loadShadowOwner(IModel<SelectableBean> model){
-        UserType user = null;
+    private <F extends FocusType> F loadShadowOwner(IModel<SelectableBean> model){
+        F owner = null;
 
-        if(model == null || model.getObject() == null || model.getObject().getValue() == null){
-            return null;
-        }
-
-        ShadowType shadow = (ShadowType)model.getObject().getValue();
+        ShadowType shadow = getShadow(model);
         String shadowOid;
         if(shadow != null){
             shadowOid = shadow.getOid();
@@ -1000,10 +1094,10 @@ public class PageAccounts extends PageAdminConfiguration {
         OperationResult result = new OperationResult(OPERATION_LOAD_ACCOUNT_OWNER);
 
         try {
-            PrismObject<UserType> prismUser = getModelService().findShadowOwner(shadowOid, task, result);
+            PrismObject prismOwner = getModelService().searchShadowOwner(shadowOid, null, task, result);
 
-            if(prismUser != null){
-                user = prismUser.asObjectable();
+            if(prismOwner != null){
+            	owner = (F) prismOwner.asObjectable();
             }
         } catch (ObjectNotFoundException exception){
             //owner was not found, it's possible and it's ok on unlinked accounts
@@ -1018,20 +1112,31 @@ public class PageAccounts extends PageAdminConfiguration {
             showResultInSession(result);
         }
 
-        return user;
+        return owner;
     }
 
-    private void ownerDetailsPerformed(AjaxRequestTarget target, IModel<SelectableBean> model){
-        UserType user = loadShadowOwner(model);
+    private <F extends FocusType> void ownerDetailsPerformed(AjaxRequestTarget target, IModel<SelectableBean> model){
+        F focus = loadShadowOwner(model);
 
-        if(user == null){
+        if(focus == null){
             error(getString("PageAccounts.message.cantShowOwner"));
             target.add(getFeedbackPanel());
             return;
         }
 
         PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, user.getOid());
-        setResponsePage(PageUser.class, parameters);
+        parameters.add(OnePageParameterEncoder.PARAMETER, focus.getOid());
+        
+        if (focus instanceof UserType){
+        	setResponsePage(PageUser.class, parameters);
+        } else if (focus instanceof RoleType){
+        	setResponsePage(PageRole.class, parameters);
+        } else if (focus instanceof OrgType) {
+        	setResponsePage(PageOrgUnit.class, parameters);
+        } else {
+        	 error(getString("PageAccounts.message.unsupportedOwnerType"));
+             target.add(getFeedbackPanel());
+             return;
+        }
     }
 }

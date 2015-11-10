@@ -119,6 +119,7 @@ public class UserMenuPanel extends BaseSimplePanel {
                 PageMyPasswordQuestions myPasswordQuestions = new PageMyPasswordQuestions(passwordQuestionsDtoIModel);
                 setResponsePage(myPasswordQuestions);
             }
+            
         };
         add(editPasswordQ);
 

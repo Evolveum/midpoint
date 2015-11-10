@@ -48,6 +48,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -273,8 +274,41 @@ public interface ModelService {
 	 * @throws SystemException
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
+	 * @deprecated
 	 */
 	PrismObject<UserType> findShadowOwner(String shadowOid, Task task, OperationResult parentResult)
+			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException;
+
+	
+	/**
+	 * <p>
+	 * Returns the Focus object representing owner of specified shadow.
+	 * </p>
+	 * <p>
+	 * May return null if there is no owner specified for the account.
+	 * </p>
+	 * <p>
+	 * Implements the backward "owns" association between account shadow and
+	 * user. Forward association is implemented by property "account" of user
+	 * object.
+	 * </p>
+	 * 
+	 * @param shadowOid
+	 *            OID of the shadow to look for an owner
+	 * @param task
+	 * 			  Task instance. It gives context to the execution (e.g. security context)
+	 * @param parentResult
+	 *            parent OperationResult (in/out)
+	 * @return owner of the account or null
+	 * @throws ObjectNotFoundException
+	 *             specified account was not found
+	 * @throws IllegalArgumentException
+	 *             wrong OID format, described change is not applicable
+	 * @throws SystemException
+	 *             unknown error from underlying layers or other unexpected
+	 *             state
+	 */
+	PrismObject<? extends FocusType> searchShadowOwner(String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException;
 
 	/**

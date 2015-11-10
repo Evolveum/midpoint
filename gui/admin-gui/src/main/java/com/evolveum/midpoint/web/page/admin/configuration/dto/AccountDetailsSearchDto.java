@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 import javax.xml.namespace.QName;
@@ -31,12 +32,14 @@ public class AccountDetailsSearchDto implements Serializable{
     public static final String F_KIND = "kind";
     public static final String F_INTENT = "intent";
     public static final String F_OBJECT_CLASS = "objectClass";
+    public static final String F_FAILED_OPERATION_TYPE = "failedOperationType";
 
     private String text;
     private ShadowKindType kind;
     private String intent;
     private String objectClass;
     private List<QName> objectClassList;
+    private FailedOperationTypeType failedOperationType;
 
     public List<QName> getObjectClassList() {
         return objectClassList;
@@ -77,4 +80,13 @@ public class AccountDetailsSearchDto implements Serializable{
     public void setObjectClass(String objectClass) {
         this.objectClass = objectClass;
     }
+    
+    
+    public FailedOperationTypeType getFailedOperationType() {
+		return failedOperationType;
+	}
+    
+    public void setFailedOperationType(FailedOperationTypeType failedOperationType) {
+		this.failedOperationType = failedOperationType;
+	}
 }
