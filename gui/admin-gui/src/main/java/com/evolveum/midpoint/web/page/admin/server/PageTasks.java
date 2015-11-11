@@ -1056,7 +1056,10 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private void clearSearchPerformed(AjaxRequestTarget target) {
-        searchModel.setObject(new TasksSearchDto());
+        TasksSearchDto tasksSearchDto = new TasksSearchDto();
+        tasksSearchDto.setCategory(ALL_CATEGORIES);
+        tasksSearchDto.setStatus(TaskDtoExecutionStatusFilter.ALL);
+        searchModel.setObject(tasksSearchDto);
 
         Table panel = getTaskTable();
         DataTable table = panel.getDataTable();
