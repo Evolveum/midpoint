@@ -12766,8 +12766,8 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
     <xsd:element name="accessCertificationCase" type="tns:AccessCertificationCaseType"/>
 

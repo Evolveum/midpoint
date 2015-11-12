@@ -17,21 +17,29 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationCase;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.data.common.other.RLookupTableRow;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = RAccessCertificationCampaign.TABLE_NAME,
@@ -43,6 +51,7 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
 
     private RPolyString name;
     private REmbeddedReference definitionRef;
+    private Set<RAccessCertificationCase> cases;
 
     @Embedded
     public RPolyString getName() {
@@ -62,6 +71,15 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
         this.definitionRef = definitionRef;
     }
 
+    @Transient
+    public Set<RAccessCertificationCase> getCases() {
+        return cases;
+    }
+
+    public void setCases(Set<RAccessCertificationCase> cases) {
+        this.cases = cases;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -74,6 +92,9 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
             return false;
         if (definitionRef != null ? !definitionRef.equals(rACR.definitionRef) : rACR.definitionRef != null)
             return false;
+
+        // TODO what about cases?
+
         return true;
     }
 
@@ -92,6 +113,17 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
         RObject.copyFromJAXB(jaxb, repo, prismContext, generatorResult);
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setDefinitionRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getDefinitionRef(), prismContext));
+
+        List<AccessCertificationCaseType> cases = jaxb.getCase();
+        if (!cases.isEmpty()) {
+            repo.setCases(new HashSet<RAccessCertificationCase>());
+            for (AccessCertificationCaseType case1 : cases) {
+                RAccessCertificationCase rCase = RAccessCertificationCase.toRepo(repo, case1, prismContext);
+                rCase.setTransient(generatorResult.isTransient(case1.asPrismContainerValue()));
+                repo.getCases().add(rCase);
+            }
+        }
+
     }
 
     @Override

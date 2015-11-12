@@ -39,6 +39,10 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 
+import com.evolveum.midpoint.repo.sql.data.common.RAccessCertificationCampaign;
+import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationCase;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SequenceType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -620,6 +624,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         updateFullObject(rObject, object);
         RObject merged = (RObject) session.merge(rObject);
         addLookupTableRows(session, rObject, modifications != null);
+        addCertificationCampaignCases(session, rObject, modifications != null);
 
         if (getClosureManager().isEnabled()) {
             OrgClosureManager.Operation operation;
@@ -645,6 +650,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         } else if (LookupTableType.class.equals(savedObject.getCompileTimeClass())) {
             PrismContainer table = savedObject.findContainer(LookupTableType.F_ROW);
             savedObject.remove(table);
+        } else if (AccessCertificationCampaignType.class.equals(savedObject.getCompileTimeClass())) {
+            PrismContainer caseContainer = savedObject.findContainer(AccessCertificationCampaignType.F_CASE);
+            savedObject.remove(caseContainer);
         }
 
         String xml = getPrismContext().serializeObjectToString(savedObject, PrismContext.LANG_XML);
@@ -682,6 +690,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         LOGGER.trace("Saving object (non overwrite).");
         String oid = (String) session.save(rObject);
         addLookupTableRows(session, rObject, false);
+        addCertificationCampaignCases(session, rObject, false);
 
         if (getClosureManager().isEnabled()) {
             Collection<ReferenceDelta> modifications = createAddParentRefDelta(object);
@@ -763,6 +772,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             if (LookupTableType.class.equals(type)) {
                 deleteLookupTableRows(session, oid);
             }
+            if (AccessCertificationCampaignType.class.equals(type)) {
+                deleteCertificationCampaignCases(session, oid);
+            }
 
             session.getTransaction().commit();
         } catch (ObjectNotFoundException ex) {
@@ -801,12 +813,47 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
+    private void deleteCertificationCampaignCases(Session session, String oid) {
+        Query query = session.getNamedQuery("delete.campaignCases");
+        query.setParameter("oid", oid);
+
+        query.executeUpdate();
+    }
+
+    private void addCertificationCampaignCases(Session session, RObject object, boolean merge) {
+        if (!(object instanceof RAccessCertificationCampaign)) {
+            return;
+        }
+        RAccessCertificationCampaign campaign = (RAccessCertificationCampaign) object;
+
+        if (merge) {
+            deleteCertificationCampaignCases(session, campaign.getOid());
+        }
+        if (campaign.getCases() != null) {
+            for (RAccessCertificationCase aCase : campaign.getCases()) {
+                session.save(aCase);
+            }
+        }
+    }
+
     private void addLookupTableRows(Session session, String tableOid, Collection<PrismContainerValue> values, int currentId) {
         for (PrismContainerValue value : values) {
             LookupTableRowType rowType = new LookupTableRowType();
             rowType.setupContainerValue(value);
 
             RLookupTableRow row = RLookupTableRow.toRepo(tableOid, rowType);
+            row.setId(currentId);
+            currentId++;
+            session.save(row);
+        }
+    }
+
+    private void addCertificationCampaignCases(Session session, String campaignOid, Collection<PrismContainerValue> values, int currentId) {
+        for (PrismContainerValue value : values) {
+            AccessCertificationCaseType caseType = new AccessCertificationCaseType();
+            caseType.setupContainerValue(value);
+
+            RAccessCertificationCase row = RAccessCertificationCase.toRepo(campaignOid, caseType, getPrismContext());
             row.setId(currentId);
             currentId++;
             session.save(row);
@@ -841,7 +888,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 }
             }
             if (containerDelta.getValuesToAdd() != null) {
-                int currentId = findLastIdInRepo(session, tableOid) + 1;
+                int currentId = findLastIdInRepo(session, tableOid, "get.lookupTableLastId") + 1;
                 addLookupTableRows(session, tableOid, containerDelta.getValuesToAdd(), currentId);
             }
             if (containerDelta.getValuesToReplace() != null) {
@@ -851,8 +898,46 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
-    private int findLastIdInRepo(Session session, String tableOid) {
-        Query query = session.getNamedQuery("get.lookupTableLastId");
+    private void updateCampaignCases(Session session, RObject object, Collection<? extends ItemDelta> modifications) {
+        if (modifications.isEmpty()) {
+            return;
+        }
+
+        if (!(object instanceof RAccessCertificationCampaign)) {
+            throw new IllegalStateException("Object being modified is not a RAccessCertificationCampaign; it is " + object.getClass());
+        }
+        final RAccessCertificationCampaign rCampaign = (RAccessCertificationCampaign) object;
+        final String campaignOid = object.getOid();
+
+        for (ItemDelta delta : modifications) {
+            if (!(delta instanceof ContainerDelta) || delta.getPath().size() != 1) {
+                throw new IllegalStateException("Wrong campaign delta sneaked into updateCampaignCases: class=" + delta.getClass() + ", path=" + delta.getPath());
+            }
+            // one "case" container modification
+            ContainerDelta containerDelta = (ContainerDelta) delta;
+
+            if (containerDelta.getValuesToDelete() != null) {
+                // todo do 'bulk' delete like delete from ... where oid=? and id in (...)
+                for (PrismContainerValue value : (Collection<PrismContainerValue>) containerDelta.getValuesToDelete()) {
+                    Query query = session.getNamedQuery("delete.campaignCase");
+                    query.setString("oid", campaignOid);
+                    query.setInteger("id", RUtil.toInteger(value.getId()));
+                    query.executeUpdate();
+                }
+            }
+            if (containerDelta.getValuesToAdd() != null) {
+                int currentId = findLastIdInRepo(session, campaignOid, "get.campaignCaseLastId") + 1;
+                addCertificationCampaignCases(session, campaignOid, containerDelta.getValuesToAdd(), currentId);
+            }
+            if (containerDelta.getValuesToReplace() != null) {
+                deleteCertificationCampaignCases(session, campaignOid);
+                addCertificationCampaignCases(session, campaignOid, containerDelta.getValuesToReplace(), 1);
+            }
+        }
+    }
+
+    private int findLastIdInRepo(Session session, String tableOid, String queryName) {
+        Query query = session.getNamedQuery(queryName);
         query.setString("oid", tableOid);
         Integer lastId = (Integer) query.uniqueResult();
         if (lastId == null) {
@@ -1083,6 +1168,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             LOGGER.debug("Definitions for attributes loaded. Counts: {}", Arrays.toString(counts));
         } else if (LookupTableType.class.equals(prismObject.getCompileTimeClass())) {
             updateLoadedLookupTable(prismObject, options, session);
+        } else if (AccessCertificationCampaignType.class.equals(prismObject.getCompileTimeClass())) {
+            updateLoadedCampaign(prismObject, options, session);
         }
 
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
@@ -1213,6 +1300,31 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         for (RLookupTableRow row : rows) {
             LookupTableRowType jaxbRow = row.toJAXB();
             jaxbRows.add(jaxbRow);
+        }
+    }
+
+    private <T extends ObjectType> void updateLoadedCampaign(PrismObject<T> object,
+                                                             Collection<SelectorOptions<GetOperationOptions>> options,
+                                                             Session session) throws SchemaException {
+        if (!SelectorOptions.hasToLoadPath(AccessCertificationCampaignType.F_CASE, options)) {
+            return;
+        }
+
+        LOGGER.debug("Loading certification campaign cases.");
+
+        Criteria criteria = session.createCriteria(RAccessCertificationCase.class);
+        criteria.add(Restrictions.eq("ownerOid", object.getOid()));
+
+        List<RAccessCertificationCase> cases = criteria.list();
+        if (cases == null || cases.isEmpty()) {
+            return;
+        }
+
+        AccessCertificationCampaignType campaign = (AccessCertificationCampaignType) object.asObjectable();
+        List<AccessCertificationCaseType> jaxbCases = campaign.getCase();
+        for (RAccessCertificationCase rCase : cases) {
+            AccessCertificationCaseType jaxbCase = rCase.toJAXB(getPrismContext());
+            jaxbCases.add(jaxbCase);
         }
     }
 
@@ -1377,6 +1489,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             closureContext = getClosureManager().onBeginTransactionModify(session, type, oid, modifications);
 
             Collection<? extends ItemDelta> lookupTableModifications = filterLookupTableModifications(type, modifications);
+            Collection<? extends ItemDelta> campaignCaseModifications = filterCampaignCaseModifications(type, modifications);
 
             // JpegPhoto (RFocusPhoto) is a special kind of entity. First of all, it is lazily loaded, because photos are really big.
             // Each RFocusPhoto naturally belongs to one RFocus, so it would be appropriate to set orphanRemoval=true for focus-photo
@@ -1427,6 +1540,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             session.merge(rObject);
 
             updateLookupTableData(session, rObject, lookupTableModifications);
+            updateCampaignCases(session, rObject, campaignCaseModifications);
 
             if (getClosureManager().isEnabled()) {
                 getClosureManager().updateOrgClosure(originalObject, modifications, session, oid, type, OrgClosureManager.Operation.MODIFY, closureContext);
@@ -1492,6 +1606,31 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         modifications.removeAll(tableDelta);
 
         return tableDelta;
+    }
+
+    private <T extends ObjectType> Collection<? extends ItemDelta> filterCampaignCaseModifications(Class<T> type,
+                                                                                                   Collection<? extends ItemDelta> modifications) {
+        Collection<ItemDelta> caseDelta = new ArrayList<>();
+        if (!AccessCertificationCampaignType.class.equals(type)) {
+            return caseDelta;
+        }
+
+        ItemPath casePath = new ItemPath(AccessCertificationCampaignType.F_CASE);
+        for (ItemDelta delta : modifications) {
+            ItemPath path = delta.getPath();
+            if (path.isEmpty()) {
+                throw new UnsupportedOperationException("Certification campaign cannot be modified via empty-path modification");
+            } else if (path.equivalent(casePath)) {
+                caseDelta.add(delta);
+            } else if (path.isSuperPath(casePath)) {
+                // todo - what about modifications with path like case[id] or case[id]/xxx?
+                throw new UnsupportedOperationException("Campaign case can be modified only by specifying path=case");
+            }
+        }
+
+        modifications.removeAll(caseDelta);
+
+        return caseDelta;
     }
 
     private <T extends ObjectType> boolean containsPhotoModification(Collection<? extends ItemDelta> modifications) {
