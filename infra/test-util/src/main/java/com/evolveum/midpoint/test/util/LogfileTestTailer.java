@@ -63,6 +63,7 @@ public class LogfileTestTailer {
 	private String auditLoggerName;
 	public Pattern auditPattern;
 	
+	private File logFile;
 	private Reader fileReader;
 	private BufferedReader reader;
 	private boolean seenMarker;
@@ -83,6 +84,7 @@ public class LogfileTestTailer {
 	}
 		
 	public LogfileTestTailer(File logFile, String auditLoggerName, boolean skipCurrentContent) throws IOException {
+		this.logFile = logFile;
 		this.auditLoggerName = auditLoggerName;
 		auditPattern = Pattern.compile(".*\\[[^]]*\\](\\s+\\[[^]]*\\])?\\s+(\\w+)\\s+\\("+auditLoggerName+"\\):\\s*(.*)");
 		reset();
@@ -135,6 +137,7 @@ public class LogfileTestTailer {
 	}
 
 	public void tail() throws IOException {
+		LOGGER.trace("Start tailing file {}", logFile);
 		while (true) {
 		    String line = reader.readLine();
 		    if (line == null) {
@@ -142,6 +145,7 @@ public class LogfileTestTailer {
 		    }
 			processLogLine(line);
 		}
+		LOGGER.trace("End tailing file {}", logFile);
 	}
 
 	private void processLogLine(String line) {
@@ -206,11 +210,13 @@ public class LogfileTestTailer {
 	}
 	
 	private void recordMarker(String level, String subsystemName) {
+		LOGGER.trace("Found marker ({}): {}", level, subsystemName);
 		String key = constructKey(level, subsystemName);
 		loggedMarkers.add(key);
 	}
 	
 	private void recordAuditMessage(String level, String message) {
+		LOGGER.trace("Found audit message ({})", level);
 		auditMessages.add(message);
 	}
 

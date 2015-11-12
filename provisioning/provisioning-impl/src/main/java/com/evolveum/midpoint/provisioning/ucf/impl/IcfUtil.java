@@ -88,6 +88,8 @@ class IcfUtil {
     private static final String JAVA_EXCEPTION_PACKAGE = AlreadyExistsException.class.getPackage().getName();
     private static final String DOT_NET_ARGUMENT_EXCEPTION = "System.ArgumentException";
 
+    private static final String CONNECTIONS_EXCEPTION_CLASS_NAME = "CommunicationsException";
+
     static Throwable processIcfException(Throwable icfException, ConnectorInstanceIcfImpl conn,
 			OperationResult icfResult) {
 		return processIcfException(icfException, conn.getHumanReadableName(), icfResult);
@@ -166,7 +168,17 @@ class IcfUtil {
 			icfResult.recordFatalError("Configuration error: "+icfException.getMessage(), newEx);
 			return newEx;
 		}
-		
+        //fix of MiD-2645
+        //exception brought by the connector is java.lang.RuntimeException with cause=CommunicationsException
+        //this exception is to be analyzed here before the following if clause
+        if (icfException.getCause() != null){
+            String exCauseClassName = icfException.getCause().getClass().getSimpleName();
+            if (exCauseClassName.equals(CONNECTIONS_EXCEPTION_CLASS_NAME) ){
+                Exception newEx = new CommunicationException(createMessageFromAllExceptions("Connect error", icfException));
+                icfResult.recordFatalError("Connect error: " + icfException.getMessage(), newEx);
+                return newEx;
+            }
+        }
 		if (icfException.getClass().getPackage().equals(NullPointerException.class.getPackage())) {
 			// There are java.lang exceptions, they are safe to pass through
 			icfResult.recordFatalError(icfException);

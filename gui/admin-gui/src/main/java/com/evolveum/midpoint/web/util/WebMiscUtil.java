@@ -842,7 +842,7 @@ public final class WebMiscUtil {
     public static <T extends Component> T theSameForPage(T object, PageReference containingPageReference) {
         Page containingPage = containingPageReference.getPage();
         if (containingPage == null) {
-            throw new IllegalStateException("Containing page cannot be determined");
+            return object;
         }
         String path = object.getPageRelativePath();
         T retval = (T) containingPage.get(path);

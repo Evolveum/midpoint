@@ -13,9 +13,13 @@ public class RoleMemberSearchDto implements Serializable {
 	public static String F_TENANT = "tenant";
 	public static String F_PROJECT = "project";
 	
+	public static String F_TEXT = "text";
+	
 	private QName type;
 	private OrgType tenant;
 	private OrgType project;
+	private String text;
+	
 	
 	public void setType(QName type) {
 		this.type = type;
@@ -42,5 +46,13 @@ public class RoleMemberSearchDto implements Serializable {
 	
 	public void setProject(OrgType project) {
 		this.project = project;
+	}
+	
+	public String getText() {
+		return text;
+	}
+	
+	public void setText(String text) {
+		this.text = text;
 	}
 }

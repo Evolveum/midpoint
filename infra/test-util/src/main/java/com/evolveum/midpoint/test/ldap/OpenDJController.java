@@ -414,6 +414,18 @@ public class OpenDJController extends AbstractResourceController {
 	public boolean isRunning() {
 		return EmbeddedUtils.isRunning();
 	}
+	
+	public void assumeRunning() {
+		if (!isRunning()) {
+			start();
+		}
+	}
+	
+	public void assumeStopped() {
+		if (isRunning()) {
+			stop();
+		}
+	}
 
 	/**
 	 * Delete a directory and its contents.

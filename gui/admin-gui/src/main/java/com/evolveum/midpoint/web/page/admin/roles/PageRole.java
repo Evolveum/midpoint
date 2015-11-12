@@ -218,6 +218,11 @@ public class PageRole extends PageAdminAbstractRole<RoleType>implements Progress
 					return new RoleMemberPanel<UserType>(panelId, getFocusWrapper().getObject().getOid(),
 							PageRole.this);
 				}
+				
+				@Override
+				public boolean isVisible() {
+					return getFocusWrapper().getStatus() != ContainerStatus.ADDING;
+				}
 			});
 		
 	}

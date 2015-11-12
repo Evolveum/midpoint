@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2010-2015 Evolveum
+  ~ Copyright (c) 2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -16,11 +16,20 @@
   -->
 
 <filter xmlns="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
-    	<equal>
-    		<path>name</path>
-    		<c:expression>
-    			<c:queryInterpretationOfNoValue>filterEqualNull</c:queryInterpretationOfNoValue>
-    			<c:path>c:name</c:path>
-    		</c:expression>
-    	</equal>
-    </filter>
+	<ref>
+		<path>linkRef</path>
+		<c:expression>
+			<c:script>
+				<c:code>
+					if (input == null) {
+						return null
+					} else {
+						def ort = new com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType();
+						ort.setOid(input)
+						return ort
+					}
+				</c:code>
+			</c:script>
+		</c:expression>
+	</ref>
+</filter>
