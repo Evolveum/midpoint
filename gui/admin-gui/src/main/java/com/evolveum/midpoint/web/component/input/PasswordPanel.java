@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.component.input;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.PageAdminUsers;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -56,14 +57,18 @@ public class PasswordPanel extends InputPanel {
     private static final Trace LOGGER = TraceManager.getTrace(PasswordPanel.class);
     
     private boolean passwordInputVisble;
-    
-    public PasswordPanel(String id, IModel<ProtectedStringType> model) {
-        super(id);
 
-        initLayout(model);
+    public PasswordPanel(String id, IModel<ProtectedStringType> model) {
+        this(id, model, false);
     }
 
-    private void initLayout(IModel<ProtectedStringType> model) {
+    public PasswordPanel(String id, IModel<ProtectedStringType> model, boolean isReadOnly) {
+        super(id);
+
+        initLayout(model, isReadOnly);
+    }
+
+    private void initLayout(IModel<ProtectedStringType> model, final boolean isReadOnly) {
     	setOutputMarkupId(true);
     	
     	passwordInputVisble = model.getObject() == null;
@@ -127,7 +132,15 @@ public class PasswordPanel extends InputPanel {
 				return !passwordInputVisble;
 			}
 		};
-		link.setBody(new ResourceModel("passwordPanel.passwordChange"));
+        link.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return !isReadOnly;
+
+            }
+        });
+        link.setBody(new ResourceModel("passwordPanel.passwordChange"));
 		link.setOutputMarkupId(true);
 		linkContainer.add(link);
         

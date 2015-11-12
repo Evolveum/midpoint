@@ -23,6 +23,7 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
 
 import java.io.InputStream;
 
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
@@ -44,12 +45,12 @@ public class UploadDownloadPanel extends InputPanel {
     private static final String ID_BUTTON_DELETE = "remove";
     private static final String ID_INPUT_FILE = "fileInput";
 
-    public UploadDownloadPanel(String id) {
+    public UploadDownloadPanel(String id, boolean isReadOnly) {
         super(id);
-        initLayout();
+        initLayout(isReadOnly);
     }
 
-    private void initLayout() {
+    private void initLayout(final boolean isReadOnly) {
         FileUploadField fileUpload = new FileUploadField(ID_INPUT_FILE);
         add(fileUpload);
 
@@ -91,6 +92,15 @@ public class UploadDownloadPanel extends InputPanel {
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 removeFilePerformed(target);
             }
+        });
+
+        add(new VisibleEnableBehaviour(){
+            @Override
+            public boolean isVisible() {
+                return !isReadOnly;
+
+            }
+
         });
     }
 

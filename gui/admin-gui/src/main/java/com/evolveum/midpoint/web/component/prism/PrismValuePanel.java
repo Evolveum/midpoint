@@ -434,7 +434,8 @@ public class PrismValuePanel extends Panel {
                   panel = new DatePanel(id, new PropertyModel<XMLGregorianCalendar>(model, baseExpression));
                   
               } else if (ProtectedStringType.COMPLEX_TYPE.equals(valueType)) {
-                  panel = new PasswordPanel(id, new PropertyModel<ProtectedStringType>(model, baseExpression));
+                  panel = new PasswordPanel(id, new PropertyModel<ProtectedStringType>(model, baseExpression),
+                          model.getObject().isReadonly());
                   
               } else if (DOMUtil.XSD_BOOLEAN.equals(valueType)) {
                   panel = new TriStateComboPanel(id, new PropertyModel<Boolean>(model, baseExpression));
@@ -474,7 +475,7 @@ public class PrismValuePanel extends Panel {
                   panel = inputPanel;
                   
               } else if(DOMUtil.XSD_BASE64BINARY.equals(valueType)) {
-                  panel = new UploadDownloadPanel(id){
+                  panel = new UploadDownloadPanel(id, model.getObject().isReadonly()){
 
                 	  
                 	  @Override
