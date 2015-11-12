@@ -38,18 +38,15 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.sql.Date;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -234,8 +231,20 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 	}
 
 	public static String getRemoteHost() {
-		WebRequest req = (WebRequest) RequestCycle.get().getRequest();
-		HttpServletRequest httpReq = (HttpServletRequest) req.getContainerRequest();
-		return httpReq.getRemoteHost();
-	}
+        WebRequest req = (WebRequest) RequestCycle.get().getRequest();
+        HttpServletRequest httpReq = (HttpServletRequest) req.getContainerRequest();
+        String remoteIp = httpReq.getRemoteHost();
+
+        String localIp = httpReq.getLocalAddr();
+
+        if (remoteIp.equals(localIp)){
+            try {
+                InetAddress inetAddress = InetAddress.getLocalHost();
+                remoteIp = inetAddress.getHostAddress();
+            } catch (UnknownHostException ex) {
+                LOGGER.error("Can't get local host: " + ex.getMessage());
+            }
+        }
+        return remoteIp;
+    }
 }
