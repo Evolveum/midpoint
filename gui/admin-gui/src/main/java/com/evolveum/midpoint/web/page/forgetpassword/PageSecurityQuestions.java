@@ -219,13 +219,18 @@ public class PageSecurityQuestions extends PageBase {
 			try {
 				config = getPageBase().getModelService().getObject(SystemConfigurationType.class,
 						SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, task, result);
-				PrismObject<SecurityPolicyType> securityPolicy;
-				securityPolicy = getModelService().getObject(SecurityPolicyType.class,
-						config.asObjectable().getGlobalSecurityPolicyRef().getOid(), null, task, subResult);
-				questionNumber = securityPolicy.asObjectable().getCredentials().getSecurityQuestions()
-						.getQuestionNumber();
-				policyQuestionList = securityPolicy.asObjectable().getCredentials().getSecurityQuestions()
-						.getQuestion();
+                if (config.asObjectable().getGlobalSecurityPolicyRef() != null) {
+                    PrismObject<SecurityPolicyType> securityPolicy;
+                    securityPolicy = getModelService().getObject(SecurityPolicyType.class,
+                            config.asObjectable().getGlobalSecurityPolicyRef().getOid(), null, task, subResult);
+                    questionNumber = securityPolicy.asObjectable().getCredentials() != null &&
+                            securityPolicy.asObjectable().getCredentials().getSecurityQuestions() != null ?
+                            securityPolicy.asObjectable().getCredentials().getSecurityQuestions().getQuestionNumber() : 0;
+                    policyQuestionList = securityPolicy.asObjectable().getCredentials() != null &&
+                            securityPolicy.asObjectable().getCredentials().getSecurityQuestions() != null ?
+                            securityPolicy.asObjectable().getCredentials().getSecurityQuestions().getQuestion() :
+                            new ArrayList<SecurityQuestionDefinitionType>();
+                }
 
 				List<SecurityQuestionAnswerDTO> userQuestionList = model.getObject().getSecurityAnswers();
 
