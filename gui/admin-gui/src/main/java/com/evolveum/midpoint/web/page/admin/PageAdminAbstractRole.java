@@ -65,7 +65,7 @@ public abstract class PageAdminAbstractRole<T extends AbstractRoleType> extends 
 	@Override
 	protected void prepareFocusForAdd(PrismObject<T> focus) throws SchemaException {
 		super.prepareFocusForAdd(focus);
-		handleAssignmentForAdd(focus, AbstractRoleType.F_INDUCEMENT, focus.asObjectable().getInducement());
+		handleAssignmentForAdd(focus, AbstractRoleType.F_INDUCEMENT, inducementsModel.getObject());
 	
 	}
 	
