@@ -324,6 +324,13 @@ public class PageReports extends PageAdminReports {
             }
         });
         add(window);
+        window.setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
+
+            @Override
+            public void onClose(AjaxRequestTarget target) {
+                target.appendJavaScript("$('.wicket-aa-container').remove();");
+            }
+        });
     }
 
     private void showRunReportPopup(AjaxRequestTarget target, ReportType reportType) {

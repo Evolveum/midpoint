@@ -67,8 +67,7 @@ public class TooltipBehavior extends Behavior {
 
         sb.append("});");
 
-        //todo fix template [lazyman]
-//        response.render(OnDomReadyHeaderItem.forScript(sb.toString()));
+        response.render(OnDomReadyHeaderItem.forScript(sb.toString()));
     }
 
     public String getModalContainer(Component component){

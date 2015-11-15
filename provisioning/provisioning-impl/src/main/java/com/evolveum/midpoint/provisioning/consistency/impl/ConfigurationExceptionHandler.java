@@ -54,11 +54,6 @@ public class ConfigurationExceptionHandler extends ErrorHandler {
 			Task task, OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException {
 
-        OperationResult operationResult = parentResult.createSubresult("Compensation for configuration problem. Operation: " + op.name());
-        operationResult.addParam("shadow", shadow);
-        operationResult.addParam("currentOperation", op);
-        operationResult.addParam("exception", ex.getMessage());
-
         ObjectDelta delta = null;
 		switch (op) {
             case ADD:
@@ -78,6 +73,10 @@ public class ConfigurationExceptionHandler extends ErrorHandler {
                 delta = ObjectDelta.createModifyDelta(shadow.getOid(), modifications, shadow.getClass(), prismContext);
                 break;
             case GET:
+                OperationResult operationResult = parentResult.createSubresult("Compensation for configuration problem. Operation: " + op.name());
+                operationResult.addParam("shadow", shadow);
+                operationResult.addParam("currentOperation", op);
+                operationResult.addParam("exception", ex.getMessage());
                 for (OperationResult subRes : parentResult.getSubresults()) {
                     subRes.muteError();
                 }

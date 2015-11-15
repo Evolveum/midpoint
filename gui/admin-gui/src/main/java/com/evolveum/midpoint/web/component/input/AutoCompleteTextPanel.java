@@ -17,6 +17,9 @@
 package com.evolveum.midpoint.web.component.input;
 
 import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.component.util.LookupPropertyModel;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteSettings;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTextField;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -35,7 +38,7 @@ public abstract class AutoCompleteTextPanel<T> extends InputPanel {
         this(id, model, String.class);
     }
 
-    public AutoCompleteTextPanel(String id, IModel<T> model, Class clazz) {
+    public AutoCompleteTextPanel(String id, final IModel<T> model, Class clazz) {
         super(id);
 
         AutoCompleteSettings autoCompleteSettings = new AutoCompleteSettings();
@@ -50,6 +53,14 @@ public abstract class AutoCompleteTextPanel<T> extends InputPanel {
             }
         };
         input.setType(clazz);
+        if (model instanceof LookupPropertyModel) {
+            input.add(new OnChangeAjaxBehavior() {
+                @Override
+                protected void onUpdate(AjaxRequestTarget target) {
+                    checkInputValue(input, target, (LookupPropertyModel)model);
+                }
+            });
+        }
         add(input);
     }
 
@@ -63,5 +74,14 @@ public abstract class AutoCompleteTextPanel<T> extends InputPanel {
     @Override
     public FormComponent getBaseFormComponent() {
         return (FormComponent) get(ID_INPUT);
+    }
+
+    //by default the method will check if AutoCompleteTextField input is empty
+    // and if yes, set empty value to model. This method is necessary because
+    // AutoCompleteTextField doesn't set value to model until it is unfocused
+    public void checkInputValue(AutoCompleteTextField input, AjaxRequestTarget target, LookupPropertyModel model){
+        if (input.getInput() == null || input.getInput().trim().equals("")){
+            model.setObject(input.getInput());
+        }
     }
 }
