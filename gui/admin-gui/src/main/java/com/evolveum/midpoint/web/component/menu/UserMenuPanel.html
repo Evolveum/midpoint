@@ -19,7 +19,8 @@
 <wicket:panel>
     <a data-toggle="dropdown" class="dropdown-toggle" href="#">
         <!-- todo image -->
-        <img src="img/placeholder.png" class="user-image" alt="User Image"/>
+        <div wicket:id="summaryIconBox" class="user-image"><span class="user-thumbnail-helper"/><span wicket:id="summaryIcon"/><img wicket:id="summaryPhoto" class="user-thumbnail"/></div>
+        <!--<img src="img/placeholder.png" class="user-image" alt="User Image"/>-->
         <span class="hidden-xs" wicket:id="usernameLink"/>
     </a>
     <ul class="dropdown-menu">
