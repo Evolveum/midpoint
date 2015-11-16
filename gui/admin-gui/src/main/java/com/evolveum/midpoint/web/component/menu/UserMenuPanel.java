@@ -68,7 +68,6 @@ public class UserMenuPanel extends BaseSimplePanel {
     private static final Trace LOGGER = TraceManager.getTrace(UserMenuPanel.class);
     private static final String ID_USERNAME_LINK = "usernameLink";
     private static final String ID_LOGOUT_LINK = "logoutLink";
-    private static final String ID_ICON_BOX = "summaryIconBox";
 
     private static final String ID_USERNAME = "username";
 
@@ -79,8 +78,12 @@ public class UserMenuPanel extends BaseSimplePanel {
     private Model<PrismObject<UserType>> userModel = new Model<PrismObject<UserType>>();
     private static final String DOT_CLASS = UserMenuPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loaduser";
-    private static final String ID_PHOTO = "summaryPhoto";
-    private static final String ID_ICON = "summaryIcon";
+    private static final String ID_ICON_BOX = "menuIconBox";
+    private static final String ID_PHOTO = "menuPhoto";
+    private static final String ID_ICON = "menuIcon";
+    private static final String ID_PANEL_ICON_BOX = "menuPanelIconBox";
+    private static final String ID_PANEL_PHOTO = "menuPanelPhoto";
+    private static final String ID_PANEL_ICON = "menuPanelIcon";
 
     private boolean isUserModelLoaded = false;
     private boolean isPasswordModelLoaded = false;
@@ -128,15 +131,6 @@ public class UserMenuPanel extends BaseSimplePanel {
                 if (userModel != null && userModel.getObject() == null){
                     loadModel();
                     photo = userModel.getObject().asObjectable().getJpegPhoto();
-                    if (photo != null){
-
-                    }
-                }
-                if (userModel != null && userModel.getObject() != null){
-                    photo = userModel.getObject().asObjectable().getJpegPhoto();
-                    if (photo != null){
-
-                    }
                 }
                 return userModel == null ? false :
                         (userModel.getObject() == null ? false : photo != null);
@@ -172,6 +166,48 @@ public class UserMenuPanel extends BaseSimplePanel {
             }
         });
         add(usernameLink);
+
+
+        WebMarkupContainer panelIconBox = new WebMarkupContainer(ID_PANEL_ICON_BOX);
+        add(panelIconBox);
+
+        Image panelImg = new Image(ID_PANEL_PHOTO, new AbstractReadOnlyModel<AbstractResource>() {
+
+            @Override
+            public AbstractResource getObject() {
+                byte[] jpegPhoto = userModel.getObject().asObjectable().getJpegPhoto();
+                if(jpegPhoto == null) {
+                    return null;
+                } else {
+                    return new ByteArrayResource("image/jpeg",jpegPhoto);
+                }
+            }
+        });
+        panelImg.add(new VisibleEnableBehaviour(){
+            @Override
+            public boolean isVisible(){
+                if (userModel != null && userModel.getObject() == null){
+                    loadModel();
+                }
+                return userModel == null ? false :
+                        (userModel.getObject() == null ? false : userModel.getObject().asObjectable().getJpegPhoto() != null);
+            }
+        });
+        panelIconBox.add(panelImg);
+
+        Label panelIcon = new Label(ID_PANEL_ICON,"");
+        panelIcon.add(new AttributeModifier("class", "fa fa-user"));
+        panelIcon.add(new VisibleEnableBehaviour(){
+            @Override
+            public boolean isVisible(){
+                if (userModel != null && userModel.getObject() == null){
+                    loadModel();
+                }
+                return userModel == null ? false :
+                        (userModel.getObject() == null ? false : userModel.getObject().asObjectable().getJpegPhoto() == null);
+            }
+        });
+        panelIconBox.add(panelIcon);
 
         Label username = new Label(ID_USERNAME, new AbstractReadOnlyModel<String>() {
 

@@ -18,16 +18,15 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <a data-toggle="dropdown" class="dropdown-toggle" href="#">
-        <!-- todo image -->
-        <div wicket:id="summaryIconBox" class="user-image"><span class="user-thumbnail-helper"/><span wicket:id="summaryIcon"/><img wicket:id="summaryPhoto" class="user-thumbnail"/></div>
+        <div wicket:id="menuIconBox" class="user-image"><span class="user-thumbnail-helper"/><span wicket:id="menuIcon"/><img wicket:id="menuPhoto" class="user-thumbnail"/></div>
         <!--<img src="img/placeholder.png" class="user-image" alt="User Image"/>-->
         <span class="hidden-xs" wicket:id="usernameLink"/>
     </a>
     <ul class="dropdown-menu">
         <!-- User image -->
         <li class="user-header">
-            <!-- todo image -->
-            <img src="img/placeholder.png" class="img-circle" alt="User Image"/>
+            <div wicket:id="menuPanelIconBox" class="img-circle"><span class="user-thumbnail-helper"/><span wicket:id="menuPanelIcon"/><img wicket:id="menuPanelPhoto" class="user-thumbnail"/></div>
+            <!--<img src="img/placeholder.png" class="img-circle" alt="User Image"/>-->
             <p>
                 <span wicket:id="username"/>
                  <!-- todo improve this label (user/admin/whatever description you like) -->
