@@ -139,7 +139,7 @@ public class UserMenuPanel extends BaseSimplePanel {
         iconBox.add(img);
 
         Label icon = new Label(ID_ICON,"");
-        icon.add(new AttributeModifier("class", "fa fa-user"));
+        icon.add(new AttributeModifier("src", "img/placeholder.png"));
         icon.add(new VisibleEnableBehaviour(){
             @Override
             public boolean isVisible(){
@@ -196,7 +196,7 @@ public class UserMenuPanel extends BaseSimplePanel {
         panelIconBox.add(panelImg);
 
         Label panelIcon = new Label(ID_PANEL_ICON,"");
-        panelIcon.add(new AttributeModifier("class", "fa fa-user"));
+        panelIcon.add(new AttributeModifier("src", "img/placeholder.png"));
         panelIcon.add(new VisibleEnableBehaviour(){
             @Override
             public boolean isVisible(){
