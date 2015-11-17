@@ -25,7 +25,7 @@
     	<construction>
     		<resourceRef oid="eced6d24-73e3-11e5-8457-93eff15a6b85" type="c:ResourceType"/>
     		<kind>entitlement</kind>
-            <intent>orgGroup</intent>
+            <intent>group</intent>
     	</construction>
     </inducement>
     
@@ -35,13 +35,13 @@
     		<kind>account</kind>
     		<intent>default</intent>
     		<association>
-            	<ref>ri:orgGroup</ref>
+            	<ref>ri:group</ref>
             	<outbound>
             		<expression>
             			<associationFromLink>
             				<projectionDiscriminator>
 	            				<kind>entitlement</kind>
-	            				<intent>orgGroup</intent>
+	            				<intent>group</intent>
             				</projectionDiscriminator>
             			</associationFromLink>
             		</expression>
