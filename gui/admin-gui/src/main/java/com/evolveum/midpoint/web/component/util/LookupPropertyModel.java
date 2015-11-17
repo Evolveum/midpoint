@@ -83,7 +83,7 @@ public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
             String label = (String) object;
             String key;
 
-            if (label != null && label.trim().equals("")){
+            if (label == null || label.trim().equals("")){
                 PropertyResolver.setValue(expression, getInnermostModelOrObject(), null, prc);
             } else {
                 for (LookupTableRowType row : lookupTable.getRow()) {
@@ -94,6 +94,8 @@ public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
                     }
                 }
             }
+        } else if (object == null){
+                PropertyResolver.setValue(expression, getInnermostModelOrObject(), object, prc);
         }
     }
 

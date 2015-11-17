@@ -125,7 +125,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	private static final String GROUP_PIRATES_NAME = "pirates";
 	private static final String GROUP_MELEE_ISLAND_NAME = "Mêlée Island";
 	
-	protected static final int NUMBER_OF_ACCOUNTS = 14;
+	protected static final int NUMBER_OF_ACCOUNTS = 16;
 	private static final String ASSOCIATION_GROUP_NAME = "group";
 	
 	private boolean allowDuplicateSearchResults = false;

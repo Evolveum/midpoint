@@ -1092,7 +1092,7 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin
 			focusType.getParentOrg().addAll(orgsToAdd);
 		}
 
-		handleAssignmentForAdd(focus, UserType.F_ASSIGNMENT, focusType.getAssignment());
+		handleAssignmentForAdd(focus, UserType.F_ASSIGNMENT, assignmentsModel.getObject());
 
 		// PrismObjectDefinition userDef = focus.getDefinition();
 		// PrismContainerDefinition assignmentDef =
@@ -1120,14 +1120,18 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin
 	}
 
 	protected void handleAssignmentForAdd(PrismObject<T> focus, QName containerName,
-			List<AssignmentType> assignmentTypes) throws SchemaException {
+			List<AssignmentEditorDto> assignments) throws SchemaException {
 		PrismObjectDefinition userDef = focus.getDefinition();
 		PrismContainerDefinition assignmentDef = userDef.findContainerDefinition(containerName);
 
 		// handle added assignments
 		// existing user assignments are not relevant -> delete them
-		assignmentTypes.clear();
-		List<AssignmentEditorDto> assignments = getFocusAssignments();
+		PrismContainer<AssignmentType> assignmentContainer = focus.findContainer(containerName);
+		if (assignmentContainer != null && !assignmentContainer.isEmpty()){
+			assignmentContainer.clear();
+		}
+		
+//		List<AssignmentEditorDto> assignments = getFocusAssignments();
 		for (AssignmentEditorDto assDto : assignments) {
 			if (UserDtoStatus.DELETE.equals(assDto.getStatus())) {
 				continue;
@@ -1137,7 +1141,7 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin
 			PrismContainerValue value = assDto.getNewValue();
 			assignment.setupContainerValue(value);
 			value.applyDefinition(assignmentDef, false);
-			assignmentTypes.add(assignment.clone());
+			assignmentContainer.add(assignment.clone().asPrismContainerValue());
 
 			// todo remove this block [lazyman] after model is updated - it has
 			// to remove resource from accountConstruction
@@ -1298,12 +1302,6 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin
 			List<AssignmentEditorDto> assignments, PrismContainerDefinition def) throws SchemaException {
 		ContainerDelta assDelta = new ContainerDelta(new ItemPath(), def.getName(), def, getPrismContext());
 
-		// PrismObject<UserType> user = getFocusWrapper().getObject();
-		// PrismObjectDefinition userDef = user.getDefinition();
-		// PrismContainerDefinition assignmentDef =
-		// userDef.findContainerDefinition(UserType.F_ASSIGNMENT);
-
-		// List<AssignmentEditorDto> assignments = getFocusAssignments();
 		for (AssignmentEditorDto assDto : assignments) {
 			PrismContainerValue newValue = assDto.getNewValue();
 

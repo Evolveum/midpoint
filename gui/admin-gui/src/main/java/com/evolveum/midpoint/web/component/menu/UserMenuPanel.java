@@ -19,6 +19,9 @@ package com.evolveum.midpoint.web.component.menu;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RetrieveOption;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
@@ -28,6 +31,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.BaseSimplePanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.home.PageMyPasswordQuestions;
 import com.evolveum.midpoint.web.page.admin.home.dto.PasswordQuestionsDto;
@@ -37,17 +41,22 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionAnswerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.apache.wicket.RestartResponseAtInterceptPageException;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.resource.AbstractResource;
+import org.apache.wicket.request.resource.ByteArrayResource;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -65,14 +74,26 @@ public class UserMenuPanel extends BaseSimplePanel {
     private static final String ID_EDIT_PROFILE = "editProfile";
     private static final String ID_PASSWORD_QUESTIONS = "passwordQuestions";
     private IModel<PasswordQuestionsDto> passwordQuestionsDtoIModel;
+//    private PrismObject<UserType> userModel;
+    private Model<PrismObject<UserType>> userModel = new Model<PrismObject<UserType>>();
     private static final String DOT_CLASS = UserMenuPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loaduser";
+    private static final String ID_ICON_BOX = "menuIconBox";
+    private static final String ID_PHOTO = "menuPhoto";
+    private static final String ID_ICON = "menuIcon";
+    private static final String ID_PANEL_ICON_BOX = "menuPanelIconBox";
+    private static final String ID_PANEL_PHOTO = "menuPanelPhoto";
+    private static final String ID_PANEL_ICON = "menuPanelIcon";
 
-    private boolean isModelLoaded = false;
+    private boolean isUserModelLoaded = false;
+    private boolean isPasswordModelLoaded = false;
 
     public UserMenuPanel(String id) {
         super(id);
-        if (!isModelLoaded) {
+//        if (!isUserModelLoaded) {
+//            loadModel();
+//        }
+        if (!isPasswordModelLoaded) {
             passwordQuestionsDtoIModel = new LoadableModel<PasswordQuestionsDto>(false) {
 
                 private static final long serialVersionUID = 1L;
@@ -82,11 +103,61 @@ public class UserMenuPanel extends BaseSimplePanel {
                     return loadModel();
                 }
             };
+//            isPasswordModelLoaded = true;
         }
     }
 
     @Override
     protected void initLayout() {
+        WebMarkupContainer iconBox = new WebMarkupContainer(ID_ICON_BOX);
+        add(iconBox);
+
+        Image img = new Image(ID_PHOTO, new AbstractReadOnlyModel<AbstractResource>() {
+
+            @Override
+            public AbstractResource getObject() {
+                byte[] jpegPhoto = userModel.getObject().asObjectable().getJpegPhoto();
+                if(jpegPhoto == null) {
+                    return null;
+                } else {
+                    return new ByteArrayResource("image/jpeg",jpegPhoto);
+                }
+            }
+        });
+        img.add(new VisibleEnableBehaviour(){
+            @Override
+            public boolean isVisible(){
+                byte [] photo = null;
+                if (userModel != null && userModel.getObject() == null){
+                    loadModel();
+                    photo = userModel.getObject().asObjectable().getJpegPhoto();
+                }
+                return userModel == null ? false :
+                        (userModel.getObject() == null ? false : photo != null);
+            }
+        });
+        iconBox.add(img);
+
+        Label icon = new Label(ID_ICON,"");
+        icon.add(new AttributeModifier("class", "fa fa-user"));
+        icon.add(new VisibleEnableBehaviour(){
+            @Override
+            public boolean isVisible(){
+                if (userModel != null && userModel.getObject() == null){
+                    loadModel();
+                }
+                return userModel == null ? false :
+                        (userModel.getObject() == null ? false : userModel.getObject().asObjectable().getJpegPhoto() == null);
+
+
+            }
+        });
+        iconBox.add(icon);
+
+
+
+
+
         Label usernameLink = new Label(ID_USERNAME_LINK, new AbstractReadOnlyModel<String>() {
 
             @Override
@@ -95,6 +166,48 @@ public class UserMenuPanel extends BaseSimplePanel {
             }
         });
         add(usernameLink);
+
+
+        WebMarkupContainer panelIconBox = new WebMarkupContainer(ID_PANEL_ICON_BOX);
+        add(panelIconBox);
+
+        Image panelImg = new Image(ID_PANEL_PHOTO, new AbstractReadOnlyModel<AbstractResource>() {
+
+            @Override
+            public AbstractResource getObject() {
+                byte[] jpegPhoto = userModel.getObject().asObjectable().getJpegPhoto();
+                if(jpegPhoto == null) {
+                    return null;
+                } else {
+                    return new ByteArrayResource("image/jpeg",jpegPhoto);
+                }
+            }
+        });
+        panelImg.add(new VisibleEnableBehaviour(){
+            @Override
+            public boolean isVisible(){
+                if (userModel != null && userModel.getObject() == null){
+                    loadModel();
+                }
+                return userModel == null ? false :
+                        (userModel.getObject() == null ? false : userModel.getObject().asObjectable().getJpegPhoto() != null);
+            }
+        });
+        panelIconBox.add(panelImg);
+
+        Label panelIcon = new Label(ID_PANEL_ICON,"");
+        panelIcon.add(new AttributeModifier("class", "fa fa-user"));
+        panelIcon.add(new VisibleEnableBehaviour(){
+            @Override
+            public boolean isVisible(){
+                if (userModel != null && userModel.getObject() == null){
+                    loadModel();
+                }
+                return userModel == null ? false :
+                        (userModel.getObject() == null ? false : userModel.getObject().asObjectable().getJpegPhoto() == null);
+            }
+        });
+        panelIconBox.add(panelIcon);
 
         Label username = new Label(ID_USERNAME, new AbstractReadOnlyModel<String>() {
 
@@ -123,7 +236,11 @@ public class UserMenuPanel extends BaseSimplePanel {
         };
         add(editPasswordQ);
 
-        if (!isModelLoaded) {
+        if (!isUserModelLoaded) {
+            loadModel();
+
+        }
+        if (!isPasswordModelLoaded ){
             passwordQuestionsDtoIModel = new LoadableModel<PasswordQuestionsDto>(false) {
 
                 private static final long serialVersionUID = 1L;
@@ -133,14 +250,16 @@ public class UserMenuPanel extends BaseSimplePanel {
                     return loadModel();
                 }
             };
+            isPasswordModelLoaded = true;
         }
-        if (passwordQuestionsDtoIModel.getObject() == null ||
+        if (passwordQuestionsDtoIModel != null &&
+                (passwordQuestionsDtoIModel.getObject() == null ||
                 ((passwordQuestionsDtoIModel.getObject().getPwdQuestion() == null
                         || passwordQuestionsDtoIModel.getObject().getPwdQuestion().trim().equals(""))
                         && (passwordQuestionsDtoIModel.getObject().getSecurityAnswers() == null
                         || passwordQuestionsDtoIModel.getObject().getSecurityAnswers().size() == 0)
                         && (passwordQuestionsDtoIModel.getObject().getPwdAnswer() == null
-                        || passwordQuestionsDtoIModel.getObject().getPwdAnswer().trim().equals("")))) {
+                        || passwordQuestionsDtoIModel.getObject().getPwdAnswer().trim().equals(""))))) {
             editPasswordQ.setVisible(false);
         }
     }
@@ -173,7 +292,10 @@ public class UserMenuPanel extends BaseSimplePanel {
             Task task = ((PageBase)getPage()).createSimpleTask(OPERATION_LOAD_USER);
             OperationResult subResult = result.createSubresult(OPERATION_LOAD_USER);
 
-            PrismObject<UserType> user = ((PageBase)getPage()).getModelService().getObject(UserType.class, userOid, null, task, subResult);
+            Collection options = SelectorOptions.createCollection(UserType.F_JPEG_PHOTO,
+                    GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+            PrismObject<UserType> user = ((PageBase)getPage()).getModelService().getObject(UserType.class, userOid, options, task, subResult);
+            userModel.setObject(user);
 
             dto.setSecurityAnswers(createUsersSecurityQuestionsList(user));
 
@@ -185,7 +307,7 @@ public class UserMenuPanel extends BaseSimplePanel {
 
         } finally {
             result.recomputeStatus();
-            isModelLoaded = true;
+            isUserModelLoaded = true;
         }
         return dto;
     }

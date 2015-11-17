@@ -158,4 +158,8 @@ public class PageResourceWizard extends PageAdminResources {
         wizard.setOutputMarkupId(true);
         add(wizard);
     }
+
+    public boolean isNewResource() {
+        return isNewResource;
+    }
 }
