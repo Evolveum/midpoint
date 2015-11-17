@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.repo.cache;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -186,7 +187,12 @@ public class RepositoryCache implements RepositoryService {
 		}
 		return objects;
 	}
-	
+
+	@Override
+	public <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
+		return repository.searchContainers(type, query, options, parentResult);
+	}
+
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.repo.api.RepositoryService#searchObjectsIterative(java.lang.Class, com.evolveum.midpoint.prism.query.ObjectQuery, com.evolveum.midpoint.schema.ResultHandler, com.evolveum.midpoint.schema.result.OperationResult)
 	 */

@@ -36,6 +36,7 @@ import java.util.Properties;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 
@@ -1066,7 +1067,55 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
-    private <T extends ObjectType> void logSearchInputParameters(Class<T> type, ObjectQuery query, boolean iterative, Boolean strictlySequential) {
+    @Override
+    public <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query,
+                                                                          Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
+            throws SchemaException {
+        Validate.notNull(type, "Object type must not be null.");
+        Validate.notNull(parentResult, "Operation result must not be null.");
+
+        logSearchInputParameters(type, query, false, null);
+
+        OperationResult result = parentResult.createSubresult(SEARCH_CONTAINERS);
+        result.addParam("type", type.getName());
+        result.addParam("query", query);
+
+        if (query != null) {
+            ObjectFilter filter = query.getFilter();
+            filter = ObjectQueryUtil.simplify(filter);
+            if (filter instanceof NoneFilter) {
+                result.recordSuccess();
+                return new SearchResultList(new ArrayList<T>(0));
+                //shouldn't be this in ObjectQueryUtil.simplify?
+            } else if (filter instanceof AllFilter) {
+                query = query.cloneEmpty();
+                query.setFilter(null);
+            } else {
+                query = query.cloneEmpty();
+                query.setFilter(filter);
+            }
+        }
+
+        SqlPerformanceMonitor pm = getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart("searchContainers");
+
+        final String operation = "searching";
+        int attempt = 1;
+        try {
+            while (true) {
+                try {
+                    return searchContainersAttempt(type, query, options, result);
+                } catch (RuntimeException ex) {
+                    attempt = logOperationAttempt(null, operation, attempt, ex, result);
+                    pm.registerOperationNewTrial(opHandle, attempt);
+                }
+            }
+        } finally {
+            pm.registerOperationFinish(opHandle, attempt);
+        }
+    }
+
+    private <T> void logSearchInputParameters(Class<T> type, ObjectQuery query, boolean iterative, Boolean strictlySequential) {
         ObjectPaging paging = query != null ? query.getPaging() : null;
         LOGGER.debug("Searching objects of type '{}', query (on trace level), offset {}, count {}, iterative {}, strictlySequential {}.",
                 new Object[]{type.getSimpleName(), (paging != null ? paging.getOffset() : "undefined"),
@@ -1115,6 +1164,35 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 
         return new SearchResultList<PrismObject<T>>(list);
+    }
+
+    private <T extends Containerable> SearchResultList<T> searchContainersAttempt(Class<T> type, ObjectQuery query,
+                                                                                  Collection<SelectorOptions<GetOperationOptions>> options,
+                                                                                  OperationResult result) throws SchemaException {
+        LOGGER_PERFORMANCE.debug("> search containers {}", new Object[]{type.getSimpleName()});
+        List<T> list = new ArrayList<>();
+        Session session = null;
+        try {
+            session = beginReadOnlyTransaction();
+
+//            RQuery rQuery = engine.interpret(query, type, options, false, session);
+//
+//            List<GetObjectResult> objects = rQuery.list();
+//            LOGGER.trace("Found {} objects, translating to JAXB.", new Object[]{(objects != null ? objects.size() : 0)});
+//
+//            for (GetObjectResult object : objects) {
+//                PrismObject<T> prismObject = updateLoadedObject(object, type, options, session);
+//                list.add(prismObject);
+//            }
+
+            session.getTransaction().commit();
+        } catch (/*QueryException | */RuntimeException ex) {
+            handleGeneralException(ex, session, result);
+        } finally {
+            cleanupSessionAndResult(session, result);
+        }
+
+        return new SearchResultList<T>(list);
     }
 
     /**

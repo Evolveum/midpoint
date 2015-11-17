@@ -2010,7 +2010,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-
+    <xsd:element name="focus" type="tns:FocusType"/>
 	    
     <xsd:complexType name="UserType">
         <xsd:annotation>
@@ -7136,7 +7136,8 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    
+    <xsd:element name="abstractRole" type="tns:AbstractRoleType"/>
+
     <xsd:complexType name="AuthorizationType">
         <xsd:annotation>
             <xsd:documentation>

@@ -24,7 +24,9 @@ package com.evolveum.midpoint.repo.sql.data.common.other;
  */
 public enum RCReferenceOwner {
 
-    CREATE_APPROVER,
+    CREATE_APPROVER,        // 0
 
-    MODIFY_APPROVER;
+    MODIFY_APPROVER,        // 1
+
+    CASE_REVIEWER;          // 2
 }

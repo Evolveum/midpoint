@@ -20,6 +20,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
@@ -137,6 +138,7 @@ public interface RepositoryService {
     @Deprecated
     String RELEASE_TASK = CLASS_NAME_WITH_DOT + "releaseTask";
     String SEARCH_OBJECTS = CLASS_NAME_WITH_DOT + "searchObjects";
+	String SEARCH_CONTAINERS = CLASS_NAME_WITH_DOT + "searchContainers";
     String LIST_RESOURCE_OBJECT_SHADOWS = CLASS_NAME_WITH_DOT + "listResourceObjectShadows";
     String MODIFY_OBJECT = CLASS_NAME_WITH_DOT + "modifyObject";
     String COUNT_OBJECTS = CLASS_NAME_WITH_DOT + "countObjects";
@@ -166,9 +168,14 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, etc.
 	 */
-	<T extends ObjectType> PrismObject<T> getObject(Class<T> type,String oid, Collection<SelectorOptions<GetOperationOptions>> options,
+	<T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options,
 			OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException;
+
+//	<T extends ObjectType> PrismObject<T> getContainerValue(Class<T> type, String oid, long id,
+//															Collection<SelectorOptions<GetOperationOptions>> options,
+//															OperationResult parentResult)
+//			throws ObjectNotFoundException, SchemaException;
 
 	/**
 	 * Returns object version for provided OID.
@@ -267,6 +274,22 @@ public interface RepositoryService {
 
 	<T extends ObjectType> SearchResultList<PrismObject<T>>  searchObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
+			throws SchemaException;
+
+	/**
+	 * Search for "sub-object" structures, i.e. containers.
+	 * Currently, only one type of search is available: certification case search.
+	 *
+	 * @param type
+	 * @param query
+	 * @param options
+	 * @param parentResult
+	 * @param <T>
+	 * @return
+	 * @throws SchemaException
+	 */
+	<T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query,
+																   Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
 			throws SchemaException;
 
 	/**

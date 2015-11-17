@@ -214,6 +214,7 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue> {
 			if (filterRV.getOid().equals(v.getOid())) {
 				return true;
 			}
+			// TODO compare relation and target type as well (see repo implementation in ReferenceRestriction)
 		}
 		return false;
 	}

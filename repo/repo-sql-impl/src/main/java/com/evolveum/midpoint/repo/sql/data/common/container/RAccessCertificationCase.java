@@ -18,22 +18,12 @@ package com.evolveum.midpoint.repo.sql.data.common.container;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.parser.XNodeProcessorEvaluationMode;
-import com.evolveum.midpoint.repo.sql.data.common.Metadata;
 import com.evolveum.midpoint.repo.sql.data.common.RAccessCertificationCampaign;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
-import com.evolveum.midpoint.repo.sql.data.common.any.RAssignmentExtension;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedNamedReference;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
-import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
-import com.evolveum.midpoint.repo.sql.data.common.other.RLookupTableRow;
-import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
-import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
+import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
-import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -41,7 +31,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
@@ -49,30 +38,20 @@ import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.Column;
-import javax.persistence.ConstraintMode;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
-import javax.persistence.ForeignKey;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinColumns;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.MapsId;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import javax.persistence.Transient;
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -100,6 +79,7 @@ public class RAccessCertificationCase implements Container {
     private String ownerOid;
     private Integer id;
 
+    private Set<RCertCaseReference> reviewerRef;
     private REmbeddedNamedReference objectRef;
     private REmbeddedNamedReference targetRef;
 
@@ -133,6 +113,21 @@ public class RAccessCertificationCase implements Container {
     @Column(name = "id")
     public Integer getId() {
         return id;
+    }
+
+    @Where(clause = RCertCaseReference.REFERENCE_TYPE + "= 3")
+    @OneToMany(mappedBy = "owner", orphanRemoval = true)
+    @org.hibernate.annotations.ForeignKey(name = "none")
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<RCertCaseReference> getReviewerRef() {
+        if (reviewerRef == null) {
+            reviewerRef = new HashSet<>();
+        }
+        return reviewerRef;
+    }
+
+    public void setReviewerRef(Set<RCertCaseReference> reviewerRef) {
+        this.reviewerRef = reviewerRef;
     }
 
     @Embedded
@@ -181,6 +176,7 @@ public class RAccessCertificationCase implements Container {
 
         RAccessCertificationCase that = (RAccessCertificationCase) o;
 
+        if (reviewerRef != null ? !reviewerRef.equals(that.reviewerRef) : that.reviewerRef != null) return false;
         if (targetRef != null ? !targetRef.equals(that.targetRef) : that.targetRef != null) return false;
         if (objectRef != null ? !objectRef.equals(that.objectRef) : that.objectRef != null) return false;
         if (fullObject != null ? !Arrays.equals(fullObject, that.fullObject) : that.fullObject != null) return false;
@@ -202,10 +198,12 @@ public class RAccessCertificationCase implements Container {
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
         repo.setOwnerOid(parent.getOid());
-        //repo.setId(RUtil.toInteger(jaxb.getId()));
+        repo.setId(RUtil.toInteger(jaxb.getId()));
 
         repo.setTargetRef(RUtil.jaxbRefToEmbeddedNamedRepoRef(jaxb.getTargetRef(), prismContext));
         repo.setTargetRef(RUtil.jaxbRefToEmbeddedNamedRepoRef(jaxb.getObjectRef(), prismContext));
+        repo.getReviewerRef().addAll(RCertCaseReference.safeListReferenceToSet(
+                jaxb.getReviewerRef(), prismContext, repo, RCReferenceOwner.CASE_REVIEWER));
     }
 
     @Override
@@ -246,7 +244,8 @@ public class RAccessCertificationCase implements Container {
         rCase.setId(RUtil.toInteger(case1.getId()));
         rCase.setObjectRef(RUtil.jaxbRefToEmbeddedNamedRepoRef(case1.getObjectRef(), prismContext));
         rCase.setTargetRef(RUtil.jaxbRefToEmbeddedNamedRepoRef(case1.getTargetRef(), prismContext));
-
+        rCase.getReviewerRef().addAll(RCertCaseReference.safeListReferenceToSet(
+                case1.getReviewerRef(), prismContext, rCase, RCReferenceOwner.CASE_REVIEWER));
         String xml;
         try {
             xml = prismContext.serializeContainerValueToString(case1.asPrismContainerValue(), new QName("value"), PrismContext.LANG_XML);
