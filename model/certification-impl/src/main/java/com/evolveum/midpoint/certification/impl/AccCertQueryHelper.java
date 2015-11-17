@@ -222,16 +222,16 @@ public class AccCertQueryHelper {
      * The requirement is that object names were fetched as well (resolveNames option)
      *
      */
-    private Comparator<AccessCertificationCaseType> createComparator(QName orderBy, OrderDirection direction) {
-        if (QNameUtil.match(orderBy, AccessCertificationCaseType.F_OBJECT_REF)) {
+    private Comparator<AccessCertificationCaseType> createComparator(ItemPath orderBy, OrderDirection direction) {
+        if (new ItemPath(AccessCertificationCaseType.F_OBJECT_REF).equivalent(orderBy)) {
             return createObjectNameComparator(direction);
-        } else if (QNameUtil.match(orderBy, AccessCertificationCaseType.F_TARGET_REF)) {
+        } else if (new ItemPath(AccessCertificationCaseType.F_TARGET_REF).equivalent(orderBy)) {
             return createTargetNameComparator(direction);
-        } else if (QNameUtil.match(orderBy, AccessCertificationCaseType.F_CAMPAIGN_REF)) {
+        } else if (new ItemPath(AccessCertificationCaseType.F_CAMPAIGN_REF).equivalent(orderBy)) {
             return createCampaignNameComparator(direction);
-        } else if (QNameUtil.match(orderBy, AccessCertificationCaseType.F_REVIEW_REQUESTED_TIMESTAMP)) {
+        } else if (new ItemPath(AccessCertificationCaseType.F_REVIEW_REQUESTED_TIMESTAMP).equivalent(orderBy)) {
             return createReviewRequestedComparator(direction);
-        } else if (QNameUtil.match(orderBy, AccessCertificationCaseType.F_REVIEW_DEADLINE)) {
+        } else if (new ItemPath(AccessCertificationCaseType.F_REVIEW_DEADLINE).equivalent(orderBy)) {
             return createReviewDeadlineComparator(direction);
         } else {
             LOGGER.warn("Unsupported sorting attribute {}. Results will not be sorted.", orderBy);

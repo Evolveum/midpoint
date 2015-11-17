@@ -40,6 +40,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.repo.sql.data.common.RAccessCertificationCampaign;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationCase;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
@@ -1335,7 +1336,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     private <T extends ObjectType> void updateLoadedLookupTable(PrismObject<T> object,
                                                                 Collection<SelectorOptions<GetOperationOptions>> options,
-                                                                Session session) {
+                                                                Session session) throws SchemaException {
         if (!SelectorOptions.hasToLoadPath(LookupTableType.F_ROW, options)) {
             return;
         }
@@ -1355,8 +1356,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 criteria.setMaxResults(paging.getMaxSize());
             }
 
-            if (paging.getDirection() != null && paging.getOrderBy() != null) {
-                String orderBy = paging.getOrderBy().getLocalPart();
+            ItemPath orderByPath = paging.getOrderBy();
+            if (paging.getDirection() != null && orderByPath != null && !orderByPath.isEmpty()) {
+                if (orderByPath.size() > 1 || !(orderByPath.first() instanceof NameItemPathSegment)) {
+                    throw new SchemaException("OrderBy has to consist of just one naming segment");
+                }
+                String orderBy = ((NameItemPathSegment) (orderByPath.first())).getName().getLocalPart();
                 switch (paging.getDirection()) {
                     case ASCENDING:
                         criteria.addOrder(Order.asc(orderBy));

@@ -20,6 +20,7 @@ import java.io.Serializable;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 
@@ -27,7 +28,7 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 	
 	private Integer offset;
 	private Integer maxSize;
-	private QName orderBy;
+	private ItemPath orderBy;
 	private OrderDirection direction;
 	private String cookie;
 	
@@ -39,8 +40,8 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 		this.offset = offset;
 		this.maxSize = maxSize;
 	}
-	
-	ObjectPaging(Integer offset, Integer maxSize, QName orderBy, OrderDirection direction){
+
+	ObjectPaging(Integer offset, Integer maxSize, ItemPath orderBy, OrderDirection direction){
 		this.offset = offset;
 		this.maxSize = maxSize;
 		this.orderBy = orderBy;
@@ -52,11 +53,15 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 	}
 	
 	public static ObjectPaging createPaging(Integer offset, Integer maxSize, QName orderBy, OrderDirection direction){
+		return new ObjectPaging(offset, maxSize, new ItemPath(orderBy), direction);
+	}
+
+	public static ObjectPaging createPaging(Integer offset, Integer maxSize, ItemPath orderBy, OrderDirection direction){
 		return new ObjectPaging(offset, maxSize, orderBy, direction);
 	}
 	
 	public static ObjectPaging createPaging(Integer offset, Integer maxSize, String orderBy, String namespace, OrderDirection direction){
-		return new ObjectPaging(offset, maxSize, new QName(namespace, orderBy), direction);
+		return createPaging(offset, maxSize, new QName(namespace, orderBy), direction);
 	}
 	
 	public static ObjectPaging createEmptyPaging(){
@@ -78,11 +83,15 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 		this.offset = offset;
 	}
 	
-	public QName getOrderBy() {
+	public ItemPath getOrderBy() {
 		return orderBy;
 	}
 	
 	public void setOrderBy(QName orderBy) {
+		this.orderBy = new ItemPath(orderBy);
+	}
+
+	public void setOrderBy(ItemPath orderBy) {
 		this.orderBy = orderBy;
 	}
 	
@@ -195,7 +204,7 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 		}
 		if (getOrderBy() != null){
 			sb.append("BY: ");
-			sb.append(getOrderBy().getLocalPart());
+			sb.append(getOrderBy());
 			sb.append(", ");
 		}
 		if (getDirection() != null){
