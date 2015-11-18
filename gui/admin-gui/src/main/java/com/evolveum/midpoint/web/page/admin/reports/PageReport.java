@@ -32,6 +32,7 @@ import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.message.OpResult;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 import com.evolveum.midpoint.web.page.admin.reports.component.AceEditorPanel;
 import com.evolveum.midpoint.web.page.admin.reports.component.JasperReportConfigurationPanel;
@@ -215,17 +216,24 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
                 OperationResult result = new OperationResult(OPERATION_VALIDATE_REPORT);
                 Holder<PrismObject<ReportType>> reportHolder = new Holder<>(null);
 
+                OpResult opResult = null;
                 try {
                     validateObject(value, reportHolder, true, result);
 
                     if(!result.isAcceptable()){
                         result.recordFatalError("Could not validate object", result.getCause());
-                        validatable.error(new RawValidationError(new OpResult(result)));
+                        opResult = OpResult.getOpResult((PageBase)getPage(),result);
+                        validatable.error(new RawValidationError(opResult));
                     }
                 } catch (Exception e){
                     LOGGER.error("Validation problem occured." + e.getMessage());
                     result.recordFatalError("Could not validate object.", e);
-                    validatable.error(new RawValidationError(new OpResult(result)));
+                    try {
+                        opResult = OpResult.getOpResult((PageBase) getPage(), result);
+                        validatable.error(new RawValidationError(opResult));
+                    } catch (Exception ex){
+                        error(ex);
+                    }
                 }
             }
         };

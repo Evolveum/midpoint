@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
@@ -38,7 +39,7 @@ import java.util.Map;
 /**
  * @author lazyman
  */
-public class OpResult extends PageAdmin implements Serializable {
+public class OpResult implements Serializable {
 
     private OperationResultStatus status;
     private String operation;
@@ -51,22 +52,23 @@ public class OpResult extends PageAdmin implements Serializable {
     private int count;
     private String xml;
 
-    public OpResult(OperationResult result) {
+    public static OpResult getOpResult(PageBase page, OperationResult result) throws SchemaException, RuntimeException {
+        OpResult opResult = new OpResult();
         Validate.notNull(result, "Operation result must not be null.");
         Validate.notNull(result.getStatus(), "Operation result status must not be null.");
-        
-        this.message = result.getMessage();
-        this.operation = result.getOperation();
-        this.status = result.getStatus();
-        this.count = result.getCount();
+
+        opResult.message = result.getMessage();
+        opResult.operation = result.getOperation();
+        opResult.status = result.getStatus();
+        opResult.count = result.getCount();
 
         if (result.getCause() != null) {
             Throwable cause = result.getCause();
-            this.exceptionMessage = cause.getMessage();
+            opResult.exceptionMessage = cause.getMessage();
 
             Writer writer = new StringWriter();
             cause.printStackTrace(new PrintWriter(writer));
-            this.exceptionsStackTrace = writer.toString();
+            opResult.exceptionsStackTrace = writer.toString();
         }
 
         if (result.getParams() != null) {
@@ -77,7 +79,7 @@ public class OpResult extends PageAdmin implements Serializable {
                     paramValue = value.toString();
                 }
 
-                getParams().add(new Param(entry.getKey(), paramValue));
+                opResult.getParams().add(new Param(entry.getKey(), paramValue));
             }
         }
         
@@ -89,25 +91,27 @@ public class OpResult extends PageAdmin implements Serializable {
                 	contextValue = value.toString();
                 }
 
-                getContexts().add(new Context(entry.getKey(), contextValue));
+                opResult.getContexts().add(new Context(entry.getKey(), contextValue));
             }
         }
 
         if (result.getSubresults() != null) {
             for (OperationResult subresult : result.getSubresults()) {
-                getSubresults().add(new OpResult(subresult));
+                opResult.getSubresults().add(OpResult.getOpResult(page, subresult));
             }
         }
 
         try {
         	OperationResultType resultType = result.createOperationResultType();
         	ObjectFactory of = new ObjectFactory();
-			xml = getPrismContext().serializeAtomicValue(of.createOperationResult(resultType), PrismContext.LANG_XML);
+			opResult.xml = page.getPrismContext().serializeAtomicValue(of.createOperationResult(resultType), PrismContext.LANG_XML);
 		} catch (SchemaException|RuntimeException ex) {
             String m = "Can't create xml: " + ex;
-			error(m);
-            xml = "<?xml version='1.0'?><message>" + StringEscapeUtils.escapeXml(m) + "</message>";
+//			error(m);
+            opResult.xml = "<?xml version='1.0'?><message>" + StringEscapeUtils.escapeXml(m) + "</message>";
+            throw ex;
         }
+        return opResult;
     }
 
     public List<OpResult> getSubresults() {

@@ -45,6 +45,7 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.image.ContextImage;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -135,8 +136,7 @@ public class UserMenuPanel extends BaseSimplePanel {
         });
         iconBox.add(img);
 
-        Label icon = new Label(ID_ICON,"");
-        icon.add(new AttributeModifier("src", "img/placeholder.png"));
+        ContextImage icon = new ContextImage(ID_ICON, "img/placeholder.png");
         icon.add(new VisibleEnableBehaviour(){
             @Override
             public boolean isVisible(){
@@ -149,10 +149,6 @@ public class UserMenuPanel extends BaseSimplePanel {
             }
         });
         iconBox.add(icon);
-
-
-
-
 
         Label usernameLink = new Label(ID_USERNAME_LINK, new AbstractReadOnlyModel<String>() {
 
@@ -189,8 +185,7 @@ public class UserMenuPanel extends BaseSimplePanel {
         });
         panelIconBox.add(panelImg);
 
-        Label panelIcon = new Label(ID_PANEL_ICON,"");
-        panelIcon.add(new AttributeModifier("src", "img/placeholder.png"));
+        ContextImage panelIcon = new ContextImage(ID_PANEL_ICON,"img/placeholder.png");
         panelIcon.add(new VisibleEnableBehaviour(){
             @Override
             public boolean isVisible(){
@@ -225,7 +220,7 @@ public class UserMenuPanel extends BaseSimplePanel {
                 PageMyPasswordQuestions myPasswordQuestions = new PageMyPasswordQuestions(passwordQuestionsDtoIModel);
                 setResponsePage(myPasswordQuestions);
             }
-            
+
         };
         add(editPasswordQ);
 
