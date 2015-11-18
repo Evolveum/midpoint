@@ -45,6 +45,7 @@ import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertCampaigns;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
+import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinition;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinitions;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
@@ -465,6 +466,7 @@ public abstract class PageBase extends PageTemplate {
         MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.certification.definitions"),
                 PageCertDefinitions.class);
         submenu.add(menu);
+        createFocusPageViewMenu(submenu, "PageAdmin.menu.top.certification.viewDefinition", PageCertDefinition.class);
         menu = new MenuItem(createStringResource("PageAdmin.menu.top.certification.newDefinition"),
                 PageImportObject.class);
         submenu.add(menu);
