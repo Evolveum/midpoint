@@ -323,7 +323,11 @@ public class ItemPath implements Serializable, Cloneable {
         return rv;
     }
 
-    public enum CompareResult {
+	public static boolean isNullOrEmpty(ItemPath itemPath) {
+		return itemPath == null || itemPath.isEmpty();
+	}
+
+	public enum CompareResult {
 		EQUIVALENT,
 		SUPERPATH,
 		SUBPATH,

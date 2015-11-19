@@ -71,6 +71,8 @@ public class RAccessCertificationCase implements Container {
 
     private static final Trace LOGGER = TraceManager.getTrace(RAccessCertificationCase.class);
 
+    public static final String F_OWNER = "owner";
+
     private Boolean trans;
 
     private byte[] fullObject;
@@ -115,7 +117,7 @@ public class RAccessCertificationCase implements Container {
         return id;
     }
 
-    @Where(clause = RCertCaseReference.REFERENCE_TYPE + "= 3")
+    @Where(clause = RCertCaseReference.REFERENCE_TYPE + "= 2")
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @org.hibernate.annotations.ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
