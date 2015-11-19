@@ -61,17 +61,19 @@ public class PersonalInfoPanel extends SimplePanel<PersonalInfoDto> {
     private PersonalInfoDto loadPersonalInfo() {
         UserType user = SecurityUtils.getPrincipalUser().getUser();
         CredentialsType credentials = user.getCredentials();
-        PasswordType password = credentials.getPassword();
-
         PersonalInfoDto dto = new PersonalInfoDto();
-        if (password.getPreviousSuccessfulLogin() != null) {
-            dto.setLastLoginDate(MiscUtil.asDate(password.getPreviousSuccessfulLogin().getTimestamp()));
-            dto.setLastLoginFrom(password.getPreviousSuccessfulLogin().getFrom());
-        }
+        if (credentials != null) {
+            PasswordType password = credentials.getPassword();
 
-        if (password.getLastFailedLogin() != null) {
-            dto.setLastFailDate(MiscUtil.asDate(password.getLastFailedLogin().getTimestamp()));
-            dto.setLastFailFrom(password.getLastFailedLogin().getFrom());
+            if (password.getPreviousSuccessfulLogin() != null) {
+                dto.setLastLoginDate(MiscUtil.asDate(password.getPreviousSuccessfulLogin().getTimestamp()));
+                dto.setLastLoginFrom(password.getPreviousSuccessfulLogin().getFrom());
+            }
+
+            if (password.getLastFailedLogin() != null) {
+                dto.setLastFailDate(MiscUtil.asDate(password.getLastFailedLogin().getTimestamp()));
+                dto.setLastFailFrom(password.getLastFailedLogin().getFrom());
+            }
         }
         if (user.getActivation() != null) {
             //todo fix, this is not password expiration date...
