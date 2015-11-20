@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.repo.sql.query2.matcher;
+package com.evolveum.midpoint.repo.sql.query2.hqm.condition;
 
-import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
-import com.evolveum.midpoint.repo.sql.query2.restriction.ItemRestrictionOperation;
+import org.hibernate.Query;
+
+import java.util.Collection;
 
 /**
- * @author lazyman
+ * @author mederly
  */
-public class DefaultMatcher<T> extends Matcher<T> {
+public class EqualsCondition extends PropertyCondition {
 
-    @Override
-    public Condition match(ItemRestrictionOperation operation, String propertyName, T value, String matcher)
-            throws QueryException {
+    private Object value;
 
-        return basicMatch(operation, propertyName, value, false);
+    public EqualsCondition(String propertyPath, Object value) {
+        super(propertyPath);
+        this.value = value;
     }
 }

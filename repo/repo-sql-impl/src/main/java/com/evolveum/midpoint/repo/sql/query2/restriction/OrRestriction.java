@@ -16,41 +16,24 @@
 
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Disjunction;
-import org.hibernate.criterion.Restrictions;
+import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
+import com.evolveum.midpoint.repo.sql.query2.hqm.condition.OrCondition;
 
 /**
  * @author lazyman
+ * @author mederly
  */
 public class OrRestriction extends NaryLogicalRestriction<OrFilter> {
 
     @Override
-    public boolean canHandle(ObjectFilter filter) {
-        if (!super.canHandle(filter)) {
-            return false;
-        }
-
-        return (filter instanceof OrFilter);
-    }
-
-    @Override
-    public Criterion interpret()
-            throws QueryException {
-
-        validateFilter(filter);
-
-        Disjunction disjunction = Restrictions.disjunction();
+    public Condition interpret() throws QueryException {
+        validateFilter();
+        OrCondition disjunction = new OrCondition();
         updateJunction(filter.getConditions(), disjunction);
-
         return disjunction;
-    }
-
-    @Override
-    public OrRestriction newInstance() {
-        return new OrRestriction();
     }
 }

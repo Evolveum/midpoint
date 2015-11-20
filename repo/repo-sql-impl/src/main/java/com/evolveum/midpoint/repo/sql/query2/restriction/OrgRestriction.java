@@ -19,54 +19,24 @@ package com.evolveum.midpoint.repo.sql.query2.restriction;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.OrgFilter;
-import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
-import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Property;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.criterion.Subqueries;
-import org.hibernate.type.StringType;
-import org.hibernate.type.Type;
-
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
+import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
+import com.evolveum.midpoint.repo.sql.query2.hqm.condition.InCondition;
+import org.hibernate.Query;
 
 /**
  * @author lazyman
  */
 public class OrgRestriction extends Restriction<OrgFilter> {
 
-    private static final String QUERY_PATH = "descendants";
-    private static final ItemPath QUERY_ITEM_PATH = new ItemPath(new QName(RUtil.NS_SQL_REPO, QUERY_PATH));
-
-    private static final String CLOSURE_ALIAS = "closure";
-    private static final String DEPTH = CLOSURE_ALIAS + ".depth";
-
     @Override
-    public boolean canHandle(ObjectFilter filter) {
-        if (filter instanceof OrgFilter) {
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    public Criterion interpret() throws QueryException {
+    public Condition interpret() throws QueryException {
         if (filter.isRoot()) {
-//			Criteria pCriteria = getInterpreter().getCriteria(null);
-            DetachedCriteria dc = DetachedCriteria.forClass(ROrgClosure.class);
-            String[] strings = new String[1];
-            strings[0] = "descendant.oid";
-            Type[] type = new Type[1];
-            type[0] = StringType.INSTANCE;
-            dc.setProjection(Projections.sqlGroupProjection("descendant_oid", "descendant_oid having count(descendant_oid)=1", strings, type));
-//			pCriteria.add(Subqueries.in("this.oid", dc));
-            return Subqueries.propertyIn("oid", dc);
-//			Query rootOrgQuery = session.createQuery("select org from ROrg as org where org.oid in (select descendant.oid from ROrgClosure group by descendant.oid having count(descendant.oid)=1)");
+            // oid in (select descendantOid from ROrgClosure group by descendantOid having count(descendantOid) = 1)
+            return new InCondition(context.getCurrentHqlPropertyPath() + ".oid",
+                    getSession().createQuery("select descendantOid from ROrgClosure group by descendantOid having count(descendantOid) = 1"));
         }
 
         if (filter.getOrgRef() == null) {
@@ -77,30 +47,29 @@ public class OrgRestriction extends Restriction<OrgFilter> {
             throw new QueryException("No oid specified in organization reference " + filter.getOrgRef().debugDump());
         }
 
-        DetachedCriteria detached;
+        String oidQueryText;    // oid in ...
         switch (filter.getScope()) {
             case ONE_LEVEL:
-                detached = DetachedCriteria.forClass(RObjectReference.class, "p");
-                detached.add(Restrictions.eq("referenceType", RReferenceOwner.OBJECT_PARENT_ORG));
-                detached.setProjection(Projections.distinct(Projections.property("p.ownerOid")));
-                detached.add(Restrictions.eq("p.targetOid", filter.getOrgRef().getOid()));
+                oidQueryText =
+                        "select ref.ownerOid " +     // TODO distinct(ref.ownerOid) ? (was in original QueryInterpreter)
+                              "from RObjectReference ref " +
+                           "where " +
+                              "ref.referenceType = " + nameOf(RReferenceOwner.OBJECT_PARENT_ORG) + " and " +
+                              "ref.targetOid = :orgOid";
                 break;
             case SUBTREE:
             default:
-                detached = DetachedCriteria.forClass(RObjectReference.class, "p");
-                detached.add(Restrictions.eq("referenceType", RReferenceOwner.OBJECT_PARENT_ORG));
-                detached.setProjection(Projections.distinct(Projections.property("p.ownerOid")));
-                detached.add(Property.forName("targetOid").in(
-                        DetachedCriteria.forClass(ROrgClosure.class, "cl")
-                                .setProjection(Projections.property("cl.descendantOid"))
-                                .add(Restrictions.eq("cl.ancestorOid", filter.getOrgRef().getOid()))));
+                oidQueryText =
+                        "select ref.ownerOid " +
+                            "from RObjectReference ref " +
+                        "where " +
+                            "ref.referenceType = " + nameOf(RReferenceOwner.OBJECT_PARENT_ORG) + " and " +
+                            "ref.targetOid in (" +
+                                "select descendantOid from ROrgClosure where ancestorOid = :orgOid";
         }
-        String mainAlias = getContext().getAlias(null);
-        return Subqueries.propertyIn(mainAlias + ".oid", detached);
+        Query oidQuery = getSession().createQuery(oidQueryText);
+        oidQuery.setParameter("orgOid", filter.getOrgRef().getOid());
+        return new InCondition(context.getCurrentHqlPropertyPath() + ".oid", oidQuery);
     }
 
-    @Override
-    public OrgRestriction newInstance() {
-        return new OrgRestriction();
-    }
 }

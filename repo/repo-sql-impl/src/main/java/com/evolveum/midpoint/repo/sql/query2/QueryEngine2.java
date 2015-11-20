@@ -21,6 +21,8 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.RQuery;
+import com.evolveum.midpoint.repo.sql.query2.hqm.HibernateQuery;
+import com.evolveum.midpoint.repo.sql.query2.hqm.ProjectionElement;
 import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -49,13 +51,13 @@ public class QueryEngine2 {
                             boolean countingObjects, Session session) throws QueryException {
 
         QueryInterpreter2 interpreter = new QueryInterpreter2(repoConfiguration);
-        Criteria criteria = interpreter.interpret(query, type, options, prismContext, countingObjects, session);
+        HibernateQuery hibernateQuery = interpreter.interpret(query, type, options, prismContext, countingObjects, session);
         if (countingObjects) {
-            criteria.setProjection(Projections.rowCount());
+            hibernateQuery.addProjectionElement(new ProjectionElement("count(*)"));
         } else {
-            criteria.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
+            hibernateQuery.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
         }
 
-        return new RQueryCriteriaImpl(criteria);
+        return new RQueryImpl(hibernateQuery.getAsHql());
     }
 }

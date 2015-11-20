@@ -16,16 +16,14 @@
 
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
-import com.evolveum.midpoint.repo.sql.query2.QueryContext2;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.PropertyDefinition;
+import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.lang.StringUtils;
-import org.hibernate.criterion.Criterion;
+import org.apache.commons.lang.Validate;
 
 /**
  * @author lazyman
@@ -34,50 +32,25 @@ public class PropertyRestriction extends ItemRestriction<ValueFilter> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PropertyRestriction.class);
 
-    @Override
-    public boolean canHandle(ObjectFilter filter) throws QueryException {
-        if (!super.canHandle(filter)) {
-            return false;
-        }
+    PropertyDefinition propertyDefinition;
 
-        ValueFilter valFilter = (ValueFilter) filter;
-        ItemPath fullPath = valFilter.getFullPath();
-
-        PropertyDefinition def = findProperDefinition(fullPath, PropertyDefinition.class);
-        return def != null;
+    public PropertyRestriction(EntityDefinition rootEntityDefinition, String startPropertyPath, EntityDefinition startEntityDefinition, PropertyDefinition propertyDefinition) {
+        super(rootEntityDefinition, startPropertyPath, startEntityDefinition);
+        Validate.notNull(propertyDefinition);
+        this.propertyDefinition = propertyDefinition;
     }
 
     @Override
-    public Criterion interpretInternal(ValueFilter filter)
-            throws QueryException {
-        QueryContext2 context = getContext();
+    public Condition interpretInternal(String hqlPath) throws QueryException {
 
-        ItemPath fullPath = filter.getFullPath();
-        PropertyDefinition def = findProperDefinition(fullPath, PropertyDefinition.class);
-        if (def.isLob()) {
-            throw new QueryException("Can't query based on clob property value '" + def + "'.");
+        if (propertyDefinition.isLob()) {
+            throw new QueryException("Can't query based on clob property value '" + propertyDefinition + "'.");
         }
 
-        String propertyName = def.getJpaName();
-        String alias = context.getAlias(filter.getParentPath());
+        String propertyFullName = hqlPath + "." + propertyDefinition.getJpaName();
+        Object value = getValueFromFilter(filter, propertyDefinition);
+        Condition condition = createCondition(propertyFullName, value, filter);
 
-        StringBuilder sb = new StringBuilder();
-        if (StringUtils.isNotEmpty(alias)) {
-            sb.append(alias);
-            sb.append('.');
-        }
-        sb.append(createPropertyOrReferenceNamePrefix(fullPath));
-        sb.append(propertyName);
-
-        Object value = getValueFromFilter(filter, def);
-
-        String propertyPath = sb.toString();
-        Criterion criterion = createCriterion(propertyPath, value, filter);
-        return addIsNotNullIfNecessary(criterion, propertyPath);
-    }
-
-    @Override
-    public PropertyRestriction newInstance() {
-        return new PropertyRestriction();
+        return addIsNotNullIfNecessary(condition, propertyFullName);
     }
 }

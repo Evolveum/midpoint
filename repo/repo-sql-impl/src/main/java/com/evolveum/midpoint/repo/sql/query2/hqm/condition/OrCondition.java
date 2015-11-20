@@ -14,21 +14,10 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.repo.sql.query2.matcher;
-
-import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
-import com.evolveum.midpoint.repo.sql.query2.restriction.ItemRestrictionOperation;
+package com.evolveum.midpoint.repo.sql.query2.hqm.condition;
 
 /**
- * @author lazyman
+ * @author mederly
  */
-public class DefaultMatcher<T> extends Matcher<T> {
-
-    @Override
-    public Condition match(ItemRestrictionOperation operation, String propertyName, T value, String matcher)
-            throws QueryException {
-
-        return basicMatch(operation, propertyName, value, false);
-    }
+public class OrCondition extends JunctionCondition {
 }

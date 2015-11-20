@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.query2.matcher;
 
 import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query2.restriction.ItemRestrictionOperation;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.MatchMode;
@@ -39,55 +40,55 @@ public abstract class Matcher<T> {
      * @return
      * @throws QueryException
      */
-    public abstract Criterion match(ItemRestrictionOperation operation, String propertyName, T value, String matcher)
+    public abstract Condition match(ItemRestrictionOperation operation, String propertyName, T value, String matcher)
             throws QueryException;
 
-    protected Criterion basicMatch(ItemRestrictionOperation operation, String propertyName, Object value,
+    protected Condition basicMatch(ItemRestrictionOperation operation, String propertyName, Object value,
                                    boolean ignoreCase) throws QueryException {
-        Criterion criterion;
+        Condition condition;
         switch (operation) {
             case EQ:
                 if (value == null) {
-                    criterion = Restrictions.isNull(propertyName);
+                    condition = Condition.isNull(propertyName);
                 } else {
-                    criterion = Restrictions.eq(propertyName, value);
+                    condition = Condition.eq(propertyName, value);
                 }
                 break;
             case GT:
-                criterion = Restrictions.gt(propertyName, value);
+                condition = Condition.gt(propertyName, value);
                 break;
             case GE:
-                criterion = Restrictions.ge(propertyName, value);
+                condition = Condition.ge(propertyName, value);
                 break;
             case LT:
-                criterion = Restrictions.lt(propertyName, value);
+                condition = Condition.lt(propertyName, value);
                 break;
             case LE:
-                criterion = Restrictions.le(propertyName, value);
+                condition = Condition.le(propertyName, value);
                 break;
             case NOT_NULL:
-                criterion = Restrictions.isNotNull(propertyName);
+                condition = Condition.isNotNull(propertyName);
                 break;
             case NULL:
-                criterion = Restrictions.isNull(propertyName);
+                condition = Condition.isNull(propertyName);
                 break;
             case STARTS_WITH:
-                criterion = Restrictions.like(propertyName, (String) value, MatchMode.START);
+                condition = Condition.like(propertyName, (String) value, MatchMode.START);
                 break;
             case ENDS_WITH:
-                criterion = Restrictions.like(propertyName, (String) value, MatchMode.END);
+                condition = Condition.like(propertyName, (String) value, MatchMode.END);
                 break;
             case SUBSTRING:
-                criterion = Restrictions.like(propertyName, (String) value, MatchMode.ANYWHERE);
+                condition = Condition.like(propertyName, (String) value, MatchMode.ANYWHERE);
                 break;
             default:
                 throw new QueryException("Unknown operation '" + operation + "'.");
         }
 
-        if (ignoreCase && (value instanceof String) && (criterion instanceof SimpleExpression)) {
-            criterion = ((SimpleExpression) criterion).ignoreCase();
+        if (ignoreCase && (value instanceof String)) {
+            condition.ignoreCase();
         }
 
-        return criterion;
+        return condition;
     }
 }

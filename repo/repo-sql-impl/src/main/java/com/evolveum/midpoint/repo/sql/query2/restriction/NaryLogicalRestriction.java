@@ -16,17 +16,16 @@
 
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.repo.sql.query2.QueryContext2;
+import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.QueryInterpreter2;
-import com.evolveum.midpoint.repo.sql.query2.QueryContext2;
-import com.evolveum.midpoint.repo.sql.query2.QueryInterpreter2;
+import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
+import com.evolveum.midpoint.repo.sql.query2.hqm.condition.JunctionCondition;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Junction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,15 +38,6 @@ public abstract class NaryLogicalRestriction<T extends NaryLogicalFilter> extend
     private static final Trace LOGGER = TraceManager.getTrace(NaryLogicalRestriction.class);
     private List<Restriction> restrictions;
 
-    @Override
-    public boolean canHandle(ObjectFilter filter) {
-        if (filter instanceof NaryLogicalFilter) {
-            return true;
-        }
-
-        return false;
-    }
-
     public List<Restriction> getRestrictions() {
         if (restrictions == null) {
             restrictions = new ArrayList<>();
@@ -55,7 +45,7 @@ public abstract class NaryLogicalRestriction<T extends NaryLogicalFilter> extend
         return restrictions;
     }
 
-    protected void validateFilter(NaryLogicalFilter filter) throws QueryException {
+    protected void validateFilter() throws QueryException {
         if (filter.getConditions() == null || filter.getConditions().isEmpty()) {
             LOGGER.trace("NaryLogicalFilter filter must have at least two conditions in it. " +
                     "Removing logical filter and processing simple condition.");
@@ -64,17 +54,14 @@ public abstract class NaryLogicalRestriction<T extends NaryLogicalFilter> extend
         }
     }
 
-    protected Junction updateJunction(List<? extends ObjectFilter> conditions, Junction junction)
-            throws QueryException {
+    protected void updateJunction(List<? extends ObjectFilter> subfilters, JunctionCondition junction) throws QueryException {
 
-        QueryContext2 context = getContext();
+        InterpretationContext context = getContext();
         QueryInterpreter2 interpreter = context.getInterpreter();
 
-        for (ObjectFilter condition : conditions) {
-            Criterion criterion = interpreter.interpretFilter(condition, context, this);
-            junction.add(criterion);
+        for (ObjectFilter subfilter : subfilters) {
+            Condition condition = interpreter.interpretFilter(subfilter, context, this);
+            junction.add(condition);
         }
-
-        return junction;
     }
 }

@@ -21,13 +21,17 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
-import com.evolveum.midpoint.repo.sql.query2.QueryContext2;
+import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.query2.InterpretationContext.ProperDefinitionSearchResult;
 import com.evolveum.midpoint.repo.sql.query2.definition.Definition;
+import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.PropertyDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.ReferenceDefinition;
+import com.evolveum.midpoint.repo.sql.query2.hqm.condition.AndCondition;
+import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -46,19 +50,14 @@ import java.util.List;
  */
 public class ReferenceRestriction extends ItemRestriction<RefFilter> {
 
-    @Override
-    public boolean canHandle(ObjectFilter filter) {
-        if (filter instanceof RefFilter) {
-            return true;
-        }
-        return false;
+    public ReferenceRestriction(EntityDefinition rootEntityDefinition, String startPropertyPath, EntityDefinition startEntityDefinition) {
+        super(rootEntityDefinition, startPropertyPath, startEntityDefinition);
     }
 
     // modelled after PropertyRestriction.interpretInternal, with some differences
     @Override
-    public Criterion interpretInternal(RefFilter filter) throws QueryException {
+    public Condition interpretInternal(String hqlPath) throws QueryException {
 
-        // let's check the value (null is not supported yet)
         List<? extends PrismValue> values = filter.getValues();
         if (values != null && values.size() > 1) {
             throw new QueryException("Ref filter '" + filter + "' contain more than one reference value (which is not supported for now).");
@@ -68,43 +67,15 @@ public class ReferenceRestriction extends ItemRestriction<RefFilter> {
             refValue = (PrismReferenceValue) values.get(0);
         }
 
-        QueryContext2 context = getContext();
-
-        ItemPath fullPath = filter.getFullPath();
-        // actually, we cannot look for ReferenceDefinition here, because e.g. linkRef has a CollectionDefinition
-        Definition def = findProperDefinition(fullPath, Definition.class);
-        if (def == null) {
+        InterpretationContext context = getContext();
+        ItemPath fullPath = getFullPath(filter.getPath());
+        ProperDefinitionSearchResult<Definition> defResult = context.findProperDefinition(fullPath, Definition.class);
+        if (defResult == null || defResult.getItemDefinition() == null) {
             throw new QueryException("Definition for " + fullPath + " couldn't be found.");
         }
+        Definition definition = defResult.getItemDefinition();      // actually, we cannot expect ReferenceDefinition here, because e.g. linkRef has a CollectionDefinition
 
-        // ugly hacking, todo refactor!
-        StringBuilder sb = new StringBuilder();
-        if (def instanceof ReferenceDefinition) {
-            ItemPath parentPath = filter.getParentPath();
-            // hack: construction/resourceRef->resourceRef
-            if (QNameUtil.match(ConstructionType.F_RESOURCE_REF, filter.getElementName()) &&
-                    parentPath != null && parentPath.last() instanceof NameItemPathSegment &&
-                    QNameUtil.match(AssignmentType.F_CONSTRUCTION, ((NameItemPathSegment) parentPath.last()).getName())) {
-                parentPath = parentPath.allExceptLast();
-            }
-            String alias = context.getAlias(parentPath);
-            if (StringUtils.isNotEmpty(alias)) {
-                sb.append(alias);
-                sb.append('.');
-            }
-            sb.append(createPropertyOrReferenceNamePrefix(filter.getPath()));          // i'm not sure about this [mederly]
-            String referenceName = def.getJpaName();
-            sb.append(referenceName);
-            sb.append(".");
-        } else {
-            String alias = context.getAlias(filter.getPath());
-            if (StringUtils.isNotEmpty(alias)) {
-                sb.append(alias);
-                sb.append('.');
-            }
-            sb.append(createPropertyOrReferenceNamePrefix(filter.getPath()));          // i'm not sure about this [mederly]
-        }
-        String prefix = sb.toString();
+        String propertyFullNamePrefix = hqlPath + "." + definition.getJpaName() + ".";
 
         String refValueOid = null;
         QName refValueRelation = null;
@@ -114,22 +85,22 @@ public class ReferenceRestriction extends ItemRestriction<RefFilter> {
         	refValueRelation = refValue.getRelation();
         	refValueTargetType = refValue.getTargetType();
         }
-        Conjunction conjunction = Restrictions.conjunction();
-        conjunction.add(handleEqOrNull(prefix + ObjectReference.F_TARGET_OID, refValueOid));
+        AndCondition conjunction = Condition.and();
+        conjunction.add(handleEqOrNull(propertyFullNamePrefix + ObjectReference.F_TARGET_OID, refValueOid));
 
         if (refValueOid != null) {
 	        if (refValueRelation == null) {
 	        	// Return only references without relation
-	        	conjunction.add(Restrictions.eq(prefix + ObjectReference.F_RELATION, RUtil.QNAME_DELIMITER));
+	        	conjunction.add(Condition.eq(propertyFullNamePrefix + ObjectReference.F_RELATION, RUtil.QNAME_DELIMITER));
 	        } else if (refValueRelation.equals(PrismConstants.Q_ANY)) {
 	        	// Return all relations => no restriction
 	        } else {
 	        	// return references with specific relation
-	            conjunction.add(handleEqOrNull(prefix + ObjectReference.F_RELATION, RUtil.qnameToString(refValueRelation)));
+	            conjunction.add(handleEqOrNull(propertyFullNamePrefix + ObjectReference.F_RELATION, RUtil.qnameToString(refValueRelation)));
 	        }
 	
 	        if (refValueTargetType != null) {
-	            conjunction.add(handleEqOrNull(prefix + ObjectReference.F_TYPE,
+	            conjunction.add(handleEqOrNull(propertyFullNamePrefix + ObjectReference.F_TYPE,
 	                    ClassMapper.getHQLTypeForQName(refValueTargetType)));
 	        }
         }
@@ -139,16 +110,12 @@ public class ReferenceRestriction extends ItemRestriction<RefFilter> {
         return conjunction;
     }
 
-    @Override
-    public ReferenceRestriction newInstance() {
-        return new ReferenceRestriction();
-    }
 
-    private Criterion handleEqOrNull(String propertyName, Object value) {
+    private Condition handleEqOrNull(String propertyName, Object value) {
         if (value == null) {
-            return Restrictions.isNull(propertyName);
+            return Condition.isNull(propertyName);
+        } else {
+            return Condition.eq(propertyName, value);
         }
-
-        return Restrictions.eq(propertyName, value);
     }
 }

@@ -16,13 +16,18 @@
 
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
-import com.evolveum.midpoint.repo.sql.query2.QueryContext2;
+import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.QueryInterpreter2;
+import com.evolveum.midpoint.repo.sql.query2.hqm.condition.AndCondition;
+import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
+import com.evolveum.midpoint.repo.sql.query2.hqm.condition.EqualsCondition;
+import com.evolveum.midpoint.repo.sql.query2.hqm.condition.InCondition;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
@@ -38,27 +43,27 @@ import java.util.Set;
 public class TypeRestriction extends Restriction<TypeFilter> {
 
     @Override
-    public Criterion interpret() throws QueryException {
-        String property = getContext().getAlias(null) + "." + RObject.F_OBJECT_TYPE_CLASS;
+    public Condition interpret() throws QueryException {
+        String property = getContext().getCurrentHqlPropertyPath() + "." + RObject.F_OBJECT_TYPE_CLASS;
 
         Set<RObjectType> values = getValues(filter.getType());
 
-        Criterion basedOnType;
+        Condition basedOnType;
         if (values.size() > 1) {
-            basedOnType = Restrictions.in(property, values);
+            basedOnType = new InCondition(property, values);
         } else {
-            basedOnType = Restrictions.eq(property, values.iterator().next());
+            basedOnType = new EqualsCondition(property, values.iterator().next());
         }
 
         if (filter.getFilter() == null) {
             return basedOnType;
         }
 
-        QueryContext2 context = getContext();
+        InterpretationContext context = getContext();
         QueryInterpreter2 interpreter = context.getInterpreter();
-        Criterion basedOnFilter = interpreter.interpretFilter(filter.getFilter(), context, this);
+        Condition basedOnFilter = interpreter.interpretFilter(filter.getFilter(), context, this);
 
-        return Restrictions.and(basedOnType, basedOnFilter);
+        return new AndCondition(basedOnType, basedOnFilter);
     }
 
     private Set<RObjectType> getValues(QName typeQName) {
@@ -83,16 +88,4 @@ public class TypeRestriction extends Restriction<TypeFilter> {
         return set;
     }
 
-    @Override
-    public boolean canHandle(ObjectFilter filter) throws QueryException {
-        if (filter instanceof TypeFilter) {
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    public Restriction newInstance() {
-        return new TypeRestriction();
-    }
 }

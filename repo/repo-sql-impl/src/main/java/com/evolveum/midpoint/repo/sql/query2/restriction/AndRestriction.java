@@ -16,38 +16,26 @@
 
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
-import org.hibernate.criterion.Conjunction;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
+import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
+import com.evolveum.midpoint.repo.sql.query2.hqm.condition.AndCondition;
+import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 
 /**
  * @author lazyman
+ * @author mederly
  */
 public class AndRestriction extends NaryLogicalRestriction<AndFilter> {
 
     @Override
-    public boolean canHandle(ObjectFilter filter) {
-        if (!super.canHandle(filter)) {
-            return false;
-        }
-
-        return (filter instanceof AndFilter);
-    }
-
-    @Override
-    public Criterion interpret() throws QueryException {
-        validateFilter(filter);
-        Conjunction conjunction = Restrictions.conjunction();
+    public Condition interpret() throws QueryException {
+        validateFilter();
+        AndCondition conjunction = new AndCondition();
         updateJunction(filter.getConditions(), conjunction);
-
         return conjunction;
     }
 
-    @Override
-    public AndRestriction newInstance() {
-        return new AndRestriction();
-    }
 }

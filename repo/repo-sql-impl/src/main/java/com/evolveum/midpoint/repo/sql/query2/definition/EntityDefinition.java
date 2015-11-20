@@ -18,7 +18,9 @@ package com.evolveum.midpoint.repo.sql.query2.definition;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.repo.sql.query.restriction.PathTranslation;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
@@ -55,17 +57,15 @@ public class EntityDefinition extends Definition {
 
     public List<Definition> getDefinitions() {
         if (definitions == null) {
-            definitions = new ArrayList<Definition>();
+            definitions = new ArrayList<>();
         }
-
         return Collections.unmodifiableList(definitions);
     }
 
     public void addDefinition(Definition definition) {
         if (definitions == null) {
-            definitions = new ArrayList<Definition>();
+            definitions = new ArrayList<>();
         }
-
         Definition oldDef = findDefinition(definition.getJaxbName(), Definition.class);
         if (oldDef != null) {
             definitions.remove(oldDef);
@@ -112,46 +112,6 @@ public class EntityDefinition extends Definition {
         return "Ent";
     }
 
-    @Override
-    public <D extends Definition> D findDefinition(ItemPath path, Class<D> type) {
-        if (path == null || path.isEmpty()) {
-            if (type.isAssignableFrom(EntityDefinition.class)) {
-                return (D) this;
-            }
-        }
-
-        NameItemPathSegment first = (NameItemPathSegment) path.first();
-        ItemPath tail = path.tail();
-        if (ObjectType.F_METADATA.equals(first.getName())) {
-            //metadata is not an repository entity
-            first  = (NameItemPathSegment) tail.first();
-            tail = tail.tail();
-        } else if (QNameUtil.match(AssignmentType.F_CONSTRUCTION, first.getName()) &&
-                tail != null &&
-                tail.first() instanceof NameItemPathSegment &&
-                QNameUtil.match(ConstructionType.F_RESOURCE_REF, ((NameItemPathSegment) (tail.first())).getName())) {
-            // ugly hack: construction/resourceRef -> resourceRef
-            first = (NameItemPathSegment) tail.first();
-            tail = tail.tail();
-        }
-
-        if (tail.isEmpty()) {
-            return findDefinition(first.getName(), type);
-        } else {
-            Definition def = findDefinition(first.getName(), Definition.class);
-            if (def instanceof CollectionDefinition) {
-                CollectionDefinition collDef = (CollectionDefinition) def;
-                def = collDef.getDefinition();
-            }
-
-            if (def instanceof EntityDefinition) {
-                EntityDefinition nextEntity = (EntityDefinition) def;
-                return nextEntity.findDefinition(tail, type);
-            }
-        }
-
-        return null;
-    }
 
     @Override
     public <D extends Definition> D findDefinition(QName jaxbName, Class<D> type) {
@@ -159,14 +119,9 @@ public class EntityDefinition extends Definition {
         Validate.notNull(type, "Definition type must not be null.");
 
         for (Definition definition : getDefinitions()) {
-        	//TODO: using match instead of strict equals..is this OK for repository??this is the situation, we have "common" namepsace
         	if (!QNameUtil.match(jaxbName, definition.getJaxbName())){
         		continue;
         	}
-//            if (!jaxbName.equals(definition.getJaxbName())) {
-//                continue;
-//            }
-
             if (type.isAssignableFrom(definition.getClass())) {
                 return (D) definition;
             }
@@ -174,4 +129,59 @@ public class EntityDefinition extends Definition {
 
         return null;
     }
+
+    @Override
+    public Definition nextDefinition(Holder<ItemPath> pathHolder) {
+        ItemPath path = pathHolder.getValue();
+
+        for (;;) {
+            if (path == null || path.isEmpty()) {
+                return this;        // in some cases (metadata, construction) this return value might be suspicious, or altogether wrong -- but we don't care
+            }
+
+            NameItemPathSegment first = (NameItemPathSegment) path.first();
+            QName firstName = first.getName();
+
+            path = path.tail();
+            pathHolder.setValue(path);
+
+            // just a lookahead
+            QName secondName = null;
+            if (!path.isEmpty() && path.first() instanceof NameItemPathSegment) {
+                NameItemPathSegment second = ((NameItemPathSegment) (path.first()));
+                secondName = second.getName();
+            }
+
+            // known discrepancies betweeen prism structure and repo representation
+            if (QNameUtil.match(firstName, ObjectType.F_METADATA)) {
+                continue;   // metadata is not an repository entity
+            }
+            if (QNameUtil.match(firstName, AssignmentType.F_CONSTRUCTION) &&
+                    QNameUtil.match(secondName, ConstructionType.F_RESOURCE_REF)) {
+                continue;   // construction/resourceRef -> resourceRef
+            }
+
+            Definition def = findDefinition(firstName, Definition.class);
+            return def;
+        }
+    }
+
+    // beware, path translation can end e.g. in ANY element (extension, attributes)
+    // also, beware of parent links and cross-entity links
+    @Override
+    public JpaDefinitionPath translatePath(ItemPath path) {
+        Holder<ItemPath> pathHolder = new Holder<>(path);
+        JpaDefinitionPath jpaPath = new JpaDefinitionPath();
+
+        Definition currentDefinition = this;
+        for (;;) {
+            ItemPath currentPath = pathHolder.getValue();
+            if (currentPath == null || currentPath.isEmpty()) {
+                return jpaPath;
+            }
+            jpaPath.add(currentDefinition);
+            currentDefinition = nextDefinition(pathHolder);
+        }
+    }
+
 }

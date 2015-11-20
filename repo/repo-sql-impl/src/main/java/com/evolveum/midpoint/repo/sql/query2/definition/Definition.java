@@ -17,7 +17,9 @@
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.sql.query.restriction.PathTranslation;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.Holder;
 
 import javax.xml.namespace.QName;
 
@@ -111,8 +113,46 @@ public abstract class Definition implements DebugDumpable {
      */
     protected abstract String getDebugDumpClassName();
 
-    public <D extends Definition> D findDefinition(ItemPath path, Class<D> type) {
+    /**
+     * Tries to find "next step" in the definition chain for a given ItemPath.
+     * Parts of the path that have no representation in the repository (e.g. metadata,
+     * construction) are simply skipped.
+     *
+     * On return, ItemPath (pathHolder) contains the remainder that is to be resolved.
+     *
+     * @param pathHolder
+     * @param <D>
+     * @return
+     */
+    public Definition nextDefinition(Holder<ItemPath> pathHolder) {
         return null;
+    }
+
+    public JpaDefinitionPath translatePath(ItemPath path) {
+        return null;
+    }
+
+    /**
+     * Resolves the whole ItemPath.
+     * @return
+     */
+    public <D extends Definition> D findDefinition(ItemPath path, Class<D> type) {
+        Holder<ItemPath> pathHolder = new Holder<>(path);
+        Definition currentDefinition = this;
+        for (;;) {
+            ItemPath currentPath = pathHolder.getValue();
+            if (currentPath == null || currentPath.isEmpty()) {
+                if (type.isAssignableFrom(currentDefinition.getClass())) {
+                    return (D) currentDefinition;
+                } else {
+                    return null;
+                }
+            }
+            currentDefinition = currentDefinition.nextDefinition(pathHolder);
+            if (currentDefinition == null) {
+                return null;
+            }
+        }
     }
 
     public <D extends Definition> D findDefinition(QName jaxbName, Class<D> type) {

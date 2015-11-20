@@ -19,420 +19,201 @@ package com.evolveum.midpoint.repo.sql.query2.restriction;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.GreaterFilter;
 import com.evolveum.midpoint.prism.query.LessFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
-import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
+import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
-import com.evolveum.midpoint.repo.sql.query2.QueryContext2;
-import com.evolveum.midpoint.repo.sql.query2.QueryDefinitionRegistry2;
+import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
+import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.QueryInterpreter2;
 import com.evolveum.midpoint.repo.sql.query2.definition.AnyDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.CollectionDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.Definition;
 import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaDefinitionPath;
 import com.evolveum.midpoint.repo.sql.query2.definition.PropertyDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.ReferenceDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.VirtualCollectionDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.VirtualQueryParam;
+import com.evolveum.midpoint.repo.sql.query2.hqm.EntityReference;
+import com.evolveum.midpoint.repo.sql.query2.hqm.HibernateQuery;
+import com.evolveum.midpoint.repo.sql.query2.hqm.JoinSpecification;
+import com.evolveum.midpoint.repo.sql.query2.hqm.condition.AndCondition;
+import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
+import com.evolveum.midpoint.repo.sql.query2.hqm.condition.IsNotNullCondition;
+import com.evolveum.midpoint.repo.sql.query2.hqm.condition.IsNullCondition;
 import com.evolveum.midpoint.repo.sql.query2.matcher.Matcher;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.Validate;
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.sql.JoinType;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
+ * Abstract superclass for all value-related filters. There are two major problems solved:
+ * 1) mapping from ItemPath to HQL property paths
+ * 2) adding joined entities to the query, along with necessary conditions
+ *    (there are two kinds of joins: left outer join and carthesian join)
+ *
+ * After the necessary entity is available, the fine work (creating one or more conditions
+ * to execute the filtering) is done by subclasses of this path in the interpretInternal(..) method.
+ *
  * @author lazyman
+ * @author mederly
  */
 public abstract class ItemRestriction<T extends ValueFilter> extends Restriction<T> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ItemRestriction.class);
 
-    @Override
-    public boolean canHandle(ObjectFilter filter) throws QueryException {
-        Validate.notNull(filter, "Object filter must not be null.");
-        if (!(filter instanceof ValueFilter)) {
-            return false;
-        }
-        return true;
+    /**
+     * Definition of the root entity. Root entity corresponds to the ObjectType class that was requested
+     * by the search operation, or the one that was refined from abstract types (ObjectType, AbstractRoleType, ...)
+     * in the process of restriction construction.
+     */
+    private EntityDefinition rootEntityDefinition;
+
+    /**
+     * Property path that is the base of this restriction.
+     *
+     * For simple cases like UserType: name, UserType: activation/administrativeStatus etc. the root
+     * is the query primary entity alias (e.g. u in "RUser u").
+     *
+     * For "ForValue" filters the startPropertyPath corresponds to the base item pointed to by the filter.
+     * E.g. in "UserType: ForValue (assignment)" it is "a" (provided that there is
+     * "RUser u left join u.assignments a with ..." already defined).
+     *
+     * (Item restriction expects that its root is already defined in the FROM clause.)
+     */
+    private String startPropertyPath;
+
+    /**
+     * Definition of the entity when this restriction starts. It is usually the same as rootEntityDefinition,
+     * but for ForValue children it is the entity pointed to by ForValue restriction. (I.e. assignment in the above
+     * example.)
+     */
+    private EntityDefinition startEntityDefinition;
+
+    public ItemRestriction(EntityDefinition rootEntityDefinition, String startPropertyPath, EntityDefinition startEntityDefinition) {
+        Validate.notNull(rootEntityDefinition);
+        Validate.notNull(startPropertyPath);
+        Validate.notNull(startEntityDefinition);
+        this.rootEntityDefinition = rootEntityDefinition;
+        this.startPropertyPath = startPropertyPath;
+        this.startEntityDefinition = startEntityDefinition;
     }
 
     @Override
-    public Criterion interpret() throws QueryException {
+    public Condition interpret() throws QueryException {
 
     	ItemPath path = filter.getFullPath();
-        if (path != null) {
-            // at first we build criterias with aliases
-            updateQueryContext(path);
+        if (ItemPath.isNullOrEmpty(path)) {
+            throw new QueryException("Null or empty path for ItemRestriction in " + filter.debugDump());
         }
 
-        Criterion main = interpretInternal(filter);
-        Criterion virtual = createVirtualCriterion(path);
-        if (virtual != null) {
-            return Restrictions.and(virtual, main);
-        }
+        String hqlPropertyPath = prepareJoins(path);
 
-        return main;
+        Condition condition = interpretInternal(hqlPropertyPath);
+        return condition;
     }
 
-    public abstract Criterion interpretInternal(T filter) throws QueryException;
+    // returns property path that can be used to access the item values
+    private String prepareJoins(ItemPath relativePath) throws QueryException {
 
-    private TypeRestriction findTypeRestrictionParent(Restriction restriction) {
-        if (restriction == null) {
-            return null;
-        }
+        ItemPath fullPath = getFullPath(relativePath);
+        LOGGER.trace("Updating query context based on path {}; full path is {}", relativePath, fullPath);
 
-        if (restriction instanceof TypeRestriction) {
-            return (TypeRestriction) restriction;
-        }
+        /**
+         * We have to do something like this - examples:
+         * - activation.administrativeStatus -> (nothing, activation is embedded entity)
+         * - assignment.targetRef -> "left join u.assignments a with ..."
+         * - assignment.resourceRef -> "left join u.assignments a with ..."
+         * - organization -> "left join u.organization o"
+         *
+         * Or more complex:
+         * - assignment.modifyApproverRef -> "left join u.assignments a (...) left join a.modifyApproverRef m (...)"
+         * - assignment.target.longs -> "left join u.assignments a (...), RObject o left join o.longs (...)"
+         */
+        JpaDefinitionPath jpaDefinitionPath = startEntityDefinition.translatePath(relativePath);
+        String currentHqlPath = startPropertyPath;
 
-        return findTypeRestrictionParent(restriction.getParent());
-    }
-
-    private Set<Class<? extends ObjectType>> findOtherPossibleParents() {
-        TypeRestriction typeRestriction = findTypeRestrictionParent(this);
-        ObjectTypes typeClass;
-        if (typeRestriction != null) {
-            TypeFilter filter = typeRestriction.getFilter();
-            typeClass = ObjectTypes.getObjectTypeFromTypeQName(filter.getType());
-        } else {
-            typeClass = ObjectTypes.getObjectType(getContext().getType());
-        }
-
-        Set<Class<? extends ObjectType>> classes = new HashSet<>();
-        classes.add(typeClass.getClassDefinition());
-
-        switch (typeClass) {
-            case OBJECT:
-                classes.addAll(ObjectTypes.getAllObjectTypes());
-                break;
-            case FOCUS_TYPE:
-                classes.add(UserType.class);
-            case ABSTRACT_ROLE:
-                classes.add(RoleType.class);
-                classes.add(OrgType.class);
-        }
-
-        LOGGER.trace("Found possible parents {} for entity definitions.", Arrays.toString(classes.toArray()));
-        return classes;
-    }
-
-    protected <T extends Definition> T findProperDefinition(ItemPath path, Class<T> clazz) {
-        QueryContext2 context = getContext();
-        QueryDefinitionRegistry2 registry = QueryDefinitionRegistry2.getInstance();
-        if (!ObjectType.class.equals(context.getType())) {
-            return registry.findDefinition(context.getType(), path, clazz);
-        }
-
-        //we should try to find property in descendant classes
-        for (Class type : findOtherPossibleParents()) {
-            Definition def = registry.findDefinition(type, path, clazz);
-            if (def != null) {
-                return (T) def;
-            }
-        }
-
-        return null;
-    }
-
-    protected EntityDefinition findProperEntityDefinition(ItemPath path) {
-        QueryContext2 context = getContext();
-        QueryDefinitionRegistry2 registry = QueryDefinitionRegistry2.getInstance();
-        if (!ObjectType.class.equals(context.getType())) {
-            return registry.findDefinition(context.getType(), null, EntityDefinition.class);
-        }
-
-        EntityDefinition entity = null;
-        // we should try to find property in descendant classes
-        for (Class type : findOtherPossibleParents()) {
-            entity = registry.findDefinition(type, null, EntityDefinition.class);
-            Definition def = entity.findDefinition(path, Definition.class);
-            if (def != null) {
-                break;
-            }
-        }
-         LOGGER.trace("Found proper entity definition for path {}, {}", path, entity.toString());
-        return entity;
-    }
-
-    //todo reimplement, use DefinitionHandlers or maybe another great concept
-    private void updateQueryContext(ItemPath path) throws QueryException {
-        LOGGER.trace("Updating query context based on path {}", new Object[]{path.toString()});
-        EntityDefinition definition =  findProperEntityDefinition(path);
-
-        List<ItemPathSegment> segments = path.getSegments();
-
-        List<ItemPathSegment> propPathSegments = new ArrayList<ItemPathSegment>();
-        ItemPath propPath;
-        for (ItemPathSegment segment : segments) {
-            QName qname = ItemPath.getName(segment);
-            if (ObjectType.F_METADATA.equals(qname)) {
-                continue;
-            }
-            // ugly hack: construction/resourceRef -> resourceRef
-            if (QNameUtil.match(AssignmentType.F_CONSTRUCTION, qname)) {
-                continue;
-            }
-
-            // create new property path
-            propPathSegments.add(new NameItemPathSegment(qname));
-            propPath = new ItemPath(propPathSegments);
-            // get entity query definition
-            if (QNameUtil.match(qname, ObjectType.F_EXTENSION) || QNameUtil.match(qname, ShadowType.F_ATTRIBUTES)) {
-                break;
-            }
-
-            Definition childDef = definition.findDefinition(qname, Definition.class);
-            if (childDef == null) {
-                throw new QueryException("Definition '" + definition + "' doesn't contain child definition '"
-                        + qname + "'. Please check your path in query, or query entity/attribute mappings. "
-                        + "Full path was '" + path + "'.");
-            }
-
-            //todo change this if instanceof and use DefinitionHandler [lazyman]
-            if (childDef instanceof EntityDefinition) {
-                EntityDefinition entityDef = (EntityDefinition) childDef;
+        for (Definition definition : jpaDefinitionPath.getDefinitions()) {
+            if (definition instanceof EntityDefinition) {
+                EntityDefinition entityDef = (EntityDefinition) definition;
                 if (!entityDef.isEmbedded()) {
-                    //create new criteria
-                    LOGGER.trace("Adding criteria '{}' to context based on sub path\n{}",
-                            new Object[]{entityDef.getJpaName(), propPath.toString()});
-                    addNewCriteriaToContext(propPath, entityDef, entityDef.getJpaName());
-                } else {
-                    // we don't create new sub criteria, just add this new item path to aliases
-                    addPathAliasToContext(propPath);
+                    LOGGER.trace("Adding join for '{}' to context", entityDef.getJpaName());
+                    currentHqlPath = addJoin(entityDef, currentHqlPath);
                 }
-                definition = entityDef;
-            } else if (childDef instanceof AnyDefinition) {
-                LOGGER.trace("Adding criteria '{}' to context based on sub path\n{}",
-                        new Object[]{childDef.getJpaName(), propPath.toString()});
-                addNewCriteriaToContext(propPath, childDef, childDef.getJpaName());
+            } else if (definition instanceof AnyDefinition) {
+                LOGGER.trace("Adding join for '{}' to context", definition.getJpaName());
+                currentHqlPath = addJoin(definition, currentHqlPath);
                 break;
-            } else if (childDef instanceof CollectionDefinition) {
-                LOGGER.trace("Adding criteria '{}' to context based on sub path\n{}",
-                        new Object[]{childDef.getJpaName(), propPath.toString()});
-                addNewCriteriaToContext(propPath, childDef, childDef.getJpaName());
-                Definition def = ((CollectionDefinition) childDef).getDefinition();
-                if (def instanceof EntityDefinition) {
-                    definition = (EntityDefinition) def;
-                }
-            } else if (childDef instanceof PropertyDefinition || childDef instanceof ReferenceDefinition) {
+            } else if (definition instanceof CollectionDefinition) {
+                LOGGER.trace("Adding join for '{}' to context", definition.getJpaName());
+                currentHqlPath = addJoin(definition, currentHqlPath);
+            } else if (definition instanceof PropertyDefinition || definition instanceof ReferenceDefinition) {
                 break;
             } else {
-                //todo throw something here [lazyman]
                 throw new QueryException("Not implemented yet.");
             }
+            // TODO entity crossjoin references (when crossing object boundaries)
         }
+
+        return currentHqlPath;
     }
 
-    /**
-     * This method scans {@link ItemPath} in {@link ValueFilter} and looks for virtual properties, collections
-     * or entities in {@link QueryDefinitionRegistry2}.
-     * <p/>
-     * Virtual definitions offer additional query params, which can be used for filtering - this method updates
-     * criteria based on {@link VirtualQueryParam}. For example assignments and inducements are defined in two
-     * collections in schema ({@link AbstractRoleType}),
-     * but in repository ({@link com.evolveum.midpoint.repo.sql.data.common.RAbstractRole}) they are stored in
-     * single {@link Set}.
-     * <p/>
-     * TODO: implement definition handlers to get rid of these methods with many instanceOf comparisons.
-     *
-     * @param path
-     * @return {@link Criterion} based on {@link VirtualQueryParam}
-     * @throws QueryException
-     */
-    private Criterion createVirtualCriterion(ItemPath path) throws QueryException {
-        LOGGER.trace("Scanning path for virtual definitions to create criteria {}", new Object[]{path.toString()});
-
-        EntityDefinition definition = findProperEntityDefinition(path);
-
-        List<Criterion> criterions = new ArrayList<Criterion>();
-
-        List<ItemPathSegment> segments = path.getSegments();
-        List<ItemPathSegment> propPathSegments = new ArrayList<ItemPathSegment>();
-
-        ItemPath propPath;
-        for (ItemPathSegment segment : segments) {
-            QName qname = ItemPath.getName(segment);
-            if (ObjectType.F_METADATA.equals(qname)) {
-                continue;
+    protected String addJoin(Definition joinedItemDefinition, String currentHqlPath) {
+        HibernateQuery hibernateQuery = context.getHibernateQuery();
+        EntityReference entityReference = hibernateQuery.getPrimaryEntity();                    // TODO other references (in the future)
+        String joinedItemJpaName = joinedItemDefinition.getJpaName();
+        String joinedItemFullPath = currentHqlPath + "." + joinedItemJpaName;
+        String joinedItemAlias = hibernateQuery.createAlias(joinedItemDefinition);
+        Condition condition = null;
+        if (joinedItemDefinition instanceof VirtualCollectionDefinition) {
+            VirtualCollectionDefinition vcd = (VirtualCollectionDefinition) joinedItemDefinition;
+            List<Condition> conditions = new ArrayList<>(vcd.getAdditionalParams().length);
+            for (VirtualQueryParam vqp : vcd.getAdditionalParams()) {
+                // e.g. name = "assignmentOwner", type = RAssignmentOwner.class, value = "ABSTRACT_ROLE"
+                Condition c = Condition.eq(joinedItemAlias + "." + vqp.name(), vqp.value(), vqp.type());
+                conditions.add(c);
             }
-            // ugly hack: construction/resourceRef -> resourceRef
-            if (QNameUtil.match(AssignmentType.F_CONSTRUCTION, qname)) {
-                continue;
-            }
-            // create new property path
-            propPathSegments.add(new NameItemPathSegment(qname));
-            propPath = new ItemPath(propPathSegments);
-
-            if (QNameUtil.match(qname, ObjectType.F_EXTENSION) || QNameUtil.match(qname, ShadowType.F_ATTRIBUTES)) {
-                break;
-            }
-
-            // get entity query definition
-            Definition childDef = definition.findDefinition(qname, Definition.class);
-            if (childDef == null) {
-                throw new QueryException("Definition '" + definition + "' doesn't contain child definition '"
-                        + qname + "'. Please check your path in query, or query entity/attribute mappings. "
-                        + "Full path was '" + path + "'.");
-            }
-
-            //todo change this if instanceof and use DefinitionHandler [lazyman]
-            if (childDef instanceof EntityDefinition) {
-                definition = (EntityDefinition) childDef;
-            } else if (childDef instanceof CollectionDefinition) {
-                CollectionDefinition collection = (CollectionDefinition) childDef;
-                if (childDef instanceof VirtualCollectionDefinition) {
-                    VirtualCollectionDefinition virtual = (VirtualCollectionDefinition) childDef;
-
-                    criterions.add(updateMainCriterionQueryParam(virtual.getAdditionalParams(), propPath));
-                }
-
-                Definition def = collection.getDefinition();
-                if (def instanceof EntityDefinition) {
-                    definition = (EntityDefinition) def;
-                }
-            } else if (childDef instanceof PropertyDefinition || childDef instanceof ReferenceDefinition
-                    || childDef instanceof AnyDefinition) {
-                break;
-            } else {
-                //todo throw something here [lazyman]
-                throw new QueryException("Not implemented yet.");
+            if (conditions.size() > 1) {
+                condition = Condition.and(conditions);
+            } else if (conditions.size() == 1) {
+                condition = conditions.iterator().next();
             }
         }
-
-        return andCriterions(criterions);
+        entityReference.addJoin(new JoinSpecification(joinedItemAlias, joinedItemFullPath, condition));
+        return joinedItemAlias;
     }
 
-    private Criterion andCriterions(List<Criterion> criterions) {
-        switch (criterions.size()) {
-            case 0:
-                return null;
-            case 1:
-                return criterions.get(0);
-            default:
-                return Restrictions.and(criterions.toArray(new Criterion[criterions.size()]));
-        }
+    protected String addJoinAny(String currentHqlPath, String anyAssociationName, QName itemName, RObjectExtensionType ownerType) {
+        HibernateQuery hibernateQuery = context.getHibernateQuery();
+        EntityReference entityReference = hibernateQuery.getPrimaryEntity();                    // TODO other references (in the future)
+        String joinedItemJpaName = anyAssociationName;
+        String joinedItemFullPath = currentHqlPath + "." + joinedItemJpaName;
+        String joinedItemAlias = hibernateQuery.createAlias(joinedItemJpaName, false);
+
+        Condition condition = Condition.and(
+            Condition.eq(joinedItemAlias + ".ownerType", ownerType),
+            Condition.eq(joinedItemAlias + "." + RAnyValue.F_NAME, RUtil.qnameToString(itemName)));
+
+        entityReference.addJoin(new JoinSpecification(joinedItemAlias, joinedItemFullPath, condition));
+        return joinedItemAlias;
     }
 
-    private Criterion updateMainCriterionQueryParam(VirtualQueryParam[] params, ItemPath propPath)
-            throws QueryException {
-        List<Criterion> criterions = new ArrayList<Criterion>();
+    public abstract Condition interpretInternal(String hqlPath) throws QueryException;
 
-        String alias = getContext().getAlias(propPath);
-        for (VirtualQueryParam param : params) {
-            Criterion criterion = Restrictions.eq(alias + "." + param.name(), createQueryParamValue(param, propPath));
-            criterions.add(criterion);
-        }
-
-        return andCriterions(criterions);
-    }
-
-    /**
-     * This method provides transformation from {@link String} value defined in
-     * {@link VirtualQueryParam#value()} to real object. Currently only
-     * to simple types and enum values.
-     *
-     * @param param
-     * @param propPath
-     * @return real value
-     * @throws QueryException
-     */
-    private Object createQueryParamValue(VirtualQueryParam param, ItemPath propPath) throws QueryException {
-        Class type = param.type();
-        String value = param.value();
-
-        try {
-            if (type.isPrimitive()) {
-                return type.getMethod("valueOf", new Class[]{String.class}).invoke(null, new Object[]{value});
-            }
-
-            if (type.isEnum()) {
-                return Enum.valueOf(type, value);
-            }
-        } catch (Exception ex) {
-            throw new QueryException("Couldn't transform virtual query parameter '"
-                    + param.name() + "' from String to '" + type + "', reason: " + ex.getMessage(), ex);
-        }
-
-        throw new QueryException("Couldn't transform virtual query parameter '"
-                + param.name() + "' from String to '" + type + "', it's not yet implemented.");
-    }
-
-    private void addPathAliasToContext(ItemPath path) {
-        ItemPath lastPropPath = path.allExceptLast();
-        if (ItemPath.EMPTY_PATH.equivalent(lastPropPath)) {
-            lastPropPath = null;
-        }
-
-        String alias = getContext().getAlias(lastPropPath);
-        getContext().addAlias(path, alias);
-    }
-
-    protected void addNewCriteriaToContext(ItemPath path, Definition def, String realName) {
-        ItemPath lastPropPath = path.allExceptLast();
-        if (ItemPath.EMPTY_PATH.equivalent(lastPropPath)) {
-            lastPropPath = null;
-        }
-
-        // Virtual path is defined for example for virtual collections. {c:role/c:assignment} and {c:role/c:iducement}
-        // must use the same criteria, therefore {c:role/assigmnents} is also path under which is this criteria saved.
-        final ItemPath virtualPath = lastPropPath != null ? new ItemPath(lastPropPath, new QName("", realName)) :
-                new ItemPath(new QName("", realName));
-
-        Criteria existing = getContext().getCriteria(path);
-        if (existing != null) {
-            return;
-        }
-
-        // If there is already criteria on virtual path, only add new path to aliases and criterias.
-        Criteria virtualCriteria = getContext().getCriteria(virtualPath);
-        if (virtualCriteria != null) {
-            getContext().addAlias(path, virtualCriteria.getAlias());
-            getContext().addCriteria(path, virtualCriteria);
-            return;
-        }
-
-        // get parent criteria
-        Criteria pCriteria = getContext().getCriteria(lastPropPath);
-
-        // create new criteria and alias for this relationship
-        String alias = getContext().addAlias(path, def);
-        Criteria criteria = pCriteria.createCriteria(realName, alias, JoinType.LEFT_OUTER_JOIN);
-        getContext().addCriteria(path, criteria);
-        //also add virtual path to criteria map
-        getContext().addCriteria(virtualPath, criteria);
-    }
-
-    protected Criterion createCriterion(String propertyName, Object value, ValueFilter filter) throws QueryException {
+    protected Condition createCondition(String propertyName, Object value, ValueFilter filter) throws QueryException {
         ItemRestrictionOperation operation;
         if (filter instanceof EqualFilter) {
             operation = ItemRestrictionOperation.EQ;
@@ -455,7 +236,7 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
             throw new QueryException("Can't translate filter '" + filter + "' to operation.");
         }
 
-        QueryContext2 context = getContext();
+        InterpretationContext context = getContext();
         QueryInterpreter2 interpreter = context.getInterpreter();
         Matcher matcher = interpreter.findMatcher(value);
 
@@ -465,41 +246,6 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
         }
         
         return matcher.match(operation, propertyName, value, matchingRule);
-    }
-
-    protected List<Definition> createDefinitionPath(ItemPath path) throws QueryException {
-        List<Definition> definitions = new ArrayList<Definition>();
-        if (path == null) {
-            return definitions;
-        }
-
-        EntityDefinition lastDefinition = findProperEntityDefinition(path);
-        for (ItemPathSegment segment : path.getSegments()) {
-            if (lastDefinition == null) {
-                break;
-            }
-
-            if (!(segment instanceof NameItemPathSegment)) {
-                continue;
-            }
-
-            NameItemPathSegment named = (NameItemPathSegment) segment;
-            Definition def = lastDefinition.findDefinition(named.getName(), Definition.class);
-            definitions.add(def);
-
-            if (def instanceof EntityDefinition) {
-                lastDefinition = (EntityDefinition) def;
-            } else if (def instanceof CollectionDefinition) {           // todo this seems logical but is it correct? [mederly]
-                def = ((CollectionDefinition) def).getDefinition();
-                if (def instanceof EntityDefinition) {
-                    lastDefinition = ((EntityDefinition) def);
-                } else {
-                    lastDefinition = null;
-                }
-            }
-        }
-
-        return definitions;
     }
 
     protected Object getValue(List<? extends PrismValue> values) {
@@ -575,47 +321,28 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
                 + schemaValue.getClass() + "'.");
     }
 
-    protected String createPropertyOrReferenceNamePrefix(ItemPath path) throws QueryException {
-        StringBuilder sb = new StringBuilder();
 
-        EntityDefinition definition = findProperEntityDefinition(path);
 
-        List<ItemPathSegment> segments = path.getSegments();
-        for (ItemPathSegment segment : segments) {
-            QName qname = ItemPath.getName(segment);
-            if (ObjectType.F_METADATA.equals(qname)) {          // todo not QNameUtil.match? [mederly]
-                continue;
-            }
-            if (QNameUtil.match(AssignmentType.F_CONSTRUCTION, qname)) {     // ugly hack: construction/resourceRef -> resourceRef
-                continue;
-            }
-
-            // get entity query definition
-            Definition childDef = definition.findDefinition(qname, Definition.class);
-
-            //todo change this if instanceof and use DefinitionHandler [lazyman]
-            if (childDef instanceof EntityDefinition) {
-                EntityDefinition entityDef = (EntityDefinition) childDef;
-                if (entityDef.isEmbedded()) {
-                    // we don't create new sub criteria, just add dot with jpaName
-                    sb.append(entityDef.getJpaName());
-                    sb.append('.');
-                }
-                definition = entityDef;
-            } else if (childDef instanceof CollectionDefinition) {
-                Definition def = ((CollectionDefinition) childDef).getDefinition();
-                if (def instanceof EntityDefinition) {
-                    definition = (EntityDefinition) def;
-                }
-            } else if (childDef instanceof PropertyDefinition || childDef instanceof ReferenceDefinition) {
-                break;
-            } else {
-                throw new QueryException("Not implemented yet. Create property name prefix for segment '"
-                        + segment + "', path '" + path + "'.");
-            }
+    /**
+     * Filter of type NOT(PROPERTY=VALUE) causes problems when there are entities with PROPERTY set to NULL.
+     *
+     * Such a filter has to be treated like
+     *
+     *      NOT (PROPERTY=VALUE & PROPERTY IS NOT NULL)
+     *
+     * TODO implement for restrictions other than PropertyRestriction.
+     */
+    protected Condition addIsNotNullIfNecessary(Condition condition, String propertyPath) {
+        if (condition instanceof IsNullCondition || condition instanceof IsNotNullCondition) {
+            return condition;
         }
-
-        return sb.toString();
+        if (!isNegated()) {
+            return condition;
+        }
+        AndCondition conjunction = new AndCondition();
+        conjunction.add(condition);
+        conjunction.add(new IsNotNullCondition(propertyPath));
+        return conjunction;
     }
 
 }

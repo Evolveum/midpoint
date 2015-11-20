@@ -16,7 +16,9 @@
 
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.Holder;
 
 import javax.xml.namespace.QName;
 
@@ -37,6 +39,11 @@ public class CollectionDefinition extends Definition {
 
     void setDefinition(Definition definition) {
         this.definition = definition;
+    }
+
+    @Override
+    public Definition nextDefinition(Holder<ItemPath> pathHolder) {
+        return definition;
     }
 
     @Override

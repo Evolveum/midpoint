@@ -18,57 +18,41 @@ package com.evolveum.midpoint.repo.sql.query2.restriction;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
-import com.evolveum.midpoint.repo.sql.query2.QueryContext2;
+import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.definition.CollectionDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.PropertyDefinition;
-import org.hibernate.criterion.Criterion;
+import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
+import org.apache.commons.lang.Validate;
 
 /**
  * @author lazyman
  */
 public class CollectionRestriction extends ItemRestriction<ValueFilter> {
 
-    @Override
-    public boolean canHandle(ObjectFilter filter) throws QueryException {
-        if (!super.canHandle(filter)) {
-            return false;
-        }
+    private CollectionDefinition collectionDefinition;
 
-        ValueFilter valFilter = (ValueFilter) filter;
-        ItemPath fullPath = valFilter.getFullPath();
-
-        CollectionDefinition def = findProperDefinition(fullPath, CollectionDefinition.class);
-        if (def == null) {
-            return false;
-        }
-
-        return def.getDefinition() instanceof PropertyDefinition;
+    public CollectionRestriction(EntityDefinition rootEntityDefinition, String alias, CollectionDefinition collectionDefinition) {
+        super(rootEntityDefinition, alias, rootEntityDefinition);
+        Validate.notNull(collectionDefinition);
+        this.collectionDefinition = collectionDefinition;
     }
 
+
     @Override
-    public Criterion interpretInternal(ValueFilter filter) throws QueryException {
-        ItemPath fullPath = filter.getFullPath();
-        QueryContext2 context = getContext();
-        CollectionDefinition def = findProperDefinition(fullPath, CollectionDefinition.class);
-
-        String alias = context.getAlias(fullPath);
-        Object value = getValueFromFilter(filter, (PropertyDefinition) def.getDefinition());
-
-        // TODO what about not-null ?
+    public Condition interpretInternal(String hqlPath) throws QueryException {
+        Object value = getValueFromFilter(filter, (PropertyDefinition) collectionDefinition.getDefinition());
 
         //custom propertyPath handling for PolyString (it's embedded entity, not a primitive)
         if (value instanceof PolyString) {
-            return createCriterion(alias, value, filter);
+            return createCondition(hqlPath, value, filter);
         }
 
-        return createCriterion(alias + ".elements", value, filter);
+        return createCondition(hqlPath + ".elements", value, filter);
+
+        // TODO what about not-null ?
     }
 
-    @Override
-    public Restriction newInstance() {
-        return new CollectionRestriction();
-    }
 }
