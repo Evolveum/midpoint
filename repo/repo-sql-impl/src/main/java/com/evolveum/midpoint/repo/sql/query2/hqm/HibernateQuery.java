@@ -17,21 +17,29 @@
 package com.evolveum.midpoint.repo.sql.query2.hqm;
 
 import com.evolveum.midpoint.prism.query.OrderDirection;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.query2.QueryDefinitionRegistry2;
 import com.evolveum.midpoint.repo.sql.query2.definition.Definition;
 import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
+import com.evolveum.midpoint.repo.sql.util.ClassMapper;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
+import org.apache.commons.lang.Validate;
 import org.hibernate.Query;
 import org.hibernate.transform.ResultTransformer;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Query in HQL that is being created.
  *
  * @author mederly
  */
-public class HibernateQuery {
+public abstract class HibernateQuery {
 
     private static final String INDENT_STRING = "  ";
 
@@ -46,7 +54,7 @@ public class HibernateQuery {
      *   RUser u
      *     left join u.assignments a with ...
      */
-    private EntityReference primaryEntity;
+    private EntityReference primaryEntity;          // not null
 
     /**
      * All other entities for this query, again along with joined entities.
@@ -65,9 +73,12 @@ public class HibernateQuery {
      */
     private List<Condition> conditions = new ArrayList<>();
 
+    private String orderByProperty;
+    private OrderDirection orderDirection;
+
     public HibernateQuery(EntityDefinition primaryEntityDef) {
-        EntityReference primaryEntity = createItemSpecification(primaryEntityDef);
-        setPrimaryEntity(primaryEntity);
+        Validate.notNull(primaryEntityDef, "primaryEntityDef");
+        primaryEntity = createItemSpecification(primaryEntityDef);
     }
 
     public List<ProjectionElement> getProjectionElements() {
@@ -94,24 +105,39 @@ public class HibernateQuery {
         conditions.add(condition);
     }
 
-    public Query getAsHql() {
+    public String getAsHqlText(int indent) {
         StringBuilder sb = new StringBuilder();
 
+        indent(sb, indent);
         sb.append("select\n");
-        ProjectionElement.dumpToHql(sb, projectionElements, 1);     // we finish at the end of the last line (not at the new line)
+        ProjectionElement.dumpToHql(sb, projectionElements, indent + 1);     // we finish at the end of the last line (not at the new line)
         sb.append("\n");
 
+        indent(sb, indent);
         sb.append("from\n");
-        primaryEntity.dumpToHql(sb, 1);
+        primaryEntity.dumpToHql(sb, indent + 1);
         for (EntityReference otherEntity : otherEntities) {
             sb.append(",\n");
-            otherEntity.dumpToHql(sb, 1);
+            otherEntity.dumpToHql(sb, indent+1);
         }
-        sb.append("\n");
 
         if (!conditions.isEmpty()) {
+            sb.append("\n");
+            indent(sb, indent);
             sb.append("where\n");
-            Condition.dumpToHql(sb, conditions, 1);
+            Condition.dumpToHql(sb, conditions, indent+1);
+        }
+        if (orderByProperty != null) {
+            sb.append("\n");
+            indent(sb, indent);
+            sb.append("order by ").append(orderByProperty);
+            if (orderDirection != null) {
+                switch (orderDirection) {
+                    case DESCENDING: sb.append(" desc"); break;
+                    case ASCENDING: sb.append(" asc"); break;
+                    default: throw new IllegalStateException("Unknown ordering: " + orderDirection);
+                }
+            }
         }
         return sb.toString();
     }
@@ -140,7 +166,7 @@ public class HibernateQuery {
         int prefixIndex = isEntity ? 1 : 0;
         prefix = Character.toString(name.charAt(prefixIndex)).toLowerCase();
 
-        int index = 1;
+        int index = 2;
         String alias = prefix;
         while (hasAlias(alias)) {
             alias = prefix + Integer.toString(index);
@@ -171,19 +197,21 @@ public class HibernateQuery {
         return getPrimaryEntity().getAlias();
     }
 
-    public void addOrder(String propertyPath, OrderDirection direction) {
-        // TODO
+    public void setOrder(String propertyPath, OrderDirection direction) {
+        this.orderByProperty = propertyPath;
+        this.orderDirection = direction;
     }
 
-    public void setMaxResults(Integer size) {
+    public abstract RootHibernateQuery getRootQuery();
 
-    }
-
-    public void setFirstResult(Integer offset) {
-
-    }
-
-    public void setResultTransformer(ResultTransformer resultTransformer) {
-
+    // used to narrow the primary entity e.g. from RObject to RUser (e.g. during ItemRestriction processing)
+    public void narrowPrimaryEntity(EntityDefinition newDefinition) throws QueryException {
+        String oldEntityName = getPrimaryEntity().getName();
+        Class<? extends RObject> oldEntityClass = ClassMapper.getHqlClassForHqlName(oldEntityName);
+        Class<? extends RObject> newEntityClass = newDefinition.getJpaType();
+        if (!(oldEntityClass.isAssignableFrom(newEntityClass))) {
+            throw new QueryException("Cannot narrow primary entity definition from " + oldEntityClass + " to " + newEntityClass);
+        }
+        getPrimaryEntity().setName(newDefinition.getJpaName());     // alias stays the same
     }
 }

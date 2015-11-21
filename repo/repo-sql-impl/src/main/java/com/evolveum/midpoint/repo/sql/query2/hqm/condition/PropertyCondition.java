@@ -16,21 +16,38 @@
 
 package com.evolveum.midpoint.repo.sql.query2.hqm.condition;
 
+import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import org.apache.commons.lang.Validate;
 
 /**
  * @author mederly
  */
-public class PropertyCondition extends Condition {
+public abstract class PropertyCondition extends Condition {
 
     protected String propertyPath;
 
-    public PropertyCondition(String propertyPath) {
-        Validate.notNull(propertyPath);
+    public PropertyCondition(RootHibernateQuery rootHibernateQuery, String propertyPath) {
+        super(rootHibernateQuery);
+        Validate.notNull(propertyPath, "propertyPath");
         this.propertyPath = propertyPath;
     }
 
     public String getPropertyPath() {
         return propertyPath;
+    }
+
+    protected String createParameterName(String propertyPath) {
+        Validate.notEmpty(propertyPath, "propertyPath");
+        int i = propertyPath.lastIndexOf('.');
+        if (i < 0) {
+            return propertyPath;
+        } else {
+            String name = propertyPath.substring(i+1);
+            if (!name.isEmpty()) {
+                return name;
+            } else {
+                return "param";     // shouldn't occur
+            }
+        }
     }
 }

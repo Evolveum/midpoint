@@ -31,7 +31,7 @@ public class InOidRestriction extends Restriction<InOidFilter> {
 
     @Override
     public Condition interpret() throws QueryException {
-        return new InCondition(context.getCurrentHqlPropertyPath() + ".oid", filter.getOids());
+        return getContext().getHibernateQuery().createIn(context.getCurrentHqlPropertyPath() + ".oid", filter.getOids());
     }
 
 }

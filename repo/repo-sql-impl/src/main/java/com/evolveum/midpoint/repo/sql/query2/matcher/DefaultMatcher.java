@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.query2.matcher;
 
 import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query2.restriction.ItemRestrictionOperation;
 
@@ -26,9 +27,9 @@ import com.evolveum.midpoint.repo.sql.query2.restriction.ItemRestrictionOperatio
 public class DefaultMatcher<T> extends Matcher<T> {
 
     @Override
-    public Condition match(ItemRestrictionOperation operation, String propertyName, T value, String matcher)
+    public Condition match(RootHibernateQuery hibernateQuery, ItemRestrictionOperation operation, String propertyName, T value, String matcher)
             throws QueryException {
 
-        return basicMatch(operation, propertyName, value, false);
+        return basicMatch(null, operation, propertyName, value, false);
     }
 }

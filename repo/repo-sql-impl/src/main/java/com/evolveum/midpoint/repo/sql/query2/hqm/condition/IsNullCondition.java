@@ -16,11 +16,21 @@
 
 package com.evolveum.midpoint.repo.sql.query2.hqm.condition;
 
+import com.evolveum.midpoint.repo.sql.query2.hqm.HibernateQuery;
+import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
+
 /**
  * @author mederly
  */
 public class IsNullCondition extends PropertyCondition {
-    public IsNullCondition(String propertyPath) {
-        super(propertyPath);
+
+    public IsNullCondition(RootHibernateQuery rootHibernateQuery, String propertyPath) {
+        super(rootHibernateQuery, propertyPath);
+    }
+
+    @Override
+    public void dumpToHql(StringBuilder sb, int indent) {
+        HibernateQuery.indent(sb, indent);
+        sb.append(propertyPath).append(" is null");
     }
 }

@@ -14,21 +14,32 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.repo.sql.query2.hqm.condition;
+package com.evolveum.midpoint.repo.sql.query2.hqm;
 
-import org.hibernate.Query;
-
-import java.util.Collection;
+import org.hibernate.type.Type;
 
 /**
  * @author mederly
  */
-public class EqualsCondition extends PropertyCondition {
+public class QueryParameterValue {
 
     private Object value;
+    private Type type;
 
-    public EqualsCondition(String propertyPath, Object value) {
-        super(propertyPath);
+    public QueryParameterValue(Object value, Type type) {
         this.value = value;
+        this.type = type;
+    }
+
+    public QueryParameterValue(Object value) {
+        this.value = value;
+    }
+
+    public Type getType() {
+        return type;
+    }
+
+    public Object getValue() {
+        return value;
     }
 }

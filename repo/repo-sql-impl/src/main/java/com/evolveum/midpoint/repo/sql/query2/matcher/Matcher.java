@@ -17,76 +17,85 @@
 package com.evolveum.midpoint.repo.sql.query2.matcher;
 
 import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query2.restriction.ItemRestrictionOperation;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import org.apache.commons.lang.Validate;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.MatchMode;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.criterion.SimpleExpression;
 
 /**
  * @author lazyman
  */
 public abstract class Matcher<T> {
 
+    private static final Trace LOGGER = TraceManager.getTrace(Matcher.class);
+
     /**
      * Create hibernate {@link Criterion} based on matcher defined in filter.
      *
+     *
+     * @param hibernateQuery
      * @param operation
-     * @param propertyName
+     * @param propertyPath
      * @param value
      * @param matcher      Now type of {@link String}, but will be updated to {@link javax.xml.namespace.QName}
      *                     type after query-api update
      * @return
      * @throws QueryException
      */
-    public abstract Condition match(ItemRestrictionOperation operation, String propertyName, T value, String matcher)
+    public abstract Condition match(RootHibernateQuery hibernateQuery, ItemRestrictionOperation operation, String propertyPath, T value, String matcher)
             throws QueryException;
 
-    protected Condition basicMatch(ItemRestrictionOperation operation, String propertyName, Object value,
+    protected Condition basicMatch(RootHibernateQuery hibernateQuery, ItemRestrictionOperation operation, String propertyPath, Object value,
                                    boolean ignoreCase) throws QueryException {
+        Validate.notNull(hibernateQuery, "hibernateQuery");
+
+        if (ignoreCase && !(value instanceof String)) {
+            LOGGER.warn("Ignoring ignoreCase setting for non-string value of {}", value);
+            ignoreCase = false;
+        }
+
         Condition condition;
         switch (operation) {
             case EQ:
                 if (value == null) {
-                    condition = Condition.isNull(propertyName);
+                    condition = hibernateQuery.createIsNull(propertyPath);
                 } else {
-                    condition = Condition.eq(propertyName, value);
+                    condition = hibernateQuery.createEq(propertyPath, value, ignoreCase);
                 }
                 break;
             case GT:
-                condition = Condition.gt(propertyName, value);
+                condition = hibernateQuery.createSimpleComparisonCondition(propertyPath, value, ">", ignoreCase);
                 break;
             case GE:
-                condition = Condition.ge(propertyName, value);
+                condition = hibernateQuery.createSimpleComparisonCondition(propertyPath, value, ">=", ignoreCase);
                 break;
             case LT:
-                condition = Condition.lt(propertyName, value);
+                condition = hibernateQuery.createSimpleComparisonCondition(propertyPath, value, "<", ignoreCase);
                 break;
             case LE:
-                condition = Condition.le(propertyName, value);
+                condition = hibernateQuery.createSimpleComparisonCondition(propertyPath, value, "<=", ignoreCase);
                 break;
             case NOT_NULL:
-                condition = Condition.isNotNull(propertyName);
+                condition = hibernateQuery.createIsNotNull(propertyPath);
                 break;
             case NULL:
-                condition = Condition.isNull(propertyName);
+                condition = hibernateQuery.createIsNull(propertyPath);
                 break;
             case STARTS_WITH:
-                condition = Condition.like(propertyName, (String) value, MatchMode.START);
+                condition = hibernateQuery.createLike(propertyPath, (String) value, MatchMode.START, ignoreCase);
                 break;
             case ENDS_WITH:
-                condition = Condition.like(propertyName, (String) value, MatchMode.END);
+                condition = hibernateQuery.createLike(propertyPath, (String) value, MatchMode.END, ignoreCase);
                 break;
             case SUBSTRING:
-                condition = Condition.like(propertyName, (String) value, MatchMode.ANYWHERE);
+                condition = hibernateQuery.createLike(propertyPath, (String) value, MatchMode.ANYWHERE, ignoreCase);
                 break;
             default:
                 throw new QueryException("Unknown operation '" + operation + "'.");
-        }
-
-        if (ignoreCase && (value instanceof String)) {
-            condition.ignoreCase();
         }
 
         return condition;

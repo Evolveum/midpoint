@@ -44,6 +44,7 @@ import com.evolveum.midpoint.repo.sql.query2.definition.VirtualQueryParam;
 import com.evolveum.midpoint.repo.sql.query2.hqm.EntityReference;
 import com.evolveum.midpoint.repo.sql.query2.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.JoinSpecification;
+import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.AndCondition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.IsNotNullCondition;
@@ -56,6 +57,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -171,8 +173,8 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
         return currentHqlPath;
     }
 
-    protected String addJoin(Definition joinedItemDefinition, String currentHqlPath) {
-        HibernateQuery hibernateQuery = context.getHibernateQuery();
+    protected String addJoin(Definition joinedItemDefinition, String currentHqlPath) throws QueryException {
+        RootHibernateQuery hibernateQuery = context.getHibernateQuery();
         EntityReference entityReference = hibernateQuery.getPrimaryEntity();                    // TODO other references (in the future)
         String joinedItemJpaName = joinedItemDefinition.getJpaName();
         String joinedItemFullPath = currentHqlPath + "." + joinedItemJpaName;
@@ -183,11 +185,12 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
             List<Condition> conditions = new ArrayList<>(vcd.getAdditionalParams().length);
             for (VirtualQueryParam vqp : vcd.getAdditionalParams()) {
                 // e.g. name = "assignmentOwner", type = RAssignmentOwner.class, value = "ABSTRACT_ROLE"
-                Condition c = Condition.eq(joinedItemAlias + "." + vqp.name(), vqp.value(), vqp.type());
+                Object value = createQueryParamValue(vqp);
+                Condition c = hibernateQuery.createEq(joinedItemAlias + "." + vqp.name(), value);
                 conditions.add(c);
             }
             if (conditions.size() > 1) {
-                condition = Condition.and(conditions);
+                condition = hibernateQuery.createAnd(conditions);
             } else if (conditions.size() == 1) {
                 condition = conditions.iterator().next();
             }
@@ -196,16 +199,43 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
         return joinedItemAlias;
     }
 
+    /**
+     * This method provides transformation from {@link String} value defined in
+     * {@link com.evolveum.midpoint.repo.sql.query.definition.VirtualQueryParam#value()} to real object. Currently only
+     * to simple types and enum values.
+     */
+    private Object createQueryParamValue(VirtualQueryParam param) throws QueryException {
+        Class type = param.type();
+        String value = param.value();
+
+        try {
+            if (type.isPrimitive()) {
+                return type.getMethod("valueOf", new Class[]{String.class}).invoke(null, new Object[]{value});
+            }
+
+            if (type.isEnum()) {
+                return Enum.valueOf(type, value);
+            }
+        } catch (NoSuchMethodException|IllegalAccessException|InvocationTargetException|RuntimeException ex) {
+            throw new QueryException("Couldn't transform virtual query parameter '"
+                    + param.name() + "' from String to '" + type + "', reason: " + ex.getMessage(), ex);
+        }
+
+        throw new QueryException("Couldn't transform virtual query parameter '"
+                + param.name() + "' from String to '" + type + "', it's not yet implemented.");
+    }
+
+
     protected String addJoinAny(String currentHqlPath, String anyAssociationName, QName itemName, RObjectExtensionType ownerType) {
-        HibernateQuery hibernateQuery = context.getHibernateQuery();
+        RootHibernateQuery hibernateQuery = context.getHibernateQuery();
         EntityReference entityReference = hibernateQuery.getPrimaryEntity();                    // TODO other references (in the future)
         String joinedItemJpaName = anyAssociationName;
         String joinedItemFullPath = currentHqlPath + "." + joinedItemJpaName;
         String joinedItemAlias = hibernateQuery.createAlias(joinedItemJpaName, false);
 
-        Condition condition = Condition.and(
-            Condition.eq(joinedItemAlias + ".ownerType", ownerType),
-            Condition.eq(joinedItemAlias + "." + RAnyValue.F_NAME, RUtil.qnameToString(itemName)));
+        Condition condition = hibernateQuery.createAnd(
+                hibernateQuery.createEq(joinedItemAlias + ".ownerType", ownerType),
+                hibernateQuery.createEq(joinedItemAlias + "." + RAnyValue.F_NAME, RUtil.qnameToString(itemName)));
 
         entityReference.addJoin(new JoinSpecification(joinedItemAlias, joinedItemFullPath, condition));
         return joinedItemAlias;
@@ -245,7 +275,7 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
         	matchingRule = filter.getMatchingRule().getLocalPart();
         }
         
-        return matcher.match(operation, propertyName, value, matchingRule);
+        return matcher.match(null, operation, propertyName, value, matchingRule);
     }
 
     protected Object getValue(List<? extends PrismValue> values) {
@@ -339,9 +369,10 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
         if (!isNegated()) {
             return condition;
         }
-        AndCondition conjunction = new AndCondition();
+        RootHibernateQuery hibernateQuery = getContext().getHibernateQuery();
+        AndCondition conjunction = hibernateQuery.createAnd();
         conjunction.add(condition);
-        conjunction.add(new IsNotNullCondition(propertyPath));
+        conjunction.add(hibernateQuery.createIsNotNull(propertyPath));
         return conjunction;
     }
 

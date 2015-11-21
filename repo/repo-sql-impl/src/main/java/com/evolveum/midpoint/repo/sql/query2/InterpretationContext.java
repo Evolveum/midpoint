@@ -19,35 +19,37 @@ package com.evolveum.midpoint.repo.sql.query2;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.TypeFilter;
+import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.definition.Definition;
 import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
-import com.evolveum.midpoint.repo.sql.query2.hqm.HibernateQuery;
+import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.restriction.TypeRestriction;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.apache.commons.lang.StringUtils;
-import org.hibernate.Criteria;
+import org.apache.commons.lang.Validate;
 import org.hibernate.Session;
 
-import javax.xml.namespace.QName;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
  * @author lazyman
+ * @author mederly
  */
 public class InterpretationContext {
+
+    private static final Trace LOGGER = TraceManager.getTrace(InterpretationContext.class);
 
     private QueryInterpreter2 interpreter;
     private PrismContext prismContext;
@@ -55,13 +57,19 @@ public class InterpretationContext {
 
     private Class<? extends ObjectType> type;
 
-    private HibernateQuery hibernateQuery;
+    private RootHibernateQuery hibernateQuery;
 
     // path from the root filter to the current one (necessary when finding correct Restriction)
     private List<ObjectFilter> currentFilterPath = new ArrayList<>();
 
     public InterpretationContext(QueryInterpreter2 interpreter, Class<? extends ObjectType> type,
-                                 PrismContext prismContext, Session session) {
+                                 PrismContext prismContext, Session session) throws QueryException {
+
+        Validate.notNull(interpreter, "interpreter");
+        Validate.notNull(type, "type");
+        Validate.notNull(prismContext, "prismContext");
+        Validate.notNull(session, "session");
+
         this.interpreter = interpreter;
         this.type = type;
         this.prismContext = prismContext;
@@ -69,8 +77,16 @@ public class InterpretationContext {
 
         QueryDefinitionRegistry2 registry = QueryDefinitionRegistry2.getInstance();
 
+        // This is a preliminary information. It can change (be narrowed) during filter interpretation, e.g. from RObject to RUser.
+        // Unfortunately, it's not that easy to postpone HibernateQuery creation, because individual filters may require it -
+        // even before some ItemRestriction requests the narrowing.
+
         EntityDefinition primaryEntityDef = registry.findDefinition(type, null, EntityDefinition.class);
-        this.hibernateQuery = new HibernateQuery(primaryEntityDef);
+        if (primaryEntityDef == null) {
+            throw new QueryException("Primary entity definition couldn't be found for type " + type);
+        }
+
+        this.hibernateQuery = new RootHibernateQuery(primaryEntityDef);
     }
 
     public PrismContext getPrismContext() {
@@ -89,28 +105,22 @@ public class InterpretationContext {
         return type;
     }
 
-    public HibernateQuery getHibernateQuery() {
+    public RootHibernateQuery getHibernateQuery() {
         return hibernateQuery;
     }
 
-    public static class ProperDefinitionSearchResult<T extends Definition> {
-        EntityDefinition rootEntityDefinition;
-        T itemDefinition;
-
-        public ProperDefinitionSearchResult(EntityDefinition rootEntityDefinition, T itemDefinition) {
-            this.rootEntityDefinition = rootEntityDefinition;
-            this.itemDefinition = itemDefinition;
-        }
-
-        public EntityDefinition getRootEntityDefinition() {
-            return rootEntityDefinition;
-        }
-
-        public T getItemDefinition() {
-            return itemDefinition;
-        }
-    }
-
+    /**
+     * Finds the proper definition for (possibly abstract) type.
+     * If the type is abstract, tries types which could be used in the query (types that have the item definition).
+     *
+     * It should try more abstract types first, in order to allow for later narrowing. (This would not work in case
+     * of double narrowing to an item that has the same name in two different subclasses - but currently we don't know
+     * of such.)
+     *
+     * @param path Path to be found
+     * @param clazz Kind of definition to be looked for
+     * @return Entity type definition + item definition
+     */
     public <T extends Definition> ProperDefinitionSearchResult<T> findProperDefinition(ItemPath path, Class<T> clazz) {
         QueryDefinitionRegistry2 registry = QueryDefinitionRegistry2.getInstance();
         Class<? extends ObjectType> objectClass = getType();
@@ -122,7 +132,7 @@ public class InterpretationContext {
 
         //we should try to find property in descendant classes
         for (Class type : findOtherPossibleParents()) {
-            EntityDefinition entityDefinition = registry.findDefinition(getType(), null, EntityDefinition.class);
+            EntityDefinition entityDefinition = registry.findDefinition(type, null, EntityDefinition.class);
             T pathDefinition = entityDefinition.findDefinition(path, clazz);
             if (pathDefinition != null) {
                 return new ProperDefinitionSearchResult<>(entityDefinition, pathDefinition);
@@ -131,51 +141,56 @@ public class InterpretationContext {
         return null;
     }
 
+    /**
+     * Similar to the above, but returns only the entity name.
+     * @param path
+     * @return
+     */
     protected EntityDefinition findProperEntityDefinition(ItemPath path) {
-        QueryDefinitionRegistry2 registry = QueryDefinitionRegistry2.getInstance();
-        if (!ObjectType.class.equals(getType())) {
-            return registry.findDefinition(getType(), null, EntityDefinition.class);
+        ProperDefinitionSearchResult<Definition> result = findProperDefinition(path, Definition.class);
+        if (result != null) {
+            return result.getRootEntityDefinition();
+        } else {
+            return null;
         }
-
-        EntityDefinition entity = null;
-        // we should try to find property in descendant classes
-        for (Class type : findOtherPossibleParents()) {
-            entity = registry.findDefinition(type, null, EntityDefinition.class);
-            Definition def = entity.findDefinition(path, Definition.class);
-            if (def != null) {
-                break;
-            }
-        }
-        LOGGER.trace("Found proper entity definition for path {}, {}", path, entity.toString());
-        return entity;
     }
 
-    private Set<Class<? extends ObjectType>> findOtherPossibleParents() {
-        TypeRestriction typeRestriction = findTypeRestrictionParent(this);
+    private List<Class<? extends ObjectType>> findOtherPossibleParents() {
+        TypeFilter typeFilter = findTypeFilterParent();
         ObjectTypes typeClass;
-        if (typeRestriction != null) {
-            TypeFilter filter = typeRestriction.getFilter();
-            typeClass = ObjectTypes.getObjectTypeFromTypeQName(filter.getType());
+        if (typeFilter != null) {
+            typeClass = ObjectTypes.getObjectTypeFromTypeQName(typeFilter.getType());
         } else {
             typeClass = ObjectTypes.getObjectType(getType());
         }
 
-        Set<Class<? extends ObjectType>> classes = new HashSet<>();
-        classes.add(typeClass.getClassDefinition());
+        List<Class<? extends ObjectType>> classes = new ArrayList<>();
+        classes.add(typeClass.getClassDefinition());        // abstract one has to go first
 
-        switch (typeClass) {
-            case OBJECT:
-                classes.addAll(ObjectTypes.getAllObjectTypes());
-                break;
-            case FOCUS_TYPE:
-                classes.add(UserType.class);
-            case ABSTRACT_ROLE:
-                classes.add(RoleType.class);
-                classes.add(OrgType.class);
+        if (typeClass == ObjectTypes.OBJECT) {
+            classes.addAll(ObjectTypes.getAllObjectTypes());
+        } else if (typeClass == ObjectTypes.FOCUS_TYPE) {
+            classes.add(UserType.class);
+            classes.add(AbstractRoleType.class);
+            classes.add(RoleType.class);
+            classes.add(OrgType.class);
+        } else if (typeClass == ObjectTypes.ABSTRACT_ROLE) {
+            classes.add(RoleType.class);
+            classes.add(OrgType.class);
         }
 
-        LOGGER.trace("Found possible parents {} for entity definitions.", Arrays.toString(classes.toArray()));
+        LOGGER.trace("Found possible parents {} for entity definitions.", classes);
         return classes;
+    }
+
+    private TypeFilter findTypeFilterParent() {
+        for (int i = currentFilterPath.size()-1; i >= 0; i--) {
+            ObjectFilter filter = currentFilterPath.get(i);
+            if (filter instanceof TypeFilter) {
+                return (TypeFilter) filter;
+            }
+        }
+        return null;
     }
 
     public void pushFilter(ObjectFilter filter) {
@@ -187,10 +202,8 @@ public class InterpretationContext {
     }
 
     public String getCurrentHqlPropertyPath() {
-        // TODO
+        // preliminary implementation: returns root alias (should be changed when ForValue is implemented)
+        return hibernateQuery.getPrimaryEntityAlias();
     }
 
-    private void getCurrentItemPath() {
-
-    }
 }

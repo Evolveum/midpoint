@@ -33,7 +33,7 @@ public class AndRestriction extends NaryLogicalRestriction<AndFilter> {
     @Override
     public Condition interpret() throws QueryException {
         validateFilter();
-        AndCondition conjunction = new AndCondition();
+        AndCondition conjunction = getContext().getHibernateQuery().createAnd();
         updateJunction(filter.getConditions(), conjunction);
         return conjunction;
     }

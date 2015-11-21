@@ -22,9 +22,14 @@ import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
+import com.evolveum.midpoint.repo.sql.query2.hqm.QueryParameterValue;
+import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.InCondition;
 import org.hibernate.Query;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author lazyman
@@ -33,10 +38,11 @@ public class OrgRestriction extends Restriction<OrgFilter> {
 
     @Override
     public Condition interpret() throws QueryException {
+        RootHibernateQuery hibernateQuery = getContext().getHibernateQuery();
         if (filter.isRoot()) {
             // oid in (select descendantOid from ROrgClosure group by descendantOid having count(descendantOid) = 1)
-            return new InCondition(context.getCurrentHqlPropertyPath() + ".oid",
-                    getSession().createQuery("select descendantOid from ROrgClosure group by descendantOid having count(descendantOid) = 1"));
+            return hibernateQuery.createIn(context.getCurrentHqlPropertyPath() + ".oid",
+                    "select descendantOid from ROrgClosure group by descendantOid having count(descendantOid) = 1");
         }
 
         if (filter.getOrgRef() == null) {
@@ -47,6 +53,7 @@ public class OrgRestriction extends Restriction<OrgFilter> {
             throw new QueryException("No oid specified in organization reference " + filter.getOrgRef().debugDump());
         }
 
+        String orgOidParamName = hibernateQuery.addParameter("orgOid", filter.getOrgRef().getOid());
         String oidQueryText;    // oid in ...
         switch (filter.getScope()) {
             case ONE_LEVEL:
@@ -55,7 +62,7 @@ public class OrgRestriction extends Restriction<OrgFilter> {
                               "from RObjectReference ref " +
                            "where " +
                               "ref.referenceType = " + nameOf(RReferenceOwner.OBJECT_PARENT_ORG) + " and " +
-                              "ref.targetOid = :orgOid";
+                              "ref.targetOid = :" + orgOidParamName;
                 break;
             case SUBTREE:
             default:
@@ -65,11 +72,8 @@ public class OrgRestriction extends Restriction<OrgFilter> {
                         "where " +
                             "ref.referenceType = " + nameOf(RReferenceOwner.OBJECT_PARENT_ORG) + " and " +
                             "ref.targetOid in (" +
-                                "select descendantOid from ROrgClosure where ancestorOid = :orgOid";
+                                "select descendantOid from ROrgClosure where ancestorOid = :" + orgOidParamName;
         }
-        Query oidQuery = getSession().createQuery(oidQueryText);
-        oidQuery.setParameter("orgOid", filter.getOrgRef().getOid());
-        return new InCondition(context.getCurrentHqlPropertyPath() + ".oid", oidQuery);
+        return hibernateQuery.createIn(context.getCurrentHqlPropertyPath() + ".oid", oidQueryText);
     }
-
 }

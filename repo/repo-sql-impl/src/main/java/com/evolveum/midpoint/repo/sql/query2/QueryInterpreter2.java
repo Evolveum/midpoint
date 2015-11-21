@@ -44,6 +44,7 @@ import com.evolveum.midpoint.repo.sql.query2.definition.JpaDefinitionPath;
 import com.evolveum.midpoint.repo.sql.query2.definition.PropertyDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.ProjectionElement;
+import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query2.matcher.DefaultMatcher;
 import com.evolveum.midpoint.repo.sql.query2.matcher.Matcher;
@@ -53,6 +54,7 @@ import com.evolveum.midpoint.repo.sql.query2.restriction.AndRestriction;
 import com.evolveum.midpoint.repo.sql.query2.restriction.AnyPropertyRestriction;
 import com.evolveum.midpoint.repo.sql.query2.restriction.CollectionRestriction;
 import com.evolveum.midpoint.repo.sql.query2.restriction.InOidRestriction;
+import com.evolveum.midpoint.repo.sql.query2.restriction.ItemRestrictionOperation;
 import com.evolveum.midpoint.repo.sql.query2.restriction.NotRestriction;
 import com.evolveum.midpoint.repo.sql.query2.restriction.OrRestriction;
 import com.evolveum.midpoint.repo.sql.query2.restriction.OrgRestriction;
@@ -75,7 +77,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl.ObjectPagingAfterOid;
-import static com.evolveum.midpoint.repo.sql.query2.InterpretationContext.ProperDefinitionSearchResult;
 
 /**
  * Interprets midPoint queries by translating them to hibernate (HQL) ones.
@@ -130,9 +131,9 @@ public class QueryInterpreter2 {
         return repoConfiguration;
     }
 
-    public HibernateQuery interpret(ObjectQuery query, Class<? extends ObjectType> type,
-                              Collection<SelectorOptions<GetOperationOptions>> options, PrismContext prismContext,
-                              boolean countingObjects, Session session) throws QueryException {
+    public RootHibernateQuery interpret(ObjectQuery query, Class<? extends ObjectType> type,
+                                        Collection<SelectorOptions<GetOperationOptions>> options, PrismContext prismContext,
+                                        boolean countingObjects, Session session) throws QueryException {
         Validate.notNull(type, "Type must not be null.");
         Validate.notNull(session, "Session must not be null.");
         Validate.notNull(prismContext, "Prism context must not be null.");
@@ -146,7 +147,7 @@ public class QueryInterpreter2 {
         interpretQueryFilter(query, context);
         interpretPagingAndSorting(query, context, countingObjects);
 
-        HibernateQuery hibernateQuery = context.getHibernateQuery();
+        RootHibernateQuery hibernateQuery = context.getHibernateQuery();
 
         if (!countingObjects) {
             String rootAlias = hibernateQuery.getPrimaryEntityAlias();
@@ -165,9 +166,9 @@ public class QueryInterpreter2 {
 
     private void interpretQueryFilter(ObjectQuery query, InterpretationContext context) throws QueryException {
         try {
-            HibernateQuery hibernateQuery = context.getHibernateQuery();
             if (query != null && query.getFilter() != null) {
                 Condition c = interpretFilter(query.getFilter(), context, null);
+                HibernateQuery hibernateQuery = context.getHibernateQuery();
                 hibernateQuery.addCondition(c);
             }
         } catch (QueryException ex) {
@@ -249,13 +250,14 @@ public class QueryInterpreter2 {
     }
 
     private void interpretPagingAndSorting(ObjectQuery query, InterpretationContext context, boolean countingObjects) {
-        HibernateQuery hibernateQuery = context.getHibernateQuery();
+        RootHibernateQuery hibernateQuery = context.getHibernateQuery();
         String rootAlias = hibernateQuery.getPrimaryEntityAlias();
 
         if (query != null && query.getPaging() instanceof ObjectPagingAfterOid) {
             ObjectPagingAfterOid paging = (ObjectPagingAfterOid) query.getPaging();
             if (paging.getOidGreaterThan() != null) {
-                hibernateQuery.addCondition(Condition.gt(rootAlias + ".oid", paging.getOidGreaterThan()));
+                Condition c = hibernateQuery.createSimpleComparisonCondition(rootAlias + ".oid", paging.getOidGreaterThan(), ">");
+                hibernateQuery.addCondition(c);
             }
         }
 
@@ -268,18 +270,18 @@ public class QueryInterpreter2 {
         }
     }
 
-    protected void updatePagingAndSortingByOid(HibernateQuery hibernateQuery, ObjectPagingAfterOid paging) {
+    protected void updatePagingAndSortingByOid(RootHibernateQuery hibernateQuery, ObjectPagingAfterOid paging) {
         String rootAlias = hibernateQuery.getPrimaryEntityAlias();
         if (paging.getOrderBy() != null || paging.getDirection() != null || paging.getOffset() != null) {
             throw new IllegalArgumentException("orderBy, direction nor offset is allowed on ObjectPagingAfterOid");
         }
-        hibernateQuery.addOrder(rootAlias + ".oid", OrderDirection.ASCENDING);
+        hibernateQuery.setOrder(rootAlias + ".oid", OrderDirection.ASCENDING);
         if (paging.getMaxSize() != null) {
             hibernateQuery.setMaxResults(paging.getMaxSize());
         }
     }
 
-    public <T extends ObjectType> void updatePagingAndSorting(HibernateQuery hibernateQuery, Class<T> type, ObjectPaging paging) {
+    public <T extends ObjectType> void updatePagingAndSorting(RootHibernateQuery hibernateQuery, Class<T> type, ObjectPaging paging) {
         if (paging == null) {
             return;
         }
@@ -316,14 +318,14 @@ public class QueryInterpreter2 {
         if (paging.getDirection() != null) {
             switch (paging.getDirection()) {
                 case ASCENDING:
-                    hibernateQuery.addOrder(propertyName, OrderDirection.ASCENDING);
+                    hibernateQuery.setOrder(propertyName, OrderDirection.ASCENDING);
                     break;
                 case DESCENDING:
-                    hibernateQuery.addOrder(propertyName, OrderDirection.DESCENDING);
+                    hibernateQuery.setOrder(propertyName, OrderDirection.DESCENDING);
                     break;
             }
         } else {
-            hibernateQuery.addOrder(propertyName, OrderDirection.ASCENDING);
+            hibernateQuery.setOrder(propertyName, OrderDirection.ASCENDING);
         }
     }
 

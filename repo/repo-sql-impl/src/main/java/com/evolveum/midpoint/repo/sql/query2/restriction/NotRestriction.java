@@ -33,6 +33,6 @@ public class NotRestriction extends UnaryLogicalRestriction<NotFilter> {
     public Condition interpret() throws QueryException {
         validateFilter();
         Condition condition = interpretChildFilter();
-        return new NotCondition(condition);
+        return getContext().getHibernateQuery().createNot(condition);
     }
 }

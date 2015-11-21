@@ -32,7 +32,7 @@ public class OrRestriction extends NaryLogicalRestriction<OrFilter> {
     @Override
     public Condition interpret() throws QueryException {
         validateFilter();
-        OrCondition disjunction = new OrCondition();
+        OrCondition disjunction = getContext().getHibernateQuery().createOr();
         updateJunction(filter.getConditions(), disjunction);
         return disjunction;
     }

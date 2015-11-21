@@ -16,6 +16,9 @@
 
 package com.evolveum.midpoint.repo.sql.query2.hqm.condition;
 
+import com.evolveum.midpoint.repo.sql.query2.hqm.HibernateQuery;
+import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
+import org.apache.commons.lang.Validate;
 import org.hibernate.Query;
 
 import java.util.Collection;
@@ -27,15 +30,29 @@ import java.util.List;
 public class InCondition extends PropertyCondition {
 
     private Collection<?> values;
-    private Query innerQuery;
+    private String innerQueryText;
 
-    public InCondition(String propertyPath, Query innerQuery) {
-        super(propertyPath);
-        this.innerQuery = innerQuery;
+    public InCondition(RootHibernateQuery rootHibernateQuery, String propertyPath, String innerQueryText) {
+        super(rootHibernateQuery, propertyPath);
+        Validate.notNull(innerQueryText);
+        this.innerQueryText = innerQueryText;
     }
 
-    public InCondition(String propertyPath, Collection<?> values) {
-        super(propertyPath);
+    public InCondition(RootHibernateQuery rootHibernateQuery, String propertyPath, Collection<?> values) {
+        super(rootHibernateQuery, propertyPath);
+        Validate.notNull(values);
         this.values = values;
+    }
+
+    @Override
+    public void dumpToHql(StringBuilder sb, int indent) {
+        HibernateQuery.indent(sb, indent);
+        if (values != null) {
+            String parameterNamePrefix = createParameterName(propertyPath);
+            String parameterName = rootHibernateQuery.addParameter(parameterNamePrefix, values);        // TODO special treatment of collections?
+            sb.append(propertyPath).append(" in :").append(parameterName);
+        } else {
+            sb.append(propertyPath).append(" in (").append(innerQueryText).append(")");
+        }
     }
 }

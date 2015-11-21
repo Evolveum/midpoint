@@ -16,6 +16,10 @@
 
 package com.evolveum.midpoint.repo.sql.query2.hqm.condition;
 
+import com.evolveum.midpoint.repo.sql.query2.hqm.HibernateQuery;
+import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
+import org.apache.commons.lang.Validate;
+
 /**
  * @author mederly
  */
@@ -23,7 +27,16 @@ public class NotCondition extends Condition {
 
     protected Condition child;
 
-    public NotCondition(Condition child) {
+    public NotCondition(RootHibernateQuery rootHibernateQuery, Condition child) {
+        super(rootHibernateQuery);
+        Validate.notNull(child, "child");
         this.child = child;
+    }
+
+    @Override
+    public void dumpToHql(StringBuilder sb, int indent) {
+        HibernateQuery.indent(sb, indent);
+        sb.append("not ");
+        child.dumpToHql(sb, -1);
     }
 }

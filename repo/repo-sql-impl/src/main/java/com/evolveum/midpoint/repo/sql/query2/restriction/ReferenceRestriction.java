@@ -20,27 +20,18 @@ import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.repo.sql.query2.InterpretationContext.ProperDefinitionSearchResult;
+import com.evolveum.midpoint.repo.sql.query2.ProperDefinitionSearchResult;
 import com.evolveum.midpoint.repo.sql.query2.definition.Definition;
 import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.PropertyDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.ReferenceDefinition;
+import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.AndCondition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import org.apache.commons.lang.StringUtils;
-import org.hibernate.criterion.Conjunction;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
 
 import javax.xml.namespace.QName;
 import java.util.List;
@@ -68,6 +59,7 @@ public class ReferenceRestriction extends ItemRestriction<RefFilter> {
         }
 
         InterpretationContext context = getContext();
+        RootHibernateQuery hibernateQuery = context.getHibernateQuery();
         ItemPath fullPath = getFullPath(filter.getPath());
         ProperDefinitionSearchResult<Definition> defResult = context.findProperDefinition(fullPath, Definition.class);
         if (defResult == null || defResult.getItemDefinition() == null) {
@@ -85,22 +77,22 @@ public class ReferenceRestriction extends ItemRestriction<RefFilter> {
         	refValueRelation = refValue.getRelation();
         	refValueTargetType = refValue.getTargetType();
         }
-        AndCondition conjunction = Condition.and();
-        conjunction.add(handleEqOrNull(propertyFullNamePrefix + ObjectReference.F_TARGET_OID, refValueOid));
+        AndCondition conjunction = hibernateQuery.createAnd();
+        conjunction.add(handleEqOrNull(hibernateQuery, propertyFullNamePrefix + ObjectReference.F_TARGET_OID, refValueOid));
 
         if (refValueOid != null) {
 	        if (refValueRelation == null) {
 	        	// Return only references without relation
-	        	conjunction.add(Condition.eq(propertyFullNamePrefix + ObjectReference.F_RELATION, RUtil.QNAME_DELIMITER));
+	        	conjunction.add(hibernateQuery.createEq(propertyFullNamePrefix + ObjectReference.F_RELATION, RUtil.QNAME_DELIMITER));
 	        } else if (refValueRelation.equals(PrismConstants.Q_ANY)) {
 	        	// Return all relations => no restriction
 	        } else {
 	        	// return references with specific relation
-	            conjunction.add(handleEqOrNull(propertyFullNamePrefix + ObjectReference.F_RELATION, RUtil.qnameToString(refValueRelation)));
+	            conjunction.add(handleEqOrNull(hibernateQuery, propertyFullNamePrefix + ObjectReference.F_RELATION, RUtil.qnameToString(refValueRelation)));
 	        }
 	
 	        if (refValueTargetType != null) {
-	            conjunction.add(handleEqOrNull(propertyFullNamePrefix + ObjectReference.F_TYPE,
+	            conjunction.add(handleEqOrNull(hibernateQuery, propertyFullNamePrefix + ObjectReference.F_TYPE,
 	                    ClassMapper.getHQLTypeForQName(refValueTargetType)));
 	        }
         }
@@ -111,11 +103,11 @@ public class ReferenceRestriction extends ItemRestriction<RefFilter> {
     }
 
 
-    private Condition handleEqOrNull(String propertyName, Object value) {
+    private Condition handleEqOrNull(RootHibernateQuery hibernateQuery, String propertyName, Object value) {
         if (value == null) {
-            return Condition.isNull(propertyName);
+            return hibernateQuery.createIsNull(propertyName);
         } else {
-            return Condition.eq(propertyName, value);
+            return hibernateQuery.createEq(propertyName, value);
         }
     }
 }

@@ -103,6 +103,18 @@ public final class ClassMapper {
         throw new IllegalArgumentException("Couldn't find hql type for qname " + qname);
     }
 
+    public static Class<? extends RObject> getHqlClassForHqlName(String hqlName) {
+        if (hqlName == null) {
+            return null;
+        }
+        for (RObjectType entry : types.values()) {
+            if (entry.getClazz().getSimpleName().equals(hqlName)) {
+                return entry.getClazz();
+            }
+        }
+        throw new IllegalArgumentException("Couldn't find hql type for hql name " + hqlName);
+    }
+
     public static ObjectTypes getObjectTypeForHQLType(RObjectType type) {
         if (type == null) {
             return null;

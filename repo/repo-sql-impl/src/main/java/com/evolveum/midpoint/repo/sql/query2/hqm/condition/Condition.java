@@ -16,26 +16,33 @@
 
 package com.evolveum.midpoint.repo.sql.query2.hqm.condition;
 
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query2.hqm.HibernateQuery;
+import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
+import org.apache.commons.lang.Validate;
+import org.hibernate.Query;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.MatchMode;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Condition in HQL.
  *
  * @author mederly
  */
-public class Condition {
+public abstract class Condition {
 
-    public void dumpToHql(StringBuilder sb, int indent) {
-        if (indent >= 0) {
-            HibernateQuery.indent(sb, indent);
-        }
-        // TODO
+    protected RootHibernateQuery rootHibernateQuery;
+
+    public Condition(RootHibernateQuery rootHibernateQuery) {
+        Validate.notNull(rootHibernateQuery, "rootHibernateQuery");
+        this.rootHibernateQuery = rootHibernateQuery;
     }
+
+    public abstract void dumpToHql(StringBuilder sb, int indent);
 
     public static void dumpToHql(StringBuilder sb, List<Condition> conditions, int indent) {
         boolean first = true;
@@ -47,52 +54,5 @@ public class Condition {
             }
             condition.dumpToHql(sb, indent);
         }
-    }
-
-    public static Condition gt(String propertyPath, Object value) {
-        //TODO
-    }
-
-    public static Condition eq(String propertyPath, String value, Class<? extends Serializable> type) {
-        return null;
-    }
-
-    public static Condition and(List<Condition> conditions) {
-        return null;
-    }
-    public static AndCondition and(Condition... conditions) {
-        return null;
-    }
-
-    public static Condition isNull(String propertyName) {
-        return null;
-    }
-
-    public static Condition eq(String propertyName, Object value) {
-        return null;
-    }
-
-    public static Condition ge(String propertyName, Object value) {
-        return null;
-    }
-
-    public static Condition lt(String propertyName, Object value) {
-        return null;
-    }
-
-    public static Condition le(String propertyName, Object value) {
-        return null;
-    }
-
-    public static Condition isNotNull(String propertyName) {
-        return null;
-    }
-
-    public static Condition like(String propertyName, String value, MatchMode matchMode) {
-        return null;
-    }
-
-    public void ignoreCase() {
-
     }
 }

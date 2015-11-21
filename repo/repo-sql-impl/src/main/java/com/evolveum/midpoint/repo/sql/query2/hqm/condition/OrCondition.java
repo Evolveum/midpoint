@@ -16,8 +16,20 @@
 
 package com.evolveum.midpoint.repo.sql.query2.hqm.condition;
 
+import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
+
 /**
  * @author mederly
  */
 public class OrCondition extends JunctionCondition {
+
+    public OrCondition(RootHibernateQuery rootHibernateQuery, Condition... conditions) {
+        super(rootHibernateQuery, conditions);
+    }
+
+    @Override
+    public void dumpToHql(StringBuilder sb, int indent) {
+        super.dumpToHql(sb, indent, "or");
+    }
+
 }

@@ -16,21 +16,26 @@
 
 package com.evolveum.midpoint.repo.sql.query2.hqm.condition;
 
+import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
+import org.apache.commons.lang.Validate;
 
 /**
  * @author mederly
  */
-public class IsNotNullCondition extends PropertyCondition {
+public class HibernateSubquery extends HibernateQuery {
 
-    public IsNotNullCondition(RootHibernateQuery rootHibernateQuery, String propertyPath) {
-        super(rootHibernateQuery, propertyPath);
+    private HibernateQuery parentQuery;
+
+    public HibernateSubquery(EntityDefinition primaryEntityDef, HibernateQuery parentQuery) {
+        super(primaryEntityDef);
+        Validate.notNull(parentQuery);
+        this.parentQuery = parentQuery;
     }
 
     @Override
-    public void dumpToHql(StringBuilder sb, int indent) {
-        HibernateQuery.indent(sb, indent);
-        sb.append(propertyPath).append(" is not null");
+    public RootHibernateQuery getRootQuery() {
+        return parentQuery.getRootQuery();
     }
 }

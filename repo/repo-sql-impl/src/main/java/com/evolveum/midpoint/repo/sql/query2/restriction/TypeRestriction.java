@@ -16,21 +16,15 @@
 
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
-import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query2.QueryInterpreter2;
-import com.evolveum.midpoint.repo.sql.query2.hqm.condition.AndCondition;
+import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
-import com.evolveum.midpoint.repo.sql.query2.hqm.condition.EqualsCondition;
-import com.evolveum.midpoint.repo.sql.query2.hqm.condition.InCondition;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
 
 import javax.xml.namespace.QName;
 import java.util.Arrays;
@@ -44,26 +38,28 @@ public class TypeRestriction extends Restriction<TypeFilter> {
 
     @Override
     public Condition interpret() throws QueryException {
-        String property = getContext().getCurrentHqlPropertyPath() + "." + RObject.F_OBJECT_TYPE_CLASS;
+        InterpretationContext context = getContext();
+        RootHibernateQuery hibernateQuery = context.getHibernateQuery();
+
+        String property = context.getCurrentHqlPropertyPath() + "." + RObject.F_OBJECT_TYPE_CLASS;
 
         Set<RObjectType> values = getValues(filter.getType());
 
         Condition basedOnType;
         if (values.size() > 1) {
-            basedOnType = new InCondition(property, values);
+            basedOnType = hibernateQuery.createIn(property, values);
         } else {
-            basedOnType = new EqualsCondition(property, values.iterator().next());
+            basedOnType = hibernateQuery.createEq(property, values.iterator().next());
         }
 
         if (filter.getFilter() == null) {
             return basedOnType;
         }
 
-        InterpretationContext context = getContext();
         QueryInterpreter2 interpreter = context.getInterpreter();
         Condition basedOnFilter = interpreter.interpretFilter(filter.getFilter(), context, this);
 
-        return new AndCondition(basedOnType, basedOnFilter);
+        return hibernateQuery.createAnd(basedOnType, basedOnFilter);
     }
 
     private Set<RObjectType> getValues(QName typeQName) {
