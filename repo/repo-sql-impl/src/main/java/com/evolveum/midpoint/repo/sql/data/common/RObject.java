@@ -19,7 +19,15 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.sql.data.common.any.*;
+import com.evolveum.midpoint.repo.sql.data.common.any.RAnyConverter;
+import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
+import com.evolveum.midpoint.repo.sql.data.common.any.ROExtBoolean;
+import com.evolveum.midpoint.repo.sql.data.common.any.ROExtDate;
+import com.evolveum.midpoint.repo.sql.data.common.any.ROExtLong;
+import com.evolveum.midpoint.repo.sql.data.common.any.ROExtPolyString;
+import com.evolveum.midpoint.repo.sql.data.common.any.ROExtReference;
+import com.evolveum.midpoint.repo.sql.data.common.any.ROExtString;
+import com.evolveum.midpoint.repo.sql.data.common.any.ROExtValue;
 import com.evolveum.midpoint.repo.sql.data.common.container.RTrigger;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
@@ -27,21 +35,39 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
-import com.evolveum.midpoint.repo.sql.util.*;
+import com.evolveum.midpoint.repo.sql.query.definition.QueryEntity;
+import com.evolveum.midpoint.repo.sql.query.definition.VirtualAny;
+import com.evolveum.midpoint.repo.sql.util.ClassMapper;
+import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.EntityState;
+import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.hibernate.annotations.*;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.NamedQueries;
 import org.hibernate.annotations.NamedQuery;
+import org.hibernate.annotations.Where;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
+import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 import javax.persistence.Index;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
+import javax.persistence.Lob;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.Serializable;
 import java.util.Collection;
@@ -79,6 +105,8 @@ import java.util.Set;
         @NamedQuery(name = "delete.campaignCase", query = "delete RAccessCertificationCase c where c.ownerOid = :oid and c.id = :id"),
         @NamedQuery(name = "resolveReferences", query = "select o.oid, o.name from RObject as o where o.oid in (:oid)"),
 })
+@QueryEntity(anyElements = {
+        @VirtualAny(jaxbNameLocalPart = "extension")})
 @Entity
 @Table(name = "m_object", indexes = {
         @Index(name = "iObjectNameOrig", columnList = "name_orig"),

@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
+import com.evolveum.midpoint.repo.sql.query.definition.VirtualQueryParam;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.QueryInterpreter2;
@@ -40,7 +41,6 @@ import com.evolveum.midpoint.repo.sql.query2.definition.JpaDefinitionPath;
 import com.evolveum.midpoint.repo.sql.query2.definition.PropertyDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.ReferenceDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.VirtualCollectionDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.VirtualQueryParam;
 import com.evolveum.midpoint.repo.sql.query2.hqm.EntityReference;
 import com.evolveum.midpoint.repo.sql.query2.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.JoinSpecification;
@@ -59,6 +59,7 @@ import org.apache.commons.lang.Validate;
 import javax.xml.namespace.QName;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -148,28 +149,41 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
         JpaDefinitionPath jpaDefinitionPath = startEntityDefinition.translatePath(relativePath);
         String currentHqlPath = startPropertyPath;
 
-        for (Definition definition : jpaDefinitionPath.getDefinitions()) {
+        List<Definition> definitions = jpaDefinitionPath.getDefinitions();
+        for (int i = 0; i < definitions.size(); i++) {
+            Definition definition = definitions.get(i);
             if (definition instanceof EntityDefinition) {
                 EntityDefinition entityDef = (EntityDefinition) definition;
                 if (!entityDef.isEmbedded()) {
                     LOGGER.trace("Adding join for '{}' to context", entityDef.getJpaName());
                     currentHqlPath = addJoin(entityDef, currentHqlPath);
+                } else {
+                    currentHqlPath += "." + entityDef.getJpaName();
                 }
             } else if (definition instanceof AnyDefinition) {
-                LOGGER.trace("Adding join for '{}' to context", definition.getJpaName());
-                currentHqlPath = addJoin(definition, currentHqlPath);
+                if (definition.getJpaName() != null) {      // there are "invisible" Any definitions - object extension and shadow attributes
+                    LOGGER.trace("Adding join for '{}' to context", definition.getJpaName());
+                    currentHqlPath = addJoin(definition, currentHqlPath);
+                }
                 break;
             } else if (definition instanceof CollectionDefinition) {
                 LOGGER.trace("Adding join for '{}' to context", definition.getJpaName());
                 currentHqlPath = addJoin(definition, currentHqlPath);
+
+                // Because the next definition in the chain is the one that is referred to by this Collection
+                // (either property, reference or entity), we need to skip it: If it's entity, we have already
+                // joined it - and if it's property/reference, we would break the cycle even so
+                i++;
+
             } else if (definition instanceof PropertyDefinition || definition instanceof ReferenceDefinition) {
-                break;
+                break;      // quite redundant, as this is the last item in the chain
             } else {
-                throw new QueryException("Not implemented yet.");
+                throw new QueryException("Not implemented yet: " + definition);
             }
             // TODO entity crossjoin references (when crossing object boundaries)
         }
 
+        LOGGER.trace("prepareJoins({}) returning currentHqlPath of {}", relativePath, currentHqlPath);
         return currentHqlPath;
     }
 
@@ -233,11 +247,13 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
         String joinedItemFullPath = currentHqlPath + "." + joinedItemJpaName;
         String joinedItemAlias = hibernateQuery.createAlias(joinedItemJpaName, false);
 
-        Condition condition = hibernateQuery.createAnd(
-                hibernateQuery.createEq(joinedItemAlias + ".ownerType", ownerType),
-                hibernateQuery.createEq(joinedItemAlias + "." + RAnyValue.F_NAME, RUtil.qnameToString(itemName)));
+        AndCondition conjunction = hibernateQuery.createAnd();
+        if (ownerType != null) {        // null for assignment extensions
+            conjunction.add(hibernateQuery.createEq(joinedItemAlias + ".ownerType", ownerType));
+        }
+        conjunction.add(hibernateQuery.createEq(joinedItemAlias + "." + RAnyValue.F_NAME, RUtil.qnameToString(itemName)));
 
-        entityReference.addJoin(new JoinSpecification(joinedItemAlias, joinedItemFullPath, condition));
+        entityReference.addJoin(new JoinSpecification(joinedItemAlias, joinedItemFullPath, conjunction));
         return joinedItemAlias;
     }
 
@@ -275,7 +291,7 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
         	matchingRule = filter.getMatchingRule().getLocalPart();
         }
         
-        return matcher.match(null, operation, propertyName, value, matchingRule);
+        return matcher.match(context.getHibernateQuery(), operation, propertyName, value, matchingRule);
     }
 
     protected Object getValue(List<? extends PrismValue> values) {
@@ -319,7 +335,7 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
         }
 
         if (value != null && !def.getJaxbType().isAssignableFrom(value.getClass())) {
-            throw new QueryException("Value should by type of '" + def.getJaxbType() + "' but it's '"
+            throw new QueryException("Value should be type of '" + def.getJaxbType() + "' but it's '"
                     + value.getClass() + "', filter '" + filter + "'.");
         }
 

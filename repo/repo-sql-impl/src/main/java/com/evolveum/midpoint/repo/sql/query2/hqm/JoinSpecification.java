@@ -57,7 +57,7 @@ public class JoinSpecification {
             if (first) {
                 first = false;
             } else {
-                sb.append(",\n");
+                sb.append("\n");
             }
             HibernateQuery.indent(sb, indent);
             join.dumpToHql(sb);

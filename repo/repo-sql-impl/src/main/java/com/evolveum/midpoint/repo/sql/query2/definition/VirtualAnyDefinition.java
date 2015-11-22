@@ -16,24 +16,14 @@
 
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import javax.xml.namespace.QName;
 
 /**
- * @author lazyman
+ * @author mederly
  */
-@Target({TYPE, METHOD, FIELD})
-@Retention(RUNTIME)
-public @interface JaxbName {
+public class VirtualAnyDefinition extends AnyDefinition {
 
-    String namespace() default SchemaConstantsGenerated.NS_COMMON;
-
-    String localPart();
+    public VirtualAnyDefinition(QName jaxbName) {
+        super(jaxbName, null, null, null);
+    }
 }

@@ -72,7 +72,7 @@ public class OrgRestriction extends Restriction<OrgFilter> {
                         "where " +
                             "ref.referenceType = " + nameOf(RReferenceOwner.OBJECT_PARENT_ORG) + " and " +
                             "ref.targetOid in (" +
-                                "select descendantOid from ROrgClosure where ancestorOid = :" + orgOidParamName;
+                                "select descendantOid from ROrgClosure where ancestorOid = :" + orgOidParamName + ")";
         }
         return hibernateQuery.createIn(context.getCurrentHqlPropertyPath() + ".oid", oidQueryText);
     }

@@ -20,6 +20,15 @@ import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAssignmentExtension;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
+import com.evolveum.midpoint.repo.sql.query.definition.QueryEntity;
+import com.evolveum.midpoint.repo.sql.query.definition.VirtualAny;
+import com.evolveum.midpoint.repo.sql.query.definition.VirtualCollection;
+import com.evolveum.midpoint.repo.sql.query2.definition.VirtualCollectionDefinition;
+import com.evolveum.midpoint.repo.sql.query.definition.VirtualProperty;
+import com.evolveum.midpoint.repo.sql.query2.definition.VirtualPropertyDefinition;
+import com.evolveum.midpoint.repo.sql.query.definition.VirtualReference;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -113,6 +122,11 @@ public class ClassDefinitionParser {
 
         for (VirtualReference reference : qEntity.references()) {
 
+        }
+
+        for (VirtualAny any : qEntity.anyElements()) {
+            VirtualAnyDefinition def = new VirtualAnyDefinition(new QName(any.jaxbNameNamespace(), any.jaxbNameLocalPart()));
+            entityDef.addDefinition(def);
         }
 
         for (VirtualCollection collection : qEntity.collections()) {

@@ -53,29 +53,29 @@ public class PolyStringMatcher extends Matcher<PolyString> {
         if (StringUtils.isEmpty(matcher)
                 || STRICT.equals(matcher) || STRICT_IGNORE_CASE.equals(matcher)) {
             AndCondition conjunction = hibernateQuery.createAnd();
-            conjunction.add(createOrigMatch(operation, propertyName, value, ignoreCase));
-            conjunction.add(createNormMatch(operation, propertyName, value, ignoreCase));
+            conjunction.add(createOrigMatch(hibernateQuery, operation, propertyName, value, ignoreCase));
+            conjunction.add(createNormMatch(hibernateQuery, operation, propertyName, value, ignoreCase));
             return conjunction;
         } else if (ORIG.equals(matcher) || ORIG_IGNORE_CASE.equals(matcher)) {
-            return createOrigMatch(operation, propertyName, value, ignoreCase);
+            return createOrigMatch(hibernateQuery, operation, propertyName, value, ignoreCase);
         } else if (NORM.equals(matcher) || NORM_IGNORE_CASE.equals(matcher)) {
-            return createNormMatch(operation, propertyName, value, ignoreCase);
+            return createNormMatch(hibernateQuery, operation, propertyName, value, ignoreCase);
         } else {
             throw new QueryException("Unknown matcher '" + matcher + "'.");
         }
     }
 
-    private Condition createNormMatch(ItemRestrictionOperation operation, String propertyName, PolyString value,
+    private Condition createNormMatch(RootHibernateQuery hibernateQuery, ItemRestrictionOperation operation, String propertyName, PolyString value,
                                       boolean ignoreCase) throws QueryException {
 
         String realValue = value != null ? value.getNorm() : null;
-        return basicMatch(null, operation, propertyName + '.' + RPolyString.F_NORM, realValue, ignoreCase);
+        return basicMatch(hibernateQuery, operation, propertyName + '.' + RPolyString.F_NORM, realValue, ignoreCase);
     }
 
-    private Condition createOrigMatch(ItemRestrictionOperation operation, String propertyName, PolyString value,
+    private Condition createOrigMatch(RootHibernateQuery hibernateQuery, ItemRestrictionOperation operation, String propertyName, PolyString value,
                                       boolean ignoreCase) throws QueryException {
 
         String realValue = value != null ? value.getOrig() : null;
-        return basicMatch(null, operation, propertyName + '.' + RPolyString.F_ORIG, realValue, ignoreCase);
+        return basicMatch(hibernateQuery, operation, propertyName + '.' + RPolyString.F_ORIG, realValue, ignoreCase);
     }
 }

@@ -25,13 +25,14 @@ import com.evolveum.midpoint.repo.sql.query2.hqm.condition.IsNullCondition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.NotCondition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.OrCondition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.SimpleComparisonCondition;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.MatchMode;
 import org.hibernate.transform.ResultTransformer;
 import org.hibernate.type.Type;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -41,6 +42,8 @@ import java.util.Map;
  * @author mederly
  */
 public class RootHibernateQuery extends HibernateQuery {
+
+    private static final Trace LOGGER = TraceManager.getTrace(RootHibernateQuery.class);
 
     private Map<String,QueryParameterValue> parameters = new HashMap<>();
     private Integer maxResults;
@@ -74,14 +77,25 @@ public class RootHibernateQuery extends HibernateQuery {
 
     public Query getAsHqlQuery(Session session) {
         String text = getAsHqlText(0);
+        LOGGER.trace("HQL text generated:\n{}", text);
         Query query = session.createQuery(text);
         for (Map.Entry<String,QueryParameterValue> parameter : parameters.entrySet()) {
             String name = parameter.getKey();
             QueryParameterValue parameterValue = parameter.getValue();
-            if (parameterValue.getType() != null) {
-                query.setParameter(name, parameterValue.getValue(), parameterValue.getType());
+            LOGGER.trace("Parameter {} = {}", name, parameterValue.debugDump());
+
+            if (parameterValue.getValue() instanceof Collection) {
+                if (parameterValue.getType() != null) {
+                    query.setParameterList(name, (Collection) parameterValue.getValue(), parameterValue.getType());
+                } else {
+                    query.setParameterList(name, (Collection) parameterValue.getValue());
+                }
             } else {
-                query.setParameter(name, parameterValue.getValue());
+                if (parameterValue.getType() != null) {
+                    query.setParameter(name, parameterValue.getValue(), parameterValue.getType());
+                } else {
+                    query.setParameter(name, parameterValue.getValue());
+                }
             }
         }
         if (maxResults != null) {

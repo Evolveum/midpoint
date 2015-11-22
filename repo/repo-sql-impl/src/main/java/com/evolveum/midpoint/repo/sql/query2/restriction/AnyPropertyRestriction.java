@@ -29,12 +29,14 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.definition.AnyDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.Definition;
 import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.VirtualAnyDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.apache.commons.lang.Validate;
 import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.Restrictions;
 
@@ -49,8 +51,12 @@ public class AnyPropertyRestriction extends ItemRestriction<ValueFilter> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AnyPropertyRestriction.class);
 
-    public AnyPropertyRestriction(EntityDefinition rootEntityDefinition, String startPropertyPath, EntityDefinition startEntityDefinition) {
+    private AnyDefinition anyDefinition;
+
+    public AnyPropertyRestriction(AnyDefinition anyDefinition, EntityDefinition rootEntityDefinition, String startPropertyPath, EntityDefinition startEntityDefinition) {
         super(rootEntityDefinition, startPropertyPath, startEntityDefinition);
+        Validate.notNull(anyDefinition, "anyDefinition");
+        this.anyDefinition = anyDefinition;
     }
 
     @Override
@@ -65,8 +71,14 @@ public class AnyPropertyRestriction extends ItemRestriction<ValueFilter> {
         }
 
         ItemPath fullPath = getFullPath(filter.getFullPath());      // TODO does not work for cross-entities!
-        RObjectExtensionType ownerType = fullPath.first().equivalent(new NameItemPathSegment(ObjectType.F_EXTENSION)) ?
-                RObjectExtensionType.EXTENSION : RObjectExtensionType.ATTRIBUTES;
+
+        RObjectExtensionType ownerType;
+        if (anyDefinition instanceof VirtualAnyDefinition) {
+            ownerType = fullPath.first().equivalent(new NameItemPathSegment(ObjectType.F_EXTENSION)) ?
+                    RObjectExtensionType.EXTENSION : RObjectExtensionType.ATTRIBUTES;       // TODO write more nicely (e.g. using VirtualAnyDefinition field)
+        } else {
+            ownerType = null;       // assignment extension has no ownerType
+        }
         String anyAssociationName = null;        // longs, strings, ...
         try {
             anyAssociationName = RAnyConverter.getAnySetType(itemDefinition);

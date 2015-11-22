@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.repo.sql.query2.definition;
+package com.evolveum.midpoint.repo.sql.query.definition;
 
-import java.io.Serializable;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -24,18 +25,13 @@ import java.lang.annotation.Target;
 
 /**
  * @author lazyman
+ * @author mederly
  */
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface VirtualProperty {
+public @interface VirtualAny {
 
-    JaxbName jaxbName();
+    String jaxbNameNamespace() default SchemaConstantsGenerated.NS_COMMON;
 
-    Class jaxbType();
-
-    String jpaName();
-
-    Class<? extends Serializable> jpaType();
-
-    VirtualQueryParam[] additionalParams() default {};
+    String jaxbNameLocalPart();
 }

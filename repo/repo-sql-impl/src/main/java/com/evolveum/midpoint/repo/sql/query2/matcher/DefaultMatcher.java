@@ -30,6 +30,6 @@ public class DefaultMatcher<T> extends Matcher<T> {
     public Condition match(RootHibernateQuery hibernateQuery, ItemRestrictionOperation operation, String propertyName, T value, String matcher)
             throws QueryException {
 
-        return basicMatch(null, operation, propertyName, value, false);
+        return basicMatch(hibernateQuery, operation, propertyName, value, false);
     }
 }

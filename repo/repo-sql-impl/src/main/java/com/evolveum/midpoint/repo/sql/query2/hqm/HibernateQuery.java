@@ -182,7 +182,7 @@ public abstract class HibernateQuery {
     }
 
     private boolean hasAlias(String alias) {
-        if (primaryEntity.containsAlias(alias)) {
+        if (primaryEntity != null && primaryEntity.containsAlias(alias)) {
             return true;
         }
         for (EntityReference other : otherEntities) {

@@ -42,4 +42,22 @@ public class QueryParameterValue {
     public Object getValue() {
         return value;
     }
+
+    public String debugDump() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(value);
+        if (value instanceof Enum) {
+            sb.append(" (");
+            sb.append(value.getClass().getName());
+            sb.append('.');
+            sb.append(((Enum) value).name());
+            sb.append(')');
+        }
+        if (type != null) {
+            sb.append(" (type = ");
+            sb.append(type);
+            sb.append(")");
+        }
+        return sb.toString();
+    }
 }

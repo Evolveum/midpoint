@@ -16,9 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
-import com.evolveum.midpoint.repo.sql.query.definition.*;
-import com.evolveum.midpoint.repo.sql.query2.definition.JpaNamePath;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,12 +44,34 @@ public class JpaDefinitionPath {
         return definitions.get(i);
     }
 
-    public boolean containsAnyDefinition() {
+    public AnyDefinition getAnyDefinition() {
         for (Definition definition : definitions) {
             if (definition instanceof AnyDefinition) {
-                return true;
+                return (AnyDefinition) definition;
             }
         }
-        return false;
+        return null;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append('[');
+        boolean first = true;
+
+        for (Definition definition : definitions) {
+            if (first) {
+                first = false;
+            } else {
+                sb.append(", ");
+            }
+            if (definition != null) {
+                sb.append(definition.getShortInfo());
+            } else {
+                sb.append("null");      // Just to catch errors in translations
+            }
+        }
+        sb.append(']');
+        return sb.toString();
     }
 }

@@ -43,6 +43,7 @@ import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.repo.sql.data.common.RAccessCertificationCampaign;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationCase;
+import com.evolveum.midpoint.repo.sql.query2.QueryEngine2;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SequenceType;
@@ -1002,8 +1003,14 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 SQLQuery sqlQuery = session.createSQLQuery("SELECT COUNT(*) FROM " + RUtil.getTableName(hqlType));
                 longCount = (Number) sqlQuery.uniqueResult();
             } else {
-                QueryEngine engine = new QueryEngine(getConfiguration(), getPrismContext());
-                RQuery rQuery = engine.interpret(query, type, null, true, session);
+                RQuery rQuery;
+                if (query.isUseNewQueryInterpreter()) {
+                    QueryEngine2 engine = new QueryEngine2(getConfiguration(), getPrismContext());
+                    rQuery = engine.interpret(query, type, null, true, session);
+                } else {
+                    QueryEngine engine = new QueryEngine(getConfiguration(), getPrismContext());
+                    rQuery = engine.interpret(query, type, null, true, session);
+                }
 
                 longCount = (Number) rQuery.uniqueResult();
             }
@@ -1146,8 +1153,15 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Session session = null;
         try {
             session = beginReadOnlyTransaction();
-            QueryEngine engine = new QueryEngine(getConfiguration(), getPrismContext());
-            RQuery rQuery = engine.interpret(query, type, options, false, session);
+            RQuery rQuery;
+
+            if (query.isUseNewQueryInterpreter()) {
+                QueryEngine2 engine = new QueryEngine2(getConfiguration(), getPrismContext());
+                rQuery = engine.interpret(query, type, options, false, session);
+            } else {
+                QueryEngine engine = new QueryEngine(getConfiguration(), getPrismContext());
+                rQuery = engine.interpret(query, type, options, false, session);
+            }
 
             List<GetObjectResult> objects = rQuery.list();
             LOGGER.trace("Found {} objects, translating to JAXB.", new Object[]{(objects != null ? objects.size() : 0)});
@@ -2160,8 +2174,14 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Session session = null;
         try {
             session = beginReadOnlyTransaction();
-            QueryEngine engine = new QueryEngine(getConfiguration(), getPrismContext());
-            RQuery rQuery = engine.interpret(query, type, options, false, session);
+            RQuery rQuery;
+            if (query.isUseNewQueryInterpreter()) {
+                QueryEngine engine = new QueryEngine(getConfiguration(), getPrismContext());
+                rQuery = engine.interpret(query, type, options, false, session);
+            } else {
+                QueryEngine2 engine = new QueryEngine2(getConfiguration(), getPrismContext());
+                rQuery = engine.interpret(query, type, options, false, session);
+            }
 
             ScrollableResults results = rQuery.scroll(ScrollMode.FORWARD_ONLY);
             try {

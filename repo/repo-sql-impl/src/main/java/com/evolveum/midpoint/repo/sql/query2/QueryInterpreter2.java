@@ -37,6 +37,7 @@ import com.evolveum.midpoint.prism.query.UndefinedFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.query2.definition.AnyDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.CollectionDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.Definition;
 import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
@@ -193,6 +194,8 @@ public class QueryInterpreter2 {
         Validate.notNull(filter);
         Validate.notNull(context);
 
+        LOGGER.trace("Determining restriction for filter {}", filter);
+
         String alias = context.getHibernateQuery().getPrimaryEntityAlias();
 
         // the order of processing restrictions can be important, so we do the selection via handwritten code
@@ -210,12 +213,12 @@ public class QueryInterpreter2 {
         } else if (filter instanceof TypeFilter) {
             restriction = new TypeRestriction();
         } else if (filter instanceof RefFilter) {
-            ItemPath fullPath = new ItemPath(parent.getItemPathForChildren(), ((RefFilter) filter).getFullPath());
+            ItemPath fullPath = getFullPath(parent, ((RefFilter) filter).getFullPath());
             EntityDefinition entityDefinition = context.findProperEntityDefinition(fullPath);
             restriction = new ReferenceRestriction(entityDefinition, alias, entityDefinition);
         } else if (filter instanceof ValueFilter) {
             ValueFilter valFilter = (ValueFilter) filter;
-            ItemPath fullPath = new ItemPath(parent.getItemPathForChildren(), valFilter.getFullPath());
+            ItemPath fullPath = getFullPath(parent, valFilter.getFullPath());
 
             ProperDefinitionSearchResult<PropertyDefinition> propDef = context.findProperDefinition(fullPath, PropertyDefinition.class);
             if (propDef != null && propDef.getItemDefinition() != null) {
@@ -227,10 +230,9 @@ public class QueryInterpreter2 {
                 } else {
                     EntityDefinition entityDefinition = context.findProperEntityDefinition(fullPath);
                     JpaDefinitionPath jpaDefinitionPath = entityDefinition.translatePath(fullPath);
-                    if (fullPath.first().equivalent(new NameItemPathSegment(ObjectType.F_EXTENSION)) ||
-                            fullPath.first().equivalent(new NameItemPathSegment(ShadowType.F_ATTRIBUTES)) ||
-                            jpaDefinitionPath.containsAnyDefinition()) {
-                        restriction = new AnyPropertyRestriction(entityDefinition, alias, entityDefinition);
+                    AnyDefinition anyDefinition = jpaDefinitionPath.getAnyDefinition();
+                    if (anyDefinition != null) {
+                        restriction = new AnyPropertyRestriction(anyDefinition, entityDefinition, alias, entityDefinition);
                     } else {
                         throw new QueryException("Couldn't find a proper restriction for a ValueFilter: " + valFilter.debugDump());
                     }
@@ -246,7 +248,17 @@ public class QueryInterpreter2 {
         restriction.setContext(context);
         restriction.setParent(parent);
         restriction.setFilter(filter);
+
+        LOGGER.trace("Restriction for {} is {}", filter.getClass().getSimpleName(), restriction);
         return restriction;
+    }
+
+    private ItemPath getFullPath(Restriction parent, ItemPath fullPath) {
+        if (parent == null) {
+            return fullPath;
+        } else {
+            return new ItemPath(parent.getItemPathForChildren(), fullPath);
+        }
     }
 
     private void interpretPagingAndSorting(ObjectQuery query, InterpretationContext context, boolean countingObjects) {

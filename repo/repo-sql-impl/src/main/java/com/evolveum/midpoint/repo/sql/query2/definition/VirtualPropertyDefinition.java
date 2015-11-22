@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
+import com.evolveum.midpoint.repo.sql.query.definition.VirtualQueryParam;
+
 import javax.xml.namespace.QName;
 
 /**

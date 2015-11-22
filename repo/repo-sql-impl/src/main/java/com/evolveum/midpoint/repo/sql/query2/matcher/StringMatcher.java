@@ -36,6 +36,6 @@ public class StringMatcher extends Matcher<String> {
 
         boolean ignoreCase = IGNORE_CASE.equalsIgnoreCase(matcher);
 
-        return basicMatch(null, operation, propertyName, value, ignoreCase);
+        return basicMatch(hibernateQuery, operation, propertyName, value, ignoreCase);
     }
 }

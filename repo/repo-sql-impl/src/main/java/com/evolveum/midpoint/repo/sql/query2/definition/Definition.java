@@ -17,9 +17,11 @@
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.sql.query.restriction.PathTranslation;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 import javax.xml.namespace.QName;
 
@@ -27,6 +29,8 @@ import javax.xml.namespace.QName;
  * @author lazyman
  */
 public abstract class Definition implements DebugDumpable {
+
+    private static final Trace LOGGER = TraceManager.getTrace(Definition.class);
 
     //jaxb
     private QName jaxbName;
@@ -128,8 +132,26 @@ public abstract class Definition implements DebugDumpable {
         return null;
     }
 
+    // beware, path translation can end e.g. in ANY element (extension, attributes)
+    // also, beware of parent links and cross-entity links
     public JpaDefinitionPath translatePath(ItemPath path) {
-        return null;
+        Holder<ItemPath> pathHolder = new Holder<>(path);
+        JpaDefinitionPath jpaPath = new JpaDefinitionPath();
+
+        Definition currentDefinition = this;
+        for (;;) {
+            ItemPath currentPath = pathHolder.getValue();
+            if (currentDefinition == null || currentPath == null || currentPath.isEmpty()) {
+                LOGGER.trace("ItemPath {} translated to JpaDefinitionPath {}; remainder {} (started in {})", path, jpaPath, currentPath, this.getShortInfo());
+                return jpaPath;
+            }
+            ItemPath origPath = pathHolder.getValue();
+            currentDefinition = currentDefinition.nextDefinition(pathHolder);
+            LOGGER.trace("nextDefinition on {} returned {}", origPath, currentDefinition != null ? currentDefinition.getShortInfo() : "(null)");
+            if (currentDefinition != null) {
+                jpaPath.add(currentDefinition);
+            }
+        }
     }
 
     /**
@@ -148,6 +170,9 @@ public abstract class Definition implements DebugDumpable {
                     return null;
                 }
             }
+            if (currentDefinition instanceof AnyDefinition && type.isAssignableFrom(AnyDefinition.class)) {
+                return (D) currentDefinition;
+            }
             currentDefinition = currentDefinition.nextDefinition(pathHolder);
             if (currentDefinition == null) {
                 return null;
@@ -157,5 +182,9 @@ public abstract class Definition implements DebugDumpable {
 
     public <D extends Definition> D findDefinition(QName jaxbName, Class<D> type) {
         return null;
+    }
+
+    public String getShortInfo() {
+        return getDebugDumpClassName() + ":" + DebugUtil.formatElementName(getJaxbName()) + ":" + getJpaName();
     }
 }

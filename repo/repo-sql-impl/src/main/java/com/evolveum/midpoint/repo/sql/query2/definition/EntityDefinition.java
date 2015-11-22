@@ -166,22 +166,4 @@ public class EntityDefinition extends Definition {
         }
     }
 
-    // beware, path translation can end e.g. in ANY element (extension, attributes)
-    // also, beware of parent links and cross-entity links
-    @Override
-    public JpaDefinitionPath translatePath(ItemPath path) {
-        Holder<ItemPath> pathHolder = new Holder<>(path);
-        JpaDefinitionPath jpaPath = new JpaDefinitionPath();
-
-        Definition currentDefinition = this;
-        for (;;) {
-            ItemPath currentPath = pathHolder.getValue();
-            if (currentPath == null || currentPath.isEmpty()) {
-                return jpaPath;
-            }
-            jpaPath.add(currentDefinition);
-            currentDefinition = nextDefinition(pathHolder);
-        }
-    }
-
 }

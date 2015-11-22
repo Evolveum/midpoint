@@ -25,13 +25,18 @@ import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.ProperDefinitionSearchResult;
+import com.evolveum.midpoint.repo.sql.query2.definition.CollectionDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.Definition;
 import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.PropertyDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.ReferenceDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.AndCondition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 import javax.xml.namespace.QName;
 import java.util.List;
@@ -41,6 +46,8 @@ import java.util.List;
  */
 public class ReferenceRestriction extends ItemRestriction<RefFilter> {
 
+    private static final Trace LOGGER = TraceManager.getTrace(ReferenceRestriction.class);
+
     public ReferenceRestriction(EntityDefinition rootEntityDefinition, String startPropertyPath, EntityDefinition startEntityDefinition) {
         super(rootEntityDefinition, startPropertyPath, startEntityDefinition);
     }
@@ -48,6 +55,8 @@ public class ReferenceRestriction extends ItemRestriction<RefFilter> {
     // modelled after PropertyRestriction.interpretInternal, with some differences
     @Override
     public Condition interpretInternal(String hqlPath) throws QueryException {
+
+        LOGGER.trace("interpretInternal starting with hqlPath = {}", hqlPath);
 
         List<? extends PrismValue> values = filter.getValues();
         if (values != null && values.size() > 1) {
@@ -67,7 +76,14 @@ public class ReferenceRestriction extends ItemRestriction<RefFilter> {
         }
         Definition definition = defResult.getItemDefinition();      // actually, we cannot expect ReferenceDefinition here, because e.g. linkRef has a CollectionDefinition
 
-        String propertyFullNamePrefix = hqlPath + "." + definition.getJpaName() + ".";
+        String propertyFullNamePrefix;
+        if (definition instanceof CollectionDefinition) {
+            propertyFullNamePrefix = hqlPath + ".";
+        } else if (definition instanceof ReferenceDefinition) {
+            propertyFullNamePrefix = hqlPath + "." + definition.getJpaName() + ".";
+        } else {
+            throw new IllegalStateException("Unexpected kind of Definition while processing ReferenceRestriction: " + definition);
+        }
 
         String refValueOid = null;
         QName refValueRelation = null;

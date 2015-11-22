@@ -27,6 +27,8 @@ import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RShadowKind;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RSynchronizationSituation;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
+import com.evolveum.midpoint.repo.sql.query.definition.QueryEntity;
+import com.evolveum.midpoint.repo.sql.query.definition.VirtualAny;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -54,6 +56,8 @@ import java.util.Collection;
         indexes = {@Index(name = "iShadowResourceRef", columnNames = "resourceRef_targetOid"),
                 @Index(name = "iShadowDead", columnNames = "dead")})
 @ForeignKey(name = "fk_shadow")
+@QueryEntity(anyElements = {
+        @VirtualAny(jaxbNameLocalPart = "attributes")})
 public class RShadow<T extends ShadowType> extends RObject<T> implements OperationResult {
 
     private static final Trace LOGGER = TraceManager.getTrace(RShadow.class);

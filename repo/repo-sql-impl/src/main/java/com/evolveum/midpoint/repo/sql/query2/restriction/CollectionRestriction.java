@@ -45,12 +45,7 @@ public class CollectionRestriction extends ItemRestriction<ValueFilter> {
     public Condition interpretInternal(String hqlPath) throws QueryException {
         Object value = getValueFromFilter(filter, (PropertyDefinition) collectionDefinition.getDefinition());
 
-        //custom propertyPath handling for PolyString (it's embedded entity, not a primitive)
-        if (value instanceof PolyString) {
-            return createCondition(hqlPath, value, filter);
-        }
-
-        return createCondition(hqlPath + ".elements", value, filter);
+        return createCondition(hqlPath, value, filter);
 
         // TODO what about not-null ?
     }
