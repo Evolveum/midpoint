@@ -125,7 +125,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	private static final String GROUP_PIRATES_NAME = "pirates";
 	private static final String GROUP_MELEE_ISLAND_NAME = "Mêlée Island";
 	
-	protected static final int NUMBER_OF_ACCOUNTS = 14;
+	protected static final int NUMBER_OF_ACCOUNTS = 16;
 	private static final String ASSOCIATION_GROUP_NAME = "group";
 	
 	private boolean allowDuplicateSearchResults = false;
@@ -254,7 +254,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 		cleanupDelete(toAccountDn(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME));
 		cleanupDelete(toAccountDn(USER_CPTBARBOSSA_USERNAME, USER_CPTBARBOSSA_FULL_NAME));
 		cleanupDelete(toAccountDn(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME));
-		cleanupDelete(toGroupDn("Mêlée Island"));
+		cleanupDelete(toGroupDn(GROUP_MELEE_ISLAND_NAME));
 	}
 
 	@Test
@@ -1063,6 +1063,73 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         assertNoLinkedAccount(user);
+	}
+	
+	@Test
+    public void test500AddOrgMeleeIsland() throws Exception {
+		final String TEST_NAME = "test500AddOrgMeleeIsland";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<OrgType> org = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(OrgType.class).instantiate();
+        OrgType orgType = org.asObjectable();
+        orgType.setName(new PolyStringType(GROUP_MELEE_ISLAND_NAME));
+        AssignmentType metaroleAssignment = new AssignmentType();
+        ObjectReferenceType metaroleRef = new ObjectReferenceType();
+        metaroleRef.setOid(ROLE_META_ORG_OID);
+        metaroleRef.setType(RoleType.COMPLEX_TYPE);
+		metaroleAssignment.setTargetRef(metaroleRef);
+		orgType.getAssignment().add(metaroleAssignment);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        addObject(org, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        orgMeleeIslandOid = org.getOid();
+        Entry entry = assertLdapGroup(GROUP_MELEE_ISLAND_NAME);
+        
+        org = getObject(OrgType.class, orgMeleeIslandOid);
+        groupMeleeOid = getSingleLinkOid(org);
+        PrismObject<ShadowType> shadow = getShadowModel(groupMeleeOid);
+        display("Shadow (model)", shadow);
+	}
+	
+	@Test
+    public void test510AssignGuybrushMeleeIsland() throws Exception {
+		final String TEST_NAME = "test510AssignGuybrushMeleeIsland";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignOrg(USER_GUYBRUSH_OID, orgMeleeIslandOid, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        Entry entry = assertLdapAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME);
+        
+        PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
+        String shadowOid = getSingleLinkOid(user);
+        PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
+        display("Shadow (model)", shadow);
+        
+        assertLdapGroupMember(entry, GROUP_MELEE_ISLAND_NAME);
+
+        IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupMeleeOid);
 	}
 	
 	@Override

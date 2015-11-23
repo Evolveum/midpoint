@@ -365,9 +365,13 @@ public abstract class PageTemplate extends WebPage {
         if (result == null) {
             return;
         }
-
-        OpResult opResult = new OpResult(result);
-        showResult(opResult, false);
+        OpResult opResult = null;
+        try {
+            opResult = OpResult.getOpResult((PageBase) getPage(), result);
+            showResult(opResult, false);
+        } catch (Exception ex) {
+            error(opResult);
+        }
     }
 
     public void showResultInSession(OperationResult result) {
@@ -375,8 +379,13 @@ public abstract class PageTemplate extends WebPage {
             return;
         }
 
-        OpResult opResult = new OpResult(result);
-        showResult(opResult, true);
+        OpResult opResult = null;
+        try {
+            opResult = OpResult.getOpResult((PageBase) getPage(), result);
+            showResult(opResult, true);
+        } catch (Exception ex) {
+            error(opResult);
+        }
     }
 
     private void showResult(OpResult opResult, boolean showInSession) {

@@ -53,10 +53,10 @@
     </connectorConfiguration>
 
     <schema>
-        <generationConstraints>
+       <!--  <generationConstraints>
             <generateObjectClass>ri:user</generateObjectClass>
             <generateObjectClass>ri:group</generateObjectClass>
-        </generationConstraints>
+        </generationConstraints>  -->
     </schema>
 
 
@@ -276,7 +276,6 @@
 						<q:path>c:employeeNumber</q:path>
 						<expression>
 							<path>$shadow/attributes/employeeNumber</path>
-							<allowEmptyValues>true</allowEmptyValues>
 						</expression>
 					</q:equal>
 					<q:not>

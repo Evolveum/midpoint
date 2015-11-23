@@ -45,6 +45,7 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.image.ContextImage;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -87,12 +88,10 @@ public class UserMenuPanel extends BaseSimplePanel {
 
     private boolean isUserModelLoaded = false;
     private boolean isPasswordModelLoaded = false;
+    private  byte[] jpegPhoto = null;
 
     public UserMenuPanel(String id) {
         super(id);
-//        if (!isUserModelLoaded) {
-//            loadModel();
-//        }
         if (!isPasswordModelLoaded) {
             passwordQuestionsDtoIModel = new LoadableModel<PasswordQuestionsDto>(false) {
 
@@ -103,12 +102,15 @@ public class UserMenuPanel extends BaseSimplePanel {
                     return loadModel();
                 }
             };
-//            isPasswordModelLoaded = true;
+            isPasswordModelLoaded = true;
         }
     }
 
     @Override
     protected void initLayout() {
+        if (userModel != null && userModel.getObject() == null){
+            loadModel();
+        }
         WebMarkupContainer iconBox = new WebMarkupContainer(ID_ICON_BOX);
         add(iconBox);
 
@@ -116,7 +118,6 @@ public class UserMenuPanel extends BaseSimplePanel {
 
             @Override
             public AbstractResource getObject() {
-                byte[] jpegPhoto = userModel.getObject().asObjectable().getJpegPhoto();
                 if(jpegPhoto == null) {
                     return null;
                 } else {
@@ -127,36 +128,27 @@ public class UserMenuPanel extends BaseSimplePanel {
         img.add(new VisibleEnableBehaviour(){
             @Override
             public boolean isVisible(){
-                byte [] photo = null;
                 if (userModel != null && userModel.getObject() == null){
                     loadModel();
-                    photo = userModel.getObject().asObjectable().getJpegPhoto();
                 }
-                return userModel == null ? false :
-                        (userModel.getObject() == null ? false : photo != null);
+                return jpegPhoto != null;
             }
         });
         iconBox.add(img);
 
-        Label icon = new Label(ID_ICON,"");
-        icon.add(new AttributeModifier("class", "fa fa-user"));
+        ContextImage icon = new ContextImage(ID_ICON, "img/placeholder.png");
         icon.add(new VisibleEnableBehaviour(){
             @Override
             public boolean isVisible(){
                 if (userModel != null && userModel.getObject() == null){
                     loadModel();
                 }
-                return userModel == null ? false :
-                        (userModel.getObject() == null ? false : userModel.getObject().asObjectable().getJpegPhoto() == null);
+                return jpegPhoto == null;
 
 
             }
         });
         iconBox.add(icon);
-
-
-
-
 
         Label usernameLink = new Label(ID_USERNAME_LINK, new AbstractReadOnlyModel<String>() {
 
@@ -175,7 +167,6 @@ public class UserMenuPanel extends BaseSimplePanel {
 
             @Override
             public AbstractResource getObject() {
-                byte[] jpegPhoto = userModel.getObject().asObjectable().getJpegPhoto();
                 if(jpegPhoto == null) {
                     return null;
                 } else {
@@ -189,22 +180,19 @@ public class UserMenuPanel extends BaseSimplePanel {
                 if (userModel != null && userModel.getObject() == null){
                     loadModel();
                 }
-                return userModel == null ? false :
-                        (userModel.getObject() == null ? false : userModel.getObject().asObjectable().getJpegPhoto() != null);
+                return jpegPhoto != null;
             }
         });
         panelIconBox.add(panelImg);
 
-        Label panelIcon = new Label(ID_PANEL_ICON,"");
-        panelIcon.add(new AttributeModifier("class", "fa fa-user"));
+        ContextImage panelIcon = new ContextImage(ID_PANEL_ICON,"img/placeholder.png");
         panelIcon.add(new VisibleEnableBehaviour(){
             @Override
             public boolean isVisible(){
                 if (userModel != null && userModel.getObject() == null){
                     loadModel();
                 }
-                return userModel == null ? false :
-                        (userModel.getObject() == null ? false : userModel.getObject().asObjectable().getJpegPhoto() == null);
+                return jpegPhoto == null;
             }
         });
         panelIconBox.add(panelIcon);
@@ -232,7 +220,7 @@ public class UserMenuPanel extends BaseSimplePanel {
                 PageMyPasswordQuestions myPasswordQuestions = new PageMyPasswordQuestions(passwordQuestionsDtoIModel);
                 setResponsePage(myPasswordQuestions);
             }
-            
+
         };
         add(editPasswordQ);
 
@@ -296,7 +284,8 @@ public class UserMenuPanel extends BaseSimplePanel {
                     GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
             PrismObject<UserType> user = ((PageBase)getPage()).getModelService().getObject(UserType.class, userOid, options, task, subResult);
             userModel.setObject(user);
-
+            jpegPhoto = user == null ? null :
+                    (user.asObjectable() == null ? null : user.asObjectable().getJpegPhoto());
             dto.setSecurityAnswers(createUsersSecurityQuestionsList(user));
 
             subResult.recordSuccessIfUnknown();

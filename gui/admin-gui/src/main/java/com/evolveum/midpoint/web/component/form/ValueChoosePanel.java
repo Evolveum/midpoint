@@ -199,14 +199,15 @@ public class ValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
 	protected ObjectQuery createChooseQuery(List<PrismReferenceValue> values) {
 		ArrayList<String> oidList = new ArrayList<>();
 		ObjectQuery query = new ObjectQuery();
-
-		for (PrismReferenceValue ref : values) {
-			if (ref != null) {
-				if (ref.getOid() != null && !ref.getOid().isEmpty()) {
-					oidList.add(ref.getOid());
-				}
-			}
-		}
+//TODO we should add to filter currently displayed value
+//not to be displayed on ObjectSelectionPanel instead of saved value
+//		for (PrismReferenceValue ref : values) {
+//			if (ref != null) {
+//				if (ref.getOid() != null && !ref.getOid().isEmpty()) {
+//					oidList.add(ref.getOid());
+//				}
+//			}
+//		}
 
 //		if (isediting) {
 //			oidList.add(orgModel.getObject().getObject().asObjectable().getOid());

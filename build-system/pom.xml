@@ -253,7 +253,7 @@
             <dependency>
                 <groupId>commons-collections</groupId>
                 <artifactId>commons-collections</artifactId>
-                <version>3.2.1</version>
+                <version>3.2.2</version>
             </dependency>
             <dependency>
                 <groupId>commons-configuration</groupId>
@@ -859,7 +859,7 @@
 	        <dependency>
 				<groupId>org.codehaus.groovy.modules.http-builder</groupId>
 				<artifactId>http-builder</artifactId>
-				<version>0.7</version>
+				<version>0.7.1</version>
 				 <exclusions>
 	                <exclusion> <!-- Version conflict -->
 	                    <groupId>commons-logging</groupId>

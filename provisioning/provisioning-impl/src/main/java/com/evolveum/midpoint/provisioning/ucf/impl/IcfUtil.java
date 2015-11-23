@@ -291,7 +291,8 @@ class IcfUtil {
     private static Exception lookForKnownCause(Throwable ex,
 			Throwable originalException, OperationResult parentResult) {
 		if (ex instanceof FileNotFoundException) {
-			Exception newEx = new com.evolveum.midpoint.util.exception.ConfigurationException(createMessageFromAllExceptions(null, ex));
+            //fix MID-2711 consider FileNotFoundException as CommunicationException
+			Exception newEx = new com.evolveum.midpoint.util.exception.CommunicationException(createMessageFromAllExceptions(null, ex));
 			parentResult.recordFatalError("File not found: "+ex.getMessage(), newEx);
 			return newEx;
 		} else if (ex instanceof NameAlreadyBoundException) {
