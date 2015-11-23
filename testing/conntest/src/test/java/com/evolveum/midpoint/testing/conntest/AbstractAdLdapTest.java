@@ -127,6 +127,9 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	
 	protected static final int NUMBER_OF_ACCOUNTS = 16;
 	private static final String ASSOCIATION_GROUP_NAME = "group";
+
+	private static final String NS_EXTENSION = "http://whatever.com/my";
+	private static final QName EXTENSION_SHOW_IN_ADVANCED_VIEW_ONLY_QNAME = new QName(NS_EXTENSION, "showInAdvancedViewOnly");
 	
 	private boolean allowDuplicateSearchResults = false;
 	
@@ -296,8 +299,22 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         PrismAsserts.assertDefinition(createTimestampDef, new QName(MidPointConstants.NS_RI, "createTimeStamp"),
         		DOMUtil.XSD_LONG, 0, 1);
         assertTrue("createTimeStampDef read", createTimestampDef.canRead());
-        assertFalse("createTimeStampDef read", createTimestampDef.canModify());
-        assertFalse("createTimeStampDef read", createTimestampDef.canAdd());
+        assertFalse("createTimeStampDef modify", createTimestampDef.canModify());
+        assertFalse("createTimeStampDef add", createTimestampDef.canAdd());
+        
+        ResourceAttributeDefinition<Long> isCriticalSystemObjectDef = accountObjectClassDefinition.findAttributeDefinition("isCriticalSystemObject");
+        PrismAsserts.assertDefinition(isCriticalSystemObjectDef, new QName(MidPointConstants.NS_RI, "isCriticalSystemObject"),
+        		DOMUtil.XSD_BOOLEAN, 0, 1);
+        assertTrue("isCriticalSystemObject read", isCriticalSystemObjectDef.canRead());
+        assertTrue("isCriticalSystemObject modify", isCriticalSystemObjectDef.canModify());
+        assertTrue("isCriticalSystemObject add", isCriticalSystemObjectDef.canAdd());
+        
+        ResourceAttributeDefinition<Long> nTSecurityDescriptorDef = accountObjectClassDefinition.findAttributeDefinition("nTSecurityDescriptor");
+        PrismAsserts.assertDefinition(nTSecurityDescriptorDef, new QName(MidPointConstants.NS_RI, "nTSecurityDescriptor"),
+        		DOMUtil.XSD_BASE64BINARY, 1, 1);
+        assertTrue("nTSecurityDescriptor read", nTSecurityDescriptorDef.canRead());
+        assertTrue("nTSecurityDescriptor modify", nTSecurityDescriptorDef.canModify());
+        assertTrue("nTSecurityDescriptor add", nTSecurityDescriptorDef.canAdd());
         
 	}
 	
@@ -712,6 +729,80 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
         assertAttribute(entry, "title", "Captain");
+        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
+        
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        String shadowOid = getSingleLinkOid(user);
+        assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
+	}
+	
+	@Test
+    public void test212ModifyAccountBarbossaShowInAdvancedViewOnlyTrue() throws Exception {
+		final String TEST_NAME = "test212ModifyAccountBarbossaShowInAdvancedViewOnlyTrue";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectDelta<ShadowType> delta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
+        QName attrQName = new QName(MidPointConstants.NS_RI, "showInAdvancedViewOnly");
+        ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
+        PropertyDelta<Boolean> attrDelta = PropertyDelta.createModificationReplaceProperty(
+        		new ItemPath(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.TRUE);
+        delta.addModification(attrDelta);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        assertAttribute(entry, "showInAdvancedViewOnly", "TRUE");
+        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
+        
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        String shadowOid = getSingleLinkOid(user);
+        assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
+	}
+	
+	/**
+	 * Modify USER, test boolean value mapping.
+	 */
+	@Test
+    public void test213ModifyUserBarbossaShowInAdvancedViewOnlyFalse() throws Exception {
+		final String TEST_NAME = "test213ModifyUserBarbossaShowInAdvancedViewOnlyFalse";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        
+        ObjectDelta<ShadowType> delta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
+        QName attrQName = new QName(MidPointConstants.NS_RI, "showInAdvancedViewOnly");
+        ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
+        PropertyDelta<Boolean> attrDelta = PropertyDelta.createModificationReplaceProperty(
+        		new ItemPath(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.TRUE);
+        delta.addModification(attrDelta);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_BARBOSSA_OID, 
+        		new ItemPath(UserType.F_EXTENSION,  EXTENSION_SHOW_IN_ADVANCED_VIEW_ONLY_QNAME), 
+        		task, result, Boolean.FALSE);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        assertAttribute(entry, "showInAdvancedViewOnly", "FALSE");
         assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
         
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
