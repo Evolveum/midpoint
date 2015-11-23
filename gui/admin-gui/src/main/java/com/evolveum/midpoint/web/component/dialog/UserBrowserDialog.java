@@ -220,9 +220,24 @@ public class UserBrowserDialog<T extends FocusType> extends ModalWindow {
     private TablePanel createTable(){
     	List<IColumn<SelectableBean<T>, String>> columns = initColumns();
         TablePanel table = new TablePanel<>(ID_TABLE,
-                new ObjectDataProvider(getPageBase(), type), columns);
+                new ObjectDataProvider(getPageBase(), type){
+        	
+        	@Override
+        	public ObjectQuery getQuery() {
+        		ObjectQuery customQuery = createContentQuery();
+        		if (customQuery == null){
+        			return super.getQuery();
+        		}
+        		return customQuery;
+        	}
+        	
+        }, columns);
         table.setOutputMarkupId(true);
         return table;
+    }
+    
+    protected ObjectQuery createContentQuery(){
+    	return null;
     }
     private PageBase getPageBase() {
         return (PageBase) getPage();

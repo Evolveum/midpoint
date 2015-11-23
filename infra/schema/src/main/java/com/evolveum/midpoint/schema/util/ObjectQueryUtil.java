@@ -320,6 +320,11 @@ public class ObjectQueryUtil {
 			if (simplifiedFilter.isEmpty()) {
 				return AllFilter.createAll();
 			}
+			
+			if (simplifiedFilter.getConditions().size() == 1){
+				return simplifiedFilter.getConditions().iterator().next();
+			}
+			
 			return simplifiedFilter;
 			
 		} else if (filter instanceof OrFilter) {
@@ -339,6 +344,11 @@ public class ObjectQueryUtil {
 			if (simplifiedFilter.isEmpty()) {
 				return AllFilter.createAll();
 			}
+			
+			if (simplifiedFilter.getConditions().size() == 1){
+				return simplifiedFilter.getConditions().iterator().next();
+			}
+			
 			return simplifiedFilter;
  
 		} else if (filter instanceof NotFilter) {
