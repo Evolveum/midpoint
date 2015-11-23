@@ -35,6 +35,7 @@ import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.InOidFilter;
+import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -278,11 +279,20 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 			protected boolean isCheckBoxVisible() {
 				return true;
 			}
+			
+		
 		};
 		add(dialog);
 
 	}
-
+	
+	//TODO: what about possible member list? we need something like distinct..
+	private ObjectQuery createMembersQuery(){
+		ObjectQuery q = createQuery(false, true);
+		NotFilter filter = NotFilter.createNot(RefFilter.createReferenceEqual(FocusType.F_ROLE_MEMBERSHIP_REF, UserType.class, getPrismContext(), roleId));
+		return ObjectQuery.createObjectQuery(AndFilter.createAnd(q.getFilter(), filter));
+	}
+	
 	private List<OrgType> createTenantList() {
 		ObjectQuery query;
 		try {
@@ -421,20 +431,29 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 	}
 
 	private ObjectQuery createQuery() {
-		return createQuery(true);
+		return createQuery(true, false);
 	}
 	
-	private ObjectQuery createQuery(boolean useNameFilter) {
+	private void addFilter(ObjectFilter filter, List<ObjectFilter> conditions, boolean isNot){
+		if (isNot){
+			ObjectFilter notFilter = NotFilter.createNot(filter);
+			conditions.add(notFilter);
+		} else {
+			conditions.add(filter);
+		}
+	}
+	
+	private ObjectQuery createQuery(boolean useNameFilter, boolean isNot) {
 		ObjectQuery query;
 		try {
 			List<ObjectFilter> conditions = new ArrayList<>();
 			PrismReferenceValue roleRef = new PrismReferenceValue();
 			roleRef.setOid(roleId);
-			roleRef.setTargetType(RoleType.COMPLEX_TYPE);
+//			roleRef.setTargetType(RoleType.COMPLEX_TYPE);
 			ObjectFilter roleFilter = RefFilter.createReferenceEqual(
 					new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), UserType.class,
 					getPrismContext(), roleRef);
-			conditions.add(roleFilter);
+			addFilter(roleFilter, conditions, isNot);
 			
 			RoleMemberSearchDto dto = searchModel.getObject();
 			if (dto.getTenant() != null) {
@@ -444,7 +463,7 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 				ObjectFilter tenantFilter = RefFilter.createReferenceEqual(
 						new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TENANT_REF), UserType.class,
 						getPrismContext(), tenantRef);
-				conditions.add(tenantFilter);
+				addFilter(tenantFilter, conditions, isNot);
 			}
 
 			if (dto.getProject() != null) {
@@ -454,7 +473,7 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 				ObjectFilter projectFilter = RefFilter.createReferenceEqual(
 						new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_ORG_REF), UserType.class,
 						getPrismContext(), orgRef);
-				conditions.add(projectFilter);
+				addFilter(projectFilter, conditions, isNot);
 			}
 
 			if (StringUtils.isNotBlank(dto.getText()) && useNameFilter) {
@@ -462,7 +481,7 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 	            String normalizedString = normalizer.normalize(dto.getText());
 				ObjectFilter nameFilter = SubstringFilter.createSubstring(UserType.F_NAME, UserType.class,
 						getPrismContext(), PolyStringNormMatchingRule.NAME, normalizedString);
-				conditions.add(nameFilter);
+				addFilter(nameFilter, conditions, isNot);
 			}
 			
 			query = ObjectQuery.createObjectQuery(AndFilter.createAnd(conditions));
@@ -829,7 +848,7 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 	private ObjectQuery getActionQuery(QueryScope scope, List<T> selected) {
 		switch (scope) {
 			case ALL:
-				return createQuery(false);
+				return createQuery(false, false);
 			case SELECTED:
 				return createRecomputeQuery();
 			case TO_ADD:
