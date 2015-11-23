@@ -694,6 +694,9 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 					if (newValCloned != null) {
 						pDelta.addValueToDelete(newValCloned);
 					}
+					if (oldValCloned != null) {
+						pDelta.addValueToDelete(oldValCloned);
+					}
 					break;
 				case NOT_CHANGED:
 					// this is modify...
