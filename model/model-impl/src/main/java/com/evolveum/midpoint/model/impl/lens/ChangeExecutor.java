@@ -1065,12 +1065,20 @@ public class ChangeExecutor {
 				try {
 					deleteProvisioningObject(objectTypeClass, oid, context, objectContext, provisioningOptions, resource, task, result);
 				} catch (ObjectNotFoundException e) {
-					// HACK. We wanted to delete something that is not there. So in fact this is OK. Almost.
-					LOGGER.trace("Attempt to delete object {} that is already gone", oid);
-					result.getLastSubresult().setStatus(OperationResultStatus.HANDLED_ERROR);
+					// Object that we wanted to delete is already gone. This can happen in some race conditions.
+					// As the resulting state is the same as we wanted it to be we will not complain and we will go on.
+					LOGGER.trace("Attempt to delete object {} ({}) that is already gone", oid, objectTypeClass);
+					result.muteLastSubresultError();
 				}
 			} else {
-				cacheRepositoryService.deleteObject(objectTypeClass, oid, result);
+				try {
+					cacheRepositoryService.deleteObject(objectTypeClass, oid, result);
+				} catch (ObjectNotFoundException e) {
+					// Object that we wanted to delete is already gone. This can happen in some race conditions.
+					// As the resulting state is the same as we wanted it to be we will not complain and we will go on.
+					LOGGER.trace("Attempt to delete object {} ({}) that is already gone", oid, objectTypeClass);
+					result.muteLastSubresultError();
+				}
 			}
 			task.recordObjectActionExecuted(objectOld, objectTypeClass, oid, ChangeType.DELETE, context.getChannel(), null);
 		} catch (Throwable t) {
