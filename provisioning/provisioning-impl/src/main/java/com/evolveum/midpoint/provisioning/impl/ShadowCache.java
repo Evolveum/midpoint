@@ -23,8 +23,8 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Item;
-
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,6 +93,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -298,7 +299,11 @@ public abstract class ShadowCache {
 				
 				resourceShadow = handleError(ctx, ex, repositoryShadow, FailedOperation.GET, null, isCompensate(rootOptions),
 						parentResult);
-				
+				if (parentResult.getStatus() == OperationResultStatus.FATAL_ERROR) {
+					// We are going to return an object. Therefore this cannot be fatal error, as at least some information
+					// is returned
+					parentResult.setStatus(OperationResultStatus.PARTIAL_ERROR);
+				}
 				return resourceShadow;
 
 			} catch (GenericFrameworkException e) {

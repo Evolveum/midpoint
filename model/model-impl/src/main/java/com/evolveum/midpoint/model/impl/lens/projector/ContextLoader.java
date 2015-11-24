@@ -1157,7 +1157,7 @@ public class ContextLoader {
 							FocusType focusType = (FocusType) focusCurrent.asObjectable();
 							for (ObjectReferenceType linkRef: focusType.getLinkRef()) {
 								if (linkRef.getOid().equals(projCtx.getOid())) {
-									throw new SystemException("Internal error: the old OID still exists in the linkRef ("+focusCurrent+")");
+									throw new SystemException("Internal error: the old OID "+projCtx.getOid()+" still exists in the linkRef ("+focusCurrent+")");
 								}
 								boolean found = false;
 								for (LensProjectionContext pCtx: context.getProjectionContexts()) {
