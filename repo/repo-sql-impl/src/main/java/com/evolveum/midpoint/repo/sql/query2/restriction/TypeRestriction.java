@@ -22,6 +22,7 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query2.QueryInterpreter2;
+import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
@@ -36,12 +37,16 @@ import java.util.Set;
  */
 public class TypeRestriction extends Restriction<TypeFilter> {
 
+    public TypeRestriction(InterpretationContext context, TypeFilter filter, EntityDefinition baseEntityDefinition, Restriction parent) {
+        super(context, filter, baseEntityDefinition, parent);
+    }
+
     @Override
     public Condition interpret() throws QueryException {
         InterpretationContext context = getContext();
         RootHibernateQuery hibernateQuery = context.getHibernateQuery();
 
-        String property = context.getCurrentHqlPropertyPath() + "." + RObject.F_OBJECT_TYPE_CLASS;
+        String property = getBaseHqlPath() + "." + RObject.F_OBJECT_TYPE_CLASS;
 
         Set<RObjectType> values = getValues(filter.getType());
 
@@ -57,7 +62,7 @@ public class TypeRestriction extends Restriction<TypeFilter> {
         }
 
         QueryInterpreter2 interpreter = context.getInterpreter();
-        Condition basedOnFilter = interpreter.interpretFilter(filter.getFilter(), context, this);
+        Condition basedOnFilter = interpreter.interpretFilter(context, filter.getFilter(), this);
 
         return hibernateQuery.createAnd(basedOnType, basedOnFilter);
     }
@@ -83,5 +88,4 @@ public class TypeRestriction extends Restriction<TypeFilter> {
 
         return set;
     }
-
 }

@@ -23,7 +23,6 @@ import java.util.regex.Pattern;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.apache.commons.lang.Validate;
@@ -32,7 +31,6 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -151,7 +149,7 @@ public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T
 	
 	public static <O extends Objectable, T> SubstringFilter createSubstring(ItemPath path, Class<O> clazz, PrismContext prismContext, QName matchingRule, T realValue) {
 		
-		ItemDefinition itemDefinition = findItemDefinition(path, clazz, prismContext);
+		ItemDefinition itemDefinition = FilterUtils.findItemDefinition(path, clazz, prismContext);
 		
 		if (!(itemDefinition instanceof PrismPropertyDefinition)){
 			throw new IllegalStateException("Bad definition. Expected property definition, but got " + itemDefinition);

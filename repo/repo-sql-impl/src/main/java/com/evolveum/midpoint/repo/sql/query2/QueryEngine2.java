@@ -53,11 +53,6 @@ public class QueryEngine2 {
 
         QueryInterpreter2 interpreter = new QueryInterpreter2(repoConfiguration);
         RootHibernateQuery hibernateQuery = interpreter.interpret(query, type, options, prismContext, countingObjects, session);
-        if (countingObjects) {
-            hibernateQuery.addProjectionElement(new ProjectionElement("count(*)"));
-        } else {
-            hibernateQuery.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
-        }
 
         return new RQueryImpl(hibernateQuery.getAsHqlQuery(session));
     }

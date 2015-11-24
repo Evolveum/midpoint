@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.ExistsFilter;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
@@ -41,9 +42,7 @@ import com.evolveum.midpoint.repo.sql.query2.definition.AnyDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.CollectionDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.Definition;
 import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.JpaDefinitionPath;
 import com.evolveum.midpoint.repo.sql.query2.definition.PropertyDefinition;
-import com.evolveum.midpoint.repo.sql.query2.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.ProjectionElement;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
@@ -54,8 +53,8 @@ import com.evolveum.midpoint.repo.sql.query2.matcher.StringMatcher;
 import com.evolveum.midpoint.repo.sql.query2.restriction.AndRestriction;
 import com.evolveum.midpoint.repo.sql.query2.restriction.AnyPropertyRestriction;
 import com.evolveum.midpoint.repo.sql.query2.restriction.CollectionRestriction;
+import com.evolveum.midpoint.repo.sql.query2.restriction.ExistsRestriction;
 import com.evolveum.midpoint.repo.sql.query2.restriction.InOidRestriction;
-import com.evolveum.midpoint.repo.sql.query2.restriction.ItemRestrictionOperation;
 import com.evolveum.midpoint.repo.sql.query2.restriction.NotRestriction;
 import com.evolveum.midpoint.repo.sql.query2.restriction.OrRestriction;
 import com.evolveum.midpoint.repo.sql.query2.restriction.OrgRestriction;
@@ -63,12 +62,12 @@ import com.evolveum.midpoint.repo.sql.query2.restriction.PropertyRestriction;
 import com.evolveum.midpoint.repo.sql.query2.restriction.ReferenceRestriction;
 import com.evolveum.midpoint.repo.sql.query2.restriction.Restriction;
 import com.evolveum.midpoint.repo.sql.query2.restriction.TypeRestriction;
+import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.Session;
 
@@ -145,12 +144,14 @@ public class QueryInterpreter2 {
 
         InterpretationContext context = new InterpretationContext(this, type, prismContext, session);
 
-        interpretQueryFilter(query, context);
-        interpretPagingAndSorting(query, context, countingObjects);
+        interpretQueryFilter(context, query);
+        interpretPagingAndSorting(context, query, countingObjects);
 
         RootHibernateQuery hibernateQuery = context.getHibernateQuery();
 
-        if (!countingObjects) {
+        if (countingObjects) {
+            hibernateQuery.addProjectionElement(new ProjectionElement("count(*)"));
+        } else {
             String rootAlias = hibernateQuery.getPrimaryEntityAlias();
             hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".fullObject"));
             // TODO other objects if parent is requested?
@@ -160,31 +161,23 @@ public class QueryInterpreter2 {
             hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".referencesCount"));
             hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".polysCount"));
             hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".booleansCount"));
+
+            hibernateQuery.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
         }
 
         return hibernateQuery;
     }
 
-    private void interpretQueryFilter(ObjectQuery query, InterpretationContext context) throws QueryException {
-        try {
-            if (query != null && query.getFilter() != null) {
-                Condition c = interpretFilter(query.getFilter(), context, null);
-                HibernateQuery hibernateQuery = context.getHibernateQuery();
-                hibernateQuery.addCondition(c);
-            }
-        } catch (QueryException ex) {
-            throw ex;
-        } catch (Exception ex) {
-            LOGGER.trace(ex.getMessage(), ex);
-            throw new QueryException(ex.getMessage(), ex);
+    private void interpretQueryFilter(InterpretationContext context, ObjectQuery query) throws QueryException {
+        if (query != null && query.getFilter() != null) {
+            Condition c = interpretFilter(context, query.getFilter(), null);
+            context.getHibernateQuery().addCondition(c);
         }
     }
 
-    public Condition interpretFilter(ObjectFilter filter, InterpretationContext context, Restriction parent) throws QueryException {
-        context.pushFilter(filter);
+    public Condition interpretFilter(InterpretationContext context, ObjectFilter filter, Restriction parent) throws QueryException {
         Restriction restriction = findAndCreateRestriction(filter, context, parent);
         Condition condition = restriction.interpret();
-        context.popFilter();
         return condition;
     }
 
@@ -196,72 +189,97 @@ public class QueryInterpreter2 {
 
         LOGGER.trace("Determining restriction for filter {}", filter);
 
-        String alias = context.getHibernateQuery().getPrimaryEntityAlias();
+        InterpreterHelper helper = context.getHelper();
+        EntityDefinition baseEntityDefinition;
+        if (parent != null) {
+            baseEntityDefinition = parent.getBaseEntityDefinitionForChildren();
+        } else {
+            baseEntityDefinition = context.getRootEntityDefinition();
+        }
+        Restriction restriction = findAndCreateRestrictionInternal(filter, context, parent, helper, baseEntityDefinition);
 
+        LOGGER.trace("Restriction for {} is {}", filter.getClass().getSimpleName(), restriction);
+        return restriction;
+    }
+
+    private <T extends ObjectFilter> Restriction findAndCreateRestrictionInternal(T filter, InterpretationContext context, Restriction parent, InterpreterHelper helper, EntityDefinition baseEntityDefinition) throws QueryException {
         // the order of processing restrictions can be important, so we do the selection via handwritten code
-        Restriction restriction;
+
         if (filter instanceof AndFilter) {
-            restriction = new AndRestriction();
+            return new AndRestriction(context, (AndFilter) filter, baseEntityDefinition, parent);
         } else if (filter instanceof OrFilter) {
-            restriction = new OrRestriction();
+            return new OrRestriction(context, (OrFilter) filter, baseEntityDefinition, parent);
         } else if (filter instanceof NotFilter) {
-            restriction = new NotRestriction();
+            return new NotRestriction(context, (NotFilter) filter, baseEntityDefinition, parent);
         } else if (filter instanceof InOidFilter) {
-            restriction = new InOidRestriction();
+            return new InOidRestriction(context, (InOidFilter) filter, baseEntityDefinition, parent);
         } else if (filter instanceof OrgFilter) {
-            restriction = new OrgRestriction();
+            return new OrgRestriction(context, (OrgFilter) filter, baseEntityDefinition, parent);
         } else if (filter instanceof TypeFilter) {
-            restriction = new TypeRestriction();
+            TypeFilter typeFilter = (TypeFilter) filter;
+            EntityDefinition refinedEntityDefinition = helper.findRestrictedEntityDefinition(baseEntityDefinition, typeFilter.getType());
+            return new TypeRestriction(context, typeFilter, refinedEntityDefinition, parent);
+        } else if (filter instanceof ExistsFilter) {
+            ExistsFilter existsFilter = (ExistsFilter) filter;
+            ItemPath path = existsFilter.getFullPath();
+            ProperDefinitionSearchResult<EntityDefinition> searchResult = helper.findProperDefinition(baseEntityDefinition, path, EntityDefinition.class);
+            if (searchResult == null) {
+                throw new QueryException("Path for ExistsFilter (" + path + ") doesn't point to a hibernate entity");
+            }
+            return new ExistsRestriction(context, existsFilter, searchResult.getEntityDefinition(), parent, searchResult.getItemDefinition());
         } else if (filter instanceof RefFilter) {
-            ItemPath fullPath = getFullPath(parent, ((RefFilter) filter).getFullPath());
-            EntityDefinition entityDefinition = context.findProperEntityDefinition(fullPath);
-            restriction = new ReferenceRestriction(entityDefinition, alias, entityDefinition);
+            RefFilter refFilter = (RefFilter) filter;
+            ItemPath path = refFilter.getFullPath();
+            ProperDefinitionSearchResult<Definition> searchResult = helper.findProperDefinition(baseEntityDefinition, path, Definition.class);
+            if (searchResult == null) {
+                throw new QueryException("Path for RefFilter (" + path + ") doesn't point to a queryable item");
+            }
+            return new ReferenceRestriction(context, refFilter, searchResult.getEntityDefinition(),
+                    parent, searchResult.getItemDefinition());
         } else if (filter instanceof ValueFilter) {
             ValueFilter valFilter = (ValueFilter) filter;
-            ItemPath fullPath = getFullPath(parent, valFilter.getFullPath());
+            ItemPath path = valFilter.getFullPath();
 
-            ProperDefinitionSearchResult<PropertyDefinition> propDef = context.findProperDefinition(fullPath, PropertyDefinition.class);
-            if (propDef != null && propDef.getItemDefinition() != null) {
-                restriction = new PropertyRestriction(propDef.getRootEntityDefinition(), alias, propDef.getRootEntityDefinition(), propDef.getItemDefinition());
-            } else {
-                ProperDefinitionSearchResult<CollectionDefinition> collDef = context.findProperDefinition(fullPath, CollectionDefinition.class);
-                if (collDef != null && collDef.getItemDefinition() != null && collDef.getItemDefinition().getDefinition() instanceof PropertyDefinition) {
-                    restriction = new CollectionRestriction(collDef.getRootEntityDefinition(), alias, collDef.getItemDefinition());
+            ProperDefinitionSearchResult<PropertyDefinition> propDefRes = helper.findProperDefinition(baseEntityDefinition, path, PropertyDefinition.class);
+            if (propDefRes != null) {
+                return new PropertyRestriction(context, valFilter, propDefRes.getEntityDefinition(), parent, propDefRes.getItemDefinition());
+            }
+            ProperDefinitionSearchResult<CollectionDefinition> collDefRes = helper.findProperDefinition(baseEntityDefinition, path, CollectionDefinition.class);
+            if (collDefRes != null) {
+                Definition innerDef = collDefRes.getItemDefinition().getDefinition();
+                if (innerDef instanceof PropertyDefinition) {
+                    return new CollectionRestriction(context, valFilter, collDefRes.getEntityDefinition(), parent, (PropertyDefinition) innerDef);
                 } else {
-                    EntityDefinition entityDefinition = context.findProperEntityDefinition(fullPath);
-                    JpaDefinitionPath jpaDefinitionPath = entityDefinition.translatePath(fullPath);
-                    AnyDefinition anyDefinition = jpaDefinitionPath.getAnyDefinition();
-                    if (anyDefinition != null) {
-                        restriction = new AnyPropertyRestriction(anyDefinition, entityDefinition, alias, entityDefinition);
-                    } else {
-                        throw new QueryException("Couldn't find a proper restriction for a ValueFilter: " + valFilter.debugDump());
-                    }
+                    throw new QueryException("ValueFilter is not supported for collections of items other than properties: " + innerDef);
                 }
             }
+            ProperDefinitionSearchResult<AnyDefinition> anyDefRes = helper.findProperDefinition(baseEntityDefinition, path, AnyDefinition.class);
+            if (anyDefRes != null) {
+                if (ItemPath.containsSingleNameSegment(anyDefRes.getRemainder())) {
+                    return new AnyPropertyRestriction(context, valFilter, anyDefRes.getEntityDefinition(), parent, anyDefRes.getItemDefinition());
+                } else {
+                    throw new QueryException("Unsupported any-targeted query: should contain single item name to be resolved in the 'any' container but contains '" +
+                            anyDefRes.getRemainder() + "' instead");
+                }
+            }
+            throw new QueryException("Couldn't find a proper restriction for a ValueFilter: " + valFilter.debugDump());
         } else if (filter instanceof NoneFilter || filter instanceof AllFilter || filter instanceof UndefinedFilter) {
             // these should be filtered out by the client
             throw new IllegalStateException("Trivial filters are not supported by QueryInterpreter: " + filter.debugDump());
         } else {
             throw new IllegalStateException("Unknown filter: " + filter.debugDump());
         }
-
-        restriction.setContext(context);
-        restriction.setParent(parent);
-        restriction.setFilter(filter);
-
-        LOGGER.trace("Restriction for {} is {}", filter.getClass().getSimpleName(), restriction);
-        return restriction;
     }
 
     private ItemPath getFullPath(Restriction parent, ItemPath fullPath) {
         if (parent == null) {
             return fullPath;
         } else {
-            return new ItemPath(parent.getItemPathForChildren(), fullPath);
+            return new ItemPath(parent.getBaseItemPathForChildren(), fullPath);
         }
     }
 
-    private void interpretPagingAndSorting(ObjectQuery query, InterpretationContext context, boolean countingObjects) {
+    private void interpretPagingAndSorting(InterpretationContext context, ObjectQuery query, boolean countingObjects) {
         RootHibernateQuery hibernateQuery = context.getHibernateQuery();
         String rootAlias = hibernateQuery.getPrimaryEntityAlias();
 
@@ -315,7 +333,7 @@ public class QueryInterpreter2 {
             return;
         }
         // FIXME this has to be enhanced for multi-segment paths! (e.g. create joins if needed)
-        Definition def = registry.findDefinition(type, paging.getOrderBy(), Definition.class);
+        Definition def = registry.findDefinition(type, paging.getOrderBy(), Definition.class).getItemDefinition();
         if (def == null) {
             LOGGER.warn("Unknown path '" + paging.getOrderBy() + "', couldn't find definition for it, "
                     + "list will not be ordered by it.");

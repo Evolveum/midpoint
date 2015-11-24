@@ -17,17 +17,17 @@
 package com.evolveum.midpoint.repo.sql.query.restriction;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.sql.query2.definition.JpaDefinitionPath;
+import com.evolveum.midpoint.repo.sql.query2.definition.DefinitionPath;
 
 /**
  * @author Pavol
  */
 public class PathTranslation {
-    private JpaDefinitionPath jpaDefinitionPath;
+    private DefinitionPath definitionPath;
     private ItemPath itemPathRemainder;
 
-    public PathTranslation(JpaDefinitionPath jpaDefinitionPath, ItemPath itemPathRemainder) {
-        this.jpaDefinitionPath = jpaDefinitionPath;
+    public PathTranslation(DefinitionPath definitionPath, ItemPath itemPathRemainder) {
+        this.definitionPath = definitionPath;
         this.itemPathRemainder = itemPathRemainder;
     }
 
@@ -35,8 +35,8 @@ public class PathTranslation {
         return ItemPath.isNullOrEmpty(itemPathRemainder);
     }
 
-    public JpaDefinitionPath getJpaDefinitionPath() {
-        return jpaDefinitionPath;
+    public DefinitionPath getDefinitionPath() {
+        return definitionPath;
     }
 
     public ItemPath getItemPathRemainder() {

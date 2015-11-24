@@ -16,6 +16,9 @@
 
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.sql.query2.DefinitionSearchResult;
+
 import javax.xml.namespace.QName;
 
 /**
@@ -45,5 +48,11 @@ public class ReferenceDefinition extends Definition {
     @Override
     protected String getDebugDumpClassName() {
         return "Ref";
+    }
+
+    @Override
+    public DefinitionSearchResult nextDefinition(ItemPath path) {
+        // nowhere to come from here
+        return null;
     }
 }

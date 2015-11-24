@@ -17,9 +17,9 @@
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.sql.query2.DefinitionSearchResult;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -122,66 +122,83 @@ public abstract class Definition implements DebugDumpable {
      * Parts of the path that have no representation in the repository (e.g. metadata,
      * construction) are simply skipped.
      *
-     * On return, ItemPath (pathHolder) contains the remainder that is to be resolved.
-     *
-     * @param pathHolder
-     * @param <D>
+     * @param path A path to be resolved. Always non-null and non-empty.
      * @return
+     * - Normally it returns the search result containing next item definition (entity, collection, ...) in the chain
+     *   and the unresolved remainder of the path.
+     * - If the search was not successful, returns null.
+     * - Note that for "Any" container returns the container entity definition itself plus the path that is to
+     *   be searched in the given "Any" container. However, there's no point in repeating the search there,
+     *   as it would yield the same result.
      */
-    public Definition nextDefinition(Holder<ItemPath> pathHolder) {
-        return null;
-    }
-
-    // beware, path translation can end e.g. in ANY element (extension, attributes)
-    // also, beware of parent links and cross-entity links
-    public JpaDefinitionPath translatePath(ItemPath path) {
-        Holder<ItemPath> pathHolder = new Holder<>(path);
-        JpaDefinitionPath jpaPath = new JpaDefinitionPath();
-
-        Definition currentDefinition = this;
-        for (;;) {
-            ItemPath currentPath = pathHolder.getValue();
-            if (currentDefinition == null || currentPath == null || currentPath.isEmpty()) {
-                LOGGER.trace("ItemPath {} translated to JpaDefinitionPath {}; remainder {} (started in {})", path, jpaPath, currentPath, this.getShortInfo());
-                return jpaPath;
-            }
-            ItemPath origPath = pathHolder.getValue();
-            currentDefinition = currentDefinition.nextDefinition(pathHolder);
-            LOGGER.trace("nextDefinition on {} returned {}", origPath, currentDefinition != null ? currentDefinition.getShortInfo() : "(null)");
-            if (currentDefinition != null) {
-                jpaPath.add(currentDefinition);
-            }
-        }
-    }
+    public abstract DefinitionSearchResult nextDefinition(ItemPath path);
 
     /**
      * Resolves the whole ItemPath.
+     *
+     * If successful, returns either:
+     *  - correct definition + empty path, or
+     *  - Any definition + path remainder
+     *
+     * If unsuccessful, return null.
+     *
      * @return
      */
-    public <D extends Definition> D findDefinition(ItemPath path, Class<D> type) {
-        Holder<ItemPath> pathHolder = new Holder<>(path);
+    public <D extends Definition> DefinitionSearchResult<D> findDefinition(ItemPath path, Class<D> type) {
         Definition currentDefinition = this;
         for (;;) {
-            ItemPath currentPath = pathHolder.getValue();
-            if (currentPath == null || currentPath.isEmpty()) {
+            if (ItemPath.isNullOrEmpty(path)) {     // we are at the end of search - hoping we found the correct class
                 if (type.isAssignableFrom(currentDefinition.getClass())) {
-                    return (D) currentDefinition;
+                    return new DefinitionSearchResult<>((D) currentDefinition, null);
                 } else {
                     return null;
                 }
             }
-            if (currentDefinition instanceof AnyDefinition && type.isAssignableFrom(AnyDefinition.class)) {
-                return (D) currentDefinition;
+            if (currentDefinition instanceof AnyDefinition) {
+                if (type.isAssignableFrom(AnyDefinition.class)) {
+                    return new DefinitionSearchResult<>((D) currentDefinition, path);
+                } else {
+                    return null;
+                }
             }
-            currentDefinition = currentDefinition.nextDefinition(pathHolder);
-            if (currentDefinition == null) {
+            DefinitionSearchResult<D> result = currentDefinition.nextDefinition(path);
+            if (result == null) {   // oops
                 return null;
             }
+            currentDefinition = result.getItemDefinition();
+            path = result.getRemainder();
         }
     }
 
-    public <D extends Definition> D findDefinition(QName jaxbName, Class<D> type) {
-        return null;
+    /**
+     * Translates ItemPath to a sequence of definitions.
+     *
+     * @param itemPath
+     * @return The translation (if successful) or null (if not successful).
+     * For "Any" elements, the last element in the path is Any.
+     *
+     * Note: structurally similar to findDefinition above
+     */
+
+    public DefinitionPath translatePath(ItemPath itemPath) {
+        Definition currentDefinition = this;
+        ItemPath originalPath = itemPath;                            // we remember original path just for logging
+        DefinitionPath definitionPath = new DefinitionPath();
+
+        for (;;) {
+            if (currentDefinition instanceof AnyDefinition || ItemPath.isNullOrEmpty(itemPath)) {
+                LOGGER.trace("ItemPath {} translated to DefinitionPath {} (started in {})", originalPath, definitionPath, this.getShortInfo());
+                return definitionPath;
+            }
+            DefinitionSearchResult result = currentDefinition.nextDefinition(itemPath);
+            LOGGER.trace("nextDefinition on {} returned {}", itemPath, result != null ? result.getItemDefinition().getShortInfo() : "(null)");
+            if (result == null) {
+                return null;        // sorry we failed
+            }
+            currentDefinition = result.getItemDefinition();
+            definitionPath.add(currentDefinition);
+            itemPath = result.getRemainder();
+        }
     }
 
     public String getShortInfo() {

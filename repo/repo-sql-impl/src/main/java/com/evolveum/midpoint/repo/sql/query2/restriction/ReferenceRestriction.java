@@ -24,11 +24,10 @@ import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.repo.sql.query2.ProperDefinitionSearchResult;
+import com.evolveum.midpoint.repo.sql.query2.DefinitionSearchResult;
 import com.evolveum.midpoint.repo.sql.query2.definition.CollectionDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.Definition;
 import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.PropertyDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.ReferenceDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.AndCondition;
@@ -37,6 +36,7 @@ import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
 import java.util.List;
@@ -44,15 +44,21 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class ReferenceRestriction extends ItemRestriction<RefFilter> {
+public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ReferenceRestriction.class);
 
-    public ReferenceRestriction(EntityDefinition rootEntityDefinition, String startPropertyPath, EntityDefinition startEntityDefinition) {
-        super(rootEntityDefinition, startPropertyPath, startEntityDefinition);
+    // Definition of the item being queried.
+    // We cannot expect ReferenceDefinition here, because of multivalued references (e.g. linkRef) that have CollectionDefinition.
+    private final Definition itemDefinition;
+
+    public ReferenceRestriction(InterpretationContext context, RefFilter filter, EntityDefinition baseEntityDefinition,
+                                Restriction parent, Definition itemDefinition) {
+        super(context, filter, baseEntityDefinition, parent);
+        Validate.notNull(itemDefinition, "itemDefinition");
+        this.itemDefinition = itemDefinition;
     }
 
-    // modelled after PropertyRestriction.interpretInternal, with some differences
     @Override
     public Condition interpretInternal(String hqlPath) throws QueryException {
 
@@ -69,20 +75,14 @@ public class ReferenceRestriction extends ItemRestriction<RefFilter> {
 
         InterpretationContext context = getContext();
         RootHibernateQuery hibernateQuery = context.getHibernateQuery();
-        ItemPath fullPath = getFullPath(filter.getPath());
-        ProperDefinitionSearchResult<Definition> defResult = context.findProperDefinition(fullPath, Definition.class);
-        if (defResult == null || defResult.getItemDefinition() == null) {
-            throw new QueryException("Definition for " + fullPath + " couldn't be found.");
-        }
-        Definition definition = defResult.getItemDefinition();      // actually, we cannot expect ReferenceDefinition here, because e.g. linkRef has a CollectionDefinition
 
         String propertyFullNamePrefix;
-        if (definition instanceof CollectionDefinition) {
+        if (itemDefinition instanceof CollectionDefinition) {
             propertyFullNamePrefix = hqlPath + ".";
-        } else if (definition instanceof ReferenceDefinition) {
-            propertyFullNamePrefix = hqlPath + "." + definition.getJpaName() + ".";
+        } else if (itemDefinition instanceof ReferenceDefinition) {
+            propertyFullNamePrefix = hqlPath + "." + itemDefinition.getJpaName() + ".";
         } else {
-            throw new IllegalStateException("Unexpected kind of Definition while processing ReferenceRestriction: " + definition);
+            throw new IllegalStateException("Unexpected kind of Definition while processing ReferenceRestriction: " + itemDefinition);
         }
 
         String refValueOid = null;

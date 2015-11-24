@@ -24,7 +24,7 @@ import java.util.List;
  *
  * @author mederly
  */
-public class JpaDefinitionPath {
+public class DefinitionPath {
 
     private List<Definition> definitions = new ArrayList<>();
 

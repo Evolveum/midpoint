@@ -16,6 +16,9 @@
 
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.sql.query2.DefinitionSearchResult;
+
 import javax.xml.namespace.QName;
 
 /**
@@ -30,5 +33,14 @@ public class AnyDefinition extends Definition {
     @Override
     protected String getDebugDumpClassName() {
         return "Any";
+    }
+
+    @Override
+    public DefinitionSearchResult nextDefinition(ItemPath path) {
+        // There is nothing we can do here. Return the definition itself, and
+        // the path as to be found within the appropriate Any container.
+        // Hoping the client will understand this and won't cycle while finding
+        // the definition. ;)
+        return new DefinitionSearchResult(this, path);
     }
 }

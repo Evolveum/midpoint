@@ -16,6 +16,9 @@
 
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
+import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
+import org.apache.commons.lang.Validate;
+
 import javax.xml.namespace.QName;
 
 /**
@@ -23,7 +26,15 @@ import javax.xml.namespace.QName;
  */
 public class VirtualAnyDefinition extends AnyDefinition {
 
-    public VirtualAnyDefinition(QName jaxbName) {
+    private RObjectExtensionType ownerType;            // ObjectType (for extension) or ShadowType (for attributes)
+
+    public VirtualAnyDefinition(QName jaxbName, RObjectExtensionType ownerType) {
         super(jaxbName, null, null, null);
+        Validate.notNull(ownerType, "ownerType");
+        this.ownerType = ownerType;
+    }
+
+    public RObjectExtensionType getOwnerType() {
+        return ownerType;
     }
 }

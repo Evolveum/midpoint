@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql.query2.restriction;
 
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.PropertyDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
@@ -28,15 +29,16 @@ import org.apache.commons.lang.Validate;
 /**
  * @author lazyman
  */
-public class PropertyRestriction extends ItemRestriction<ValueFilter> {
+public class PropertyRestriction extends ItemValueRestriction<ValueFilter> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PropertyRestriction.class);
 
     PropertyDefinition propertyDefinition;
 
-    public PropertyRestriction(EntityDefinition rootEntityDefinition, String startPropertyPath, EntityDefinition startEntityDefinition, PropertyDefinition propertyDefinition) {
-        super(rootEntityDefinition, startPropertyPath, startEntityDefinition);
-        Validate.notNull(propertyDefinition);
+    public PropertyRestriction(InterpretationContext context, ValueFilter filter, EntityDefinition baseEntityDefinition,
+                               Restriction parent, PropertyDefinition propertyDefinition) {
+        super(context, filter, baseEntityDefinition, parent);
+        Validate.notNull(propertyDefinition, "propertyDefinition");
         this.propertyDefinition = propertyDefinition;
     }
 

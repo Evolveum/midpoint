@@ -24,25 +24,25 @@ import org.apache.commons.lang.Validate;
 /**
  * @author mederly
  */
-public class ProperDefinitionSearchResult<T extends Definition> extends DefinitionSearchResult<T> {
+public class DefinitionSearchResult<T extends Definition> {
+    T itemDefinition;                       // definition of the item itself
+    ItemPath remainder;                     // what has remained unresolved of the original search path
 
-    EntityDefinition entityDefinition;      // entity in which the item was found
-
-    public ProperDefinitionSearchResult(T itemDefinition, ItemPath remainder, EntityDefinition entityDefinition) {
-        super(itemDefinition, remainder);
-        Validate.notNull(entityDefinition, "entityDefinition");
-        this.entityDefinition = entityDefinition;
+    public DefinitionSearchResult(T itemDefinition, ItemPath remainder) {
+        Validate.notNull(itemDefinition, "itemDefinition");
+        this.itemDefinition = itemDefinition;
+        this.remainder = remainder;
     }
 
-    public ProperDefinitionSearchResult(EntityDefinition entityDefinition, DefinitionSearchResult<T> result) {
-        super(result.getItemDefinition(), result.getRemainder());
-        Validate.notNull(entityDefinition, "entityDefinition");
-        this.entityDefinition = entityDefinition;
+    public T getItemDefinition() {
+        return itemDefinition;
     }
 
-    public EntityDefinition getEntityDefinition() {
-        return entityDefinition;
+    public ItemPath getRemainder() {
+        return remainder;
     }
 
-
+    public boolean isComplete() {
+        return ItemPath.isNullOrEmpty(remainder);
+    }
 }

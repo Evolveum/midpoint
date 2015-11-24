@@ -333,6 +333,10 @@ public class ItemPath implements Serializable, Cloneable {
 		return itemPath == null || itemPath.isEmpty();
 	}
 
+	public static boolean containsSingleNameSegment(ItemPath path) {
+		return path != null && path.size() == 1 && path.first() instanceof NameItemPathSegment;
+	}
+
 	public enum CompareResult {
 		EQUIVALENT,
 		SUPERPATH,

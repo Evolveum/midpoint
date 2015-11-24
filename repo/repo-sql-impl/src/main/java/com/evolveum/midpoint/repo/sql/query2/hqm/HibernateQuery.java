@@ -204,7 +204,7 @@ public abstract class HibernateQuery {
 
     public abstract RootHibernateQuery getRootQuery();
 
-    // used to narrow the primary entity e.g. from RObject to RUser (e.g. during ItemRestriction processing)
+    // used to narrow the primary entity e.g. from RObject to RUser (e.g. during ItemValueRestriction processing)
     public void narrowPrimaryEntity(EntityDefinition newDefinition) throws QueryException {
         String oldEntityName = getPrimaryEntity().getName();
         Class<? extends RObject> oldEntityClass = ClassMapper.getHqlClassForHqlName(oldEntityName);

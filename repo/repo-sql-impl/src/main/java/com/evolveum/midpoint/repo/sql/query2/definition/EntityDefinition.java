@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql.query2.definition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.repo.sql.query.restriction.PathTranslation;
+import com.evolveum.midpoint.repo.sql.query2.DefinitionSearchResult;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -42,9 +44,14 @@ public class EntityDefinition extends Definition {
      */
     private List<Definition> definitions;
     private boolean embedded;
+    private EntityDefinition superclassDefinition;
 
     public EntityDefinition(QName jaxbName, Class jaxbType, String jpaName, Class jpaType) {
         super(jaxbName, jaxbType, jpaName, jpaType);
+        Validate.notNull(jaxbName, "jaxbName");
+        Validate.notNull(jaxbType, "jaxbType");
+        Validate.notNull(jpaName, "jpaName");
+        Validate.notNull(jpaType, "jpaType");
     }
 
     public boolean isEmbedded() {
@@ -112,9 +119,7 @@ public class EntityDefinition extends Definition {
         return "Ent";
     }
 
-
-    @Override
-    public <D extends Definition> D findDefinition(QName jaxbName, Class<D> type) {
+    private <D extends Definition> D findDefinition(QName jaxbName, Class<D> type) {
         Validate.notNull(jaxbName, "Jaxb name must not be null.");
         Validate.notNull(type, "Definition type must not be null.");
 
@@ -131,39 +136,68 @@ public class EntityDefinition extends Definition {
     }
 
     @Override
-    public Definition nextDefinition(Holder<ItemPath> pathHolder) {
-        ItemPath path = pathHolder.getValue();
+    public DefinitionSearchResult nextDefinition(ItemPath path) {
 
-        for (;;) {
-            if (path == null || path.isEmpty()) {
-                return this;        // in some cases (metadata, construction) this return value might be suspicious, or altogether wrong -- but we don't care
-            }
-
-            NameItemPathSegment first = (NameItemPathSegment) path.first();
-            QName firstName = first.getName();
-
+        // first treat known discrepancies betweeen prism structure and repo representation:
+        // metadata -> none,
+        // construction/resourceRef -> resourceRef
+        while (skipFirstItem(path)) {
             path = path.tail();
-            pathHolder.setValue(path);
+        }
 
-            // just a lookahead
-            QName secondName = null;
-            if (!path.isEmpty() && path.first() instanceof NameItemPathSegment) {
-                NameItemPathSegment second = ((NameItemPathSegment) (path.first()));
-                secondName = second.getName();
-            }
+        // now find the definition
+        if (ItemPath.isNullOrEmpty(path)) {
+            // note that for wrong input (e.g. path=metadata) this answer might be wrong, but we don't care
+            return new DefinitionSearchResult(this, null);
+        }
 
-            // known discrepancies betweeen prism structure and repo representation
-            if (QNameUtil.match(firstName, ObjectType.F_METADATA)) {
-                continue;   // metadata is not an repository entity
-            }
-            if (QNameUtil.match(firstName, AssignmentType.F_CONSTRUCTION) &&
-                    QNameUtil.match(secondName, ConstructionType.F_RESOURCE_REF)) {
-                continue;   // construction/resourceRef -> resourceRef
-            }
-
-            Definition def = findDefinition(firstName, Definition.class);
-            return def;
+        QName firstName = ((NameItemPathSegment) path.first()).getName();
+        Definition def = findDefinition(firstName, Definition.class);
+        if (def != null) {
+            return new DefinitionSearchResult(def, path.tail());
+        } else {
+            return null;
         }
     }
 
+    private boolean skipFirstItem(ItemPath path) {
+        if (ItemPath.isNullOrEmpty(path)) {
+            return false;
+        }
+        QName firstName = ((NameItemPathSegment) path.first()).getName();
+
+        // metadata -> null
+        if (QNameUtil.match(firstName, ObjectType.F_METADATA)) {
+            return true;
+        }
+
+        // construction/resourceRef -> construction
+        ItemPath remainder = path.tail();
+        if (remainder.isEmpty() || !(remainder.first() instanceof NameItemPathSegment)) {
+            return false;
+        }
+        NameItemPathSegment second = ((NameItemPathSegment) (remainder.first()));
+        QName secondName = second.getName();
+        if (QNameUtil.match(firstName, AssignmentType.F_CONSTRUCTION) &&
+                QNameUtil.match(secondName, ConstructionType.F_RESOURCE_REF)) {
+            return true;
+        }
+        return false;
+    }
+
+    public boolean isAssignableFrom(EntityDefinition specificEntityDefinition) {
+        return getJpaType().isAssignableFrom(specificEntityDefinition.getJpaType());
+    }
+
+    public boolean isAbstract() {
+        return Modifier.isAbstract(getJpaType().getModifiers());
+    }
+
+    public void setSuperclassDefinition(EntityDefinition superclassDefinition) {
+        this.superclassDefinition = superclassDefinition;
+    }
+
+    public EntityDefinition getSuperclassDefinition() {
+        return superclassDefinition;
+    }
 }

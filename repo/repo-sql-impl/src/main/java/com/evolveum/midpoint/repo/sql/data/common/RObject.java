@@ -106,7 +106,7 @@ import java.util.Set;
         @NamedQuery(name = "resolveReferences", query = "select o.oid, o.name from RObject as o where o.oid in (:oid)"),
 })
 @QueryEntity(anyElements = {
-        @VirtualAny(jaxbNameLocalPart = "extension")})
+        @VirtualAny(jaxbNameLocalPart = "extension", ownerType = RObjectExtensionType.EXTENSION)})
 @Entity
 @Table(name = "m_object", indexes = {
         @Index(name = "iObjectNameOrig", columnList = "name_orig"),

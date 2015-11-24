@@ -57,7 +57,7 @@ import java.util.Collection;
                 @Index(name = "iShadowDead", columnNames = "dead")})
 @ForeignKey(name = "fk_shadow")
 @QueryEntity(anyElements = {
-        @VirtualAny(jaxbNameLocalPart = "attributes")})
+        @VirtualAny(jaxbNameLocalPart = "attributes", ownerType = RObjectExtensionType.ATTRIBUTES)})
 public class RShadow<T extends ShadowType> extends RObject<T> implements OperationResult {
 
     private static final Trace LOGGER = TraceManager.getTrace(RShadow.class);

@@ -120,13 +120,13 @@ public class EqualFilter<T extends Object> extends PropertyValueFilter<PrismProp
 	
 	public static <C extends Containerable, T> EqualFilter<T> createEqual(ItemPath parentPath, PrismContainerDefinition<C> containerDef,
 			PrismPropertyValue<T> values) throws SchemaException {
-		PrismPropertyDefinition<T> propertyDef = (PrismPropertyDefinition) findItemDefinition(parentPath, containerDef);
+		PrismPropertyDefinition<T> propertyDef = (PrismPropertyDefinition) FilterUtils.findItemDefinition(parentPath, containerDef);
 		return createEqual(parentPath, propertyDef, values);
 	}
 
 	public static <C extends Containerable, T> EqualFilter<T> createEqual(ItemPath itemPath, PrismContainerDefinition<C> containerDef,
 			T realValues) throws SchemaException {
-		PrismPropertyDefinition<T> propertyDef = (PrismPropertyDefinition) findItemDefinition(itemPath, containerDef);
+		PrismPropertyDefinition<T> propertyDef = (PrismPropertyDefinition) FilterUtils.findItemDefinition(itemPath, containerDef);
 		return createEqual(itemPath, propertyDef, realValues);
 	}
 
@@ -148,7 +148,7 @@ public class EqualFilter<T extends Object> extends PropertyValueFilter<PrismProp
 	
 	public static <C extends Containerable, T> EqualFilter<T> createEqual(ItemPath propertyPath, Class<C> type, PrismContext prismContext, QName matchingRule, T realValue)
 			{
-		PrismPropertyDefinition propertyDefinition = (PrismPropertyDefinition) findItemDefinition(propertyPath, type, prismContext);
+		PrismPropertyDefinition propertyDefinition = (PrismPropertyDefinition) FilterUtils.findItemDefinition(propertyPath, type, prismContext);
 		return createEqual(propertyPath, propertyDefinition, matchingRule, realValue);
 	}
    

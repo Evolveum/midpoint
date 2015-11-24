@@ -16,12 +16,12 @@
 
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.QueryInterpreter2;
+import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.JunctionCondition;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -37,6 +37,10 @@ public abstract class NaryLogicalRestriction<T extends NaryLogicalFilter> extend
 
     private static final Trace LOGGER = TraceManager.getTrace(NaryLogicalRestriction.class);
     private List<Restriction> restrictions;
+
+    public NaryLogicalRestriction(InterpretationContext context, T filter, EntityDefinition baseEntityDefinition, Restriction parent) {
+        super(context, filter, baseEntityDefinition, parent);
+    }
 
     public List<Restriction> getRestrictions() {
         if (restrictions == null) {
@@ -60,7 +64,7 @@ public abstract class NaryLogicalRestriction<T extends NaryLogicalFilter> extend
         QueryInterpreter2 interpreter = context.getInterpreter();
 
         for (ObjectFilter subfilter : subfilters) {
-            Condition condition = interpreter.interpretFilter(subfilter, context, this);
+            Condition condition = interpreter.interpretFilter(context, subfilter, this);
             junction.add(condition);
         }
     }

@@ -32,9 +32,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -52,6 +54,8 @@ public class QueryDefinitionRegistry2 implements DebugDumpable {
         ClassDefinitionParser classDefinitionParser = new ClassDefinitionParser();
 
         Map<QName, EntityDefinition> map = new HashMap<QName, EntityDefinition>();
+        Map<Class<? extends RObject>, EntityDefinition> definitionsByClass = new HashMap<>();
+
         Collection<RObjectType> types = ClassMapper.getKnownTypes();
         for (RObjectType type : types) {
             Class clazz = type.getClazz();
@@ -59,13 +63,27 @@ public class QueryDefinitionRegistry2 implements DebugDumpable {
                 continue;
             }
 
-            Definition definition = classDefinitionParser.parseObjectTypeClass(clazz);
+            EntityDefinition definition = classDefinitionParser.parseObjectTypeClass(clazz);
             if (definition == null) {
                 continue;
             }
 
             ObjectTypes objectType = ClassMapper.getObjectTypeForHQLType(type);
-            map.put(objectType.getQName(), (EntityDefinition) definition);
+            map.put(objectType.getTypeQName(), definition);
+            definitionsByClass.put(definition.getJpaType(), definition);
+        }
+
+        // link parents (maybe not needed at all, we'll see)
+        for (EntityDefinition definition : map.values()) {
+            Class superclass = definition.getJpaType().getSuperclass();
+            if (!RObject.class.isAssignableFrom(superclass)) {
+                continue;
+            }
+            EntityDefinition superclassDefinition = definitionsByClass.get(superclass);
+            if (superclassDefinition == null) {
+                throw new IllegalStateException("No definition for superclass " + superclass + " of " + definition);
+            }
+            definition.setSuperclassDefinition(superclassDefinition);
         }
 
         definitions = Collections.unmodifiableMap(map);
@@ -99,11 +117,51 @@ public class QueryDefinitionRegistry2 implements DebugDumpable {
         return builder.toString();
     }
 
-    public <T extends ObjectType, D extends Definition> D findDefinition(Class<T> type, ItemPath path, Class<D> definitionType) {
+    public EntityDefinition findEntityDefinition(QName typeName) {
+        Validate.notNull(typeName, "Type name must not be null.");
+
+        EntityDefinition def = definitions.get(typeName);
+        if (def == null) {
+            throw new IllegalStateException("Type " + typeName + " couldn't be found in type registry");
+        }
+        return def;
+    }
+
+    // always returns non-null value
+    public <T extends ObjectType> EntityDefinition findEntityDefinition(Class<T> type) {
+        Validate.notNull(type, "Type must not be null.");
+        return findEntityDefinition(ObjectTypes.getObjectType(type).getTypeQName());
+    }
+
+    public <T extends ObjectType, D extends Definition> DefinitionSearchResult<D> findDefinition(Class<T> type, ItemPath path, Class<D> definitionType) {
         Validate.notNull(type, "Type must not be null.");
         Validate.notNull(definitionType, "Definition type must not be null.");
-
-        EntityDefinition entityDef = definitions.get(ObjectTypes.getObjectType(type).getQName());
+        EntityDefinition entityDef = findEntityDefinition(type);
         return entityDef.findDefinition(path, definitionType);
+    }
+
+    /**
+     * Returns possible "children" of a given definition.
+     * More abstract classes are listed first.
+     */
+    public List<EntityDefinition> getChildrenOf(EntityDefinition entityDefinition) {
+        List<EntityDefinition> retval = new ArrayList<>();
+        List<EntityDefinition> children = getDirectChildrenOf(entityDefinition);
+        for (EntityDefinition child : children) {
+            retval.add(child);
+            retval.addAll(getChildrenOf(child));
+        }
+        return retval;
+    }
+
+    private List<EntityDefinition> getDirectChildrenOf(EntityDefinition parentDefinition) {
+        Class parentClass = parentDefinition.getJpaType();
+        List<EntityDefinition> retval = new ArrayList<>();
+        for (EntityDefinition definition : definitions.values()) {
+            if (parentClass.equals(definition.getJpaType().getSuperclass())) {
+                retval.add(definition);
+            }
+        }
+        return retval;
     }
 }

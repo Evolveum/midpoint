@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.repo.sql.query.definition;
 
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 
 import java.lang.annotation.ElementType;
@@ -34,4 +36,6 @@ public @interface VirtualAny {
     String jaxbNameNamespace() default SchemaConstantsGenerated.NS_COMMON;
 
     String jaxbNameLocalPart();
+
+    RObjectExtensionType ownerType();
 }

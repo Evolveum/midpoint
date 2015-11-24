@@ -24,8 +24,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.match.MatchingRule;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.prism.Item;
@@ -93,26 +91,26 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue> {
 	public static <O extends Containerable> RefFilter createReferenceEqual(QName propertyName, Class<O> type, PrismContext prismContext,
 			String... oids) {
 		ItemPath path = new ItemPath(propertyName);
-		PrismReferenceDefinition refDefinition = (PrismReferenceDefinition) findItemDefinition(path, type, prismContext);
+		PrismReferenceDefinition refDefinition = (PrismReferenceDefinition) FilterUtils.findItemDefinition(path, type, prismContext);
 		return createReferenceEqual(path, refDefinition, oids);
 	}
 
     // beware, creating reference with (oid, ObjectType) may result in not matching a concrete reference of e.g. (oid, RoleType)
     public static <O extends Containerable> RefFilter createReferenceEqual(ItemPath path, Class<O> type, PrismContext prismContext,
                                                                         String... oids) throws SchemaException {
-        PrismReferenceDefinition refDefinition = (PrismReferenceDefinition) findItemDefinition(path, type, prismContext);
+        PrismReferenceDefinition refDefinition = (PrismReferenceDefinition) FilterUtils.findItemDefinition(path, type, prismContext);
         return createReferenceEqual(path, refDefinition, oids);
     }
 
     public static <O extends Containerable> RefFilter createReferenceEqual(ItemPath path, Class<O> type, PrismContext prismContext,
                                                                         PrismReferenceValue... values) throws SchemaException {
-        PrismReferenceDefinition refDefinition = (PrismReferenceDefinition) findItemDefinition(path, type, prismContext);
+        PrismReferenceDefinition refDefinition = (PrismReferenceDefinition) FilterUtils.findItemDefinition(path, type, prismContext);
         return createReferenceEqual(path, refDefinition, values);
     }
 
 
     public static RefFilter createReferenceEqual(ItemPath path, PrismContainerDefinition containerDef, String... oids) {
-		ItemDefinition itemDef = findItemDefinition(path, containerDef);
+		ItemDefinition itemDef = FilterUtils.findItemDefinition(path, containerDef);
 		
 		if (!(itemDef instanceof PrismReferenceDefinition)){
 			throw new IllegalStateException("Bad item definition. Expected that the definition will be instance of prism refenrence definition, but found " + itemDef);					
@@ -130,7 +128,7 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue> {
 
 		ItemPath path = new ItemPath(propertyName);
 		
-		ItemDefinition itemDef = findItemDefinition(path, type, targetObject.getPrismContext());
+		ItemDefinition itemDef = FilterUtils.findItemDefinition(path, type, targetObject.getPrismContext());
 		
 		if (!(itemDef instanceof PrismReferenceDefinition)){
 			throw new IllegalStateException("Bad item definition. Expected that the definition will be instance of prism refenrence definition, but found " + itemDef);					

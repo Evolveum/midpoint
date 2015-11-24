@@ -1004,7 +1004,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 longCount = (Number) sqlQuery.uniqueResult();
             } else {
                 RQuery rQuery;
-                if (query.isUseNewQueryInterpreter()) {
+                if (isUseNewQueryInterpreter(query)) {
                     QueryEngine2 engine = new QueryEngine2(getConfiguration(), getPrismContext());
                     rQuery = engine.interpret(query, type, null, true, session);
                 } else {
@@ -1155,7 +1155,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             session = beginReadOnlyTransaction();
             RQuery rQuery;
 
-            if (query.isUseNewQueryInterpreter()) {
+            if (isUseNewQueryInterpreter(query)) {
                 QueryEngine2 engine = new QueryEngine2(getConfiguration(), getPrismContext());
                 rQuery = engine.interpret(query, type, options, false, session);
             } else {
@@ -2175,7 +2175,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         try {
             session = beginReadOnlyTransaction();
             RQuery rQuery;
-            if (query.isUseNewQueryInterpreter()) {
+            if (isUseNewQueryInterpreter(query)) {
                 QueryEngine engine = new QueryEngine(getConfiguration(), getPrismContext());
                 rQuery = engine.interpret(query, type, options, false, session);
             } else {
@@ -2206,6 +2206,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         } finally {
             cleanupSessionAndResult(session, result);
         }
+    }
+
+    private boolean isUseNewQueryInterpreter(ObjectQuery query) {
+        return query == null || query.isUseNewQueryInterpreter();
     }
 
     private <T extends ObjectType> void searchObjectsIterativeByPaging(Class<T> type, ObjectQuery query,

@@ -125,7 +125,9 @@ public class ClassDefinitionParser {
         }
 
         for (VirtualAny any : qEntity.anyElements()) {
-            VirtualAnyDefinition def = new VirtualAnyDefinition(new QName(any.jaxbNameNamespace(), any.jaxbNameLocalPart()));
+            VirtualAnyDefinition def = new VirtualAnyDefinition(
+                    new QName(any.jaxbNameNamespace(), any.jaxbNameLocalPart()),
+                    any.ownerType());
             entityDef.addDefinition(def);
         }
 

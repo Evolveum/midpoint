@@ -16,22 +16,24 @@
 
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
+import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
-import com.evolveum.midpoint.repo.sql.query2.hqm.condition.InCondition;
 
 /**
  * @author lazyman
  */
 public class InOidRestriction extends Restriction<InOidFilter> {
 
+    public InOidRestriction(InterpretationContext context, InOidFilter filter, EntityDefinition baseEntityDefinition, Restriction parent) {
+        super(context, filter, baseEntityDefinition, parent);
+    }
+
     @Override
     public Condition interpret() throws QueryException {
-        return getContext().getHibernateQuery().createIn(context.getCurrentHqlPropertyPath() + ".oid", filter.getOids());
+        return getContext().getHibernateQuery().createIn(getBaseHqlPath() + ".oid", filter.getOids());
     }
 
 }

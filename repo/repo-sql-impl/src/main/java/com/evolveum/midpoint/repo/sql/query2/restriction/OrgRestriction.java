@@ -16,32 +16,29 @@
 
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
-import com.evolveum.midpoint.repo.sql.query2.hqm.QueryParameterValue;
+import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
-import com.evolveum.midpoint.repo.sql.query2.hqm.condition.InCondition;
-import org.hibernate.Query;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author lazyman
  */
 public class OrgRestriction extends Restriction<OrgFilter> {
 
+    public OrgRestriction(InterpretationContext context, OrgFilter filter, EntityDefinition baseEntityDefinition, Restriction parent) {
+        super(context, filter, baseEntityDefinition, parent);
+    }
+
     @Override
     public Condition interpret() throws QueryException {
         RootHibernateQuery hibernateQuery = getContext().getHibernateQuery();
         if (filter.isRoot()) {
             // oid in (select descendantOid from ROrgClosure group by descendantOid having count(descendantOid) = 1)
-            return hibernateQuery.createIn(context.getCurrentHqlPropertyPath() + ".oid",
+            return hibernateQuery.createIn(getBaseHqlPath() + ".oid",
                     "select descendantOid from ROrgClosure group by descendantOid having count(descendantOid) = 1");
         }
 
@@ -74,6 +71,6 @@ public class OrgRestriction extends Restriction<OrgFilter> {
                             "ref.targetOid in (" +
                                 "select descendantOid from ROrgClosure where ancestorOid = :" + orgOidParamName + ")";
         }
-        return hibernateQuery.createIn(context.getCurrentHqlPropertyPath() + ".oid", oidQueryText);
+        return hibernateQuery.createIn(getBaseHqlPath() + ".oid", oidQueryText);
     }
 }

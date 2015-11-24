@@ -16,11 +16,9 @@
 
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ValueFilter;
-import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query2.definition.CollectionDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.PropertyDefinition;
@@ -30,20 +28,21 @@ import org.apache.commons.lang.Validate;
 /**
  * @author lazyman
  */
-public class CollectionRestriction extends ItemRestriction<ValueFilter> {
+public class CollectionRestriction extends ItemValueRestriction<ValueFilter> {
 
-    private CollectionDefinition collectionDefinition;
+    private PropertyDefinition collectionPropertyDefinition;
 
-    public CollectionRestriction(EntityDefinition rootEntityDefinition, String alias, CollectionDefinition collectionDefinition) {
-        super(rootEntityDefinition, alias, rootEntityDefinition);
-        Validate.notNull(collectionDefinition);
-        this.collectionDefinition = collectionDefinition;
+    public CollectionRestriction(InterpretationContext context, ValueFilter filter, EntityDefinition baseEntityDefinition,
+                                 Restriction parent, PropertyDefinition collectionPropertyDefinition) {
+        super(context, filter, baseEntityDefinition, parent);
+        Validate.notNull(collectionPropertyDefinition, "collectionPropertyDefinition");
+        this.collectionPropertyDefinition = collectionPropertyDefinition;
     }
 
 
     @Override
     public Condition interpretInternal(String hqlPath) throws QueryException {
-        Object value = getValueFromFilter(filter, (PropertyDefinition) collectionDefinition.getDefinition());
+        Object value = getValueFromFilter(filter, collectionPropertyDefinition);
 
         return createCondition(hqlPath, value, filter);
 

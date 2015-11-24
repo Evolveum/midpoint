@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.sql.query2.DefinitionSearchResult;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Holder;
 
@@ -42,8 +43,8 @@ public class CollectionDefinition extends Definition {
     }
 
     @Override
-    public Definition nextDefinition(Holder<ItemPath> pathHolder) {
-        return definition;
+    public DefinitionSearchResult nextDefinition(ItemPath path) {
+        return new DefinitionSearchResult(definition, path);
     }
 
     @Override

@@ -16,10 +16,10 @@
 
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
+import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.OrCondition;
 
@@ -28,6 +28,10 @@ import com.evolveum.midpoint.repo.sql.query2.hqm.condition.OrCondition;
  * @author mederly
  */
 public class OrRestriction extends NaryLogicalRestriction<OrFilter> {
+
+    public OrRestriction(InterpretationContext context, OrFilter filter, EntityDefinition baseEntityDefinition, Restriction parent) {
+        super(context, filter, baseEntityDefinition, parent);
+    }
 
     @Override
     public Condition interpret() throws QueryException {
