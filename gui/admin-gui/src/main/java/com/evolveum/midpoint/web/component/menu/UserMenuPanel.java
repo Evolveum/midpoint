@@ -288,7 +288,7 @@ public class UserMenuPanel extends BaseSimplePanel {
     }
 
     private PasswordQuestionsDto loadModel() {
-        LOGGER.debug("Loading user for Security Question Page.");
+        LOGGER.trace("Loading user for Security Question Page.");
 
         PasswordQuestionsDto dto =new PasswordQuestionsDto();
         OperationResult result = new OperationResult(OPERATION_LOAD_USER);
