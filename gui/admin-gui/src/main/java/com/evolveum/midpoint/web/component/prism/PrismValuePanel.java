@@ -281,12 +281,16 @@ public class PrismValuePanel extends Panel {
     }
 
     private boolean isRemoveButtonVisible() {
+        ValueWrapper valueWrapper = model.getObject();
+
+        if (valueWrapper.isReadonly()){
+            return false;
+        }
         Component inputPanel = this.get(ID_VALUE_CONTAINER).get(ID_INPUT);
         if (inputPanel instanceof  ValueChoosePanel){
             return true;
         }
 
-        ValueWrapper valueWrapper = model.getObject();
         ItemWrapper propertyWrapper = valueWrapper.getItem();
         ItemDefinition definition = propertyWrapper.getItem().getDefinition();
         int min = definition.getMinOccurs();
@@ -301,6 +305,11 @@ public class PrismValuePanel extends Panel {
 
     private boolean isAddButtonVisible() {
         ValueWrapper valueWrapper = model.getObject();
+
+        if (valueWrapper.isReadonly()){
+            return false;
+        }
+
         ItemWrapper propertyWrapper = valueWrapper.getItem();
         Item property = propertyWrapper.getItem();
 
