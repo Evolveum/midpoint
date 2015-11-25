@@ -307,17 +307,22 @@ public class PageDebugList extends PageAdminConfiguration {
 
 			@Override
 			public void populateItem(Item<ICellPopulator<DebugObjectItem>> cellItem, String componentId,
-					IModel<DebugObjectItem> rowModel) {
-				cellItem.add(new TwoValueLinkPanel(componentId,
+					final IModel<DebugObjectItem> rowModel) {
+				
+				TwoValueLinkPanel panel = new TwoValueLinkPanel(componentId,
 						new PropertyModel<String>(rowModel, DebugObjectItem.F_NAME),
-						new PropertyModel<String>(rowModel, DebugObjectItem.F_OID)));
+						new PropertyModel<String>(rowModel, DebugObjectItem.F_OID)){
+					
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						DebugObjectItem object = rowModel.getObject();
+						objectEditPerformed(target, object.getOid(), type);
+					}
+				};
+				cellItem.add(panel);
+				
 			}
 
-			@Override
-			public void onClick(AjaxRequestTarget target, IModel<DebugObjectItem> rowModel) {
-				DebugObjectItem object = rowModel.getObject();
-				objectEditPerformed(target, object.getOid(), type);
-			}
 		};
 
 		columns.add(column);
