@@ -279,7 +279,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	private static final String REQUEST_USER_MODIFY_WEAK_STRONG_MAPPING_COMMUNICATION_PROBLEM = "src/test/resources/request/user-modify-employeeType-givenName.xml";
 	private static final String REQUEST_RESOURCE_MODIFY_RESOURCE_SCHEMA = "src/test/resources/request/resource-modify-resource-schema.xml";
 	private static final String REQUEST_RESOURCE_MODIFY_SYNCHRONIZATION = "src/test/resources/request/resource-modify-synchronization.xml";
-	private static final String REQUEST_USER_MODIFY_CHANGE_PASSWORD = "src/test/resources/request/user-modify-activation-change-password.xml";
+	private static final String REQUEST_USER_MODIFY_CHANGE_PASSWORD_1 = "src/test/resources/request/user-modify-change-password-1.xml";
+	private static final String REQUEST_USER_MODIFY_CHANGE_PASSWORD_2 = "src/test/resources/request/user-modify-change-password-2.xml";
 
 	private static final String TASK_OPENDJ_RECONCILIATION_FILENAME = "src/test/resources/repo/task-opendj-reconciliation.xml";
 	private static final String TASK_OPENDJ_RECONCILIATION_OID = "91919191-76e0-59e2-86d6-3d4f02d30000";
@@ -300,6 +301,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 	private static ResourceType resourceTypeOpenDjrepo;
 	private static String accountShadowOidOpendj;
+	private String aliceAccountDn;
 
 	// This will get called from the superclass to init the repository
 	// It will be called only once
@@ -1256,7 +1258,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		String accountOid = assertUserOneAccountRef(USER_ALICE_OID);
 		
 		// WHEN (down)
-		requestToExecuteChanges(REQUEST_USER_MODIFY_CHANGE_PASSWORD, USER_ALICE_OID, UserType.class, task, null, parentResult);
+		requestToExecuteChanges(REQUEST_USER_MODIFY_CHANGE_PASSWORD_1, USER_ALICE_OID, UserType.class, task, null, parentResult);
 
 		// THEN
 		//check the state after execution
@@ -1274,8 +1276,54 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		PrismObject<UserType> userAliceAfter = getUser(USER_ALICE_OID);
 		assertPassword(userAliceAfter, "DEADmenTELLnoTALES");
 		
-		String dn = ShadowUtil.getAttributeValue(aliceAccount, getOpenDjSecondaryIdentifierQName());
-		openDJController.assertPassword(dn, "DEADmenTELLnoTALES");
+		aliceAccountDn = ShadowUtil.getAttributeValue(aliceAccount, getOpenDjSecondaryIdentifierQName());
+		openDJController.assertPassword(aliceAccountDn, "DEADmenTELLnoTALES");
+	}
+	
+	/**
+	 * Modify user password when resource is down. Bring resource up and run recon.
+	 * Check that the password change is applied.
+	 */
+	@Test
+	public void test265ModifyUserPasswordCommunicationProblemRecon() throws Exception {
+		final String TEST_NAME = "test265ModifyUserPasswordCommunicationProblemRecon";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		openDJController.assumeStopped();
+		Task task = taskManager.createTaskInstance(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		String accountOid = assertUserOneAccountRef(USER_ALICE_OID);
+		
+		// WHEN (down)
+		TestUtil.displayWhen(TEST_NAME);
+		requestToExecuteChanges(REQUEST_USER_MODIFY_CHANGE_PASSWORD_2, USER_ALICE_OID, UserType.class, task, null, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		//check the state after execution
+		checkPostponedAccountBasic(accountOid, FailedOperationTypeType.MODIFY, true, result);
+
+		//start openDJ
+		openDJController.start();
+		modifyResourceAvailabilityStatus(AvailabilityStatusType.UP, result);
+		
+		// WHEN (restore)
+		TestUtil.displayWhen(TEST_NAME);
+		reconcileUser(USER_ALICE_OID, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		openDJController.assertPassword(aliceAccountDn, "UNDEADmenTELLscaryTALES");
+
+		PrismObject<UserType> userAliceAfter = getUser(USER_ALICE_OID);
+		assertPassword(userAliceAfter, "UNDEADmenTELLscaryTALES");
+			
+		// Do this as a last step so it will not interfere with the results
+		ShadowType aliceAccount = checkNormalizedShadowWithAttributes(accountOid, "alice", "Jackkk", "alice", "alice", true, task, result);
+		assertAttribute(aliceAccount, resourceTypeOpenDjrepo, "employeeNumber", "emp4321");
+
 	}
 	
 	/**

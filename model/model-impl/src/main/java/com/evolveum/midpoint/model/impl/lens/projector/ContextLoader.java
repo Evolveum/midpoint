@@ -499,6 +499,7 @@ public class ContextLoader {
 				// Using NO_FETCH so we avoid reading in a full account. This is more efficient as we don't need full account here.
 				// We need to fetch from provisioning and not repository so the correct definition will be set.
 				Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
+				LOGGER.trace("Loading shadow {} from linkRef, options={}", oid, options);
 				try {
 					shadow = provisioningService.getObject(ShadowType.class, oid, options, task, result);
 				} catch (ObjectNotFoundException e) {
@@ -959,10 +960,20 @@ public class ContextLoader {
 					}
 				} else {
 					projContext.setExists(true);
-					GetOperationOptions rootOptions = projContext.isDoReconciliation() ? 
-							GetOperationOptions.createDoNotDiscovery() : GetOperationOptions.createNoFetch();
+					GetOperationOptions rootOptions = new GetOperationOptions();
+					if (projContext.isDoReconciliation()) {
+						if (SchemaConstants.CHANGE_CHANNEL_DISCOVERY.equals(context.getChannel())) {
+							// Avoid discovery loops
+							rootOptions.setDoNotDiscovery(true);
+						}
+					} else { 
+						rootOptions.setNoFetch(true);
+					}
 					rootOptions.setAllowNotFound(true);
 					Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOptions);
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Loading projection shadow {}, options={}", projectionObjectOid, options);
+					}
 					try{
 						PrismObject<ShadowType> objectOld = provisioningService.getObject(
 								projContext.getObjectTypeClass(), projectionObjectOid, options, task, result);
@@ -1112,6 +1123,7 @@ public class ContextLoader {
 		GetOperationOptions getOptions = GetOperationOptions.createAllowNotFound();
 		if (SchemaConstants.CHANGE_CHANNEL_DISCOVERY.equals(context.getChannel())) {
 			LOGGER.trace("Loading full resource object {} from provisioning - with doNotDiscover to avoid loops", projCtx);
+			// Avoid discovery loops
 			getOptions.setDoNotDiscovery(true);
 		} else {
 			LOGGER.trace("Loading full resource object {} from provisioning (discovery enabled)", projCtx);
