@@ -27,6 +27,7 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
+import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -108,11 +109,13 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
 //    @JoinTable(foreignKey = @ForeignKey(name = "fk_assignment_owner"))
+    @NotQueryable
     public RObject getOwner() {
         return owner;
     }
 
     @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
+    @NotQueryable
     public String getOwnerOid() {
         if (owner != null && ownerOid == null) {
             ownerOid = owner.getOid();
@@ -124,6 +127,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     @GeneratedValue(generator = "ContainerIdGenerator")
     @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator")
     @Column(name = "id")
+    @NotQueryable
     public Integer getId() {
         return id;
     }

@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
+import com.evolveum.midpoint.prism.query.ExistsFilter;
 import com.evolveum.midpoint.prism.query.GreaterFilter;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.LessFilter;
@@ -42,35 +43,16 @@ import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.sql.data.common.RConnector;
-import com.evolveum.midpoint.repo.sql.data.common.RGenericObject;
-import com.evolveum.midpoint.repo.sql.data.common.RObject;
-import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
-import com.evolveum.midpoint.repo.sql.data.common.ROrg;
-import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
-import com.evolveum.midpoint.repo.sql.data.common.RReportOutput;
-import com.evolveum.midpoint.repo.sql.data.common.RRole;
-import com.evolveum.midpoint.repo.sql.data.common.RShadow;
-import com.evolveum.midpoint.repo.sql.data.common.RTask;
-import com.evolveum.midpoint.repo.sql.data.common.RUser;
-import com.evolveum.midpoint.repo.sql.data.common.enums.RActivationStatus;
-import com.evolveum.midpoint.repo.sql.data.common.enums.RTaskExecutionStatus;
-import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
-import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
-import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
-import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.RQuery;
 import com.evolveum.midpoint.repo.sql.query2.QueryEngine2;
 import com.evolveum.midpoint.repo.sql.query2.RQueryImpl;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
-import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -87,7 +69,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
@@ -95,19 +76,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang.StringUtils;
-import org.hibernate.Criteria;
 import org.hibernate.Session;
-import org.hibernate.criterion.Conjunction;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Disjunction;
-import org.hibernate.criterion.Order;
 import org.hibernate.criterion.ProjectionList;
 import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Property;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.criterion.Subqueries;
-import org.hibernate.sql.JoinType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -120,14 +91,13 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
-import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
 /**
  * @author lazyman
+ * @author mederly
  */
 @ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -161,7 +131,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         AssertJUnit.assertTrue(result.isSuccess());
     }
 
-    @Test(enabled = false)
+    @Test
     public void test001QueryNameNorm() throws Exception {
         Session session = open();
 
@@ -187,7 +157,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
-    @Test(enabled = false)
+    @Test
     public void test002QueryNameOrig() throws Exception {
         Session session = open();
 
@@ -213,7 +183,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
-    @Test(enabled = false)
+    @Test
     public void test003QueryNameStrict() throws Exception {
         Session session = open();
 
@@ -239,7 +209,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
-    @Test(enabled = false)
+    @Test
     public void test010QueryOrganizationNorm() throws Exception {
         Session session = open();
 
@@ -278,7 +248,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
-    @Test(enabled = false)
+    @Test
     public void test011QueryOrganizationOrig() throws Exception {
         Session session = open();
         try {
@@ -304,7 +274,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
-    @Test(enabled = false)
+    @Test
     public void test012QueryOrganizationStrict() throws Exception {
         Session session = open();
         try {
@@ -331,7 +301,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
-    @Test(enabled = false)
+    @Test
     public void test020QueryTwoOrganizationsNormAnd() throws Exception {
         Session session = open();
         try {
@@ -361,7 +331,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
-    @Test(enabled = false)
+    @Test
     public void test021QueryTwoOrganizationsStrictOr() throws Exception {
         Session session = open();
         try {
@@ -395,7 +365,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
-    @Test(enabled = false)
+    @Test
     public void test025QueryOrganizationOrigPolymorphic() throws Exception {
         Session session = open();
         try {
@@ -421,7 +391,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
-    @Test(enabled = false)
+    @Test
     public void test030QueryTaskDependent() throws Exception {
         Session session = open();
 
@@ -462,7 +432,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
-    @Test(enabled = false)
+    @Test
     public void test050QueryEnum() throws Exception {
         Session session = open();
         try {
@@ -493,7 +463,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
-    @Test(enabled = false)
+    @Test
     public void test060QueryEnabled() throws Exception {
         Session session = open();
         try {
@@ -524,7 +494,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
-    @Test(enabled = false)
+    @Test
     public void test070QueryGenericLong() throws Exception {
         Session session = open();
         try {
@@ -545,7 +515,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  g.fullObject, g.stringsCount, g.longsCount, g.datesCount, g.referencesCount, g.polysCount, g.booleansCount\n" +
                     "from\n" +
                     "  RGenericObject g\n" +
-                    "    left join g.longs l with (l.ownerType = :ownerType and l.name = :name)\n" +
+                    "    left join g.longs l with ( l.ownerType = :ownerType and l.name = :name )\n" +
                     "where\n" +
                     "  ( g.name.norm = :norm and l.value = :value )\n";
 
@@ -555,7 +525,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
-    @Test(enabled = false)
+    @Test
     public void test072QueryAccountByAttribute() throws Exception {
         Session session = open();
         try {
@@ -651,6 +621,27 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                 type = com.evolveum.midpoint.repo.sql.data.common.other.RObjectType.RESOURCE
              */
             assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test080QueryExistsAssignment() throws Exception {
+        Session session = open();
+
+        try {
+            /*
+             * ### UserType: Exists (assignment, Equal (activation/administrativeStatus = Enabled))
+             */
+            ExistsFilter filter = ExistsFilter.createEquals(new ItemPath(UserType.F_ASSIGNMENT), UserType.class, prismContext,
+                    EqualFilter.createEqual(new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
+                            AssignmentType.class, prismContext, null, ActivationStatusType.ENABLED));
+            ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+            query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
+
+            String real = getInterpretedQuery(session, UserType.class, query);
+            //assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
         }
@@ -1297,36 +1288,36 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
-    @Test(enabled = false)
-    public void asdf() throws Exception {
-        Session session = open();
-        try {
-            Criteria main = session.createCriteria(RUser.class, "u");
-            Criteria a = main.createCriteria("assignments", "a");
-            a.add(Restrictions.eq("a.assignmentOwner", RAssignmentOwner.FOCUS));
-            Criteria e = a.createCriteria("a.extension");
-
-            Criteria s = e.createCriteria("strings", "s");
-
-            Conjunction c2 = Restrictions.conjunction();
-            c2.add(Restrictions.eq("s.extensionType", RAssignmentExtensionType.EXTENSION));
-            c2.add(Restrictions.eq("s.name", new QName("http://midpoint.evolveum.com/blabla", "foo")));
-            c2.add(Restrictions.eq("s.value", "uid=jbond,ou=People,dc=example,dc=com"));
-
-            Conjunction c1 = Restrictions.conjunction();
-            c1.add(Restrictions.eq("a.targetRef.targetOid", "1234"));
-            c1.add(Restrictions.eq("a.targetRef.type", RObjectType.ORG));
-
-            main.add(Restrictions.and(c1, c2));
-
-            main.setProjection(Projections.property("u.fullObject"));
-
-            String expected = HibernateToSqlTranslator.toSql(main);
-            LOGGER.info(">>> >>> {}", expected);
-        } finally {
-            close(session);
-        }
-    }
+//    @Test
+//    public void asdf() throws Exception {
+//        Session session = open();
+//        try {
+//            Criteria main = session.createCriteria(RUser.class, "u");
+//            Criteria a = main.createCriteria("assignments", "a");
+//            a.add(Restrictions.eq("a.assignmentOwner", RAssignmentOwner.FOCUS));
+//            Criteria e = a.createCriteria("a.extension");
+//
+//            Criteria s = e.createCriteria("strings", "s");
+//
+//            Conjunction c2 = Restrictions.conjunction();
+//            c2.add(Restrictions.eq("s.extensionType", RAssignmentExtensionType.EXTENSION));
+//            c2.add(Restrictions.eq("s.name", new QName("http://midpoint.evolveum.com/blabla", "foo")));
+//            c2.add(Restrictions.eq("s.value", "uid=jbond,ou=People,dc=example,dc=com"));
+//
+//            Conjunction c1 = Restrictions.conjunction();
+//            c1.add(Restrictions.eq("a.targetRef.targetOid", "1234"));
+//            c1.add(Restrictions.eq("a.targetRef.type", RObjectType.ORG));
+//
+//            main.add(Restrictions.and(c1, c2));
+//
+//            main.setProjection(Projections.property("u.fullObject"));
+//
+//            String expected = HibernateToSqlTranslator.toSql(main);
+//            LOGGER.info(">>> >>> {}", expected);
+//        } finally {
+//            close(session);
+//        }
+//    }
 
     @Test
     public void test400ActivationQueryWrong() throws Exception {
@@ -1369,6 +1360,60 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "    u.activation.validTo <= :validTo or\n" +
                     "    a.activation.validFrom <= :validFrom2 or\n" +
                     "    a2.activation.validTo <= :validTo2\n" +
+                    "  )\n";
+
+            // correct translation but probably not what the requester wants (use Exists instead)
+
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    // this one uses Exists to refer to the same value of assignment
+    @Test
+    public void test405ActivationQueryCorrect() throws Exception {
+        PrismObjectDefinition<UserType> focusObjectDef = prismContext.getSchemaRegistry()
+                .findObjectDefinitionByCompileTimeClass(UserType.class);
+        PrismContainerDefinition<AssignmentType> assignmentDef = prismContext.getSchemaRegistry()
+                .findContainerDefinitionByCompileTimeClass(AssignmentType.class);
+
+        XMLGregorianCalendar thisScanTimestamp = XMLGregorianCalendarType.asXMLGregorianCalendar(new Date());
+
+        OrFilter filter = OrFilter.createOr(
+                LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef,
+                        thisScanTimestamp, true),
+                LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef,
+                        thisScanTimestamp, true),
+                ExistsFilter.createEquals(new ItemPath(FocusType.F_ASSIGNMENT), focusObjectDef,
+                        OrFilter.createOr(
+                                LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
+                                        assignmentDef, thisScanTimestamp, true),
+                                LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO),
+                                        assignmentDef, thisScanTimestamp, true))));
+
+        Session session = open();
+        try {
+            ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+            String real = getInterpretedQuery(session, UserType.class, query, false);
+
+            String expected = "select\n" +
+                    "  u.fullObject,\n" +
+                    "  u.stringsCount,\n" +
+                    "  u.longsCount,\n" +
+                    "  u.datesCount,\n" +
+                    "  u.referencesCount,\n" +
+                    "  u.polysCount,\n" +
+                    "  u.booleansCount\n" +
+                    "from\n" +
+                    "  RUser u\n" +
+                    "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n" +
+                    "where\n" +
+                    "  (\n" +
+                    "    u.activation.validFrom <= :validFrom or\n" +
+                    "    u.activation.validTo <= :validTo or\n" +
+                    "    ( a.activation.validFrom <= :validFrom2 or\n" +
+                    "      a.activation.validTo <= :validTo2 )\n" +
                     "  )\n";
 
             // correct translation but probably not what the requester wants (use ForValue instead)
@@ -1450,6 +1495,91 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "    (\n" +
                     "      a3.activation.validTo > :validTo3 and\n" +
                     "      a4.activation.validTo <= :validTo4\n" +
+                    "    )\n" +
+                    "  )\n";
+
+            // TODO rewrite with ForValue
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    // this one uses Exists to refer to the same value of assignment
+    @Test
+    public void test415ActivationQueryCorrect() throws Exception {
+        PrismObjectDefinition<UserType> focusObjectDef = prismContext.getSchemaRegistry()
+                .findObjectDefinitionByCompileTimeClass(UserType.class);
+        PrismContainerDefinition<AssignmentType> assignmentDef = prismContext.getSchemaRegistry()
+                .findContainerDefinitionByCompileTimeClass(AssignmentType.class);
+
+        XMLGregorianCalendar lastScanTimestamp = XMLGregorianCalendarType.asXMLGregorianCalendar(new Date());
+        XMLGregorianCalendar thisScanTimestamp = XMLGregorianCalendarType.asXMLGregorianCalendar(new Date());
+
+        OrFilter filter = OrFilter.createOr(
+                AndFilter.createAnd(
+                        GreaterFilter.createGreater(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef,
+                                lastScanTimestamp, false),
+                        LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef,
+                                thisScanTimestamp, true)
+                ),
+                AndFilter.createAnd(
+                        GreaterFilter.createGreater(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef,
+                                lastScanTimestamp, false),
+                        LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef,
+                                thisScanTimestamp, true)
+                ),
+                AndFilter.createAnd(
+                        ExistsFilter.createEquals(new ItemPath(FocusType.F_ASSIGNMENT), focusObjectDef,
+                                OrFilter.createOr(
+                                        AndFilter.createAnd(
+                                                GreaterFilter.createGreater(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
+                                                        assignmentDef, lastScanTimestamp, false),
+                                                LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
+                                                        assignmentDef, thisScanTimestamp, true)
+                                        ),
+                                        AndFilter.createAnd(
+                                                GreaterFilter.createGreater(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO),
+                                                        assignmentDef, lastScanTimestamp, false),
+                                                LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO),
+                                                        assignmentDef, thisScanTimestamp, true))))
+                )
+        );
+
+        Session session = open();
+        try {
+            ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+            String real = getInterpretedQuery(session, UserType.class, query, false);
+
+            String expected = "select\n" +
+                    "  u.fullObject,\n" +
+                    "  u.stringsCount,\n" +
+                    "  u.longsCount,\n" +
+                    "  u.datesCount,\n" +
+                    "  u.referencesCount,\n" +
+                    "  u.polysCount,\n" +
+                    "  u.booleansCount\n" +
+                    "from\n" +
+                    "  RUser u\n" +
+                    "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n" +
+                    "where\n" +
+                    "  (\n" +
+                    "    (\n" +
+                    "      u.activation.validFrom > :validFrom and\n" +
+                    "      u.activation.validFrom <= :validFrom2\n" +
+                    "    ) or\n" +
+                    "    (\n" +
+                    "      u.activation.validTo > :validTo and\n" +
+                    "      u.activation.validTo <= :validTo2\n" +
+                    "    ) or\n" +
+                    "    ( (\n" +
+                    "        a.activation.validFrom > :validFrom3 and\n" +
+                    "        a.activation.validFrom <= :validFrom4\n" +
+                    "      ) or\n" +
+                    "      (\n" +
+                    "        a.activation.validTo > :validTo3 and\n" +
+                    "        a.activation.validTo <= :validTo4\n" +
+                    "      )\n" +
                     "    )\n" +
                     "  )\n";
 

@@ -42,8 +42,6 @@ public class DefinitionComparator implements Comparator<Definition> {
             return 1;
         } else if (def instanceof ReferenceDefinition) {
             return 2;
-        } else if (def instanceof CollectionDefinition) {
-            return 3;
         } else if (def instanceof AnyDefinition) {
             return 4;
         } else if (def instanceof EntityDefinition) {

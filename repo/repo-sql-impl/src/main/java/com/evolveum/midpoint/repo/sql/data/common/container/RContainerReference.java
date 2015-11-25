@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -55,8 +56,10 @@ public abstract class RContainerReference implements ObjectReference {
     public RContainerReference() {
     }
 
+    @NotQueryable
     protected abstract Container getOwner();
 
+    @NotQueryable
     protected String getOwnerOid() {
         if (ownerOid == null && getOwner() != null) {
             ownerOid = getOwner().getOwnerOid();
@@ -64,6 +67,7 @@ public abstract class RContainerReference implements ObjectReference {
         return ownerOid;
     }
 
+    @NotQueryable
     protected Integer getOwnerId() {
         if (ownerId == null && getOwner() != null) {
             ownerId = getOwner().getId();

@@ -22,6 +22,7 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RExclusionPolicy;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
+import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -72,6 +73,7 @@ public class RExclusion implements Container {
     @ForeignKey(name = "fk_exclusion_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
+    @NotQueryable
     public RObject getOwner() {
         return owner;
     }

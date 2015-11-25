@@ -39,11 +39,14 @@ public abstract class Definition implements DebugDumpable {
     private String jpaName;
     private Class jpaType;
 
-    public Definition(QName jaxbName, Class jaxbType, String jpaName, Class jpaType) {
+    private CollectionSpecification collectionSpecification;
+
+    public Definition(QName jaxbName, Class jaxbType, String jpaName, Class jpaType, CollectionSpecification collectionSpecification) {
         this.jaxbName = jaxbName;
         this.jaxbType = jaxbType;
         this.jpaName = jpaName;
         this.jpaType = jpaType;
+        this.collectionSpecification = collectionSpecification;
     }
 
     public QName getJaxbName() {
@@ -62,22 +65,7 @@ public abstract class Definition implements DebugDumpable {
         return jpaType;
     }
 
-    @Override
-    public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append(getDebugDumpClassName());
-        builder.append('{');
-        builder.append("jaxbN=").append(dumpQName(jaxbName));
-        builder.append(", jaxbT=").append((jaxbType != null ? jaxbType.getSimpleName() : ""));
-        builder.append(", jpaN=").append(jpaName);
-        builder.append(", jpaT=").append((jpaType != null ? jpaType.getSimpleName() : ""));
-        toStringExtended(builder);
-        builder.append('}');
-
-        return builder.toString();
-    }
-
-    protected void toStringExtended(StringBuilder builder) {
+    protected void debugDumpExtended(StringBuilder builder, int indent) {
 
     }
 
@@ -108,7 +96,18 @@ public abstract class Definition implements DebugDumpable {
         for (int i = 0; i < indent; i++) {
             sb.append(DebugDumpable.INDENT_STRING);
         }
-        sb.append(toString());
+        sb.append(getDebugDumpClassName());
+        sb.append('{');
+        sb.append("jaxbN=").append(dumpQName(jaxbName));
+        sb.append(", jaxbT=").append((jaxbType != null ? jaxbType.getSimpleName() : ""));
+        sb.append(", jpaN=").append(jpaName);
+        sb.append(", jpaT=").append((jpaType != null ? jpaType.getSimpleName() : ""));
+        if (collectionSpecification != null) {
+            sb.append(", coll=").append(collectionSpecification);       // TODO
+        }
+        debugDumpExtended(sb, indent);
+        sb.append('}');
+
         return sb.toString();
     }
 
@@ -202,6 +201,20 @@ public abstract class Definition implements DebugDumpable {
     }
 
     public String getShortInfo() {
-        return getDebugDumpClassName() + ":" + DebugUtil.formatElementName(getJaxbName()) + ":" + getJpaName();
+        return getDebugDumpClassName() +
+                (collectionSpecification != null ? "[]" : "") +
+                ":" + DebugUtil.formatElementName(getJaxbName()) + ":" + getJpaName();
+    }
+
+    public String toString() {
+        return getShortInfo();
+    }
+
+    public boolean isCollection() {
+        return collectionSpecification != null;
+    }
+
+    public CollectionSpecification getCollectionSpecification() {
+        return collectionSpecification;
     }
 }

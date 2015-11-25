@@ -25,10 +25,6 @@ import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.query.definition.QueryEntity;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualAny;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualCollection;
-import com.evolveum.midpoint.repo.sql.query2.definition.VirtualCollectionDefinition;
-import com.evolveum.midpoint.repo.sql.query.definition.VirtualProperty;
-import com.evolveum.midpoint.repo.sql.query2.definition.VirtualPropertyDefinition;
-import com.evolveum.midpoint.repo.sql.query.definition.VirtualReference;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -62,14 +58,15 @@ public class ClassDefinitionParser {
         QName jaxbName = objectType.getQName();
         Class jaxbType = objectType.getClassDefinition();
 
-        EntityDefinition entityDefinition = new EntityDefinition(jaxbName, jaxbType, type.getSimpleName(), type);
+        EntityDefinition entityDefinition = new EntityDefinition(jaxbName, jaxbType, type.getSimpleName(), type, null);
         updateEntityDefinition(entityDefinition);
 
         return entityDefinition;
     }
 
     private void updateEntityDefinition(EntityDefinition entity) {
-        LOGGER.trace("### {}", new Object[]{entity.getJpaName()});
+        LOGGER.trace("### {}", entity);
+
         addVirtualDefinitions(entity);
         Method[] methods = entity.getJpaType().getMethods();
 
@@ -78,8 +75,9 @@ public class ClassDefinitionParser {
         for (Method method : methods) {
             String methodName = method.getName();
             if (Modifier.isStatic(method.getModifiers()) || "getClass".equals(methodName) ||
-                    !methodName.startsWith("is") && !methodName.startsWith("get")) {
-                //it's not getter for property
+                    (!methodName.startsWith("is") && !methodName.startsWith("get")) ||
+                    method.getAnnotation(NotQueryable.class) != null) {
+                //it's not getter for queryable property
                 continue;
             }
 
@@ -87,12 +85,12 @@ public class ClassDefinitionParser {
                 continue;
             }
 
-            LOGGER.trace("# {}", new Object[]{methodName});
+            LOGGER.trace("# {}", methodName);
 
             QName jaxbName = getJaxbName(method);
             Class jaxbType = getJaxbType(method);
             String jpaName = getJpaName(method);
-            Definition definition = createDefinition(jaxbName, jaxbType, jpaName, method);
+            Definition definition = createDefinition(jaxbName, jaxbType, jpaName, method, null);
             entity.addDefinition(definition);
         }
     }
@@ -112,17 +110,17 @@ public class ClassDefinitionParser {
         }
 
         QueryEntity qEntity = (QueryEntity) jpaType.getAnnotation(QueryEntity.class);
-        for (VirtualProperty property : qEntity.properties()) {
-            QName jaxbName = createQName(property.jaxbName());
-            VirtualPropertyDefinition def = new VirtualPropertyDefinition(jaxbName, property.jaxbType(),
-                    property.jpaName(), property.jpaType());
-            def.setAdditionalParams(property.additionalParams());
-            entityDef.addDefinition(def);
-        }
-
-        for (VirtualReference reference : qEntity.references()) {
-
-        }
+//        for (VirtualProperty property : qEntity.properties()) {
+//            QName jaxbName = createQName(property.jaxbName());
+//            VirtualPropertyDefinition def = new VirtualPropertyDefinition(jaxbName, property.jaxbType(),
+//                    property.jpaName(), property.jpaType());
+//            def.setAdditionalParams(property.additionalParams());
+//            entityDef.addDefinition(def);
+//        }
+//
+//        for (VirtualReference reference : qEntity.references()) {
+//
+//        }
 
         for (VirtualAny any : qEntity.anyElements()) {
             VirtualAnyDefinition def = new VirtualAnyDefinition(
@@ -132,14 +130,12 @@ public class ClassDefinitionParser {
         }
 
         for (VirtualCollection collection : qEntity.collections()) {
+            VirtualCollectionSpecification colSpec = new VirtualCollectionSpecification();
+            colSpec.setAdditionalParams(collection.additionalParams());
+
             QName jaxbName = createQName(collection.jaxbName());
-
-            VirtualCollectionDefinition def = new VirtualCollectionDefinition(jaxbName,
-                    collection.jaxbType(), collection.jpaName(), collection.jpaType());
-            def.setAdditionalParams(collection.additionalParams());
-            updateCollectionDefinition(def, collection.collectionType(), jaxbName, collection.jpaName());
-
-            entityDef.addDefinition(def);
+            Definition definition = createDefinition(jaxbName, collection.jaxbType(), collection.jpaName(), collection.collectionType(), colSpec);
+            entityDef.addDefinition(definition);
         }
     }
 
@@ -147,57 +143,44 @@ public class ClassDefinitionParser {
         return new QName(name.namespace(), name.localPart());
     }
 
-    private Definition createDefinition(QName jaxbName, Class jaxbType, String jpaName, AnnotatedElement object) {
+    private Definition createDefinition(QName jaxbName, Class jaxbType, String jpaName, AnnotatedElement object, CollectionSpecification collectionSpecification) {
         Class jpaType = (object instanceof Class) ? (Class) object : ((Method) object).getReturnType();
+
+        if (Set.class.isAssignableFrom(jpaType)) {
+            if (collectionSpecification != null) {
+                throw new IllegalStateException("Collection within collection is not supported: jaxbName=" +
+                        jaxbName + ", jaxbType=" + jaxbType + ", jpaName=" + jpaName + ", object=" + object);
+            }
+            collectionSpecification = new CollectionSpecification();
+            if (object instanceof Method) {
+                Method method = (Method) object;
+                ParameterizedType type = (ParameterizedType) method.getGenericReturnType();
+                Class clazz = (Class) type.getActualTypeArguments()[0];
+                QName realJaxbName = getJaxbName(method);
+                Class realJaxbType = getJaxbType(clazz);
+                String realJpaName = getJpaName(method);
+                return createDefinition(realJaxbName, realJaxbType, realJpaName, clazz, collectionSpecification);
+            } else {
+                Class clazz = (Class) object;
+                Class realJaxbType = getJaxbType(clazz);
+                return createDefinition(jaxbName, realJaxbType, jpaName, clazz, collectionSpecification);
+            }
+        }
 
         Definition definition;
         if (ObjectReference.class.isAssignableFrom(jpaType)) {
-            ReferenceDefinition refDef = new ReferenceDefinition(jaxbName, jaxbType, jpaName, jpaType);
+            ReferenceDefinition refDef = new ReferenceDefinition(jaxbName, jaxbType, jpaName, jpaType, collectionSpecification);
             definition = updateReferenceDefinition(refDef, object);
         } else if (RAssignmentExtension.class.isAssignableFrom(jpaType)) {
             definition = new AnyDefinition(jaxbName, jaxbType, jpaName, jpaType);
-        } else if (Set.class.isAssignableFrom(jpaType)) {
-            CollectionDefinition collDef = new CollectionDefinition(jaxbName, jaxbType, jpaName, jpaType);
-            updateCollectionDefinition(collDef, object, null, null);
-            definition = collDef;
         } else if (isEntity(object)) {
-            EntityDefinition entityDef = new EntityDefinition(jaxbName, jaxbType, jpaName, jpaType);
-            if ("com.evolveum.midpoint.repo.sql.data.common.embedded".equals(jpaType.getPackage().getName())) {
-                updateEntityDefinition(entityDef);
-            }
+            EntityDefinition entityDef = new EntityDefinition(jaxbName, jaxbType, jpaName, jpaType, collectionSpecification);
+            updateEntityDefinition(entityDef);
             definition = entityDef;
         } else {
-            PropertyDefinition propDef = new PropertyDefinition(jaxbName, jaxbType, jpaName, jpaType);
+            PropertyDefinition propDef = new PropertyDefinition(jaxbName, jaxbType, jpaName, jpaType, collectionSpecification);
             definition = updatePropertyDefinition(propDef, object);
         }
-
-        return definition;
-    }
-
-    private CollectionDefinition updateCollectionDefinition(CollectionDefinition definition, AnnotatedElement object,
-                                                            QName jaxbName, String jpaName) {
-        Definition collDef;
-        if (object instanceof Method) {
-            Method method = (Method) object;
-            ParameterizedType type = (ParameterizedType) method.getGenericReturnType();
-            Class clazz = (Class) type.getActualTypeArguments()[0];
-
-            QName realJaxbName = getJaxbName(method);
-            Class jaxbType = getJaxbType(clazz);
-            String realJpaName = getJpaName(method);
-            collDef = createDefinition(realJaxbName, jaxbType, realJpaName, clazz);
-        } else {
-            Class clazz = (Class) object;
-
-            Class jaxbType = getJaxbType(clazz);
-            collDef = createDefinition(jaxbName, jaxbType, jpaName, clazz);
-        }
-
-        if (collDef instanceof EntityDefinition) {
-            updateEntityDefinition((EntityDefinition) collDef);
-        }
-
-        definition.setDefinition(collDef);
 
         return definition;
     }

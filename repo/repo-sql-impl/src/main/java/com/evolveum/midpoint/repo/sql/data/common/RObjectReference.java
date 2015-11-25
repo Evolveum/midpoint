@@ -21,13 +21,13 @@ import com.evolveum.midpoint.repo.sql.data.common.id.RObjectReferenceId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
+import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
 
@@ -62,12 +62,14 @@ public class RObjectReference implements ObjectReference {
     @ForeignKey(name = "fk_reference_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
+    @NotQueryable
     public RObject getOwner() {
         return owner;
     }
 
     @Id
     @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID)
+    @NotQueryable
     public String getOwnerOid() {
         if (ownerOid == null && owner != null) {
             ownerOid = owner.getOid();

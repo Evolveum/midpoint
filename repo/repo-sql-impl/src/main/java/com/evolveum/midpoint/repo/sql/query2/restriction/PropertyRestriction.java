@@ -49,7 +49,12 @@ public class PropertyRestriction extends ItemValueRestriction<ValueFilter> {
             throw new QueryException("Can't query based on clob property value '" + propertyDefinition + "'.");
         }
 
-        String propertyFullName = hqlPath + "." + propertyDefinition.getJpaName();
+        String propertyFullName;
+        if (propertyDefinition.isCollection()) {
+            propertyFullName = hqlPath;
+        } else {
+            propertyFullName = hqlPath + "." + propertyDefinition.getJpaName();
+        }
         Object value = getValueFromFilter(filter, propertyDefinition);
         Condition condition = createCondition(propertyFullName, value, filter);
 

@@ -22,13 +22,13 @@ import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualQueryParam;
 import com.evolveum.midpoint.repo.sql.query2.definition.AnyDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.CollectionDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.CollectionSpecification;
 import com.evolveum.midpoint.repo.sql.query2.definition.Definition;
 import com.evolveum.midpoint.repo.sql.query2.definition.DefinitionPath;
 import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.PropertyDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.ReferenceDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.VirtualCollectionDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.VirtualCollectionSpecification;
 import com.evolveum.midpoint.repo.sql.query2.hqm.EntityReference;
 import com.evolveum.midpoint.repo.sql.query2.hqm.JoinSpecification;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
@@ -83,7 +83,7 @@ public class InterpreterHelper {
             Definition definition = definitions.get(i);
             if (definition instanceof EntityDefinition) {
                 EntityDefinition entityDef = (EntityDefinition) definition;
-                if (!entityDef.isEmbedded()) {
+                if (!entityDef.isEmbedded() || entityDef.isCollection()) {
                     LOGGER.trace("Adding join for '{}' to context", entityDef.getJpaName());
                     currentHqlPath = addJoin(entityDef, currentHqlPath);
                 } else {
@@ -95,16 +95,11 @@ public class InterpreterHelper {
                     currentHqlPath = addJoin(definition, currentHqlPath);
                 }
                 break;
-            } else if (definition instanceof CollectionDefinition) {
-                LOGGER.trace("Adding join for '{}' to context", definition.getJpaName());
-                currentHqlPath = addJoin(definition, currentHqlPath);
-
-                // Because the next definition in the chain is the one that is referred to by this Collection
-                // (either property, reference or entity), we need to skip it: If it's entity, we have already
-                // joined it - and if it's property/reference, we would break the cycle even so
-                i++;
-
             } else if (definition instanceof PropertyDefinition || definition instanceof ReferenceDefinition) {
+                if (definition.isCollection()) {
+                    LOGGER.trace("Adding join for '{}' to context", definition.getJpaName());
+                    currentHqlPath = addJoin(definition, currentHqlPath);
+                }
                 break;      // quite redundant, as this is the last item in the chain
             } else {
                 throw new QueryException("Not implemented yet: " + definition);
@@ -123,8 +118,8 @@ public class InterpreterHelper {
         String joinedItemFullPath = currentHqlPath + "." + joinedItemJpaName;
         String joinedItemAlias = hibernateQuery.createAlias(joinedItemDefinition);
         Condition condition = null;
-        if (joinedItemDefinition instanceof VirtualCollectionDefinition) {
-            VirtualCollectionDefinition vcd = (VirtualCollectionDefinition) joinedItemDefinition;
+        if (joinedItemDefinition.getCollectionSpecification() instanceof VirtualCollectionSpecification) {
+            VirtualCollectionSpecification vcd = (VirtualCollectionSpecification) joinedItemDefinition.getCollectionSpecification();
             List<Condition> conditions = new ArrayList<>(vcd.getAdditionalParams().length);
             for (VirtualQueryParam vqp : vcd.getAdditionalParams()) {
                 // e.g. name = "assignmentOwner", type = RAssignmentOwner.class, value = "ABSTRACT_ROLE"
@@ -174,7 +169,7 @@ public class InterpreterHelper {
         EntityReference entityReference = hibernateQuery.getPrimaryEntity();                    // TODO other references (in the future)
         String joinedItemJpaName = anyAssociationName;
         String joinedItemFullPath = currentHqlPath + "." + joinedItemJpaName;
-        String joinedItemAlias = hibernateQuery.createAlias(joinedItemJpaName, false);
+        String joinedItemAlias = hibernateQuery.createAlias(joinedItemJpaName);
 
         AndCondition conjunction = hibernateQuery.createAnd();
         if (ownerType != null) {        // null for assignment extensions
@@ -193,11 +188,11 @@ public class InterpreterHelper {
      *
      * @param path Path to be found
      * @param clazz Kind of definition to be looked for
-     * @param complete Must the path be completely resolved?
      * @return Entity type definition + item definition, or null if nothing was found
      */
     public <T extends Definition> ProperDefinitionSearchResult<T> findProperDefinition(EntityDefinition baseEntityDefinition,
-                                                                                       ItemPath path, Class<T> clazz) throws QueryException {
+                                                                                       ItemPath path, Class<T> clazz)
+            throws QueryException {
         QueryDefinitionRegistry2 registry = QueryDefinitionRegistry2.getInstance();
         ProperDefinitionSearchResult<T> candidateResult = null;
 
@@ -217,6 +212,8 @@ public class InterpreterHelper {
                 }
             }
         }
+        LOGGER.trace("findProperDefinition: base={}, path={}, class={} -- returning {}",
+                baseEntityDefinition.getShortInfo(), path, clazz.getSimpleName(), candidateResult);
         return candidateResult;
     }
 

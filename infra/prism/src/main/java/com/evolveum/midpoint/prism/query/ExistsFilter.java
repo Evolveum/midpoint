@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -60,9 +61,15 @@ public class ExistsFilter extends ObjectFilter {
         return filter;
     }
 
-    public static <C extends Containerable> ExistsFilter createEqual(ItemPath itemPath, PrismContainerDefinition<C> containerDef,
-                                                                          ObjectFilter filter) throws SchemaException {
+    public static <C extends Containerable> ExistsFilter createEquals(ItemPath itemPath, PrismContainerDefinition<C> containerDef,
+                                                                      ObjectFilter filter) throws SchemaException {
         ItemDefinition itemDefinition = FilterUtils.findItemDefinition(itemPath, containerDef);
+        return new ExistsFilter(itemPath, itemDefinition, filter);
+    }
+
+    public static <C extends Containerable> ExistsFilter createEquals(ItemPath itemPath, Class<C> clazz, PrismContext prismContext,
+                                                                      ObjectFilter filter) throws SchemaException {
+        ItemDefinition itemDefinition = FilterUtils.findItemDefinition(itemPath, clazz, prismContext);
         return new ExistsFilter(itemPath, itemDefinition, filter);
     }
 

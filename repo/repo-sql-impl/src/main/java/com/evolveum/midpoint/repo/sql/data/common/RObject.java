@@ -35,6 +35,7 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
+import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.query.definition.QueryEntity;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualAny;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
@@ -161,6 +162,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     @GeneratedValue(generator = "ObjectOidGenerator")
     @GenericGenerator(name = "ObjectOidGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ObjectOidGenerator")
     @Column(name = "oid", nullable = false, updatable = false, length = RUtil.COLUMN_LENGTH_OID)
+    @NotQueryable
     public String getOid() {
         return oid;
     }
@@ -190,18 +192,21 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return parentOrgRef;
     }
 
+    @NotQueryable
     @OneToMany(fetch = FetchType.LAZY, targetEntity = ROrgClosure.class, mappedBy = "descendant")
     @Cascade({org.hibernate.annotations.CascadeType.DELETE})
     public Set<ROrgClosure> getDescendants() {
         return descendants;
     }
 
+    @NotQueryable
     @OneToMany(fetch = FetchType.LAZY, targetEntity = ROrgClosure.class, mappedBy = "ancestor")//, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.DELETE})
     public Set<ROrgClosure> getAncestors() {
         return ancestors;
     }
 
+    @NotQueryable
     public int getVersion() {
         return version;
     }
@@ -212,6 +217,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     }
 
     @Lob
+    @NotQueryable
     public byte[] getFullObject() {
         return fullObject;
     }
@@ -264,6 +270,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return modifyTimestamp;
     }
 
+    @NotQueryable
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<ROExtLong> getLongs() {
@@ -273,6 +280,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return longs;
     }
 
+    @NotQueryable
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<ROExtBoolean> getBooleans() {
@@ -282,6 +290,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return booleans;
     }
 
+    @NotQueryable
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<ROExtString> getStrings() {
@@ -291,6 +300,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return strings;
     }
 
+    @NotQueryable
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<ROExtDate> getDates() {
@@ -300,6 +310,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return dates;
     }
 
+    @NotQueryable
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<ROExtReference> getReferences() {
@@ -309,6 +320,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return references;
     }
 
+    @NotQueryable
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<ROExtPolyString> getPolys() {
@@ -318,6 +330,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return polys;
     }
 
+    @NotQueryable
     public Short getStringsCount() {
         if (stringsCount == null) {
             stringsCount = 0;
@@ -325,6 +338,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return stringsCount;
     }
 
+    @NotQueryable
     public Short getBooleansCount() {
         if (booleansCount == null) {
             booleansCount = 0;
@@ -332,6 +346,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return booleansCount;
     }
 
+    @NotQueryable
     public Short getLongsCount() {
         if (longsCount == null) {
             longsCount = 0;
@@ -339,6 +354,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return longsCount;
     }
 
+    @NotQueryable
     public Short getDatesCount() {
         if (datesCount == null) {
             datesCount = 0;
@@ -346,6 +362,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return datesCount;
     }
 
+    @NotQueryable
     public Short getReferencesCount() {
         if (referencesCount == null) {
             referencesCount = 0;
@@ -353,6 +370,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return referencesCount;
     }
 
+    @NotQueryable
     public Short getPolysCount() {
         if (polysCount == null) {
             polysCount = 0;
@@ -361,6 +379,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     }
 
     @Enumerated
+    @NotQueryable
     public RObjectType getObjectTypeClass() {
         return objectTypeClass;
     }

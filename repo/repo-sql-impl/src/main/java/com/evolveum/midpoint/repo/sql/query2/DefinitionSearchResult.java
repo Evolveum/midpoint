@@ -25,8 +25,8 @@ import org.apache.commons.lang.Validate;
  * @author mederly
  */
 public class DefinitionSearchResult<T extends Definition> {
-    T itemDefinition;                       // definition of the item itself
-    ItemPath remainder;                     // what has remained unresolved of the original search path
+    private T itemDefinition;                       // definition of the item itself
+    private ItemPath remainder;                     // what has remained unresolved of the original search path
 
     public DefinitionSearchResult(T itemDefinition, ItemPath remainder) {
         Validate.notNull(itemDefinition, "itemDefinition");

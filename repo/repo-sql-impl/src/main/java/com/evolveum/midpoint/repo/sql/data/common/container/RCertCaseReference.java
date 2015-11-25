@@ -17,11 +17,11 @@
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.id.RCObjectReferenceId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
+import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.apache.commons.lang.Validate;
@@ -67,12 +67,14 @@ public class RCertCaseReference extends RContainerReference {
     @ForeignKey(name = "fk_acc_cert_case_reference")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
+    @NotQueryable
     public RAccessCertificationCase getOwner() {
         return owner;
     }
 
     @Id
     @Column(name = "owner_owner_oid", length = RUtil.COLUMN_LENGTH_OID)
+    @NotQueryable
     public String getOwnerOid() {
         return super.getOwnerOid();
     }
@@ -80,6 +82,7 @@ public class RCertCaseReference extends RContainerReference {
 
     @Id
     @Column(name = "owner_id")
+    @NotQueryable
     public Integer getOwnerId() {
         return super.getOwnerId();
     }

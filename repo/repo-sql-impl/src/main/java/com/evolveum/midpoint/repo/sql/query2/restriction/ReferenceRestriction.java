@@ -19,13 +19,11 @@ package com.evolveum.midpoint.repo.sql.query2.restriction;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.repo.sql.query2.DefinitionSearchResult;
-import com.evolveum.midpoint.repo.sql.query2.definition.CollectionDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.CollectionSpecification;
 import com.evolveum.midpoint.repo.sql.query2.definition.Definition;
 import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.ReferenceDefinition;
@@ -77,12 +75,10 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
         RootHibernateQuery hibernateQuery = context.getHibernateQuery();
 
         String propertyFullNamePrefix;
-        if (itemDefinition instanceof CollectionDefinition) {
+        if (itemDefinition.isCollection()) {
             propertyFullNamePrefix = hqlPath + ".";
-        } else if (itemDefinition instanceof ReferenceDefinition) {
-            propertyFullNamePrefix = hqlPath + "." + itemDefinition.getJpaName() + ".";
         } else {
-            throw new IllegalStateException("Unexpected kind of Definition while processing ReferenceRestriction: " + itemDefinition);
+            propertyFullNamePrefix = hqlPath + "." + itemDefinition.getJpaName() + ".";
         }
 
         String refValueOid = null;

@@ -4,6 +4,7 @@ import com.evolveum.midpoint.repo.sql.data.common.RLookupTable;
 import com.evolveum.midpoint.repo.sql.data.common.container.Container;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
+import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
@@ -47,6 +48,7 @@ public class RLookupTableRow implements Container<RLookupTable> {
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @Override
+    @NotQueryable
     public RLookupTable getOwner() {
         return owner;
     }

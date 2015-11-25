@@ -22,10 +22,10 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.id.RAssignmentExtensionId;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
+import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
@@ -67,6 +67,7 @@ public class RAssignmentExtension implements Serializable {
     @ForeignKey(name = "none")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
+    @NotQueryable
     public RAssignment getOwner() {
         return owner;
     }

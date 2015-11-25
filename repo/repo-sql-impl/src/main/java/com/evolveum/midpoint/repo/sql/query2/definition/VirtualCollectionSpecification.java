@@ -23,12 +23,11 @@ import javax.xml.namespace.QName;
 /**
  * @author lazyman
  */
-public class VirtualCollectionDefinition extends CollectionDefinition {
+public class VirtualCollectionSpecification extends CollectionSpecification {
 
     private VirtualQueryParam[] additionalParams;
 
-    public VirtualCollectionDefinition(QName jaxbName, Class jaxbType, String propertyName, Class propertyType) {
-        super(jaxbName, jaxbType, propertyName, propertyType);
+    public VirtualCollectionSpecification() {
     }
 
     public VirtualQueryParam[] getAdditionalParams() {
@@ -39,15 +38,4 @@ public class VirtualCollectionDefinition extends CollectionDefinition {
         this.additionalParams = additionalParams;
     }
 
-    @Override
-    protected void toStringExtended(StringBuilder builder) {
-        super.toStringExtended(builder);
-
-        builder.append(", params=").append(additionalParams.length);
-    }
-
-    @Override
-    protected String getDebugDumpClassName() {
-        return "VirtualCol";
-    }
 }

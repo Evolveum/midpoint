@@ -18,10 +18,9 @@ package com.evolveum.midpoint.repo.sql.query2.definition;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.repo.sql.query.restriction.PathTranslation;
 import com.evolveum.midpoint.repo.sql.query2.DefinitionSearchResult;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
@@ -46,8 +45,8 @@ public class EntityDefinition extends Definition {
     private boolean embedded;
     private EntityDefinition superclassDefinition;
 
-    public EntityDefinition(QName jaxbName, Class jaxbType, String jpaName, Class jpaType) {
-        super(jaxbName, jaxbType, jpaName, jpaType);
+    public EntityDefinition(QName jaxbName, Class jaxbType, String jpaName, Class jpaType, CollectionSpecification collectionSpecification) {
+        super(jaxbName, jaxbType, jpaName, jpaType, collectionSpecification);
         Validate.notNull(jaxbName, "jaxbName");
         Validate.notNull(jaxbType, "jaxbType");
         Validate.notNull(jpaName, "jpaName");
@@ -83,35 +82,16 @@ public class EntityDefinition extends Definition {
     }
 
     @Override
-    protected void toStringExtended(StringBuilder builder) {
+    protected void debugDumpExtended(StringBuilder builder, int indent) {
         builder.append(", embedded=").append(isEmbedded());
-        builder.append(", definitions=[");
+        builder.append(", definitions=\n");
 
         List<Definition> definitions = getDefinitions();
         for (Definition definition : definitions) {
-            builder.append(definition.getDebugDumpClassName());
-            builder.append('(').append(dumpQName(definition.getJaxbName())).append(')');
+            builder.append(definition.debugDump(indent+1));
+            builder.append('\n');
         }
-        builder.append(']');
-    }
-
-    @Override
-    public String debugDump(int indent) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < indent; i++) {
-            sb.append(DebugDumpable.INDENT_STRING);
-        }
-        sb.append(toString());
-
-        List<Definition> definitions = getDefinitions();
-        for (Definition definition : definitions) {
-            sb.append(definition.debugDump(indent + 1));
-            if (definitions.indexOf(definition) != definitions.size() - 1) {
-                sb.append('\n');
-            }
-        }
-
-        return sb.toString();
+        DebugUtil.indentDebugDump(builder, indent);     // before final '}'
     }
 
     @Override

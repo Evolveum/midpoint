@@ -39,10 +39,11 @@ import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.definition.AnyDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.CollectionDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.CollectionSpecification;
 import com.evolveum.midpoint.repo.sql.query2.definition.Definition;
 import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.PropertyDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.ReferenceDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.ProjectionElement;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
@@ -52,7 +53,6 @@ import com.evolveum.midpoint.repo.sql.query2.matcher.PolyStringMatcher;
 import com.evolveum.midpoint.repo.sql.query2.matcher.StringMatcher;
 import com.evolveum.midpoint.repo.sql.query2.restriction.AndRestriction;
 import com.evolveum.midpoint.repo.sql.query2.restriction.AnyPropertyRestriction;
-import com.evolveum.midpoint.repo.sql.query2.restriction.CollectionRestriction;
 import com.evolveum.midpoint.repo.sql.query2.restriction.ExistsRestriction;
 import com.evolveum.midpoint.repo.sql.query2.restriction.InOidRestriction;
 import com.evolveum.midpoint.repo.sql.query2.restriction.NotRestriction;
@@ -230,9 +230,9 @@ public class QueryInterpreter2 {
         } else if (filter instanceof RefFilter) {
             RefFilter refFilter = (RefFilter) filter;
             ItemPath path = refFilter.getFullPath();
-            ProperDefinitionSearchResult<Definition> searchResult = helper.findProperDefinition(baseEntityDefinition, path, Definition.class);
+            ProperDefinitionSearchResult<ReferenceDefinition> searchResult = helper.findProperDefinition(baseEntityDefinition, path, ReferenceDefinition.class);
             if (searchResult == null) {
-                throw new QueryException("Path for RefFilter (" + path + ") doesn't point to a queryable item");
+                throw new QueryException("Path for RefFilter (" + path + ") doesn't point to a reference item");
             }
             return new ReferenceRestriction(context, refFilter, searchResult.getEntityDefinition(),
                     parent, searchResult.getItemDefinition());
@@ -243,15 +243,6 @@ public class QueryInterpreter2 {
             ProperDefinitionSearchResult<PropertyDefinition> propDefRes = helper.findProperDefinition(baseEntityDefinition, path, PropertyDefinition.class);
             if (propDefRes != null) {
                 return new PropertyRestriction(context, valFilter, propDefRes.getEntityDefinition(), parent, propDefRes.getItemDefinition());
-            }
-            ProperDefinitionSearchResult<CollectionDefinition> collDefRes = helper.findProperDefinition(baseEntityDefinition, path, CollectionDefinition.class);
-            if (collDefRes != null) {
-                Definition innerDef = collDefRes.getItemDefinition().getDefinition();
-                if (innerDef instanceof PropertyDefinition) {
-                    return new CollectionRestriction(context, valFilter, collDefRes.getEntityDefinition(), parent, (PropertyDefinition) innerDef);
-                } else {
-                    throw new QueryException("ValueFilter is not supported for collections of items other than properties: " + innerDef);
-                }
             }
             ProperDefinitionSearchResult<AnyDefinition> anyDefRes = helper.findProperDefinition(baseEntityDefinition, path, AnyDefinition.class);
             if (anyDefRes != null) {

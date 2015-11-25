@@ -28,8 +28,8 @@ public class ReferenceDefinition extends Definition {
 
     private boolean embedded;
 
-    public ReferenceDefinition(QName jaxbName, Class jaxbType, String jpaName, Class jpaType) {
-        super(jaxbName, jaxbType, jpaName, jpaType);
+    public ReferenceDefinition(QName jaxbName, Class jaxbType, String jpaName, Class jpaType, CollectionSpecification collectionSpecification) {
+        super(jaxbName, jaxbType, jpaName, jpaType, collectionSpecification);
     }
 
     public boolean isEmbedded() {
@@ -41,7 +41,7 @@ public class ReferenceDefinition extends Definition {
     }
 
     @Override
-    protected void toStringExtended(StringBuilder builder) {
+    protected void debugDumpExtended(StringBuilder builder, int indent) {
         builder.append(", embedded=").append(isEmbedded());
     }
 

@@ -33,8 +33,8 @@ public class PropertyDefinition extends Definition {
     //jpa special things
     private boolean indexed;
 
-    public PropertyDefinition(QName jaxbName, Class jaxbType, String propertyName, Class propertyType) {
-        super(jaxbName, jaxbType, propertyName, propertyType);
+    public PropertyDefinition(QName jaxbName, Class jaxbType, String propertyName, Class propertyType, CollectionSpecification collectionSpecification) {
+        super(jaxbName, jaxbType, propertyName, propertyType, collectionSpecification);
     }
 
     public boolean isLob() {
@@ -66,7 +66,7 @@ public class PropertyDefinition extends Definition {
     }
 
     @Override
-    protected void toStringExtended(StringBuilder builder) {
+    protected void debugDumpExtended(StringBuilder builder, int indent) {
         builder.append(", lob=").append(isLob());
         builder.append(", enumerated=").append(isEnumerated());
         builder.append(", indexed=").append(isIndexed());

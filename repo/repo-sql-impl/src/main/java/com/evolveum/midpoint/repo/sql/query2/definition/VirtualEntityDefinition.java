@@ -27,8 +27,8 @@ public class VirtualEntityDefinition extends EntityDefinition {
 
     private VirtualQueryParam[] additionalParams;
 
-    public VirtualEntityDefinition(QName jaxbName, Class jaxbType, String jpaName, Class jpaType) {
-        super(jaxbName, jaxbType, jpaName, jpaType);
+    public VirtualEntityDefinition(QName jaxbName, Class jaxbType, String jpaName, Class jpaType, CollectionSpecification collectionSpecification) {
+        super(jaxbName, jaxbType, jpaName, jpaType, collectionSpecification);
     }
 
     public VirtualQueryParam[] getAdditionalParams() {
@@ -40,8 +40,8 @@ public class VirtualEntityDefinition extends EntityDefinition {
     }
 
     @Override
-    protected void toStringExtended(StringBuilder builder) {
-        super.toStringExtended(builder);
+    protected void debugDumpExtended(StringBuilder builder, int indent) {
+        super.debugDumpExtended(builder, indent);
 
         builder.append(", params=").append(additionalParams.length);
     }

@@ -18,7 +18,9 @@ package com.evolveum.midpoint.prism.query;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -38,16 +40,16 @@ public class LessFilter<T> extends ComparativeFilter<T> {
 	public LessFilter() {
 	}
 	
-	public static <T, O extends Objectable> LessFilter createLess(QName parentPath, PrismPropertyDefinition definition, PrismPropertyValue<T> value, boolean equals){
+	public static <T> LessFilter createLess(QName parentPath, PrismPropertyDefinition definition, PrismPropertyValue<T> value, boolean equals){
 		return new LessFilter(new ItemPath(parentPath), definition, value, equals);
 	}
 	
 	
-	public static <T, O extends Objectable> LessFilter createLess(ItemPath parentPath, PrismPropertyDefinition definition, PrismPropertyValue<T> value, boolean equals){
+	public static <T> LessFilter createLess(ItemPath parentPath, PrismPropertyDefinition definition, PrismPropertyValue<T> value, boolean equals){
 		return new LessFilter(parentPath, definition, value, equals);
 	}
 	
-	public static <T, O extends Objectable> LessFilter createLess(ItemPath parentPath, PrismObjectDefinition<O> containerDef,
+	public static <T, O extends Containerable> LessFilter createLess(ItemPath parentPath, PrismContainerDefinition<O> containerDef,
 			PrismPropertyValue<T> value, boolean equals) throws SchemaException {
 		PrismPropertyDefinition def = (PrismPropertyDefinition) FilterUtils.findItemDefinition(parentPath, containerDef);
 		return createLess(parentPath, def, value, equals);
@@ -67,7 +69,7 @@ public class LessFilter<T> extends ComparativeFilter<T> {
 		return createLess(parentPath, itemDefinition, value, equals);
 	}
 
-	public static <T, O extends Objectable> LessFilter createLess(ItemPath parentPath, PrismObjectDefinition<O> containerDef,
+	public static <T, O extends Containerable> LessFilter createLess(ItemPath parentPath, PrismContainerDefinition<O> containerDef,
 			T realValue, boolean equals) throws SchemaException {
 		PrismPropertyDefinition def = (PrismPropertyDefinition) FilterUtils.findItemDefinition(parentPath, containerDef);
 		return createLess(parentPath, def, realValue, equals);

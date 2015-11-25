@@ -27,8 +27,8 @@ public class VirtualPropertyDefinition extends PropertyDefinition {
 
     private VirtualQueryParam[] additionalParams;
 
-    public VirtualPropertyDefinition(QName jaxbName, Class jaxbType, String propertyName, Class propertyType) {
-        super(jaxbName, jaxbType, propertyName, propertyType);
+    public VirtualPropertyDefinition(QName jaxbName, Class jaxbType, String propertyName, Class propertyType, CollectionSpecification collectionSpecification) {
+        super(jaxbName, jaxbType, propertyName, propertyType, collectionSpecification);
     }
 
     public VirtualQueryParam[] getAdditionalParams() {
@@ -40,8 +40,8 @@ public class VirtualPropertyDefinition extends PropertyDefinition {
     }
 
     @Override
-    protected void toStringExtended(StringBuilder builder) {
-        super.toStringExtended(builder);
+    protected void debugDumpExtended(StringBuilder builder, int indent) {
+        super.debugDumpExtended(builder, indent);
 
         builder.append(", params=").append(additionalParams.length);
     }

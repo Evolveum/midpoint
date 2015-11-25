@@ -154,16 +154,16 @@ public abstract class HibernateQuery {
     }
 
     public String createAlias(Definition def) {
-        return createAlias(def.getJpaName(), def instanceof EntityDefinition);
+        return createAlias(def.getJpaName());
     }
 
     private static final int LIMIT = 100;
 
-    public String createAlias(String name, boolean isEntity) {
+    public String createAlias(String name) {
         String prefix;
 
-        //we want to skip 'R' prefix for entity definition names
-        int prefixIndex = isEntity ? 1 : 0;
+        //we want to skip 'R' prefix for entity definition names (a bit of hack)
+        int prefixIndex = name.startsWith("R") ? 1 : 0;
         prefix = Character.toString(name.charAt(prefixIndex)).toLowerCase();
 
         int index = 2;

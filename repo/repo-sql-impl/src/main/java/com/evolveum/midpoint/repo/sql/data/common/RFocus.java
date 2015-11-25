@@ -25,6 +25,7 @@ import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.QueryEntity;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualCollection;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualQueryParam;
+import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -112,6 +113,7 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
     @OneToMany(mappedBy = RAssignment.F_OWNER, orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @NotQueryable   // virtual definition is used instead
     public Set<RAssignment> getAssignments() {
         if (assignments == null) {
             assignments = new HashSet<>();

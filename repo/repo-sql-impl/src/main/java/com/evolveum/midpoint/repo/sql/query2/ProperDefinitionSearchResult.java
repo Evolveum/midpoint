@@ -44,5 +44,9 @@ public class ProperDefinitionSearchResult<T extends Definition> extends Definiti
         return entityDefinition;
     }
 
-
+    @Override
+    public String toString() {
+        return "ProperDefinitionSearchResult{" +
+                "entity=" + entityDefinition + ", item=" + getItemDefinition() + ", remainder=" + getRemainder() + "} ";
+    }
 }

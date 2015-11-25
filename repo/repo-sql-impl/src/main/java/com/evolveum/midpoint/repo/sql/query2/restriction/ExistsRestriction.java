@@ -52,7 +52,7 @@ public class ExistsRestriction extends ItemRestriction<ExistsFilter> {
 
     @Override
     public Condition interpret() throws QueryException {
-        baseHqlPathForChildren = getHelper().prepareJoins(filter.getFullPath(), parent.getBaseHqlPathForChildren(), baseEntityDefinition);
+        baseHqlPathForChildren = getHelper().prepareJoins(filter.getFullPath(), getBaseHqlPath(), baseEntityDefinition);
 
         InterpretationContext context = getContext();
         QueryInterpreter2 interpreter = context.getInterpreter();

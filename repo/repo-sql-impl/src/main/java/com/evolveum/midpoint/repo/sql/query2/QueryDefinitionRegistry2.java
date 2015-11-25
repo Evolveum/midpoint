@@ -95,6 +95,9 @@ public class QueryDefinitionRegistry2 implements DebugDumpable {
     public static QueryDefinitionRegistry2 getInstance() {
         if (registry == null) {
             registry = new QueryDefinitionRegistry2();
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Registry:\n{}", registry.debugDump());
+            }
         }
 
         return registry;
