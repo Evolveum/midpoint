@@ -248,12 +248,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 		if (shadow == null || shadow.getOid() == null) {
 			return null;
 		}
-		PrismObject<F> owner;
-		try {
-			owner = repositoryService.searchShadowOwner(shadow.getOid(), null, new OperationResult(UserProfileServiceImpl.class+".resolveOwner"));
-		} catch (ObjectNotFoundException e) {
-			throw new SystemException(e.getMessage(), e);
-		}
+		PrismObject<F> owner = repositoryService.searchShadowOwner(shadow.getOid(), null, new OperationResult(UserProfileServiceImpl.class+".resolveOwner"));
 		if (owner == null) {
 			return null;
 		}
