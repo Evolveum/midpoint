@@ -225,6 +225,7 @@ public class PageSelfDashboard extends PageSelf {
                         shadowTask = getTaskManager().getTask(shadowTaskOid, result);
                     } catch (ObjectNotFoundException e) {
                         // task is already deleted, no problem here
+                        result.muteLastSubresultError();
                     }
                 }
 
