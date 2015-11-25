@@ -1157,10 +1157,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			
 			focus = cacheRepositoryService.searchShadowOwner(shadowOid, options, result);
 			result.recordSuccess();
-		} catch (ObjectNotFoundException ex) {
-			LoggingUtils.logException(LOGGER, "Account with oid {} doesn't exists", ex, shadowOid);
-			result.recordFatalError("Account with oid '" + shadowOid + "' doesn't exists", ex);
-			throw ex;
 		} catch (RuntimeException ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
 					+ " for account with oid {}", ex, shadowOid);

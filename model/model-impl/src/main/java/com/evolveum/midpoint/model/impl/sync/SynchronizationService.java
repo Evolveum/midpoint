@@ -231,9 +231,11 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			
 			SynchronizationSituation situation = determineSituation(focusType, change, synchronizationPolicy, configuration.asObjectable(), task, subResult);
 			if (logDebug) {
-				LOGGER.debug("SYNCHRONIZATION: SITUATION: '{}', {}", situation.getSituation().value(), situation.getCorrelatedOwner());
+				LOGGER.debug("SYNCHRONIZATION: SITUATION: '{}', currentOwner={}, correlatedOwner={}", situation.getSituation().value(), 
+						situation.getCurrentOwner(), situation.getCorrelatedOwner());
 			} else {
-				LOGGER.trace("SYNCHRONIZATION: SITUATION: '{}', {}", situation.getSituation().value(), situation.getCorrelatedOwner());
+				LOGGER.trace("SYNCHRONIZATION: SITUATION: '{}', currentOwner={}, correlatedOwner={}", situation.getSituation().value(), 
+						situation.getCurrentOwner(), situation.getCorrelatedOwner());
 			}
 			eventInfo.setSituation(situation.getSituation());
 
@@ -461,14 +463,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		try {
 			String shadowOid = getOidFromChange(change);
 			Validate.notEmpty(shadowOid, "Couldn't get resource object shadow oid from change.");
-			PrismObject<F> owner = null;
-			try {
-				owner = repositoryService.searchShadowOwner(shadowOid, SelectorOptions.createCollection(GetOperationOptions.createAllowNotFound()), subResult);
-			} catch (ObjectNotFoundException e) {
-				// Shadow is gone. This should not normally happen. But if it does then it is no
-				// tragedy. If the shadow is gone then it has no owner and the situation is quite clear.
-//				subResult.getLastSubresult().setStatus(OperationResultStatus.NOT_APPLICABLE);
-			}
+			PrismObject<F> owner = repositoryService.searchShadowOwner(shadowOid, SelectorOptions.createCollection(GetOperationOptions.createAllowNotFound()), subResult);
 
 			if (owner != null) {
 				F ownerType = owner.asObjectable();
@@ -496,9 +491,6 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		} finally {
 			subResult.computeStatus();
 		}
-
-		LOGGER.trace("checkSituation::end - {}, {}", new Object[] {
-				(situation.getCorrelatedOwner() == null ? "null" : situation.getCorrelatedOwner().getOid()), situation.getSituation() });
 
 		return situation;
 	}
