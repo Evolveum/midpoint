@@ -159,7 +159,7 @@ public class AccCertUpdateHelper {
             decision.setReviewerRef(ObjectTypeUtil.createObjectRef(currentUser));
         }
 
-        AccessCertificationCaseType _case = CertCampaignTypeUtil.findCase(campaign, caseId);
+        AccessCertificationCaseType _case = queryHelper.getCase(campaignOid, caseId, result);
         if (_case == null) {
             throw new ObjectNotFoundException("Case " + caseId + " was not found in campaign " + ObjectTypeUtil.toShortString(campaign));
         }
@@ -307,8 +307,9 @@ public class AccCertUpdateHelper {
         }
         AccessCertificationObjectBasedScopeType objectBasedScope = (AccessCertificationObjectBasedScopeType) scope;
 
-        if (!campaign.getCase().isEmpty()) {
-            throw new IllegalStateException("Unexpected " + campaign.getCase().size() + " certification case(s) in campaign object " + campaignShortName + ". At this time there should be none.");
+        List<AccessCertificationCaseType> existingCases = queryHelper.searchCases(campaign.getOid(), null, null, task, result);
+        if (!existingCases.isEmpty()) {
+            throw new IllegalStateException("Unexpected " + existingCases.size() + " certification case(s) in campaign object " + campaignShortName + ". At this time there should be none.");
         }
 
         // create a query to find target objects from which certification cases will be created
@@ -395,7 +396,7 @@ public class AccCertUpdateHelper {
 
     private void updateCases(AccessCertificationCampaignType campaign, AccessCertificationStageType stage, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
         LOGGER.trace("Updating reviewers and timestamps for cases in {}", ObjectTypeUtil.toShortString(campaign));
-        List<AccessCertificationCaseType> caseList = campaign.getCase();
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaign.getOid(), null, null, task, result);
 
         int stageToBe = campaign.getCurrentStageNumber() + 1;
 
@@ -477,8 +478,9 @@ public class AccCertUpdateHelper {
     }
 
 
-    void recordMoveToNextStage(AccessCertificationCampaignType campaign, AccessCertificationStageType newStage, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+    void recordMoveToNextStage(AccessCertificationCampaignType campaign, AccessCertificationStageType newStage, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, SecurityViolationException, ConfigurationException, CommunicationException {
         // some bureaucracy... stage#, state, start time, trigger
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaign.getOid(), null, null, task, result);
         List<ItemDelta> itemDeltaList = new ArrayList<>();
         PropertyDelta<Integer> stageNumberDelta = createStageNumberDelta(newStage.getNumber());
         itemDeltaList.add(stageNumberDelta);
@@ -528,16 +530,16 @@ public class AccCertUpdateHelper {
             eventHelper.onCampaignStart(campaign, task, result);
         }
         eventHelper.onCampaignStageStart(campaign, task, result);
-        Collection<String> reviewers = eventHelper.getCurrentReviewers(campaign);
+        Collection<String> reviewers = eventHelper.getCurrentReviewers(caseList);
         for (String reviewerOid : reviewers) {
-            List<AccessCertificationCaseType> cases = eventHelper.getCasesForReviewer(campaign, reviewerOid);
+            List<AccessCertificationCaseType> cases = queryHelper.getCasesForReviewer(campaign, reviewerOid, task, result);
             ObjectReferenceType reviewerRef = ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER);
             eventHelper.onReviewRequested(reviewerRef, cases, campaign, task, result);
         }
     }
 
-    void recordCloseCurrentState(AccessCertificationCampaignType campaign, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-        List<ItemDelta> campaignDeltaList = createCurrentResponsesDeltas(campaign);
+    void recordCloseCurrentState(AccessCertificationCampaignType campaign, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, SecurityViolationException, ConfigurationException, CommunicationException {
+        List<ItemDelta> campaignDeltaList = createCurrentResponsesDeltas(campaign, task, result);
         PropertyDelta<AccessCertificationCampaignStateType> stateDelta = createStateDelta(REVIEW_STAGE_DONE);
         campaignDeltaList.add(stateDelta);
         ContainerDelta triggerDelta = createTriggerDeleteDelta();
@@ -552,11 +554,11 @@ public class AccCertUpdateHelper {
         return ContainerDelta.createModificationReplace(ObjectType.F_TRIGGER, helper.getCampaignObjectDefinition());
     }
 
-    private List<ItemDelta> createCurrentResponsesDeltas(AccessCertificationCampaignType campaign) {
+    private List<ItemDelta> createCurrentResponsesDeltas(AccessCertificationCampaignType campaign, Task task, OperationResult result) throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException, SecurityViolationException {
         List<ItemDelta> campaignDeltaList = new ArrayList<>();
 
         LOGGER.trace("Updating current response for cases in {}", ObjectTypeUtil.toShortString(campaign));
-        List<AccessCertificationCaseType> caseList = campaign.getCase();
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaign.getOid(), null, null, task, result);
 
         for (int i = 0; i < caseList.size(); i++) {
             AccessCertificationCaseType _case = caseList.get(i);

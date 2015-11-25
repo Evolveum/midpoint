@@ -120,4 +120,8 @@ public class InterpretationContext {
     public EntityDefinition getRootEntityDefinition() {
         return rootEntityDefinition;
     }
+
+    public boolean isObject() {
+        return ObjectType.class.isAssignableFrom(type);
+    }
 }

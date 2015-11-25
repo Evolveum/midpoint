@@ -12733,7 +12733,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>-->
-            <xsd:element name="enabled" type="xsd:boolean" minOccurs="0" maxOccurs="1">
+            <xsd:element name="enabled" type="xsd:boolean" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         Is the case enabled for the current stage? E.g. cases that have been marked as "remove" in a given stage

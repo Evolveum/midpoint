@@ -36,12 +36,17 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 		// TODO Auto-generated constructor stub
 	}
 	
-	ObjectPaging(Integer offset, Integer maxSize){
+	ObjectPaging(Integer offset, Integer maxSize) {
 		this.offset = offset;
 		this.maxSize = maxSize;
 	}
 
-	ObjectPaging(Integer offset, Integer maxSize, ItemPath orderBy, OrderDirection direction){
+	public ObjectPaging(ItemPath orderBy, OrderDirection direction) {
+		this.orderBy = orderBy;
+		this.direction = direction;
+	}
+
+	ObjectPaging(Integer offset, Integer maxSize, ItemPath orderBy, OrderDirection direction) {
 		this.offset = offset;
 		this.maxSize = maxSize;
 		this.orderBy = orderBy;
@@ -62,6 +67,10 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 	
 	public static ObjectPaging createPaging(Integer offset, Integer maxSize, String orderBy, String namespace, OrderDirection direction){
 		return createPaging(offset, maxSize, new QName(namespace, orderBy), direction);
+	}
+
+	public static ObjectPaging createPaging(ItemPath orderBy, OrderDirection direction) {
+		return new ObjectPaging(orderBy, direction);
 	}
 	
 	public static ObjectPaging createEmptyPaging(){

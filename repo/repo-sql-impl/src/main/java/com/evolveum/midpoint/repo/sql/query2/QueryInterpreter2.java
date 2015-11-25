@@ -156,12 +156,14 @@ public class QueryInterpreter2 {
             String rootAlias = hibernateQuery.getPrimaryEntityAlias();
             hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".fullObject"));
             // TODO other objects if parent is requested?
-            hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".stringsCount"));
-            hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".longsCount"));
-            hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".datesCount"));
-            hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".referencesCount"));
-            hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".polysCount"));
-            hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".booleansCount"));
+            if (context.isObject()) {
+                hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".stringsCount"));
+                hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".longsCount"));
+                hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".datesCount"));
+                hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".referencesCount"));
+                hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".polysCount"));
+                hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".booleansCount"));
+            }
 
             hibernateQuery.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
         }

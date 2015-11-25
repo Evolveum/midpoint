@@ -81,9 +81,11 @@ import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -852,7 +854,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         for (PrismContainerValue value : values) {
             AccessCertificationCaseType caseType = new AccessCertificationCaseType();
             caseType.setupContainerValue(value);
-
+            caseType.setCampaignRef(ObjectTypeUtil.createObjectRef(campaignOid, ObjectTypes.ACCESS_CERTIFICATION_CAMPAIGN));
             RAccessCertificationCase row = RAccessCertificationCase.toRepo(campaignOid, caseType, getPrismContext());
             row.setId(currentId);
             currentId++;
@@ -898,7 +900,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
-    private void updateCampaignCases(Session session, RObject object, Collection<? extends ItemDelta> modifications) {
+    private <T extends ObjectType> void updateCampaignCases(Session session, RObject object,
+                                                            Collection<? extends ItemDelta> modifications) throws SchemaException {
         if (modifications.isEmpty()) {
             return;
         }
@@ -909,31 +912,92 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         final RAccessCertificationCampaign rCampaign = (RAccessCertificationCampaign) object;
         final String campaignOid = object.getOid();
 
+        final ItemPath casePath = new ItemPath(AccessCertificationCampaignType.F_CASE);
+        List<Long> affectedIds = new ArrayList<>();
         for (ItemDelta delta : modifications) {
-            if (!(delta instanceof ContainerDelta) || delta.getPath().size() != 1) {
-                throw new IllegalStateException("Wrong campaign delta sneaked into updateCampaignCases: class=" + delta.getClass() + ", path=" + delta.getPath());
+            ItemPath deltaPath = delta.getPath();
+            if (!casePath.isSubPathOrEquivalent(deltaPath)) {
+                throw new IllegalStateException("Wrong campaign delta sneaked into updateCampaignCases: class=" + delta.getClass() + ", path=" + deltaPath);
             }
-            // one "case" container modification
-            ContainerDelta containerDelta = (ContainerDelta) delta;
-
-            if (containerDelta.getValuesToDelete() != null) {
-                // todo do 'bulk' delete like delete from ... where oid=? and id in (...)
-                for (PrismContainerValue value : (Collection<PrismContainerValue>) containerDelta.getValuesToDelete()) {
-                    Query query = session.getNamedQuery("delete.campaignCase");
-                    query.setString("oid", campaignOid);
-                    query.setInteger("id", RUtil.toInteger(value.getId()));
-                    query.executeUpdate();
+            if (deltaPath.size() == 1) {
+                List<Long> ids = processWholeCaseModification(campaignOid, (ContainerDelta) delta, session);
+                if (affectedIds != null) {
+                    if (ids != null) {
+                        affectedIds.addAll(ids);
+                    } else {
+                        affectedIds = null;
+                    }
                 }
-            }
-            if (containerDelta.getValuesToAdd() != null) {
-                int currentId = findLastIdInRepo(session, campaignOid, "get.campaignCaseLastId") + 1;
-                addCertificationCampaignCases(session, campaignOid, containerDelta.getValuesToAdd(), currentId);
-            }
-            if (containerDelta.getValuesToReplace() != null) {
-                deleteCertificationCampaignCases(session, campaignOid);
-                addCertificationCampaignCases(session, campaignOid, containerDelta.getValuesToReplace(), 1);
+            } else {
+                throw new UnsupportedOperationException();      // will be implemented later
             }
         }
+        LOGGER.trace("Affected ids = {}", affectedIds);
+
+//        for (ItemDelta delta : modifications) {
+//            ItemPath deltaPath = delta.getPath();
+//            if (deltaPath.size() > 1) {
+//                ItemPathSegment secondSegment = deltaPath.getSegments().get(1);
+//                if (!(secondSegment instanceof IdItemPathSegment)) {
+//                    throw new IllegalStateException("Couldn't update cert campaign by delta with path " + deltaPath);
+//                }
+//                Long id = ((IdItemPathSegment) secondSegment).getId();
+//                if (id == null) {
+//                    throw new IllegalStateException("Couldn't update cert campaign by delta with path " + deltaPath);
+//                }
+//                if (deltaPath.size() == 2) {        // not enough
+//                    throw new IllegalStateException("Couldn't update cert campaign by delta with path " + deltaPath);
+//                }
+//                if (affectedIds == null || affectedIds.contains(id)) {
+//                    throw new IllegalArgumentException("Couldn't update certification case that was changed in this operation. Path=" + deltaPath);
+//                }
+//
+//
+//
+//                delta.applyTo(prismObject);
+//                PrismContainer<AccessCertificationCaseType> casesContainer = prismObject.findContainer(AccessCertificationCampaignType.F_CASE);
+//                if (casesContainer == null) {
+//                    throw new IllegalStateException("No container for certification cases in campaign object " + campaignOid);
+//                }
+//                PrismContainerValue<AccessCertificationCaseType> casePcv = casesContainer.getValue(id);
+//                if (casePcv == null) {
+//                    throw new IllegalStateException("Certification case with id " + id + " was not found in campaign " + campaignOid);
+//                }
+//                RAccessCertificationCase rCase = RAccessCertificationCase.toRepo(campaignOid, casePcv.asContainerable(), getPrismContext());
+//                session.merge(rCase);
+//            }
+//        }
+    }
+
+    // returns affected ids; null if replace was invoked
+    private List<Long> processWholeCaseModification(String campaignOid, ContainerDelta containerDelta, Session session) throws SchemaException {
+        List<Long> affectedIds = new ArrayList<>();
+
+        if (containerDelta.getValuesToDelete() != null) {
+            // todo do 'bulk' delete like delete from ... where oid=? and id in (...)
+            for (PrismContainerValue value : (Collection<PrismContainerValue>) containerDelta.getValuesToDelete()) {
+                Long id = value.getId();
+                if (id == null) {
+                    throw new SchemaException("Couldn't delete certification case with null id");
+                }
+                affectedIds.add(id);
+                Query query = session.getNamedQuery("delete.campaignCase");
+                query.setString("oid", campaignOid);
+                query.setInteger("id", RUtil.toInteger(id));
+                query.executeUpdate();
+            }
+        }
+        if (containerDelta.getValuesToAdd() != null) {
+            int currentId = findLastIdInRepo(session, campaignOid, "get.campaignCaseLastId") + 1;
+            affectedIds.add((long) currentId);
+            addCertificationCampaignCases(session, campaignOid, containerDelta.getValuesToAdd(), currentId);
+        }
+        if (containerDelta.getValuesToReplace() != null) {
+            deleteCertificationCampaignCases(session, campaignOid);
+            addCertificationCampaignCases(session, campaignOid, containerDelta.getValuesToReplace(), 1);
+            affectedIds = null;
+        }
+        return affectedIds;
     }
 
     private int findLastIdInRepo(Session session, String tableOid, String queryName) {
@@ -1197,8 +1261,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             LOGGER.trace("Found {} items, translating to JAXB.", items.size());
 
             for (GetObjectResult item : items) {
-                PrismContainerValue<C> cvalue = (PrismContainerValue<C>) updateLoadedCertificationCase(item, options, session);
-                list.add(cvalue.asContainerable());
+                C value = (C) updateLoadedCertificationCase(item, options, session);
+                list.add(value);
             }
 
             session.getTransaction().commit();
@@ -1320,14 +1384,13 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
 
-    private PrismContainerValue<AccessCertificationCaseType> updateLoadedCertificationCase(GetObjectResult result,
-                                                                                           Collection<SelectorOptions<GetOperationOptions>> options,
-                                                                                           Session session) throws SchemaException {
+    private AccessCertificationCaseType updateLoadedCertificationCase(GetObjectResult result,
+                                                                      Collection<SelectorOptions<GetOperationOptions>> options,
+                                                                      Session session) throws SchemaException {
 
         AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(result.getFullObject(), getPrismContext());
-        PrismContainerValue<AccessCertificationCaseType> cvalue = aCase.asPrismContainerValue();
-        validateContainerValue(cvalue, AccessCertificationCaseType.class);
-        return cvalue;
+        validateContainerable(aCase, AccessCertificationCaseType.class);
+        return aCase;
     }
 
 
@@ -1734,7 +1797,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 caseDelta.add(delta);
             } else if (path.isSuperPath(casePath)) {
                 // todo - what about modifications with path like case[id] or case[id]/xxx?
-                throw new UnsupportedOperationException("Campaign case can be modified only by specifying path=case");
+                throw new UnsupportedOperationException("Campaign case can be modified only by specifying path=case; not via " + path);
+                //caseDelta.add(delta);
             }
         }
 
@@ -1885,12 +1949,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
-    private <C extends Containerable> void validateContainerValue(PrismContainerValue<C> cvalue, Class<C> type)
+    private <C extends Containerable> void validateContainerable(C value, Class<C> type)
             throws SchemaException {
-        if (cvalue == null) {
+        if (value == null) {
             throw new SchemaException("Null object as a result of repository get operation for " + type);
         }
-        Class<? extends Containerable> realType = cvalue.asContainerable().getClass();
+        Class<? extends Containerable> realType = value.getClass();
         if (!type.isAssignableFrom(realType)) {
             throw new SchemaException("Expected to find '" + type.getSimpleName() + "' but found '" + realType.getSimpleName());
         }

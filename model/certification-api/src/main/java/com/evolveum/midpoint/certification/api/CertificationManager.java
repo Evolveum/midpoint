@@ -87,8 +87,7 @@ public interface CertificationManager {
      * depending on the certification definition (scope and handler). In all stages, reviewers will be assigned
      * to cases, based again on the definition (reviewer specification in stage definition and handler).
      *
-     * @param campaign Certification campaign. If its definition reference is already resolved, it will be used.
-     *                 Otherwise, the implementation will resolve the definition by itself.
+     * @param campaignOid Certification campaign OID.
      * @param stageNumber Stage that has to be open. This has to be the stage after the current one (or the first one).
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
@@ -102,8 +101,7 @@ public interface CertificationManager {
      * depending on the certification definition (scope and handler). In all stages, reviewers will be assigned
      * to cases, based again on the definition (reviewer specification in stage definition and handler).
      *
-     * @param campaign Certification campaign. If its definition reference is already resolved, it will be used.
-     *                 Otherwise, the implementation will resolve the definition by itself.
+     * @param campaignOid Certification campaign OID.
      * @param stageNumber Stage that has to be closed. This has to be the current stage.
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
@@ -114,7 +112,7 @@ public interface CertificationManager {
      * Starts the remediation phase for the campaign.
      * The campaign has to be in the last stage and that stage has to be already closed.
      *
-     * @param campaign
+     * @param campaignOid
      * @param task
      * @param result
      */
@@ -123,7 +121,7 @@ public interface CertificationManager {
     /**
      * Closes a campaign.
      *
-     * @param campaign
+     * @param campaignOid
      * @param task
      * @param result
      */
@@ -140,7 +138,7 @@ public interface CertificationManager {
      *  - name of object, by setting paging.orderBy = objectRef
      *  - name of target, by setting paging.orderBy = targetRef
      * Note that in order to use names as a sorting criteria, it is necessary to include RESOLVE_NAMES option in the operation call.
-     * Paging is specified by offset (counting from 0) and maxSize. Paging cooke is ignored.
+     * Paging is specified by offset (counting from 0) and maxSize. Paging cookie is ignored.
      *
      * NOTE THAT THE SORTING INTERFACE WILL PROBABLY BE CHANGED IN NEAR FUTURE.
      *
@@ -175,8 +173,7 @@ public interface CertificationManager {
      *  - name of campaign, by setting paging.orderBy = campaignRef
      *  - deadline or reviewRequestedTimestamp, by setting paging.orderBy = reviewDeadline/reviewRequestedTimestamp
      *
-     * @param campaignQuery Specification of campaigns to query.
-     * @param caseQuery Specification of the cases to retrieve.
+     * @param caseQuery Specification of the cases to retrieve. (In future it may contain restrictions on owning campaign(s).)
      * @param reviewerOid OID of the reviewer whose decisions we want to retrieve.
      * @param notDecidedOnly If true, only response==(NO_DECISION or null) should be returned.
      *                       It is currently not possible to formulate this using Query API
@@ -185,9 +182,10 @@ public interface CertificationManager {
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
      * @return A list of relevant certification cases.
+     *
      */
 
-    List<AccessCertificationCaseType> searchDecisions(ObjectQuery campaignQuery, ObjectQuery caseQuery,
+    List<AccessCertificationCaseType> searchDecisions(ObjectQuery caseQuery,
                                                       String reviewerOid, boolean notDecidedOnly,
                                                       Collection<SelectorOptions<GetOperationOptions>> options,
                                                       Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException;

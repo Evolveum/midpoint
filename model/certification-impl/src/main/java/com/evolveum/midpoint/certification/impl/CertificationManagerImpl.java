@@ -313,7 +313,7 @@ public class CertificationManagerImpl implements CertificationManager {
     }
 
     @Override
-    public List<AccessCertificationCaseType> searchDecisions(ObjectQuery campaignQuery, ObjectQuery caseQuery,
+    public List<AccessCertificationCaseType> searchDecisions(ObjectQuery caseQuery,
                                                              String reviewerOid, boolean notDecidedOnly,
                                                              Collection<SelectorOptions<GetOperationOptions>> options,
                                                              Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
@@ -325,7 +325,7 @@ public class CertificationManagerImpl implements CertificationManager {
         OperationResult result = parentResult.createSubresult(OPERATION_SEARCH_DECISIONS);
 
         try {
-            return queryHelper.searchDecisions(campaignQuery, caseQuery, reviewerOid, notDecidedOnly, options, task, result);
+            return queryHelper.searchDecisions(caseQuery, reviewerOid, notDecidedOnly, options, task, result);
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't search for certification decisions: unexpected exception: " + e.getMessage(), e);
             throw e;
@@ -386,8 +386,10 @@ public class CertificationManagerImpl implements CertificationManager {
             int currentStageNumber = campaign.getCurrentStageNumber();
             AccessCertificationCampaignStateType state = campaign.getState();
 
+            List<AccessCertificationCaseType> campaignCases = queryHelper.searchCases(campaign.getOid(), null, null, task, result);
+
             int accept=0, revoke=0, revokeRemedied=0, reduce=0, reduceRemedied=0, delegate=0, noDecision=0, noResponse=0;
-            for (AccessCertificationCaseType _case : campaign.getCase()) {
+            for (AccessCertificationCaseType _case : campaignCases) {
                 if (currentStageOnly && !_case.isEnabled()) {
                     continue;
                 }

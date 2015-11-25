@@ -28,29 +28,20 @@ import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Where;
 
-import javax.persistence.Column;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.Index;
-import javax.persistence.Lob;
-import javax.persistence.ManyToOne;
-import javax.persistence.MapsId;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -85,6 +76,13 @@ public class RAccessCertificationCase implements Container {
     private Set<RCertCaseReference> reviewerRef;
     private REmbeddedNamedReference objectRef;
     private REmbeddedNamedReference targetRef;
+
+    private boolean enabled;
+    private XMLGregorianCalendar reviewRequestedTimestamp;
+    private XMLGregorianCalendar reviewDeadline;
+    private XMLGregorianCalendar remediedTimestamp;
+    // TODO: private Set<RAccessCertificationDecision> decisions;
+    // TODO: currentResponse, currentResponseStage
 
     public RAccessCertificationCase() {
         this(null);
@@ -146,6 +144,22 @@ public class RAccessCertificationCase implements Container {
         return objectRef;
     }
 
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public XMLGregorianCalendar getReviewRequestedTimestamp() {
+        return reviewRequestedTimestamp;
+    }
+
+    public XMLGregorianCalendar getReviewDeadline() {
+        return reviewDeadline;
+    }
+
+    public XMLGregorianCalendar getRemediedTimestamp() {
+        return remediedTimestamp;
+    }
+
     public void setOwner(RObject owner) {
         this.owner = owner;
     }
@@ -166,6 +180,22 @@ public class RAccessCertificationCase implements Container {
         this.objectRef = objectRef;
     }
 
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public void setReviewRequestedTimestamp(XMLGregorianCalendar reviewRequestedTimestamp) {
+        this.reviewRequestedTimestamp = reviewRequestedTimestamp;
+    }
+
+    public void setReviewDeadline(XMLGregorianCalendar reviewDeadline) {
+        this.reviewDeadline = reviewDeadline;
+    }
+
+    public void setRemediedTimestamp(XMLGregorianCalendar remediedTimestamp) {
+        this.remediedTimestamp = remediedTimestamp;
+    }
+
     @Lob
     public byte[] getFullObject() {
         return fullObject;
@@ -178,39 +208,55 @@ public class RAccessCertificationCase implements Container {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof RAccessCertificationCase)) return false;
 
         RAccessCertificationCase that = (RAccessCertificationCase) o;
 
+        if (enabled != that.enabled) return false;
+        if (!Arrays.equals(fullObject, that.fullObject)) return false;
+        if (ownerOid != null ? !ownerOid.equals(that.ownerOid) : that.ownerOid != null) return false;
+        if (id != null ? !id.equals(that.id) : that.id != null) return false;
         if (reviewerRef != null ? !reviewerRef.equals(that.reviewerRef) : that.reviewerRef != null) return false;
-        if (targetRef != null ? !targetRef.equals(that.targetRef) : that.targetRef != null) return false;
         if (objectRef != null ? !objectRef.equals(that.objectRef) : that.objectRef != null) return false;
-        if (fullObject != null ? !Arrays.equals(fullObject, that.fullObject) : that.fullObject != null) return false;
-
-        return true;
+        if (targetRef != null ? !targetRef.equals(that.targetRef) : that.targetRef != null) return false;
+        if (reviewRequestedTimestamp != null ? !reviewRequestedTimestamp.equals(that.reviewRequestedTimestamp) : that.reviewRequestedTimestamp != null)
+            return false;
+        if (reviewDeadline != null ? !reviewDeadline.equals(that.reviewDeadline) : that.reviewDeadline != null)
+            return false;
+        return !(remediedTimestamp != null ? !remediedTimestamp.equals(that.remediedTimestamp) : that.remediedTimestamp != null);
     }
 
     @Override
     public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (targetRef != null ? targetRef.hashCode() : 0);
+        int result = ownerOid != null ? ownerOid.hashCode() : 0;
+        result = 31 * result + (id != null ? id.hashCode() : 0);
+        result = 31 * result + (reviewerRef != null ? reviewerRef.hashCode() : 0);
         result = 31 * result + (objectRef != null ? objectRef.hashCode() : 0);
+        result = 31 * result + (targetRef != null ? targetRef.hashCode() : 0);
+        result = 31 * result + (enabled ? 1 : 0);
+        result = 31 * result + (reviewRequestedTimestamp != null ? reviewRequestedTimestamp.hashCode() : 0);
+        result = 31 * result + (reviewDeadline != null ? reviewDeadline.hashCode() : 0);
+        result = 31 * result + (remediedTimestamp != null ? remediedTimestamp.hashCode() : 0);
         return result;
     }
 
-    public static void copyFromJAXB(AccessCertificationCaseType jaxb, RAccessCertificationCase repo, ObjectType parent, PrismContext prismContext,
-                                    IdGeneratorResult generatorResult) throws DtoTranslationException {
-        Validate.notNull(repo, "Repo object must not be null.");
-        Validate.notNull(jaxb, "JAXB object must not be null.");
-
-        repo.setOwnerOid(parent.getOid());
-        repo.setId(RUtil.toInteger(jaxb.getId()));
-
-        repo.setTargetRef(RUtil.jaxbRefToEmbeddedNamedRepoRef(jaxb.getTargetRef(), prismContext));
-        repo.setTargetRef(RUtil.jaxbRefToEmbeddedNamedRepoRef(jaxb.getObjectRef(), prismContext));
-        repo.getReviewerRef().addAll(RCertCaseReference.safeListReferenceToSet(
-                jaxb.getReviewerRef(), prismContext, repo, RCReferenceOwner.CASE_REVIEWER));
-    }
+//    public static void copyFromJAXB(AccessCertificationCaseType jaxb, RAccessCertificationCase repo, ObjectType parent, PrismContext prismContext,
+//                                    IdGeneratorResult generatorResult) throws DtoTranslationException {
+//        Validate.notNull(repo, "Repo object must not be null.");
+//        Validate.notNull(jaxb, "JAXB object must not be null.");
+//
+//        repo.setOwnerOid(parent.getOid());
+//        repo.setId(RUtil.toInteger(jaxb.getId()));
+//
+//        repo.setTargetRef(RUtil.jaxbRefToEmbeddedNamedRepoRef(jaxb.getTargetRef(), prismContext));
+//        repo.setTargetRef(RUtil.jaxbRefToEmbeddedNamedRepoRef(jaxb.getObjectRef(), prismContext));
+//        repo.getReviewerRef().addAll(RCertCaseReference.safeListReferenceToSet(
+//                jaxb.getReviewerRef(), prismContext, repo, RCReferenceOwner.CASE_REVIEWER));
+//        repo.setEnabled(BooleanUtils.isTrue(jaxb.isEnabled()));
+//        repo.setReviewRequestedTimestamp(jaxb.getReviewRequestedTimestamp());
+//        repo.setReviewDeadline(jaxb.getReviewDeadline());
+//        repo.setRemediedTimestamp(jaxb.getRemediedTimestamp());
+//    }
 
     @Override
     public String toString() {
@@ -224,6 +270,7 @@ public class RAccessCertificationCase implements Container {
     }
 
     @Override
+    @Transient
     public Boolean isTransient() {
         return trans;
     }
@@ -252,6 +299,10 @@ public class RAccessCertificationCase implements Container {
         rCase.setTargetRef(RUtil.jaxbRefToEmbeddedNamedRepoRef(case1.getTargetRef(), prismContext));
         rCase.getReviewerRef().addAll(RCertCaseReference.safeListReferenceToSet(
                 case1.getReviewerRef(), prismContext, rCase, RCReferenceOwner.CASE_REVIEWER));
+        rCase.setEnabled(case1.isEnabled());
+        rCase.setReviewRequestedTimestamp(case1.getReviewRequestedTimestamp());
+        rCase.setReviewDeadline(case1.getReviewDeadline());
+        rCase.setRemediedTimestamp(case1.getRemediedTimestamp());
         String xml;
         try {
             xml = prismContext.serializeContainerValueToString(case1.asPrismContainerValue(), new QName("value"), PrismContext.LANG_XML);

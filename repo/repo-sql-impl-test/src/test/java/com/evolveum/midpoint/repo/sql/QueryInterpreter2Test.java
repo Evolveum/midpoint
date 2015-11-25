@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import com.evolveum.midpoint.common.filter.Filter;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -52,8 +53,10 @@ import com.evolveum.midpoint.repo.sql.query2.RQueryImpl;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -238,18 +241,6 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
-        }
-    }
-
-    private void assertEqualsIgnoreWhitespace(String expected, String real) {
-        LOGGER.info("exp. query>\n{}\nreal query>\n{}", expected, real);
-        String expNorm = StringUtils.normalizeSpace(expected);
-        String realNorm = StringUtils.normalizeSpace(real);
-        if (!expNorm.equals(realNorm)) {
-            String m = "Generated query is not correct. Expected:\n" + expected + "\nActual:\n" + real + "\n\nNormalized versions:\n\n" +
-                    "Expected: " + expNorm + "\nActual:   " + realNorm + "\n";
-            LOGGER.error("{}", m);
-            throw new AssertionError(m);
         }
     }
 
@@ -2306,13 +2297,197 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         Session session = open();
         try {
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, (ObjectQuery) null, false);
-            
-//            assertEqualsIgnoreWhitespace(expected, real);
-
+            String expected = "select\n" +
+                    "  a.fullObject\n" +
+                    "from\n" +
+                    "  RAccessCertificationCase a\n";
+            assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
         }
     }
+
+    @Test
+    public void test710QueryCertCaseOwner() throws Exception {
+        Session session = open();
+        try {
+            InOidFilter filter = InOidFilter.createOwnerHasOidIn("123456");
+            ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
+            String expected = "select\n" +
+                    "  a.fullObject\n" +
+                    "from\n" +
+                    "  RAccessCertificationCase a\n" +
+                    "where\n" +
+                    "  a.ownerOid in :ownerOid";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test720QueryCertCaseOwnerAndTarget() throws Exception {
+        Session session = open();
+        try {
+            PrismContainerDefinition<AccessCertificationCaseType> caseDef =
+                    prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(AccessCertificationCaseType.class);
+            AndFilter filter = AndFilter.createAnd(
+                    InOidFilter.createOwnerHasOidIn("123456"),
+                    RefFilter.createReferenceEqual(new ItemPath(AccessCertificationCaseType.F_TARGET_REF), caseDef, "1234567890"));
+            ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
+            String expected = "select\n" +
+                    "  a.fullObject\n" +
+                    "from\n" +
+                    "  RAccessCertificationCase a\n" +
+                    "where\n" +
+                    "  (\n" +
+                    "    a.ownerOid in :ownerOid and\n" +
+                    "    (\n" +
+                    "      a.targetRef.targetOid = :targetOid and\n" +
+                    "      a.targetRef.relation = :relation\n" +
+                    "    )\n" +
+                    "  )\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test730QueryCertCaseReviewer() throws Exception {
+        Session session = open();
+        try {
+            PrismContainerDefinition<AccessCertificationCaseType> caseDef =
+                    prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(AccessCertificationCaseType.class);
+            ObjectFilter filter = RefFilter.createReferenceEqual(new ItemPath(AccessCertificationCaseType.F_REVIEWER_REF), caseDef, "1234567890");
+            ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
+            String expected = "select\n" +
+                    "  a.fullObject\n" +
+                    "from\n" +
+                    "  RAccessCertificationCase a\n" +
+                    "    left join a.reviewerRef r\n" +
+                    "where\n" +
+                    "  (\n" +
+                    "    r.targetOid = :targetOid and\n" +
+                    "    r.relation = :relation\n" +
+                    "  )\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+
+    @Test
+    public void test735QueryCertCaseReviewerAndEnabled() throws Exception {
+        Session session = open();
+        try {
+            ObjectReferenceType reviewerRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER);
+            ObjectFilter reviewerFilter = RefFilter.createReferenceEqual(
+                    new ItemPath(AccessCertificationCaseType.F_REVIEWER_REF),
+                    AccessCertificationCaseType.class, prismContext, reviewerRef.asReferenceValue());
+            ObjectFilter enabledFilter = EqualFilter.createEqual(
+                    AccessCertificationCaseType.F_ENABLED, AccessCertificationCaseType.class, prismContext, Boolean.TRUE);
+            ObjectFilter filter = AndFilter.createAnd(reviewerFilter, enabledFilter);
+
+            ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
+            String expected = "select\n" +
+                    "  a.fullObject\n" +
+                    "from\n" +
+                    "  RAccessCertificationCase a\n" +
+                    "    left join a.reviewerRef r\n" +
+                    "where\n" +
+                    "  (\n" +
+                    "    (\n" +
+                    "      r.targetOid = :targetOid and\n" +
+                    "      r.relation = :relation and\n" +
+                    "      r.type = :type\n" +
+                    "    ) and\n" +
+                    "    a.enabled = :enabled\n" +
+                    "  )\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test745QueryCertCaseReviewerAndEnabledByDeadlineAsc() throws Exception {
+        Session session = open();
+        try {
+            ObjectReferenceType reviewerRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER);
+            ObjectFilter reviewerFilter = RefFilter.createReferenceEqual(
+                    new ItemPath(AccessCertificationCaseType.F_REVIEWER_REF),
+                    AccessCertificationCaseType.class, prismContext, reviewerRef.asReferenceValue());
+            ObjectFilter enabledFilter = EqualFilter.createEqual(
+                    AccessCertificationCaseType.F_ENABLED, AccessCertificationCaseType.class, prismContext, Boolean.TRUE);
+            ObjectFilter filter = AndFilter.createAnd(reviewerFilter, enabledFilter);
+            ObjectPaging paging = ObjectPaging.createPaging(new ItemPath(AccessCertificationCaseType.F_REVIEW_DEADLINE), OrderDirection.ASCENDING);
+            ObjectQuery query = ObjectQuery.createObjectQuery(filter, paging);
+            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
+            String expected = "select\n" +
+                    "  a.fullObject\n" +
+                    "from\n" +
+                    "  RAccessCertificationCase a\n" +
+                    "    left join a.reviewerRef r\n" +
+                    "where\n" +
+                    "  (\n" +
+                    "    (\n" +
+                    "      r.targetOid = :targetOid and\n" +
+                    "      r.relation = :relation and\n" +
+                    "      r.type = :type\n" +
+                    "    ) and\n" +
+                    "    a.enabled = :enabled\n" +
+                    "  )\n" +
+                    "order by a.reviewDeadline asc\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test747QueryCertCaseReviewerAndEnabledByRequestedDesc() throws Exception {
+        Session session = open();
+        try {
+            ObjectReferenceType reviewerRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER);
+            ObjectFilter reviewerFilter = RefFilter.createReferenceEqual(
+                    new ItemPath(AccessCertificationCaseType.F_REVIEWER_REF),
+                    AccessCertificationCaseType.class, prismContext, reviewerRef.asReferenceValue());
+            ObjectFilter enabledFilter = EqualFilter.createEqual(
+                    AccessCertificationCaseType.F_ENABLED, AccessCertificationCaseType.class, prismContext, Boolean.TRUE);
+            ObjectFilter filter = AndFilter.createAnd(reviewerFilter, enabledFilter);
+            ObjectPaging paging = ObjectPaging.createPaging(new ItemPath(AccessCertificationCaseType.F_REVIEW_REQUESTED_TIMESTAMP), OrderDirection.DESCENDING);
+            ObjectQuery query = ObjectQuery.createObjectQuery(filter, paging);
+            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
+            String expected = "select\n" +
+                    "  a.fullObject\n" +
+                    "from\n" +
+                    "  RAccessCertificationCase a\n" +
+                    "    left join a.reviewerRef r\n" +
+                    "where\n" +
+                    "  (\n" +
+                    "    (\n" +
+                    "      r.targetOid = :targetOid and\n" +
+                    "      r.relation = :relation and\n" +
+                    "      r.type = :type\n" +
+                    "    ) and\n" +
+                    "    a.enabled = :enabled\n" +
+                    "  )\n" +
+                    "order by a.reviewRequestedTimestamp desc";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    // TODO search for "no decision" condition (V2)
+    // TODO sorting based on referenced entity names (V2)
+    // TODO for cases: sorting based on object name, target name, campaign name (!) (V2-3)
 
     protected <T extends Containerable> String getInterpretedQuery2(Session session, Class<T> type, File file) throws
             Exception {
@@ -2359,4 +2534,17 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
         return ((RQueryImpl) rQuery).getQuery().getQueryString();
     }
+
+    private void assertEqualsIgnoreWhitespace(String expected, String real) {
+        LOGGER.info("exp. query>\n{}\nreal query>\n{}", expected, real);
+        String expNorm = StringUtils.normalizeSpace(expected);
+        String realNorm = StringUtils.normalizeSpace(real);
+        if (!expNorm.equals(realNorm)) {
+            String m = "Generated query is not correct. Expected:\n" + expected + "\nActual:\n" + real + "\n\nNormalized versions:\n\n" +
+                    "Expected: " + expNorm + "\nActual:   " + realNorm + "\n";
+            LOGGER.error("{}", m);
+            throw new AssertionError(m);
+        }
+    }
+
 }

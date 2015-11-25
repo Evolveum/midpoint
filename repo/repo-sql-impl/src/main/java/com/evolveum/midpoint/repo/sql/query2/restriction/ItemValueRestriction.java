@@ -42,6 +42,7 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.apache.commons.lang.ClassUtils;
 
 import javax.xml.namespace.QName;
 import java.util.List;
@@ -138,26 +139,31 @@ public abstract class ItemValueRestriction<T extends ValueFilter> extends ItemRe
             throw new QueryException("Unknown filter '" + filter + "', can't get value from it.");
         }
 
+        Class expectedType = def.getJaxbType();
+        if (expectedType.isPrimitive()) {
+            expectedType = ClassUtils.primitiveToWrapper(expectedType);
+        }
+
         //todo remove after some time [lazyman]
         //attempt to fix value type for polystring (if it was string in filter we create polystring from it)
-        if (PolyString.class.equals(def.getJaxbType()) && (value instanceof String)) {
+        if (PolyString.class.equals(expectedType) && (value instanceof String)) {
             LOGGER.debug("Trying to query PolyString value but filter contains String '{}'.", new Object[]{filter});
             value = new PolyString((String) value, (String) value);
         }
         //attempt to fix value type for polystring (if it was polystringtype in filter we create polystring from it)
-        if (PolyString.class.equals(def.getJaxbType()) && (value instanceof PolyStringType)) {
+        if (PolyString.class.equals(expectedType) && (value instanceof PolyStringType)) {
             LOGGER.debug("Trying to query PolyString value but filter contains PolyStringType '{}'.", new Object[]{filter});
             PolyStringType type = (PolyStringType) value;
             value = new PolyString(type.getOrig(), type.getNorm());
         }
 
-        if (String.class.equals(def.getJaxbType()) && (value instanceof QName)) {
+        if (String.class.equals(expectedType) && (value instanceof QName)) {
             //eg. shadow/objectClass
             value = RUtil.qnameToString((QName) value);
         }
 
-        if (value != null && !def.getJaxbType().isAssignableFrom(value.getClass())) {
-            throw new QueryException("Value should be type of '" + def.getJaxbType() + "' but it's '"
+        if (value != null && !expectedType.isAssignableFrom(value.getClass())) {
+            throw new QueryException("Value should be type of '" + expectedType + "' but it's '"
                     + value.getClass() + "', filter '" + filter + "'.");
         }
 

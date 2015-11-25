@@ -16,11 +16,17 @@
 
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -33,7 +39,32 @@ public class InOidRestriction extends Restriction<InOidFilter> {
 
     @Override
     public Condition interpret() throws QueryException {
-        return getContext().getHibernateQuery().createIn(getBaseHqlPath() + ".oid", filter.getOids());
+        String hqlPath = getBaseHqlPath() + ".";
+        Collection<?> idValues;
+
+        // TODO check applicability
+        if (filter.isConsiderOwner()) {
+            hqlPath += "ownerOid";
+            idValues = filter.getOids();
+        } else if (ObjectType.class.isAssignableFrom(baseEntityDefinition.getJaxbType())) {
+            hqlPath += "oid";
+            idValues = filter.getOids();
+        } else if (Containerable.class.isAssignableFrom(baseEntityDefinition.getJaxbType())) {
+            hqlPath += "id";        // quite a hack
+            idValues = toIntList(filter.getOids());
+        } else {
+            throw new QueryException("InOidRestriction cannot be applied to the entity: " + baseEntityDefinition);
+        }
+
+        return getContext().getHibernateQuery().createIn(hqlPath, idValues);
+    }
+
+    private Collection<?> toIntList(Collection<String> ids) {
+        List<Integer> rv = new ArrayList<>();
+        for (String id : ids) {
+            rv.add(Integer.parseInt(id));
+        }
+        return rv;
     }
 
 }

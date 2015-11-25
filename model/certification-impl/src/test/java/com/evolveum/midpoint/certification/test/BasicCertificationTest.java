@@ -253,7 +253,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         List<AccessCertificationCaseType> caseList =
-                certificationManager.searchDecisions(null, null, USER_ADMINISTRATOR_OID, false, null, task, result);
+                certificationManager.searchDecisions(null, USER_ADMINISTRATOR_OID, false, null, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -307,7 +307,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         assertEquals("wrong stage number", 1, storedDecision.getStageNumber());
         assertApproximateTime("timestamp", new Date(), storedDecision.getTimestamp());
         assertEquals("wrong current response", AccessCertificationResponseType.ACCEPT, superuserCase.getCurrentResponse());
-        assertEquals("wrong enabled", Boolean.TRUE, superuserCase.isEnabled());
+        assertEquals("wrong enabled", true, superuserCase.isEnabled());
     }
 
     @Test
@@ -351,7 +351,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         assertEquals("wrong stage number", 1, storedDecision.getStageNumber());
         assertApproximateTime("timestamp", new Date(), storedDecision.getTimestamp());
         assertEquals("wrong current response", AccessCertificationResponseType.ACCEPT, ceoCase.getCurrentResponse());
-        assertEquals("wrong enabled", Boolean.TRUE, ceoCase.isEnabled());
+        assertEquals("wrong enabled", true, ceoCase.isEnabled());
     }
 
     @Test
@@ -396,7 +396,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         assertEquals("wrong stage number", 1, storedDecision.getStageNumber());
         assertApproximateTime("timestamp", new Date(), storedDecision.getTimestamp());
         assertEquals("wrong current response", AccessCertificationResponseType.REVOKE, ceoCase.getCurrentResponse());
-        assertEquals("wrong enabled", Boolean.TRUE, ceoCase.isEnabled());
+        assertEquals("wrong enabled", true, ceoCase.isEnabled());
     }
 
     protected void checkAllCases(Collection<AccessCertificationCaseType> caseList) {

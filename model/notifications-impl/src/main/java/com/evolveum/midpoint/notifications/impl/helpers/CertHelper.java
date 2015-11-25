@@ -101,9 +101,7 @@ public class CertHelper {
 
     public void appendStatistics(StringBuilder sb, AccessCertificationCampaignType campaign, Task task, OperationResult result) {
 
-        sb.append("Number of cases:\t").append(campaign.getCase().size());
-
-        AccessCertificationCasesStatisticsType stat = null;
+        AccessCertificationCasesStatisticsType stat;
         try {
             stat = certificationManager.getCampaignStatistics(campaign.getOid(), false, task, result);
         } catch (ObjectNotFoundException|SchemaException|SecurityViolationException|ConfigurationException|CommunicationException|ObjectAlreadyExistsException|RuntimeException e) {
@@ -111,6 +109,9 @@ public class CertHelper {
             sb.append("Couldn't get campaign statistics because of ").append(e);
             return;
         }
+        int all = stat.getMarkedAsAccept() + stat.getMarkedAsRevoke() + stat.getMarkedAsReduce() + stat.getMarkedAsNotDecide() +
+                stat.getMarkedAsDelegate() + stat.getWithoutResponse();
+        sb.append("Number of cases:\t").append(all);
         sb.append("\nMarked as ACCEPT:\t").append(stat.getMarkedAsAccept());
         sb.append("\nMarked as REVOKE:\t").append(stat.getMarkedAsRevoke())
                 .append(" (remedied: ").append(stat.getMarkedAsRevokeAndRemedied()).append(")");

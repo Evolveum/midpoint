@@ -23,6 +23,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -54,7 +55,10 @@ public class AccessCertificationCloseStageApproachingTriggerHandler implements T
 	
 	@Autowired
 	private AccCertEventHelper eventHelper;
-	
+
+	@Autowired
+	private AccCertQueryHelper queryHelper;
+
 	@PostConstruct
 	private void initialize() {
 		triggerHandlerRegistry.register(HANDLER_URI, this);
@@ -78,13 +82,14 @@ public class AccessCertificationCloseStageApproachingTriggerHandler implements T
 			}
 
 			eventHelper.onCampaignStageDeadlineApproaching(campaign, task, result);
-			Collection<String> reviewers = eventHelper.getCurrentReviewers(campaign);
+			List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaign.getOid(), null, null, task, result);
+			Collection<String> reviewers = eventHelper.getCurrentReviewers(caseList);
 			for (String reviewerOid : reviewers) {
-				List<AccessCertificationCaseType> caseList = eventHelper.getCasesForReviewer(campaign, reviewerOid);
+				List<AccessCertificationCaseType> reviewerCaseList = queryHelper.selectCasesForReviewer(caseList, reviewerOid);
 				ObjectReferenceType reviewerRef = ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER);
-				eventHelper.onReviewDeadlineApproaching(reviewerRef, caseList, campaign, task, result);
+				eventHelper.onReviewDeadlineApproaching(reviewerRef, reviewerCaseList, campaign, task, result);
 			}
-		} catch (RuntimeException e) {
+		} catch (SchemaException|SecurityViolationException|ObjectNotFoundException|CommunicationException|ConfigurationException|RuntimeException e) {
 			LoggingUtils.logException(LOGGER, "Couldn't generate 'deadline approaching' notifications", e);
 		}
 	}

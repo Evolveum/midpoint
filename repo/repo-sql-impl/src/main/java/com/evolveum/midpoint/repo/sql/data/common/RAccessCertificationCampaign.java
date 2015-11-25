@@ -27,6 +27,7 @@ import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
@@ -78,6 +79,9 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAccessCertificationCase> getCases() {
+        if (cases == null) {
+            cases = new HashSet<RAccessCertificationCase>();
+        }
         return cases;
     }
 
@@ -121,8 +125,8 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
 
         List<AccessCertificationCaseType> cases = jaxb.getCase();
         if (!cases.isEmpty()) {
-            repo.setCases(new HashSet<RAccessCertificationCase>());
             for (AccessCertificationCaseType case1 : cases) {
+                case1.setCampaignRef(ObjectTypeUtil.createObjectRef(jaxb));
                 RAccessCertificationCase rCase = RAccessCertificationCase.toRepo(repo, case1, prismContext);
                 rCase.setTransient(generatorResult.isTransient(case1.asPrismContainerValue()));
                 repo.getCases().add(rCase);
