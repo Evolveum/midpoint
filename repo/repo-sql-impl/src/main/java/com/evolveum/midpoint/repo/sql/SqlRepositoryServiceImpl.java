@@ -16,58 +16,10 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import java.lang.reflect.Method;
-import java.sql.Connection;
-import java.sql.Driver;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-
-import javax.annotation.PostConstruct;
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Visitable;
-import com.evolveum.midpoint.prism.Visitor;
-
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.repo.sql.data.common.RAccessCertificationCampaign;
-import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationCase;
-import com.evolveum.midpoint.repo.sql.query2.QueryEngine2;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SequenceType;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.hibernate.Criteria;
-import org.hibernate.LockMode;
-import org.hibernate.LockOptions;
-import org.hibernate.Query;
-import org.hibernate.SQLQuery;
-import org.hibernate.ScrollMode;
-import org.hibernate.ScrollableResults;
-import org.hibernate.Session;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.exception.ConstraintViolationException;
-import org.hibernate.internal.SessionFactoryImpl;
-import org.hibernate.jdbc.Work;
-import org.hibernate.transform.Transformers;
-import org.springframework.stereotype.Repository;
-
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -80,6 +32,8 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.Visitable;
+import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -87,6 +41,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.parser.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.AllFilter;
@@ -96,16 +51,19 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.sql.data.common.RAccessCertificationCampaign;
 import com.evolveum.midpoint.repo.sql.data.common.RLookupTable;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
 import com.evolveum.midpoint.repo.sql.data.common.any.RValueType;
+import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationCase;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.other.RLookupTableRow;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.query.QueryEngine;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.RQuery;
+import com.evolveum.midpoint.repo.sql.query2.QueryEngine2;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
@@ -133,13 +91,52 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SequenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.hibernate.Criteria;
+import org.hibernate.LockMode;
+import org.hibernate.LockOptions;
+import org.hibernate.Query;
+import org.hibernate.SQLQuery;
+import org.hibernate.ScrollMode;
+import org.hibernate.ScrollableResults;
+import org.hibernate.Session;
+import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Restrictions;
+import org.hibernate.exception.ConstraintViolationException;
+import org.hibernate.internal.SessionFactoryImpl;
+import org.hibernate.jdbc.Work;
+import org.hibernate.transform.Transformers;
+import org.springframework.stereotype.Repository;
+
+import javax.annotation.PostConstruct;
+import javax.xml.namespace.QName;
+import java.lang.reflect.Method;
+import java.sql.Connection;
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 
 /**
@@ -1045,7 +1042,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             if (filter instanceof NoneFilter) {
                 subResult.recordSuccess();
                 return new SearchResultList(new ArrayList<PrismObject<T>>(0));
-                //shouldn't be this in ObjectQueryUtil.simplify?
             } else if (filter instanceof AllFilter){
             	query = query.cloneEmpty();
             	query.setFilter(null);
@@ -1094,7 +1090,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             if (filter instanceof NoneFilter) {
                 result.recordSuccess();
                 return new SearchResultList(new ArrayList<T>(0));
-                //shouldn't be this in ObjectQueryUtil.simplify?
             } else if (filter instanceof AllFilter) {
                 query = query.cloneEmpty();
                 query.setFilter(null);
@@ -1181,33 +1176,39 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         return new SearchResultList<PrismObject<T>>(list);
     }
 
-    private <T extends Containerable> SearchResultList<T> searchContainersAttempt(Class<T> type, ObjectQuery query,
+    private <C extends Containerable> SearchResultList<C> searchContainersAttempt(Class<C> type, ObjectQuery query,
                                                                                   Collection<SelectorOptions<GetOperationOptions>> options,
                                                                                   OperationResult result) throws SchemaException {
+
+        if (!(AccessCertificationCaseType.class.equals(type))) {
+            throw new UnsupportedOperationException("Only AccessCertificationCaseType is supported here now.");
+        }
+
         LOGGER_PERFORMANCE.debug("> search containers {}", new Object[]{type.getSimpleName()});
-        List<T> list = new ArrayList<>();
+        List<C> list = new ArrayList<>();
         Session session = null;
         try {
             session = beginReadOnlyTransaction();
 
-//            RQuery rQuery = engine.interpret(query, type, options, false, session);
-//
-//            List<GetObjectResult> objects = rQuery.list();
-//            LOGGER.trace("Found {} objects, translating to JAXB.", new Object[]{(objects != null ? objects.size() : 0)});
-//
-//            for (GetObjectResult object : objects) {
-//                PrismObject<T> prismObject = updateLoadedObject(object, type, options, session);
-//                list.add(prismObject);
-//            }
+            QueryEngine2 engine = new QueryEngine2(getConfiguration(), getPrismContext());
+            RQuery rQuery = engine.interpret(query, type, options, false, session);
+
+            List<GetObjectResult> items = rQuery.list();
+            LOGGER.trace("Found {} items, translating to JAXB.", items.size());
+
+            for (GetObjectResult item : items) {
+                PrismContainerValue<C> cvalue = (PrismContainerValue<C>) updateLoadedCertificationCase(item, options, session);
+                list.add(cvalue.asContainerable());
+            }
 
             session.getTransaction().commit();
-        } catch (/*QueryException | */RuntimeException ex) {
+        } catch (QueryException | RuntimeException ex) {
             handleGeneralException(ex, session, result);
         } finally {
             cleanupSessionAndResult(session, result);
         }
 
-        return new SearchResultList<T>(list);
+        return new SearchResultList<C>(list);
     }
 
     /**
@@ -1317,7 +1318,19 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         return prismObject;
     }
-    
+
+
+    private PrismContainerValue<AccessCertificationCaseType> updateLoadedCertificationCase(GetObjectResult result,
+                                                                                           Collection<SelectorOptions<GetOperationOptions>> options,
+                                                                                           Session session) throws SchemaException {
+
+        AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(result.getFullObject(), getPrismContext());
+        PrismContainerValue<AccessCertificationCaseType> cvalue = aCase.asPrismContainerValue();
+        validateContainerValue(cvalue, AccessCertificationCaseType.class);
+        return cvalue;
+    }
+
+
     private Map<String, PolyString> consolidateResults(List<Map<String, Object>> results){
     	Map<String, PolyString> oidNameMap = new HashMap<String, PolyString>();
     	for (Map<String, Object> map : results){
@@ -1870,6 +1883,18 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         if (InternalsConfig.readEncryptionChecks) {
             CryptoUtil.checkEncrypted(prismObject);
         }
+    }
+
+    private <C extends Containerable> void validateContainerValue(PrismContainerValue<C> cvalue, Class<C> type)
+            throws SchemaException {
+        if (cvalue == null) {
+            throw new SchemaException("Null object as a result of repository get operation for " + type);
+        }
+        Class<? extends Containerable> realType = cvalue.asContainerable().getClass();
+        if (!type.isAssignableFrom(realType)) {
+            throw new SchemaException("Expected to find '" + type.getSimpleName() + "' but found '" + realType.getSimpleName());
+        }
+        // TODO call check consistence if possible
     }
 
     private <T extends ObjectType> RObject createDataObjectFromJAXB(PrismObject<T> prismObject,

@@ -265,6 +265,11 @@ public class RAccessCertificationCase implements Container {
     }
 
     public AccessCertificationCaseType toJAXB(PrismContext prismContext) throws SchemaException {
+        return createJaxb(fullObject, prismContext);
+    }
+
+    // TODO find appropriate name
+    public static AccessCertificationCaseType createJaxb(byte[] fullObject, PrismContext prismContext) throws SchemaException {
         String xml = RUtil.getXmlFromByteArray(fullObject, false);
         PrismContainer<AccessCertificationCaseType> caseContainer;
         try {

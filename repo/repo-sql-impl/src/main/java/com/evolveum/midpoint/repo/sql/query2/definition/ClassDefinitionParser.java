@@ -57,10 +57,12 @@ public class ClassDefinitionParser {
         ObjectTypes objectType = ClassMapper.getObjectTypeForHQLType(type);
         QName jaxbName = objectType.getQName();
         Class jaxbType = objectType.getClassDefinition();
+        return parseObjectTypeClass(jaxbName, jaxbType, type);
+    }
 
-        EntityDefinition entityDefinition = new EntityDefinition(jaxbName, jaxbType, type.getSimpleName(), type, null);
+    public EntityDefinition parseObjectTypeClass(QName jaxbName, Class jaxbType, Class jpaType) {
+        EntityDefinition entityDefinition = new EntityDefinition(jaxbName, jaxbType, jpaType.getSimpleName(), jpaType, null);
         updateEntityDefinition(entityDefinition);
-
         return entityDefinition;
     }
 

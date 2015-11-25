@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.query2;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
@@ -131,7 +132,7 @@ public class QueryInterpreter2 {
         return repoConfiguration;
     }
 
-    public RootHibernateQuery interpret(ObjectQuery query, Class<? extends ObjectType> type,
+    public RootHibernateQuery interpret(ObjectQuery query, Class<? extends Containerable> type,
                                         Collection<SelectorOptions<GetOperationOptions>> options, PrismContext prismContext,
                                         boolean countingObjects, Session session) throws QueryException {
         Validate.notNull(type, "Type must not be null.");
@@ -270,7 +271,7 @@ public class QueryInterpreter2 {
         }
     }
 
-    private void interpretPagingAndSorting(InterpretationContext context, ObjectQuery query, boolean countingObjects) {
+    private void interpretPagingAndSorting(InterpretationContext context, ObjectQuery query, boolean countingObjects) throws QueryException {
         RootHibernateQuery hibernateQuery = context.getHibernateQuery();
         String rootAlias = hibernateQuery.getPrimaryEntityAlias();
 
@@ -302,7 +303,7 @@ public class QueryInterpreter2 {
         }
     }
 
-    public <T extends ObjectType> void updatePagingAndSorting(RootHibernateQuery hibernateQuery, Class<T> type, ObjectPaging paging) {
+    public <T extends Containerable> void updatePagingAndSorting(RootHibernateQuery hibernateQuery, Class<T> type, ObjectPaging paging) throws QueryException {
         if (paging == null) {
             return;
         }

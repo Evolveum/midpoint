@@ -91,7 +91,7 @@ public class EntityDefinition extends Definition {
             builder.append(definition.debugDump(indent+1));
             builder.append('\n');
         }
-        DebugUtil.indentDebugDump(builder, indent);     // before final '}'
+        DebugUtil.indentDebugDump(builder, indent);     // indentation before final '}'
     }
 
     @Override

@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -37,6 +38,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.query.OrgFilter;
+import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.TypeFilter;
@@ -51,12 +53,14 @@ import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -75,6 +79,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.criterion.ProjectionList;
@@ -150,7 +155,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "where\n" +
                     "  u.name.norm = :norm";
 
-            String real = getInterpretedQuery(session, UserType.class, query);
+            String real = getInterpretedQuery2(session, UserType.class, query);
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -176,7 +181,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "where\n" +
                     "  u.name.orig = :orig";
 
-            String real = getInterpretedQuery(session, UserType.class, query);
+            String real = getInterpretedQuery2(session, UserType.class, query);
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -202,7 +207,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "where\n" +
                     "  ( u.name.orig = :orig and u.name.norm = :norm )";
 
-            String real = getInterpretedQuery(session, UserType.class, query);
+            String real = getInterpretedQuery2(session, UserType.class, query);
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -229,7 +234,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "where\n" +
                     "  o.norm = :norm";
 
-            String real = getInterpretedQuery(session, UserType.class, query);
+            String real = getInterpretedQuery2(session, UserType.class, query);
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -267,7 +272,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "where\n" +
                     "  o.orig = :orig";
 
-            String real = getInterpretedQuery(session, UserType.class, query);
+            String real = getInterpretedQuery2(session, UserType.class, query);
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -294,7 +299,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "where\n" +
                     "  ( o.orig = :orig and o.norm = :norm )";
 
-            String real = getInterpretedQuery(session, UserType.class, query);
+            String real = getInterpretedQuery2(session, UserType.class, query);
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -324,7 +329,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "where\n" +
                     "  ( o.norm = :norm and o2.norm = :norm2 )";
 
-            String real = getInterpretedQuery(session, UserType.class, query);
+            String real = getInterpretedQuery2(session, UserType.class, query);
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -358,7 +363,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             // NOTE: this could be implemented more efficiently by using only one join... or the query itself can be formulated
             // via In filter (when available) or ForValue filter (also, when available)
 
-            String real = getInterpretedQuery(session, UserType.class, query);
+            String real = getInterpretedQuery2(session, UserType.class, query);
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -384,7 +389,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "where\n" +
                     "  o2.orig = :orig";
 
-            String real = getInterpretedQuery(session, ObjectType.class, query);
+            String real = getInterpretedQuery2(session, ObjectType.class, query);
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -410,7 +415,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "where\n" +
                     "  d = :d";
 
-            String real = getInterpretedQuery(session, TaskType.class, query);
+            String real = getInterpretedQuery2(session, TaskType.class, query);
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -426,7 +431,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
             //should throw exception, because description is lob and can't be queried
-            getInterpretedQuery(session, UserType.class, query);
+            getInterpretedQuery2(session, UserType.class, query);
         } finally {
             close(session);
         }
@@ -442,7 +447,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             ObjectFilter filter = EqualFilter.createEqual(TaskType.F_EXECUTION_STATUS, TaskType.class, prismContext,
                     null, TaskExecutionStatusType.WAITING);
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-            String real = getInterpretedQuery(session, TaskType.class, query);
+            String real = getInterpretedQuery2(session, TaskType.class, query);
 
             String expected = "select\n" +
                     "  t.fullObject,\n" +
@@ -472,7 +477,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
              *  ==> from RUser u where u.activation.administrativeStatus = com.evolveum.midpoint.repo.sql.data.common.enums.RActivationStatus.ENABLED
              */
 
-            String real = getInterpretedQuery(session, UserType.class,
+            String real = getInterpretedQuery2(session, UserType.class,
                     new File(TEST_DIR, "query-user-by-enabled.xml"));
 
             String expected = "select\n" +
@@ -508,7 +513,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
              *         l.value = 123
              */
 
-            String real = getInterpretedQuery(session, GenericObjectType.class,
+            String real = getInterpretedQuery2(session, GenericObjectType.class,
                     new File(TEST_DIR, "query-and-generic.xml"));
 
             String expected = "select\n" +
@@ -529,7 +534,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     public void test072QueryAccountByAttribute() throws Exception {
         Session session = open();
         try {
-            String real = getInterpretedQuery(session, ShadowType.class,
+            String real = getInterpretedQuery2(session, ShadowType.class,
                     new File(TEST_DIR, "query-account-by-attribute.xml"));
             String expected = "select\n" +
                     "  s.fullObject, s.stringsCount, s.longsCount, s.datesCount, s.referencesCount, s.polysCount, s.booleansCount\n" +
@@ -548,7 +553,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     public void test074QueryAccountByAttributeAndExtensionValue() throws Exception {
         Session session = open();
         try {
-            String real = getInterpretedQuery(session, ShadowType.class,
+            String real = getInterpretedQuery2(session, ShadowType.class,
                     new File(TEST_DIR, "query-account-by-attribute-and-extension-value.xml"));
             String expected = "select\n" +
                     "  s.fullObject, s.stringsCount, s.longsCount, s.datesCount, s.referencesCount, s.polysCount, s.booleansCount\n" +
@@ -587,7 +592,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
              *
              *   [If we used AND instead of OR, this SHOULD BE left join r.strings s1, left join r.strings s2]
              */
-            String real = getInterpretedQuery(session, ShadowType.class,
+            String real = getInterpretedQuery2(session, ShadowType.class,
                     new File(TEST_DIR, "query-or-composite.xml"));
 
             String expected = "select\n" +
@@ -640,7 +645,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
             query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
 
-            String real = getInterpretedQuery(session, UserType.class, query);
+            String real = getInterpretedQuery2(session, UserType.class, query);
             //assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -664,7 +669,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
             query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
 
-            String real = getInterpretedQuery(session, ObjectType.class, query);
+            String real = getInterpretedQuery2(session, ObjectType.class, query);
             String expected = "select\n" +
                     "  o.fullObject,\n" +
                     "  o.stringsCount,\n" +
@@ -692,7 +697,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         Session session = open();
 
         try {
-            String real = getInterpretedQuery(session, UserType.class,
+            String real = getInterpretedQuery2(session, UserType.class,
                     new File(TEST_DIR, "query-user-by-fullName.xml"));
             String expected = "select\n" +
                     "  u.fullObject,\n" +
@@ -717,7 +722,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         Session session = open();
 
         try {
-            String real = getInterpretedQuery(session, UserType.class,
+            String real = getInterpretedQuery2(session, UserType.class,
                     new File(TEST_DIR, "query-user-substring-fullName.xml"));
             String expected = "select\n" +
                     "  u.fullObject,\n" +
@@ -742,7 +747,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         Session session = open();
 
         try {
-            String real = getInterpretedQuery(session, UserType.class,
+            String real = getInterpretedQuery2(session, UserType.class,
                     new File(TEST_DIR, "query-user-by-name.xml"));
             String expected = "select\n" +
                     "  u.fullObject,\n" +
@@ -767,7 +772,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         Session session = open();
 
         try {
-            String real = getInterpretedQuery(session, ConnectorType.class,
+            String real = getInterpretedQuery2(session, ConnectorType.class,
                     new File(TEST_DIR, "query-connector-by-type.xml"));
             String expected = "select\n" +
                     "  c.fullObject,\n" +
@@ -791,7 +796,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     public void test130QueryAccountByAttributesAndResourceRef() throws Exception {
         Session session = open();
         try {
-            String real = getInterpretedQuery(session, ShadowType.class,
+            String real = getInterpretedQuery2(session, ShadowType.class,
                     new File(TEST_DIR, "query-account-by-attributes-and-resource-ref.xml"));
             String expected = "select\n" +
                     "  s.fullObject,\n" +
@@ -830,7 +835,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
              *        l.targetOid = '123' and l.relation = '#'
              */
             RefFilter filter = RefFilter.createReferenceEqual(UserType.F_LINK_REF, UserType.class, prismContext, "123");
-            String real = getInterpretedQuery(session, UserType.class, ObjectQuery.createObjectQuery(filter));
+            String real = getInterpretedQuery2(session, UserType.class, ObjectQuery.createObjectQuery(filter));
 
             String expected = "select\n" +
                     "  u.fullObject,\n" +
@@ -873,7 +878,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             RefFilter filter = RefFilter.createReferenceEqual(
                     new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF),
                     UserType.class, prismContext, ort.asReferenceValue());
-            String real = getInterpretedQuery(session, UserType.class, ObjectQuery.createObjectQuery(filter));
+            String real = getInterpretedQuery2(session, UserType.class, ObjectQuery.createObjectQuery(filter));
             String expected = "select\n" +
                     "  u.fullObject,\n" +
                     "  u.stringsCount,\n" +
@@ -911,7 +916,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             ItemPath triggerPath = new ItemPath(ObjectType.F_TRIGGER, TriggerType.F_TIMESTAMP);
             ObjectFilter filter = LessFilter.createLess(triggerPath, objectDef, thisScanTimestamp, true);
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-            String real = getInterpretedQuery(session, ObjectType.class, query);
+            String real = getInterpretedQuery2(session, ObjectType.class, query);
 
             String expected = "select\n" +
                     "  o.fullObject,\n" +
@@ -942,7 +947,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             ItemPath activationPath = new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
             ObjectFilter filter = EqualFilter.createEqual(activationPath, objectDef, ActivationStatusType.ENABLED);
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-            String real = getInterpretedQuery(session, UserType.class, query);
+            String real = getInterpretedQuery2(session, UserType.class, query);
 
             String expected = "select\n" +
                     "  u.fullObject,\n" +
@@ -980,7 +985,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             ItemPath activationPath = new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
             ObjectFilter filter = EqualFilter.createEqual(activationPath, objectDef, ActivationStatusType.ENABLED);
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-            String real = getInterpretedQuery(session, RoleType.class, query);
+            String real = getInterpretedQuery2(session, RoleType.class, query);
 
             String expected = "select\n" +
                     "  r.fullObject,\n" +
@@ -1023,7 +1028,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             ObjectFilter filter2 = EqualFilter.createEqual(activationPath2, objectDef, ActivationStatusType.ENABLED);
 
             ObjectQuery query = ObjectQuery.createObjectQuery(OrFilter.createOr(filter1, filter2));
-            String real = getInterpretedQuery(session, RoleType.class, query);
+            String real = getInterpretedQuery2(session, RoleType.class, query);
 
             String expected = "select\n" +
                     "  r.fullObject,\n" +
@@ -1070,7 +1075,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     XmlTypeConverter.createXMLGregorianCalendar(NOW.getTime()));
 
             ObjectQuery query = ObjectQuery.createObjectQuery(AndFilter.createAnd(filter1, filter2));
-            String real = getInterpretedQuery(session, UserType.class, query);
+            String real = getInterpretedQuery2(session, UserType.class, query);
 
             String expected = "select\n" +
                     "  u.fullObject, u.stringsCount, u.longsCount, u.datesCount, u.referencesCount, u.polysCount, u.booleansCount\n" +
@@ -1105,7 +1110,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             LOGGER.info(and.debugDump());
 
             ObjectQuery query = ObjectQuery.createObjectQuery(and);
-            String real = getInterpretedQuery(session, ObjectType.class, query);
+            String real = getInterpretedQuery2(session, ObjectType.class, query);
 
             // correct translation but the filter is wrong: we need to point to THE SAME timestamp -> i.e. ForValue should be used here
             String expected = "select\n" +
@@ -1163,7 +1168,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
             query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
 
-            String real = getInterpretedQuery(session, UserType.class, query, true);
+            String real = getInterpretedQuery2(session, UserType.class, query, true);
             String expected = "select\n" +
                     "  count(*)\n" +
                     "from\n" +
@@ -1187,7 +1192,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             ObjectPaging paging = ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING);
             ObjectQuery query = ObjectQuery.createObjectQuery(null, paging);
 
-            String real = getInterpretedQuery(session, ObjectType.class, query, true);
+            String real = getInterpretedQuery2(session, ObjectType.class, query, true);
             String expected = "select\n" +
                     "  count(*)\n" +
                     "from\n" +
@@ -1213,7 +1218,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
             query.setPaging(ObjectPaging.createPaging(null, null, TaskType.F_NAME, OrderDirection.ASCENDING));
 
-            String real = getInterpretedQuery(session, TaskType.class, query, true);
+            String real = getInterpretedQuery2(session, TaskType.class, query, true);
             String expected = "select\n" +
                     "  count(*)\n" +
                     "from\n" +
@@ -1233,7 +1238,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             InOidFilter filter = InOidFilter.createInOid(Arrays.asList("1", "2"));
 
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-            String real = getInterpretedQuery(session, ObjectType.class, query, false);
+            String real = getInterpretedQuery2(session, ObjectType.class, query, false);
             String expected = "select\n" +
                     "  o.fullObject,\n" +
                     "  o.stringsCount,\n" +
@@ -1263,7 +1268,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             objectQuery.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
             objectQuery.setUseNewQueryInterpreter(true);
 
-            String real = getInterpretedQuery(session, OrgType.class, objectQuery);
+            String real = getInterpretedQuery2(session, OrgType.class, objectQuery);
 
             OperationResult result = new OperationResult("query org structure");
             repositoryService.searchObjects(OrgType.class, objectQuery, null, result);
@@ -1340,7 +1345,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         Session session = open();
         try {
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-            String real = getInterpretedQuery(session, UserType.class, query, false);
+            String real = getInterpretedQuery2(session, UserType.class, query, false);
 
             String expected = "select\n" +
                     "  u.fullObject,\n" +
@@ -1395,7 +1400,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         Session session = open();
         try {
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-            String real = getInterpretedQuery(session, UserType.class, query, false);
+            String real = getInterpretedQuery2(session, UserType.class, query, false);
 
             String expected = "select\n" +
                     "  u.fullObject,\n" +
@@ -1462,7 +1467,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         Session session = open();
         try {
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-            String real = getInterpretedQuery(session, UserType.class, query, false);
+            String real = getInterpretedQuery2(session, UserType.class, query, false);
 
             String expected = "select\n" +
                     "  u.fullObject,\n" +
@@ -1549,7 +1554,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         Session session = open();
         try {
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-            String real = getInterpretedQuery(session, UserType.class, query, false);
+            String real = getInterpretedQuery2(session, UserType.class, query, false);
 
             String expected = "select\n" +
                     "  u.fullObject,\n" +
@@ -1659,7 +1664,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             ObjectQuery query = ObjectQuery.createObjectQuery(AndFilter.createAnd(eqFilter, orgFilter));
             query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
 
-            String real = getInterpretedQuery(session, UserType.class, query);
+            String real = getInterpretedQuery2(session, UserType.class, query);
 
             String expected = "select\n" +
                     "  u.fullObject,\n" +
@@ -1709,7 +1714,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 //            ));
 //            query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
 //
-//            String real = getInterpretedQuery(session, ObjectType.class, query);
+//            String real = getInterpretedQuery2(session, ObjectType.class, query);
 //
 //            LOGGER.info("real query>\n{}", new Object[]{real});
 //        } finally {
@@ -1728,7 +1733,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             ObjectQuery objectQuery = ObjectQuery.createObjectQuery(substring);
             objectQuery.setUseNewQueryInterpreter(true);
 
-            String real = getInterpretedQuery(session, ObjectType.class, objectQuery);
+            String real = getInterpretedQuery2(session, ObjectType.class, objectQuery);
             String expected = "select\n" +
                     "  o.fullObject,\n" +
                     "  o.stringsCount,\n" +
@@ -1765,7 +1770,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
         try {
             TypeFilter type = TypeFilter.createType(UserType.COMPLEX_TYPE, null);
-            String real = getInterpretedQuery(session, ObjectType.class, ObjectQuery.createObjectQuery(type));
+            String real = getInterpretedQuery2(session, ObjectType.class, ObjectQuery.createObjectQuery(type));
             String expected = "select\n" +
                     "  o.fullObject,\n" +
                     "  o.stringsCount,\n" +
@@ -1791,7 +1796,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
         try {
             TypeFilter type = TypeFilter.createType(AbstractRoleType.COMPLEX_TYPE, null);
-            String real = getInterpretedQuery(session, ObjectType.class, ObjectQuery.createObjectQuery(type));
+            String real = getInterpretedQuery2(session, ObjectType.class, ObjectQuery.createObjectQuery(type));
             String expected = "select\n" +
                     "  o.fullObject,\n" +
                     "  o.stringsCount,\n" +
@@ -1822,7 +1827,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     new ItemPath(ReportOutputType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP),
                     ReportOutputType.class, prismContext, timeXml, true);
 
-            String real = getInterpretedQuery(session, ReportOutputType.class, ObjectQuery.createObjectQuery(less));
+            String real = getInterpretedQuery2(session, ReportOutputType.class, ObjectQuery.createObjectQuery(less));
             String expected = "select\n" +
                     "  r.fullObject,\n" +
                     "  r.stringsCount,\n" +
@@ -1863,7 +1868,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     new PolyString("Caribbean", "caribbean"));
             TypeFilter type = TypeFilter.createType(UserType.COMPLEX_TYPE, eq);
 
-            String real = getInterpretedQuery(session, ObjectType.class, ObjectQuery.createObjectQuery(type));
+            String real = getInterpretedQuery2(session, ObjectType.class, ObjectQuery.createObjectQuery(type));
             String expected = "select\n" +
                     "  o.fullObject,\n" +
                     "  o.stringsCount,\n" +
@@ -1928,7 +1933,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     new PolyString("Caribbean", "caribbean"));
             TypeFilter type = TypeFilter.createType(OrgType.COMPLEX_TYPE, eq);
 
-            String real = getInterpretedQuery(session, ObjectType.class, ObjectQuery.createObjectQuery(type));
+            String real = getInterpretedQuery2(session, ObjectType.class, ObjectQuery.createObjectQuery(type));
             String expected = "select\n" +
                     "  o.fullObject,\n" +
                     "  o.stringsCount,\n" +
@@ -1963,7 +1968,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     UserType.class, prismContext, "some weapon name");
             TypeFilter type = TypeFilter.createType(UserType.COMPLEX_TYPE, eq);
 
-            String real = getInterpretedQuery(session, ObjectType.class, ObjectQuery.createObjectQuery(type));
+            String real = getInterpretedQuery2(session, ObjectType.class, ObjectQuery.createObjectQuery(type));
             String expected = "select\n" +
                     "  o.fullObject,\n" +
                     "  o.stringsCount,\n" +
@@ -1994,7 +1999,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             RefFilter ref = RefFilter.createReferenceEqual(UserType.F_LINK_REF, UserType.class, prismContext, "123");
             TypeFilter type = TypeFilter.createType(UserType.COMPLEX_TYPE, ref);
 
-            String real = getInterpretedQuery(session, ObjectType.class, ObjectQuery.createObjectQuery(type));
+            String real = getInterpretedQuery2(session, ObjectType.class, ObjectQuery.createObjectQuery(type));
             String expected = "select\n" +
                     "  o.fullObject,\n" +
                     "  o.stringsCount,\n" +
@@ -2062,7 +2067,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             OrFilter or = OrFilter.createOr(type1, type2, type3);
 
-            String real = getInterpretedQuery(session, ObjectType.class, ObjectQuery.createObjectQuery(or));
+            String real = getInterpretedQuery2(session, ObjectType.class, ObjectQuery.createObjectQuery(or));
             String expected = "select\n" +
                     "  o.fullObject,\n" +
                     "  o.stringsCount,\n" +
@@ -2109,7 +2114,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     new ItemPath(ObjectType.F_EXTENSION, new QName("http://example.com/p", "locations")),
                     GenericObjectType.class, prismContext, null);
 
-            getInterpretedQuery(session, GenericObjectType.class, ObjectQuery.createObjectQuery(eq));
+            getInterpretedQuery2(session, GenericObjectType.class, ObjectQuery.createObjectQuery(eq));
         } catch (QueryException ex) {
             LOGGER.info("Exception", ex);
             throw ex;
@@ -2126,7 +2131,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     new ItemPath(ObjectType.F_EXTENSION, new QName("http://example.com/p", "stringType")),
                     GenericObjectType.class, prismContext, "asdf");
 
-            String real = getInterpretedQuery(session, GenericObjectType.class, ObjectQuery.createObjectQuery(eq));
+            String real = getInterpretedQuery2(session, GenericObjectType.class, ObjectQuery.createObjectQuery(eq));
             String expected = "select\n" +
                     "  g.fullObject,\n" +
                     "  g.stringsCount,\n" +
@@ -2180,7 +2185,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 //            List l = rQuery.list();
 //            LOGGER.info(">>>>>>>>asdfasdfasdfasdf{}",l.size());
 //
-//            String real = getInterpretedQuery(session, ShadowType.class, query);
+//            String real = getInterpretedQuery2(session, ShadowType.class, query);
 //
 //            LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
 //            AssertJUnit.assertEquals(expected, real);
@@ -2200,7 +2205,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             ObjectQuery objectQuery = ObjectQuery.createObjectQuery(eq);
             objectQuery.setUseNewQueryInterpreter(true);
 
-            String real = getInterpretedQuery(session, GenericObjectType.class, objectQuery);
+            String real = getInterpretedQuery2(session, GenericObjectType.class, objectQuery);
             String expected = "select\n" +
                     "  g.fullObject,\n" +
                     "  g.stringsCount,\n" +
@@ -2256,7 +2261,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             ObjectQuery objectQuery = ObjectQuery.createObjectQuery(eq);
             objectQuery.setUseNewQueryInterpreter(true);
 
-            String real = getInterpretedQuery(session, UserType.class, objectQuery);
+            String real = getInterpretedQuery2(session, UserType.class, objectQuery);
             String expected = "select\n" +
                     "  u.fullObject,\n" +
                     "  u.stringsCount,\n" +
@@ -2296,10 +2301,52 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
-    protected <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, ObjectQuery query,
-                                                                boolean interpretCount) throws Exception {
+    @Test
+    public void test700QueryCertCaseAll() throws Exception {
+        Session session = open();
+        try {
+            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, (ObjectQuery) null, false);
+            
+//            assertEqualsIgnoreWhitespace(expected, real);
 
-        LOGGER.info("QUERY TYPE TO CONVERT :\n{}", (query.getFilter() != null ? query.getFilter().debugDump(3) : null));
+        } finally {
+            close(session);
+        }
+    }
+
+    protected <T extends Containerable> String getInterpretedQuery2(Session session, Class<T> type, File file) throws
+            Exception {
+        return getInterpretedQuery2(session, type, file, false);
+    }
+
+    protected <T extends Containerable> String getInterpretedQuery2(Session session, Class<T> type, File file,
+                                                                    boolean interpretCount) throws Exception {
+
+        QueryType queryType = PrismTestUtil.parseAtomicValue(file, QueryType.COMPLEX_TYPE);
+
+        LOGGER.info("QUERY TYPE TO CONVERT : {}", ObjectQueryUtil.dump(queryType));
+
+        ObjectQuery query = null;
+        try {
+            query = QueryJaxbConvertor.createObjectQuery((Class) type, queryType, prismContext);        // TODO
+        } catch (Exception ex) {
+            LOGGER.info("error while converting query: " + ex.getMessage(), ex);
+        }
+
+        return getInterpretedQuery2(session, type, query, interpretCount);
+    }
+
+    protected <T extends Containerable> String getInterpretedQuery2(Session session, Class<T> type, ObjectQuery query) throws Exception {
+        return getInterpretedQuery2(session, type, query, false);
+    }
+
+
+    protected <T extends Containerable> String getInterpretedQuery2(Session session, Class<T> type, ObjectQuery query,
+                                                                   boolean interpretCount) throws Exception {
+
+        if (query != null) {
+            LOGGER.info("QUERY TYPE TO CONVERT :\n{}", (query.getFilter() != null ? query.getFilter().debugDump(3) : null));
+        }
 
         QueryEngine2 engine = new QueryEngine2(repositoryService.getConfiguration(), prismContext);
         RQuery rQuery = engine.interpret(query, type, null, interpretCount, session);

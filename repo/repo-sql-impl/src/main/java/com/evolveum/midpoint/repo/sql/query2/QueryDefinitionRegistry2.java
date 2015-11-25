@@ -16,9 +16,12 @@
 
 package com.evolveum.midpoint.repo.sql.query2;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationCase;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.definition.ClassDefinitionParser;
 import com.evolveum.midpoint.repo.sql.query2.definition.Definition;
 import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
@@ -28,6 +31,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.Validate;
 
@@ -72,6 +76,11 @@ public class QueryDefinitionRegistry2 implements DebugDumpable {
             map.put(objectType.getTypeQName(), definition);
             definitionsByClass.put(definition.getJpaType(), definition);
         }
+
+        // TODO fix this hack
+        EntityDefinition caseDefinition = classDefinitionParser.parseObjectTypeClass(AccessCertificationCaseType.COMPLEX_TYPE,
+                AccessCertificationCaseType.class, RAccessCertificationCase.class);
+        map.put(AccessCertificationCaseType.COMPLEX_TYPE, caseDefinition);
 
         // link parents (maybe not needed at all, we'll see)
         for (EntityDefinition definition : map.values()) {
@@ -131,12 +140,22 @@ public class QueryDefinitionRegistry2 implements DebugDumpable {
     }
 
     // always returns non-null value
-    public <T extends ObjectType> EntityDefinition findEntityDefinition(Class<T> type) {
+    public <T extends Containerable> EntityDefinition findEntityDefinition(Class<T> type) throws QueryException {
         Validate.notNull(type, "Type must not be null.");
-        return findEntityDefinition(ObjectTypes.getObjectType(type).getTypeQName());
+        return findEntityDefinition(getQNameForType(type));
     }
 
-    public <T extends ObjectType, D extends Definition> DefinitionSearchResult<D> findDefinition(Class<T> type, ItemPath path, Class<D> definitionType) {
+    public <T extends Containerable> QName getQNameForType(Class<T> type) throws QueryException {
+        if (ObjectType.class.isAssignableFrom(type)) {
+            return ObjectTypes.getObjectType((Class) type).getTypeQName();
+        }
+        if (AccessCertificationCaseType.class.equals(type)) {           // TODO generalize
+            return AccessCertificationCaseType.COMPLEX_TYPE;
+        }
+        throw new QueryException("Unsupported type " + type);
+    }
+
+    public <T extends Containerable, D extends Definition> DefinitionSearchResult<D> findDefinition(Class<T> type, ItemPath path, Class<D> definitionType) throws QueryException {
         Validate.notNull(type, "Type must not be null.");
         Validate.notNull(definitionType, "Definition type must not be null.");
         EntityDefinition entityDef = findEntityDefinition(type);

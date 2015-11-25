@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.query2;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
@@ -47,7 +48,7 @@ public class QueryEngine2 {
         this.prismContext = prismContext;
     }
 
-    public RQuery interpret(ObjectQuery query, Class<? extends ObjectType> type,
+    public RQuery interpret(ObjectQuery query, Class<? extends Containerable> type,
                             Collection<SelectorOptions<GetOperationOptions>> options,
                             boolean countingObjects, Session session) throws QueryException {
 

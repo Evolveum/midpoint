@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.query2;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -57,7 +58,7 @@ public class InterpretationContext {
 
     private InterpreterHelper helper = new InterpreterHelper(this);
 
-    private Class<? extends ObjectType> type;
+    private Class<? extends Containerable> type;
 
     private RootHibernateQuery hibernateQuery;
 
@@ -68,7 +69,7 @@ public class InterpretationContext {
      */
     private EntityDefinition rootEntityDefinition;
 
-    public InterpretationContext(QueryInterpreter2 interpreter, Class<? extends ObjectType> type,
+    public InterpretationContext(QueryInterpreter2 interpreter, Class<? extends Containerable> type,
                                  PrismContext prismContext, Session session) throws QueryException {
 
         Validate.notNull(interpreter, "interpreter");
@@ -104,7 +105,7 @@ public class InterpretationContext {
         return interpreter;
     }
 
-    public Class<? extends ObjectType> getType() {
+    public Class<? extends Containerable> getType() {
         return type;
     }
 
