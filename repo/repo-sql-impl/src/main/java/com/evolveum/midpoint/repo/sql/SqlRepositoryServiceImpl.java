@@ -30,9 +30,6 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.Visitable;
-import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -50,11 +47,11 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
 import com.evolveum.midpoint.repo.sql.data.common.any.RValueType;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.helpers.CertificationCaseHelper;
 import com.evolveum.midpoint.repo.sql.helpers.LookupTableHelper;
 import com.evolveum.midpoint.repo.sql.helpers.GeneralHelper;
+import com.evolveum.midpoint.repo.sql.helpers.NameResolutionHelper;
 import com.evolveum.midpoint.repo.sql.query.QueryEngine;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.RQuery;
@@ -107,7 +104,7 @@ import org.hibernate.criterion.Restrictions;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.internal.SessionFactoryImpl;
 import org.hibernate.jdbc.Work;
-import org.hibernate.transform.Transformers;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
@@ -123,10 +120,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 
@@ -151,10 +146,17 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     private static final String DETAILS_HIBERNATE_DIALECT = "hibernateDialect";
     private static final String DETAILS_HIBERNATE_HBM_2_DDL = "hibernateHbm2ddl";
 
-    // initialized in post-construct method
+    @Autowired
     private GeneralHelper generalHelper;
+
+    @Autowired
     private LookupTableHelper lookupTableHelper;
+
+    @Autowired
     private CertificationCaseHelper caseHelper;
+
+    @Autowired
+    private NameResolutionHelper nameResolutionHelper;
 
     private OrgClosureManager closureManager;
 
@@ -1103,68 +1105,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             caseHelper.updateLoadedCampaign(prismObject, options, session);
         }
 
-        GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-        
-        if (GetOperationOptions.isResolveNames(rootOptions)) {
-            final List<String> oidsToResolve = new ArrayList<String>();
-            Visitor oidExtractor = new Visitor() {
-                @Override
-                public void visit(Visitable visitable) {
-                    if (visitable instanceof PrismReferenceValue) {
-                        PrismReferenceValue value = (PrismReferenceValue) visitable;
-                        if (value.getTargetName() != null) {    // just for sure
-                            return;
-                        }
-                        if (value.getObject() != null) {        // improbable but possible
-                            value.setTargetName(value.getObject().getName());
-                            return;
-                        }
-                        if (value.getOid() == null) {           // shouldn't occur as well
-                            return;
-                        }
-                        oidsToResolve.add(value.getOid());
-                    }
-                }
-            };
-            prismObject.accept(oidExtractor);
-
-			if (!oidsToResolve.isEmpty()) {
-				Query query = session.getNamedQuery("resolveReferences");
-				query.setParameterList("oid", oidsToResolve);
-				query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
-
-				List<Map<String, Object>> results = query.list();
-				final Map<String, PolyString> oidNameMap = consolidateResults(results);
-
-                Visitor nameSetter = new Visitor() {
-                    @Override
-                    public void visit(Visitable visitable) {
-                        if (visitable instanceof PrismReferenceValue) {
-                            PrismReferenceValue value = (PrismReferenceValue) visitable;
-                            if (value.getTargetName() == null && value.getOid() != null) {
-                                value.setTargetName(oidNameMap.get(value.getOid()));
-                            }
-                        }
-                    }
-                };
-                prismObject.accept(nameSetter);
-			}
-        }
-        
+        nameResolutionHelper.resolveNamesIfRequested(session, prismObject.getValue(), options);
         validateObjectType(prismObject, type);
 
         return prismObject;
     }
 
-
-    private Map<String, PolyString> consolidateResults(List<Map<String, Object>> results){
-    	Map<String, PolyString> oidNameMap = new HashMap<String, PolyString>();
-    	for (Map<String, Object> map : results){
-    		PolyStringType name = RPolyString.copyToJAXB((RPolyString) map.get("1"));
-    		oidNameMap.put((String)map.get("0"), new PolyString(name.getOrig(), name.getNorm()));
-    	}
-    	return oidNameMap;
-    }
 
     private void applyShadowAttributeDefinitions(Class<? extends RAnyValue> anyValueType,
                                                  PrismObject object, Session session) throws SchemaException {
@@ -1694,9 +1640,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     @PostConstruct
     public void initialize() {
         getClosureManager().initialize(this);
-        generalHelper = new GeneralHelper(getPrismContext());
-        lookupTableHelper = new LookupTableHelper(getPrismContext(), generalHelper);
-        caseHelper = new CertificationCaseHelper(getPrismContext(), generalHelper);
     }
 
     /* (non-Javadoc)

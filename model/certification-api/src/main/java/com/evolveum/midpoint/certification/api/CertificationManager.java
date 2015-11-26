@@ -162,7 +162,7 @@ public interface CertificationManager {
      * Query argument for cases is the same as in the searchCases call.
      * Contrary to searchCases, this method allows to collect cases for more than one campaign
      * (e.g. to present a reviewer all of his/her cases).
-     * So, instead of campaignOid there is a campaignQuery allowing to select one, more, and even all campaigns.
+     * So, instead of campaignOid it will be (when implemented) possible to specify conditions for the campaign in the caseQuery.
      *
      * Contrary to all the other methods, cases returned from this method have campaignRef set - both reference and the campaign object itself.
      * (THIS MAY CHANGE IN THE FUTURE.)
@@ -178,13 +178,15 @@ public interface CertificationManager {
      * @param notDecidedOnly If true, only response==(NO_DECISION or null) should be returned.
      *                       It is currently not possible to formulate this using Query API
      *                       (we don't know the ID of the decision element to refer to).
+     *
+     *                       NOT IMPLEMENTED NOW.
+     *
      * @param options Options to use (currently supported is RESOLVE_NAMES).
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
      * @return A list of relevant certification cases.
      *
      */
-
     List<AccessCertificationCaseType> searchDecisions(ObjectQuery caseQuery,
                                                       String reviewerOid, boolean notDecidedOnly,
                                                       Collection<SelectorOptions<GetOperationOptions>> options,

@@ -46,6 +46,8 @@ import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -59,19 +61,15 @@ import java.util.List;
  * from tons of type-specific code. Serious solution would be to implement
  * subobject-level operations more generically.
  *
- * @author mederly
+ * @author lazyman, mederly
  */
+@Component
 public class LookupTableHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(LookupTableHelper.class);
 
-    private PrismContext prismContext;
+    @Autowired
     private GeneralHelper generalHelper;
-
-    public LookupTableHelper(PrismContext prismContext, GeneralHelper generalHelper) {
-        this.prismContext = prismContext;
-        this.generalHelper = generalHelper;
-    }
 
     public void addLookupTableRows(Session session, RObject object, boolean merge) {
         if (!(object instanceof RLookupTable)) {

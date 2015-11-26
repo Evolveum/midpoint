@@ -43,6 +43,8 @@ import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -58,17 +60,19 @@ import java.util.List;
  *
  * @author mederly
  */
+@Component
 public class CertificationCaseHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(CertificationCaseHelper.class);
 
+    @Autowired
     private PrismContext prismContext;
+
+    @Autowired
     private GeneralHelper generalHelper;
 
-    public CertificationCaseHelper(PrismContext prismContext, GeneralHelper generalHelper) {
-        this.prismContext = prismContext;
-        this.generalHelper = generalHelper;
-    }
+    @Autowired
+    private NameResolutionHelper nameResolutionHelper;
 
     public void addCertificationCampaignCases(Session session, RObject object, boolean merge) {
         if (!(object instanceof RAccessCertificationCampaign)) {
@@ -120,7 +124,6 @@ public class CertificationCaseHelper {
             } else if (path.equivalent(casePath)) {
                 caseDelta.add(delta);
             } else if (path.isSuperPath(casePath)) {        // like case[id]/xxx
-//                throw new UnsupportedOperationException("Campaign case can be modified only by specifying path=case; not via " + path);
                 caseDelta.add(delta);
             }
         }
@@ -243,6 +246,7 @@ public class CertificationCaseHelper {
                                                                      Session session) throws SchemaException {
 
         AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(result.getFullObject(), prismContext);
+        nameResolutionHelper.resolveNamesIfRequested(session, aCase.asPrismContainerValue(), options);
         generalHelper.validateContainerable(aCase, AccessCertificationCaseType.class);
         return aCase;
     }
@@ -260,6 +264,7 @@ public class CertificationCaseHelper {
         Criteria criteria = session.createCriteria(RAccessCertificationCase.class);
         criteria.add(Restrictions.eq("ownerOid", object.getOid()));
 
+        // TODO fetch only XML representation
         List<RAccessCertificationCase> cases = criteria.list();
         if (cases == null || cases.isEmpty()) {
             return;

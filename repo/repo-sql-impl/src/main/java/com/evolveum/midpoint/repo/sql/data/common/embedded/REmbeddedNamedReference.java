@@ -33,6 +33,10 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 
 /**
+ * Reference containing the name of referenced object.
+ * Originally thought to be used in certifications, but replaced by dynamically joining RObject table.
+ * So keeping this for possible future use only.
+ *
  * @author mederly
  */
 @Embeddable

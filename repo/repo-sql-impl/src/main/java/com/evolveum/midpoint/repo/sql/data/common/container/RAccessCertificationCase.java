@@ -21,27 +21,34 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.RAccessCertificationCampaign;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedNamedReference;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
-import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
-import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Where;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Embedded;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.IdClass;
+import javax.persistence.Index;
+import javax.persistence.Lob;
+import javax.persistence.ManyToOne;
+import javax.persistence.MapsId;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.Arrays;
@@ -75,8 +82,8 @@ public class RAccessCertificationCase implements Container {
     private Integer id;
 
     private Set<RCertCaseReference> reviewerRef;
-    private REmbeddedNamedReference objectRef;
-    private REmbeddedNamedReference targetRef;
+    private REmbeddedReference objectRef;
+    private REmbeddedReference targetRef;
 
     private boolean enabled;
     private XMLGregorianCalendar reviewRequestedTimestamp;
@@ -136,15 +143,16 @@ public class RAccessCertificationCase implements Container {
     }
 
     @Embedded
-    public REmbeddedNamedReference getTargetRef() {
+    public REmbeddedReference getTargetRef() {
         return targetRef;
     }
 
     @Embedded
-    public REmbeddedNamedReference getObjectRef() {
+    public REmbeddedReference getObjectRef() {
         return objectRef;
     }
 
+    @Column(name = "case_enabled")
     public boolean isEnabled() {
         return enabled;
     }
@@ -173,11 +181,11 @@ public class RAccessCertificationCase implements Container {
         this.id = id;
     }
 
-    public void setTargetRef(REmbeddedNamedReference targetRef) {
+    public void setTargetRef(REmbeddedReference targetRef) {
         this.targetRef = targetRef;
     }
 
-    public void setObjectRef(REmbeddedNamedReference objectRef) {
+    public void setObjectRef(REmbeddedReference objectRef) {
         this.objectRef = objectRef;
     }
 
@@ -296,8 +304,8 @@ public class RAccessCertificationCase implements Container {
     private static RAccessCertificationCase toRepo(AccessCertificationCaseType case1, PrismContext prismContext) {
         RAccessCertificationCase rCase = new RAccessCertificationCase();
         rCase.setId(RUtil.toInteger(case1.getId()));
-        rCase.setObjectRef(RUtil.jaxbRefToEmbeddedNamedRepoRef(case1.getObjectRef(), prismContext));
-        rCase.setTargetRef(RUtil.jaxbRefToEmbeddedNamedRepoRef(case1.getTargetRef(), prismContext));
+        rCase.setObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(case1.getObjectRef(), prismContext));
+        rCase.setTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(case1.getTargetRef(), prismContext));
         rCase.getReviewerRef().addAll(RCertCaseReference.safeListReferenceToSet(
                 case1.getReviewerRef(), prismContext, rCase, RCReferenceOwner.CASE_REVIEWER));
         rCase.setEnabled(case1.isEnabled());

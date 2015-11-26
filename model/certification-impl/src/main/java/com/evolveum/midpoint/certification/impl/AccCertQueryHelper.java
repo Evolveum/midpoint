@@ -18,6 +18,7 @@ package com.evolveum.midpoint.certification.impl;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
@@ -90,6 +91,8 @@ public class AccCertQueryHelper {
 
     protected List<AccessCertificationCaseType> searchDecisions(ObjectQuery query, String reviewerOid, boolean notDecidedOnly, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 
+        // TODO FILTER BY NOT_DECIDED_ONLY
+
         // enhance filter with reviewerRef + enabled
         ObjectQuery newQuery;
         ObjectReferenceType reviewerRef = ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER);
@@ -139,12 +142,10 @@ public class AccCertQueryHelper {
                 }
             }
 
-//            if (!notDecidedOnly || !isDecided(_case)) {
-//                ObjectReferenceType campaignRef = ObjectTypeUtil.createObjectRef(campaignObject);
-//                campaignRef.asReferenceValue().setObject(campaignObject);
-//                _case.setCampaignRef(campaignRef);
-//                caseList.add(_case);
-//            }
+            PrismObject<AccessCertificationCampaignType> campaignObject = campaign.asPrismObject();
+            ObjectReferenceType campaignRef = ObjectTypeUtil.createObjectRef(campaignObject);
+            _case.setCampaignRef(campaignRef);
+            _case.getCampaignRef().asReferenceValue().setObject(campaignObject);    // has to be done AFTER setCampaignRef in order to preserve the value!
         }
 
         return caseList;

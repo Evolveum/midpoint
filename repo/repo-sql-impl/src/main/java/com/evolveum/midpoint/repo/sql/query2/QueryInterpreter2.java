@@ -327,12 +327,13 @@ public class QueryInterpreter2 {
             return;
         }
         // FIXME this has to be enhanced for multi-segment paths! (e.g. create joins if needed)
-        Definition def = registry.findDefinition(type, paging.getOrderBy(), Definition.class).getItemDefinition();
-        if (def == null) {
+        DefinitionSearchResult result = registry.findDefinition(type, paging.getOrderBy(), Definition.class);
+        if (result == null) {
             LOGGER.warn("Unknown path '" + paging.getOrderBy() + "', couldn't find definition for it, "
                     + "list will not be ordered by it.");
             return;
         }
+        Definition def = result.getItemDefinition();
 
         String propertyName = hibernateQuery.getPrimaryEntityAlias() + "." + def.getJpaName();
         if (PolyString.class.equals(def.getJaxbType())) {
