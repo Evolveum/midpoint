@@ -184,13 +184,17 @@ public class ItemPath implements Serializable, Cloneable {
 	}
 	
 	/**
-	 * Returns path containinig all segments except the first.
+	 * Returns path containing all segments except the first N.
 	 */
-	public ItemPath tail() {
-		if (segments.size() == 0) {
+	public ItemPath tail(int n) {
+		if (segments.size() < n) {
 			return EMPTY_PATH;
 		}
-		return new ItemPath(segments.subList(1, segments.size()));
+		return new ItemPath(segments.subList(n, segments.size()));
+	}
+
+	public ItemPath tail() {
+		return tail(1);
 	}
 
 	/**

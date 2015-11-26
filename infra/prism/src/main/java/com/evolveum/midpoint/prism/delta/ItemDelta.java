@@ -1081,6 +1081,15 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 			delta.applyToMatchingPath(propertyContainer);
 		}
 	}
+
+	public void applyTo(PrismContainerValue containerValue) throws SchemaException {
+		ItemPath deltaPath = getPath();
+		if (ItemPath.isNullOrEmpty(deltaPath)) {
+			throw new IllegalArgumentException("Cannot apply empty-path delta " + this + " directly to a PrismContainerValue " + containerValue);
+		}
+		Item subItem = containerValue.findOrCreateItem(deltaPath, getItemClass(), getDefinition());
+		applyToMatchingPath(subItem);
+	}
 	
 	public void applyTo(Item item) throws SchemaException {
 		ItemPath itemPath = item.getPath();

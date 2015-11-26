@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.RAccessCertificationCampaign;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
@@ -303,9 +304,10 @@ public class RAccessCertificationCase implements Container {
         rCase.setReviewRequestedTimestamp(case1.getReviewRequestedTimestamp());
         rCase.setReviewDeadline(case1.getReviewDeadline());
         rCase.setRemediedTimestamp(case1.getRemediedTimestamp());
+        PrismContainerValue<AccessCertificationCaseType> cvalue = case1.asPrismContainerValue();
         String xml;
         try {
-            xml = prismContext.serializeContainerValueToString(case1.asPrismContainerValue(), new QName("value"), PrismContext.LANG_XML);
+            xml = prismContext.serializeContainerValueToString(cvalue, new QName("value"), PrismContext.LANG_XML);
         } catch (SchemaException e) {
             throw new IllegalStateException("Couldn't serialize certification case to string", e);
         }
