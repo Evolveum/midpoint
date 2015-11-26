@@ -127,6 +127,9 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	
 	protected static final int NUMBER_OF_ACCOUNTS = 16;
 	private static final String ASSOCIATION_GROUP_NAME = "group";
+
+	private static final String NS_EXTENSION = "http://whatever.com/my";
+	private static final QName EXTENSION_SHOW_IN_ADVANCED_VIEW_ONLY_QNAME = new QName(NS_EXTENSION, "showInAdvancedViewOnly");
 	
 	private boolean allowDuplicateSearchResults = false;
 	
@@ -254,7 +257,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 		cleanupDelete(toAccountDn(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME));
 		cleanupDelete(toAccountDn(USER_CPTBARBOSSA_USERNAME, USER_CPTBARBOSSA_FULL_NAME));
 		cleanupDelete(toAccountDn(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME));
-		cleanupDelete(toGroupDn("Mêlée Island"));
+		cleanupDelete(toGroupDn(GROUP_MELEE_ISLAND_NAME));
 	}
 
 	@Test
@@ -296,8 +299,22 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         PrismAsserts.assertDefinition(createTimestampDef, new QName(MidPointConstants.NS_RI, "createTimeStamp"),
         		DOMUtil.XSD_LONG, 0, 1);
         assertTrue("createTimeStampDef read", createTimestampDef.canRead());
-        assertFalse("createTimeStampDef read", createTimestampDef.canModify());
-        assertFalse("createTimeStampDef read", createTimestampDef.canAdd());
+        assertFalse("createTimeStampDef modify", createTimestampDef.canModify());
+        assertFalse("createTimeStampDef add", createTimestampDef.canAdd());
+        
+        ResourceAttributeDefinition<Long> isCriticalSystemObjectDef = accountObjectClassDefinition.findAttributeDefinition("isCriticalSystemObject");
+        PrismAsserts.assertDefinition(isCriticalSystemObjectDef, new QName(MidPointConstants.NS_RI, "isCriticalSystemObject"),
+        		DOMUtil.XSD_BOOLEAN, 0, 1);
+        assertTrue("isCriticalSystemObject read", isCriticalSystemObjectDef.canRead());
+        assertTrue("isCriticalSystemObject modify", isCriticalSystemObjectDef.canModify());
+        assertTrue("isCriticalSystemObject add", isCriticalSystemObjectDef.canAdd());
+        
+        ResourceAttributeDefinition<Long> nTSecurityDescriptorDef = accountObjectClassDefinition.findAttributeDefinition("nTSecurityDescriptor");
+        PrismAsserts.assertDefinition(nTSecurityDescriptorDef, new QName(MidPointConstants.NS_RI, "nTSecurityDescriptor"),
+        		DOMUtil.XSD_BASE64BINARY, 1, 1);
+        assertTrue("nTSecurityDescriptor read", nTSecurityDescriptorDef.canRead());
+        assertTrue("nTSecurityDescriptor modify", nTSecurityDescriptorDef.canModify());
+        assertTrue("nTSecurityDescriptor add", nTSecurityDescriptorDef.canAdd());
         
 	}
 	
@@ -720,6 +737,80 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	}
 	
 	@Test
+    public void test212ModifyAccountBarbossaShowInAdvancedViewOnlyTrue() throws Exception {
+		final String TEST_NAME = "test212ModifyAccountBarbossaShowInAdvancedViewOnlyTrue";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectDelta<ShadowType> delta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
+        QName attrQName = new QName(MidPointConstants.NS_RI, "showInAdvancedViewOnly");
+        ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
+        PropertyDelta<Boolean> attrDelta = PropertyDelta.createModificationReplaceProperty(
+        		new ItemPath(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.TRUE);
+        delta.addModification(attrDelta);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        assertAttribute(entry, "showInAdvancedViewOnly", "TRUE");
+        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
+        
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        String shadowOid = getSingleLinkOid(user);
+        assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
+	}
+	
+	/**
+	 * Modify USER, test boolean value mapping.
+	 */
+	@Test
+    public void test213ModifyUserBarbossaShowInAdvancedViewOnlyFalse() throws Exception {
+		final String TEST_NAME = "test213ModifyUserBarbossaShowInAdvancedViewOnlyFalse";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        
+        ObjectDelta<ShadowType> delta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
+        QName attrQName = new QName(MidPointConstants.NS_RI, "showInAdvancedViewOnly");
+        ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
+        PropertyDelta<Boolean> attrDelta = PropertyDelta.createModificationReplaceProperty(
+        		new ItemPath(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.TRUE);
+        delta.addModification(attrDelta);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_BARBOSSA_OID, 
+        		new ItemPath(UserType.F_EXTENSION,  EXTENSION_SHOW_IN_ADVANCED_VIEW_ONLY_QNAME), 
+        		task, result, Boolean.FALSE);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        assertAttribute(entry, "showInAdvancedViewOnly", "FALSE");
+        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
+        
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        String shadowOid = getSingleLinkOid(user);
+        assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
+	}
+	
+	@Test
     public void test220ModifyUserBarbossaPassword() throws Exception {
 		final String TEST_NAME = "test220ModifyUserBarbossaPassword";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -1063,6 +1154,73 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         assertNoLinkedAccount(user);
+	}
+	
+	@Test
+    public void test500AddOrgMeleeIsland() throws Exception {
+		final String TEST_NAME = "test500AddOrgMeleeIsland";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<OrgType> org = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(OrgType.class).instantiate();
+        OrgType orgType = org.asObjectable();
+        orgType.setName(new PolyStringType(GROUP_MELEE_ISLAND_NAME));
+        AssignmentType metaroleAssignment = new AssignmentType();
+        ObjectReferenceType metaroleRef = new ObjectReferenceType();
+        metaroleRef.setOid(ROLE_META_ORG_OID);
+        metaroleRef.setType(RoleType.COMPLEX_TYPE);
+		metaroleAssignment.setTargetRef(metaroleRef);
+		orgType.getAssignment().add(metaroleAssignment);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        addObject(org, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        orgMeleeIslandOid = org.getOid();
+        Entry entry = assertLdapGroup(GROUP_MELEE_ISLAND_NAME);
+        
+        org = getObject(OrgType.class, orgMeleeIslandOid);
+        groupMeleeOid = getSingleLinkOid(org);
+        PrismObject<ShadowType> shadow = getShadowModel(groupMeleeOid);
+        display("Shadow (model)", shadow);
+	}
+	
+	@Test
+    public void test510AssignGuybrushMeleeIsland() throws Exception {
+		final String TEST_NAME = "test510AssignGuybrushMeleeIsland";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignOrg(USER_GUYBRUSH_OID, orgMeleeIslandOid, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        Entry entry = assertLdapAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME);
+        
+        PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
+        String shadowOid = getSingleLinkOid(user);
+        PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
+        display("Shadow (model)", shadow);
+        
+        assertLdapGroupMember(entry, GROUP_MELEE_ISLAND_NAME);
+
+        IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupMeleeOid);
 	}
 	
 	@Override

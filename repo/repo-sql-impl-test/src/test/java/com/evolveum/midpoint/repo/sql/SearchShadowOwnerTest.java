@@ -1,4 +1,19 @@
-package com.evolveum.midpoint.repo.sql;
+/*
+ * Copyright (c) 2010-2015 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -13,6 +28,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -39,16 +55,14 @@ public class SearchShadowOwnerTest extends BaseSQLRepoTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(SearchShadowOwnerTest.class);
 
-    @Test(expectedExceptions = ObjectNotFoundException.class)
+    @Test
     public void searchNonExistingShadowOwner() throws Exception {
         //searching owner for non existing shadow
         OperationResult result = new OperationResult("List owner");
-        try {
-            repositoryService.searchShadowOwner("12345", null, result);
-        } finally {
-            result.computeStatus();
-            AssertJUnit.assertTrue("current status" + result.getStatus(), result.isFatalError());
-        }
+        PrismObject<FocusType> shadow = repositoryService.searchShadowOwner("12345", null, result);
+        AssertJUnit.assertNull(shadow);
+        result.computeStatus();
+        AssertJUnit.assertTrue(result.isSuccess());
     }
 
     @Override

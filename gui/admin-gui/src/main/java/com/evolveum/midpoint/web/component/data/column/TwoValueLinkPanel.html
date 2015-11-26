@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright (c) 2010-2013 Evolveum
   ~
@@ -15,16 +14,13 @@
   ~ limitations under the License.
   -->
 
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
-<body>
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-<div class="row">
-	   <!-- Min and Max assignments configuration -->
-                <div class="col-xs-6" wicket:id="minAssignmentsConfig" />
-    </div><div class="row">
-                <div class="col-xs-6" wicket:id="maxAssignmentsConfig" />
-    </div>
+    <a wicket:id="link">
+        <span wicket:id="label"/>
+    </a>
+    <br/>
+    <span wicket:id="description"/>
 </wicket:panel>
-</body>
 </html>
-

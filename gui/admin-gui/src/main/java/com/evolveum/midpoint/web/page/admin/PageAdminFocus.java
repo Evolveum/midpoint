@@ -1126,7 +1126,7 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin
 
 		// handle added assignments
 		// existing user assignments are not relevant -> delete them
-		PrismContainer<AssignmentType> assignmentContainer = focus.findContainer(containerName);
+		PrismContainer<AssignmentType> assignmentContainer = focus.findOrCreateContainer(containerName);
 		if (assignmentContainer != null && !assignmentContainer.isEmpty()){
 			assignmentContainer.clear();
 		}

@@ -15,16 +15,25 @@
   ~ limitations under the License.
   -->
 
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
-<body>
-<wicket:panel>
-<div class="row">
-	   <!-- Min and Max assignments configuration -->
-                <div class="col-xs-6" wicket:id="minAssignmentsConfig" />
-    </div><div class="row">
-                <div class="col-xs-6" wicket:id="maxAssignmentsConfig" />
-    </div>
-</wicket:panel>
-</body>
-</html>
-
+<schema
+	xmlns="http://www.w3.org/2001/XMLSchema" 
+	targetNamespace="http://whatever.com/my"
+	xmlns:tns="http://whatever.com/my"
+	xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	elementFormDefault="qualified">
+	
+	<import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3" />
+	
+	<complexType name="UserExtensionType">
+		<annotation>
+			<appinfo>
+				<a:extension ref="c:UserType"/>
+			</appinfo>
+		</annotation>
+		<sequence>
+			<element name="showInAdvancedViewOnly" type="boolean" minOccurs="0"/>
+		</sequence>
+	</complexType>
+	
+</schema>

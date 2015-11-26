@@ -453,7 +453,9 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 			}
 			return;
 		}
-
+        if (status == OperationResultStatus.FATAL_ERROR) {
+            return;
+        }
 		OperationResultStatus newStatus = OperationResultStatus.UNKNOWN;
 		boolean allSuccess = true;
 		boolean allNotApplicable = true;

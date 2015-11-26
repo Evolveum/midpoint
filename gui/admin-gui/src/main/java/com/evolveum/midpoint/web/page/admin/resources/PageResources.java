@@ -202,21 +202,21 @@ public class PageResources extends PageAdminResources {
         });
     }
 
-    private void initSearchForm(Form searchForm){
-        BasicSearchPanel<ResourceSearchDto> basicSearch = new BasicSearchPanel<ResourceSearchDto>(ID_BASIC_SEARCH){
+    private void initSearchForm(Form searchForm) {
+        BasicSearchPanel<ResourceSearchDto> basicSearch = new BasicSearchPanel<ResourceSearchDto>(ID_BASIC_SEARCH) {
 
             @Override
-            protected IModel<String> createSearchTextModel(){
+            protected IModel<String> createSearchTextModel() {
                 return new PropertyModel<>(searchModel, ResourceSearchDto.F_TEXT);
             }
 
             @Override
-            protected void searchPerformed(AjaxRequestTarget target){
+            protected void searchPerformed(AjaxRequestTarget target) {
                 PageResources.this.searchPerformed(target);
             }
 
             @Override
-            protected void clearSearchPerformed(AjaxRequestTarget target){
+            protected void clearSearchPerformed(AjaxRequestTarget target) {
                 PageResources.this.clearSearchPerformed(target);
             }
         };
@@ -663,12 +663,12 @@ public class PageResources extends PageAdminResources {
         }
     }
 
-    private  ObjectQuery createQuery(){
+    private  ObjectQuery createQuery() {
         ResourceSearchDto dto = searchModel.getObject();
         ObjectQuery query = null;
         String searchText = dto.getText();
 
-        if(StringUtils.isEmpty(dto.getText())){
+        if(StringUtils.isEmpty(dto.getText())) {
             return null;
         }
 
@@ -681,7 +681,7 @@ public class PageResources extends PageAdminResources {
             query = new ObjectQuery();
             query.setFilter(substring);
 
-        } catch(Exception e){
+        } catch (Exception e) {
             error(getString("pageResources.message.queryError") + " " + e.getMessage());
             LoggingUtils.logException(LOGGER, "Couldn't create query filter.", e);
         }
@@ -689,7 +689,7 @@ public class PageResources extends PageAdminResources {
         return query;
     }
 
-    private void searchPerformed(AjaxRequestTarget target){
+    private void searchPerformed(AjaxRequestTarget target) {
         ObjectQuery query = createQuery();
         target.add(getFeedbackPanel());
 
@@ -697,6 +697,7 @@ public class PageResources extends PageAdminResources {
         DataTable table = panel.getDataTable();
         ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
         provider.setQuery(query);
+        provider.setOptions(SelectorOptions.createCollection(GetOperationOptions.createNoFetch()));
 
         ResourcesStorage storage = getSessionStorage().getResources();
         storage.setResourceSearch(searchModel.getObject());
@@ -705,7 +706,7 @@ public class PageResources extends PageAdminResources {
         target.add((Component) panel);
     }
 
-    private void deleteResourceSyncTokenPerformed(AjaxRequestTarget target, IModel<ResourceDto> model){
+    private void deleteResourceSyncTokenPerformed(AjaxRequestTarget target, IModel<ResourceDto> model) {
         deleteSyncTokenPerformed(target, model);
     }
 

@@ -29,6 +29,7 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -107,6 +108,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 public class PrismValuePanel extends Panel {
 
     private static final String ID_FEEDBACK = "feedback";
+    private static final String ID_INPUT = "input";
     private static final String ID_VALUE_CONTAINER = "valueContainer";
 
     private IModel<ValueWrapper> model;
@@ -136,7 +138,7 @@ public class PrismValuePanel extends Panel {
         add(feedback);
 
         //input
-        Panel input = createInputComponent("input", label, form);
+        Panel input = createInputComponent(ID_INPUT, label, form);
         input.add(new AttributeModifier("class", inputCssClass));
         if (input instanceof InputPanel) {
             initAccessBehaviour((InputPanel) input);
@@ -280,6 +282,15 @@ public class PrismValuePanel extends Panel {
 
     private boolean isRemoveButtonVisible() {
         ValueWrapper valueWrapper = model.getObject();
+
+        if (valueWrapper.isReadonly()){
+            return false;
+        }
+        Component inputPanel = this.get(ID_VALUE_CONTAINER).get(ID_INPUT);
+        if (inputPanel instanceof  ValueChoosePanel){
+            return true;
+        }
+
         ItemWrapper propertyWrapper = valueWrapper.getItem();
         ItemDefinition definition = propertyWrapper.getItem().getDefinition();
         int min = definition.getMinOccurs();
@@ -294,6 +305,11 @@ public class PrismValuePanel extends Panel {
 
     private boolean isAddButtonVisible() {
         ValueWrapper valueWrapper = model.getObject();
+
+        if (valueWrapper.isReadonly()){
+            return false;
+        }
+
         ItemWrapper propertyWrapper = valueWrapper.getItem();
         Item property = propertyWrapper.getItem();
 
@@ -724,6 +740,7 @@ public class PrismValuePanel extends Panel {
         ItemWrapper propertyWrapper = wrapper.getItem();
 
         List<ValueWrapper> values = propertyWrapper.getValues();
+        Component inputPanel = this.get(ID_VALUE_CONTAINER).get(ID_INPUT);
 
         switch (wrapper.getStatus()) {
             case ADDED:
@@ -739,9 +756,12 @@ public class PrismValuePanel extends Panel {
 
         int count = countUsableValues(propertyWrapper);
         if (count == 0 && !hasEmptyPlaceholder(propertyWrapper)) {
-            values.add(new ValueWrapper(propertyWrapper, new PrismPropertyValue(null), ValueStatus.ADDED));
+            if (inputPanel instanceof ValueChoosePanel) {
+                values.add(new ValueWrapper(propertyWrapper, new PrismReferenceValue(null), ValueStatus.ADDED));
+            } else {
+                values.add(new ValueWrapper(propertyWrapper, new PrismPropertyValue(null), ValueStatus.ADDED));
+            }
         }
-
         ListView parent = findParent(ListView.class);
         target.add(parent.getParent());
     }

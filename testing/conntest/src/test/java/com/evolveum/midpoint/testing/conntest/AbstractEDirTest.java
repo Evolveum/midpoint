@@ -209,7 +209,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 		cleanupDelete(toAccountDn(USER_BARBOSSA_USERNAME));
 		cleanupDelete(toAccountDn(USER_CPTBARBOSSA_USERNAME));
 		cleanupDelete(toAccountDn(USER_GUYBRUSH_USERNAME));
-		cleanupDelete(toGroupDn("Mêlée Island"));
+		cleanupDelete(toGroupDn(GROUP_MELEE_ISLAND_NAME));
 	}
 
 	@Test
@@ -852,7 +852,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
         display("Shadow (model)", shadow);
         
-        assertEDirGroupMember(entry, GROUP_PIRATES_NAME);
+        assertEDirGroupMember(entry, GROUP_MELEE_ISLAND_NAME);
 
         IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupMeleeOid);
 	}

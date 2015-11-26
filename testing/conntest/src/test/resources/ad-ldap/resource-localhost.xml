@@ -53,10 +53,10 @@
     </connectorConfiguration>
 
     <schema>
-        <generationConstraints>
+<!--         <generationConstraints>
             <generateObjectClass>ri:user</generateObjectClass>
             <generateObjectClass>ri:group</generateObjectClass>
-        </generationConstraints>
+        </generationConstraints> -->
     </schema>
 
 
@@ -180,6 +180,47 @@
 				<ref>ri:createTimeStamp</ref>
 				<fetchStrategy>explicit</fetchStrategy>
 			</attribute>
+			
+			<attribute>
+				<ref>ri:nTSecurityDescriptor</ref>
+				<!-- This is defined as mandatory in top object class.
+                                     But it is not really mandatory. Well done Microsoft. -->
+				<limitations>
+					<minOccurs>0</minOccurs>
+				</limitations>
+			</attribute>
+
+			<attribute>
+				<ref>ri:instanceType</ref>
+				<!-- This is defined as mandatory in top object class.
+                                     But it is not really mandatory. Well done Microsoft. -->
+				<limitations>
+					<minOccurs>0</minOccurs>
+				</limitations>
+			</attribute>
+
+			<attribute>
+				<ref>ri:objectCategory</ref>
+				<!-- This is defined as mandatory in top object class.
+                                     But it is not really mandatory. Well done Microsoft. -->
+				<limitations>
+					<minOccurs>0</minOccurs>
+				</limitations>
+				<outbound>
+					<expression>
+						<value>CN=Person,CN=Schema,CN=Configuration,DC=win,DC=evolveum,DC=com</value>
+					</expression>
+				</outbound>
+			</attribute>
+			
+			<attribute>
+				<ref>ri:showInAdvancedViewOnly</ref>
+				<outbound>
+					<source>
+						<path>extension/showInAdvancedViewOnly</path>
+					</source>
+				</outbound>
+			</attribute>
 
             <association>
                 <ref>ri:group</ref>
@@ -276,7 +317,6 @@
 						<q:path>c:employeeNumber</q:path>
 						<expression>
 							<path>$shadow/attributes/employeeNumber</path>
-							<allowEmptyValues>true</allowEmptyValues>
 						</expression>
 					</q:equal>
 					<q:not>

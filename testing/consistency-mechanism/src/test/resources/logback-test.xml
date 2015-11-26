@@ -31,16 +31,16 @@
 	<logger name="com.evolveum.midpoint" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.provisioning" level="TRACE" />
 	<logger name="com.evolveum.midpoint.provisioning.impl.ResourceManager" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.provisioning.ucf" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.impl.lens.ChangeExecutor" level="DEBUG" />
-<!-- 	<logger name="com.evolveum.midpoint.provisioning" level="TRACE" /> -->
-	<!--<logger name="com.evolveum.midpoint.common" level="TRACE" />-->
 	
-	<logger name="com.evolveum.polygon" level="TRACE" />
+	<logger name="com.evolveum.polygon" level="DEBUG" />
 	
 	<!-- Silencing some chatty packages -->
 	<logger name="com.evolveum.midpoint.model.repo.sql.query" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.repo" level="INFO" />
+	<logger name="com.evolveum.midpoint.task" level="INFO" />
 	<logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="OFF"/>
 	<logger name="com.evolveum.midpoint.model.impl.sync.action" level="DEBUG" />
 	

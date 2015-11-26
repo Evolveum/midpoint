@@ -16,10 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.component;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -373,6 +370,9 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
             @Override
             protected InputPanel createInputPanel(String componentId, IModel<LoggerConfiguration> model) {
                 IModel<Map<String, String>> options = new Model(null);
+                Map<String, String> optionsMap = new HashMap<String, String>();
+                optionsMap.put("nonSelectedText", createStringResource("LoggingConfigPanel.appenders.Inherit").getString());
+                options.setObject(optionsMap);
                 ListMultipleChoicePanel panel = new ListMultipleChoicePanel<>(componentId,
                         new PropertyModel<List<String>>(model, getPropertyExpression()),
                         createNewLoggerAppendersListModel(), new IChoiceRenderer<String>() {
@@ -415,11 +415,8 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
 
                 LoggingDto dto = getModel().getObject();
 
-                for(AppenderConfiguration appender: dto.getAppenders()){
-
-                    if(!appender.getName().equals(dto.getRootAppender())){
-                        list.add(appender.getName());
-                    }
+                for (AppenderConfiguration appender : dto.getAppenders()) {
+                    list.add(appender.getName());
                 }
 
                 return list;
