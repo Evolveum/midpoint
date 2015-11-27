@@ -185,6 +185,7 @@ public class Clockwork {
 	private static final int DEFAULT_MAX_CLICKS = 200;
 
 	public <F extends ObjectType> HookOperationMode run(LensContext<F> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+		LOGGER.trace("Running clockwork for context {}", context);
 		if (InternalsConfig.consistencyChecks) {
 			context.checkConsistence();
 		}
