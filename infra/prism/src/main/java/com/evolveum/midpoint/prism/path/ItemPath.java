@@ -15,19 +15,19 @@
  */
 package com.evolveum.midpoint.prism.path;
 
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import org.apache.commons.lang.Validate;
+
+import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * @author semancik
@@ -54,22 +54,32 @@ public class ItemPath implements Serializable, Cloneable {
 	}
 		
 	public ItemPath(QName... qnames) {
-		this.segments = new ArrayList<ItemPathSegment>(qnames.length);
+		this.segments = new ArrayList<>(qnames.length);
 		for (QName qname : qnames) {
 			add(qname);
 		}
 	}
 
     public ItemPath(String... names) {
-        this.segments = new ArrayList<ItemPathSegment>(names.length);
+        this.segments = new ArrayList<>(names.length);
         for (String name : names) {
-            add(new QName(name));
+            add(stringToQName(name));
         }
     }
 
+	private QName stringToQName(String name) {
+		Validate.notNull(name, "name");
+		if ("..".equals(name)) {
+			return PrismConstants.T_PARENT;
+		} else if ("@".equals(name)) {
+			return PrismConstants.T_OBJECT_REFERENCE;
+		} else {
+			return new QName(name);
+		}
+	}
 
-    public ItemPath(ItemPath parentPath, QName subName) {
-		this.segments = new ArrayList<ItemPathSegment>(parentPath.segments.size()+1);
+	public ItemPath(ItemPath parentPath, QName subName) {
+		this.segments = new ArrayList<>(parentPath.segments.size()+1);
 		segments.addAll(parentPath.segments);
 		add(subName);
 	}
@@ -82,31 +92,29 @@ public class ItemPath implements Serializable, Cloneable {
 
 	
 	public ItemPath(List<ItemPathSegment> segments) {
-		this.segments = new ArrayList<ItemPathSegment>(segments.size());
+		this.segments = new ArrayList<>(segments.size());
 		this.segments.addAll(segments);
 	}
 			
 	public ItemPath(List<ItemPathSegment> segments, ItemPathSegment subSegment) {
-		this.segments = new ArrayList<ItemPathSegment>(segments.size()+1);
+		this.segments = new ArrayList<>(segments.size()+1);
 		this.segments.addAll(segments);
 		this.segments.add(subSegment);
 	}
 	
 	public ItemPath(List<ItemPathSegment> segments, QName subName) {
-		this.segments = new ArrayList<ItemPathSegment>(segments.size()+1);
+		this.segments = new ArrayList<>(segments.size()+1);
 		this.segments.addAll(segments);
 		add(subName);
 	}
 	
 	public ItemPath(ItemPathSegment... segments) {
-		this.segments = new ArrayList<ItemPathSegment>(segments.length);
-		for (ItemPathSegment seg : segments) {
-			this.segments.add(seg);
-		}
+		this.segments = new ArrayList<>(segments.length);
+		Collections.addAll(this.segments, segments);
 	}
 	
 	public ItemPath(ItemPath parentPath, ItemPathSegment subSegment) {
-		this.segments = new ArrayList<ItemPathSegment>(parentPath.segments.size()+1);
+		this.segments = new ArrayList<>(parentPath.segments.size() + 1);
 		this.segments.addAll(parentPath.segments);
 		this.segments.add(subSegment);
 	}
@@ -139,7 +147,13 @@ public class ItemPath implements Serializable, Cloneable {
 	}
 
 	private void add(QName qname) {
-		this.segments.add(new NameItemPathSegment(qname));
+		if (qname.equals(PrismConstants.T_PARENT)) {
+			this.segments.add(new ParentPathSegment());
+		} else if (qname.equals(PrismConstants.T_OBJECT_REFERENCE)) {
+			this.segments.add(new ObjectReferencePathSegment());
+		} else {
+			this.segments.add(new NameItemPathSegment(qname));
+		}
 	}
 		
 	public List<ItemPathSegment> getSegments() {
@@ -154,10 +168,7 @@ public class ItemPath implements Serializable, Cloneable {
 	}
 
 	public ItemPath rest() {
-		if (segments.size() == 0) {
-			return EMPTY_PATH;
-		}
-		return new ItemPath(segments.subList(1, segments.size()));
+		return tail();
 	}
 
     public NameItemPathSegment lastNamed() {
@@ -339,6 +350,14 @@ public class ItemPath implements Serializable, Cloneable {
 
 	public static boolean containsSingleNameSegment(ItemPath path) {
 		return path != null && path.size() == 1 && path.first() instanceof NameItemPathSegment;
+	}
+
+	public boolean startsWith(Class<? extends ItemPathSegment> clazz) {
+		if (isEmpty()) {
+			return false;
+		} else {
+			return clazz.isAssignableFrom(first().getClass());
+		}
 	}
 
 	public enum CompareResult {
@@ -541,5 +560,24 @@ public class ItemPath implements Serializable, Cloneable {
         }
         return clone;
     }
+
+	public static boolean containsReferences(ItemPath path) {
+		return path != null && path.containsReferences();
+	}
+
+	public boolean containsReferences() {
+		for (ItemPathSegment segment : segments) {
+			if (segment instanceof ReferencePathSegment) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static void checkNoReferences(ItemPath path) {
+		if (containsReferences(path)) {
+			throw new IllegalStateException("Item path shouldn't contain references but it does: " + path);
+		}
+	}
 
 }

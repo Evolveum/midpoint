@@ -520,9 +520,9 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		// Prefer built-in resolution over the pre-parsed one. This is less efficient, but if the order is swapped
 		// the parsers complaints about re-definition of the elements
 //		InputSource inputSource = resolveResourceUsingBuiltinResolver(type,namespaceURI,publicId,systemId,baseURI);
-		 InputSource inputSource = resolveResourceFromRegisteredSchemas(type,namespaceURI,publicId,systemId,baseURI);
+		 InputSource inputSource = resolveResourceFromRegisteredSchemas(type, namespaceURI, publicId, systemId, baseURI);
 		if (inputSource == null) {
-			inputSource = resolveResourceUsingBuiltinResolver(type,namespaceURI,publicId,systemId,baseURI);
+			inputSource = resolveResourceUsingBuiltinResolver(type, namespaceURI, publicId, systemId, baseURI);
 //			inputSource = resolveResourceFromRegisteredSchemas(type,namespaceURI,publicId,systemId,baseURI);
 		}
 		if (inputSource == null) {
@@ -620,7 +620,24 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
         return resolveUnqualifiedTypeName(typeName);
     }
 
-    class Input implements LSInput {
+	public ComplexTypeDefinition determineParentDefinition(ComplexTypeDefinition complexTypeDefinition, ItemPath rest) {
+		ComplexTypeDefinition def = findComplexTypeDefinition(new QName("ObjectType"));		// FIXME BRUTAL HACK
+		if (def == null) {
+			throw new IllegalStateException("Couldn't find definition for parent for " + complexTypeDefinition.getTypeName() + ", path=" + rest);
+		}
+		return def;
+	}
+
+	public PrismObjectDefinition determineReferencedObjectDefinition(QName targetTypeName, ItemPath rest) {
+		// TEMPORARY HACK -- TODO FIXME
+		PrismObjectDefinition def = findObjectDefinitionByType(targetTypeName);
+		if (def == null) {
+			throw new IllegalStateException("Couldn't find definition for referenced object for " + targetTypeName + ", path=" + rest);
+		}
+		return def;
+	}
+
+	class Input implements LSInput {
 
 		private String publicId;
 		private String systemId;

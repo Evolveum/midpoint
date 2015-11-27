@@ -82,6 +82,7 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 
 	protected ItemDelta(ItemPath parentPath, QName elementName, D itemDefinition, PrismContext prismContext) {
         //checkPrismContext(prismContext, itemDefinition);
+		ItemPath.checkNoReferences(parentPath);
         this.prismContext = prismContext;
 		this.elementName = elementName;
 		this.parentPath = parentPath;
@@ -90,6 +91,7 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 
 	protected ItemDelta(ItemPath path, D itemDefinition, PrismContext prismContext) {
         //checkPrismContext(prismContext, itemDefinition);
+		ItemPath.checkNoReferences(path);
         this.prismContext = prismContext;
 
 		if (path == null) {

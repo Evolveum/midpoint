@@ -18,8 +18,12 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
+import com.evolveum.midpoint.prism.path.ParentPathSegment;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -208,16 +212,33 @@ public class PrismContainerDefinition<C extends Containerable> extends ItemDefin
     }
 
     public <ID extends ItemDefinition> ID findItemDefinition(ItemPath path, Class<ID> clazz) {
-    	while (!path.isEmpty() && !(path.first() instanceof NameItemPathSegment)) {
-    		path = path.rest();
-    	}
-        if (path.isEmpty()) {
-            return (ID) this;
+        for (;;) {
+            if (path.isEmpty()) {
+                if (clazz.isAssignableFrom(PrismContainerDefinition.class)) {
+                    return (ID) this;
+                } else {
+                    return null;
+                }
+            }
+            ItemPathSegment first = path.first();
+            if (first instanceof NameItemPathSegment) {
+                QName firstName = ((NameItemPathSegment)first).getName();
+                return findNamedItemDefinition(firstName, path.rest(), clazz);
+            } else if (first instanceof IdItemPathSegment) {
+                path = path.rest();
+            } else if (first instanceof ParentPathSegment) {
+                ComplexTypeDefinition parent = getSchemaRegistry().determineParentDefinition(getComplexTypeDefinition(), path.rest());
+                return parent.findItemDefinition(path.tail(), clazz);
+            } else if (first instanceof ObjectReferencePathSegment) {
+                throw new IllegalStateException("Couldn't use '@' path segment in this context. PCD=" + getTypeName() + ", path=" + path);
+            } else {
+                throw new IllegalStateException("Unexpected path segment: " + first + " in " + path);
+            }
         }
-        
-        QName firstName = ((NameItemPathSegment)path.first()).getName();
-        ItemPath rest = path.rest();
-        
+    }
+
+    public <ID extends ItemDefinition> ID findNamedItemDefinition(QName firstName, ItemPath rest, Class<ID> clazz) {
+
 		// we need to be compatible with older versions..soo if the path does
 		// not contains qnames with namespaces defined (but the prefix was
 		// specified) match definition according to the local name

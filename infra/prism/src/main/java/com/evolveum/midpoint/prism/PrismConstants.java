@@ -92,7 +92,10 @@ public class PrismConstants {
 	public static final QName Q_ORDER_BY = new QName(NS_QUERY, "orderBy");
 	public static final QName Q_ANY = new QName(NS_QUERY, "any");
 
-	
+	// Path constants
+	public static final QName T_PARENT = new QName(NS_TYPES, "parent");
+	public static final QName T_OBJECT_REFERENCE = new QName(NS_TYPES, "objectReference");
+
 	// Misc
 	
 	public static final Class DEFAULT_VALUE_CLASS = String.class;
