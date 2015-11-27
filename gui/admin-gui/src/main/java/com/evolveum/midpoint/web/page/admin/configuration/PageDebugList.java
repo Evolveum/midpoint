@@ -73,6 +73,7 @@ import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -319,6 +320,7 @@ public class PageDebugList extends PageAdminConfiguration {
 						objectEditPerformed(target, object.getOid(), type);
 					}
 				};
+                panel.add(new AttributeModifier("style", "min-width: 100%"));
 				cellItem.add(panel);
 				
 			}
