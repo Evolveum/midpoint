@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.common.filter.Filter;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -352,7 +351,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  ( o2.orig = :orig2 and o2.norm = :norm2 ) )";
 
             // NOTE: this could be implemented more efficiently by using only one join... or the query itself can be formulated
-            // via In filter (when available) or ForValue filter (also, when available)
+            // via In filter (when available) or Exists filter (also, when available)
 
             String real = getInterpretedQuery2(session, UserType.class, query);
             assertEqualsIgnoreWhitespace(expected, real);
@@ -413,7 +412,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
-    @Test(enabled = false, expectedExceptions = QueryException.class)
+    @Test(expectedExceptions = QueryException.class)
     public void test040QueryClob() throws Exception {
         Session session = open();
 
@@ -637,7 +636,21 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
 
             String real = getInterpretedQuery2(session, UserType.class, query);
-            //assertEqualsIgnoreWhitespace(expected, real);
+            String expected = "select\n" +
+                    "  u.fullObject,\n" +
+                    "  u.stringsCount,\n" +
+                    "  u.longsCount,\n" +
+                    "  u.datesCount,\n" +
+                    "  u.referencesCount,\n" +
+                    "  u.polysCount,\n" +
+                    "  u.booleansCount\n" +
+                    "from\n" +
+                    "  RUser u\n" +
+                    "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n" +
+                    "where\n" +
+                    "  a.activation.administrativeStatus = :administrativeStatus\n" +
+                    "order by u.name.orig asc\n";
+            assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
         }
@@ -1842,19 +1855,6 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     public void test570queryObjectypeByTypeUserAndLocality() throws Exception {
         Session session = open();
         try {
-//            Criteria main = session.createCriteria(RObject.class, "o");
-//            ProjectionList projections = Projections.projectionList();
-//            addFullObjectProjectionList("o", projections, false);
-//            main.setProjection(projections);
-//
-//            Conjunction c = Restrictions.conjunction();
-//            main.add(c);
-//            c.add(Restrictions.eq("o." + RObject.F_OBJECT_TYPE_CLASS, RObjectType.USER));
-//            c.add(Restrictions.and(Restrictions.eq("o.localityUser.orig", "Caribbean"),
-//                    Restrictions.eq("o.localityUser.norm", "caribbean")));
-//
-//            String expected = HibernateToSqlTranslator.toSql(main);
-
             EqualFilter eq = EqualFilter.createEqual(new ItemPath(UserType.F_LOCALITY), UserType.class, prismContext,
                     new PolyString("Caribbean", "caribbean"));
             TypeFilter type = TypeFilter.createType(UserType.COMPLEX_TYPE, eq);
@@ -2484,6 +2484,42 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             close(session);
         }
     }
+
+    @Test
+    public void test800OrderBySingleton() throws Exception {
+        Session session = open();
+
+        try {
+            /*
+             * ### UserType: order by activation/administrativeStatus
+             */
+
+            ObjectQuery query = ObjectQuery.createObjectQuery(
+                    null,
+                    ObjectPaging.createPaging(
+                            new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
+                            OrderDirection.ASCENDING));
+
+            String real = getInterpretedQuery2(session, UserType.class, query);
+            String expected = "select\n" +
+                    "  u.fullObject,\n" +
+                    "  u.stringsCount,\n" +
+                    "  u.longsCount,\n" +
+                    "  u.datesCount,\n" +
+                    "  u.referencesCount,\n" +
+                    "  u.polysCount,\n" +
+                    "  u.booleansCount\n" +
+                    "from\n" +
+                    "  RUser u\n" +
+                    "order by u.activation.administrativeStatus asc";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    // TODO negative tests - order by entity, reference, any, collection
+    // TODO implement checks for "order by" for non-singletons
 
     // TODO search for "no decision" condition (V2)
     // TODO sorting based on referenced entity names (V2)

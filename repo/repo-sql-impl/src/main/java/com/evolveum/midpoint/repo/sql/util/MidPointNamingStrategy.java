@@ -42,7 +42,7 @@ public class MidPointNamingStrategy extends EJB3NamingStrategy {
         String result = "m_" + name.toLowerCase();
         result = fixLength(result);
 
-        LOGGER.trace("classToTableName {} to {}", new Object[]{className, result});
+        LOGGER.trace("classToTableName {} to {}", className, result);
         return result;
     }
 
@@ -61,7 +61,7 @@ public class MidPointNamingStrategy extends EJB3NamingStrategy {
         }
         result = fixLength(result);
 
-        LOGGER.trace("logicalColumnName {} {} to {}", new Object[]{columnName, propertyName, result});
+        LOGGER.trace("logicalColumnName {} {} to {}", columnName, propertyName, result);
         return result;
     }
 
@@ -76,8 +76,30 @@ public class MidPointNamingStrategy extends EJB3NamingStrategy {
         }
         result = fixLength(result);
 
-        LOGGER.trace("propertyToColumnName {} to {} (original: {})",
-                new Object[]{propertyName, result, super.propertyToColumnName(propertyName)});
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("propertyToColumnName {} to {} (original: {})",
+                    propertyName, result, super.propertyToColumnName(propertyName));
+        }
+        return result;
+    }
+
+    @Override
+    public String foreignKeyColumnName(String propertyName, String propertyEntityName, String propertyTableName, String referencedColumnName) {
+        String header = propertyName != null ? propertyName.replaceAll("\\.", "_") : propertyTableName;
+        String result;
+        if (header.endsWith("target") && referencedColumnName.equals("oid")) {
+            result = header + "Oid";        // to keep compatibility with existing mappings
+        } else {
+            result = header + "_" + referencedColumnName;
+        }
+        result = fixLength(result);
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("foreignKeyColumnName for propertyName={}, propertyEntityName={}, propertyTableName={}, " +
+                            "referencedColumnName={} returns {} (original: {})", propertyName, propertyEntityName,
+                    propertyTableName, referencedColumnName, result,
+                    super.foreignKeyColumnName(propertyName, propertyEntityName, propertyTableName, referencedColumnName));
+        }
         return result;
     }
 

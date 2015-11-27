@@ -289,7 +289,7 @@ public class QueryInterpreter2 {
             if (query.getPaging() instanceof ObjectPagingAfterOid) {
                 updatePagingAndSortingByOid(hibernateQuery, (ObjectPagingAfterOid) query.getPaging());                // very special case - ascending ordering by OID (nothing more)
             } else {
-                updatePagingAndSorting(hibernateQuery, context.getType(), query.getPaging());
+                updatePagingAndSorting(context, hibernateQuery, query.getPaging());
             }
         }
     }
@@ -305,7 +305,7 @@ public class QueryInterpreter2 {
         }
     }
 
-    public <T extends Containerable> void updatePagingAndSorting(RootHibernateQuery hibernateQuery, Class<T> type, ObjectPaging paging) throws QueryException {
+    public <T extends Containerable> void updatePagingAndSorting(InterpretationContext context, RootHibernateQuery hibernateQuery, ObjectPaging paging) throws QueryException {
         if (paging == null) {
             return;
         }
@@ -316,41 +316,50 @@ public class QueryInterpreter2 {
             hibernateQuery.setMaxResults(paging.getMaxSize());
         }
 
-        if (paging.getDirection() == null && (paging.getOrderBy() == null || paging.getOrderBy().isEmpty())) {
-            return;
+        ItemPath orderByPath = paging.getOrderBy();
+        if (ItemPath.isNullOrEmpty(orderByPath)) {
+            if (paging.getDirection() == null) {
+                return;
+            } else {
+                throw new QueryException("Ordering by empty property path is not possible");
+            }
         }
 
-        QueryDefinitionRegistry2 registry = QueryDefinitionRegistry2.getInstance();
-        if (paging.getOrderBy() == null || paging.getOrderBy().isEmpty() || paging.getOrderBy().size() > 1 || !(paging.getOrderBy().first() instanceof NameItemPathSegment)) {
-            LOGGER.warn("Ordering by property path with size not equal 1 is not supported '" + paging.getOrderBy()
-                    + "'.");
-            return;
-        }
-        // FIXME this has to be enhanced for multi-segment paths! (e.g. create joins if needed)
-        DefinitionSearchResult result = registry.findDefinition(type, paging.getOrderBy(), Definition.class);
+        ProperDefinitionSearchResult<Definition> result = context.getHelper().findProperDefinition(
+                context.getRootEntityDefinition(), orderByPath, Definition.class);
         if (result == null) {
-            LOGGER.warn("Unknown path '" + paging.getOrderBy() + "', couldn't find definition for it, "
+            throw new QueryException("Unknown path '" + orderByPath + "', couldn't find definition for it, "
                     + "list will not be ordered by it.");
-            return;
+        } else if (result.getItemDefinition() instanceof AnyDefinition) {
+            throw new QueryException("Sorting based on extension item or attribute is not supported yet: " + orderByPath);
+        } else if (result.getItemDefinition() instanceof ReferenceDefinition) {
+            throw new QueryException("Sorting based on reference is not supported: " + orderByPath);
+        } else if (result.getItemDefinition().isCollection()) {
+            throw new QueryException("Sorting based on multi-valued item is not supported: " + orderByPath);
+        } else if (result.getItemDefinition() instanceof EntityDefinition) {
+            throw new QueryException("Sorting based on entity is not supported: " + orderByPath);
+        } else if (!(result.getItemDefinition() instanceof PropertyDefinition)) {
+            throw new IllegalStateException("Unknown item definition type: " + result.getClass());
         }
-        Definition def = result.getItemDefinition();
 
-        String propertyName = hibernateQuery.getPrimaryEntityAlias() + "." + def.getJpaName();
-        if (PolyString.class.equals(def.getJaxbType())) {
-            propertyName += ".orig";
+        EntityDefinition baseEntityDefinition = result.getEntityDefinition();
+        PropertyDefinition orderByDefinition = (PropertyDefinition) result.getItemDefinition();
+        String hqlPropertyPath = context.getHelper().prepareJoins(orderByPath, context.getPrimaryEntityAlias(), baseEntityDefinition)
+                + "." + orderByDefinition.getJpaName();
+        if (PolyString.class.equals(orderByDefinition.getJaxbType())) {
+            hqlPropertyPath += ".orig";
         }
-
         if (paging.getDirection() != null) {
             switch (paging.getDirection()) {
                 case ASCENDING:
-                    hibernateQuery.setOrder(propertyName, OrderDirection.ASCENDING);
+                    hibernateQuery.setOrder(hqlPropertyPath, OrderDirection.ASCENDING);
                     break;
                 case DESCENDING:
-                    hibernateQuery.setOrder(propertyName, OrderDirection.DESCENDING);
+                    hibernateQuery.setOrder(hqlPropertyPath, OrderDirection.DESCENDING);
                     break;
             }
         } else {
-            hibernateQuery.setOrder(propertyName, OrderDirection.ASCENDING);
+            hibernateQuery.setOrder(hqlPropertyPath, OrderDirection.ASCENDING);
         }
     }
 

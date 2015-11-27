@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.RCObjectReferenceId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
@@ -26,6 +27,8 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -34,6 +37,7 @@ import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.MapsId;
 import javax.persistence.Table;
@@ -85,6 +89,16 @@ public class RCertCaseReference extends RContainerReference {
     @NotQueryable
     public Integer getOwnerId() {
         return super.getOwnerId();
+    }
+
+    //@MapsId("target")
+    @ForeignKey(name="none")
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false, nullable = true)
+    @NotFound(action = NotFoundAction.IGNORE)
+    @NotQueryable
+    public RObject getTarget() {
+        return super.getTarget();
     }
 
     @Id

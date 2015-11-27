@@ -28,6 +28,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
 
 import javax.persistence.*;
 
@@ -51,10 +53,13 @@ public class RObjectReference implements ObjectReference {
     //owner
     private RObject owner;
     private String ownerOid;
+
     //other primary key fields
     private String targetOid;
     private String relation;
     private RObjectType type;
+
+    private RObject target;
 
     public RObjectReference() {
     }
@@ -75,6 +80,16 @@ public class RObjectReference implements ObjectReference {
             ownerOid = owner.getOid();
         }
         return ownerOid;
+    }
+
+    //@MapsId("target")
+    @ForeignKey(name="none")
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false, nullable = true)
+    @NotFound(action = NotFoundAction.IGNORE)
+    @NotQueryable
+    public RObject getTarget() {
+        return target;
     }
 
     @Id
@@ -124,6 +139,10 @@ public class RObjectReference implements ObjectReference {
 
     public void setRelation(String relation) {
         this.relation = relation;
+    }
+
+    public void setTarget(RObject target) {     // shouldn't be called
+        this.target = target;
     }
 
     public void setTargetOid(String targetOid) {

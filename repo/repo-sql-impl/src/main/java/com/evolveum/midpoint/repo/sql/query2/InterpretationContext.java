@@ -124,4 +124,8 @@ public class InterpretationContext {
     public boolean isObject() {
         return ObjectType.class.isAssignableFrom(type);
     }
+
+    public String getPrimaryEntityAlias() {
+        return hibernateQuery.getPrimaryEntityAlias();
+    }
 }

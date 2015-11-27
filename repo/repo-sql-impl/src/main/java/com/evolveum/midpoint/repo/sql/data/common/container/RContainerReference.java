@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql.data.common.container;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
@@ -53,6 +54,8 @@ public abstract class RContainerReference implements ObjectReference {
     private String relation;
     private RObjectType type;
 
+    private RObject target;
+
     public RContainerReference() {
     }
 
@@ -73,6 +76,10 @@ public abstract class RContainerReference implements ObjectReference {
             ownerId = getOwner().getId();
         }
         return ownerId;
+    }
+
+    public RObject getTarget() {
+        return target;
     }
 
     @Override
@@ -106,6 +113,10 @@ public abstract class RContainerReference implements ObjectReference {
 
     public void setRelation(String relation) {
         this.relation = relation;
+    }
+
+    public void setTarget(RObject target) {     // shouldn't be called
+        this.target = target;
     }
 
     public void setTargetOid(String targetOid) {
