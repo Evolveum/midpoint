@@ -961,7 +961,7 @@ public class SchemaHandlingStep extends WizardStep {
             existence.getInbound().addAll(newInbounds);
 
             List<MappingType> outbounds = existence.getOutbound();
-            List<MappingType> newOutbounds = existence.getOutbound();
+            List<MappingType> newOutbounds = new ArrayList<>();
 
             for(MappingType outbound: outbounds){
                 if(!WizardUtil.isEmptyMapping(outbound)){
