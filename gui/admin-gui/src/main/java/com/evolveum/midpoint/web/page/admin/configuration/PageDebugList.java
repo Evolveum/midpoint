@@ -320,8 +320,9 @@ public class PageDebugList extends PageAdminConfiguration {
 						objectEditPerformed(target, object.getOid(), type);
 					}
 				};
-                panel.add(new AttributeModifier("style", "min-width: 100%"));
+
 				cellItem.add(panel);
+                cellItem.add(new AttributeModifier("class", "col-md-3"));
 				
 			}
 
