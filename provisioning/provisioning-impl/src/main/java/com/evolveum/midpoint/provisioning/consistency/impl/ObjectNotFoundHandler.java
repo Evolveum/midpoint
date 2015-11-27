@@ -226,7 +226,13 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			
 			Collection<? extends ItemDelta> deadModification = PropertyDelta.createModificationReplacePropertyCollection(ShadowType.F_DEAD, shadow.asPrismObject().getDefinition(), true);
 			ConstraintsChecker.onShadowModifyOperation(deadModification);
-			cacheRepositoryService.modifyObject(ShadowType.class, shadow.getOid(), deadModification, result);
+			try {
+				cacheRepositoryService.modifyObject(ShadowType.class, shadow.getOid(), deadModification, result);
+			} catch (ObjectNotFoundException e) {
+				// The shadow is not there. So we cannot mark it as dead.
+				LOGGER.debug("Cannot modify shadow {} in consistency compensation (discovery): {} - this is probably harmless", shadow, e.getMessage());
+
+			}
 			
 			shadow.setDead(true);
 			ResourceObjectShadowChangeDescription getChange = createResourceObjectShadowChangeDescription(shadow,
