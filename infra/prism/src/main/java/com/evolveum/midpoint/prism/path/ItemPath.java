@@ -147,9 +147,9 @@ public class ItemPath implements Serializable, Cloneable {
 	}
 
 	private void add(QName qname) {
-		if (qname.equals(PrismConstants.T_PARENT)) {
+		if (PrismConstants.T_PARENT.equals(qname)) {
 			this.segments.add(new ParentPathSegment());
-		} else if (qname.equals(PrismConstants.T_OBJECT_REFERENCE)) {
+		} else if (PrismConstants.T_OBJECT_REFERENCE.equals(qname)) {
 			this.segments.add(new ObjectReferencePathSegment());
 		} else {
 			this.segments.add(new NameItemPathSegment(qname));
