@@ -27,10 +27,10 @@
 								  
 	<!-- Resource printable name -->
 	<name>Reconciliation: OpenDJ test</name>
-	
-	<extension>
+
+	<extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+		<mext:objectclass>ri:inetOrgPerson</mext:objectclass>
 	</extension>
-	
 	<taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d30001</taskIdentifier>
 	<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
 	<executionStatus>runnable</executionStatus>

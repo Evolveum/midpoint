@@ -107,4 +107,14 @@ This resource definition contains only the very basic definitions for midPoint t
 
 	</resource>
 
+    <schema>
+        <!-- workaround to MID-2723 -->
+        <generationConstraints>
+            <generateObjectClass>ri:inetOrgPerson</generateObjectClass>
+            <generateObjectClass>ri:groupOfUniqueNames</generateObjectClass>
+            <generateObjectClass>ri:groupOfNames</generateObjectClass>
+            <generateObjectClass>ri:organizationalUnit</generateObjectClass>
+        </generationConstraints>
+    </schema>
+
 </objects>
