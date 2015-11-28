@@ -16,22 +16,19 @@
 
 package com.evolveum.midpoint.repo.sql.query2;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityItemDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.JpaItemDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.JpaRootEntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaDataNodeDefinition;
 import org.apache.commons.lang.Validate;
 
 /**
  * @author mederly
  */
-public class ProperDefinitionSearchResult<T extends JpaItemDefinition> extends DefinitionSearchResult<T> {
+public class ProperDataSearchResult<T extends JpaDataNodeDefinition> extends DataSearchResult<T> {
 
     JpaEntityDefinition entityDefinition;      // entity in which the item was found
 
-    public ProperDefinitionSearchResult(JpaEntityDefinition entityDefinition, DefinitionSearchResult<T> result) {
-        super(result.getItemDefinition(), result.getRemainder());
+    public ProperDataSearchResult(JpaEntityDefinition entityDefinition, DataSearchResult<T> result) {
+        super(result.getLinkDefinition(), result.getRemainder());
         Validate.notNull(entityDefinition, "entityDefinition");
         this.entityDefinition = entityDefinition;
     }
@@ -43,6 +40,6 @@ public class ProperDefinitionSearchResult<T extends JpaItemDefinition> extends D
     @Override
     public String toString() {
         return "ProperDefinitionSearchResult{" +
-                "entity=" + entityDefinition + ", item=" + getItemDefinition() + ", remainder=" + getRemainder() + "} ";
+                "entity=" + entityDefinition + ", item=" + getLinkDefinition() + ", remainder=" + getRemainder() + "} ";
     }
 }

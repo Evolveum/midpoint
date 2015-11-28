@@ -19,7 +19,7 @@ package com.evolveum.midpoint.repo.sql.query2;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.repo.sql.query2.definition.JpaRootEntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -50,7 +50,7 @@ public class InterpretationContext {
      * by the search operation, or the one that was refined from abstract types (ObjectType, AbstractRoleType, ...)
      * in the process of restriction construction.
      */
-    private JpaRootEntityDefinition rootEntityDefinition;
+    private JpaEntityDefinition rootEntityDefinition;
 
     public InterpretationContext(QueryInterpreter2 interpreter, Class<? extends Containerable> type,
                                  PrismContext prismContext, Session session) throws QueryException {
@@ -100,7 +100,7 @@ public class InterpretationContext {
         return helper;
     }
 
-    public JpaRootEntityDefinition getRootEntityDefinition() {
+    public JpaEntityDefinition getRootEntityDefinition() {
         return rootEntityDefinition;
     }
 

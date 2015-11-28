@@ -621,7 +621,9 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
     }
 
 	public ComplexTypeDefinition determineParentDefinition(ComplexTypeDefinition complexTypeDefinition, ItemPath rest) {
-		ComplexTypeDefinition def = findComplexTypeDefinition(new QName("ObjectType"));		// FIXME BRUTAL HACK
+		ComplexTypeDefinition def = findComplexTypeDefinition(new QName(
+				"http://midpoint.evolveum.com/xml/ns/public/common/common-3",
+				"ObjectType"));		// FIXME BRUTAL HACK
 		if (def == null) {
 			throw new IllegalStateException("Couldn't find definition for parent for " + complexTypeDefinition.getTypeName() + ", path=" + rest);
 		}

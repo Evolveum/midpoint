@@ -16,43 +16,23 @@
 
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
-import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
-import com.evolveum.midpoint.repo.sql.query2.DefinitionSearchResult;
+import com.evolveum.midpoint.repo.sql.query2.DataSearchResult;
 import org.apache.commons.lang.Validate;
-
-import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
  */
-public class JpaReferenceDefinition extends JpaItemDefinition {
+public class JpaReferenceDefinition extends JpaDataNodeDefinition {
 
-    private JpaRootEntityDefinition referencedEntityDefinition;                // lazily evaluated
-    private Class referencedEntityJpaClass;
-    private boolean embedded;
+    private JpaEntityPointerDefinition referencedEntityDefinition;          // lazily evaluated
 
-    public JpaReferenceDefinition(QName jaxbName, String jpaName, CollectionSpecification collectionSpecification,
-                                  Class jpaClass, Class referencedEntityJpaClass, boolean embedded) {
-        super(jaxbName, jpaName, collectionSpecification, jpaClass);
-        this.embedded = embedded;
+    public JpaReferenceDefinition(Class jpaClass, Class referencedEntityJpaClass) {
+        super(jpaClass, null);          // JAXB class not important here
         Validate.notNull(referencedEntityJpaClass, "referencedEntityJpaClass");
-        this.referencedEntityJpaClass = referencedEntityJpaClass;
-    }
-
-    public boolean isEmbedded() {
-        return embedded;
-    }
-
-    void setEmbedded(boolean embedded) {
-        this.embedded = embedded;
-    }
-
-    @Override
-    protected void debugDumpExtended(StringBuilder builder, int indent) {
-        builder.append(", embedded=").append(isEmbedded()).append(", referencedEntity: ").append(referencedEntityDefinition);
+        this.referencedEntityDefinition = new JpaEntityPointerDefinition(referencedEntityJpaClass);
     }
 
     @Override
@@ -61,32 +41,34 @@ public class JpaReferenceDefinition extends JpaItemDefinition {
     }
 
     @Override
-    public DefinitionSearchResult nextDefinition(ItemPath path) {
+    public DataSearchResult nextLinkDefinition(ItemPath path) {
         if (path.first() instanceof ObjectReferencePathSegment) {
-            // returning artificially created item definition, used to allow dereferencing target object in a generic way
-            return new DefinitionSearchResult(
-                    new JpaEntityItemDefinition(PrismConstants.T_OBJECT_REFERENCE, "target", null,
-                            referencedEntityDefinition.getJpaClass(), referencedEntityDefinition.getContent(), false),
+            // returning artificially created transition definition, used to allow dereferencing target object in a generic way
+            return new DataSearchResult(
+                    new JpaLinkDefinition(new ObjectReferencePathSegment(), "target", null, referencedEntityDefinition.getResolvedEntityDefinition()),
                     path.tail());
         } else {
             return null;
         }
     }
 
-    @Override
-    public void accept(Visitor visitor) {
-        visitor.visit(this);
-    }
-
-    public void setReferencedEntityDefinition(JpaRootEntityDefinition realEntDef) {
-        this.referencedEntityDefinition = realEntDef;
-    }
-
-    public JpaRootEntityDefinition getReferencedEntityDefinition() {
+    public JpaEntityPointerDefinition getReferencedEntityDefinition() {
         return referencedEntityDefinition;
     }
 
-    public Class getReferencedEntityJpaClass() {
-        return referencedEntityJpaClass;
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+        referencedEntityDefinition.accept(visitor);
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        return super.getShortInfo() + ", target=" + getReferencedEntityDefinition();
+    }
+
+    @Override
+    public String getShortInfo() {
+        return super.getShortInfo() + "<" + referencedEntityDefinition.getJpaClassName() + ">";
     }
 }

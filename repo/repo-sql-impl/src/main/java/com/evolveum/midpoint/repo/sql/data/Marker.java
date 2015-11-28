@@ -14,20 +14,12 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.repo.sql.query2.definition;
+package com.evolveum.midpoint.repo.sql.data;
 
 /**
- * In current version this is just a marker class - there's nothing to be said about standard collections yet.
+ * Just to mark the "data" package.
  *
  * @author mederly
  */
-public class CollectionSpecification {
-
-    public String toString() {
-        return "StdCol";
-    }
-
-    public String getShortInfo() {
-        return "[]";
-    }
+public class Marker {
 }

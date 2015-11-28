@@ -18,17 +18,15 @@ package com.evolveum.midpoint.repo.sql.query2.definition;
 
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.sql.query2.DefinitionSearchResult;
-
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.repo.sql.query2.DataSearchResult;
 
 /**
  * @author lazyman
  */
-public class JpaAnyDefinition extends JpaItemDefinition {
+public class JpaAnyDefinition extends JpaDataNodeDefinition {
 
-    public JpaAnyDefinition(QName jaxbName, String jpaName, Class jpaClass) {
-        super(jaxbName, jpaName, null, jpaClass);      // no collection specification for this kind of item
+    public JpaAnyDefinition(Class jpaClass) {
+        super(jpaClass, null);
     }
 
     @Override
@@ -37,12 +35,8 @@ public class JpaAnyDefinition extends JpaItemDefinition {
     }
 
     @Override
-    public DefinitionSearchResult nextDefinition(ItemPath path) {
-        // There is nothing we can do here. Return the definition itself, and
-        // the path as to be found within the appropriate Any container.
-        // Hoping the client will understand this and won't cycle while finding
-        // the definition. ;)
-        return new DefinitionSearchResult(this, path);
+    public DataSearchResult nextLinkDefinition(ItemPath path) {
+        throw new UnsupportedOperationException();      // TODO
     }
 
     @Override
@@ -51,7 +45,7 @@ public class JpaAnyDefinition extends JpaItemDefinition {
     }
 
     @Override
-    protected void debugDumpExtended(StringBuilder sb, int indent) {
-        // nothing to put here
+    public String debugDump(int indent) {
+        return super.getShortInfo();
     }
 }

@@ -25,6 +25,7 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
+import com.evolveum.midpoint.repo.sql.query.definition.OwnerGetter;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -104,7 +105,7 @@ public class RAccessCertificationCase implements Container {
     @org.hibernate.annotations.ForeignKey(name = "fk_ac_case_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
-    @NotQueryable
+    @OwnerGetter(ownerClass = RAccessCertificationCampaign.class)
     public RObject getOwner() {
         return owner;
     }

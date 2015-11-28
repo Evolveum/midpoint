@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.query2.hqm.condition;
 
-import com.evolveum.midpoint.repo.sql.query2.definition.JpaRootEntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import org.apache.commons.lang.Validate;
@@ -28,7 +28,7 @@ public class HibernateSubquery extends HibernateQuery {
 
     private HibernateQuery parentQuery;
 
-    public HibernateSubquery(JpaRootEntityDefinition primaryEntityDef, HibernateQuery parentQuery) {
+    public HibernateSubquery(JpaEntityDefinition primaryEntityDef, HibernateQuery parentQuery) {
         super(primaryEntityDef);
         Validate.notNull(parentQuery);
         this.parentQuery = parentQuery;

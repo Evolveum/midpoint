@@ -17,24 +17,25 @@
 package com.evolveum.midpoint.repo.sql.query2;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.sql.query2.definition.JpaItemDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaDataNodeDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaLinkDefinition;
 import org.apache.commons.lang.Validate;
 
 /**
  * @author mederly
  */
-public class DefinitionSearchResult<T extends JpaItemDefinition> {
-    private T itemDefinition;                       // definition of the item itself
-    private ItemPath remainder;                     // what has remained unresolved of the original search path
+public class DataSearchResult<T extends JpaDataNodeDefinition> {
+    private JpaLinkDefinition<T> linkDefinition;
+    private ItemPath remainder;                             // what has remained unresolved of the original search path
 
-    public DefinitionSearchResult(T itemDefinition, ItemPath remainder) {
-        Validate.notNull(itemDefinition, "itemDefinition");
-        this.itemDefinition = itemDefinition;
+    public DataSearchResult(JpaLinkDefinition<T> linkDefinition, ItemPath remainder) {
+        Validate.notNull(linkDefinition, "linkDefinition");
+        this.linkDefinition = linkDefinition;
         this.remainder = remainder;
     }
 
-    public T getItemDefinition() {
-        return itemDefinition;
+    public JpaLinkDefinition<T> getLinkDefinition() {
+        return linkDefinition;
     }
 
     public ItemPath getRemainder() {
@@ -43,5 +44,9 @@ public class DefinitionSearchResult<T extends JpaItemDefinition> {
 
     public boolean isComplete() {
         return ItemPath.isNullOrEmpty(remainder);
+    }
+
+    public T getTargetDefinition() {
+        return linkDefinition.getTargetDefinition();
     }
 }

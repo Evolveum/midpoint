@@ -80,7 +80,7 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAccessCertificationCase> getCases() {
         if (cases == null) {
-            cases = new HashSet<RAccessCertificationCase>();
+            cases = new HashSet<>();
         }
         return cases;
     }

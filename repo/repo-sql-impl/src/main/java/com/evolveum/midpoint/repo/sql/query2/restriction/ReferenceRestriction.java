@@ -24,8 +24,8 @@ import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityItemDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaReferenceDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaLinkDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.AndCondition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
@@ -46,13 +46,13 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
     private static final Trace LOGGER = TraceManager.getTrace(ReferenceRestriction.class);
 
     // Definition of the item being queried.
-    private final JpaReferenceDefinition itemDefinition;
+    private final JpaLinkDefinition<JpaReferenceDefinition> linkDefinition;
 
     public ReferenceRestriction(InterpretationContext context, RefFilter filter, JpaEntityDefinition baseEntityDefinition,
-                                Restriction parent, JpaReferenceDefinition itemDefinition) {
+                                Restriction parent, JpaLinkDefinition<JpaReferenceDefinition> linkDefinition) {
         super(context, filter, baseEntityDefinition, parent);
-        Validate.notNull(itemDefinition, "itemDefinition");
-        this.itemDefinition = itemDefinition;
+        Validate.notNull(linkDefinition, "linkDefinition");
+        this.linkDefinition = linkDefinition;
     }
 
     @Override
@@ -72,13 +72,6 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
         InterpretationContext context = getContext();
         RootHibernateQuery hibernateQuery = context.getHibernateQuery();
 
-        String propertyFullNamePrefix;
-        if (itemDefinition.isMultivalued()) {
-            propertyFullNamePrefix = hqlPath + ".";
-        } else {
-            propertyFullNamePrefix = hqlPath + "." + itemDefinition.getJpaName() + ".";
-        }
-
         String refValueOid = null;
         QName refValueRelation = null;
         QName refValueTargetType = null;
@@ -88,21 +81,21 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
         	refValueTargetType = refValue.getTargetType();
         }
         AndCondition conjunction = hibernateQuery.createAnd();
-        conjunction.add(handleEqOrNull(hibernateQuery, propertyFullNamePrefix + ObjectReference.F_TARGET_OID, refValueOid));
+        conjunction.add(handleEqOrNull(hibernateQuery, hqlPath + "." + ObjectReference.F_TARGET_OID, refValueOid));
 
         if (refValueOid != null) {
 	        if (refValueRelation == null) {
 	        	// Return only references without relation
-	        	conjunction.add(hibernateQuery.createEq(propertyFullNamePrefix + ObjectReference.F_RELATION, RUtil.QNAME_DELIMITER));
+	        	conjunction.add(hibernateQuery.createEq(hqlPath + "." + ObjectReference.F_RELATION, RUtil.QNAME_DELIMITER));
 	        } else if (refValueRelation.equals(PrismConstants.Q_ANY)) {
 	        	// Return all relations => no restriction
 	        } else {
 	        	// return references with specific relation
-	            conjunction.add(handleEqOrNull(hibernateQuery, propertyFullNamePrefix + ObjectReference.F_RELATION, RUtil.qnameToString(refValueRelation)));
+	            conjunction.add(handleEqOrNull(hibernateQuery, hqlPath + "." + ObjectReference.F_RELATION, RUtil.qnameToString(refValueRelation)));
 	        }
 	
 	        if (refValueTargetType != null) {
-	            conjunction.add(handleEqOrNull(hibernateQuery, propertyFullNamePrefix + ObjectReference.F_TYPE,
+	            conjunction.add(handleEqOrNull(hibernateQuery, hqlPath + "." + ObjectReference.F_TYPE,
 	                    ClassMapper.getHQLTypeForQName(refValueTargetType)));
 	        }
         }

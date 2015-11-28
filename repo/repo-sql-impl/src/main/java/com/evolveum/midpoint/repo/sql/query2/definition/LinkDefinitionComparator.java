@@ -21,19 +21,22 @@ import java.util.Comparator;
 /**
  * @author lazyman
  */
-public class DefinitionComparator implements Comparator<JpaItemDefinition> {
+public class LinkDefinitionComparator implements Comparator<JpaLinkDefinition> {
 
     @Override
-    public int compare(JpaItemDefinition o1, JpaItemDefinition o2) {
-        if (o1.getClass().equals(o2.getClass())) {
-            return String.CASE_INSENSITIVE_ORDER.compare(o1.getJaxbName().getLocalPart(),
-                    o2.getJaxbName().getLocalPart());
+    public int compare(JpaLinkDefinition o1, JpaLinkDefinition o2) {
+        JpaDataNodeDefinition target1 = o1.getTargetDefinition();
+        JpaDataNodeDefinition target2 = o2.getTargetDefinition();
+
+        if (target1.equals(target2)) {
+            return String.CASE_INSENSITIVE_ORDER.compare(o1.getItemPathSegment().toString(),
+                    o2.getItemPathSegment().toString());
         }
 
-        return getType(o1) - getType(o2);
+        return getType(target1) - getType(target2);
     }
 
-    private int getType(JpaItemDefinition def) {
+    private int getType(JpaDataNodeDefinition def) {
         if (def == null) {
             return 0;
         }
@@ -43,7 +46,7 @@ public class DefinitionComparator implements Comparator<JpaItemDefinition> {
             return 2;
         } else if (def instanceof JpaAnyDefinition) {
             return 4;
-        } else if (def instanceof JpaEntityItemDefinition) {
+        } else if (def instanceof JpaEntityDefinition) {
             return 5;
         }
         return 0;

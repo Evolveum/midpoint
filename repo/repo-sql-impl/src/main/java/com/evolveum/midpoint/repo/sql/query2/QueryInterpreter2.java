@@ -40,13 +40,10 @@ import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaAnyDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.JpaDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityItemDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.JpaItemDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaPropertyDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaReferenceDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.JpaRootEntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaDataNodeDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.ProjectionElement;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
@@ -188,8 +185,8 @@ public class QueryInterpreter2 {
     private <T extends ObjectFilter> Restriction findAndCreateRestriction(T filter, InterpretationContext context,
                                                                           Restriction parent) throws QueryException {
 
-        Validate.notNull(filter);
-        Validate.notNull(context);
+        Validate.notNull(filter, "filter");
+        Validate.notNull(context, "context");
 
         LOGGER.trace("Determining restriction for filter {}", filter);
 
@@ -229,32 +226,32 @@ public class QueryInterpreter2 {
         } else if (filter instanceof ExistsFilter) {
             ExistsFilter existsFilter = (ExistsFilter) filter;
             ItemPath path = existsFilter.getFullPath();
-            ProperDefinitionSearchResult<JpaEntityItemDefinition> searchResult = helper.findProperDefinition(baseEntityDefinition, path, JpaEntityItemDefinition.class);
+            ProperDataSearchResult<JpaEntityDefinition> searchResult = helper.findProperDataDefinition(baseEntityDefinition, path, JpaEntityDefinition.class);
             if (searchResult == null) {
                 throw new QueryException("Path for ExistsFilter (" + path + ") doesn't point to a hibernate entity");
             }
-            return new ExistsRestriction(context, existsFilter, searchResult.getEntityDefinition(), parent, searchResult.getItemDefinition());
+            return new ExistsRestriction(context, existsFilter, searchResult.getEntityDefinition(), parent, searchResult.getTargetDefinition());
         } else if (filter instanceof RefFilter) {
             RefFilter refFilter = (RefFilter) filter;
             ItemPath path = refFilter.getFullPath();
-            ProperDefinitionSearchResult<JpaReferenceDefinition> searchResult = helper.findProperDefinition(baseEntityDefinition, path, JpaReferenceDefinition.class);
+            ProperDataSearchResult<JpaReferenceDefinition> searchResult = helper.findProperDataDefinition(baseEntityDefinition, path, JpaReferenceDefinition.class);
             if (searchResult == null) {
                 throw new QueryException("Path for RefFilter (" + path + ") doesn't point to a reference item");
             }
             return new ReferenceRestriction(context, refFilter, searchResult.getEntityDefinition(),
-                    parent, searchResult.getItemDefinition());
+                    parent, searchResult.getLinkDefinition());
         } else if (filter instanceof ValueFilter) {
             ValueFilter valFilter = (ValueFilter) filter;
             ItemPath path = valFilter.getFullPath();
 
-            ProperDefinitionSearchResult<JpaPropertyDefinition> propDefRes = helper.findProperDefinition(baseEntityDefinition, path, JpaPropertyDefinition.class);
+            ProperDataSearchResult<JpaPropertyDefinition> propDefRes = helper.findProperDataDefinition(baseEntityDefinition, path, JpaPropertyDefinition.class);
             if (propDefRes != null) {
-                return new PropertyRestriction(context, valFilter, propDefRes.getEntityDefinition(), parent, propDefRes.getItemDefinition());
+                return new PropertyRestriction(context, valFilter, propDefRes.getEntityDefinition(), parent, propDefRes.getLinkDefinition());
             }
-            ProperDefinitionSearchResult<JpaAnyDefinition> anyDefRes = helper.findProperDefinition(baseEntityDefinition, path, JpaAnyDefinition.class);
+            ProperDataSearchResult<JpaAnyDefinition> anyDefRes = helper.findProperDataDefinition(baseEntityDefinition, path, JpaAnyDefinition.class);
             if (anyDefRes != null) {
                 if (ItemPath.containsSingleNameSegment(anyDefRes.getRemainder())) {
-                    return new AnyPropertyRestriction(context, valFilter, anyDefRes.getEntityDefinition(), parent, anyDefRes.getItemDefinition());
+                    return new AnyPropertyRestriction(context, valFilter, anyDefRes.getEntityDefinition(), parent, anyDefRes.getTargetDefinition());
                 } else {
                     throw new QueryException("Unsupported any-targeted query: should contain single item name to be resolved in the 'any' container but contains '" +
                             anyDefRes.getRemainder() + "' instead");
@@ -322,27 +319,28 @@ public class QueryInterpreter2 {
             }
         }
 
-        ProperDefinitionSearchResult<JpaItemDefinition> result = context.getHelper().findProperDefinition(
-                context.getRootEntityDefinition(), orderByPath, JpaItemDefinition.class);
+        ProperDataSearchResult<JpaDataNodeDefinition> result = context.getHelper().findProperDataDefinition(
+                context.getRootEntityDefinition(), orderByPath, JpaDataNodeDefinition.class);
         if (result == null) {
             throw new QueryException("Unknown path '" + orderByPath + "', couldn't find definition for it, "
                     + "list will not be ordered by it.");
-        } else if (result.getItemDefinition() instanceof JpaAnyDefinition) {
+        }
+        JpaDataNodeDefinition targetDefinition = result.getLinkDefinition().getTargetDefinition();
+        if (targetDefinition instanceof JpaAnyDefinition) {
             throw new QueryException("Sorting based on extension item or attribute is not supported yet: " + orderByPath);
-        } else if (result.getItemDefinition() instanceof JpaReferenceDefinition) {
+        } else if (targetDefinition instanceof JpaReferenceDefinition) {
             throw new QueryException("Sorting based on reference is not supported: " + orderByPath);
-        } else if (result.getItemDefinition().isMultivalued()) {
+        } else if (result.getLinkDefinition().isMultivalued()) {
             throw new QueryException("Sorting based on multi-valued item is not supported: " + orderByPath);
-        } else if (result.getItemDefinition() instanceof JpaEntityItemDefinition) {
+        } else if (targetDefinition instanceof JpaEntityDefinition) {
             throw new QueryException("Sorting based on entity is not supported: " + orderByPath);
-        } else if (!(result.getItemDefinition() instanceof JpaPropertyDefinition)) {
+        } else if (!(targetDefinition instanceof JpaPropertyDefinition)) {
             throw new IllegalStateException("Unknown item definition type: " + result.getClass());
         }
 
         JpaEntityDefinition baseEntityDefinition = result.getEntityDefinition();
-        JpaPropertyDefinition orderByDefinition = (JpaPropertyDefinition) result.getItemDefinition();
-        String hqlPropertyPath = context.getHelper().prepareJoins(orderByPath, context.getPrimaryEntityAlias(), baseEntityDefinition)
-                + "." + orderByDefinition.getJpaName();
+        JpaPropertyDefinition orderByDefinition = (JpaPropertyDefinition) targetDefinition;
+        String hqlPropertyPath = context.getHelper().prepareJoins(orderByPath, context.getPrimaryEntityAlias(), baseEntityDefinition);
         if (RPolyString.class.equals(orderByDefinition.getJpaClass())) {
             hqlPropertyPath += ".orig";
         }

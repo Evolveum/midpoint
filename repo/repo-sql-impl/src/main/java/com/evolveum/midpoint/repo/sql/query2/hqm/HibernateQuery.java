@@ -20,8 +20,7 @@ import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.JpaItemDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.JpaRootEntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaLinkDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import org.apache.commons.lang.Validate;
@@ -61,7 +60,7 @@ public abstract class HibernateQuery {
     private String orderByProperty;
     private OrderDirection orderDirection;
 
-    public HibernateQuery(JpaRootEntityDefinition primaryEntityDef) {
+    public HibernateQuery(JpaEntityDefinition primaryEntityDef) {
         Validate.notNull(primaryEntityDef, "primaryEntityDef");
         primaryEntity = createItemSpecification(primaryEntityDef);
     }
@@ -138,8 +137,9 @@ public abstract class HibernateQuery {
         return createAlias(def.getJpaClassName(), true);
     }
 
-    public String createAlias(JpaItemDefinition joinedItemDef) {
-        return createAlias(joinedItemDef.getJpaName(), false);
+    public String createAlias(JpaLinkDefinition linkDefinition) {
+        Validate.notNull(linkDefinition.getJpaName(), "Got unnamed transition");
+        return createAlias(linkDefinition.getJpaName(), false);
     }
 
     private static final int LIMIT = 100;
@@ -185,7 +185,7 @@ public abstract class HibernateQuery {
     public abstract RootHibernateQuery getRootQuery();
 
     // used to narrow the primary entity e.g. from RObject to RUser (e.g. during ItemValueRestriction processing)
-    public void narrowPrimaryEntity(JpaRootEntityDefinition newDefinition) throws QueryException {
+    public void narrowPrimaryEntity(JpaEntityDefinition newDefinition) throws QueryException {
         String oldEntityName = getPrimaryEntity().getName();
         Class<? extends RObject> oldEntityClass = ClassMapper.getHqlClassForHqlName(oldEntityName);
         Class<? extends RObject> newEntityClass = newDefinition.getJpaClass();

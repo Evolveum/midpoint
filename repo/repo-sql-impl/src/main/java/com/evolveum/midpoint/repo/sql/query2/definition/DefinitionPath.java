@@ -39,13 +39,13 @@ import java.util.List;
  */
 public class DefinitionPath {
 
-    private List<JpaItemDefinition> definitions = new ArrayList<>();
+    private List<JpaLinkDefinition> definitions = new ArrayList<>();
 
-    public void add(JpaItemDefinition definition) {
+    public void add(JpaLinkDefinition definition) {
         definitions.add(definition);
     }
 
-    public List<JpaItemDefinition> getDefinitions() {
+    public List<JpaLinkDefinition> getDefinitions() {
         return definitions;
     }
 
@@ -53,7 +53,7 @@ public class DefinitionPath {
         return definitions.size();
     }
 
-    public JpaItemDefinition get(int i) {
+    public JpaLinkDefinition get(int i) {
         return definitions.get(i);
     }
 
@@ -63,7 +63,7 @@ public class DefinitionPath {
         sb.append('[');
         boolean first = true;
 
-        for (JpaItemDefinition definition : definitions) {
+        for (JpaLinkDefinition definition : definitions) {
             if (first) {
                 first = false;
             } else {

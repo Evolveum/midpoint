@@ -43,6 +43,7 @@ import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.TypeFilter;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -2492,7 +2493,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
         try {
             /*
-             * ### UserType: link/name contains 'test.com'
+             * ### UserType: linkRef/@/name contains 'test.com'
              */
 
             ObjectFilter filter = SubstringFilter.createSubstring(
@@ -2501,7 +2502,119 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
             String real = getInterpretedQuery2(session, UserType.class, query);
-//            assertEqualsIgnoreWhitespace(expected, real);
+            String expected = "select\n" +
+                    "  u.fullObject,\n" +
+                    "  u.stringsCount,\n" +
+                    "  u.longsCount,\n" +
+                    "  u.datesCount,\n" +
+                    "  u.referencesCount,\n" +
+                    "  u.polysCount,\n" +
+                    "  u.booleansCount\n" +
+                    "from\n" +
+                    "  RUser u\n" +
+                    "    left join u.linkRef l\n" +
+                    "    left join l.target t\n" +
+                    "where\n" +
+                    "  (\n" +
+                    "    t.name.orig like :orig and\n" +
+                    "    t.name.norm like :norm\n" +
+                    "  )\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test752DereferenceLinkedResourceName() throws Exception {
+        Session session = open();
+
+        try {
+            /*
+             * ### UserType: linkRef/@/resourceRef/@/name contains 'CSV' (norm)
+             */
+
+            ObjectFilter filter = SubstringFilter.createSubstring(
+                    new ItemPath(UserType.F_LINK_REF, PrismConstants.T_OBJECT_REFERENCE,
+                            ShadowType.F_RESOURCE_REF, PrismConstants.T_OBJECT_REFERENCE,
+                            ShadowType.F_NAME),
+                    UserType.class, prismContext, PolyStringNormMatchingRule.NAME, "CSV");
+            ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+
+            String real = getInterpretedQuery2(session, UserType.class, query);
+            String expected = "select\n" +
+                    "  u.fullObject,\n" +
+                    "  u.stringsCount,\n" +
+                    "  u.longsCount,\n" +
+                    "  u.datesCount,\n" +
+                    "  u.referencesCount,\n" +
+                    "  u.polysCount,\n" +
+                    "  u.booleansCount\n" +
+                    "from\n" +
+                    "  RUser u\n" +
+                    "    left join u.linkRef l\n" +
+                    "    left join l.target t\n" +
+                    "    left join t.resourceRef.target t2\n" +
+                    "where\n" +
+                    "  t2.name.norm like :norm\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test(expectedExceptions = IllegalStateException.class)             // at this time
+    public void test760DereferenceAssignedRoleType() throws Exception {
+        Session session = open();
+
+        try {
+            /*
+             * This fails, as prism nor query interpreter expect that targetRef is RoleType/RRole.
+             * Prism should implement something like "searching for proper root" when dereferencing "@".
+             * QI should implement the proper root search not only at the query root, but always after a "@".
+             *
+             * ### UserType: assignment/targetRef/@/roleType
+             */
+
+            ObjectFilter filter = EqualFilter.createEqual(
+                    new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, RoleType.F_ROLE_TYPE),
+                    UserType.class, prismContext, "type1");
+            ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+
+            String real = getInterpretedQuery2(session, UserType.class, query);
+
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test770CaseParentFilter() throws Exception {
+        Session session = open();
+
+        try {
+            /*
+             * ### AccessCertificationCaseType: Equal(../name, 'Campaign 1')
+             */
+
+            ObjectFilter filter = EqualFilter.createEqual(
+                    new ItemPath(PrismConstants.T_PARENT, ObjectType.F_NAME),
+                    AccessCertificationCaseType.class, prismContext, "Campaign 1");
+            ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+
+            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query);
+            String expected = "select\n" +
+                    "  a.fullObject\n" +
+                    "from\n" +
+                    "  RAccessCertificationCase a\n" +
+                    "    left join a.owner o\n" +
+                    "where\n" +
+                    "  (\n" +
+                    "    o.name.orig = :orig and\n" +
+                    "    o.name.norm = :norm\n" +
+                    "  )\n";
+            assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
         }

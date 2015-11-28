@@ -19,14 +19,12 @@ package com.evolveum.midpoint.repo.sql.query2.definition;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.query2.DefinitionSearchResult;
-
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.repo.sql.query2.DataSearchResult;
 
 /**
  * @author lazyman
  */
-public class JpaPropertyDefinition extends JpaItemDefinition {
+public class JpaPropertyDefinition extends JpaDataNodeDefinition {
 
     //jpa special types
     private boolean lob;
@@ -34,9 +32,8 @@ public class JpaPropertyDefinition extends JpaItemDefinition {
     //jpa special things
     private boolean indexed;
 
-    public JpaPropertyDefinition(QName jaxbName, String jpaName, CollectionSpecification collectionSpecification,
-                                 Class jpaClass, boolean lob, boolean enumerated, boolean indexed) {
-        super(jaxbName, jpaName, collectionSpecification, jpaClass);
+    public JpaPropertyDefinition(Class jpaClass, Class jaxbClass, boolean lob, boolean enumerated, boolean indexed) {
+        super(jpaClass, jaxbClass);
         this.lob = lob;
         this.enumerated = enumerated;
         this.indexed = indexed;
@@ -71,19 +68,12 @@ public class JpaPropertyDefinition extends JpaItemDefinition {
     }
 
     @Override
-    protected void debugDumpExtended(StringBuilder builder, int indent) {
-        builder.append(", lob=").append(isLob());
-        builder.append(", enumerated=").append(isEnumerated());
-        builder.append(", indexed=").append(isIndexed());
-    }
-
-    @Override
     protected String getDebugDumpClassName() {
         return "Prop";
     }
 
     @Override
-    public DefinitionSearchResult nextDefinition(ItemPath path) {
+    public DataSearchResult nextLinkDefinition(ItemPath path) {
         // nowhere to come from here
         return null;
     }
@@ -91,5 +81,21 @@ public class JpaPropertyDefinition extends JpaItemDefinition {
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(super.getShortInfo());
+        if (isLob()) {
+            sb.append(", lob");
+        }
+        if (isEnumerated()) {
+            sb.append(", enumerated");
+        }
+        if (isIndexed()) {
+            sb.append(", indexed");
+        }
+        return sb.toString();
     }
 }

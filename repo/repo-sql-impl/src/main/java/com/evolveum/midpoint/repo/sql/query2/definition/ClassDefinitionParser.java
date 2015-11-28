@@ -16,15 +16,21 @@
 
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
+import com.evolveum.midpoint.prism.path.ParentPathSegment;
+import com.evolveum.midpoint.repo.sql.data.Marker;
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.query.definition.Any;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
+import com.evolveum.midpoint.repo.sql.query.definition.OwnerGetter;
 import com.evolveum.midpoint.repo.sql.query.definition.QueryEntity;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualAny;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualCollection;
+import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.StringUtils;
@@ -51,15 +57,14 @@ public class ClassDefinitionParser {
 
     private static final Trace LOGGER = TraceManager.getTrace(ClassDefinitionParser.class);
 
-    public JpaRootEntityDefinition parseRootClass(Class jpaClass) {
-        JpaEntityContentDefinition content = parseClass(jpaClass);
-        JpaRootEntityDefinition rootEntityDefinition = new JpaRootEntityDefinition(jpaClass, content);
-        return rootEntityDefinition;
+    public JpaEntityDefinition parseRootClass(Class jpaClass) {
+        return parseClass(jpaClass);
     }
 
-    private JpaEntityContentDefinition parseClass(Class jpaClass) {
+    private JpaEntityDefinition parseClass(Class jpaClass) {
 
-        JpaEntityContentDefinition entity = new JpaEntityContentDefinition();
+        Class jaxbClass = getJaxbClassForEntity(jpaClass);
+        JpaEntityDefinition entity = new JpaEntityDefinition(jpaClass, jaxbClass);
         LOGGER.trace("### {}", entity);
 
         addVirtualDefinitions(jpaClass, entity);
@@ -79,13 +84,22 @@ public class ClassDefinitionParser {
             }
 
             LOGGER.trace("# {}", method);
-            JpaItemDefinition jpaItemDefinition = parseMethod(method);
-            entity.addDefinition(jpaItemDefinition);
+
+            JpaLinkDefinition linkDefinition;
+            OwnerGetter ownerGetter = method.getAnnotation(OwnerGetter.class);
+            if (ownerGetter != null) {
+                String jpaName = getJpaName(method);
+                JpaDataNodeDefinition nodeDefinition = new JpaEntityPointerDefinition(ownerGetter.ownerClass());
+                linkDefinition = new JpaLinkDefinition(new ParentPathSegment(), jpaName, null, nodeDefinition);
+            } else {
+                linkDefinition = parseMethod(method);
+            }
+            entity.addDefinition(linkDefinition);
         }
         return entity;
     }
 
-    private JpaItemDefinition parseMethod(Method method) {
+    private JpaLinkDefinition parseMethod(Method method) {
         CollectionSpecification collectionSpecification;    // non-null if return type is Set<X>, null if it's X
         Type returnedContentType;                           // X in return type, which is either X or Set<X>
         if (Set.class.isAssignableFrom(method.getReturnType())) {
@@ -110,11 +124,12 @@ public class ClassDefinitionParser {
             throw new IllegalStateException("Collection within collection is not supported: method=" + method);
         }
 
-        JpaItemDefinition definition;
-        Any any = (Any) jpaClass.getAnnotation(Any.class);
+        JpaLinkDefinition<? extends JpaDataNodeDefinition> linkDefinition;
+        Any any = method.getAnnotation(Any.class);
         if (any != null) {
-            jaxbName = new QName(any.jaxbNameNamespace(), any.jaxbNameLocalPart());
-            definition = new JpaAnyDefinition(jaxbName, jpaName, jpaClass);
+            JpaAnyDefinition targetDefinition = new JpaAnyDefinition(jpaClass);
+            QName jaxbNameForAny = new QName(any.jaxbNameNamespace(), any.jaxbNameLocalPart());
+            linkDefinition = new JpaLinkDefinition<>(jaxbNameForAny, jpaName, collectionSpecification, targetDefinition);
         } else if (ObjectReference.class.isAssignableFrom(jpaClass)) {
             boolean embedded = method.isAnnotationPresent(Embedded.class);
             // computing referenced entity type from returned content type like RObjectReference<RFocus> or REmbeddedReference<RRole>
@@ -124,19 +139,22 @@ public class ClassDefinitionParser {
             } else {
                 referencedJpaClass = RObject.class;
             }
-            definition = new JpaReferenceDefinition(jaxbName, jpaName, collectionSpecification, jpaClass, referencedJpaClass, embedded);
+            JpaReferenceDefinition targetDefinition = new JpaReferenceDefinition(jpaClass, referencedJpaClass);
+            linkDefinition = new JpaLinkDefinition<>(jaxbName, jpaName, collectionSpecification, embedded, targetDefinition);
         } else if (isEntity(jpaClass)) {
-            JpaEntityContentDefinition content = parseClass(jpaClass);
+            JpaEntityDefinition content = parseClass(jpaClass);
             boolean embedded = method.isAnnotationPresent(Embedded.class) || jpaClass.isAnnotationPresent(Embeddable.class);
-            definition = new JpaEntityItemDefinition(jaxbName, jpaName, collectionSpecification, jpaClass, content, embedded);
+            linkDefinition = new JpaLinkDefinition<JpaDataNodeDefinition>(jaxbName, jpaName, collectionSpecification, embedded, content);
         } else {
             boolean lob = method.isAnnotationPresent(Lob.class);
             boolean enumerated = method.isAnnotationPresent(Enumerated.class);
             //todo implement also lookup for @Table indexes
             boolean indexed = method.isAnnotationPresent(Index.class);
-            definition = new JpaPropertyDefinition(jaxbName, jpaName, collectionSpecification, jpaClass, lob, enumerated, indexed);
+            Class jaxbClass = getJaxbClass(method, jpaClass);
+            JpaPropertyDefinition propertyDefinition = new JpaPropertyDefinition(jpaClass, jaxbClass, lob, enumerated, indexed);
+            linkDefinition = new JpaLinkDefinition<JpaDataNodeDefinition>(jaxbName, jpaName, collectionSpecification, false, propertyDefinition);
         }
-        return definition;
+        return linkDefinition;
     }
 
     private Class<?> getClass(Type type) {
@@ -149,7 +167,7 @@ public class ClassDefinitionParser {
         }
     }
 
-    private void addVirtualDefinitions(Class jpaClass, JpaEntityContentDefinition entityDef) {
+    private void addVirtualDefinitions(Class jpaClass, JpaEntityDefinition entityDef) {
         addVirtualDefinitionsForClass(jpaClass, entityDef);
 
         while ((jpaClass = jpaClass.getSuperclass()) != null) {
@@ -157,7 +175,7 @@ public class ClassDefinitionParser {
         }
     }
 
-    private void addVirtualDefinitionsForClass(Class jpaClass, JpaEntityContentDefinition entityDef) {
+    private void addVirtualDefinitionsForClass(Class jpaClass, JpaEntityDefinition entityDef) {
         if (!jpaClass.isAnnotationPresent(QueryEntity.class)) {
             return;
         }
@@ -165,10 +183,10 @@ public class ClassDefinitionParser {
         QueryEntity qEntity = (QueryEntity) jpaClass.getAnnotation(QueryEntity.class);
 
         for (VirtualAny any : qEntity.anyElements()) {
-            VirtualAnyDefinition def = new VirtualAnyDefinition(
-                    new QName(any.jaxbNameNamespace(), any.jaxbNameLocalPart()),
-                    any.ownerType());
-            entityDef.addDefinition(def);
+            QName jaxbName = new QName(any.jaxbNameNamespace(), any.jaxbNameLocalPart());
+            VirtualAnyDefinition def = new VirtualAnyDefinition(any.ownerType());
+            JpaLinkDefinition linkDefinition = new JpaLinkDefinition(jaxbName, null, null, def);
+            entityDef.addDefinition(linkDefinition);
         }
 
         for (VirtualCollection collection : qEntity.collections()) {
@@ -176,10 +194,12 @@ public class ClassDefinitionParser {
             VirtualCollectionSpecification colSpec = new VirtualCollectionSpecification(collection.additionalParams());
             QName jaxbName = createQName(collection.jaxbName());
             String jpaName = collection.jpaName();
-            JpaEntityContentDefinition content = parseClass(collection.jpaType());
-            JpaEntityItemDefinition definition = new JpaEntityItemDefinition(jaxbName, jpaName, colSpec, jpaClass, content, false);
-            entityDef.addDefinition(definition);
+            JpaEntityDefinition content = parseClass(collection.collectionType());
+            JpaLinkDefinition linkDefinition = new JpaLinkDefinition(jaxbName, jpaName, colSpec, content);
+            entityDef.addDefinition(linkDefinition);
         }
+
+        // TODO virtual entity collections (for metadata and construction)
     }
 
     private QName createQName(JaxbName name) {
@@ -203,19 +223,36 @@ public class ClassDefinitionParser {
         }
     }
 
-//    private Class getJaxbClass(Class clazz) {
-//        if (RObject.class.isAssignableFrom(clazz)) {
-//            ObjectTypes objectType = ClassMapper.getObjectTypeForHQLType(clazz);
-//            return objectType.getClassDefinition();
-//        }
-//
-//        if (clazz.getAnnotation(JaxbType.class) != null) {
-//            JaxbType type = (JaxbType) clazz.getAnnotation(JaxbType.class);
-//            return type.type();
-//        }
-//
-//        return clazz;
-//    }
+    // second parameter is just to optimize
+    private Class getJaxbClass(Method method, Class returnedClass) {
+        JaxbType annotation = (JaxbType) method.getAnnotation(JaxbType.class);
+        if (annotation != null) {
+            return annotation.type();
+        }
+        Class classFromEntity = getJaxbClassForEntity(returnedClass);
+        if (classFromEntity != null) {
+            return classFromEntity;
+        }
+        Package returnedClassPkg = returnedClass.getPackage();
+        Package dataObjectsPkg = Marker.class.getPackage();
+        if (returnedClassPkg != null && returnedClassPkg.getName().startsWith(dataObjectsPkg.getName())) {
+            return null;
+        } else {
+            return returnedClass;       // probably the JAXB value
+        }
+    }
+
+    private Class getJaxbClassForEntity(Class clazz) {
+        if (RObject.class.isAssignableFrom(clazz)) {
+            ObjectTypes objectType = ClassMapper.getObjectTypeForHQLType(clazz);
+            return objectType.getClassDefinition();
+        }
+        JaxbType annotation = (JaxbType) clazz.getAnnotation(JaxbType.class);
+        if (annotation != null) {
+            return annotation.type();
+        }
+        return null;
+    }
 
     private String getJpaName(Method method) {
         String methodName = method.getName();
