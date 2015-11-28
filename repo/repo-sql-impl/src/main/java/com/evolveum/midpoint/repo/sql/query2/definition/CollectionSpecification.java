@@ -24,8 +24,17 @@ import com.evolveum.midpoint.util.Holder;
 import javax.xml.namespace.QName;
 
 /**
- * @author lazyman
+ * In current version this is just a marker class - there's nothing to be said about standard collections yet.
+ *
+ * @author mederly
  */
 public class CollectionSpecification {
 
+    public String toString() {
+        return "StdCol";
+    }
+
+    public String getShortInfo() {
+        return "[]";
+    }
 }

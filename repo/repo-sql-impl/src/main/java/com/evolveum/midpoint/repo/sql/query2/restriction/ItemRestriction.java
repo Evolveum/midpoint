@@ -17,16 +17,15 @@
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
-import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
 
 /**
  * @author mederly
  */
 public abstract class ItemRestriction<T extends ObjectFilter> extends Restriction<T> {
 
-    public ItemRestriction(InterpretationContext context, T filter, EntityDefinition baseEntityDefinition, Restriction parent) {
+    public ItemRestriction(InterpretationContext context, T filter, JpaEntityDefinition baseEntityDefinition, Restriction parent) {
         super(context, filter, baseEntityDefinition, parent);
     }
 }

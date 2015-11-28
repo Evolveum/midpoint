@@ -21,10 +21,10 @@ import java.util.Comparator;
 /**
  * @author lazyman
  */
-public class DefinitionComparator implements Comparator<Definition> {
+public class DefinitionComparator implements Comparator<JpaItemDefinition> {
 
     @Override
-    public int compare(Definition o1, Definition o2) {
+    public int compare(JpaItemDefinition o1, JpaItemDefinition o2) {
         if (o1.getClass().equals(o2.getClass())) {
             return String.CASE_INSENSITIVE_ORDER.compare(o1.getJaxbName().getLocalPart(),
                     o2.getJaxbName().getLocalPart());
@@ -33,21 +33,19 @@ public class DefinitionComparator implements Comparator<Definition> {
         return getType(o1) - getType(o2);
     }
 
-    private int getType(Definition def) {
+    private int getType(JpaItemDefinition def) {
         if (def == null) {
             return 0;
         }
-
-        if (def instanceof PropertyDefinition) {
+        if (def instanceof JpaPropertyDefinition) {
             return 1;
-        } else if (def instanceof ReferenceDefinition) {
+        } else if (def instanceof JpaReferenceDefinition) {
             return 2;
-        } else if (def instanceof AnyDefinition) {
+        } else if (def instanceof JpaAnyDefinition) {
             return 4;
-        } else if (def instanceof EntityDefinition) {
+        } else if (def instanceof JpaEntityItemDefinition) {
             return 5;
         }
-
         return 0;
     }
 }

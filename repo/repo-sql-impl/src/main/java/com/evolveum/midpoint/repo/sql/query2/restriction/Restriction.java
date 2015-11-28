@@ -19,11 +19,11 @@ package com.evolveum.midpoint.repo.sql.query2.restriction;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.InterpreterHelper;
-import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityItemDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import org.apache.commons.lang.Validate;
 import org.hibernate.Session;
@@ -68,9 +68,9 @@ public abstract class Restriction<T extends ObjectFilter> {
      * Actually, the caller has to determine it, because it needs it to know what restriction to instantiate.
      * (TODO reconsider this)
      */
-    protected EntityDefinition baseEntityDefinition;
+    protected JpaEntityDefinition baseEntityDefinition;
 
-    public Restriction(InterpretationContext context, T filter, EntityDefinition baseEntityDefinition, Restriction parent) {
+    public Restriction(InterpretationContext context, T filter, JpaEntityDefinition baseEntityDefinition, Restriction parent) {
         Validate.notNull(context, "context");
         Validate.notNull(filter, "filter");
         Validate.notNull(baseEntityDefinition, "baseEntityDefinition");
@@ -177,11 +177,11 @@ public abstract class Restriction<T extends ObjectFilter> {
        return new ItemPath(parent.getBaseItemPath(), path);
     }
 
-    public EntityDefinition getBaseEntityDefinition() {
+    public JpaEntityDefinition getBaseEntityDefinition() {
         return baseEntityDefinition;
     }
 
-    public EntityDefinition getBaseEntityDefinitionForChildren() {
+    public JpaEntityDefinition getBaseEntityDefinitionForChildren() {
         return getBaseEntityDefinition();
     }
 

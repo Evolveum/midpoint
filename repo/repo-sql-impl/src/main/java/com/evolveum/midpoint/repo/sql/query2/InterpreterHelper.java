@@ -21,15 +21,15 @@ import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualQueryParam;
-import com.evolveum.midpoint.repo.sql.query2.definition.AnyDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.CollectionSpecification;
-import com.evolveum.midpoint.repo.sql.query2.definition.Definition;
-import com.evolveum.midpoint.repo.sql.query2.definition.DefinitionPath;
-import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.PropertyDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.ReferenceDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaAnyDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityItemDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaItemDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaPropertyDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaReferenceDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaRootEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.VirtualCollectionSpecification;
-import com.evolveum.midpoint.repo.sql.query2.hqm.EntityReference;
 import com.evolveum.midpoint.repo.sql.query2.hqm.JoinSpecification;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.AndCondition;
@@ -61,7 +61,7 @@ public class InterpreterHelper {
     }
 
     // returns property path that can be used to access the item values
-    public String prepareJoins(ItemPath relativePath, String currentHqlPath, EntityDefinition baseEntityDefinition) throws QueryException {
+    public String prepareJoins(ItemPath relativePath, String currentHqlPath, JpaEntityDefinition baseEntityDefinition) throws QueryException {
 
         LOGGER.trace("Updating query context based on path {}", relativePath);
 
@@ -74,46 +74,53 @@ public class InterpreterHelper {
          *
          * Or more complex:
          * - assignment.modifyApproverRef -> "left join u.assignments a (...) left join a.modifyApproverRef m (...)"
-         * - assignment.target.longs -> "left join u.assignments a (...), RObject o left join o.longs (...)"
+         * - assignment.target.longs -> "left join u.assignments a (...) left join a.target t left join t.longs (...)"
          */
-        DefinitionPath definitionPath = baseEntityDefinition.translatePath(relativePath);
 
-        List<Definition> definitions = definitionPath.getDefinitions();
-        for (int i = 0; i < definitions.size(); i++) {
-            Definition definition = definitions.get(i);
-            if (definition instanceof EntityDefinition) {
-                EntityDefinition entityDef = (EntityDefinition) definition;
-                if (!entityDef.isEmbedded() || entityDef.isCollection()) {
-                    LOGGER.trace("Adding join for '{}' to context", entityDef.getJpaName());
+        JpaDefinition currentDefinition = (JpaDefinition) baseEntityDefinition;
+        ItemPath itemPathRemainder = relativePath;
+        while (!ItemPath.isNullOrEmpty(itemPathRemainder)) {
+
+            DefinitionSearchResult<JpaItemDefinition> result = currentDefinition.nextDefinition(itemPathRemainder);
+            LOGGER.trace("nextDefinition on {} returned {}", itemPathRemainder, result != null ? result.getItemDefinition() : "(null)");
+            if (result == null) {       // sorry we failed (however, this should be caught before -> so IllegalStateException)
+                throw new IllegalStateException("Couldn't find " + itemPathRemainder + " in " + currentDefinition);
+            }
+            JpaItemDefinition itemDefinition = result.getItemDefinition();
+
+            if (itemDefinition instanceof JpaAnyDefinition) {
+                JpaAnyDefinition anyDefinition = (JpaAnyDefinition) itemDefinition;
+                if (anyDefinition.getJpaName() != null) {      // there are "invisible" Any definitions - object extension and shadow attributes
+                    LOGGER.trace("Adding join for '{}' to context", anyDefinition);
+                    currentHqlPath = addJoin(anyDefinition, currentHqlPath);
+                }
+                break;      // we're done
+            } else if (itemDefinition instanceof JpaEntityItemDefinition) {
+                JpaEntityItemDefinition entityDef = (JpaEntityItemDefinition) itemDefinition;
+                if (!entityDef.isEmbedded() || entityDef.isMultivalued()) {
+                    LOGGER.trace("Adding join for '{}' to context", entityDef);
                     currentHqlPath = addJoin(entityDef, currentHqlPath);
                 } else {
                     currentHqlPath += "." + entityDef.getJpaName();
                 }
-            } else if (definition instanceof AnyDefinition) {
-                if (definition.getJpaName() != null) {      // there are "invisible" Any definitions - object extension and shadow attributes
-                    LOGGER.trace("Adding join for '{}' to context", definition.getJpaName());
-                    currentHqlPath = addJoin(definition, currentHqlPath);
+            } else if (itemDefinition instanceof JpaPropertyDefinition || itemDefinition instanceof JpaReferenceDefinition) {
+                if (itemDefinition.isMultivalued()) {
+                    LOGGER.trace("Adding join for '{}' to context", itemDefinition);
+                    currentHqlPath = addJoin(itemDefinition, currentHqlPath);
                 }
-                break;
-            } else if (definition instanceof PropertyDefinition || definition instanceof ReferenceDefinition) {
-                if (definition.isCollection()) {
-                    LOGGER.trace("Adding join for '{}' to context", definition.getJpaName());
-                    currentHqlPath = addJoin(definition, currentHqlPath);
-                }
-                break;      // quite redundant, as this is the last item in the chain
             } else {
-                throw new QueryException("Not implemented yet: " + definition);
+                throw new QueryException("Not implemented yet: " + itemDefinition);
             }
-            // TODO entity crossjoin references (when crossing object boundaries)
+            itemPathRemainder = result.getRemainder();
+            currentDefinition = itemDefinition;
         }
 
         LOGGER.trace("prepareJoins({}) returning currentHqlPath of {}", relativePath, currentHqlPath);
         return currentHqlPath;
     }
 
-    protected String addJoin(Definition joinedItemDefinition, String currentHqlPath) throws QueryException {
+    private String addJoin(JpaItemDefinition joinedItemDefinition, String currentHqlPath) throws QueryException {
         RootHibernateQuery hibernateQuery = context.getHibernateQuery();
-        EntityReference entityReference = hibernateQuery.getPrimaryEntity();                    // TODO other references (in the future)
         String joinedItemJpaName = joinedItemDefinition.getJpaName();
         String joinedItemFullPath = currentHqlPath + "." + joinedItemJpaName;
         String joinedItemAlias = hibernateQuery.createAlias(joinedItemDefinition);
@@ -133,7 +140,7 @@ public class InterpreterHelper {
                 condition = conditions.iterator().next();
             }
         }
-        entityReference.addJoin(new JoinSpecification(joinedItemAlias, joinedItemFullPath, condition));
+        hibernateQuery.getPrimaryEntity().addJoin(new JoinSpecification(joinedItemAlias, joinedItemFullPath, condition));
         return joinedItemAlias;
     }
 
@@ -166,10 +173,9 @@ public class InterpreterHelper {
 
     public String addJoinAny(String currentHqlPath, String anyAssociationName, QName itemName, RObjectExtensionType ownerType) {
         RootHibernateQuery hibernateQuery = context.getHibernateQuery();
-        EntityReference entityReference = hibernateQuery.getPrimaryEntity();                    // TODO other references (in the future)
         String joinedItemJpaName = anyAssociationName;
         String joinedItemFullPath = currentHqlPath + "." + joinedItemJpaName;
-        String joinedItemAlias = hibernateQuery.createAlias(joinedItemJpaName);
+        String joinedItemAlias = hibernateQuery.createAlias(joinedItemJpaName, false);
 
         AndCondition conjunction = hibernateQuery.createAnd();
         if (ownerType != null) {        // null for assignment extensions
@@ -177,7 +183,7 @@ public class InterpreterHelper {
         }
         conjunction.add(hibernateQuery.createEq(joinedItemAlias + "." + RAnyValue.F_NAME, RUtil.qnameToString(itemName)));
 
-        entityReference.addJoin(new JoinSpecification(joinedItemAlias, joinedItemFullPath, conjunction));
+        hibernateQuery.getPrimaryEntity().addJoin(new JoinSpecification(joinedItemAlias, joinedItemFullPath, conjunction));
         return joinedItemAlias;
     }
 
@@ -190,13 +196,13 @@ public class InterpreterHelper {
      * @param clazz Kind of definition to be looked for
      * @return Entity type definition + item definition, or null if nothing was found
      */
-    public <T extends Definition> ProperDefinitionSearchResult<T> findProperDefinition(EntityDefinition baseEntityDefinition,
-                                                                                       ItemPath path, Class<T> clazz)
-            throws QueryException {
+    public <T extends JpaItemDefinition>
+    ProperDefinitionSearchResult<T> findProperDefinition(JpaEntityDefinition baseEntityDefinition,
+                                                         ItemPath path, Class<T> clazz) throws QueryException {
         QueryDefinitionRegistry2 registry = QueryDefinitionRegistry2.getInstance();
         ProperDefinitionSearchResult<T> candidateResult = null;
 
-        for (EntityDefinition entityDefinition : findPossibleBaseEntities(baseEntityDefinition, registry)) {
+        for (JpaEntityDefinition entityDefinition : findPossibleBaseEntities(baseEntityDefinition, registry)) {
             DefinitionSearchResult<T> result = entityDefinition.findDefinition(path, clazz);
             if (result != null) {
                 if (candidateResult == null) {
@@ -206,19 +212,19 @@ public class InterpreterHelper {
                     // there is no possibility of false alarm.
                     if (!candidateResult.getEntityDefinition().isAssignableFrom(entityDefinition)) {
                         throw new QueryException("Unable to determine root entity for " + path + ": found incompatible candidates: " +
-                                candidateResult.getEntityDefinition().getJpaName() + " and " +
-                                entityDefinition.getJpaName());
+                                candidateResult.getEntityDefinition() + " and " +
+                                entityDefinition);
                     }
                 }
             }
         }
         LOGGER.trace("findProperDefinition: base={}, path={}, class={} -- returning {}",
-                baseEntityDefinition.getShortInfo(), path, clazz.getSimpleName(), candidateResult);
+                baseEntityDefinition, path, clazz.getSimpleName(), candidateResult);
         return candidateResult;
     }
 
-    private List<EntityDefinition> findPossibleBaseEntities(EntityDefinition entityDefinition, QueryDefinitionRegistry2 registry) {
-        List<EntityDefinition> retval = new ArrayList<>();
+    private List<JpaEntityDefinition> findPossibleBaseEntities(JpaEntityDefinition entityDefinition, QueryDefinitionRegistry2 registry) {
+        List<JpaEntityDefinition> retval = new ArrayList<>();
         retval.add(entityDefinition);               // (possibly) abstract one has to go first
         if (entityDefinition.isAbstract()) {        // just for efficiency
             retval.addAll(registry.getChildrenOf(entityDefinition));
@@ -229,11 +235,11 @@ public class InterpreterHelper {
     /**
      * Given existing entity definition and a request for narrowing it, tries to find refined definition.
      */
-    public EntityDefinition findRestrictedEntityDefinition(EntityDefinition baseEntityDefinition, QName specificTypeName) throws QueryException {
+    public JpaRootEntityDefinition findRestrictedEntityDefinition(JpaEntityDefinition baseEntityDefinition, QName specificTypeName) throws QueryException {
         QueryDefinitionRegistry2 registry = QueryDefinitionRegistry2.getInstance();
-        EntityDefinition specificEntityDefinition = registry.findEntityDefinition(specificTypeName);
+        JpaRootEntityDefinition specificEntityDefinition = registry.findEntityDefinition(specificTypeName);
         if (!baseEntityDefinition.isAssignableFrom(specificEntityDefinition)) {
-            throw new QueryException("Entity " + baseEntityDefinition.getJpaName() + " cannot be restricted to " + specificEntityDefinition.getJpaName());
+            throw new QueryException("Entity " + baseEntityDefinition + " cannot be restricted to " + specificEntityDefinition);
         }
         return specificEntityDefinition;
     }

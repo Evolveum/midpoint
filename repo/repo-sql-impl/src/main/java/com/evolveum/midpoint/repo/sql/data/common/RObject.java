@@ -118,7 +118,7 @@ import java.util.Set;
         @Index(name = "iObjectTypeClass", columnList = "objectTypeClass"),
         @Index(name = "iObjectCreateTimestamp", columnList = "createTimestamp")})
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class RObject<T extends ObjectType> implements Metadata<RObjectReference>, EntityState, Serializable {
+public abstract class RObject<T extends ObjectType> implements Metadata<RObjectReference<RFocus>>, EntityState, Serializable {
 
     public static final String F_OBJECT_TYPE_CLASS = "objectTypeClass";
 
@@ -135,17 +135,17 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     private RObjectType objectTypeClass;
     //ObjectType searchable fields
     private RPolyString name;
-    private Set<RObjectReference> parentOrgRef;
+    private Set<RObjectReference<ROrg>> parentOrgRef;
     private Set<RTrigger> trigger;
     private REmbeddedReference tenantRef;
     //Metadata
     private XMLGregorianCalendar createTimestamp;
     private REmbeddedReference creatorRef;
-    private Set<RObjectReference> createApproverRef;
+    private Set<RObjectReference<RFocus>> createApproverRef;
     private String createChannel;
     private XMLGregorianCalendar modifyTimestamp;
     private REmbeddedReference modifierRef;
-    private Set<RObjectReference> modifyApproverRef;
+    private Set<RObjectReference<RFocus>> modifyApproverRef;
     private String modifyChannel;
     //extension, and other "any" like shadow/attributes
     private Short booleansCount;
@@ -188,7 +188,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     @Where(clause = RObjectReference.REFERENCE_TYPE + "= 0")
     @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RObjectReference> getParentOrgRef() {
+    public Set<RObjectReference<ROrg>> getParentOrgRef() {
         if (parentOrgRef == null) {
             parentOrgRef = new HashSet<>();
         }
@@ -229,7 +229,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
 //    @JoinTable(foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RObjectReference> getCreateApproverRef() {
+    public Set<RObjectReference<RFocus>> getCreateApproverRef() {
         if (createApproverRef == null) {
             createApproverRef = new HashSet<>();
         }
@@ -258,7 +258,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
 //    @JoinTable(foreignKey = @ForeignKey(name = "none"))
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RObjectReference> getModifyApproverRef() {
+    public Set<RObjectReference<RFocus>> getModifyApproverRef() {
         if (modifyApproverRef == null) {
             modifyApproverRef = new HashSet<>();
         }
@@ -401,7 +401,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         this.objectTypeClass = objectTypeClass;
     }
 
-    public void setCreateApproverRef(Set<RObjectReference> createApproverRef) {
+    public void setCreateApproverRef(Set<RObjectReference<RFocus>> createApproverRef) {
         this.createApproverRef = createApproverRef;
     }
 
@@ -421,7 +421,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         this.modifierRef = modifierRef;
     }
 
-    public void setModifyApproverRef(Set<RObjectReference> modifyApproverRef) {
+    public void setModifyApproverRef(Set<RObjectReference<RFocus>> modifyApproverRef) {
         this.modifyApproverRef = modifyApproverRef;
     }
 
@@ -465,7 +465,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         this.ancestors = ancestors;
     }
 
-    public void setParentOrgRef(Set<RObjectReference> parentOrgRef) {
+    public void setParentOrgRef(Set<RObjectReference<ROrg>> parentOrgRef) {
         this.parentOrgRef = parentOrgRef;
     }
 

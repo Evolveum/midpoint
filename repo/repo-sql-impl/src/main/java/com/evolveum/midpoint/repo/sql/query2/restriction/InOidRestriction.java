@@ -16,13 +16,13 @@
 
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.InOidFilter;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.data.common.container.Container;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
-import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,7 +33,7 @@ import java.util.List;
  */
 public class InOidRestriction extends Restriction<InOidFilter> {
 
-    public InOidRestriction(InterpretationContext context, InOidFilter filter, EntityDefinition baseEntityDefinition, Restriction parent) {
+    public InOidRestriction(InterpretationContext context, InOidFilter filter, JpaEntityDefinition baseEntityDefinition, Restriction parent) {
         super(context, filter, baseEntityDefinition, parent);
     }
 
@@ -46,10 +46,10 @@ public class InOidRestriction extends Restriction<InOidFilter> {
         if (filter.isConsiderOwner()) {
             hqlPath += "ownerOid";
             idValues = filter.getOids();
-        } else if (ObjectType.class.isAssignableFrom(baseEntityDefinition.getJaxbType())) {
+        } else if (RObject.class.isAssignableFrom(baseEntityDefinition.getJpaClass())) {
             hqlPath += "oid";
             idValues = filter.getOids();
-        } else if (Containerable.class.isAssignableFrom(baseEntityDefinition.getJaxbType())) {
+        } else if (Container.class.isAssignableFrom(baseEntityDefinition.getJpaClass())) {
             hqlPath += "id";        // quite a hack
             idValues = toIntList(filter.getOids());
         } else {

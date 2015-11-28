@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -2486,6 +2487,28 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     @Test
+    public void test750DereferenceLink() throws Exception {
+        Session session = open();
+
+        try {
+            /*
+             * ### UserType: link/name contains 'test.com'
+             */
+
+            ObjectFilter filter = SubstringFilter.createSubstring(
+                    new ItemPath(UserType.F_LINK_REF, PrismConstants.T_OBJECT_REFERENCE, ShadowType.F_NAME),
+                    UserType.class, prismContext, "test.com");
+            ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+
+            String real = getInterpretedQuery2(session, UserType.class, query);
+//            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+
+    @Test
     public void test800OrderBySingleton() throws Exception {
         Session session = open();
 
@@ -2517,6 +2540,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             close(session);
         }
     }
+
 
     // TODO negative tests - order by entity, reference, any, collection
     // TODO implement checks for "order by" for non-singletons

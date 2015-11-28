@@ -18,16 +18,13 @@ package com.evolveum.midpoint.repo.sql.query2.definition;
 
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
-import com.evolveum.midpoint.repo.sql.data.common.any.RAssignmentExtension;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.query.definition.Any;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
-import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.query.definition.QueryEntity;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualAny;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualCollection;
-import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.StringUtils;
@@ -40,39 +37,33 @@ import javax.persistence.Enumerated;
 import javax.persistence.Lob;
 import javax.persistence.Transient;
 import javax.xml.namespace.QName;
-import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Set;
 
 /**
  * @author lazyman
+ * @author mederly
  */
 public class ClassDefinitionParser {
 
     private static final Trace LOGGER = TraceManager.getTrace(ClassDefinitionParser.class);
 
-    public <T extends RObject> EntityDefinition parseObjectTypeClass(Class<T> type) {
-        ObjectTypes objectType = ClassMapper.getObjectTypeForHQLType(type);
-        QName jaxbName = objectType.getQName();
-        Class jaxbType = objectType.getClassDefinition();
-        return parseObjectTypeClass(jaxbName, jaxbType, type);
+    public JpaRootEntityDefinition parseRootClass(Class jpaClass) {
+        JpaEntityContentDefinition content = parseClass(jpaClass);
+        JpaRootEntityDefinition rootEntityDefinition = new JpaRootEntityDefinition(jpaClass, content);
+        return rootEntityDefinition;
     }
 
-    public EntityDefinition parseObjectTypeClass(QName jaxbName, Class jaxbType, Class jpaType) {
-        EntityDefinition entityDefinition = new EntityDefinition(jaxbName, jaxbType, jpaType.getSimpleName(), jpaType, null);
-        updateEntityDefinition(entityDefinition);
-        return entityDefinition;
-    }
+    private JpaEntityContentDefinition parseClass(Class jpaClass) {
 
-    private void updateEntityDefinition(EntityDefinition entity) {
+        JpaEntityContentDefinition entity = new JpaEntityContentDefinition();
         LOGGER.trace("### {}", entity);
 
-        addVirtualDefinitions(entity);
-        Method[] methods = entity.getJpaType().getMethods();
-
-        entity.setEmbedded(entity.getJpaType().getAnnotation(Embeddable.class) != null);
+        addVirtualDefinitions(jpaClass, entity);
+        Method[] methods = jpaClass.getMethods();
 
         for (Method method : methods) {
             String methodName = method.getName();
@@ -87,42 +78,91 @@ public class ClassDefinitionParser {
                 continue;
             }
 
-            LOGGER.trace("# {}", methodName);
+            LOGGER.trace("# {}", method);
+            JpaItemDefinition jpaItemDefinition = parseMethod(method);
+            entity.addDefinition(jpaItemDefinition);
+        }
+        return entity;
+    }
 
-            QName jaxbName = getJaxbName(method);
-            Class jaxbType = getJaxbType(method);
-            String jpaName = getJpaName(method);
-            Definition definition = createDefinition(jaxbName, jaxbType, jpaName, method, null);
-            entity.addDefinition(definition);
+    private JpaItemDefinition parseMethod(Method method) {
+        CollectionSpecification collectionSpecification;    // non-null if return type is Set<X>, null if it's X
+        Type returnedContentType;                           // X in return type, which is either X or Set<X>
+        if (Set.class.isAssignableFrom(method.getReturnType())) {
+            // e.g. Set<RObject> or Set<String> or Set<REmbeddedReference<RFocus>>
+            Type returnType = method.getGenericReturnType();
+            if (!(returnType instanceof ParameterizedType)) {
+                throw new IllegalStateException("Method " + method + " returns a non-parameterized collection");
+            }
+            returnedContentType = ((ParameterizedType) returnType).getActualTypeArguments()[0];
+            collectionSpecification = new CollectionSpecification();
+        } else {
+            returnedContentType = method.getReturnType();
+            collectionSpecification = null;
+        }
+
+        QName jaxbName = getJaxbName(method);
+        String jpaName = getJpaName(method);
+        Class jpaClass = getClass(returnedContentType);
+
+        // sanity check
+        if (Set.class.isAssignableFrom(jpaClass)) {
+            throw new IllegalStateException("Collection within collection is not supported: method=" + method);
+        }
+
+        JpaItemDefinition definition;
+        Any any = (Any) jpaClass.getAnnotation(Any.class);
+        if (any != null) {
+            jaxbName = new QName(any.jaxbNameNamespace(), any.jaxbNameLocalPart());
+            definition = new JpaAnyDefinition(jaxbName, jpaName, jpaClass);
+        } else if (ObjectReference.class.isAssignableFrom(jpaClass)) {
+            boolean embedded = method.isAnnotationPresent(Embedded.class);
+            // computing referenced entity type from returned content type like RObjectReference<RFocus> or REmbeddedReference<RRole>
+            Class referencedJpaClass;
+            if (returnedContentType instanceof ParameterizedType) {
+                referencedJpaClass = getClass(((ParameterizedType) returnedContentType).getActualTypeArguments()[0]);
+            } else {
+                referencedJpaClass = RObject.class;
+            }
+            definition = new JpaReferenceDefinition(jaxbName, jpaName, collectionSpecification, jpaClass, referencedJpaClass, embedded);
+        } else if (isEntity(jpaClass)) {
+            JpaEntityContentDefinition content = parseClass(jpaClass);
+            boolean embedded = method.isAnnotationPresent(Embedded.class) || jpaClass.isAnnotationPresent(Embeddable.class);
+            definition = new JpaEntityItemDefinition(jaxbName, jpaName, collectionSpecification, jpaClass, content, embedded);
+        } else {
+            boolean lob = method.isAnnotationPresent(Lob.class);
+            boolean enumerated = method.isAnnotationPresent(Enumerated.class);
+            //todo implement also lookup for @Table indexes
+            boolean indexed = method.isAnnotationPresent(Index.class);
+            definition = new JpaPropertyDefinition(jaxbName, jpaName, collectionSpecification, jpaClass, lob, enumerated, indexed);
+        }
+        return definition;
+    }
+
+    private Class<?> getClass(Type type) {
+        if (type instanceof Class) {
+            return ((Class) type);
+        } else if (type instanceof ParameterizedType) {
+            return getClass(((ParameterizedType) type).getRawType());
+        } else {
+            throw new IllegalStateException("Unsupported type: " + type);
         }
     }
 
-    private void addVirtualDefinitions(EntityDefinition entityDef) {
-        Class jpaType = entityDef.getJpaType();
-        addVirtualDefinitionsForClass(entityDef, jpaType);
+    private void addVirtualDefinitions(Class jpaClass, JpaEntityContentDefinition entityDef) {
+        addVirtualDefinitionsForClass(jpaClass, entityDef);
 
-        while ((jpaType = jpaType.getSuperclass()) != null) {
-            addVirtualDefinitionsForClass(entityDef, jpaType);
+        while ((jpaClass = jpaClass.getSuperclass()) != null) {
+            addVirtualDefinitionsForClass(jpaClass, entityDef);
         }
     }
 
-    private void addVirtualDefinitionsForClass(EntityDefinition entityDef, Class jpaType) {
-        if (!jpaType.isAnnotationPresent(QueryEntity.class)) {
+    private void addVirtualDefinitionsForClass(Class jpaClass, JpaEntityContentDefinition entityDef) {
+        if (!jpaClass.isAnnotationPresent(QueryEntity.class)) {
             return;
         }
 
-        QueryEntity qEntity = (QueryEntity) jpaType.getAnnotation(QueryEntity.class);
-//        for (VirtualProperty property : qEntity.properties()) {
-//            QName jaxbName = createQName(property.jaxbName());
-//            VirtualPropertyDefinition def = new VirtualPropertyDefinition(jaxbName, property.jaxbType(),
-//                    property.jpaName(), property.jpaType());
-//            def.setAdditionalParams(property.additionalParams());
-//            entityDef.addDefinition(def);
-//        }
-//
-//        for (VirtualReference reference : qEntity.references()) {
-//
-//        }
+        QueryEntity qEntity = (QueryEntity) jpaClass.getAnnotation(QueryEntity.class);
 
         for (VirtualAny any : qEntity.anyElements()) {
             VirtualAnyDefinition def = new VirtualAnyDefinition(
@@ -132,11 +172,12 @@ public class ClassDefinitionParser {
         }
 
         for (VirtualCollection collection : qEntity.collections()) {
-            VirtualCollectionSpecification colSpec = new VirtualCollectionSpecification();
-            colSpec.setAdditionalParams(collection.additionalParams());
-
+            // only collections of entities expected at this moment
+            VirtualCollectionSpecification colSpec = new VirtualCollectionSpecification(collection.additionalParams());
             QName jaxbName = createQName(collection.jaxbName());
-            Definition definition = createDefinition(jaxbName, collection.jaxbType(), collection.jpaName(), collection.collectionType(), colSpec);
+            String jpaName = collection.jpaName();
+            JpaEntityContentDefinition content = parseClass(collection.jpaType());
+            JpaEntityItemDefinition definition = new JpaEntityItemDefinition(jaxbName, jpaName, colSpec, jpaClass, content, false);
             entityDef.addDefinition(definition);
         }
     }
@@ -145,110 +186,36 @@ public class ClassDefinitionParser {
         return new QName(name.namespace(), name.localPart());
     }
 
-    private Definition createDefinition(QName jaxbName, Class jaxbType, String jpaName, AnnotatedElement object, CollectionSpecification collectionSpecification) {
-        Class jpaType = (object instanceof Class) ? (Class) object : ((Method) object).getReturnType();
-
-        if (Set.class.isAssignableFrom(jpaType)) {
-            if (collectionSpecification != null) {
-                throw new IllegalStateException("Collection within collection is not supported: jaxbName=" +
-                        jaxbName + ", jaxbType=" + jaxbType + ", jpaName=" + jpaName + ", object=" + object);
-            }
-            collectionSpecification = new CollectionSpecification();
-            if (object instanceof Method) {
-                Method method = (Method) object;
-                ParameterizedType type = (ParameterizedType) method.getGenericReturnType();
-                Class clazz = (Class) type.getActualTypeArguments()[0];
-                QName realJaxbName = getJaxbName(method);
-                Class realJaxbType = getJaxbType(clazz);
-                String realJpaName = getJpaName(method);
-                return createDefinition(realJaxbName, realJaxbType, realJpaName, clazz, collectionSpecification);
-            } else {
-                Class clazz = (Class) object;
-                Class realJaxbType = getJaxbType(clazz);
-                return createDefinition(jaxbName, realJaxbType, jpaName, clazz, collectionSpecification);
-            }
-        }
-
-        Definition definition;
-        if (ObjectReference.class.isAssignableFrom(jpaType)) {
-            ReferenceDefinition refDef = new ReferenceDefinition(jaxbName, jaxbType, jpaName, jpaType, collectionSpecification);
-            definition = updateReferenceDefinition(refDef, object);
-        } else if (RAssignmentExtension.class.isAssignableFrom(jpaType)) {
-            definition = new AnyDefinition(jaxbName, jaxbType, jpaName, jpaType);
-        } else if (isEntity(object)) {
-            EntityDefinition entityDef = new EntityDefinition(jaxbName, jaxbType, jpaName, jpaType, collectionSpecification);
-            updateEntityDefinition(entityDef);
-            definition = entityDef;
-        } else {
-            PropertyDefinition propDef = new PropertyDefinition(jaxbName, jaxbType, jpaName, jpaType, collectionSpecification);
-            definition = updatePropertyDefinition(propDef, object);
-        }
-
-        return definition;
-    }
-
-    private boolean isEntity(AnnotatedElement object) {
-        Class type = (object instanceof Class) ? (Class) object : ((Method) object).getReturnType();
+    private boolean isEntity(Class type) {
         if (RPolyString.class.isAssignableFrom(type)) {
             //it's hibernate entity but from prism point of view it's property
             return false;
         }
-
         return type.getAnnotation(Entity.class) != null || type.getAnnotation(Embeddable.class) != null;
     }
 
-    private PropertyDefinition updatePropertyDefinition(PropertyDefinition definition, AnnotatedElement object) {
-        if (object.isAnnotationPresent(Lob.class)) {
-            definition.setLob(true);
-        }
-
-        if (object.isAnnotationPresent(Enumerated.class)) {
-            definition.setEnumerated(true);
-        }
-
-        //todo implement also lookup for @Table indexes
-        if (object.isAnnotationPresent(Index.class)) {
-            definition.setIndexed(true);
-        }
-
-        return definition;
-    }
-
-    private ReferenceDefinition updateReferenceDefinition(ReferenceDefinition definition, AnnotatedElement object) {
-        if (object.isAnnotationPresent(Embedded.class)) {
-            definition.setEmbedded(true);
-        }
-
-        return definition;
-    }
-
     private QName getJaxbName(Method method) {
-        QName name = new QName(SchemaConstantsGenerated.NS_COMMON, getPropertyName(method.getName()));
         if (method.isAnnotationPresent(JaxbName.class)) {
             JaxbName jaxbName = method.getAnnotation(JaxbName.class);
-            name = new QName(jaxbName.namespace(), jaxbName.localPart());
+            return new QName(jaxbName.namespace(), jaxbName.localPart());
+        } else {
+            return new QName(SchemaConstantsGenerated.NS_COMMON, getPropertyName(method.getName()));
         }
-
-        return name;
     }
 
-    private Class getJaxbType(Method method) {
-        return getJaxbType(method.getReturnType());
-    }
-
-    private Class getJaxbType(Class clazz) {
-        if (RObject.class.isAssignableFrom(clazz)) {
-            ObjectTypes objectType = ClassMapper.getObjectTypeForHQLType(clazz);
-            return objectType.getClassDefinition();
-        }
-
-        if (clazz.getAnnotation(JaxbType.class) != null) {
-            JaxbType type = (JaxbType) clazz.getAnnotation(JaxbType.class);
-            return type.type();
-        }
-
-        return clazz;
-    }
+//    private Class getJaxbClass(Class clazz) {
+//        if (RObject.class.isAssignableFrom(clazz)) {
+//            ObjectTypes objectType = ClassMapper.getObjectTypeForHQLType(clazz);
+//            return objectType.getClassDefinition();
+//        }
+//
+//        if (clazz.getAnnotation(JaxbType.class) != null) {
+//            JaxbType type = (JaxbType) clazz.getAnnotation(JaxbType.class);
+//            return type.type();
+//        }
+//
+//        return clazz;
+//    }
 
     private String getJpaName(Method method) {
         String methodName = method.getName();

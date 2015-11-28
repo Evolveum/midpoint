@@ -42,7 +42,7 @@ import javax.persistence.*;
 @Table(name = "m_reference", indexes = {
         @javax.persistence.Index(name = "iReferenceTargetOid", columnList = "targetOid")
 })
-public class RObjectReference implements ObjectReference {
+public class RObjectReference<T extends RObject> implements ObjectReference {
 
     public static final String REFERENCE_TYPE = "reference_type";
 
@@ -59,7 +59,7 @@ public class RObjectReference implements ObjectReference {
     private String relation;
     private RObjectType type;
 
-    private RObject target;
+    private T target;
 
     public RObjectReference() {
     }
@@ -84,11 +84,11 @@ public class RObjectReference implements ObjectReference {
 
     //@MapsId("target")
     @ForeignKey(name="none")
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @ManyToOne(fetch = FetchType.LAZY, optional = true, targetEntity = RObject.class)
     @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false, nullable = true)
     @NotFound(action = NotFoundAction.IGNORE)
     @NotQueryable
-    public RObject getTarget() {
+    public T getTarget() {
         return target;
     }
 
@@ -141,7 +141,7 @@ public class RObjectReference implements ObjectReference {
         this.relation = relation;
     }
 
-    public void setTarget(RObject target) {     // shouldn't be called
+    public void setTarget(T target) {     // shouldn't be called
         this.target = target;
     }
 

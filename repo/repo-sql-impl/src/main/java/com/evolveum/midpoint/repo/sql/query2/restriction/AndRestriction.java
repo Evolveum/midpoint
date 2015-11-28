@@ -16,12 +16,10 @@
 
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
-import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.AndCondition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 
@@ -31,7 +29,7 @@ import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
  */
 public class AndRestriction extends NaryLogicalRestriction<AndFilter> {
 
-    public AndRestriction(InterpretationContext context, AndFilter filter, EntityDefinition baseEntityDefinition, Restriction parent) {
+    public AndRestriction(InterpretationContext context, AndFilter filter, JpaEntityDefinition baseEntityDefinition, Restriction parent) {
         super(context, filter, baseEntityDefinition, parent);
     }
 

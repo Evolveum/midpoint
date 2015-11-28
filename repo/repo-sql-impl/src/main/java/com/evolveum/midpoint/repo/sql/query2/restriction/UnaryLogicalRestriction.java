@@ -20,7 +20,8 @@ import com.evolveum.midpoint.prism.query.UnaryLogicalFilter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query2.QueryInterpreter2;
-import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityItemDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -32,7 +33,7 @@ public abstract class UnaryLogicalRestriction<T extends UnaryLogicalFilter> exte
 
     private static final Trace LOGGER = TraceManager.getTrace(UnaryLogicalRestriction.class);
 
-    public UnaryLogicalRestriction(InterpretationContext context, T filter, EntityDefinition baseEntityDefinition, Restriction parent) {
+    public UnaryLogicalRestriction(InterpretationContext context, T filter, JpaEntityDefinition baseEntityDefinition, Restriction parent) {
         super(context, filter, baseEntityDefinition, parent);
     }
 

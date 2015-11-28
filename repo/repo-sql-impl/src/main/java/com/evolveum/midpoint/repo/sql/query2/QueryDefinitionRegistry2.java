@@ -17,14 +17,18 @@
 package com.evolveum.midpoint.repo.sql.query2;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Visitable;
+import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationCase;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.definition.ClassDefinitionParser;
-import com.evolveum.midpoint.repo.sql.query2.definition.Definition;
-import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaItemDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaReferenceDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaRootEntityDefinition;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -49,7 +53,7 @@ import java.util.Map;
 public class QueryDefinitionRegistry2 implements DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(QueryDefinitionRegistry2.class);
-    private static final Map<QName, EntityDefinition> definitions;
+    private static final Map<QName, JpaRootEntityDefinition> definitions;
 
     private static QueryDefinitionRegistry2 registry;
 
@@ -57,8 +61,8 @@ public class QueryDefinitionRegistry2 implements DebugDumpable {
         LOGGER.trace("Initializing query definition registry.");
         ClassDefinitionParser classDefinitionParser = new ClassDefinitionParser();
 
-        Map<QName, EntityDefinition> map = new HashMap<QName, EntityDefinition>();
-        Map<Class<? extends RObject>, EntityDefinition> definitionsByClass = new HashMap<>();
+        final Map<QName, JpaRootEntityDefinition> map = new HashMap<>();
+        final Map<Class<? extends RObject>, JpaRootEntityDefinition> definitionsByClass = new HashMap<>();
 
         Collection<RObjectType> types = ClassMapper.getKnownTypes();
         for (RObjectType type : types) {
@@ -67,32 +71,48 @@ public class QueryDefinitionRegistry2 implements DebugDumpable {
                 continue;
             }
 
-            EntityDefinition definition = classDefinitionParser.parseObjectTypeClass(clazz);
+            JpaRootEntityDefinition definition = classDefinitionParser.parseRootClass(clazz);
             if (definition == null) {
                 continue;
             }
 
             ObjectTypes objectType = ClassMapper.getObjectTypeForHQLType(type);
             map.put(objectType.getTypeQName(), definition);
-            definitionsByClass.put(definition.getJpaType(), definition);
+            definitionsByClass.put(definition.getJpaClass(), definition);
         }
 
         // TODO fix this hack
-        EntityDefinition caseDefinition = classDefinitionParser.parseObjectTypeClass(AccessCertificationCaseType.COMPLEX_TYPE,
-                AccessCertificationCaseType.class, RAccessCertificationCase.class);
+        JpaRootEntityDefinition caseDefinition = classDefinitionParser.parseRootClass(RAccessCertificationCase.class);
         map.put(AccessCertificationCaseType.COMPLEX_TYPE, caseDefinition);
 
-        // link parents (maybe not needed at all, we'll see)
-        for (EntityDefinition definition : map.values()) {
-            Class superclass = definition.getJpaType().getSuperclass();
-            if (!RObject.class.isAssignableFrom(superclass)) {
-                continue;
-            }
-            EntityDefinition superclassDefinition = definitionsByClass.get(superclass);
-            if (superclassDefinition == null) {
-                throw new IllegalStateException("No definition for superclass " + superclass + " of " + definition);
-            }
-            definition.setSuperclassDefinition(superclassDefinition);
+        // link parents (maybe not needed at all, we'll see) and referenced entity definitions
+        for (final JpaRootEntityDefinition definition : map.values()) {
+            Visitor resolutionVisitor = new Visitor() {
+                @Override
+                public void visit(Visitable visitable) {
+                    if (visitable instanceof JpaRootEntityDefinition) {
+                        JpaRootEntityDefinition entityDef = ((JpaRootEntityDefinition) visitable);
+                        Class superclass = entityDef.getJpaClass().getSuperclass();
+                        if (!RObject.class.isAssignableFrom(superclass)) {
+                            return;
+                        }
+                        JpaRootEntityDefinition superclassDefinition = definitionsByClass.get(superclass);
+                        if (superclassDefinition == null) {
+                            throw new IllegalStateException("No definition for superclass " + superclass + " of " + entityDef);
+                        }
+                        entityDef.getContent().setSuperclassDefinition(superclassDefinition);
+                    } else if (visitable instanceof JpaReferenceDefinition) {
+                        JpaReferenceDefinition entRefDef = ((JpaReferenceDefinition) visitable);
+                        Class referencedEntityJpaClass = entRefDef.getReferencedEntityJpaClass();
+                        JpaRootEntityDefinition realEntDef = definitionsByClass.get(referencedEntityJpaClass);
+                        if (realEntDef == null) {
+                            throw new IllegalStateException("Couldn't find entity definition for " + referencedEntityJpaClass);
+                        }
+                        entRefDef.setReferencedEntityDefinition(realEntDef);
+                    }
+                }
+            };
+            definition.accept(resolutionVisitor);
         }
 
         definitions = Collections.unmodifiableMap(map);
@@ -121,18 +141,18 @@ public class QueryDefinitionRegistry2 implements DebugDumpable {
     public String debugDump(int indent) {
         StringBuilder builder = new StringBuilder();
         DebugUtil.indentDebugDump(builder, indent);
-        Collection<EntityDefinition> defCollection = definitions.values();
-        for (Definition definition : defCollection) {
+        Collection<JpaRootEntityDefinition> defCollection = definitions.values();
+        for (JpaRootEntityDefinition definition : defCollection) {
             builder.append(definition.debugDump()).append('\n');
         }
 
         return builder.toString();
     }
 
-    public EntityDefinition findEntityDefinition(QName typeName) {
+    public JpaRootEntityDefinition findEntityDefinition(QName typeName) {
         Validate.notNull(typeName, "Type name must not be null.");
 
-        EntityDefinition def = definitions.get(typeName);
+        JpaRootEntityDefinition def = definitions.get(typeName);
         if (def == null) {
             throw new IllegalStateException("Type " + typeName + " couldn't be found in type registry");
         }
@@ -140,7 +160,7 @@ public class QueryDefinitionRegistry2 implements DebugDumpable {
     }
 
     // always returns non-null value
-    public <T extends Containerable> EntityDefinition findEntityDefinition(Class<T> type) throws QueryException {
+    public <T extends Containerable> JpaRootEntityDefinition findEntityDefinition(Class<T> type) throws QueryException {
         Validate.notNull(type, "Type must not be null.");
         return findEntityDefinition(getQNameForType(type));
     }
@@ -155,10 +175,10 @@ public class QueryDefinitionRegistry2 implements DebugDumpable {
         throw new QueryException("Unsupported type " + type);
     }
 
-    public <T extends Containerable, D extends Definition> DefinitionSearchResult<D> findDefinition(Class<T> type, ItemPath path, Class<D> definitionType) throws QueryException {
+    public <T extends Containerable, D extends JpaItemDefinition> DefinitionSearchResult<D> findDefinition(Class<T> type, ItemPath path, Class<D> definitionType) throws QueryException {
         Validate.notNull(type, "Type must not be null.");
         Validate.notNull(definitionType, "Definition type must not be null.");
-        EntityDefinition entityDef = findEntityDefinition(type);
+        JpaRootEntityDefinition entityDef = findEntityDefinition(type);
         return entityDef.findDefinition(path, definitionType);
     }
 
@@ -166,21 +186,21 @@ public class QueryDefinitionRegistry2 implements DebugDumpable {
      * Returns possible "children" of a given definition.
      * More abstract classes are listed first.
      */
-    public List<EntityDefinition> getChildrenOf(EntityDefinition entityDefinition) {
-        List<EntityDefinition> retval = new ArrayList<>();
-        List<EntityDefinition> children = getDirectChildrenOf(entityDefinition);
-        for (EntityDefinition child : children) {
+    public List<JpaRootEntityDefinition> getChildrenOf(JpaEntityDefinition entityDefinition) {
+        List<JpaRootEntityDefinition> retval = new ArrayList<>();
+        List<JpaRootEntityDefinition> children = getDirectChildrenOf(entityDefinition);
+        for (JpaRootEntityDefinition child : children) {
             retval.add(child);
             retval.addAll(getChildrenOf(child));
         }
         return retval;
     }
 
-    private List<EntityDefinition> getDirectChildrenOf(EntityDefinition parentDefinition) {
-        Class parentClass = parentDefinition.getJpaType();
-        List<EntityDefinition> retval = new ArrayList<>();
-        for (EntityDefinition definition : definitions.values()) {
-            if (parentClass.equals(definition.getJpaType().getSuperclass())) {
+    private List<JpaRootEntityDefinition> getDirectChildrenOf(JpaEntityDefinition parentDefinition) {
+        Class parentClass = parentDefinition.getJpaClass();
+        List<JpaRootEntityDefinition> retval = new ArrayList<>();
+        for (JpaRootEntityDefinition definition : definitions.values()) {
+            if (parentClass.equals(definition.getJpaClass().getSuperclass())) {
                 retval.add(definition);
             }
         }

@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
+import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.query2.DefinitionSearchResult;
@@ -25,7 +26,7 @@ import javax.xml.namespace.QName;
 /**
  * @author lazyman
  */
-public class PropertyDefinition extends Definition {
+public class JpaPropertyDefinition extends JpaItemDefinition {
 
     //jpa special types
     private boolean lob;
@@ -33,8 +34,12 @@ public class PropertyDefinition extends Definition {
     //jpa special things
     private boolean indexed;
 
-    public PropertyDefinition(QName jaxbName, Class jaxbType, String propertyName, Class propertyType, CollectionSpecification collectionSpecification) {
-        super(jaxbName, jaxbType, propertyName, propertyType, collectionSpecification);
+    public JpaPropertyDefinition(QName jaxbName, String jpaName, CollectionSpecification collectionSpecification,
+                                 Class jpaClass, boolean lob, boolean enumerated, boolean indexed) {
+        super(jaxbName, jpaName, collectionSpecification, jpaClass);
+        this.lob = lob;
+        this.enumerated = enumerated;
+        this.indexed = indexed;
     }
 
     public boolean isLob() {
@@ -42,7 +47,7 @@ public class PropertyDefinition extends Definition {
     }
 
     public boolean isPolyString() {
-        return RPolyString.class.equals(getJpaType());
+        return RPolyString.class.equals(getJpaClass());
     }
 
     public boolean isEnumerated() {
@@ -81,5 +86,10 @@ public class PropertyDefinition extends Definition {
     public DefinitionSearchResult nextDefinition(ItemPath path) {
         // nowhere to come from here
         return null;
+    }
+
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
     }
 }

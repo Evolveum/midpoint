@@ -18,7 +18,8 @@ package com.evolveum.midpoint.repo.sql.query2.definition;
 
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualQueryParam;
 
-import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -27,7 +28,8 @@ public class VirtualCollectionSpecification extends CollectionSpecification {
 
     private VirtualQueryParam[] additionalParams;
 
-    public VirtualCollectionSpecification() {
+    public VirtualCollectionSpecification(VirtualQueryParam[] additionalParams) {
+        this.additionalParams = additionalParams;
     }
 
     public VirtualQueryParam[] getAdditionalParams() {
@@ -38,4 +40,21 @@ public class VirtualCollectionSpecification extends CollectionSpecification {
         this.additionalParams = additionalParams;
     }
 
+    @Override
+    public String toString() {
+        return "VirtualCol{additionalParams=" + getAdditionalParamNames() + "}";
+    }
+
+    @Override
+    public String getShortInfo() {
+        return "[params=" + getAdditionalParamNames() + "]";
+    }
+
+    private List<String> getAdditionalParamNames() {
+        List<String> rv = new ArrayList<>();
+        for (VirtualQueryParam p : additionalParams) {
+            rv.add(p.name());
+        }
+        return rv;
+    }
 }

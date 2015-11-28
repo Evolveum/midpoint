@@ -22,7 +22,8 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query2.QueryInterpreter2;
-import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityItemDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
@@ -37,7 +38,7 @@ import java.util.Set;
  */
 public class TypeRestriction extends Restriction<TypeFilter> {
 
-    public TypeRestriction(InterpretationContext context, TypeFilter filter, EntityDefinition baseEntityDefinition, Restriction parent) {
+    public TypeRestriction(InterpretationContext context, TypeFilter filter, JpaEntityDefinition baseEntityDefinition, Restriction parent) {
         super(context, filter, baseEntityDefinition, parent);
     }
 

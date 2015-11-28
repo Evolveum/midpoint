@@ -16,7 +16,8 @@
 
 package com.evolveum.midpoint.repo.sql.query2.hqm;
 
-import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityItemDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaRootEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.AndCondition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.InCondition;
@@ -50,7 +51,7 @@ public class RootHibernateQuery extends HibernateQuery {
     private Integer firstResult;
     private ResultTransformer resultTransformer;
 
-    public RootHibernateQuery(EntityDefinition primaryEntityDef) {
+    public RootHibernateQuery(JpaRootEntityDefinition primaryEntityDef) {
         super(primaryEntityDef);
     }
 

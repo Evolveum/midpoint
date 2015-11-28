@@ -21,12 +21,11 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
-import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.repo.sql.query2.definition.CollectionSpecification;
-import com.evolveum.midpoint.repo.sql.query2.definition.Definition;
-import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.ReferenceDefinition;
+import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityItemDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaReferenceDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.AndCondition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
@@ -47,11 +46,10 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
     private static final Trace LOGGER = TraceManager.getTrace(ReferenceRestriction.class);
 
     // Definition of the item being queried.
-    // We cannot expect ReferenceDefinition here, because of multivalued references (e.g. linkRef) that have CollectionDefinition.
-    private final Definition itemDefinition;
+    private final JpaReferenceDefinition itemDefinition;
 
-    public ReferenceRestriction(InterpretationContext context, RefFilter filter, EntityDefinition baseEntityDefinition,
-                                Restriction parent, Definition itemDefinition) {
+    public ReferenceRestriction(InterpretationContext context, RefFilter filter, JpaEntityDefinition baseEntityDefinition,
+                                Restriction parent, JpaReferenceDefinition itemDefinition) {
         super(context, filter, baseEntityDefinition, parent);
         Validate.notNull(itemDefinition, "itemDefinition");
         this.itemDefinition = itemDefinition;
@@ -75,7 +73,7 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
         RootHibernateQuery hibernateQuery = context.getHibernateQuery();
 
         String propertyFullNamePrefix;
-        if (itemDefinition.isCollection()) {
+        if (itemDefinition.isMultivalued()) {
             propertyFullNamePrefix = hqlPath + ".";
         } else {
             propertyFullNamePrefix = hqlPath + "." + itemDefinition.getJpaName() + ".";

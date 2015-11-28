@@ -21,7 +21,7 @@ import com.evolveum.midpoint.prism.query.ExistsFilter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query2.QueryInterpreter2;
-import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import org.apache.commons.lang.Validate;
 
@@ -36,15 +36,15 @@ public class ExistsRestriction extends ItemRestriction<ExistsFilter> {
      *
      * TODO think out the process of refinement of entity definition e.g. RObject->RUser
      */
-    private EntityDefinition baseEntityDefinitionForChildren;
+    private JpaEntityDefinition baseEntityDefinitionForChildren;
 
     /**
      * HQL path to be used for child restrictions.
      */
     private String baseHqlPathForChildren;
 
-    public ExistsRestriction(InterpretationContext context, ExistsFilter filter, EntityDefinition baseEntityDefinition,
-                             Restriction parent, EntityDefinition baseEntityDefinitionForChildren) {
+    public ExistsRestriction(InterpretationContext context, ExistsFilter filter, JpaEntityDefinition baseEntityDefinition,
+                             Restriction parent, JpaEntityDefinition baseEntityDefinitionForChildren) {
         super(context, filter, baseEntityDefinition, parent);
         Validate.notNull(baseEntityDefinitionForChildren, "baseEntityDefinitionForChildren");
         this.baseEntityDefinitionForChildren = baseEntityDefinitionForChildren;
@@ -70,7 +70,7 @@ public class ExistsRestriction extends ItemRestriction<ExistsFilter> {
     }
 
     @Override
-    public EntityDefinition getBaseEntityDefinitionForChildren() {
+    public JpaEntityDefinition getBaseEntityDefinitionForChildren() {
         return baseEntityDefinitionForChildren;
     }
 }

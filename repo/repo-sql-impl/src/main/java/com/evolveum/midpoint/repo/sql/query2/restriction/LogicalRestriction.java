@@ -18,14 +18,14 @@ package com.evolveum.midpoint.repo.sql.query2.restriction;
 
 import com.evolveum.midpoint.prism.query.LogicalFilter;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
-import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
 
 /**
  * @author lazyman
  */
 public abstract class LogicalRestriction<T extends LogicalFilter> extends Restriction<T> {
 
-    public LogicalRestriction(InterpretationContext context, T filter, EntityDefinition baseEntityDefinition, Restriction parent) {
+    public LogicalRestriction(InterpretationContext context, T filter, JpaEntityDefinition baseEntityDefinition, Restriction parent) {
         super(context, filter, baseEntityDefinition, parent);
     }
 }

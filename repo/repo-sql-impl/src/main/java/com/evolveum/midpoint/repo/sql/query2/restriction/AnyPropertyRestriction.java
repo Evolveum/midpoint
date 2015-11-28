@@ -17,8 +17,6 @@
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyConverter;
@@ -26,14 +24,14 @@ import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
-import com.evolveum.midpoint.repo.sql.query2.definition.AnyDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaAnyDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityItemDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.VirtualAnyDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
@@ -45,13 +43,13 @@ public class AnyPropertyRestriction extends ItemValueRestriction<ValueFilter> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AnyPropertyRestriction.class);
 
-    private AnyDefinition anyDefinition;
+    private JpaAnyDefinition jpaAnyDefinition;
 
-    public AnyPropertyRestriction(InterpretationContext context, ValueFilter filter, EntityDefinition baseEntityDefinition,
-                                  Restriction parent, AnyDefinition anyDefinition) {
+    public AnyPropertyRestriction(InterpretationContext context, ValueFilter filter, JpaEntityDefinition baseEntityDefinition,
+                                  Restriction parent, JpaAnyDefinition jpaAnyDefinition) {
         super(context, filter, baseEntityDefinition, parent);
-        Validate.notNull(anyDefinition, "anyDefinition");
-        this.anyDefinition = anyDefinition;
+        Validate.notNull(jpaAnyDefinition, "anyDefinition");
+        this.jpaAnyDefinition = jpaAnyDefinition;
     }
 
     @Override
@@ -66,8 +64,8 @@ public class AnyPropertyRestriction extends ItemValueRestriction<ValueFilter> {
         }
 
         RObjectExtensionType ownerType;
-        if (anyDefinition instanceof VirtualAnyDefinition) {
-            ownerType = ((VirtualAnyDefinition) anyDefinition).getOwnerType();
+        if (jpaAnyDefinition instanceof VirtualAnyDefinition) {
+            ownerType = ((VirtualAnyDefinition) jpaAnyDefinition).getOwnerType();
         } else {
             ownerType = null;       // assignment extension has no ownerType
         }

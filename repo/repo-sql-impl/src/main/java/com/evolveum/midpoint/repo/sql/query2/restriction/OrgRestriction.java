@@ -20,7 +20,7 @@ import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
-import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 
@@ -29,7 +29,7 @@ import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
  */
 public class OrgRestriction extends Restriction<OrgFilter> {
 
-    public OrgRestriction(InterpretationContext context, OrgFilter filter, EntityDefinition baseEntityDefinition, Restriction parent) {
+    public OrgRestriction(InterpretationContext context, OrgFilter filter, JpaEntityDefinition baseEntityDefinition, Restriction parent) {
         super(context, filter, baseEntityDefinition, parent);
     }
 

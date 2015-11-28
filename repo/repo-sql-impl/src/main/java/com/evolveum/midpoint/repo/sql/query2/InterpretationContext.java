@@ -18,31 +18,14 @@ package com.evolveum.midpoint.repo.sql.query2;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.repo.sql.query2.definition.Definition;
-import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaRootEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
-import com.evolveum.midpoint.repo.sql.query2.restriction.TypeRestriction;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.Session;
-
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * @author lazyman
@@ -67,7 +50,7 @@ public class InterpretationContext {
      * by the search operation, or the one that was refined from abstract types (ObjectType, AbstractRoleType, ...)
      * in the process of restriction construction.
      */
-    private EntityDefinition rootEntityDefinition;
+    private JpaRootEntityDefinition rootEntityDefinition;
 
     public InterpretationContext(QueryInterpreter2 interpreter, Class<? extends Containerable> type,
                                  PrismContext prismContext, Session session) throws QueryException {
@@ -117,7 +100,7 @@ public class InterpretationContext {
         return helper;
     }
 
-    public EntityDefinition getRootEntityDefinition() {
+    public JpaRootEntityDefinition getRootEntityDefinition() {
         return rootEntityDefinition;
     }
 

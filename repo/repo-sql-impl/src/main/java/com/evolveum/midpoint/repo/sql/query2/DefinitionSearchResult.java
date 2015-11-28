@@ -17,14 +17,13 @@
 package com.evolveum.midpoint.repo.sql.query2;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.sql.query2.definition.Definition;
-import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaItemDefinition;
 import org.apache.commons.lang.Validate;
 
 /**
  * @author mederly
  */
-public class DefinitionSearchResult<T extends Definition> {
+public class DefinitionSearchResult<T extends JpaItemDefinition> {
     private T itemDefinition;                       // definition of the item itself
     private ItemPath remainder;                     // what has remained unresolved of the original search path
 

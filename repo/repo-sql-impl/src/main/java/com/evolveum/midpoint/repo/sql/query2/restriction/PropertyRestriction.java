@@ -19,8 +19,8 @@ package com.evolveum.midpoint.repo.sql.query2.restriction;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
-import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.PropertyDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaPropertyDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -33,29 +33,29 @@ public class PropertyRestriction extends ItemValueRestriction<ValueFilter> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PropertyRestriction.class);
 
-    PropertyDefinition propertyDefinition;
+    JpaPropertyDefinition jpaPropertyDefinition;
 
-    public PropertyRestriction(InterpretationContext context, ValueFilter filter, EntityDefinition baseEntityDefinition,
-                               Restriction parent, PropertyDefinition propertyDefinition) {
+    public PropertyRestriction(InterpretationContext context, ValueFilter filter, JpaEntityDefinition baseEntityDefinition,
+                               Restriction parent, JpaPropertyDefinition jpaPropertyDefinition) {
         super(context, filter, baseEntityDefinition, parent);
-        Validate.notNull(propertyDefinition, "propertyDefinition");
-        this.propertyDefinition = propertyDefinition;
+        Validate.notNull(jpaPropertyDefinition, "propertyDefinition");
+        this.jpaPropertyDefinition = jpaPropertyDefinition;
     }
 
     @Override
     public Condition interpretInternal(String hqlPath) throws QueryException {
 
-        if (propertyDefinition.isLob()) {
-            throw new QueryException("Can't query based on clob property value '" + propertyDefinition + "'.");
+        if (jpaPropertyDefinition.isLob()) {
+            throw new QueryException("Can't query based on clob property value '" + jpaPropertyDefinition + "'.");
         }
 
         String propertyFullName;
-        if (propertyDefinition.isCollection()) {
+        if (jpaPropertyDefinition.isMultivalued()) {
             propertyFullName = hqlPath;
         } else {
-            propertyFullName = hqlPath + "." + propertyDefinition.getJpaName();
+            propertyFullName = hqlPath + "." + jpaPropertyDefinition.getJpaName();
         }
-        Object value = getValueFromFilter(filter, propertyDefinition);
+        Object value = getValueFromFilter(filter, jpaPropertyDefinition);
         Condition condition = createCondition(propertyFullName, value, filter);
 
         return addIsNotNullIfNecessary(condition, propertyFullName);

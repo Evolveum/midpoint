@@ -17,30 +17,26 @@
 package com.evolveum.midpoint.repo.sql.query2;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.sql.query2.definition.Definition;
-import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityItemDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaItemDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaRootEntityDefinition;
 import org.apache.commons.lang.Validate;
 
 /**
  * @author mederly
  */
-public class ProperDefinitionSearchResult<T extends Definition> extends DefinitionSearchResult<T> {
+public class ProperDefinitionSearchResult<T extends JpaItemDefinition> extends DefinitionSearchResult<T> {
 
-    EntityDefinition entityDefinition;      // entity in which the item was found
+    JpaEntityDefinition entityDefinition;      // entity in which the item was found
 
-    public ProperDefinitionSearchResult(T itemDefinition, ItemPath remainder, EntityDefinition entityDefinition) {
-        super(itemDefinition, remainder);
-        Validate.notNull(entityDefinition, "entityDefinition");
-        this.entityDefinition = entityDefinition;
-    }
-
-    public ProperDefinitionSearchResult(EntityDefinition entityDefinition, DefinitionSearchResult<T> result) {
+    public ProperDefinitionSearchResult(JpaEntityDefinition entityDefinition, DefinitionSearchResult<T> result) {
         super(result.getItemDefinition(), result.getRemainder());
         Validate.notNull(entityDefinition, "entityDefinition");
         this.entityDefinition = entityDefinition;
     }
 
-    public EntityDefinition getEntityDefinition() {
+    public JpaEntityDefinition getEntityDefinition() {
         return entityDefinition;
     }
 

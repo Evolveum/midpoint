@@ -19,20 +19,15 @@ package com.evolveum.midpoint.repo.sql.query2.hqm;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.repo.sql.query2.QueryDefinitionRegistry2;
-import com.evolveum.midpoint.repo.sql.query2.definition.Definition;
-import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaItemDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaRootEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.apache.commons.lang.Validate;
-import org.hibernate.Query;
-import org.hibernate.transform.ResultTransformer;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Query in HQL that is being created.
@@ -53,20 +48,10 @@ public abstract class HibernateQuery {
      * Or,
      *   RUser u
      *     left join u.assignments a with ...
+     *
+     * (originally, we thought about cross-joins with other entities, hence "primary entity")
      */
     private EntityReference primaryEntity;          // not null
-
-    /**
-     * All other entities for this query, again along with joined entities.
-     * For example, if we want to look for a name of assigned entity, i.e.
-     * UserType: Equal (assignment/target/name, 'Role1'), primary entity is:
-     *   RUser u
-     *     left join u.assignments a with ...
-     * and secondary one is:
-     *   RObject o
-     * (with associated condition of o.oid = a.targetRef.targetOid)
-     */
-    private List<EntityReference> otherEntities = new ArrayList<>();
 
     /**
      * List of conditions in the "where" clause. They are to be interpreted as a conjunction.
@@ -76,7 +61,7 @@ public abstract class HibernateQuery {
     private String orderByProperty;
     private OrderDirection orderDirection;
 
-    public HibernateQuery(EntityDefinition primaryEntityDef) {
+    public HibernateQuery(JpaRootEntityDefinition primaryEntityDef) {
         Validate.notNull(primaryEntityDef, "primaryEntityDef");
         primaryEntity = createItemSpecification(primaryEntityDef);
     }
@@ -116,10 +101,6 @@ public abstract class HibernateQuery {
         indent(sb, indent);
         sb.append("from\n");
         primaryEntity.dumpToHql(sb, indent + 1);
-        for (EntityReference otherEntity : otherEntities) {
-            sb.append(",\n");
-            otherEntity.dumpToHql(sb, indent+1);
-        }
 
         if (!conditions.isEmpty()) {
             sb.append("\n");
@@ -148,22 +129,26 @@ public abstract class HibernateQuery {
         }
     }
 
-    public EntityReference createItemSpecification(EntityDefinition entityDef) {
+    public EntityReference createItemSpecification(JpaEntityDefinition entityDef) {
         String alias = createAlias(entityDef);
-        return new EntityReference(alias, entityDef.getJpaName());
+        return new EntityReference(alias, entityDef.getJpaClassName());
     }
 
-    public String createAlias(Definition def) {
-        return createAlias(def.getJpaName());
+    public String createAlias(JpaEntityDefinition def) {
+        return createAlias(def.getJpaClassName(), true);
+    }
+
+    public String createAlias(JpaItemDefinition joinedItemDef) {
+        return createAlias(joinedItemDef.getJpaName(), false);
     }
 
     private static final int LIMIT = 100;
 
-    public String createAlias(String name) {
+    public String createAlias(String name, boolean entity) {
         String prefix;
 
         //we want to skip 'R' prefix for entity definition names (a bit of hack)
-        int prefixIndex = name.startsWith("R") ? 1 : 0;
+        int prefixIndex = entity ? 1 : 0;
         prefix = Character.toString(name.charAt(prefixIndex)).toLowerCase();
 
         int index = 2;
@@ -185,11 +170,6 @@ public abstract class HibernateQuery {
         if (primaryEntity != null && primaryEntity.containsAlias(alias)) {
             return true;
         }
-        for (EntityReference other : otherEntities) {
-            if (other.containsAlias(alias)) {
-                return true;
-            }
-        }
         return false;
     }
 
@@ -205,13 +185,13 @@ public abstract class HibernateQuery {
     public abstract RootHibernateQuery getRootQuery();
 
     // used to narrow the primary entity e.g. from RObject to RUser (e.g. during ItemValueRestriction processing)
-    public void narrowPrimaryEntity(EntityDefinition newDefinition) throws QueryException {
+    public void narrowPrimaryEntity(JpaRootEntityDefinition newDefinition) throws QueryException {
         String oldEntityName = getPrimaryEntity().getName();
         Class<? extends RObject> oldEntityClass = ClassMapper.getHqlClassForHqlName(oldEntityName);
-        Class<? extends RObject> newEntityClass = newDefinition.getJpaType();
+        Class<? extends RObject> newEntityClass = newDefinition.getJpaClass();
         if (!(oldEntityClass.isAssignableFrom(newEntityClass))) {
             throw new QueryException("Cannot narrow primary entity definition from " + oldEntityClass + " to " + newEntityClass);
         }
-        getPrimaryEntity().setName(newDefinition.getJpaName());     // alias stays the same
+        getPrimaryEntity().setName(newDefinition.getJpaClassName());     // alias stays the same
     }
 }

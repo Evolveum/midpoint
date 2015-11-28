@@ -16,21 +16,18 @@
 
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.NotFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
-import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
-import com.evolveum.midpoint.repo.sql.query2.hqm.condition.NotCondition;
 
 /**
  * @author lazyman
  */
 public class NotRestriction extends UnaryLogicalRestriction<NotFilter> {
 
-    public NotRestriction(InterpretationContext context, NotFilter filter, EntityDefinition baseEntityDefinition, Restriction parent) {
+    public NotRestriction(InterpretationContext context, NotFilter filter, JpaEntityDefinition baseEntityDefinition, Restriction parent) {
         super(context, filter, baseEntityDefinition, parent);
     }
 

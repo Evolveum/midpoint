@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import org.apache.commons.lang.Validate;
 
@@ -24,17 +25,27 @@ import javax.xml.namespace.QName;
 /**
  * @author mederly
  */
-public class VirtualAnyDefinition extends AnyDefinition {
+public class VirtualAnyDefinition extends JpaAnyDefinition {
 
     private RObjectExtensionType ownerType;            // ObjectType (for extension) or ShadowType (for attributes)
 
     public VirtualAnyDefinition(QName jaxbName, RObjectExtensionType ownerType) {
-        super(jaxbName, null, null, null);
+        super(jaxbName, null, RObject.class);       // RObject is artificial - don't want to make jpaClass nullable just for this single situation
         Validate.notNull(ownerType, "ownerType");
         this.ownerType = ownerType;
     }
 
     public RObjectExtensionType getOwnerType() {
         return ownerType;
+    }
+
+    @Override
+    protected String getDebugDumpClassName() {
+        return "VirtualAny";
+    }
+
+    @Override
+    protected void debugDumpExtended(StringBuilder sb, int indent) {
+        sb.append(", ownerType=").append(ownerType);
     }
 }

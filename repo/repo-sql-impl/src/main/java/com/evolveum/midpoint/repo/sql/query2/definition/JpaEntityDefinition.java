@@ -17,30 +17,21 @@
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.DefinitionSearchResult;
 
-import javax.xml.namespace.QName;
-
 /**
- * @author lazyman
+ * @author mederly
  */
-public class AnyDefinition extends Definition {
+public interface JpaEntityDefinition {
 
-    public AnyDefinition(QName jaxbName, Class jaxbType, String jpaName, Class jpaType) {
-        super(jaxbName, jaxbType, jpaName, jpaType, null);
-    }
+    Class getJpaClass();
 
-    @Override
-    protected String getDebugDumpClassName() {
-        return "Any";
-    }
+    String getJpaClassName();
 
-    @Override
-    public DefinitionSearchResult nextDefinition(ItemPath path) {
-        // There is nothing we can do here. Return the definition itself, and
-        // the path as to be found within the appropriate Any container.
-        // Hoping the client will understand this and won't cycle while finding
-        // the definition. ;)
-        return new DefinitionSearchResult(this, path);
-    }
+    boolean isAbstract();
+
+    boolean isAssignableFrom(JpaEntityDefinition specificEntityDefinition);
+
+    <T extends JpaItemDefinition> DefinitionSearchResult<T> findDefinition(ItemPath path, Class<T> clazz) throws QueryException;
 }

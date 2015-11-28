@@ -26,12 +26,13 @@ import com.evolveum.midpoint.prism.query.LessFilter;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
-import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query2.QueryInterpreter2;
-import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.PropertyDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaPropertyDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.AndCondition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
@@ -51,7 +52,6 @@ import java.util.List;
  * Abstract superclass for all value-related filters. There are two major problems solved:
  * 1) mapping from ItemPath to HQL property paths
  * 2) adding joined entities to the query, along with necessary conditions
- *    (there are two kinds of joins: left outer join and carthesian join)
  *
  * After the necessary entity is available, the fine work (creating one or more conditions
  * to execute the filtering) is done by subclasses of this path in the interpretInternal(..) method.
@@ -63,7 +63,7 @@ public abstract class ItemValueRestriction<T extends ValueFilter> extends ItemRe
 
     private static final Trace LOGGER = TraceManager.getTrace(ItemValueRestriction.class);
 
-    public ItemValueRestriction(InterpretationContext context, T filter, EntityDefinition baseEntityDefinition, Restriction parent) {
+    public ItemValueRestriction(InterpretationContext context, T filter, JpaEntityDefinition baseEntityDefinition, Restriction parent) {
         super(context, filter, baseEntityDefinition, parent);
     }
 
@@ -131,7 +131,7 @@ public abstract class ItemValueRestriction<T extends ValueFilter> extends ItemRe
         return null;
     }
 
-    protected Object getValueFromFilter(ValueFilter filter, PropertyDefinition def) throws QueryException {
+    protected Object getValueFromFilter(ValueFilter filter, JpaPropertyDefinition def) throws QueryException {
         Object value;
         if (filter instanceof PropertyValueFilter) {
             value = getValue(((PropertyValueFilter) filter).getValues());
@@ -139,20 +139,22 @@ public abstract class ItemValueRestriction<T extends ValueFilter> extends ItemRe
             throw new QueryException("Unknown filter '" + filter + "', can't get value from it.");
         }
 
-        Class expectedType = def.getJaxbType();
+        Class expectedType = def.getJpaClass();
         if (expectedType.isPrimitive()) {
             expectedType = ClassUtils.primitiveToWrapper(expectedType);
+        } else if (expectedType.equals(RPolyString.class)) {
+            expectedType = PolyString.class;
         }
 
         //todo remove after some time [lazyman]
         //attempt to fix value type for polystring (if it was string in filter we create polystring from it)
         if (PolyString.class.equals(expectedType) && (value instanceof String)) {
-            LOGGER.debug("Trying to query PolyString value but filter contains String '{}'.", new Object[]{filter});
+            LOGGER.debug("Trying to query PolyString value but filter contains String '{}'.", filter);
             value = new PolyString((String) value, (String) value);
         }
         //attempt to fix value type for polystring (if it was polystringtype in filter we create polystring from it)
         if (PolyString.class.equals(expectedType) && (value instanceof PolyStringType)) {
-            LOGGER.debug("Trying to query PolyString value but filter contains PolyStringType '{}'.", new Object[]{filter});
+            LOGGER.debug("Trying to query PolyString value but filter contains PolyStringType '{}'.", filter);
             PolyStringType type = (PolyStringType) value;
             value = new PolyString(type.getOrig(), type.getNorm());
         }
@@ -168,7 +170,7 @@ public abstract class ItemValueRestriction<T extends ValueFilter> extends ItemRe
         }
 
         if (def.isEnumerated()) {
-            value = getRepoEnumValue((Enum) value, def.getJpaType());
+            value = getRepoEnumValue((Enum) value, def.getJpaClass());
         }
 
         return value;
