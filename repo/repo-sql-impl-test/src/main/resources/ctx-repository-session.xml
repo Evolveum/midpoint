@@ -24,36 +24,18 @@
         http://www.springframework.org/schema/context/spring-context-3.0.xsd"
        default-lazy-init="true" default-autowire="byName">
 
-    <bean id="testC3p0DataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" lazy-init="true"
-          destroy-method="close">
-        <property name="driverClass" value="#{testSqlRepositoryFactory.sqlConfiguration.driverClassName}"/>
-        <property name="jdbcUrl" value="#{testSqlRepositoryFactory.sqlConfiguration.jdbcUrl}"/>
-        <property name="user" value="#{testSqlRepositoryFactory.sqlConfiguration.jdbcUsername}"/>
-        <property name="password" value="#{testSqlRepositoryFactory.sqlConfiguration.jdbcPassword}"/>
-
-        <property name="acquireIncrement" value="3"/>
-        <property name="minPoolSize" value="#{testSqlRepositoryFactory.sqlConfiguration.minPoolSize}"/>
-        <property name="maxPoolSize" value="#{testSqlRepositoryFactory.sqlConfiguration.maxPoolSize}"/>
-        <property name="idleConnectionTestPeriod" value="1800"/>
-        <property name="connectionTesterClassName" value="com.evolveum.midpoint.repo.sql.util.MidPointConnectionTester" />
-        <property name="connectionCustomizerClassName"
-                  value="com.evolveum.midpoint.repo.sql.util.MidPointConnectionCustomizer"/>
+    <bean id="testDataSourceFactory" class="com.evolveum.midpoint.repo.sql.DataSourceFactory">
+        <property name="configuration" value="#{testSqlRepositoryFactory.sqlConfiguration}" />
     </bean>
 
-    <bean id="testJndiDataSource" class="org.springframework.jndi.JndiObjectFactoryBean" lazy-init="true">
-        <property name="jndiName" value="#{testSqlRepositoryFactory.sqlConfiguration.dataSource}"/>
-    </bean>
-
-    <bean name="testSqlDataSource" class="com.evolveum.midpoint.repo.sql.CompositeDataSource" lazy-init="true">
-        <property name="configuration" value="#{testSqlRepositoryFactory.sqlConfiguration}"/>
-        <property name="testing" value="true"/>
-    </bean>
+    <bean id="testDataSource" factory-bean="testDataSourceFactory" factory-method="createDataSource"
+          depends-on="testDataSourceFactory"/>
 
     <!-- Hibernate session factory -->
     <bean id="testSessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean"
-          depends-on="testSqlDataSource" lazy-init="true">
+          depends-on="testDataSource" lazy-init="true">
 
-        <property name="dataSource" value="#{testSqlDataSource.dataSource}" />
+        <property name="dataSource" ref="testDataSource" />
         <property name="hibernateProperties">
             <props>
                 <prop key="hibernate.dialect">#{testSqlRepositoryFactory.sqlConfiguration.hibernateDialect}</prop>

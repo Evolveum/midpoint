@@ -24,35 +24,18 @@
         http://www.springframework.org/schema/context/spring-context-3.0.xsd"
        default-lazy-init="true" default-autowire="byName">
 
-    <bean id="c3p0DataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" lazy-init="true"
-          destroy-method="close">
-        <property name="driverClass" value="#{sqlRepositoryFactory.sqlConfiguration.driverClassName}"/>
-        <property name="jdbcUrl" value="#{sqlRepositoryFactory.sqlConfiguration.jdbcUrl}"/>
-        <property name="user" value="#{sqlRepositoryFactory.sqlConfiguration.jdbcUsername}"/>
-        <property name="password" value="#{sqlRepositoryFactory.sqlConfiguration.jdbcPassword}"/>
-
-        <property name="acquireIncrement" value="3"/>
-        <property name="minPoolSize" value="#{sqlRepositoryFactory.sqlConfiguration.minPoolSize}"/>
-        <property name="maxPoolSize" value="#{sqlRepositoryFactory.sqlConfiguration.maxPoolSize}"/>
-        <property name="idleConnectionTestPeriod" value="1800"/>
-        <property name="connectionTesterClassName" value="com.evolveum.midpoint.repo.sql.util.MidPointConnectionTester" />
-        <property name="connectionCustomizerClassName"
-                  value="com.evolveum.midpoint.repo.sql.util.MidPointConnectionCustomizer"/>
-    </bean>
-
-    <bean id="jndiDataSource" class="org.springframework.jndi.JndiObjectFactoryBean" lazy-init="true">
-        <property name="jndiName" value="#{sqlRepositoryFactory.sqlConfiguration.dataSource}"/>
-    </bean>
-
-    <bean name="sqlDataSource" class="com.evolveum.midpoint.repo.sql.CompositeDataSource" lazy-init="true">
+    <bean id="dataSourceFactory" class="com.evolveum.midpoint.repo.sql.DataSourceFactory">
         <property name="configuration" value="#{sqlRepositoryFactory.sqlConfiguration}" />
     </bean>
 
+    <bean id="dataSource" factory-bean="dataSourceFactory" factory-method="createDataSource"
+          depends-on="dataSourceFactory"/>
+
     <!-- Hibernate session factory -->
     <bean id="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean"
-          depends-on="sqlDataSource" lazy-init="true">
+          depends-on="dataSource" lazy-init="true">
 
-        <property name="dataSource" value="#{sqlDataSource.dataSource}" />
+        <property name="dataSource" ref="dataSource" />
         <property name="hibernateProperties">
             <props>
                 <prop key="hibernate.dialect">#{sqlRepositoryFactory.sqlConfiguration.hibernateDialect}</prop>
