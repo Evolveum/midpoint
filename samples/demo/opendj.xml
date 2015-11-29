@@ -443,15 +443,6 @@
         </objectType>
 
 	</schemaHandling>
-
-    <schema>
-        <generationConstraints>
-            <generateObjectClass>ri:inetOrgPerson</generateObjectClass>
-            <generateObjectClass>ri:groupOfUniqueNames</generateObjectClass>
-            <generateObjectClass>ri:organizationalUnit</generateObjectClass>
-        </generationConstraints>
-    </schema>
-
 	
     <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
     	<configured>
