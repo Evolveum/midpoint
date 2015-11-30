@@ -12851,6 +12851,7 @@
             </xsd:element>
             <!-- TODO expiration, delegation ... -->
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
 
     <xsd:simpleType name="AccessCertificationResponseType">

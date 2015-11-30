@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.RAccessCertificationCampaign;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
+import com.evolveum.midpoint.repo.sql.data.common.enums.RAccessCertificationResponse;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
@@ -32,7 +33,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
 import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Where;
 
@@ -90,8 +93,9 @@ public class RAccessCertificationCase implements Container {
     private XMLGregorianCalendar reviewRequestedTimestamp;
     private XMLGregorianCalendar reviewDeadline;
     private XMLGregorianCalendar remediedTimestamp;
-    // TODO: private Set<RAccessCertificationDecision> decisions;
-    // TODO: currentResponse, currentResponseStage
+    private Set<RAccessCertificationDecision> decisions;
+    private RAccessCertificationResponse currentResponse;
+    private Integer currentResponseStage;
 
     public RAccessCertificationCase() {
         this(null);
@@ -153,6 +157,7 @@ public class RAccessCertificationCase implements Container {
         return objectRef;
     }
 
+    @Deprecated // probably will be replaced by query "case.currentResponseStage = campaign.currentStage"
     @Column(name = "case_enabled")
     public boolean isEnabled() {
         return enabled;
@@ -168,6 +173,24 @@ public class RAccessCertificationCase implements Container {
 
     public XMLGregorianCalendar getRemediedTimestamp() {
         return remediedTimestamp;
+    }
+
+    @OneToMany(mappedBy = RAccessCertificationDecision.F_OWNER, orphanRemoval = true)
+    @ForeignKey(name = "none")
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<RAccessCertificationDecision> getDecisions() {
+        if (decisions == null) {
+            decisions = new HashSet<>();
+        }
+        return decisions;
+    }
+
+    public RAccessCertificationResponse getCurrentResponse() {
+        return currentResponse;
+    }
+
+    public Integer getCurrentResponseStage() {
+        return currentResponseStage;
     }
 
     public void setOwner(RObject owner) {
@@ -206,6 +229,18 @@ public class RAccessCertificationCase implements Container {
         this.remediedTimestamp = remediedTimestamp;
     }
 
+    public void setDecisions(Set<RAccessCertificationDecision> decisions) {
+        this.decisions = decisions;
+    }
+
+    public void setCurrentResponse(RAccessCertificationResponse currentResponse) {
+        this.currentResponse = currentResponse;
+    }
+
+    public void setCurrentResponseStage(Integer currentResponseStage) {
+        this.currentResponseStage = currentResponseStage;
+    }
+
     @Lob
     public byte[] getFullObject() {
         return fullObject;
@@ -233,7 +268,12 @@ public class RAccessCertificationCase implements Container {
             return false;
         if (reviewDeadline != null ? !reviewDeadline.equals(that.reviewDeadline) : that.reviewDeadline != null)
             return false;
-        return !(remediedTimestamp != null ? !remediedTimestamp.equals(that.remediedTimestamp) : that.remediedTimestamp != null);
+        if (remediedTimestamp != null ? !remediedTimestamp.equals(that.remediedTimestamp) : that.remediedTimestamp != null)
+            return false;
+        if (decisions != null ? !decisions.equals(that.decisions) : that.decisions != null) return false;
+        if (currentResponse != that.currentResponse) return false;
+        return !(currentResponseStage != null ? !currentResponseStage.equals(that.currentResponseStage) : that.currentResponseStage != null);
+
     }
 
     @Override
@@ -247,26 +287,10 @@ public class RAccessCertificationCase implements Container {
         result = 31 * result + (reviewRequestedTimestamp != null ? reviewRequestedTimestamp.hashCode() : 0);
         result = 31 * result + (reviewDeadline != null ? reviewDeadline.hashCode() : 0);
         result = 31 * result + (remediedTimestamp != null ? remediedTimestamp.hashCode() : 0);
+        result = 31 * result + (currentResponse != null ? currentResponse.hashCode() : 0);
+        result = 31 * result + (currentResponseStage != null ? currentResponseStage.hashCode() : 0);
         return result;
     }
-
-//    public static void copyFromJAXB(AccessCertificationCaseType jaxb, RAccessCertificationCase repo, ObjectType parent, PrismContext prismContext,
-//                                    IdGeneratorResult generatorResult) throws DtoTranslationException {
-//        Validate.notNull(repo, "Repo object must not be null.");
-//        Validate.notNull(jaxb, "JAXB object must not be null.");
-//
-//        repo.setOwnerOid(parent.getOid());
-//        repo.setId(RUtil.toInteger(jaxb.getId()));
-//
-//        repo.setTargetRef(RUtil.jaxbRefToEmbeddedNamedRepoRef(jaxb.getTargetRef(), prismContext));
-//        repo.setTargetRef(RUtil.jaxbRefToEmbeddedNamedRepoRef(jaxb.getObjectRef(), prismContext));
-//        repo.getReviewerRef().addAll(RCertCaseReference.safeListReferenceToSet(
-//                jaxb.getReviewerRef(), prismContext, repo, RCReferenceOwner.CASE_REVIEWER));
-//        repo.setEnabled(BooleanUtils.isTrue(jaxb.isEnabled()));
-//        repo.setReviewRequestedTimestamp(jaxb.getReviewRequestedTimestamp());
-//        repo.setReviewDeadline(jaxb.getReviewDeadline());
-//        repo.setRemediedTimestamp(jaxb.getRemediedTimestamp());
-//    }
 
     @Override
     public String toString() {
@@ -313,6 +337,13 @@ public class RAccessCertificationCase implements Container {
         rCase.setReviewRequestedTimestamp(case1.getReviewRequestedTimestamp());
         rCase.setReviewDeadline(case1.getReviewDeadline());
         rCase.setRemediedTimestamp(case1.getRemediedTimestamp());
+        rCase.setCurrentResponse(RUtil.getRepoEnumValue(case1.getCurrentResponse(), RAccessCertificationResponse.class));
+        rCase.setCurrentResponseStage(case1.getCurrentResponseStage());
+        for (AccessCertificationDecisionType decision : case1.getDecision()) {
+            RAccessCertificationDecision rDecision = RAccessCertificationDecision.toRepo(rCase, decision, prismContext);
+            rCase.getDecisions().add(rDecision);
+        }
+
         PrismContainerValue<AccessCertificationCaseType> cvalue = case1.asPrismContainerValue();
         String xml;
         try {
