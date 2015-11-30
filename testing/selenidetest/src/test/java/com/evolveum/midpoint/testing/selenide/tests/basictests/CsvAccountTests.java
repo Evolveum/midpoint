@@ -31,7 +31,7 @@ import static com.codeborne.selenide.Selenide.switchTo;
 public class CsvAccountTests extends AbstractSelenideTest {
 
     public static final String USER_WITH_CSV_ACCOUNT_NAME = "UserWithCsvAccount";
-    public static final String CSV_RESOURCE_XML_PATH = "src/test/resources/mp-resources/localhost-csvfile-resource-advanced-sync.xml";
+    public static final String CSV_RESOURCE_XML_PATH = "../../samples/resources/csvfile/localhost-csvfile-resource-advanced-sync.xml";
     public static final String CSV_RESOURCE_NAME = "Localhost CSVfile";
     public static final String CSV_FILE_PATH = "target/test-classes/mp-resources/midpoint-flatfile.csv";
     //csv account fields
