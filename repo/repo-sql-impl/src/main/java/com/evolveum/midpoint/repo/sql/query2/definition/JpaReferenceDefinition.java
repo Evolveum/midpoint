@@ -45,7 +45,7 @@ public class JpaReferenceDefinition extends JpaDataNodeDefinition {
         if (path.first() instanceof ObjectReferencePathSegment) {
             // returning artificially created transition definition, used to allow dereferencing target object in a generic way
             return new DataSearchResult(
-                    new JpaLinkDefinition(new ObjectReferencePathSegment(), "target", null, referencedEntityDefinition.getResolvedEntityDefinition()),
+                    new JpaLinkDefinition(new ObjectReferencePathSegment(), "target", null, false, referencedEntityDefinition.getResolvedEntityDefinition()),
                     path.tail());
         } else {
             return null;

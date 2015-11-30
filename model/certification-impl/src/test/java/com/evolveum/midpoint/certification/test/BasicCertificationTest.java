@@ -203,7 +203,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         checkAllCases(caseList);
     }
 
-    @Test(enabled = false)
+    @Test
     public void test040SearchCasesFilteredSortedPaged() throws Exception {
         final String TEST_NAME = "test040SearchCasesFilteredSortedPaged";
         TestUtil.displayTestTile(this, TEST_NAME);

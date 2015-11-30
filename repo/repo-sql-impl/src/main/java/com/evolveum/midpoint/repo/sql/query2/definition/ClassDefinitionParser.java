@@ -90,7 +90,9 @@ public class ClassDefinitionParser {
             if (ownerGetter != null) {
                 String jpaName = getJpaName(method);
                 JpaDataNodeDefinition nodeDefinition = new JpaEntityPointerDefinition(ownerGetter.ownerClass());
-                linkDefinition = new JpaLinkDefinition(new ParentPathSegment(), jpaName, null, nodeDefinition);
+                // Owner is considered as not embedded, so we generate left outer join to access it
+                // (instead of implicit inner join that would be used if we would do x.owner.y = '...')
+                linkDefinition = new JpaLinkDefinition(new ParentPathSegment(), jpaName, null, false, nodeDefinition);
             } else {
                 linkDefinition = parseMethod(method);
             }
@@ -129,7 +131,7 @@ public class ClassDefinitionParser {
         if (any != null) {
             JpaAnyDefinition targetDefinition = new JpaAnyDefinition(jpaClass);
             QName jaxbNameForAny = new QName(any.jaxbNameNamespace(), any.jaxbNameLocalPart());
-            linkDefinition = new JpaLinkDefinition<>(jaxbNameForAny, jpaName, collectionSpecification, targetDefinition);
+            linkDefinition = new JpaLinkDefinition<>(jaxbNameForAny, jpaName, collectionSpecification, false, targetDefinition);
         } else if (ObjectReference.class.isAssignableFrom(jpaClass)) {
             boolean embedded = method.isAnnotationPresent(Embedded.class);
             // computing referenced entity type from returned content type like RObjectReference<RFocus> or REmbeddedReference<RRole>
@@ -152,7 +154,8 @@ public class ClassDefinitionParser {
             boolean indexed = method.isAnnotationPresent(Index.class);
             Class jaxbClass = getJaxbClass(method, jpaClass);
             JpaPropertyDefinition propertyDefinition = new JpaPropertyDefinition(jpaClass, jaxbClass, lob, enumerated, indexed);
-            linkDefinition = new JpaLinkDefinition<JpaDataNodeDefinition>(jaxbName, jpaName, collectionSpecification, false, propertyDefinition);
+            // Note that properties are considered to be embedded
+            linkDefinition = new JpaLinkDefinition<JpaDataNodeDefinition>(jaxbName, jpaName, collectionSpecification, true, propertyDefinition);
         }
         return linkDefinition;
     }
@@ -185,7 +188,7 @@ public class ClassDefinitionParser {
         for (VirtualAny any : qEntity.anyElements()) {
             QName jaxbName = new QName(any.jaxbNameNamespace(), any.jaxbNameLocalPart());
             VirtualAnyDefinition def = new VirtualAnyDefinition(any.ownerType());
-            JpaLinkDefinition linkDefinition = new JpaLinkDefinition(jaxbName, null, null, def);
+            JpaLinkDefinition linkDefinition = new JpaLinkDefinition(jaxbName, null, null, false, def);
             entityDef.addDefinition(linkDefinition);
         }
 
@@ -195,7 +198,7 @@ public class ClassDefinitionParser {
             QName jaxbName = createQName(collection.jaxbName());
             String jpaName = collection.jpaName();
             JpaEntityDefinition content = parseClass(collection.collectionType());
-            JpaLinkDefinition linkDefinition = new JpaLinkDefinition(jaxbName, jpaName, colSpec, content);
+            JpaLinkDefinition linkDefinition = new JpaLinkDefinition(jaxbName, jpaName, colSpec, false, content);
             entityDef.addDefinition(linkDefinition);
         }
 

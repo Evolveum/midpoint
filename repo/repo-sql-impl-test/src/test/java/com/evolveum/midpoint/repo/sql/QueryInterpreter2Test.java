@@ -104,6 +104,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import static com.evolveum.midpoint.prism.query.OrderDirection.*;
+
 /**
  * @author lazyman
  * @author mederly
@@ -635,7 +637,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     EqualFilter.createEqual(new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
                             AssignmentType.class, prismContext, null, ActivationStatusType.ENABLED));
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-            query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
+            query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, ASCENDING));
 
             String real = getInterpretedQuery2(session, UserType.class, query);
             String expected = "select\n" +
@@ -673,7 +675,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             EqualFilter filter = EqualFilter.createEqual(ObjectType.F_NAME, ObjectType.class, prismContext,
                     null, new PolyString("cpt. Jack Sparrow", "cpt jack sparrow"));
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-            query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
+            query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, ASCENDING));
 
             String real = getInterpretedQuery2(session, ObjectType.class, query);
             String expected = "select\n" +
@@ -1172,7 +1174,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     null, new PolyString("cpt. Jack Sparrow", "cpt jack sparrow"));
 
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-            query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
+            query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, ASCENDING));
 
             String real = getInterpretedQuery2(session, UserType.class, query, true);
             String expected = "select\n" +
@@ -1195,7 +1197,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         Session session = open();
 
         try {
-            ObjectPaging paging = ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING);
+            ObjectPaging paging = ObjectPaging.createPaging(null, null, ObjectType.F_NAME, ASCENDING);
             ObjectQuery query = ObjectQuery.createObjectQuery(null, paging);
 
             String real = getInterpretedQuery2(session, ObjectType.class, query, true);
@@ -1222,7 +1224,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             EqualFilter filter = EqualFilter.createEqual(TaskType.F_PARENT, TaskType.class, prismContext, null);
 
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-            query.setPaging(ObjectPaging.createPaging(null, null, TaskType.F_NAME, OrderDirection.ASCENDING));
+            query.setPaging(ObjectPaging.createPaging(null, null, TaskType.F_NAME, ASCENDING));
 
             String real = getInterpretedQuery2(session, TaskType.class, query, true);
             String expected = "select\n" +
@@ -1271,7 +1273,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             OrgFilter orgFilter = OrgFilter.createOrg("some oid", OrgFilter.Scope.ONE_LEVEL);
             ObjectQuery objectQuery = ObjectQuery.createObjectQuery(orgFilter);
-            objectQuery.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
+            objectQuery.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, ASCENDING));
             objectQuery.setUseNewQueryInterpreter(true);
 
             String real = getInterpretedQuery2(session, OrgType.class, objectQuery);
@@ -1636,7 +1638,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
         OrgFilter orgFilter = OrgFilter.createOrg(oid, scope);
         ObjectQuery query = ObjectQuery.createObjectQuery(orgFilter);
-        query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
+        query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, ASCENDING));
         query.setUseNewQueryInterpreter(true);
 
         OperationResult result = new OperationResult("checkQueryResult");
@@ -1668,7 +1670,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             OrgFilter orgFilter = OrgFilter.createOrg("12341234-1234-1234-1234-123412341234");
 
             ObjectQuery query = ObjectQuery.createObjectQuery(AndFilter.createAnd(eqFilter, orgFilter));
-            query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
+            query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, ASCENDING));
 
             String real = getInterpretedQuery2(session, UserType.class, query);
 
@@ -2428,7 +2430,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             ObjectFilter enabledFilter = EqualFilter.createEqual(
                     AccessCertificationCaseType.F_ENABLED, AccessCertificationCaseType.class, prismContext, Boolean.TRUE);
             ObjectFilter filter = AndFilter.createAnd(reviewerFilter, enabledFilter);
-            ObjectPaging paging = ObjectPaging.createPaging(new ItemPath(AccessCertificationCaseType.F_REVIEW_DEADLINE), OrderDirection.ASCENDING);
+            ObjectPaging paging = ObjectPaging.createPaging(new ItemPath(AccessCertificationCaseType.F_REVIEW_DEADLINE), ASCENDING);
             ObjectQuery query = ObjectQuery.createObjectQuery(filter, paging);
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
             String expected = "select\n" +
@@ -2463,7 +2465,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             ObjectFilter enabledFilter = EqualFilter.createEqual(
                     AccessCertificationCaseType.F_ENABLED, AccessCertificationCaseType.class, prismContext, Boolean.TRUE);
             ObjectFilter filter = AndFilter.createAnd(reviewerFilter, enabledFilter);
-            ObjectPaging paging = ObjectPaging.createPaging(new ItemPath(AccessCertificationCaseType.F_REVIEW_REQUESTED_TIMESTAMP), OrderDirection.DESCENDING);
+            ObjectPaging paging = ObjectPaging.createPaging(new ItemPath(AccessCertificationCaseType.F_REVIEW_REQUESTED_TIMESTAMP), DESCENDING);
             ObjectQuery query = ObjectQuery.createObjectQuery(filter, paging);
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
             String expected = "select\n" +
@@ -2634,7 +2636,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     null,
                     ObjectPaging.createPaging(
                             new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
-                            OrderDirection.ASCENDING));
+                            ASCENDING));
 
             String real = getInterpretedQuery2(session, UserType.class, query);
             String expected = "select\n" +
@@ -2648,6 +2650,59 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "from\n" +
                     "  RUser u\n" +
                     "order by u.activation.administrativeStatus asc";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test810OrderByParentCampaignName() throws Exception {
+        Session session = open();
+
+        try {
+            /*
+             * ### AccessCertificationCaseType: (all), order by ../name desc
+             */
+
+            ObjectQuery query = ObjectQuery.createObjectQuery(
+                    new ObjectPaging(new ItemPath(PrismConstants.T_PARENT, ObjectType.F_NAME), DESCENDING));
+
+            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query);
+            String expected = "select\n" +
+                    "  a.fullObject\n" +
+                    "from\n" +
+                    "  RAccessCertificationCase a\n" +
+                    "    left join a.owner o\n" +
+                    "order by o.name.orig desc\n";
+
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test820OrderByTargetName() throws Exception {
+        Session session = open();
+
+        try {
+            /*
+             * ### AccessCertificationCaseType: (all), order by targetRef/@/name
+             */
+
+            ObjectQuery query = ObjectQuery.createObjectQuery(
+                    new ObjectPaging(new ItemPath(
+                            AccessCertificationCaseType.F_TARGET_REF,
+                            PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME), ASCENDING));
+
+            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query);
+            String expected = "select\n" +
+                    "  a.fullObject\n" +
+                    "from\n" +
+                    "  RAccessCertificationCase a\n" +
+                    "    left join a.targetRef.target t\n" +
+                    "order by t.name.orig asc\n";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);

@@ -17,10 +17,12 @@
 package com.evolveum.midpoint.certification.impl;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -29,6 +31,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -41,10 +44,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import javax.xml.namespace.QName;
 import java.util.*;
 
 /**
@@ -85,8 +90,45 @@ public class AccCertQueryHelper {
                 newQuery.setFilter(AndFilter.createAnd(query.getFilter(), inOidFilter));
             }
         }
+
+        newQuery = hackPaging(newQuery);
+
         List<AccessCertificationCaseType> caseList = repositoryService.searchContainers(AccessCertificationCaseType.class, newQuery, options, result);
         return caseList;
+    }
+
+    /**
+     * Maps from "old style" of specifying sorting criteria to current one:
+     *   targetRef -> targetRef/@/name
+     *   objectRef -> objectRef/@/name
+     *   campaignRef -> ../name
+     *
+     * Temporary solution - until we implement that in GUI.
+     */
+    private ObjectQuery hackPaging(ObjectQuery query) {
+        if (query.getPaging() == null || ItemPath.isNullOrEmpty(query.getPaging().getOrderBy())) {
+            return query;
+        }
+        ItemPath oldPath = query.getPaging().getOrderBy();
+        if (oldPath.size() != 1 || !(oldPath.first() instanceof NameItemPathSegment)) {
+            return query;
+        }
+        QName oldName = ((NameItemPathSegment) oldPath.first()).getName();
+        ItemPath newPath;
+        if (QNameUtil.match(oldName, AccessCertificationCaseType.F_TARGET_REF)) {
+            newPath = new ItemPath(AccessCertificationCaseType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
+        } else if (QNameUtil.match(oldName, AccessCertificationCaseType.F_OBJECT_REF)) {
+            newPath = new ItemPath(AccessCertificationCaseType.F_OBJECT_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
+        } else if (QNameUtil.match(oldName, AccessCertificationCaseType.F_CAMPAIGN_REF)) {
+            newPath = new ItemPath(PrismConstants.T_PARENT, ObjectType.F_NAME);
+        } else {
+            return query;
+        }
+        ObjectPaging paging1 = query.getPaging().clone();
+        paging1.setOrderBy(newPath);
+        ObjectQuery query1 = query.clone();
+        query1.setPaging(paging1);
+        return query1;
     }
 
     protected List<AccessCertificationCaseType> searchDecisions(ObjectQuery query, String reviewerOid, boolean notDecidedOnly, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
@@ -112,6 +154,8 @@ public class AccCertQueryHelper {
                 newQuery.setFilter(AndFilter.createAnd(query.getFilter(), reviewerAndEnabledFilter));
             }
         }
+
+        newQuery = hackPaging(newQuery);
 
         // retrieve cases, filtered
         List<AccessCertificationCaseType> caseList = repositoryService.searchContainers(AccessCertificationCaseType.class, newQuery, options, result);

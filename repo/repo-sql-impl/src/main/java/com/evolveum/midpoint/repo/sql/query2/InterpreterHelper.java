@@ -77,8 +77,7 @@ public class InterpreterHelper {
 
         JpaDataNodeDefinition currentDefinition = baseEntityDefinition;
         ItemPath itemPathRemainder = relativePath;
-        while (!ItemPath.isNullOrEmpty(itemPathRemainder)) {
-
+        while (!ItemPath.isNullOrEmpty(itemPathRemainder) && !(currentDefinition instanceof JpaAnyDefinition)) {
             LOGGER.trace("currentDefinition = '{}', current HQL path = '{}', itemPathRemainder = '{}'", currentDefinition, currentHqlPath, itemPathRemainder);
             DataSearchResult<JpaDataNodeDefinition> result = currentDefinition.nextLinkDefinition(itemPathRemainder);
             LOGGER.trace("nextLinkDefinition on '{}' returned '{}'", itemPathRemainder, result != null ? result.getLinkDefinition() : "(null)");
@@ -88,29 +87,13 @@ public class InterpreterHelper {
             JpaLinkDefinition linkDefinition = result.getLinkDefinition();
             JpaDataNodeDefinition nextNodeDefinition = linkDefinition.getTargetDefinition();
 
-            if (nextNodeDefinition instanceof JpaAnyDefinition) {
-                JpaAnyDefinition anyDefinition = (JpaAnyDefinition) nextNodeDefinition;
-                if (linkDefinition.getJpaName() != null) {      // there are "invisible" Any definitions - object extension and shadow attributes
-                    currentHqlPath = addJoin(linkDefinition, currentHqlPath);
-                    LOGGER.trace("Adding join for '{}' to context", anyDefinition);
-                }
-                break;      // we're done
-            } else if (nextNodeDefinition instanceof JpaEntityDefinition) {
+            if (linkDefinition.hasJpaRepresentation()) {
                 if (!linkDefinition.isEmbedded() || linkDefinition.isMultivalued()) {
                     LOGGER.trace("Adding join for '{}' to context", linkDefinition);
                     currentHqlPath = addJoin(linkDefinition, currentHqlPath);
                 } else {
                     currentHqlPath += "." + linkDefinition.getJpaName();
                 }
-            } else if (nextNodeDefinition instanceof JpaPropertyDefinition || nextNodeDefinition instanceof JpaReferenceDefinition) {
-                if (linkDefinition.isMultivalued()) {
-                    LOGGER.trace("Adding join for '{}' to context", linkDefinition);
-                    currentHqlPath = addJoin(linkDefinition, currentHqlPath);
-                } else {
-                    currentHqlPath += "." + linkDefinition.getJpaName();
-                }
-            } else {
-                throw new QueryException("Not implemented yet: " + linkDefinition);
             }
             itemPathRemainder = result.getRemainder();
             currentDefinition = nextNodeDefinition;

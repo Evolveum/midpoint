@@ -37,10 +37,6 @@ public class JpaLinkDefinition<D extends JpaDataNodeDefinition> implements Visit
     private boolean embedded;
     private D targetDefinition;
 
-    public JpaLinkDefinition(ItemPathSegment itemPathSegment, String jpaName, CollectionSpecification collectionSpecification, D targetDefinition) {
-        this(itemPathSegment, jpaName, collectionSpecification, false, targetDefinition);
-    }
-
     public JpaLinkDefinition(ItemPathSegment itemPathSegment, String jpaName, CollectionSpecification collectionSpecification, boolean embedded, D targetDefinition) {
         Validate.notNull(itemPathSegment, "itemPathSegment");
         Validate.notNull(targetDefinition, "targetDefinition");
@@ -49,10 +45,6 @@ public class JpaLinkDefinition<D extends JpaDataNodeDefinition> implements Visit
         this.collectionSpecification = collectionSpecification;
         this.embedded = embedded;
         this.targetDefinition = targetDefinition;
-    }
-
-    public JpaLinkDefinition(QName jaxbName, String jpaName, CollectionSpecification collectionSpecification, D targetDefinition) {
-        this(jaxbName, jpaName, collectionSpecification, false, targetDefinition);
     }
 
     public JpaLinkDefinition(QName jaxbName, String jpaName, CollectionSpecification collectionSpecification, boolean embedded, D targetDefinition) {
@@ -91,6 +83,14 @@ public class JpaLinkDefinition<D extends JpaDataNodeDefinition> implements Visit
 
     public boolean isMultivalued() {
         return collectionSpecification != null;
+    }
+
+    /**
+     * Has this link JPA representation? I.e. is it represented as a getter?
+     * Some links, e.g. metadata and construction, are not.
+     */
+    public boolean hasJpaRepresentation() {
+        return jpaName != null;
     }
 
     @Override
