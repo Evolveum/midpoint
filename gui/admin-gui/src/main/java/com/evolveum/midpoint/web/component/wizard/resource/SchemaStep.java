@@ -25,6 +25,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
@@ -57,6 +58,7 @@ public class SchemaStep extends WizardStep {
 
     private static final String ID_TAB_PANEL = "tabPanel";
     private static final String ID_RELOAD = "reload";
+    private static final String ID_ACE_EDITOR = "aceEditor";
     private IModel<PrismObject<ResourceType>> model;
 
     public SchemaStep(IModel<PrismObject<ResourceType>> model, PageBase pageBase) {
@@ -172,7 +174,13 @@ public class SchemaStep extends WizardStep {
 
             @Override
             public WebMarkupContainer getPanel(String panelId) {
-                return new XmlEditorPanel(panelId, createXmlEditorModel());
+                XmlEditorPanel xmlEditorPanel = new XmlEditorPanel(panelId, createXmlEditorModel());
+                // quick fix: now changes from XmlEditorPanel are not saved anyhow
+                //(e.g. by clicking Finish button in wizard). For now,
+                //panel is made disabled for editing
+                AceEditor aceEditor = (AceEditor) xmlEditorPanel.get(ID_ACE_EDITOR);
+                aceEditor.setReadonly(true);
+                return xmlEditorPanel;
             }
         };
     }
