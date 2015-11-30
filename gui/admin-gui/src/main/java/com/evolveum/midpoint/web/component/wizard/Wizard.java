@@ -158,42 +158,42 @@ public class Wizard extends SimplePanel<IWizardModel> implements IWizardModelLis
         Iterator<IWizardStep> iterator = getWizardModel().stepIterator();
 
         if(dto != null){
-            if("Resource basics".equals(dto.getName())){
+            if(getString("NameStep.title").equals(dto.getName())){
                 while(iterator.hasNext()){
                     IWizardStep step = iterator.next();
                     if(step instanceof NameStep){
                         newStep = step;
                     }
                 }
-            } else if("Configuration".equals(dto.getName())){
+            } else if(getString("ConfigurationStep.title").equals(dto.getName())){
                 while(iterator.hasNext()){
                     IWizardStep step = iterator.next();
                     if(step instanceof ConfigurationStep){
                         newStep = step;
                     }
                 }
-            } else if("Schema".equals(dto.getName())){
+            } else if(getString("SchemaStep.title").equals(dto.getName())){
                 while(iterator.hasNext()){
                     IWizardStep step = iterator.next();
                     if(step instanceof SchemaStep){
                         newStep = step;
                     }
                 }
-            } else if("Schema handling".equals(dto.getName())){
+            } else if(getString("SchemaHandlingStep.title").equals(dto.getName())){
                 while(iterator.hasNext()){
                     IWizardStep step = iterator.next();
                     if(step instanceof SchemaHandlingStep){
                         newStep = step;
                     }
                 }
-            } else if("Capabilities".equals(dto.getName())){
+            } else if(getString("CapabilityStep.title").equals(dto.getName())) {
                 while(iterator.hasNext()){
                     IWizardStep step = iterator.next();
                     if(step instanceof CapabilityStep){
                         newStep = step;
                     }
                 }
-            } else if("Synchronization".equals(dto.getName())){
+            } else if(getString("SynchronizationStep.title").equals(dto.getName())){
                 while(iterator.hasNext()){
                     IWizardStep step = iterator.next();
                     if(step instanceof SynchronizationStep){
