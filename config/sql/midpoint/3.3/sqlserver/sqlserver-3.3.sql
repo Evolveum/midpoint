@@ -251,7 +251,7 @@ CREATE TABLE m_focus (
   validTo                 DATETIME2,
   validityChangeTimestamp DATETIME2,
   validityStatus          INT,
-  hasPhoto                BIT DEFAULT FALSE                     NOT NULL,
+  hasPhoto                BIT DEFAULT 0                         NOT NULL,
   oid                     NVARCHAR(36) COLLATE database_default NOT NULL,
   PRIMARY KEY (oid)
 );
