@@ -254,7 +254,7 @@ CREATE TABLE m_focus (
   validTo                 TIMESTAMP,
   validityChangeTimestamp TIMESTAMP,
   validityStatus          NUMBER(10, 0),
-  hasPhoto                NUMBER(1, 0) DEFAULT FALSE NOT NULL,
+  hasPhoto                NUMBER(1, 0) DEFAULT 0 NOT NULL,
   oid                     VARCHAR2(36 CHAR) NOT NULL,
   PRIMARY KEY (oid)
 ) INITRANS 30;
