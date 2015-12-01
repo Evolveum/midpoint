@@ -212,6 +212,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         getComponentInstantiationListeners().add(new SpringComponentInjector(this));
 
         IResourceSettings resourceSettings = getResourceSettings();
+        resourceSettings.setParentFolderPlaceholder("$-$");
         resourceSettings.setHeaderItemComparator(new PriorityFirstComparator(true));
         SecurePackageResourceGuard guard = (SecurePackageResourceGuard) resourceSettings.getPackageResourceGuard();
         guard.addPattern("+*.woff2");
