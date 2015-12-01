@@ -38,6 +38,8 @@ public class DataSourceFactory {
 
     private SqlRepositoryConfiguration configuration;
 
+    private DataSource dataSource;
+
     public void setConfiguration(SqlRepositoryConfiguration configuration) {
         this.configuration = configuration;
     }
@@ -56,7 +58,8 @@ public class DataSourceFactory {
             }
 
             LOGGER.info("Constructing default C3P0 datasource with connection pooling.");
-            return createC3P0DataSource();
+            dataSource = createC3P0DataSource();
+            return dataSource;
         } catch (Exception ex) {
             throw new RepositoryServiceFactoryException("Couldn't initialize datasource, reason: " + ex.getMessage(), ex);
         }
@@ -85,5 +88,12 @@ public class DataSourceFactory {
         ds.setConnectionCustomizerClassName(MidPointConnectionCustomizer.class.getName());
 
         return ds;
+    }
+
+    public void destroy() {
+        if (dataSource instanceof ComboPooledDataSource) {
+            ComboPooledDataSource ds = (ComboPooledDataSource) dataSource;
+            ds.close();
+        }
     }
 }
