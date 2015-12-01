@@ -46,7 +46,7 @@ public class TypeRestriction extends Restriction<TypeFilter> {
         InterpretationContext context = getContext();
         RootHibernateQuery hibernateQuery = context.getHibernateQuery();
 
-        String property = getBaseHqlPath() + "." + RObject.F_OBJECT_TYPE_CLASS;
+        String property = getBaseHqlEntity().getHqlPath() + "." + RObject.F_OBJECT_TYPE_CLASS;
 
         Set<RObjectType> values = getValues(filter.getType());
 

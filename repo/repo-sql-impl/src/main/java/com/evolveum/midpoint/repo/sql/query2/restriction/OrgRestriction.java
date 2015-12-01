@@ -38,7 +38,7 @@ public class OrgRestriction extends Restriction<OrgFilter> {
         RootHibernateQuery hibernateQuery = getContext().getHibernateQuery();
         if (filter.isRoot()) {
             // oid in (select descendantOid from ROrgClosure group by descendantOid having count(descendantOid) = 1)
-            return hibernateQuery.createIn(getBaseHqlPath() + ".oid",
+            return hibernateQuery.createIn(getBaseHqlEntity().getHqlPath() + ".oid",
                     "select descendantOid from ROrgClosure group by descendantOid having count(descendantOid) = 1");
         }
 
@@ -71,6 +71,6 @@ public class OrgRestriction extends Restriction<OrgFilter> {
                             "ref.targetOid in (" +
                                 "select descendantOid from ROrgClosure where ancestorOid = :" + orgOidParamName + ")";
         }
-        return hibernateQuery.createIn(getBaseHqlPath() + ".oid", oidQueryText);
+        return hibernateQuery.createIn(getBaseHqlEntity().getHqlPath() + ".oid", oidQueryText);
     }
 }

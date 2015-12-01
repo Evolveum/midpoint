@@ -78,7 +78,7 @@ public class AnyPropertyRestriction extends ItemValueRestriction<ValueFilter> {
         } catch (SchemaException e) {
             throw new QueryException(e.getMessage(), e);
         }
-        String hqlPath = getItemResolutionState().getCurrentHqlPath();
+        String hqlPath = getHqlDataInstance().getHqlPath();
         String alias = addJoinAny(hqlPath, anyAssociationName, itemName, ownerType);
 
         String propertyValuePath = alias + '.' + RAnyValue.F_VALUE;

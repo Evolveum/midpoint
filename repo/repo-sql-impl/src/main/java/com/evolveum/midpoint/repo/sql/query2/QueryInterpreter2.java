@@ -194,7 +194,7 @@ public class QueryInterpreter2 {
         ItemPathResolver helper = context.getItemPathResolver();
         JpaEntityDefinition baseEntityDefinition;
         if (parent != null) {
-            baseEntityDefinition = parent.getBaseEntityDefinitionForChildren();
+            baseEntityDefinition = parent.getBaseHqlEntityForChildren().getJpaDefinition();
         } else {
             baseEntityDefinition = context.getRootEntityDefinition();
         }
@@ -341,7 +341,9 @@ public class QueryInterpreter2 {
 
         JpaEntityDefinition baseEntityDefinition = result.getEntityDefinition();
         JpaPropertyDefinition orderByDefinition = (JpaPropertyDefinition) targetDefinition;
-        String hqlPropertyPath = context.getItemPathResolver().resolveItemPath(orderByPath, context.getPrimaryEntityAlias(), baseEntityDefinition, false).getCurrentHqlPath();
+        String hqlPropertyPath = context.getItemPathResolver()
+                .resolveItemPath(orderByPath, context.getPrimaryEntityAlias(), baseEntityDefinition, true)
+                .getHqlPath();
         if (RPolyString.class.equals(orderByDefinition.getJpaClass())) {
             hqlPropertyPath += ".orig";
         }

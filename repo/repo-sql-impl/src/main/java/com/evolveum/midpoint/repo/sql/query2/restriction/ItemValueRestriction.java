@@ -25,8 +25,8 @@ import com.evolveum.midpoint.prism.query.LessFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.query2.HqlDataInstance;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
-import com.evolveum.midpoint.repo.sql.query2.ItemPathResolutionState;
 import com.evolveum.midpoint.repo.sql.query2.QueryInterpreter2;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
@@ -66,8 +66,8 @@ public abstract class ItemValueRestriction<T extends ValueFilter> extends ItemRe
         if (ItemPath.isNullOrEmpty(path)) {
             throw new QueryException("Null or empty path for ItemValueRestriction in " + filter.debugDump());
         }
-        ItemPathResolutionState resolutionState = getItemPathResolver().resolveItemPath(path, getBaseHqlPath(), baseEntityDefinition, false);
-        setItemResolutionState(resolutionState);
+        HqlDataInstance dataInstance = getItemPathResolver().resolveItemPath(path, getBaseHqlEntity(), false);
+        setHqlDataInstance(dataInstance);
 
         Condition condition = interpretInternal();
         return condition;

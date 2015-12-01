@@ -53,13 +53,20 @@ public class ItemPathResolver {
 
     /**
      * Resolves item path by creating a sequence of resolution states and preparing joins that are used to access JPA properties.
-     * "singletonOnly" means no collections are allowed (used for right-side path resolution).
+     * "singletonOnly" means no collections are allowed (used for right-side path resolution and order criteria).
      */
-    public ItemPathResolutionState resolveItemPath(ItemPath relativePath, String currentHqlPath,
+    public HqlDataInstance resolveItemPath(ItemPath relativePath, String currentHqlPath,
                                                    JpaEntityDefinition baseEntityDefinition,
                                                    boolean singletonOnly) throws QueryException {
+        HqlDataInstance baseDataInstance = new HqlDataInstance(currentHqlPath, baseEntityDefinition, null);
+        return resolveItemPath(relativePath, baseDataInstance, singletonOnly);
+    }
 
-        ItemPathResolutionState currentState = new ItemPathResolutionState(relativePath, currentHqlPath, baseEntityDefinition, this);
+    public HqlDataInstance resolveItemPath(ItemPath relativePath,
+                                                   HqlDataInstance baseDataInstance,
+                                                   boolean singletonOnly) throws QueryException {
+
+        ItemPathResolutionState currentState = new ItemPathResolutionState(relativePath, baseDataInstance, this);
 
         LOGGER.trace("Starting resolution and context update for item path '{}', singletonOnly='{}'", relativePath, singletonOnly);
 
@@ -68,8 +75,8 @@ public class ItemPathResolver {
             currentState = currentState.nextState(singletonOnly);
         }
 
-        LOGGER.trace("resolveItemPath({}) returning final resolution state of:\n{}", relativePath, currentState.debugDump());
-        return currentState;
+        LOGGER.trace("resolveItemPath({}) ending in resolution state of:\n{}", relativePath, currentState.debugDump());
+        return currentState.getHqlDataInstance();
     }
 
     String addJoin(JpaLinkDefinition joinedItemDefinition, String currentHqlPath) throws QueryException {
@@ -180,23 +187,4 @@ public class ItemPathResolver {
         return specificEntityDefinition;
     }
 
-    // @pre rightSidePath != null
-    public ItemPathResolutionState resolveRightItemPath(ItemPathResolutionState itemResolutionState, ItemPath rightSidePath) throws QueryException {
-        LOGGER.trace("Resolving right-side path of '{}' in state:\n{}", rightSidePath, itemResolutionState);
-
-        // ItemPath may start with a sequence of ".." symbols - go backwards while necessary and possible
-        while (rightSidePath.startsWith(ParentPathSegment.class) && itemResolutionState.hasPreviousState()) {
-            itemResolutionState = itemResolutionState.getPreviousState();
-            rightSidePath = rightSidePath.tail();
-        }
-
-        // Now the standard resolution should take place. But no collections! Target has to be a singleton.
-        if (!(itemResolutionState.getCurrentJpaNode() instanceof JpaEntityDefinition)) {
-            throw new IllegalStateException("Right-item path resolution cannot continue from non-entity node: " + itemResolutionState + " (internal error)");
-        }
-        JpaEntityDefinition baseEntity = (JpaEntityDefinition) itemResolutionState.getCurrentJpaNode();
-        ItemPathResolutionState state = resolveItemPath(rightSidePath, itemResolutionState.getCurrentHqlPath(), baseEntity, true);
-        LOGGER.trace("Resolved right-side path to {}", state);
-        return state;
-    }
 }

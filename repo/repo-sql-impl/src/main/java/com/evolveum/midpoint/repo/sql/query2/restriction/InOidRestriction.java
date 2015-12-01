@@ -39,21 +39,21 @@ public class InOidRestriction extends Restriction<InOidFilter> {
 
     @Override
     public Condition interpret() throws QueryException {
-        String hqlPath = getBaseHqlPath() + ".";
+        String hqlPath = getBaseHqlEntity().getHqlPath() + ".";
         Collection<?> idValues;
 
         // TODO check applicability
         if (filter.isConsiderOwner()) {
             hqlPath += "ownerOid";
             idValues = filter.getOids();
-        } else if (RObject.class.isAssignableFrom(baseEntityDefinition.getJpaClass())) {
+        } else if (RObject.class.isAssignableFrom(getBaseHqlEntity().getJpaDefinition().getJpaClass())) {
             hqlPath += "oid";
             idValues = filter.getOids();
-        } else if (Container.class.isAssignableFrom(baseEntityDefinition.getJpaClass())) {
+        } else if (Container.class.isAssignableFrom(getBaseHqlEntity().getJpaDefinition().getJpaClass())) {
             hqlPath += "id";        // quite a hack
             idValues = toIntList(filter.getOids());
         } else {
-            throw new QueryException("InOidRestriction cannot be applied to the entity: " + baseEntityDefinition);
+            throw new QueryException("InOidRestriction cannot be applied to the entity: " + getBaseHqlEntity());
         }
 
         return getContext().getHibernateQuery().createIn(hqlPath, idValues);

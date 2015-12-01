@@ -2779,7 +2779,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
-    @Test
+    @Test(enabled = false)
     public void test915OrganizationEqualsCostCenter() throws Exception {
         Session session = open();
 
@@ -2874,10 +2874,6 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
     // TODO negative tests - order by entity, reference, any, collection
     // TODO implement checks for "order by" for non-singletons
-
-    // TODO search for "no decision" condition (V2)
-    // TODO sorting based on referenced entity names (V2)
-    // TODO for cases: sorting based on object name, target name, campaign name (!) (V2-3)
 
     protected <T extends Containerable> String getInterpretedQuery2(Session session, Class<T> type, File file) throws
             Exception {

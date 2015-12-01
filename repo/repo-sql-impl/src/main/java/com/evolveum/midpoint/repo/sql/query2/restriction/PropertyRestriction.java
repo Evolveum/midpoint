@@ -23,14 +23,13 @@ import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.query2.HqlDataInstance;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query2.ItemPathResolutionState;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaPropertyDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaLinkDefinition;
-import com.evolveum.midpoint.repo.sql.query2.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
-import com.evolveum.midpoint.repo.sql.query2.hqm.condition.AndCondition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.OrCondition;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -70,14 +69,14 @@ public class PropertyRestriction extends ItemValueRestriction<PropertyValueFilte
             throw new QueryException("Filter '" + filter + "' contain more than one value (which is not supported for now).");
         }
 
-        String leftHqlPath = getItemResolutionState().getCurrentHqlPath();
+        String leftHqlPath = getHqlDataInstance().getHqlPath();
         if (filter.getRightSidePath() != null) {
             if (!(filter instanceof EqualFilter)) {
                 throw new QueryException("Right-side ItemPath is supported currently only for EqualFilter, not for " + filter);
             }
-            ItemPathResolutionState rightItemState = getItemPathResolver().resolveRightItemPath(
-                    getItemPathResolutionStateForChildren(), filter.getRightSidePath());
-            String rightHqlPath = rightItemState.getCurrentHqlPath();
+            HqlDataInstance rightItem = getItemPathResolver().resolveItemPath(filter.getRightSidePath(),
+                    getBaseHqlEntityForChildren(), true);
+            String rightHqlPath = rightItem.getHqlPath();
             RootHibernateQuery hibernateQuery = context.getHibernateQuery();
             // left = right OR (left IS NULL AND right IS NULL)
             Condition condition = hibernateQuery.createEqXY(leftHqlPath, rightHqlPath, "=", false);

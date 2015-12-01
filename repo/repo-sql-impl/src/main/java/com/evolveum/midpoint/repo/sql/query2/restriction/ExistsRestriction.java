@@ -19,17 +19,20 @@ package com.evolveum.midpoint.repo.sql.query2.restriction;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ExistsFilter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.query2.HqlDataInstance;
+import com.evolveum.midpoint.repo.sql.query2.HqlEntityInstance;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query2.ItemPathResolutionState;
 import com.evolveum.midpoint.repo.sql.query2.QueryInterpreter2;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
-import org.apache.commons.lang.Validate;
 
 /**
  * @author mederly
  */
 public class ExistsRestriction extends ItemRestriction<ExistsFilter> {
+
+
 
     public ExistsRestriction(InterpretationContext context, ExistsFilter filter, JpaEntityDefinition baseEntityDefinition,
                              Restriction parent) {
@@ -38,12 +41,12 @@ public class ExistsRestriction extends ItemRestriction<ExistsFilter> {
 
     @Override
     public Condition interpret() throws QueryException {
-        ItemPathResolutionState resolutionState = getItemPathResolver().resolveItemPath(filter.getFullPath(), getBaseHqlPath(), baseEntityDefinition, false);
-        if (!(resolutionState.getCurrentJpaNode() instanceof JpaEntityDefinition)) {
-            // should be checked when instantiating this restriction
-            throw new IllegalStateException("Internal error - resolutionState for ExistsRestriction points to non-entity node: " + resolutionState.getCurrentJpaNode());
+        HqlDataInstance dataInstance = getItemPathResolver().resolveItemPath(filter.getFullPath(), getBaseHqlEntity(), false);
+        if (!(dataInstance.getJpaDefinition() instanceof JpaEntityDefinition)) {
+            // should be checked when instantiating this restriction, so now we can throw hard exception
+            throw new IllegalStateException("Internal error - resolutionState for ExistsRestriction points to non-entity node: " + dataInstance.getJpaDefinition());
         }
-        setItemResolutionState(resolutionState);
+        setHqlDataInstance(dataInstance);
 
         InterpretationContext context = getContext();
         QueryInterpreter2 interpreter = context.getInterpreter();
@@ -51,22 +54,7 @@ public class ExistsRestriction extends ItemRestriction<ExistsFilter> {
     }
 
     @Override
-    public String getBaseHqlPathForChildren() {
-        return getItemResolutionState().getCurrentHqlPath();
-    }
-
-    @Override
-    public ItemPath getBaseItemPathForChildren() {
-        return new ItemPath(getBaseItemPath(), filter.getFullPath());
-    }
-
-    @Override
-    public JpaEntityDefinition getBaseEntityDefinitionForChildren() {
-        return (JpaEntityDefinition) getItemResolutionState().getCurrentJpaNode();
-    }
-
-    @Override
-    public ItemPathResolutionState getItemPathResolutionStateForChildren() {
-        return getItemResolutionState();
+    public HqlEntityInstance getBaseHqlEntityForChildren() {
+        return hqlDataInstance.asHqlEntityInstance();
     }
 }
