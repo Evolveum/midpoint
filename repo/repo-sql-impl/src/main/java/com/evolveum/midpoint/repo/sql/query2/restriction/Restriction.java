@@ -21,7 +21,8 @@ import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
-import com.evolveum.midpoint.repo.sql.query2.InterpreterHelper;
+import com.evolveum.midpoint.repo.sql.query2.ItemPathResolutionState;
+import com.evolveum.midpoint.repo.sql.query2.ItemPathResolver;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import org.apache.commons.lang.Validate;
@@ -184,8 +185,22 @@ public abstract class Restriction<T extends ObjectFilter> {
         return getBaseEntityDefinition();
     }
 
-    protected InterpreterHelper getHelper() {
-        return getContext().getHelper();
+    // temporary hack - TODO implement more seriously
+    public ItemPathResolutionState getItemPathResolutionStateForChildren() {
+        if (parent != null) {
+            return parent.getItemPathResolutionStateForChildren();
+        } else {
+            return new ItemPathResolutionState(
+                    ItemPath.EMPTY_PATH,            // this is dummy
+                    getBaseHqlPath(),
+                    getBaseEntityDefinition(),
+                    getItemPathResolver()
+            );
+        }
+    }
+
+    protected ItemPathResolver getItemPathResolver() {
+        return getContext().getItemPathResolver();
     }
 
 //    /**

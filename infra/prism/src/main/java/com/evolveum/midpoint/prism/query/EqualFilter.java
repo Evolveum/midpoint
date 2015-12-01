@@ -52,6 +52,10 @@ public class EqualFilter<T extends Object> extends PropertyValueFilter<PrismProp
 		super(parentPath, definition, matchingRule, values);
 	}
 
+	EqualFilter(ItemPath parentPath, PrismPropertyDefinition<T> definition, QName matchingRule, ItemPath rightSidePath) {
+		super(parentPath, definition, matchingRule, rightSidePath);
+	}
+
 	private EqualFilter(ItemPath parentPath, PrismPropertyDefinition<T> definition, QName matchingRule) {
 		super(parentPath, definition, matchingRule);
 	}
@@ -146,12 +150,17 @@ public class EqualFilter<T extends Object> extends PropertyValueFilter<PrismProp
 		return createEqual(propertyPath, type, prismContext, null, realValue);
 	}
 	
-	public static <C extends Containerable, T> EqualFilter<T> createEqual(ItemPath propertyPath, Class<C> type, PrismContext prismContext, QName matchingRule, T realValue)
-			{
+	public static <C extends Containerable, T> EqualFilter<T> createEqual(ItemPath propertyPath, Class<C> type, PrismContext prismContext, QName matchingRule, T realValue) {
 		PrismPropertyDefinition propertyDefinition = (PrismPropertyDefinition) FilterUtils.findItemDefinition(propertyPath, type, prismContext);
 		return createEqual(propertyPath, propertyDefinition, matchingRule, realValue);
 	}
-   
+
+	public static <C extends Containerable, T> EqualFilter<T> createEqual(ItemPath propertyPath, Class<C> type, PrismContext prismContext, QName matchingRule, ItemPath rightSidePath) {
+		PrismPropertyDefinition propertyDefinition = (PrismPropertyDefinition) FilterUtils.findItemDefinition(propertyPath, type, prismContext);
+		EqualFilter<T> filter = new EqualFilter(propertyPath, propertyDefinition, matchingRule, rightSidePath);
+		return filter;
+	}
+
 	public static <T> EqualFilter<T> createNullEqual(ItemPath itemPath, PrismPropertyDefinition<T> propertyDef, QName matchingRule){
 		return new EqualFilter(itemPath, propertyDef, matchingRule);
 		

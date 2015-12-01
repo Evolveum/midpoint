@@ -179,7 +179,7 @@ public class RAccessCertificationCase implements Container {
     @OneToMany(mappedBy = RAccessCertificationDecision.F_OWNER, orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RAccessCertificationDecision> getDecisions() {
+    public Set<RAccessCertificationDecision> getDecision() {
         if (decisions == null) {
             decisions = new HashSet<>();
         }
@@ -230,7 +230,7 @@ public class RAccessCertificationCase implements Container {
         this.remediedTimestamp = remediedTimestamp;
     }
 
-    public void setDecisions(Set<RAccessCertificationDecision> decisions) {
+    public void setDecision(Set<RAccessCertificationDecision> decisions) {
         this.decisions = decisions;
     }
 
@@ -343,7 +343,7 @@ public class RAccessCertificationCase implements Container {
         rCase.setCurrentResponseStage(case1.getCurrentResponseStage());
         for (AccessCertificationDecisionType decision : case1.getDecision()) {
             RAccessCertificationDecision rDecision = RAccessCertificationDecision.toRepo(rCase, decision, generatorResult, prismContext);
-            rCase.getDecisions().add(rDecision);
+            rCase.getDecision().add(rDecision);
         }
 
         PrismContainerValue<AccessCertificationCaseType> cvalue = case1.asPrismContainerValue();

@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.query.OrgFilter;
+import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.query.UndefinedFilter;
@@ -190,7 +191,7 @@ public class QueryInterpreter2 {
 
         LOGGER.trace("Determining restriction for filter {}", filter);
 
-        InterpreterHelper helper = context.getHelper();
+        ItemPathResolver helper = context.getItemPathResolver();
         JpaEntityDefinition baseEntityDefinition;
         if (parent != null) {
             baseEntityDefinition = parent.getBaseEntityDefinitionForChildren();
@@ -205,7 +206,7 @@ public class QueryInterpreter2 {
 
     private <T extends ObjectFilter>
     Restriction findAndCreateRestrictionInternal(T filter, InterpretationContext context, Restriction parent,
-                                                 InterpreterHelper helper, JpaEntityDefinition baseEntityDefinition) throws QueryException {
+                                                 ItemPathResolver helper, JpaEntityDefinition baseEntityDefinition) throws QueryException {
 
         // the order of processing restrictions can be important, so we do the selection via handwritten code
 
@@ -228,20 +229,20 @@ public class QueryInterpreter2 {
             ItemPath path = existsFilter.getFullPath();
             ProperDataSearchResult<JpaEntityDefinition> searchResult = helper.findProperDataDefinition(baseEntityDefinition, path, JpaEntityDefinition.class);
             if (searchResult == null) {
-                throw new QueryException("Path for ExistsFilter (" + path + ") doesn't point to a hibernate entity");
+                throw new QueryException("Path for ExistsFilter (" + path + ") doesn't point to a hibernate entity within " + baseEntityDefinition);
             }
-            return new ExistsRestriction(context, existsFilter, searchResult.getEntityDefinition(), parent, searchResult.getTargetDefinition());
+            return new ExistsRestriction(context, existsFilter, searchResult.getEntityDefinition(), parent);
         } else if (filter instanceof RefFilter) {
             RefFilter refFilter = (RefFilter) filter;
             ItemPath path = refFilter.getFullPath();
             ProperDataSearchResult<JpaReferenceDefinition> searchResult = helper.findProperDataDefinition(baseEntityDefinition, path, JpaReferenceDefinition.class);
             if (searchResult == null) {
-                throw new QueryException("Path for RefFilter (" + path + ") doesn't point to a reference item");
+                throw new QueryException("Path for RefFilter (" + path + ") doesn't point to a reference item within " + baseEntityDefinition);
             }
             return new ReferenceRestriction(context, refFilter, searchResult.getEntityDefinition(),
                     parent, searchResult.getLinkDefinition());
-        } else if (filter instanceof ValueFilter) {
-            ValueFilter valFilter = (ValueFilter) filter;
+        } else if (filter instanceof PropertyValueFilter) {
+            PropertyValueFilter valFilter = (PropertyValueFilter) filter;
             ItemPath path = valFilter.getFullPath();
 
             ProperDataSearchResult<JpaPropertyDefinition> propDefRes = helper.findProperDataDefinition(baseEntityDefinition, path, JpaPropertyDefinition.class);
@@ -319,7 +320,7 @@ public class QueryInterpreter2 {
             }
         }
 
-        ProperDataSearchResult<JpaDataNodeDefinition> result = context.getHelper().findProperDataDefinition(
+        ProperDataSearchResult<JpaDataNodeDefinition> result = context.getItemPathResolver().findProperDataDefinition(
                 context.getRootEntityDefinition(), orderByPath, JpaDataNodeDefinition.class);
         if (result == null) {
             throw new QueryException("Unknown path '" + orderByPath + "', couldn't find definition for it, "
@@ -340,7 +341,7 @@ public class QueryInterpreter2 {
 
         JpaEntityDefinition baseEntityDefinition = result.getEntityDefinition();
         JpaPropertyDefinition orderByDefinition = (JpaPropertyDefinition) targetDefinition;
-        String hqlPropertyPath = context.getHelper().prepareJoins(orderByPath, context.getPrimaryEntityAlias(), baseEntityDefinition);
+        String hqlPropertyPath = context.getItemPathResolver().resolveItemPath(orderByPath, context.getPrimaryEntityAlias(), baseEntityDefinition, false).getCurrentHqlPath();
         if (RPolyString.class.equals(orderByDefinition.getJpaClass())) {
             hqlPropertyPath += ".orig";
         }

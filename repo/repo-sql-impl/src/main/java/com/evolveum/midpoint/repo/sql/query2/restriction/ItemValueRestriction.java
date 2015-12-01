@@ -19,33 +19,25 @@ package com.evolveum.midpoint.repo.sql.query2.restriction;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.GreaterFilter;
 import com.evolveum.midpoint.prism.query.LessFilter;
-import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
+import com.evolveum.midpoint.repo.sql.query2.ItemPathResolutionState;
 import com.evolveum.midpoint.repo.sql.query2.QueryInterpreter2;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.JpaPropertyDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.AndCondition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.IsNotNullCondition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.IsNullCondition;
 import com.evolveum.midpoint.repo.sql.query2.matcher.Matcher;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.apache.commons.lang.ClassUtils;
 
-import javax.xml.namespace.QName;
 import java.util.List;
 
 /**
@@ -64,25 +56,26 @@ public abstract class ItemValueRestriction<T extends ValueFilter> extends ItemRe
     private static final Trace LOGGER = TraceManager.getTrace(ItemValueRestriction.class);
 
     public ItemValueRestriction(InterpretationContext context, T filter, JpaEntityDefinition baseEntityDefinition, Restriction parent) {
-        super(context, filter, baseEntityDefinition, parent);
+        super(context, filter, filter.getFullPath(), baseEntityDefinition, parent);
     }
 
     @Override
     public Condition interpret() throws QueryException {
 
-    	ItemPath path = filter.getFullPath();
+    	ItemPath path = getItemPath();
         if (ItemPath.isNullOrEmpty(path)) {
             throw new QueryException("Null or empty path for ItemValueRestriction in " + filter.debugDump());
         }
-        String hqlPropertyPath = getHelper().prepareJoins(path, getBaseHqlPath(), baseEntityDefinition);
+        ItemPathResolutionState resolutionState = getItemPathResolver().resolveItemPath(path, getBaseHqlPath(), baseEntityDefinition, false);
+        setItemResolutionState(resolutionState);
 
-        Condition condition = interpretInternal(hqlPropertyPath);
+        Condition condition = interpretInternal();
         return condition;
     }
 
-    public abstract Condition interpretInternal(String hqlPath) throws QueryException;
+    public abstract Condition interpretInternal() throws QueryException;
 
-    protected Condition createCondition(String propertyName, Object value, ValueFilter filter) throws QueryException {
+    protected Condition createCondition(String hqlPropertyPath, Object value, ValueFilter filter) throws QueryException {
         ItemRestrictionOperation operation;
         if (filter instanceof EqualFilter) {
             operation = ItemRestrictionOperation.EQ;
@@ -113,8 +106,8 @@ public abstract class ItemValueRestriction<T extends ValueFilter> extends ItemRe
         if (filter.getMatchingRule() != null){
         	matchingRule = filter.getMatchingRule().getLocalPart();
         }
-        
-        return matcher.match(context.getHibernateQuery(), operation, propertyName, value, matchingRule);
+
+        return matcher.match(context.getHibernateQuery(), operation, hqlPropertyPath, value, matchingRule);
     }
 
     protected Object getValue(List<? extends PrismValue> values) {

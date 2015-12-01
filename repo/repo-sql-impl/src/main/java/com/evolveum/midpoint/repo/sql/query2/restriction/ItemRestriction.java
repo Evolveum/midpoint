@@ -16,16 +16,52 @@
 
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
+import com.evolveum.midpoint.repo.sql.query2.ItemPathResolutionState;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
+import org.apache.commons.lang.Validate;
 
 /**
+ * Base for all item path-related restrictions, e.g. those that are based on item path that points to a JPA data node.
+ *
  * @author mederly
  */
 public abstract class ItemRestriction<T extends ObjectFilter> extends Restriction<T> {
 
-    public ItemRestriction(InterpretationContext context, T filter, JpaEntityDefinition baseEntityDefinition, Restriction parent) {
+    /**
+     * Item path (relative to parent restriction), copied from the appropriate filter.
+     * Not null, although possibly empty.
+     */
+    private ItemPath itemPath;
+
+    /**
+     * Item resolution state, i.e. "how we got to the given item".
+     * Necessary to enable looking upwards via ".." operator.
+     * Filled-in within interpret() method.
+     */
+    private ItemPathResolutionState itemResolutionState;
+
+    public ItemRestriction(InterpretationContext context, T filter, ItemPath itemPath, JpaEntityDefinition baseEntityDefinition, Restriction parent) {
         super(context, filter, baseEntityDefinition, parent);
+        if (itemPath != null) {
+            this.itemPath = itemPath;
+        } else {
+            this.itemPath = ItemPath.EMPTY_PATH;
+        }
+    }
+
+    public ItemPath getItemPath() {
+        return itemPath;
+    }
+
+    public ItemPathResolutionState getItemResolutionState() {
+        return itemResolutionState;
+    }
+
+    public void setItemResolutionState(ItemPathResolutionState itemResolutionState) {
+        Validate.notNull(itemResolutionState);
+        this.itemResolutionState = itemResolutionState;
     }
 }

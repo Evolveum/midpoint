@@ -16,16 +16,23 @@
 
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
+import com.evolveum.midpoint.repo.sql.query2.ItemPathResolutionState;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaPropertyDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaLinkDefinition;
+import com.evolveum.midpoint.repo.sql.query2.hqm.HibernateQuery;
+import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
+import com.evolveum.midpoint.repo.sql.query2.hqm.condition.AndCondition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
+import com.evolveum.midpoint.repo.sql.query2.hqm.condition.OrCondition;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -34,17 +41,18 @@ import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
+import java.util.List;
 
 /**
  * @author lazyman
  */
-public class PropertyRestriction extends ItemValueRestriction<ValueFilter> {
+public class PropertyRestriction extends ItemValueRestriction<PropertyValueFilter> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PropertyRestriction.class);
 
     private JpaLinkDefinition<JpaPropertyDefinition> linkDefinition;
 
-    public PropertyRestriction(InterpretationContext context, ValueFilter filter, JpaEntityDefinition baseEntityDefinition,
+    public PropertyRestriction(InterpretationContext context, PropertyValueFilter filter, JpaEntityDefinition baseEntityDefinition,
                                Restriction parent, JpaLinkDefinition<JpaPropertyDefinition> linkDefinition) {
         super(context, filter, baseEntityDefinition, parent);
         Validate.notNull(linkDefinition, "linkDefinition");
@@ -52,16 +60,40 @@ public class PropertyRestriction extends ItemValueRestriction<ValueFilter> {
     }
 
     @Override
-    public Condition interpretInternal(String hqlPath) throws QueryException {
+    public Condition interpretInternal() throws QueryException {
 
         if (linkDefinition.getTargetDefinition().isLob()) {
             throw new QueryException("Can't query based on clob property value '" + linkDefinition + "'.");
         }
+        List<? extends PrismValue> values = filter.getValues();
+        if (values != null && values.size() > 1) {
+            throw new QueryException("Filter '" + filter + "' contain more than one value (which is not supported for now).");
+        }
 
-        Object value = getValueFromFilter(filter);
-        Condition condition = createCondition(hqlPath, value, filter);
-
-        return addIsNotNullIfNecessary(condition, hqlPath);
+        String leftHqlPath = getItemResolutionState().getCurrentHqlPath();
+        if (filter.getRightSidePath() != null) {
+            if (!(filter instanceof EqualFilter)) {
+                throw new QueryException("Right-side ItemPath is supported currently only for EqualFilter, not for " + filter);
+            }
+            ItemPathResolutionState rightItemState = getItemPathResolver().resolveRightItemPath(
+                    getItemPathResolutionStateForChildren(), filter.getRightSidePath());
+            String rightHqlPath = rightItemState.getCurrentHqlPath();
+            RootHibernateQuery hibernateQuery = context.getHibernateQuery();
+            // left = right OR (left IS NULL AND right IS NULL)
+            Condition condition = hibernateQuery.createEqXY(leftHqlPath, rightHqlPath, "=", false);
+            OrCondition orCondition = hibernateQuery.createOr(
+                    condition,
+                    hibernateQuery.createAnd(
+                            hibernateQuery.createIsNull(leftHqlPath),
+                            hibernateQuery.createIsNull(rightHqlPath)
+                    )
+            );
+            return orCondition;
+        } else {
+            Object value = getValueFromFilter(filter);
+            Condition condition = createCondition(leftHqlPath, value, filter);
+            return addIsNotNullIfNecessary(condition, leftHqlPath);
+        }
     }
 
     protected Object getValueFromFilter(ValueFilter filter) throws QueryException {

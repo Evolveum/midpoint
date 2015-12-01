@@ -18,10 +18,8 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationCase;
-import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.data.common.other.RLookupTableRow;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -30,7 +28,6 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 
@@ -38,7 +35,6 @@ import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 import java.util.Collection;
 import java.util.HashSet;
@@ -78,14 +74,14 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
     @OneToMany(mappedBy = RAccessCertificationCase.F_OWNER, orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RAccessCertificationCase> getCases() {
+    public Set<RAccessCertificationCase> getCase() {
         if (cases == null) {
             cases = new HashSet<>();
         }
         return cases;
     }
 
-    public void setCases(Set<RAccessCertificationCase> cases) {
+    public void setCase(Set<RAccessCertificationCase> cases) {
         this.cases = cases;
     }
 
@@ -129,7 +125,7 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
                 case1.setCampaignRef(ObjectTypeUtil.createObjectRef(jaxb));
                 RAccessCertificationCase rCase = RAccessCertificationCase.toRepo(repo, case1, generatorResult, prismContext);
                 rCase.setTransient(generatorResult.isTransient(case1.asPrismContainerValue()));
-                repo.getCases().add(rCase);
+                repo.getCase().add(rCase);
             }
         }
 

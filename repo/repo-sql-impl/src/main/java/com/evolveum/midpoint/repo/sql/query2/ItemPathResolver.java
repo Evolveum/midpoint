@@ -17,22 +17,16 @@
 package com.evolveum.midpoint.repo.sql.query2;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
-import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
+import com.evolveum.midpoint.prism.path.ParentPathSegment;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualQueryParam;
-import com.evolveum.midpoint.repo.sql.query2.definition.JpaAnyDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.JpaPropertyDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.JpaReferenceDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaDataNodeDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaLinkDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.VirtualCollectionSpecification;
 import com.evolveum.midpoint.repo.sql.query2.hqm.JoinSpecification;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
-import com.evolveum.midpoint.repo.sql.query2.hqm.condition.AndCondition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -42,68 +36,43 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Various generally useful methods used within the interpretation algorithm.
- *
- * Note that this helper is context-specific. (Probably its name should reflect that.)
+ * Responsible for resolving item paths - i.e. translating them into JPA paths along with creation of necessary joins.
+ * Contains also methods that try to find proper specific entity definition when only general one (e.g. RObject) is provided.
  *
  * @author mederly
  */
-public class InterpreterHelper {
+public class ItemPathResolver {
 
-    private static final Trace LOGGER = TraceManager.getTrace(InterpreterHelper.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ItemPathResolver.class);
 
     private InterpretationContext context;
 
-    public InterpreterHelper(InterpretationContext interpretationContext) {
+    public ItemPathResolver(InterpretationContext interpretationContext) {
         this.context = interpretationContext;
     }
 
-    // returns property path that can be used to access the item values
-    public String prepareJoins(ItemPath relativePath, String currentHqlPath, JpaEntityDefinition baseEntityDefinition) throws QueryException {
+    /**
+     * Resolves item path by creating a sequence of resolution states and preparing joins that are used to access JPA properties.
+     * "singletonOnly" means no collections are allowed (used for right-side path resolution).
+     */
+    public ItemPathResolutionState resolveItemPath(ItemPath relativePath, String currentHqlPath,
+                                                   JpaEntityDefinition baseEntityDefinition,
+                                                   boolean singletonOnly) throws QueryException {
 
-        LOGGER.trace("Updating query context based on path '{}'", relativePath);
+        ItemPathResolutionState currentState = new ItemPathResolutionState(relativePath, currentHqlPath, baseEntityDefinition, this);
 
-        /**
-         * We have to do something like this - examples:
-         * - activation.administrativeStatus -> (nothing, activation is embedded entity)
-         * - assignment.targetRef -> "left join u.assignments a with ..."
-         * - assignment.resourceRef -> "left join u.assignments a with ..."
-         * - organization -> "left join u.organization o"
-         *
-         * Or more complex:
-         * - assignment.modifyApproverRef -> "left join u.assignments a (...) left join a.modifyApproverRef m (...)"
-         * - assignment.target.longs -> "left join u.assignments a (...) left join a.target t left join t.longs (...)"
-         */
+        LOGGER.trace("Starting resolution and context update for item path '{}', singletonOnly='{}'", relativePath, singletonOnly);
 
-        JpaDataNodeDefinition currentDefinition = baseEntityDefinition;
-        ItemPath itemPathRemainder = relativePath;
-        while (!ItemPath.isNullOrEmpty(itemPathRemainder) && !(currentDefinition instanceof JpaAnyDefinition)) {
-            LOGGER.trace("currentDefinition = '{}', current HQL path = '{}', itemPathRemainder = '{}'", currentDefinition, currentHqlPath, itemPathRemainder);
-            DataSearchResult<JpaDataNodeDefinition> result = currentDefinition.nextLinkDefinition(itemPathRemainder);
-            LOGGER.trace("nextLinkDefinition on '{}' returned '{}'", itemPathRemainder, result != null ? result.getLinkDefinition() : "(null)");
-            if (result == null) {       // sorry we failed (however, this should be caught before -> so IllegalStateException)
-                throw new IllegalStateException("Couldn't find " + itemPathRemainder + " in " + currentDefinition);
-            }
-            JpaLinkDefinition linkDefinition = result.getLinkDefinition();
-            JpaDataNodeDefinition nextNodeDefinition = linkDefinition.getTargetDefinition();
-
-            if (linkDefinition.hasJpaRepresentation()) {
-                if (!linkDefinition.isEmbedded() || linkDefinition.isMultivalued()) {
-                    LOGGER.trace("Adding join for '{}' to context", linkDefinition);
-                    currentHqlPath = addJoin(linkDefinition, currentHqlPath);
-                } else {
-                    currentHqlPath += "." + linkDefinition.getJpaName();
-                }
-            }
-            itemPathRemainder = result.getRemainder();
-            currentDefinition = nextNodeDefinition;
+        while (!currentState.isFinal()) {
+            LOGGER.trace("Current resolution state:\n{}", currentState.debugDumpNoParent());
+            currentState = currentState.nextState(singletonOnly);
         }
 
-        LOGGER.trace("prepareJoins({}) returning currentHqlPath of '{}'", relativePath, currentHqlPath);
-        return currentHqlPath;
+        LOGGER.trace("resolveItemPath({}) returning final resolution state of:\n{}", relativePath, currentState.debugDump());
+        return currentState;
     }
 
-    private String addJoin(JpaLinkDefinition joinedItemDefinition, String currentHqlPath) throws QueryException {
+    String addJoin(JpaLinkDefinition joinedItemDefinition, String currentHqlPath) throws QueryException {
         RootHibernateQuery hibernateQuery = context.getHibernateQuery();
         String joinedItemJpaName = joinedItemDefinition.getJpaName();
         String joinedItemFullPath = currentHqlPath + "." + joinedItemJpaName;
@@ -152,23 +121,6 @@ public class InterpreterHelper {
 
         throw new QueryException("Couldn't transform virtual query parameter '"
                 + param.name() + "' from String to '" + type + "', it's not yet implemented.");
-    }
-
-
-    public String addJoinAny(String currentHqlPath, String anyAssociationName, QName itemName, RObjectExtensionType ownerType) {
-        RootHibernateQuery hibernateQuery = context.getHibernateQuery();
-        String joinedItemJpaName = anyAssociationName;
-        String joinedItemFullPath = currentHqlPath + "." + joinedItemJpaName;
-        String joinedItemAlias = hibernateQuery.createAlias(joinedItemJpaName, false);
-
-        AndCondition conjunction = hibernateQuery.createAnd();
-        if (ownerType != null) {        // null for assignment extensions
-            conjunction.add(hibernateQuery.createEq(joinedItemAlias + ".ownerType", ownerType));
-        }
-        conjunction.add(hibernateQuery.createEq(joinedItemAlias + "." + RAnyValue.F_NAME, RUtil.qnameToString(itemName)));
-
-        hibernateQuery.getPrimaryEntity().addJoin(new JoinSpecification(joinedItemAlias, joinedItemFullPath, conjunction));
-        return joinedItemAlias;
     }
 
     /**
@@ -226,5 +178,25 @@ public class InterpreterHelper {
             throw new QueryException("Entity " + baseEntityDefinition + " cannot be restricted to " + specificEntityDefinition);
         }
         return specificEntityDefinition;
+    }
+
+    // @pre rightSidePath != null
+    public ItemPathResolutionState resolveRightItemPath(ItemPathResolutionState itemResolutionState, ItemPath rightSidePath) throws QueryException {
+        LOGGER.trace("Resolving right-side path of '{}' in state:\n{}", rightSidePath, itemResolutionState);
+
+        // ItemPath may start with a sequence of ".." symbols - go backwards while necessary and possible
+        while (rightSidePath.startsWith(ParentPathSegment.class) && itemResolutionState.hasPreviousState()) {
+            itemResolutionState = itemResolutionState.getPreviousState();
+            rightSidePath = rightSidePath.tail();
+        }
+
+        // Now the standard resolution should take place. But no collections! Target has to be a singleton.
+        if (!(itemResolutionState.getCurrentJpaNode() instanceof JpaEntityDefinition)) {
+            throw new IllegalStateException("Right-item path resolution cannot continue from non-entity node: " + itemResolutionState + " (internal error)");
+        }
+        JpaEntityDefinition baseEntity = (JpaEntityDefinition) itemResolutionState.getCurrentJpaNode();
+        ItemPathResolutionState state = resolveItemPath(rightSidePath, itemResolutionState.getCurrentHqlPath(), baseEntity, true);
+        LOGGER.trace("Resolved right-side path to {}", state);
+        return state;
     }
 }

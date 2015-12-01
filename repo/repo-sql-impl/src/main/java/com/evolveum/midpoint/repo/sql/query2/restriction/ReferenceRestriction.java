@@ -56,8 +56,9 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
     }
 
     @Override
-    public Condition interpretInternal(String hqlPath) throws QueryException {
+    public Condition interpretInternal() throws QueryException {
 
+        String hqlPath = getItemResolutionState().getCurrentHqlPath();
         LOGGER.trace("interpretInternal starting with hqlPath = {}", hqlPath);
 
         List<? extends PrismValue> values = filter.getValues();

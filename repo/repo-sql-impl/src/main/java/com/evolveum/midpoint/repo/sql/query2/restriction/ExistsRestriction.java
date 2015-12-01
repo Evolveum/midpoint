@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ExistsFilter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
+import com.evolveum.midpoint.repo.sql.query2.ItemPathResolutionState;
 import com.evolveum.midpoint.repo.sql.query2.QueryInterpreter2;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
@@ -30,29 +31,19 @@ import org.apache.commons.lang.Validate;
  */
 public class ExistsRestriction extends ItemRestriction<ExistsFilter> {
 
-    /**
-     * Definition of the entity when this restriction starts. It is usually the same as rootEntityDefinition,
-     * but for Exists children it is the entity pointed to by Exists restriction.
-     *
-     * TODO think out the process of refinement of entity definition e.g. RObject->RUser
-     */
-    private JpaEntityDefinition baseEntityDefinitionForChildren;
-
-    /**
-     * HQL path to be used for child restrictions.
-     */
-    private String baseHqlPathForChildren;
-
     public ExistsRestriction(InterpretationContext context, ExistsFilter filter, JpaEntityDefinition baseEntityDefinition,
-                             Restriction parent, JpaEntityDefinition baseEntityDefinitionForChildren) {
-        super(context, filter, baseEntityDefinition, parent);
-        Validate.notNull(baseEntityDefinitionForChildren, "baseEntityDefinitionForChildren");
-        this.baseEntityDefinitionForChildren = baseEntityDefinitionForChildren;
+                             Restriction parent) {
+        super(context, filter, filter.getFullPath(), baseEntityDefinition, parent);
     }
 
     @Override
     public Condition interpret() throws QueryException {
-        baseHqlPathForChildren = getHelper().prepareJoins(filter.getFullPath(), getBaseHqlPath(), baseEntityDefinition);
+        ItemPathResolutionState resolutionState = getItemPathResolver().resolveItemPath(filter.getFullPath(), getBaseHqlPath(), baseEntityDefinition, false);
+        if (!(resolutionState.getCurrentJpaNode() instanceof JpaEntityDefinition)) {
+            // should be checked when instantiating this restriction
+            throw new IllegalStateException("Internal error - resolutionState for ExistsRestriction points to non-entity node: " + resolutionState.getCurrentJpaNode());
+        }
+        setItemResolutionState(resolutionState);
 
         InterpretationContext context = getContext();
         QueryInterpreter2 interpreter = context.getInterpreter();
@@ -61,7 +52,7 @@ public class ExistsRestriction extends ItemRestriction<ExistsFilter> {
 
     @Override
     public String getBaseHqlPathForChildren() {
-        return baseHqlPathForChildren;
+        return getItemResolutionState().getCurrentHqlPath();
     }
 
     @Override
@@ -71,6 +62,11 @@ public class ExistsRestriction extends ItemRestriction<ExistsFilter> {
 
     @Override
     public JpaEntityDefinition getBaseEntityDefinitionForChildren() {
-        return baseEntityDefinitionForChildren;
+        return (JpaEntityDefinition) getItemResolutionState().getCurrentJpaNode();
+    }
+
+    @Override
+    public ItemPathResolutionState getItemPathResolutionStateForChildren() {
+        return getItemResolutionState();
     }
 }

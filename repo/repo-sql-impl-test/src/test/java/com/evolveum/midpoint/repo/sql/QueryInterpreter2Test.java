@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
@@ -37,13 +38,11 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
-import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.TypeFilter;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -65,6 +64,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -633,7 +634,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             /*
              * ### UserType: Exists (assignment, Equal (activation/administrativeStatus = Enabled))
              */
-            ExistsFilter filter = ExistsFilter.createEquals(new ItemPath(UserType.F_ASSIGNMENT), UserType.class, prismContext,
+            ExistsFilter filter = ExistsFilter.createExists(new ItemPath(UserType.F_ASSIGNMENT), UserType.class, prismContext,
                     EqualFilter.createEqual(new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
                             AssignmentType.class, prismContext, null, ActivationStatusType.ENABLED));
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
@@ -1398,7 +1399,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                         thisScanTimestamp, true),
                 LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef,
                         thisScanTimestamp, true),
-                ExistsFilter.createEquals(new ItemPath(FocusType.F_ASSIGNMENT), focusObjectDef,
+                ExistsFilter.createExists(new ItemPath(FocusType.F_ASSIGNMENT), focusObjectDef,
                         OrFilter.createOr(
                                 LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
                                         assignmentDef, thisScanTimestamp, true),
@@ -1543,7 +1544,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                                 thisScanTimestamp, true)
                 ),
                 AndFilter.createAnd(
-                        ExistsFilter.createEquals(new ItemPath(FocusType.F_ASSIGNMENT), focusObjectDef,
+                        ExistsFilter.createExists(new ItemPath(FocusType.F_ASSIGNMENT), focusObjectDef,
                                 OrFilter.createOr(
                                         AndFilter.createAnd(
                                                 GreaterFilter.createGreater(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
@@ -2703,6 +2704,167 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  RAccessCertificationCase a\n" +
                     "    left join a.targetRef.target t\n" +
                     "order by t.name.orig asc\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test(expectedExceptions = Exception.class)          // should fail, as Equals supports single-value right side only
+    public void test900EqualsMultivalue() throws Exception {
+        Session session = open();
+
+        try {
+            /*
+             * ### User: preferredLanguage = 'SK', 'HU'
+             */
+            PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+            PrismPropertyDefinition<String> prefLangDef = userDef.findPropertyDefinition(UserType.F_PREFERRED_LANGUAGE);
+
+            PrismPropertyDefinition<String> multivalDef = new PrismPropertyDefinition<String>(UserType.F_PREFERRED_LANGUAGE,
+                    DOMUtil.XSD_STRING, prismContext);
+            multivalDef.setMaxOccurs(-1);
+            PrismProperty<String> multivalProperty = multivalDef.instantiate();
+            multivalProperty.addRealValue("SK");
+            multivalProperty.addRealValue("HU");
+
+            ObjectQuery query = ObjectQuery.createObjectQuery(
+                    EqualFilter.createEqual(new ItemPath(UserType.F_PREFERRED_LANGUAGE), multivalProperty));
+
+            String real = getInterpretedQuery2(session, UserType.class, query);
+//            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test910PreferredLanguageEqualsCostCenter() throws Exception {
+        Session session = open();
+
+        try {
+            /*
+             * ### User: preferredLanguage = costCenter
+             */
+            ObjectQuery query = ObjectQuery.createObjectQuery(
+                    EqualFilter.createEqual(
+                            new ItemPath(UserType.F_PREFERRED_LANGUAGE),
+                            UserType.class,
+                            prismContext,
+                            null,
+                            new ItemPath(UserType.F_COST_CENTER)));
+
+            String real = getInterpretedQuery2(session, UserType.class, query);
+            String expected = "select\n" +
+                    "  u.fullObject,\n" +
+                    "  u.stringsCount,\n" +
+                    "  u.longsCount,\n" +
+                    "  u.datesCount,\n" +
+                    "  u.referencesCount,\n" +
+                    "  u.polysCount,\n" +
+                    "  u.booleansCount\n" +
+                    "from\n" +
+                    "  RUser u\n" +
+                    "where\n" +
+                    "  (\n" +
+                    "    u.preferredLanguage = u.costCenter or\n" +
+                    "    (\n" +
+                    "      u.preferredLanguage is null and\n" +
+                    "      u.costCenter is null\n" +
+                    "    )\n" +
+                    "  )\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test915OrganizationEqualsCostCenter() throws Exception {
+        Session session = open();
+
+        try {
+            /*
+             * ### User: organization = costCenter
+             */
+            ObjectQuery query = ObjectQuery.createObjectQuery(
+                    EqualFilter.createEqual(
+                            new ItemPath(UserType.F_ORGANIZATION),
+                            UserType.class,
+                            prismContext,
+                            null,
+                            new ItemPath(UserType.F_COST_CENTER)));
+
+            String real = getInterpretedQuery2(session, UserType.class, query);
+//            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test920DecisionsNotAnswered() throws Exception {
+        Session session = open();
+
+        try {
+            /*
+             * ### AccCertCase: Exists (decision: reviewerRef = XYZ and stage = ../stage and response is null or response = NO_RESPONSE)
+             */
+            ObjectQuery query = ObjectQuery.createObjectQuery(
+                    ExistsFilter.createExists(
+                            new ItemPath(AccessCertificationCaseType.F_DECISION),
+                            AccessCertificationCaseType.class,
+                            prismContext,
+                            AndFilter.createAnd(
+                                    RefFilter.createReferenceEqual(
+                                            AccessCertificationDecisionType.F_REVIEWER_REF,
+                                            AccessCertificationCaseType.class,
+                                            prismContext,
+                                            "123456"),
+                                    EqualFilter.createEqual(
+                                            new ItemPath(AccessCertificationDecisionType.F_STAGE_NUMBER),
+                                            AccessCertificationDecisionType.class,
+                                            prismContext,
+                                            null,
+                                            new ItemPath(PrismConstants.T_PARENT, AccessCertificationCaseType.F_CURRENT_RESPONSE_STAGE)
+                                    ),
+                                    OrFilter.createOr(
+                                            EqualFilter.createEqual(
+                                                    AccessCertificationDecisionType.F_RESPONSE,
+                                                    AccessCertificationDecisionType.class,
+                                                    prismContext, null),
+                                            EqualFilter.createEqual(
+                                                    AccessCertificationDecisionType.F_RESPONSE,
+                                                    AccessCertificationDecisionType.class,
+                                                    prismContext, AccessCertificationResponseType.NO_RESPONSE)
+                                    )
+                            )
+                    )
+            );
+            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query);
+            String expected = "select\n" +
+                    "  a.fullObject\n" +
+                    "from\n" +
+                    "  RAccessCertificationCase a\n" +
+                    "    left join a.decision d\n" +
+                    "where\n" +
+                    "  (\n" +
+                    "    (\n" +
+                    "      d.reviewerRef.targetOid = :targetOid and\n" +
+                    "      d.reviewerRef.relation = :relation\n" +
+                    "    ) and\n" +
+                    "    (\n" +
+                    "      d.stageNumber = a.currentResponseStage or\n" +
+                    "      (\n" +
+                    "        d.stageNumber is null and\n" +
+                    "        a.currentResponseStage is null\n" +
+                    "      )\n" +
+                    "    ) and\n" +
+                    "    (\n" +
+                    "      d.response is null or\n" +
+                    "      d.response = :response\n" +
+                    "    )\n" +
+                    "  )\n";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);

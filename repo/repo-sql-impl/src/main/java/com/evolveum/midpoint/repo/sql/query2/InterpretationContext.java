@@ -39,7 +39,7 @@ public class InterpretationContext {
     private PrismContext prismContext;
     private Session session;
 
-    private InterpreterHelper helper = new InterpreterHelper(this);
+    private ItemPathResolver itemPathResolver = new ItemPathResolver(this);
 
     private Class<? extends Containerable> type;
 
@@ -96,8 +96,8 @@ public class InterpretationContext {
         return hibernateQuery;
     }
 
-    public InterpreterHelper getHelper() {
-        return helper;
+    public ItemPathResolver getItemPathResolver() {
+        return itemPathResolver;
     }
 
     public JpaEntityDefinition getRootEntityDefinition() {

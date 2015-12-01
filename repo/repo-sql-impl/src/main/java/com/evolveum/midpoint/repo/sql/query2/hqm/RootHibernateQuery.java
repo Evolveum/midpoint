@@ -24,6 +24,7 @@ import com.evolveum.midpoint.repo.sql.query2.hqm.condition.IsNotNullCondition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.IsNullCondition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.NotCondition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.OrCondition;
+import com.evolveum.midpoint.repo.sql.query2.hqm.condition.PropertyPropertyComparisonCondition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.SimpleComparisonCondition;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -185,4 +186,7 @@ public class RootHibernateQuery extends HibernateQuery {
         return new InCondition(this, propertyPath, subqueryText);
     }
 
+    public Condition createEqXY(String leftSidePropertyPath, String rightSidePropertyPath, String operator, boolean ignoreCase) {
+        return new PropertyPropertyComparisonCondition(this, leftSidePropertyPath, rightSidePropertyPath, operator, ignoreCase);
+    }
 }

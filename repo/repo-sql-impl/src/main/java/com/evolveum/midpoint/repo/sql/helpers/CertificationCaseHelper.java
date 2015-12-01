@@ -85,8 +85,8 @@ public class CertificationCaseHelper {
         if (merge) {
             deleteCertificationCampaignCases(session, campaign.getOid());
         }
-        if (campaign.getCases() != null) {
-            for (RAccessCertificationCase aCase : campaign.getCases()) {
+        if (campaign.getCase() != null) {
+            for (RAccessCertificationCase aCase : campaign.getCase()) {
                 session.save(aCase);
             }
         }

@@ -27,7 +27,11 @@ import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaAnyDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.VirtualAnyDefinition;
+import com.evolveum.midpoint.repo.sql.query2.hqm.JoinSpecification;
+import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
+import com.evolveum.midpoint.repo.sql.query2.hqm.condition.AndCondition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -44,7 +48,7 @@ public class AnyPropertyRestriction extends ItemValueRestriction<ValueFilter> {
 
     private JpaAnyDefinition jpaAnyDefinition;
 
-    public AnyPropertyRestriction(InterpretationContext context, ValueFilter filter, JpaEntityDefinition baseEntityDefinition,
+    public AnyPropertyRestriction(InterpretationContext context, PropertyValueFilter filter, JpaEntityDefinition baseEntityDefinition,
                                   Restriction parent, JpaAnyDefinition jpaAnyDefinition) {
         super(context, filter, baseEntityDefinition, parent);
         Validate.notNull(jpaAnyDefinition, "anyDefinition");
@@ -52,7 +56,7 @@ public class AnyPropertyRestriction extends ItemValueRestriction<ValueFilter> {
     }
 
     @Override
-    public Condition interpretInternal(String hqlPath) throws QueryException {
+    public Condition interpretInternal() throws QueryException {
 
         ItemDefinition itemDefinition = filter.getDefinition();
         QName itemName = itemDefinition.getName();
@@ -74,7 +78,8 @@ public class AnyPropertyRestriction extends ItemValueRestriction<ValueFilter> {
         } catch (SchemaException e) {
             throw new QueryException(e.getMessage(), e);
         }
-        String alias = getHelper().addJoinAny(hqlPath, anyAssociationName, itemName, ownerType);
+        String hqlPath = getItemResolutionState().getCurrentHqlPath();
+        String alias = addJoinAny(hqlPath, anyAssociationName, itemName, ownerType);
 
         String propertyValuePath = alias + '.' + RAnyValue.F_VALUE;
 
@@ -84,4 +89,21 @@ public class AnyPropertyRestriction extends ItemValueRestriction<ValueFilter> {
 
         return addIsNotNullIfNecessary(c, propertyValuePath);
     }
+
+    private String addJoinAny(String currentHqlPath, String anyAssociationName, QName itemName, RObjectExtensionType ownerType) {
+        RootHibernateQuery hibernateQuery = context.getHibernateQuery();
+        String joinedItemJpaName = anyAssociationName;
+        String joinedItemFullPath = currentHqlPath + "." + joinedItemJpaName;
+        String joinedItemAlias = hibernateQuery.createAlias(joinedItemJpaName, false);
+
+        AndCondition conjunction = hibernateQuery.createAnd();
+        if (ownerType != null) {        // null for assignment extensions
+            conjunction.add(hibernateQuery.createEq(joinedItemAlias + ".ownerType", ownerType));
+        }
+        conjunction.add(hibernateQuery.createEq(joinedItemAlias + "." + RAnyValue.F_NAME, RUtil.qnameToString(itemName)));
+
+        hibernateQuery.getPrimaryEntity().addJoin(new JoinSpecification(joinedItemAlias, joinedItemFullPath, conjunction));
+        return joinedItemAlias;
+    }
+
 }

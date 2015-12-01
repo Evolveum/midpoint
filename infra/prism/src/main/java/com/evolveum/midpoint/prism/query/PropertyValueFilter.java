@@ -57,9 +57,15 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 
 	private ExpressionWrapper expression;
 	private List<T> values;
+	private ItemPath rightSidePath;
 
 	PropertyValueFilter() {
 		super();
+	}
+
+	PropertyValueFilter(ItemPath path, ItemDefinition definition, QName matchingRule, ItemPath rightSidePath) {
+		super(path, definition, matchingRule);
+		this.rightSidePath = rightSidePath;
 	}
 	
 	PropertyValueFilter(ItemPath path, ItemDefinition definition, QName matchingRule, List<T> values) {
@@ -190,7 +196,11 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 		
 		return filterItem;
 	}
-	
+
+	public ItemPath getRightSidePath() {
+		return rightSidePath;
+	}
+
 	public ExpressionWrapper getExpression() {
 		return expression;
 	}
