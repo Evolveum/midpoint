@@ -46,7 +46,7 @@
             <a href="https://wiki.evolveum.com/display/midPoint/Data+Model">https://wiki.evolveum.com/display/midPoint/Data+Model</a>
             for more details.
 
-            <p>Version: 3.3-SNAPSHOT</p>
+            <p>Version: 3.3</p>
 
             <p>Recommended namespace prefix: (default), c</p>
         </xsd:documentation>
@@ -8858,12 +8858,12 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="authorization" type="xsd:string" minOccurs="0" maxOccurs="1">
+            <xsd:element name="authorization" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Authorization needed to display this link. If specified, the the link will be displayed
-                        only if the active user has the authorization. If not specified then the link will be
-                        always displayed.
+                        Authorizations needed to display this link. If specified, the the link will be displayed
+                        only if the active user has one of the specified the authorizations.
+                         If no authorization is specified then the link will be always displayed.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

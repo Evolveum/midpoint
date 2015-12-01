@@ -50,6 +50,12 @@ CREATE TABLE m_assignment (
   modifyChannel           VARCHAR2(255 CHAR),
   modifyTimestamp         TIMESTAMP,
   orderValue              NUMBER(10, 0),
+  orgRef_relation         VARCHAR2(157 CHAR),
+  orgRef_targetOid        VARCHAR2(36 CHAR),
+  orgRef_type             NUMBER(10, 0),
+  resourceRef_relation    VARCHAR2(157 CHAR),
+  resourceRef_targetOid   VARCHAR2(36 CHAR),
+  resourceRef_type        NUMBER(10, 0),
   targetRef_relation      VARCHAR2(157 CHAR),
   targetRef_targetOid     VARCHAR2(36 CHAR),
   targetRef_type          NUMBER(10, 0),
@@ -165,6 +171,11 @@ CREATE TABLE m_audit_delta (
   deltaOid   VARCHAR2(36 CHAR),
   deltaType  NUMBER(10, 0),
   fullResult CLOB,
+  objectName_norm   VARCHAR2(255 CHAR),
+  objectName_orig   VARCHAR2(255 CHAR),
+  resourceName_norm VARCHAR2(255 CHAR),
+  resourceName_orig VARCHAR2(255 CHAR),
+  resourceOid       VARCHAR2(36 CHAR),
   status     NUMBER(10, 0),
   PRIMARY KEY (checksum, record_id)
 ) INITRANS 30;
@@ -243,8 +254,15 @@ CREATE TABLE m_focus (
   validTo                 TIMESTAMP,
   validityChangeTimestamp TIMESTAMP,
   validityStatus          NUMBER(10, 0),
+  hasPhoto                NUMBER(1, 0) DEFAULT FALSE NOT NULL,
   oid                     VARCHAR2(36 CHAR) NOT NULL,
   PRIMARY KEY (oid)
+) INITRANS 30;
+
+CREATE TABLE m_focus_photo (
+  owner_oid VARCHAR2(36 CHAR) NOT NULL,
+  photo     BLOB,
+  PRIMARY KEY (owner_oid)
 ) INITRANS 30;
 
 CREATE TABLE m_generic_object (
@@ -478,6 +496,13 @@ CREATE TABLE m_security_policy (
   PRIMARY KEY (oid)
 ) INITRANS 30;
 
+CREATE TABLE m_sequence (
+  name_norm VARCHAR2(255 CHAR),
+  name_orig VARCHAR2(255 CHAR),
+  oid       VARCHAR2(36 CHAR) NOT NULL,
+  PRIMARY KEY (oid)
+) INITRANS 30;
+
 CREATE TABLE m_shadow (
   attemptNumber                NUMBER(10, 0),
   dead                         NUMBER(1, 0),
@@ -559,7 +584,6 @@ CREATE TABLE m_user (
   fullName_orig        VARCHAR2(255 CHAR),
   givenName_norm       VARCHAR2(255 CHAR),
   givenName_orig       VARCHAR2(255 CHAR),
-  hasPhoto             NUMBER(1, 0)      NOT NULL,
   honorificPrefix_norm VARCHAR2(255 CHAR),
   honorificPrefix_orig VARCHAR2(255 CHAR),
   honorificSuffix_norm VARCHAR2(255 CHAR),
@@ -598,12 +622,6 @@ CREATE TABLE m_user_organizational_unit (
   orig     VARCHAR2(255 CHAR)
 ) INITRANS 30;
 
-CREATE TABLE m_user_photo (
-  owner_oid VARCHAR2(36 CHAR) NOT NULL,
-  photo     BLOB,
-  PRIMARY KEY (owner_oid)
-) INITRANS 30;
-
 CREATE TABLE m_value_policy (
   name_norm VARCHAR2(255 CHAR),
   name_orig VARCHAR2(255 CHAR),
@@ -623,6 +641,14 @@ CREATE INDEX iAssignmentAdministrative ON m_assignment (administrativeStatus) IN
 
 CREATE INDEX iAssignmentEffective ON m_assignment (effectiveStatus) INITRANS 30;
 
+CREATE INDEX iTargetRefTargetOid ON m_assignment (targetRef_targetOid) INITRANS 30;
+
+CREATE INDEX iTenantRefTargetOid ON m_assignment (tenantRef_targetOid) INITRANS 30;
+
+CREATE INDEX iOrgRefTargetOid ON m_assignment (orgRef_targetOid) INITRANS 30;
+
+CREATE INDEX iResourceRefTargetOid ON m_assignment (resourceRef_targetOid) INITRANS 30;
+
 CREATE INDEX iAExtensionBoolean ON m_assignment_ext_boolean (extensionType, eName, booleanValue) INITRANS 30;
 
 CREATE INDEX iAExtensionDate ON m_assignment_ext_date (extensionType, eName, dateValue) INITRANS 30;
@@ -636,6 +662,8 @@ CREATE INDEX iAExtensionReference ON m_assignment_ext_reference (extensionType, 
 CREATE INDEX iAExtensionString ON m_assignment_ext_string (extensionType, eName, stringValue) INITRANS 30;
 
 CREATE INDEX iAssignmentReferenceTargetOid ON m_assignment_reference (targetOid) INITRANS 30;
+
+CREATE INDEX iTimestampValue ON m_audit_event (timestampValue) INITRANS 30;
 
 ALTER TABLE m_connector_host
 ADD CONSTRAINT uc_connector_host_name UNIQUE (name_norm) INITRANS 30;
@@ -717,6 +745,9 @@ ADD CONSTRAINT uc_role_name UNIQUE (name_norm) INITRANS 30;
 
 ALTER TABLE m_security_policy
 ADD CONSTRAINT uc_security_policy_name UNIQUE (name_norm) INITRANS 30;
+
+ALTER TABLE m_sequence
+ADD CONSTRAINT uc_sequence_name UNIQUE (name_norm) INITRANS 30;
 
 CREATE INDEX iShadowResourceRef ON m_shadow (resourceRef_targetOid) INITRANS 30;
 
@@ -830,6 +861,11 @@ ADD CONSTRAINT fk_focus
 FOREIGN KEY (oid)
 REFERENCES m_object;
 
+ALTER TABLE m_focus_photo
+ADD CONSTRAINT fk_focus_photo
+FOREIGN KEY (owner_oid)
+REFERENCES m_focus;
+
 ALTER TABLE m_generic_object
 ADD CONSTRAINT fk_generic_object
 FOREIGN KEY (oid)
@@ -935,6 +971,11 @@ ADD CONSTRAINT fk_security_policy
 FOREIGN KEY (oid)
 REFERENCES m_object;
 
+ALTER TABLE m_sequence
+ADD CONSTRAINT fk_sequence
+FOREIGN KEY (oid)
+REFERENCES m_object;
+
 ALTER TABLE m_shadow
 ADD CONSTRAINT fk_shadow
 FOREIGN KEY (oid)
@@ -978,11 +1019,6 @@ REFERENCES m_user;
 ALTER TABLE m_user_organizational_unit
 ADD CONSTRAINT fk_user_org_unit
 FOREIGN KEY (user_oid)
-REFERENCES m_user;
-
-ALTER TABLE m_user_photo
-ADD CONSTRAINT fk_user_photo
-FOREIGN KEY (owner_oid)
 REFERENCES m_user;
 
 ALTER TABLE m_value_policy

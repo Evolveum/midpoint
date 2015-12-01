@@ -51,8 +51,7 @@ public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
             WebMarkupContainer row = null;
             for (int i = 0; i < linksListSize; i++) {
                 final RichHyperlinkType link = linksList.get(i);
-                String authorization = link.getAuthorization();
-                if (authorization == null || WebMiscUtil.isAuthorized(authorization)) {
+                if (WebMiscUtil.isAuthorized(link.getAuthorization())) {
                     if (currentColumn == 0) {
                         row = new WebMarkupContainer(rowView.newChildId());
                         columnView = new RepeatingView(ID_LINKS_COLUMN);

@@ -47,6 +47,12 @@ CREATE TABLE m_assignment (
   modifyChannel           VARCHAR(255),
   modifyTimestamp         TIMESTAMP,
   orderValue              INTEGER,
+  orgRef_relation         VARCHAR(157),
+  orgRef_targetOid        VARCHAR(36),
+  orgRef_type             INTEGER,
+  resourceRef_relation    VARCHAR(157),
+  resourceRef_targetOid   VARCHAR(36),
+  resourceRef_type        INTEGER,
   targetRef_relation      VARCHAR(157),
   targetRef_targetOid     VARCHAR(36),
   targetRef_type          INTEGER,
@@ -156,13 +162,18 @@ CREATE TABLE m_assignment_reference (
 );
 
 CREATE TABLE m_audit_delta (
-  checksum   VARCHAR(32) NOT NULL,
-  record_id  BIGINT      NOT NULL,
-  delta      CLOB,
-  deltaOid   VARCHAR(36),
-  deltaType  INTEGER,
-  fullResult CLOB,
-  status     INTEGER,
+  checksum          VARCHAR(32) NOT NULL,
+  record_id         BIGINT      NOT NULL,
+  delta             CLOB,
+  deltaOid          VARCHAR(36),
+  deltaType         INTEGER,
+  fullResult        CLOB,
+  objectName_norm   VARCHAR(255),
+  objectName_orig   VARCHAR(255),
+  resourceName_norm VARCHAR(255),
+  resourceName_orig VARCHAR(255),
+  resourceOid       varchar(36),
+  status            INTEGER,
   PRIMARY KEY (checksum, record_id)
 );
 
@@ -240,8 +251,15 @@ CREATE TABLE m_focus (
   validTo                 TIMESTAMP,
   validityChangeTimestamp TIMESTAMP,
   validityStatus          INTEGER,
+  hasPhoto                BOOLEAN DEFAULT FALSE NOT NULL,
   oid                     VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
+);
+
+CREATE TABLE m_focus_photo (
+  owner_oid VARCHAR(36) NOT NULL,
+  photo     BLOB,
+  PRIMARY KEY (owner_oid)
 );
 
 CREATE TABLE m_generic_object (
@@ -468,6 +486,13 @@ CREATE TABLE m_security_policy (
   PRIMARY KEY (oid)
 );
 
+CREATE TABLE m_sequence (
+  name_norm VARCHAR(255),
+  name_orig VARCHAR(255),
+  oid       VARCHAR(36) NOT NULL,
+  PRIMARY KEY (oid)
+);
+
 CREATE TABLE m_shadow (
   attemptNumber                INTEGER,
   dead                         BOOLEAN,
@@ -549,7 +574,6 @@ CREATE TABLE m_user (
   fullName_orig        VARCHAR(255),
   givenName_norm       VARCHAR(255),
   givenName_orig       VARCHAR(255),
-  hasPhoto             BOOLEAN     NOT NULL,
   honorificPrefix_norm VARCHAR(255),
   honorificPrefix_orig VARCHAR(255),
   honorificSuffix_norm VARCHAR(255),
@@ -588,12 +612,6 @@ CREATE TABLE m_user_organizational_unit (
   orig     VARCHAR(255)
 );
 
-CREATE TABLE m_user_photo (
-  owner_oid VARCHAR(36) NOT NULL,
-  photo     BLOB,
-  PRIMARY KEY (owner_oid)
-);
-
 CREATE TABLE m_value_policy (
   name_norm VARCHAR(255),
   name_orig VARCHAR(255),
@@ -613,6 +631,14 @@ CREATE INDEX iAssignmentAdministrative ON m_assignment (administrativeStatus);
 
 CREATE INDEX iAssignmentEffective ON m_assignment (effectiveStatus);
 
+CREATE INDEX iTargetRefTargetOid ON m_assignment (targetRef_targetOid);
+
+CREATE INDEX iTenantRefTargetOid ON m_assignment (tenantRef_targetOid);
+
+CREATE INDEX iOrgRefTargetOid ON m_assignment (orgRef_targetOid);
+
+CREATE INDEX iResourceRefTargetOid ON m_assignment (resourceRef_targetOid);
+
 CREATE INDEX iAExtensionBoolean ON m_assignment_ext_boolean (extensionType, eName, booleanValue);
 
 CREATE INDEX iAExtensionDate ON m_assignment_ext_date (extensionType, eName, dateValue);
@@ -626,6 +652,8 @@ CREATE INDEX iAExtensionReference ON m_assignment_ext_reference (extensionType, 
 CREATE INDEX iAExtensionString ON m_assignment_ext_string (extensionType, eName, stringValue);
 
 CREATE INDEX iAssignmentReferenceTargetOid ON m_assignment_reference (targetOid);
+
+CREATE INDEX iTimestampValue ON m_audit_event (timestampValue);
 
 ALTER TABLE m_connector_host
 ADD CONSTRAINT uc_connector_host_name UNIQUE (name_norm);
@@ -707,6 +735,9 @@ ADD CONSTRAINT uc_role_name UNIQUE (name_norm);
 
 ALTER TABLE m_security_policy
 ADD CONSTRAINT uc_security_policy_name UNIQUE (name_norm);
+
+ALTER TABLE m_sequence
+ADD CONSTRAINT uc_sequence_name UNIQUE (name_norm);
 
 CREATE INDEX iShadowResourceRef ON m_shadow (resourceRef_targetOid);
 
@@ -820,6 +851,11 @@ ADD CONSTRAINT fk_focus
 FOREIGN KEY (oid)
 REFERENCES m_object;
 
+ALTER TABLE m_focus_photo
+ADD CONSTRAINT fk_focus_photo
+FOREIGN KEY (owner_oid)
+REFERENCES m_focus;
+
 ALTER TABLE m_generic_object
 ADD CONSTRAINT fk_generic_object
 FOREIGN KEY (oid)
@@ -925,6 +961,11 @@ ADD CONSTRAINT fk_security_policy
 FOREIGN KEY (oid)
 REFERENCES m_object;
 
+ALTER TABLE m_sequence
+ADD CONSTRAINT fk_sequence
+FOREIGN KEY (oid)
+REFERENCES m_object;
+
 ALTER TABLE m_shadow
 ADD CONSTRAINT fk_shadow
 FOREIGN KEY (oid)
@@ -968,11 +1009,6 @@ REFERENCES m_user;
 ALTER TABLE m_user_organizational_unit
 ADD CONSTRAINT fk_user_org_unit
 FOREIGN KEY (user_oid)
-REFERENCES m_user;
-
-ALTER TABLE m_user_photo
-ADD CONSTRAINT fk_user_photo
-FOREIGN KEY (owner_oid)
 REFERENCES m_user;
 
 ALTER TABLE m_value_policy

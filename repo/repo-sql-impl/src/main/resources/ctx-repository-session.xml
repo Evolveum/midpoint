@@ -24,7 +24,7 @@
         http://www.springframework.org/schema/context/spring-context-3.0.xsd"
        default-lazy-init="true" default-autowire="byName">
 
-    <bean id="dataSourceFactory" class="com.evolveum.midpoint.repo.sql.DataSourceFactory">
+    <bean id="dataSourceFactory" class="com.evolveum.midpoint.repo.sql.DataSourceFactory" destroy-method="destroy">
         <property name="configuration" value="#{sqlRepositoryFactory.sqlConfiguration}" />
     </bean>
 
