@@ -20,13 +20,13 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.evolveum.midpoint.infra</groupId>
     <artifactId>prism-maven-plugin</artifactId>
-    <version>3.3-SNAPSHOT</version>
+    <version>3.3</version>
     <packaging>maven-plugin</packaging>
     <name>midPoint Infrastructure - prism maven plugin</name>
     <parent>
         <artifactId>infra</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>3.3-SNAPSHOT</version>
+        <version>3.3</version>
     </parent>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
@@ -49,7 +49,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>prism</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.3</version>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>

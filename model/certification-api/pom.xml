@@ -21,7 +21,7 @@
     <parent>
         <artifactId>model</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>3.3-SNAPSHOT</version>
+        <version>3.3</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <name>midPoint Access Certification - api</name>
@@ -37,23 +37,23 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>common</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.3</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>task-api</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.3</version>
         </dependency>
         <dependency>
 			<groupId>com.evolveum.midpoint.tools</groupId>
 			<artifactId>test-ng</artifactId>
-			<version>3.3-SNAPSHOT</version>
+			<version>3.3</version>
 			<scope>test</scope>
 		</dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-api</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.3</version>
         </dependency>
     </dependencies>
 

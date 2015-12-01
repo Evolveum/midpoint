@@ -25,7 +25,7 @@
     <parent>
         <groupId>com.evolveum.midpoint</groupId>
         <artifactId>midpoint</artifactId>
-        <version>3.3-SNAPSHOT</version>
+        <version>3.3</version>
     </parent>
     <pluginRepositories>
         <pluginRepository>
@@ -875,7 +875,7 @@
 			<dependency>
 				<groupId>org.apache.directory.api</groupId>
 				<artifactId>api-all</artifactId>
-				<version>1.0.0-M32-SNAPSHOT</version>
+				<version>1.0.0-M32-e1</version>
 				<exclusions>
 	                <exclusion>
 	                    <artifactId>slf4j-api</artifactId>

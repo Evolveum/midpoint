@@ -24,7 +24,7 @@
 	<parent>
 		<artifactId>repo</artifactId>
 		<groupId>com.evolveum.midpoint</groupId>
-		<version>3.3-SNAPSHOT</version>
+		<version>3.3</version>
 	</parent>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
@@ -47,22 +47,22 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-api</artifactId>
-			<version>3.3-SNAPSHOT</version>
+			<version>3.3</version>
 		</dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>audit-api</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.3</version>
         </dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>util</artifactId>
-			<version>3.3-SNAPSHOT</version>
+			<version>3.3</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>common</artifactId>
-			<version>3.3-SNAPSHOT</version>
+			<version>3.3</version>
 		</dependency>
 		<dependency>
                 <groupId>org.apache.cxf</groupId>
@@ -74,7 +74,7 @@
                 <dependency>
                         <groupId>com.evolveum.midpoint.repo</groupId>
                         <artifactId>repo-cache</artifactId>
-                        <version>3.3-SNAPSHOT</version>
+                        <version>3.3</version>
                 </dependency>
 
 		<!--  Testing dependecies  -->
@@ -86,7 +86,7 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.tools</groupId>
 			<artifactId>test-ng</artifactId>
-			<version>3.3-SNAPSHOT</version>
+			<version>3.3</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
