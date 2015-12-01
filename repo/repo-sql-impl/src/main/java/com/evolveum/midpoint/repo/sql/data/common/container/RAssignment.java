@@ -26,7 +26,10 @@ import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
+import com.evolveum.midpoint.repo.sql.query.definition.QueryEntity;
+import com.evolveum.midpoint.repo.sql.query.definition.VirtualEntity;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
@@ -34,6 +37,8 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
@@ -42,6 +47,7 @@ import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -50,6 +56,22 @@ import java.util.Set;
  */
 @JaxbType(type = AssignmentType.class)
 @Entity
+@QueryEntity(
+        entities = {
+                @VirtualEntity(
+                        jaxbName = @JaxbName(localPart = "metadata"),
+                        jaxbType = MetadataType.class,
+                        jpaName = "",
+                        jpaType = Serializable.class            // dummy value (ignored)
+                ),
+                @VirtualEntity(
+                        jaxbName = @JaxbName(localPart = "construction"),
+                        jaxbType = ConstructionType.class,
+                        jpaName = "",
+                        jpaType = Serializable.class            // dummy value (ignored)
+                )
+        }
+)
 @IdClass(RContainerId.class)
 @Table(name = "m_assignment", indexes = {
         @Index(name = "iAssignmentAdministrative", columnList = "administrativeStatus"),

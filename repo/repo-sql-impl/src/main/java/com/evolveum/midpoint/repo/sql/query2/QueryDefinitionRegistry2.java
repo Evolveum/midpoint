@@ -101,12 +101,14 @@ public class QueryDefinitionRegistry2 implements DebugDumpable {
                         entityDef.setSuperclassDefinition(superclassDefinition);
                     } else if (visitable instanceof JpaEntityPointerDefinition) {
                         JpaEntityPointerDefinition entPtrDef = ((JpaEntityPointerDefinition) visitable);
-                        Class referencedEntityJpaClass = entPtrDef.getJpaClass();
-                        JpaEntityDefinition realEntDef = definitionsByClass.get(referencedEntityJpaClass);
-                        if (realEntDef == null) {
-                            throw new IllegalStateException("Couldn't find entity definition for " + referencedEntityJpaClass);
+                        if (!entPtrDef.isResolved()) {
+                            Class referencedEntityJpaClass = entPtrDef.getJpaClass();
+                            JpaEntityDefinition realEntDef = definitionsByClass.get(referencedEntityJpaClass);
+                            if (realEntDef == null) {
+                                throw new IllegalStateException("Couldn't find entity definition for " + referencedEntityJpaClass);
+                            }
+                            entPtrDef.setResolvedEntityDefinition(realEntDef);
                         }
-                        entPtrDef.setResolvedEntityDefinition(realEntDef);
                     }
                 }
             };

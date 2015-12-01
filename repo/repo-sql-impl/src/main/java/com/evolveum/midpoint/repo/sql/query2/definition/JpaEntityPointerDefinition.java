@@ -23,7 +23,10 @@ import com.evolveum.midpoint.repo.sql.query2.DataSearchResult;
 
 /**
  * Special placeholder to allow for cross-references: entity definition that points to another entity.
- * (TODO)
+ * Currently, the process of resolving allows to point to root entity definitions here only.
+ * As a hack, we implement self pointers (e.g. RAssignment.metadata->RAssignment) also for non-root
+ * entities, provided they are resolved on creation. (The reason of using JpaEntityPointerDefinition
+ * there is just to break navigation cycles e.g. when using a visitor.)
  *
  * @author mederly
  */
@@ -33,6 +36,11 @@ public class JpaEntityPointerDefinition extends JpaDataNodeDefinition {
 
     public JpaEntityPointerDefinition(Class jpaClass) {
         super(jpaClass, null);
+    }
+
+    public JpaEntityPointerDefinition(JpaEntityDefinition alreadyResolved) {
+        super(alreadyResolved.getJpaClass(), alreadyResolved.getJaxbClass());
+        this.resolvedEntityDefinition = alreadyResolved;
     }
 
     public JpaEntityDefinition getResolvedEntityDefinition() {
@@ -65,5 +73,9 @@ public class JpaEntityPointerDefinition extends JpaDataNodeDefinition {
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
+    }
+
+    public boolean isResolved() {
+        return resolvedEntityDefinition != null;
     }
 }

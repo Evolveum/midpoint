@@ -60,7 +60,7 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition implements DebugD
     }
 
     public void addDefinition(JpaLinkDefinition definition) {
-        JpaLinkDefinition oldDef = findLinkDefinition(definition.getItemPathSegment(), JpaDataNodeDefinition.class);
+        JpaLinkDefinition oldDef = findRawLinkDefinition(definition.getItemPathSegment(), JpaDataNodeDefinition.class);
         if (oldDef != null) {
             definitions.remove(oldDef);
         }
@@ -71,7 +71,7 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition implements DebugD
         Collections.sort(definitions, new LinkDefinitionComparator());
     }
 
-    private <D extends JpaDataNodeDefinition> JpaLinkDefinition<D> findLinkDefinition(ItemPathSegment itemPathSegment, Class<D> type) {
+    private <D extends JpaDataNodeDefinition> JpaLinkDefinition<D> findRawLinkDefinition(ItemPathSegment itemPathSegment, Class<D> type) {
         Validate.notNull(itemPathSegment, "ItemPathSegment must not be null.");
         Validate.notNull(type, "Definition type must not be null.");
 
@@ -167,61 +167,24 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition implements DebugD
     @Override
     public DataSearchResult nextLinkDefinition(ItemPath path) throws QueryException {
 
-        // first treat known discrepancies between prism structure and repo representation:
-        // metadata -> none,
-        // construction/resourceRef -> resourceRef
-        //
-        // TODO replace with the use of VirtualEntity with null jpaName
-        while (skipFirstItem(path)) {
-            path = path.tail();
-        }
-
         if (ItemPath.isNullOrEmpty(path)) {     // doesn't fulfill precondition
             return null;
         }
 
-        JpaLinkDefinition link = findLinkDefinition(path.first(), JpaDataNodeDefinition.class);
+        ItemPathSegment first = path.first();
+        if (first instanceof IdItemPathSegment) {
+            throw new QueryException("ID item path segments are not allowed in query: " + path);
+        } else if (first instanceof ObjectReferencePathSegment) {
+            throw new QueryException("'@' path segment cannot be used in the context of an entity " + this);
+        }
+
+        JpaLinkDefinition link = findRawLinkDefinition(path.first(), JpaDataNodeDefinition.class);
         if (link == null) {
             return null;
         } else {
             link.resolveEntityPointer();
             return new DataSearchResult(link, path.tail());
         }
-    }
-
-
-    private boolean skipFirstItem(ItemPath path) throws QueryException {
-        if (ItemPath.isNullOrEmpty(path)) {
-            return false;
-        }
-        ItemPathSegment first = path.first();
-        if (first instanceof IdItemPathSegment) {
-            throw new QueryException("ID path segments are not allowed in query: " + path);
-        } else if (first instanceof ObjectReferencePathSegment) {
-            throw new QueryException("'@' path segment cannot be used in the context of an entity " + this);
-        } else if (first instanceof ParentPathSegment) {
-            return false;
-        }
-
-        QName firstName = ((NameItemPathSegment) first).getName();
-
-        // metadata -> null
-        if (QNameUtil.match(firstName, ObjectType.F_METADATA)) {
-            return true;
-        }
-
-        // construction/resourceRef -> construction
-        ItemPath remainder = path.tail();
-        if (remainder.isEmpty() || !(remainder.first() instanceof NameItemPathSegment)) {
-            return false;
-        }
-        NameItemPathSegment second = ((NameItemPathSegment) (remainder.first()));
-        QName secondName = second.getName();
-        if (QNameUtil.match(firstName, AssignmentType.F_CONSTRUCTION) &&
-                QNameUtil.match(secondName, ConstructionType.F_RESOURCE_REF)) {
-            return true;
-        }
-        return false;
     }
 
 

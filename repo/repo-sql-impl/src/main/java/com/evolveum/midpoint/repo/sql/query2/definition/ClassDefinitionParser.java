@@ -28,6 +28,7 @@ import com.evolveum.midpoint.repo.sql.query.definition.OwnerGetter;
 import com.evolveum.midpoint.repo.sql.query.definition.QueryEntity;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualAny;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualCollection;
+import com.evolveum.midpoint.repo.sql.query.definition.VirtualEntity;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -202,11 +203,28 @@ public class ClassDefinitionParser {
             entityDef.addDefinition(linkDefinition);
         }
 
-        // TODO virtual entity collections (for metadata and construction)
+        for (VirtualEntity entity : qEntity.entities()) {
+            QName jaxbName = createQName(entity.jaxbName());
+            String jpaName = normalizeJpaName(entity.jpaName());
+            if (jpaName != null) {
+                throw new IllegalStateException("Only self-pointing virtual entities are supported for now; this one is not: " + jaxbName + " in " + entityDef);
+            }
+            JpaDataNodeDefinition target = new JpaEntityPointerDefinition(entityDef);         // pointer to avoid loops
+            JpaLinkDefinition linkDefinition = new JpaLinkDefinition(jaxbName, jpaName, null, false, target);
+            entityDef.addDefinition(linkDefinition);
+        }
     }
 
     private QName createQName(JaxbName name) {
         return new QName(name.namespace(), name.localPart());
+    }
+
+    private String normalizeJpaName(String name) {
+        if (StringUtils.isEmpty(name)) {
+            return null;        // "" -> null
+        } else {
+            return name;
+        }
     }
 
     private boolean isEntity(Class type) {

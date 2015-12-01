@@ -86,13 +86,11 @@ public abstract class JpaDataNodeDefinition implements DebugDumpable, Visitable 
 
     /**
      * Tries to find "next step" in the translation process for a given ItemPath.
-     * Parts of the path that have no representation in the repository (e.g. metadata,
-     * construction) are skipped.
      *
      * @param path A path to be resolved. Always non-null and non-empty. Should produce at least one transition.
      * @return
      * - Normally it returns the search result containing next item definition (entity, collection, ...) in the chain
-     *   and the unresolved remainder of the path.
+     *   and the unresolved remainder of the path. The transition may be empty ("self") e.g. for metadata or construction.
      * - If the search was not successful, returns null.
      *
      * Method is not supported on AnyDefinition!
