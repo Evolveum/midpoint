@@ -27,6 +27,8 @@ import com.evolveum.midpoint.repo.sql.data.common.RAccessCertificationCampaign;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationCase;
 import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
+import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
+import com.evolveum.midpoint.repo.sql.util.PrismIdentifierGenerator;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -95,7 +97,7 @@ public class CertificationCaseHelper {
             AccessCertificationCaseType caseType = new AccessCertificationCaseType();
             caseType.setupContainerValue(value);
             caseType.setCampaignRef(ObjectTypeUtil.createObjectRef(campaignOid, ObjectTypes.ACCESS_CERTIFICATION_CAMPAIGN));
-            RAccessCertificationCase row = RAccessCertificationCase.toRepo(campaignOid, caseType, prismContext);
+            RAccessCertificationCase row = RAccessCertificationCase.toRepo(campaignOid, caseType, new IdGeneratorResult(), prismContext);
             row.setId(currentId);
             currentId++;
             session.save(row);
@@ -213,7 +215,12 @@ public class CertificationCaseHelper {
 
                 delta.setParentPath(delta.getParentPath().tail(2));         // remove "case[id]" from the delta path
                 delta.applyTo(aCase.asPrismContainerValue());
-                RAccessCertificationCase rCase = RAccessCertificationCase.toRepo(campaignOid, aCase, prismContext);
+
+                // TODO fix this temporary hack: doesn't work quite as expected (new decisions are marked as non-transient)
+                PrismIdentifierGenerator generator = new PrismIdentifierGenerator();
+                IdGeneratorResult generatorResult = generator.generate(aCase, PrismIdentifierGenerator.Operation.MODIFY);
+
+                RAccessCertificationCase rCase = RAccessCertificationCase.toRepo(campaignOid, aCase, generatorResult, prismContext);
                 session.merge(rCase);
 
                 LOGGER.trace("Access certification case " + rCase + " merged.");

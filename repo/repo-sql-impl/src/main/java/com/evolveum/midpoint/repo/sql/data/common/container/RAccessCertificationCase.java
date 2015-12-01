@@ -28,6 +28,7 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.query.definition.OwnerGetter;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
+import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -314,20 +315,21 @@ public class RAccessCertificationCase implements Container {
         this.trans = trans;
     }
 
-    public static RAccessCertificationCase toRepo(RAccessCertificationCampaign owner, AccessCertificationCaseType case1, PrismContext prismContext) {
-        RAccessCertificationCase rCase = toRepo(case1, prismContext);
+    public static RAccessCertificationCase toRepo(RAccessCertificationCampaign owner, AccessCertificationCaseType case1, IdGeneratorResult generatorResult, PrismContext prismContext) {
+        RAccessCertificationCase rCase = toRepo(case1, generatorResult, prismContext);
         rCase.setOwner(owner);
         return rCase;
     }
 
-    public static RAccessCertificationCase toRepo(String ownerOid, AccessCertificationCaseType case1, PrismContext prismContext) {
-        RAccessCertificationCase rCase = toRepo(case1, prismContext);
+    public static RAccessCertificationCase toRepo(String ownerOid, AccessCertificationCaseType case1, IdGeneratorResult generatorResult, PrismContext prismContext) {
+        RAccessCertificationCase rCase = toRepo(case1, generatorResult, prismContext);
         rCase.setOwnerOid(ownerOid);
         return rCase;
     }
 
-    private static RAccessCertificationCase toRepo(AccessCertificationCaseType case1, PrismContext prismContext) {
+    private static RAccessCertificationCase toRepo(AccessCertificationCaseType case1, IdGeneratorResult generatorResult, PrismContext prismContext) {
         RAccessCertificationCase rCase = new RAccessCertificationCase();
+        rCase.setTransient(generatorResult.isTransient(case1.asPrismContainerValue()));
         rCase.setId(RUtil.toInteger(case1.getId()));
         rCase.setObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(case1.getObjectRef(), prismContext));
         rCase.setTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(case1.getTargetRef(), prismContext));
@@ -340,7 +342,7 @@ public class RAccessCertificationCase implements Container {
         rCase.setCurrentResponse(RUtil.getRepoEnumValue(case1.getCurrentResponse(), RAccessCertificationResponse.class));
         rCase.setCurrentResponseStage(case1.getCurrentResponseStage());
         for (AccessCertificationDecisionType decision : case1.getDecision()) {
-            RAccessCertificationDecision rDecision = RAccessCertificationDecision.toRepo(rCase, decision, prismContext);
+            RAccessCertificationDecision rDecision = RAccessCertificationDecision.toRepo(rCase, decision, generatorResult, prismContext);
             rCase.getDecisions().add(rDecision);
         }
 

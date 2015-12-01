@@ -60,7 +60,7 @@ public abstract class RContainerReference implements ObjectReference {
     }
 
     @NotQueryable
-    protected abstract Container getOwner();
+    public abstract Container getOwner();
 
     @NotQueryable
     protected String getOwnerOid() {

@@ -22,6 +22,7 @@ import com.evolveum.midpoint.repo.sql.data.common.enums.RAccessCertificationResp
 import com.evolveum.midpoint.repo.sql.data.common.id.RL2ContainerId;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
+import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -89,6 +90,9 @@ public class RAccessCertificationDecision implements L2Container<RAccessCertific
     @NotQueryable
     @Column(name = "owner_id")
     public Integer getOwnerId() {
+        if (owner != null && ownerId == null) {
+            ownerId = owner.getId();
+        }
         return ownerId;
     }
 
@@ -167,21 +171,22 @@ public class RAccessCertificationDecision implements L2Container<RAccessCertific
         this.trans = trans;
     }
 
-    public static RAccessCertificationDecision toRepo(RAccessCertificationCase owningCase, AccessCertificationDecisionType decision, PrismContext prismContext) {
-        RAccessCertificationDecision rDecision = toRepo(decision, prismContext);
+    public static RAccessCertificationDecision toRepo(RAccessCertificationCase owningCase, AccessCertificationDecisionType decision, IdGeneratorResult generatorResult, PrismContext prismContext) {
+        RAccessCertificationDecision rDecision = toRepo(decision, generatorResult, prismContext);
         rDecision.setOwner(owningCase);
         return rDecision;
     }
 
-    public static RAccessCertificationDecision toRepo(String campaignOid, int caseId, AccessCertificationDecisionType decision, PrismContext prismContext) {
-        RAccessCertificationDecision rCase = toRepo(decision, prismContext);
-        rCase.setOwnerOwnerOid(campaignOid);
-        rCase.setOwnerId(caseId);
-        return rCase;
-    }
+//    public static RAccessCertificationDecision toRepo(String campaignOid, int caseId, AccessCertificationDecisionType decision, PrismContext prismContext) {
+//        RAccessCertificationDecision rCase = toRepo(decision, prismContext);
+//        rCase.setOwnerOwnerOid(campaignOid);
+//        rCase.setOwnerId(caseId);
+//        return rCase;
+//    }
 
-    private static RAccessCertificationDecision toRepo(AccessCertificationDecisionType decision, PrismContext prismContext) {
+    private static RAccessCertificationDecision toRepo(AccessCertificationDecisionType decision, IdGeneratorResult generatorResult, PrismContext prismContext) {
         RAccessCertificationDecision rDecision = new RAccessCertificationDecision();
+        rDecision.setTransient(generatorResult.isTransient(decision.asPrismContainerValue()));
         rDecision.setId(RUtil.toInteger(decision.getId()));
         rDecision.setStageNumber(decision.getStageNumber());
         rDecision.setReviewerRef(RUtil.jaxbRefToEmbeddedRepoRef(decision.getReviewerRef(), prismContext));

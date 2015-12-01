@@ -29,6 +29,9 @@ public class RL2ContainerId implements Serializable {
     private Integer ownerId;
     private Integer id;
 
+    public RL2ContainerId() {
+    }
+
     public RL2ContainerId(String ownerOwnerOid, Integer ownerId, Integer id) {
         this.ownerOwnerOid = ownerOwnerOid;
         this.ownerId = ownerId;
