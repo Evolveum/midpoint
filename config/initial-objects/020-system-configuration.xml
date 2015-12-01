@@ -94,4 +94,46 @@
             <maxAge>P1M</maxAge>
         </closedTasks>
     </cleanupPolicy>
+    <adminGuiConfiguration>
+        <userDashboardLink>
+            <targetUrl>/self/profile</targetUrl>
+            <label>Profile</label>
+            <description>View/edit your profile</description>
+            <icon>
+                <cssClass>fa fa-user</cssClass>
+            </icon>
+            <color>blue</color>
+            <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfProfile</authorization>
+            <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfAll</authorization>
+        </userDashboardLink>
+        <userDashboardLink>
+            <targetUrl>/self/credentials</targetUrl>
+            <label>Credentials</label>
+            <description>View/edit your credentials</description>
+            <icon>
+                <cssClass>fa fa-shield</cssClass>
+            </icon>
+            <color>red</color>
+            <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfCredentials</authorization>
+            <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfAll</authorization>
+        </userDashboardLink>
+        <userDashboardLink>
+            <targetUrl>/admin/users</targetUrl>
+            <label>List users</label>
+            <icon>
+                <cssClass>fa fa-users</cssClass>
+            </icon>
+            <color>green</color>
+            <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#users</authorization>
+        </userDashboardLink>
+        <userDashboardLink>
+            <targetUrl>/admin/resources</targetUrl>
+            <label>List resources</label>
+            <icon>
+                <cssClass>fa fa-building</cssClass>
+            </icon>
+            <color>yellow</color>
+            <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#resources</authorization>
+        </userDashboardLink>
+    </adminGuiConfiguration>
 </systemConfiguration>
