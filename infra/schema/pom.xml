@@ -24,7 +24,7 @@
     <parent>
         <artifactId>infra</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>3.3</version>
+        <version>3.4-SNAPSHOT</version>
     </parent>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
@@ -35,7 +35,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>prism</artifactId>
-            <version>3.3</version>
+            <version>3.4-SNAPSHOT</version>
         </dependency>
         <!-- <dependency>
             <groupId>commons-beanutils</groupId>
@@ -124,7 +124,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>3.3</version>
+            <version>3.4-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -174,7 +174,7 @@
                                 <artifactItem>
                                     <groupId>com.evolveum.midpoint.infra</groupId>
                                     <artifactId>prism</artifactId>
-                                    <version>3.3</version>
+                                    <version>3.4-SNAPSHOT</version>
                                     <type>jar</type>
                                 </artifactItem>
                             </artifactItems>
@@ -445,7 +445,7 @@
                     <dependency>
                         <groupId>com.evolveum.midpoint.tools</groupId>
                         <artifactId>xjc-plugin</artifactId>
-                        <version>3.3</version>
+                        <version>3.4-SNAPSHOT</version>
                     </dependency>
                 </dependencies>
             </plugin>
@@ -481,7 +481,7 @@
                <plugin>
 		<groupId>com.evolveum.midpoint.infra</groupId>
                 <artifactId>prism-maven-plugin</artifactId>
-                <version>3.3</version>
+                <version>3.4-SNAPSHOT</version>
                 <configuration>
                     <schemaFiles>
                         <schemaFile>src/main/resources/xml/ns/public/common/common-3.xsd</schemaFile>

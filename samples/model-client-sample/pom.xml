@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 	<groupId>com.evolveum.midpoint.samples</groupId>
 	<artifactId>model-client-sample</artifactId>
 	<!-- NOTE: no parent. We want this to be completely stand-alone. -->
-	<version>3.3-SNAPSHOT</version>
+	<version>3.4-SNAPSHOT</version>
 	<properties>
 		<project.source.version>1.7</project.source.version>
 	</properties>
@@ -144,7 +144,7 @@
         <dependency>
 			<groupId>com.evolveum.midpoint.model</groupId>
 			<artifactId>model-client</artifactId>
-			<version>3.3</version>
+			<version>3.4-SNAPSHOT</version>
 		</dependency>
 		<dependency>
             <groupId>org.apache.cxf</groupId>
