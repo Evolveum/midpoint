@@ -173,7 +173,8 @@ public class PageResources extends PageAdminResources {
 
         BoxedTablePanel connectorHosts = new BoxedTablePanel<>(ID_CONNECTOR_TABLE,
                 new ObjectDataProvider(PageResources.this, ConnectorHostType.class), initConnectorHostsColumns(),
-                UserProfileStorage.TableId.PAGE_RESOURCES_CONNECTOR_HOSTS);
+                UserProfileStorage.TableId.PAGE_RESOURCES_CONNECTOR_HOSTS,
+                (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_RESOURCES_CONNECTOR_HOSTS));
         connectorHosts.setOutputMarkupId(true);
         mainForm.add(connectorHosts);
 

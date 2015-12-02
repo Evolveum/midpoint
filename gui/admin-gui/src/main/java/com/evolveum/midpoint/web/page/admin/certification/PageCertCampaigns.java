@@ -52,6 +52,7 @@ import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCampaignListItemDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCampaignListItemDtoProvider;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
@@ -262,7 +263,9 @@ public class PageCertCampaigns extends PageAdminCertification {
 
 		CertCampaignListItemDtoProvider provider = createProvider();
 		BoxedTablePanel<CertCampaignListItemDto> table = new BoxedTablePanel<>(
-				ID_CAMPAIGNS_TABLE, provider, initColumns());
+				ID_CAMPAIGNS_TABLE, provider, initColumns(),
+				UserProfileStorage.TableId.PAGE_CERT_CAMPAIGNS_PANEL,
+				(int) getItemsPerPage(UserProfileStorage.TableId.PAGE_CERT_CAMPAIGNS_PANEL));
 		table.setShowPaging(true);
 		table.setOutputMarkupId(true);
 		mainForm.add(table);

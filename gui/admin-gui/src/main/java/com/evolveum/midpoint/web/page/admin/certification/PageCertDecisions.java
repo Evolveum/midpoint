@@ -34,6 +34,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertDecisionDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertDecisionDtoProvider;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -159,7 +160,9 @@ public class PageCertDecisions extends PageAdminCertification {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
         CertDecisionDtoProvider provider = createProvider();
-        BoxedTablePanel table = new BoxedTablePanel(ID_DECISIONS_TABLE, provider, initColumns()) {
+        BoxedTablePanel table = new BoxedTablePanel(ID_DECISIONS_TABLE, provider, initColumns(),
+                UserProfileStorage.TableId.PAGE_CERT_DECISIONS_PANEL,
+                (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_CERT_DECISIONS_PANEL)) {
 
             @Override
             protected WebMarkupContainer createHeader(String headerId) {

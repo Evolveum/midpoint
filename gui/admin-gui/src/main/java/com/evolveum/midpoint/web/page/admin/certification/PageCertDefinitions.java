@@ -37,6 +37,7 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
@@ -119,7 +120,9 @@ public class PageCertDefinitions extends PageAdminWorkItems {
                 deleteDefinitionPerformed(target, singleDelete);
             }
         });
-        BoxedTablePanel table = new BoxedTablePanel<>(ID_DEFINITIONS_TABLE, provider, initColumns());
+        BoxedTablePanel table = new BoxedTablePanel<>(ID_DEFINITIONS_TABLE, provider, initColumns(),
+                UserProfileStorage.TableId.PAGE_CERT_DEFINITIONS_PANEL,
+                (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_CERT_DEFINITIONS_PANEL));
         table.setShowPaging(false);
         table.setOutputMarkupId(true);
         mainForm.add(table);
