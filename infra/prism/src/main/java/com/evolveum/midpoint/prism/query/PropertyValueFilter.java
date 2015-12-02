@@ -371,5 +371,6 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 		}
 		return sb.toString();
 	}
-	
+
+	public abstract PropertyValueFilter clone();
 }

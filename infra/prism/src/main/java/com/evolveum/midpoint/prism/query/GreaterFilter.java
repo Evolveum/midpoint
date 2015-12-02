@@ -19,6 +19,7 @@ package com.evolveum.midpoint.prism.query;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 
@@ -40,6 +41,10 @@ public class GreaterFilter<T> extends ComparativeFilter<T> {
 	
 	GreaterFilter(ItemPath parentPath, PrismPropertyDefinition definition, PrismPropertyValue<T> value, boolean equals) {
 		super(parentPath, definition, value, equals);
+	}
+
+	GreaterFilter(ItemPath parentPath, PrismPropertyDefinition<T> definition, ItemPath rightSidePath, ItemDefinition rightSideDefinition, boolean equals) {
+		super(parentPath, definition, rightSidePath, rightSideDefinition, equals);
 	}
 	
 	public static <T, O extends Objectable> GreaterFilter createGreater(ItemPath parentPath, PrismPropertyDefinition definition, PrismPropertyValue<T> value, boolean equals){
@@ -131,4 +136,7 @@ public class GreaterFilter<T> extends ComparativeFilter<T> {
 		return getFullPath();
 	}
 
+	public static GreaterFilter createGreaterThanItem(ItemPath itemPath, PrismPropertyDefinition propertyDefinition, ItemPath rightSidePath, ItemDefinition rightSideDefinition, boolean equals) {
+		return new GreaterFilter(itemPath, propertyDefinition, rightSidePath, rightSideDefinition, equals);
+	}
 }

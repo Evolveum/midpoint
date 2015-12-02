@@ -168,6 +168,11 @@ public class EqualFilter<T extends Object> extends PropertyValueFilter<PrismProp
 		return filter;
 	}
 
+	public static <C extends Containerable, T> EqualFilter<T> createEqual(ItemPath propertyPath, PrismPropertyDefinition propertyDefinition, QName matchingRule, ItemPath rightSidePath, ItemDefinition rightSideDefinition) {
+		EqualFilter<T> filter = new EqualFilter(propertyPath, propertyDefinition, matchingRule, rightSidePath, rightSideDefinition);
+		return filter;
+	}
+
 	public static <T> EqualFilter<T> createNullEqual(ItemPath itemPath, PrismPropertyDefinition<T> propertyDef, QName matchingRule){
 		return new EqualFilter(itemPath, propertyDef, matchingRule);
 		

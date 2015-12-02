@@ -46,6 +46,11 @@ public abstract class ComparativeFilter<T extends Object> extends PropertyValueF
 		this.equals = equals;
 	}
 
+	public <T> ComparativeFilter(ItemPath path, PrismPropertyDefinition<T> definition, ItemPath rightSidePath, ItemDefinition rightSideDefinition, boolean equals) {
+		super(path, definition, null, rightSidePath, rightSideDefinition);
+		this.equals = equals;
+	}
+
 	public boolean isEquals() {
 		return equals;
 	}

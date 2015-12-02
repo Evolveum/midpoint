@@ -107,8 +107,12 @@ public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T
 	public static <T> SubstringFilter createSubstring(QName path, PrismPropertyDefinition itemDefinition, QName matchingRule, T realValues) {
 		return createSubstring(new ItemPath(path), itemDefinition, matchingRule, realValues);
 	}
-	
+
 	public static <T> SubstringFilter createSubstring(ItemPath path, PrismPropertyDefinition itemDefinition, QName matchingRule, T realValues) {
+		return createSubstring(path, itemDefinition, matchingRule, realValues, false, false);
+	}
+
+	public static <T> SubstringFilter createSubstring(ItemPath path, PrismPropertyDefinition itemDefinition, QName matchingRule, T realValues, boolean anchorStart, boolean anchorEnd) {
 		if (realValues == null){
 			return createNullSubstring(path, itemDefinition, matchingRule);
 		}

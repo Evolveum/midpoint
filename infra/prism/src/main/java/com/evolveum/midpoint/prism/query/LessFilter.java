@@ -19,6 +19,7 @@ package com.evolveum.midpoint.prism.query;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -36,7 +37,12 @@ public class LessFilter<T> extends ComparativeFilter<T> {
 	LessFilter(ItemPath parentPath, PrismPropertyDefinition definition, PrismPropertyValue<T> value, boolean equals) {
 		super(parentPath, definition, value, equals);
 	}
-	
+
+	LessFilter(ItemPath parentPath, PrismPropertyDefinition<T> definition, ItemPath rightSidePath, ItemDefinition rightSideDefinition, boolean equals) {
+		super(parentPath, definition, rightSidePath, rightSideDefinition, equals);
+	}
+
+
 	public LessFilter() {
 	}
 	
@@ -67,6 +73,10 @@ public class LessFilter<T> extends ComparativeFilter<T> {
 		}
 		
 		return createLess(parentPath, itemDefinition, value, equals);
+	}
+
+	public static LessFilter createLessThanItem(ItemPath itemPath, PrismPropertyDefinition propertyDefinition, ItemPath rightSidePath, ItemDefinition rightSideDefinition, boolean equals) {
+		return new LessFilter(itemPath, propertyDefinition, rightSidePath, rightSideDefinition, equals);
 	}
 
 	public static <T, O extends Containerable> LessFilter createLess(ItemPath parentPath, PrismContainerDefinition<O> containerDef,
