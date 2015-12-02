@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.query2;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -36,11 +37,11 @@ import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.query.UndefinedFilter;
-import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.repo.sql.query2.definition.JpaAnyDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaAnyContainerDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaAnyPropertyDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaPropertyDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaReferenceDefinition;
@@ -52,6 +53,8 @@ import com.evolveum.midpoint.repo.sql.query2.matcher.DefaultMatcher;
 import com.evolveum.midpoint.repo.sql.query2.matcher.Matcher;
 import com.evolveum.midpoint.repo.sql.query2.matcher.PolyStringMatcher;
 import com.evolveum.midpoint.repo.sql.query2.matcher.StringMatcher;
+import com.evolveum.midpoint.repo.sql.query2.resolution.ItemPathResolver;
+import com.evolveum.midpoint.repo.sql.query2.resolution.ProperDataSearchResult;
 import com.evolveum.midpoint.repo.sql.query2.restriction.AndRestriction;
 import com.evolveum.midpoint.repo.sql.query2.restriction.AnyPropertyRestriction;
 import com.evolveum.midpoint.repo.sql.query2.restriction.ExistsRestriction;
@@ -206,7 +209,7 @@ public class QueryInterpreter2 {
 
     private <T extends ObjectFilter>
     Restriction findAndCreateRestrictionInternal(T filter, InterpretationContext context, Restriction parent,
-                                                 ItemPathResolver helper, JpaEntityDefinition baseEntityDefinition) throws QueryException {
+                                                 ItemPathResolver resolver, JpaEntityDefinition baseEntityDefinition) throws QueryException {
 
         // the order of processing restrictions can be important, so we do the selection via handwritten code
 
@@ -222,12 +225,14 @@ public class QueryInterpreter2 {
             return new OrgRestriction(context, (OrgFilter) filter, baseEntityDefinition, parent);
         } else if (filter instanceof TypeFilter) {
             TypeFilter typeFilter = (TypeFilter) filter;
-            JpaEntityDefinition refinedEntityDefinition = helper.findRestrictedEntityDefinition(baseEntityDefinition, typeFilter.getType());
+            JpaEntityDefinition refinedEntityDefinition = resolver.findRestrictedEntityDefinition(baseEntityDefinition, typeFilter.getType());
             return new TypeRestriction(context, typeFilter, refinedEntityDefinition, parent);
         } else if (filter instanceof ExistsFilter) {
             ExistsFilter existsFilter = (ExistsFilter) filter;
             ItemPath path = existsFilter.getFullPath();
-            ProperDataSearchResult<JpaEntityDefinition> searchResult = helper.findProperDataDefinition(baseEntityDefinition, path, JpaEntityDefinition.class);
+            ItemDefinition definition = existsFilter.getDefinition();
+            ProperDataSearchResult<JpaEntityDefinition> searchResult = resolver.findProperDataDefinition(
+                    baseEntityDefinition, path, definition, JpaEntityDefinition.class);
             if (searchResult == null) {
                 throw new QueryException("Path for ExistsFilter (" + path + ") doesn't point to a hibernate entity within " + baseEntityDefinition);
             }
@@ -235,7 +240,9 @@ public class QueryInterpreter2 {
         } else if (filter instanceof RefFilter) {
             RefFilter refFilter = (RefFilter) filter;
             ItemPath path = refFilter.getFullPath();
-            ProperDataSearchResult<JpaReferenceDefinition> searchResult = helper.findProperDataDefinition(baseEntityDefinition, path, JpaReferenceDefinition.class);
+            ItemDefinition definition = refFilter.getDefinition();
+            ProperDataSearchResult<JpaReferenceDefinition> searchResult = resolver.findProperDataDefinition(
+                    baseEntityDefinition, path, definition, JpaReferenceDefinition.class);
             if (searchResult == null) {
                 throw new QueryException("Path for RefFilter (" + path + ") doesn't point to a reference item within " + baseEntityDefinition);
             }
@@ -244,21 +251,18 @@ public class QueryInterpreter2 {
         } else if (filter instanceof PropertyValueFilter) {
             PropertyValueFilter valFilter = (PropertyValueFilter) filter;
             ItemPath path = valFilter.getFullPath();
+            ItemDefinition definition = valFilter.getDefinition();
 
-            ProperDataSearchResult<JpaPropertyDefinition> propDefRes = helper.findProperDataDefinition(baseEntityDefinition, path, JpaPropertyDefinition.class);
-            if (propDefRes != null) {
+            ProperDataSearchResult<JpaPropertyDefinition> propDefRes = resolver.findProperDataDefinition(baseEntityDefinition, path, definition, JpaPropertyDefinition.class);
+            if (propDefRes == null) {
+                throw new QueryException("Couldn't find a proper restriction for a ValueFilter: " + valFilter.debugDump());
+            }
+            // TODO can't be unified?
+            if (propDefRes.getTargetDefinition() instanceof JpaAnyPropertyDefinition) {
+                return new AnyPropertyRestriction(context, valFilter, propDefRes.getEntityDefinition(), parent, propDefRes.getLinkDefinition());
+            } else {
                 return new PropertyRestriction(context, valFilter, propDefRes.getEntityDefinition(), parent, propDefRes.getLinkDefinition());
             }
-            ProperDataSearchResult<JpaAnyDefinition> anyDefRes = helper.findProperDataDefinition(baseEntityDefinition, path, JpaAnyDefinition.class);
-            if (anyDefRes != null) {
-                if (ItemPath.containsSingleNameSegment(anyDefRes.getRemainder())) {
-                    return new AnyPropertyRestriction(context, valFilter, anyDefRes.getEntityDefinition(), parent, anyDefRes.getTargetDefinition());
-                } else {
-                    throw new QueryException("Unsupported any-targeted query: should contain single item name to be resolved in the 'any' container but contains '" +
-                            anyDefRes.getRemainder() + "' instead");
-                }
-            }
-            throw new QueryException("Couldn't find a proper restriction for a ValueFilter: " + valFilter.debugDump());
         } else if (filter instanceof NoneFilter || filter instanceof AllFilter || filter instanceof UndefinedFilter) {
             // these should be filtered out by the client
             throw new IllegalStateException("Trivial filters are not supported by QueryInterpreter: " + filter.debugDump());
@@ -320,14 +324,15 @@ public class QueryInterpreter2 {
             }
         }
 
+        // TODO if we'd like to have order-by extension properties, we'd need to provide itemDefinition for them
         ProperDataSearchResult<JpaDataNodeDefinition> result = context.getItemPathResolver().findProperDataDefinition(
-                context.getRootEntityDefinition(), orderByPath, JpaDataNodeDefinition.class);
+                context.getRootEntityDefinition(), orderByPath, null, JpaDataNodeDefinition.class);
         if (result == null) {
             throw new QueryException("Unknown path '" + orderByPath + "', couldn't find definition for it, "
                     + "list will not be ordered by it.");
         }
         JpaDataNodeDefinition targetDefinition = result.getLinkDefinition().getTargetDefinition();
-        if (targetDefinition instanceof JpaAnyDefinition) {
+        if (targetDefinition instanceof JpaAnyContainerDefinition) {
             throw new QueryException("Sorting based on extension item or attribute is not supported yet: " + orderByPath);
         } else if (targetDefinition instanceof JpaReferenceDefinition) {
             throw new QueryException("Sorting based on reference is not supported: " + orderByPath);
@@ -342,7 +347,7 @@ public class QueryInterpreter2 {
         JpaEntityDefinition baseEntityDefinition = result.getEntityDefinition();
         JpaPropertyDefinition orderByDefinition = (JpaPropertyDefinition) targetDefinition;
         String hqlPropertyPath = context.getItemPathResolver()
-                .resolveItemPath(orderByPath, context.getPrimaryEntityAlias(), baseEntityDefinition, true)
+                .resolveItemPath(orderByPath, null, context.getPrimaryEntityAlias(), baseEntityDefinition, true)
                 .getHqlPath();
         if (RPolyString.class.equals(orderByDefinition.getJpaClass())) {
             hqlPropertyPath += ".orig";

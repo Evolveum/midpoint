@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.repo.sql.query2;
+package com.evolveum.midpoint.repo.sql.query2.resolution;
 
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
 import org.apache.commons.lang.Validate;

@@ -20,6 +20,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
@@ -52,8 +53,8 @@ public class EqualFilter<T extends Object> extends PropertyValueFilter<PrismProp
 		super(parentPath, definition, matchingRule, values);
 	}
 
-	EqualFilter(ItemPath parentPath, PrismPropertyDefinition<T> definition, QName matchingRule, ItemPath rightSidePath) {
-		super(parentPath, definition, matchingRule, rightSidePath);
+	EqualFilter(ItemPath parentPath, PrismPropertyDefinition<T> definition, QName matchingRule, ItemPath rightSidePath, ItemDefinition rightSideDefinition) {
+		super(parentPath, definition, matchingRule, rightSidePath, rightSideDefinition);
 	}
 
 	private EqualFilter(ItemPath parentPath, PrismPropertyDefinition<T> definition, QName matchingRule) {
@@ -157,7 +158,13 @@ public class EqualFilter<T extends Object> extends PropertyValueFilter<PrismProp
 
 	public static <C extends Containerable, T> EqualFilter<T> createEqual(ItemPath propertyPath, Class<C> type, PrismContext prismContext, QName matchingRule, ItemPath rightSidePath) {
 		PrismPropertyDefinition propertyDefinition = (PrismPropertyDefinition) FilterUtils.findItemDefinition(propertyPath, type, prismContext);
-		EqualFilter<T> filter = new EqualFilter(propertyPath, propertyDefinition, matchingRule, rightSidePath);
+		EqualFilter<T> filter = new EqualFilter(propertyPath, propertyDefinition, matchingRule, rightSidePath, null);
+		return filter;
+	}
+
+	public static <C extends Containerable, T> EqualFilter<T> createEqual(ItemPath propertyPath, Class<C> type, PrismContext prismContext, QName matchingRule, ItemPath rightSidePath, ItemDefinition rightSideDefinition) {
+		PrismPropertyDefinition propertyDefinition = (PrismPropertyDefinition) FilterUtils.findItemDefinition(propertyPath, type, prismContext);
+		EqualFilter<T> filter = new EqualFilter(propertyPath, propertyDefinition, matchingRule, rightSidePath, rightSideDefinition);
 		return filter;
 	}
 

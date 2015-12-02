@@ -186,7 +186,7 @@ public class RootHibernateQuery extends HibernateQuery {
         return new InCondition(this, propertyPath, subqueryText);
     }
 
-    public Condition createEqXY(String leftSidePropertyPath, String rightSidePropertyPath, String operator, boolean ignoreCase) {
+    public Condition createCompareXY(String leftSidePropertyPath, String rightSidePropertyPath, String operator, boolean ignoreCase) {
         return new PropertyPropertyComparisonCondition(this, leftSidePropertyPath, rightSidePropertyPath, operator, ignoreCase);
     }
 }

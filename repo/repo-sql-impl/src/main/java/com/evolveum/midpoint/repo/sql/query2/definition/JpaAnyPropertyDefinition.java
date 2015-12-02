@@ -16,36 +16,24 @@
 
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
-import com.evolveum.midpoint.prism.Visitor;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.sql.query2.DataSearchResult;
-
 /**
- * @author lazyman
+ * Specifies "any" property. In contrast to other JPA definitions, it is not derived by analyzing R-class
+ * structure, but created on demand in the process if ItemPath translation.
+ *
+ * It was created to ensure consistency of resolution mechanism, which should provide
+ * HQL property + JPA definition for any item path provided.
+ *
+ * @author mederly
  */
-public class JpaAnyDefinition extends JpaDataNodeDefinition {
+public class JpaAnyPropertyDefinition extends JpaPropertyDefinition {
 
-    public JpaAnyDefinition(Class jpaClass) {
-        super(jpaClass, null);
+    // enumerated extension items are not supported
+    public JpaAnyPropertyDefinition(Class jpaClass, Class jaxbClass) {
+        super(jpaClass, jaxbClass, false, false, false);
     }
 
     @Override
     protected String getDebugDumpClassName() {
-        return "Any";
-    }
-
-    @Override
-    public DataSearchResult nextLinkDefinition(ItemPath path) {
-        throw new UnsupportedOperationException();      // TODO
-    }
-
-    @Override
-    public void accept(Visitor visitor) {
-        visitor.visit(this);
-    }
-
-    @Override
-    public String debugDump(int indent) {
-        return super.getShortInfo();
+        return "AnyProperty";
     }
 }

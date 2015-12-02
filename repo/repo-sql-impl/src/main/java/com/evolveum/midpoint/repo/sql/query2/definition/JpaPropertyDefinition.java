@@ -16,10 +16,11 @@
 
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.query2.DataSearchResult;
+import com.evolveum.midpoint.repo.sql.query2.resolution.DataSearchResult;
 
 /**
  * @author lazyman
@@ -30,7 +31,7 @@ public class JpaPropertyDefinition extends JpaDataNodeDefinition {
     private boolean lob;
     private boolean enumerated;
     //jpa special things
-    private boolean indexed;
+    private boolean indexed;            // currently unused
 
     public JpaPropertyDefinition(Class jpaClass, Class jaxbClass, boolean lob, boolean enumerated, boolean indexed) {
         super(jpaClass, jaxbClass);
@@ -73,7 +74,7 @@ public class JpaPropertyDefinition extends JpaDataNodeDefinition {
     }
 
     @Override
-    public DataSearchResult nextLinkDefinition(ItemPath path) {
+    public DataSearchResult nextLinkDefinition(ItemPath path, ItemDefinition itemDefinition) {
         // nowhere to come from here
         return null;
     }

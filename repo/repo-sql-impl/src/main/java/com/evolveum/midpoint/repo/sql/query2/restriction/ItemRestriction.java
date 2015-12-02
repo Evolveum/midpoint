@@ -16,11 +16,11 @@
 
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.repo.sql.query2.HqlDataInstance;
+import com.evolveum.midpoint.repo.sql.query2.resolution.HqlDataInstance;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
-import com.evolveum.midpoint.repo.sql.query2.ItemPathResolutionState;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
 import org.apache.commons.lang.Validate;
 
@@ -33,9 +33,14 @@ public abstract class ItemRestriction<T extends ObjectFilter> extends Restrictio
 
     /**
      * Item path (relative to parent restriction), copied from the appropriate filter.
-     * Not null, although possibly empty.
+     * Not null, although possibly empty. (TODO really can be empty?)
      */
     final protected ItemPath itemPath;
+
+    /**
+     * Item definition - necessary only for Any items.
+     */
+    final protected ItemDefinition itemDefinition;
 
     /**
      * Information about resolved itemPath. Needed when accessing the data.
@@ -44,13 +49,14 @@ public abstract class ItemRestriction<T extends ObjectFilter> extends Restrictio
      */
     protected HqlDataInstance hqlDataInstance;
 
-    public ItemRestriction(InterpretationContext context, T filter, ItemPath itemPath, JpaEntityDefinition baseEntityDefinition, Restriction parent) {
+    public ItemRestriction(InterpretationContext context, T filter, ItemPath itemPath, ItemDefinition itemDefinition, JpaEntityDefinition baseEntityDefinition, Restriction parent) {
         super(context, filter, baseEntityDefinition, parent);
         if (itemPath != null) {
             this.itemPath = itemPath;
         } else {
             this.itemPath = ItemPath.EMPTY_PATH;
         }
+        this.itemDefinition = itemDefinition;
     }
 
     public ItemPath getItemPath() {

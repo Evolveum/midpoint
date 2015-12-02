@@ -44,7 +44,7 @@ public class LinkDefinitionComparator implements Comparator<JpaLinkDefinition> {
             return 1;
         } else if (def instanceof JpaReferenceDefinition) {
             return 2;
-        } else if (def instanceof JpaAnyDefinition) {
+        } else if (def instanceof JpaAnyContainerDefinition) {
             return 4;
         } else if (def instanceof JpaEntityDefinition) {
             return 5;

@@ -16,10 +16,11 @@
 
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.repo.sql.query2.DataSearchResult;
+import com.evolveum.midpoint.repo.sql.query2.resolution.DataSearchResult;
 
 /**
  * Special placeholder to allow for cross-references: entity definition that points to another entity.
@@ -52,8 +53,8 @@ public class JpaEntityPointerDefinition extends JpaDataNodeDefinition {
     }
 
     @Override
-    public DataSearchResult<JpaDataNodeDefinition> nextLinkDefinition(ItemPath path) throws QueryException {
-        return resolvedEntityDefinition.nextLinkDefinition(path);
+    public DataSearchResult<JpaDataNodeDefinition> nextLinkDefinition(ItemPath path, ItemDefinition itemDefinition) throws QueryException {
+        return resolvedEntityDefinition.nextLinkDefinition(path, itemDefinition);
     }
 
     @Override

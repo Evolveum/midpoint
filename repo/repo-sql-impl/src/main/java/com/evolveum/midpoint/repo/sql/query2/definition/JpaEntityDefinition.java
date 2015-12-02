@@ -16,26 +16,20 @@
 
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
-import com.evolveum.midpoint.prism.path.ParentPathSegment;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.repo.sql.query2.DataSearchResult;
+import com.evolveum.midpoint.repo.sql.query2.resolution.DataSearchResult;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.Validate;
 
-import javax.xml.namespace.QName;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -91,24 +85,24 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition implements DebugD
     }
 
     /**
-     * Resolves the whole ItemPath (non-empty!)
+     * Resolves the whole ItemPath
      *
-     * If successful, returns either:
-     *  - correct definition + empty path, or
-     *  - Any definition + path remainder
-     *
-     * If unsuccessful, return null.
-     *
+     * @param path ItemPath to resolve. Non-empty!
+     * @param itemDefinition Definition of the final path segment, if it's "any" property.
+     * @param type Type of definition to be found
      * @return
+     *
+     * If successful, returns correct definition + empty path.
+     * If unsuccessful, return null.
      */
-    public <D extends JpaDataNodeDefinition> DataSearchResult<D> findDataNodeDefinition(ItemPath path, Class<D> type) throws QueryException {
-        return findDataNodeDefinition(path, type, null);
+    public <D extends JpaDataNodeDefinition> DataSearchResult<D> findDataNodeDefinition(ItemPath path, ItemDefinition itemDefinition, Class<D> type) throws QueryException {
+        return findDataNodeDefinition(path, itemDefinition, type, null);
     }
 
-    public <D extends JpaDataNodeDefinition> DataSearchResult<D> findDataNodeDefinition(ItemPath path, Class<D> type, LinkDefinitionHandler handler) throws QueryException {
+    public <D extends JpaDataNodeDefinition> DataSearchResult<D> findDataNodeDefinition(ItemPath path, ItemDefinition itemDefinition, Class<D> type, LinkDefinitionHandler handler) throws QueryException {
         JpaDataNodeDefinition currentDefinition = this;
         for (;;) {
-            DataSearchResult<JpaDataNodeDefinition> result = currentDefinition.nextLinkDefinition(path);
+            DataSearchResult<JpaDataNodeDefinition> result = currentDefinition.nextLinkDefinition(path, itemDefinition);
             if (result == null) {   // oops
                 return null;
             }
@@ -118,7 +112,7 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition implements DebugD
             JpaLinkDefinition linkDefinition = result.getLinkDefinition();
             JpaDataNodeDefinition targetDefinition = linkDefinition.getTargetDefinition();
 
-            if (result.isComplete() || targetDefinition instanceof JpaAnyDefinition) {
+            if (result.isComplete()) {
                 if (type.isAssignableFrom(targetDefinition.getClass())) {
                     return (DataSearchResult<D>) result;
                 } else {
@@ -131,31 +125,6 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition implements DebugD
         }
     }
 
-    /**
-     * Translates ItemPath to a sequence of definitions.
-     *
-     * @param itemPath
-     * @return The translation (if successful) or null (if not successful).
-     * For "Any" elements, the last element in the path is Any.
-     */
-
-    public DefinitionPath translatePath(ItemPath itemPath) throws QueryException {
-        final DefinitionPath definitionPath = new DefinitionPath();
-        DataSearchResult result = findDataNodeDefinition(itemPath, JpaDataNodeDefinition.class, new LinkDefinitionHandler() {
-            @Override
-            public void handle(JpaLinkDefinition linkDefinition) {
-                definitionPath.add(linkDefinition);
-            }
-        });
-        if (result != null) {
-            LOGGER.trace("ItemPath {} successfully translated to DefinitionPath {} (started in {})", itemPath, definitionPath, this);
-            return definitionPath;
-        } else {
-            LOGGER.trace("ItemPath {} PARTIALLY translated to DefinitionPath {} (started in {})", itemPath, definitionPath, this);
-            return null;
-        }
-    }
-
     public void setSuperclassDefinition(JpaEntityDefinition superclassDefinition) {
         this.superclassDefinition = superclassDefinition;
     }
@@ -165,7 +134,7 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition implements DebugD
     }
 
     @Override
-    public DataSearchResult nextLinkDefinition(ItemPath path) throws QueryException {
+    public DataSearchResult nextLinkDefinition(ItemPath path, ItemDefinition itemDefinition) throws QueryException {
 
         if (ItemPath.isNullOrEmpty(path)) {     // doesn't fulfill precondition
             return null;

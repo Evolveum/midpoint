@@ -360,6 +360,18 @@ public class ItemPath implements Serializable, Cloneable {
 		}
 	}
 
+	public QName asSingleName() {
+		if (size() == 1 && startsWith(NameItemPathSegment.class)) {
+			return ((NameItemPathSegment) first()).getName();
+		} else {
+			return null;
+		}
+	}
+
+	public static QName asSingleName(ItemPath path) {
+		return path != null ? path.asSingleName() : null;
+	}
+
 	public enum CompareResult {
 		EQUIVALENT,
 		SUPERPATH,

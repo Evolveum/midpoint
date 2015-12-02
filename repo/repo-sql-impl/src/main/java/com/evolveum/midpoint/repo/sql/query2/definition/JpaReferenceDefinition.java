@@ -16,10 +16,11 @@
 
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
-import com.evolveum.midpoint.repo.sql.query2.DataSearchResult;
+import com.evolveum.midpoint.repo.sql.query2.resolution.DataSearchResult;
 import org.apache.commons.lang.Validate;
 
 /**
@@ -41,7 +42,7 @@ public class JpaReferenceDefinition extends JpaDataNodeDefinition {
     }
 
     @Override
-    public DataSearchResult nextLinkDefinition(ItemPath path) {
+    public DataSearchResult nextLinkDefinition(ItemPath path, ItemDefinition itemDefinition) {
         if (path.first() instanceof ObjectReferencePathSegment) {
             // returning artificially created transition definition, used to allow dereferencing target object in a generic way
             return new DataSearchResult(

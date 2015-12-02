@@ -130,7 +130,7 @@ public class ClassDefinitionParser {
         JpaLinkDefinition<? extends JpaDataNodeDefinition> linkDefinition;
         Any any = method.getAnnotation(Any.class);
         if (any != null) {
-            JpaAnyDefinition targetDefinition = new JpaAnyDefinition(jpaClass);
+            JpaAnyContainerDefinition targetDefinition = new JpaAnyContainerDefinition(jpaClass);
             QName jaxbNameForAny = new QName(any.jaxbNameNamespace(), any.jaxbNameLocalPart());
             linkDefinition = new JpaLinkDefinition<>(jaxbNameForAny, jpaName, collectionSpecification, false, targetDefinition);
         } else if (ObjectReference.class.isAssignableFrom(jpaClass)) {
@@ -188,7 +188,7 @@ public class ClassDefinitionParser {
 
         for (VirtualAny any : qEntity.anyElements()) {
             QName jaxbName = new QName(any.jaxbNameNamespace(), any.jaxbNameLocalPart());
-            VirtualAnyDefinition def = new VirtualAnyDefinition(any.ownerType());
+            VirtualAnyContainerDefinition def = new VirtualAnyContainerDefinition(any.ownerType());
             JpaLinkDefinition linkDefinition = new JpaLinkDefinition(jaxbName, null, null, false, def);
             entityDef.addDefinition(linkDefinition);
         }

@@ -68,16 +68,10 @@ public abstract class Matcher<T> {
                 }
                 break;
             case GT:
-                condition = hibernateQuery.createSimpleComparisonCondition(propertyPath, value, ">", ignoreCase);
-                break;
             case GE:
-                condition = hibernateQuery.createSimpleComparisonCondition(propertyPath, value, ">=", ignoreCase);
-                break;
             case LT:
-                condition = hibernateQuery.createSimpleComparisonCondition(propertyPath, value, "<", ignoreCase);
-                break;
             case LE:
-                condition = hibernateQuery.createSimpleComparisonCondition(propertyPath, value, "<=", ignoreCase);
+                condition = hibernateQuery.createSimpleComparisonCondition(propertyPath, value, operation.symbol(), ignoreCase);
                 break;
             case NOT_NULL:
                 condition = hibernateQuery.createIsNotNull(propertyPath);

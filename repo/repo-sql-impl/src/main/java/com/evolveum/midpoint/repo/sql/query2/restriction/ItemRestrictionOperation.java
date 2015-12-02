@@ -21,5 +21,18 @@ package com.evolveum.midpoint.repo.sql.query2.restriction;
  */
 public enum ItemRestrictionOperation {
 
-    EQ, GT, GE, LT, LE, NULL, NOT_NULL, SUBSTRING, STARTS_WITH, ENDS_WITH;
+    EQ("="), GT(">"), GE(">="), LT("<"), LE("<="), NULL, NOT_NULL, SUBSTRING, STARTS_WITH, ENDS_WITH;
+
+    private String symbol;
+
+    ItemRestrictionOperation() {
+    }
+
+    ItemRestrictionOperation(String symbol) {
+        this.symbol = symbol;
+    }
+
+    public String symbol() {
+        return symbol;
+    }
 }

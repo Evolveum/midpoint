@@ -16,13 +16,11 @@
 
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ExistsFilter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.repo.sql.query2.HqlDataInstance;
-import com.evolveum.midpoint.repo.sql.query2.HqlEntityInstance;
+import com.evolveum.midpoint.repo.sql.query2.resolution.HqlDataInstance;
+import com.evolveum.midpoint.repo.sql.query2.resolution.HqlEntityInstance;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
-import com.evolveum.midpoint.repo.sql.query2.ItemPathResolutionState;
 import com.evolveum.midpoint.repo.sql.query2.QueryInterpreter2;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
@@ -32,16 +30,15 @@ import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
  */
 public class ExistsRestriction extends ItemRestriction<ExistsFilter> {
 
-
-
     public ExistsRestriction(InterpretationContext context, ExistsFilter filter, JpaEntityDefinition baseEntityDefinition,
                              Restriction parent) {
-        super(context, filter, filter.getFullPath(), baseEntityDefinition, parent);
+        super(context, filter, filter.getFullPath(), null, baseEntityDefinition, parent);
     }
 
     @Override
     public Condition interpret() throws QueryException {
-        HqlDataInstance dataInstance = getItemPathResolver().resolveItemPath(filter.getFullPath(), getBaseHqlEntity(), false);
+        HqlDataInstance dataInstance = getItemPathResolver()
+                .resolveItemPath(filter.getFullPath(), filter.getDefinition(), getBaseHqlEntity(), false);
         if (!(dataInstance.getJpaDefinition() instanceof JpaEntityDefinition)) {
             // should be checked when instantiating this restriction, so now we can throw hard exception
             throw new IllegalStateException("Internal error - resolutionState for ExistsRestriction points to non-entity node: " + dataInstance.getJpaDefinition());

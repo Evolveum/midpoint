@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.repo.sql.query2;
+package com.evolveum.midpoint.repo.sql.query2.resolution;
 
+import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaAnyPropertyDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaDataNodeDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -40,9 +42,9 @@ public class HqlDataInstance<D extends JpaDataNodeDefinition> implements DebugDu
 
     private static final Trace LOGGER = TraceManager.getTrace(HqlDataInstance.class);
 
-    final protected String hqlPath;
-    final protected D jpaDefinition;
-    final protected HqlDataInstance parentDataItem;          // optional
+    final protected String hqlPath;                         // concrete path for accessing this item
+    final protected D jpaDefinition;                        // definition of this item
+    final protected HqlDataInstance parentDataItem;         // how we got here - optional
 
     public HqlDataInstance(String hqlPath, D jpaDefinition,
                            HqlDataInstance parentDataItem) {
@@ -54,7 +56,13 @@ public class HqlDataInstance<D extends JpaDataNodeDefinition> implements DebugDu
     }
 
     public String getHqlPath() {
-        return hqlPath;
+        if (jpaDefinition instanceof JpaAnyPropertyDefinition) {
+            // This is quite dangerous. Assumes that we don't continue with resolving ItemPath after finding
+            // this kind of definition (and that's true).
+            return hqlPath + "." + RAnyValue.F_VALUE;
+        } else {
+            return hqlPath;
+        }
     }
 
     public D getJpaDefinition() {

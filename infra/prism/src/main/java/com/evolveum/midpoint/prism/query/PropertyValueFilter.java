@@ -57,15 +57,18 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 
 	private ExpressionWrapper expression;
 	private List<T> values;
-	private ItemPath rightSidePath;
+	private ItemPath rightSidePath;							// alternative to "values"
+	private ItemDefinition rightSideDefinition;				// optional (needed only if path points to extension item)
 
 	PropertyValueFilter() {
 		super();
 	}
 
-	PropertyValueFilter(ItemPath path, ItemDefinition definition, QName matchingRule, ItemPath rightSidePath) {
+	PropertyValueFilter(ItemPath path, ItemDefinition definition, QName matchingRule, ItemPath rightSidePath, ItemDefinition rightSideDefinition) {
 		super(path, definition, matchingRule);
+		Validate.notNull(rightSidePath, "rightSidePath");
 		this.rightSidePath = rightSidePath;
+		this.rightSideDefinition = rightSideDefinition;
 	}
 	
 	PropertyValueFilter(ItemPath path, ItemDefinition definition, QName matchingRule, List<T> values) {
@@ -145,6 +148,16 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 	public List<T> getValues() {
 		return values;
 	}
+
+	public T getSingleValue() {
+		if (values == null) {
+			return null;
+		}
+		if (values.size() > 1) {
+			throw new IllegalArgumentException("Filter '" + this + "' should contain at most one value, but it has " + values.size() + " of them.");
+		}
+		return values.iterator().next();
+	}
 	
 	public void setValues(List<T> values) {
 		this.values = values;
@@ -199,6 +212,10 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 
 	public ItemPath getRightSidePath() {
 		return rightSidePath;
+	}
+
+	public ItemDefinition getRightSideDefinition() {
+		return rightSideDefinition;
 	}
 
 	public ExpressionWrapper getExpression() {

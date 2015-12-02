@@ -14,19 +14,25 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.repo.sql.query2;
+package com.evolveum.midpoint.repo.sql.query2.resolution;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ParentPathSegment;
+import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualQueryParam;
+import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
+import com.evolveum.midpoint.repo.sql.query2.QueryDefinitionRegistry2;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaAnyPropertyLinkDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaDataNodeDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaLinkDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.VirtualCollectionSpecification;
 import com.evolveum.midpoint.repo.sql.query2.hqm.JoinSpecification;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
+import com.evolveum.midpoint.repo.sql.query2.hqm.condition.AndCondition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -53,18 +59,19 @@ public class ItemPathResolver {
 
     /**
      * Resolves item path by creating a sequence of resolution states and preparing joins that are used to access JPA properties.
-     * "singletonOnly" means no collections are allowed (used for right-side path resolution and order criteria).
+     * @param itemDefinition Definition for the (final) item pointed to. Optional - necessary only for extension items.
+     * @param singletonOnly Means no collections are allowed (used for right-side path resolution and order criteria).
      */
-    public HqlDataInstance resolveItemPath(ItemPath relativePath, String currentHqlPath,
-                                                   JpaEntityDefinition baseEntityDefinition,
-                                                   boolean singletonOnly) throws QueryException {
+    public HqlDataInstance resolveItemPath(ItemPath relativePath, ItemDefinition itemDefinition,
+                                           String currentHqlPath, JpaEntityDefinition baseEntityDefinition,
+                                           boolean singletonOnly) throws QueryException {
         HqlDataInstance baseDataInstance = new HqlDataInstance(currentHqlPath, baseEntityDefinition, null);
-        return resolveItemPath(relativePath, baseDataInstance, singletonOnly);
+        return resolveItemPath(relativePath, itemDefinition, baseDataInstance, singletonOnly);
     }
 
-    public HqlDataInstance resolveItemPath(ItemPath relativePath,
-                                                   HqlDataInstance baseDataInstance,
-                                                   boolean singletonOnly) throws QueryException {
+    public HqlDataInstance resolveItemPath(ItemPath relativePath, ItemDefinition itemDefinition,
+                                           HqlDataInstance baseDataInstance,
+                                           boolean singletonOnly) throws QueryException {
 
         ItemPathResolutionState currentState = new ItemPathResolutionState(relativePath, baseDataInstance, this);
 
@@ -72,7 +79,7 @@ public class ItemPathResolver {
 
         while (!currentState.isFinal()) {
             LOGGER.trace("Current resolution state:\n{}", currentState.debugDumpNoParent());
-            currentState = currentState.nextState(singletonOnly);
+            currentState = currentState.nextState(itemDefinition, singletonOnly);
         }
 
         LOGGER.trace("resolveItemPath({}) ending in resolution state of:\n{}", relativePath, currentState.debugDump());
@@ -85,7 +92,17 @@ public class ItemPathResolver {
         String joinedItemFullPath = currentHqlPath + "." + joinedItemJpaName;
         String joinedItemAlias = hibernateQuery.createAlias(joinedItemDefinition);
         Condition condition = null;
-        if (joinedItemDefinition.getCollectionSpecification() instanceof VirtualCollectionSpecification) {
+        if (joinedItemDefinition instanceof JpaAnyPropertyLinkDefinition) {
+            JpaAnyPropertyLinkDefinition anyLinkDef = (JpaAnyPropertyLinkDefinition) joinedItemDefinition;
+            AndCondition conjunction = hibernateQuery.createAnd();
+            if (anyLinkDef.getOwnerType() != null) {        // null for assignment extensions
+                conjunction.add(hibernateQuery.createEq(joinedItemAlias + ".ownerType", anyLinkDef.getOwnerType()));
+            }
+            conjunction.add(hibernateQuery.createEq(joinedItemAlias + "." + RAnyValue.F_NAME,
+                    RUtil.qnameToString(anyLinkDef.getItemName())));
+            condition = conjunction;
+        }
+        else if (joinedItemDefinition.getCollectionSpecification() instanceof VirtualCollectionSpecification) {
             VirtualCollectionSpecification vcd = (VirtualCollectionSpecification) joinedItemDefinition.getCollectionSpecification();
             List<Condition> conditions = new ArrayList<>(vcd.getAdditionalParams().length);
             for (VirtualQueryParam vqp : vcd.getAdditionalParams()) {
@@ -135,18 +152,20 @@ public class ItemPathResolver {
      * Returns the most abstract entity that can be used.
      * Checks for conflicts, such as user.locality vs org.locality.
      *
-     * @param path Path to be found
+     * @param path Path to be found (non-empty!)
+     * @param itemDefinition Definition of target property, required/used only for "any" properties
      * @param clazz Kind of definition to be looked for
      * @return Entity type definition + item definition, or null if nothing was found
      */
     public <T extends JpaDataNodeDefinition>
     ProperDataSearchResult<T> findProperDataDefinition(JpaEntityDefinition baseEntityDefinition,
-                                                       ItemPath path, Class<T> clazz) throws QueryException {
+                                                       ItemPath path, ItemDefinition itemDefinition,
+                                                       Class<T> clazz) throws QueryException {
         QueryDefinitionRegistry2 registry = QueryDefinitionRegistry2.getInstance();
         ProperDataSearchResult<T> candidateResult = null;
 
         for (JpaEntityDefinition entityDefinition : findPossibleBaseEntities(baseEntityDefinition, registry)) {
-            DataSearchResult<T> result = entityDefinition.findDataNodeDefinition(path, clazz);
+            DataSearchResult<T> result = entityDefinition.findDataNodeDefinition(path, itemDefinition, clazz);
             if (result != null) {
                 if (candidateResult == null) {
                     candidateResult = new ProperDataSearchResult<>(entityDefinition, result);
@@ -161,8 +180,8 @@ public class ItemPathResolver {
                 }
             }
         }
-        LOGGER.trace("findProperDataDefinition: base='{}', path='{}', class={} -- returning '{}'",
-                baseEntityDefinition, path, clazz.getSimpleName(), candidateResult);
+        LOGGER.trace("findProperDataDefinition: base='{}', path='{}', def='{}', class={} -- returning '{}'",
+                baseEntityDefinition, path, itemDefinition, clazz.getSimpleName(), candidateResult);
         return candidateResult;
     }
 

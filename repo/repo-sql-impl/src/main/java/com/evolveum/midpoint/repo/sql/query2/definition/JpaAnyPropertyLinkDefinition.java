@@ -16,20 +16,22 @@
 
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
-import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
-import org.apache.commons.lang.Validate;
+
+import javax.xml.namespace.QName;
 
 /**
+ * Link from AnyContainer to specific item in this container.
+ *
  * @author mederly
  */
-public class VirtualAnyDefinition extends JpaAnyDefinition {
+public class JpaAnyPropertyLinkDefinition extends JpaLinkDefinition {
 
-    private RObjectExtensionType ownerType;            // ObjectType (for extension) or ShadowType (for attributes)
+    final private RObjectExtensionType ownerType;
 
-    public VirtualAnyDefinition(RObjectExtensionType ownerType) {
-        super(RObject.class);       // RObject is artificial - don't want to make jpaClass nullable just for this single situation
-        Validate.notNull(ownerType, "ownerType");
+    public JpaAnyPropertyLinkDefinition(QName jaxbName, String jpaName, CollectionSpecification collectionSpecification, RObjectExtensionType ownerType, JpaDataNodeDefinition targetDefinition) {
+        super(jaxbName, jpaName, collectionSpecification, false, targetDefinition);
         this.ownerType = ownerType;
     }
 
@@ -37,13 +39,7 @@ public class VirtualAnyDefinition extends JpaAnyDefinition {
         return ownerType;
     }
 
-    @Override
-    protected String getDebugDumpClassName() {
-        return "VirtualAny";
-    }
-
-    @Override
-    public String debugDump(int indent) {
-        return super.debugDump(indent) + ", ownerType=" + ownerType;
+    public QName getItemName() {
+        return ((NameItemPathSegment) getItemPathSegment()).getName();
     }
 }

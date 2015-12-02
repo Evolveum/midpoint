@@ -2710,7 +2710,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
-    @Test(expectedExceptions = Exception.class)          // should fail, as Equals supports single-value right side only
+    @Test(expectedExceptions = IllegalArgumentException.class)          // should fail, as Equals supports single-value right side only
+                                                                        // TODO this should be perhaps checked in EqualFilter
     public void test900EqualsMultivalue() throws Exception {
         Session session = open();
 
@@ -2779,7 +2780,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = false)          // different types of properties that are to be compared (polystring vs string in this case) are not supported yet
     public void test915OrganizationEqualsCostCenter() throws Exception {
         Session session = open();
 
@@ -2870,6 +2871,29 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             close(session);
         }
     }
+
+//    @Test
+//    public void test930OrganizationEqualsCostCenter() throws Exception {
+//        Session session = open();
+//
+//        try {
+//            /*
+//             * ### User: organization = costCenter
+//             */
+//            ObjectQuery query = ObjectQuery.createObjectQuery(
+//                    EqualFilter.createEqual(
+//                            new ItemPath(UserType.F_ORGANIZATION),
+//                            UserType.class,
+//                            prismContext,
+//                            null,
+//                            new ItemPath(UserType.F_COST_CENTER)));
+//
+//            String real = getInterpretedQuery2(session, UserType.class, query);
+////            assertEqualsIgnoreWhitespace(expected, real);
+//        } finally {
+//            close(session);
+//        }
+//    }
 
 
     // TODO negative tests - order by entity, reference, any, collection

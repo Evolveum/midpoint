@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.repo.sql.query2;
+package com.evolveum.midpoint.repo.sql.query2.resolution;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ParentPathSegment;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.repo.sql.query2.definition.JpaAnyDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaDataNodeDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaLinkDefinition;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -76,7 +76,7 @@ public class ItemPathResolutionState implements DebugDumpable {
     }
 
     public boolean isFinal() {
-        return ItemPath.isNullOrEmpty(remainingItemPath) || hqlDataInstance.getJpaDefinition() instanceof JpaAnyDefinition;
+        return ItemPath.isNullOrEmpty(remainingItemPath);
     }
 
     /**
@@ -85,10 +85,11 @@ public class ItemPathResolutionState implements DebugDumpable {
      * Precondition: !isFinal()
      * Precondition: adequate transition exists
      *
+     * @param itemDefinition Target item definition (used/required only for "any" properties)
      * @param singletonOnly Collections are forbidden
      * @return destination state - always not null
      */
-    public ItemPathResolutionState nextState(boolean singletonOnly) throws QueryException {
+    public ItemPathResolutionState nextState(ItemDefinition itemDefinition, boolean singletonOnly) throws QueryException {
 
         // special case - ".." when having previous state means returning to that state
         // used e.g. for Exists (some-path, some-conditions AND Equals(../xxx, yyy))
@@ -102,7 +103,7 @@ public class ItemPathResolutionState implements DebugDumpable {
             return next;
 
         }
-        DataSearchResult<JpaDataNodeDefinition> result = hqlDataInstance.getJpaDefinition().nextLinkDefinition(remainingItemPath);
+        DataSearchResult<JpaDataNodeDefinition> result = hqlDataInstance.getJpaDefinition().nextLinkDefinition(remainingItemPath, itemDefinition);
         LOGGER.trace("nextLinkDefinition on '{}' returned '{}'", remainingItemPath, result != null ? result.getLinkDefinition() : "(null)");
         if (result == null) {       // sorry we failed (however, this should be caught before -> so IllegalStateException)
             throw new IllegalStateException("Couldn't find " + remainingItemPath + " in " + hqlDataInstance.getJpaDefinition());

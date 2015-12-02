@@ -22,10 +22,11 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.GreaterFilter;
 import com.evolveum.midpoint.prism.query.LessFilter;
+import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.repo.sql.query2.HqlDataInstance;
+import com.evolveum.midpoint.repo.sql.query2.resolution.HqlDataInstance;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query2.QueryInterpreter2;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
@@ -37,8 +38,6 @@ import com.evolveum.midpoint.repo.sql.query2.hqm.condition.IsNullCondition;
 import com.evolveum.midpoint.repo.sql.query2.matcher.Matcher;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import java.util.List;
 
 /**
  * Abstract superclass for all value-related filters. There are two major problems solved:
@@ -56,7 +55,7 @@ public abstract class ItemValueRestriction<T extends ValueFilter> extends ItemRe
     private static final Trace LOGGER = TraceManager.getTrace(ItemValueRestriction.class);
 
     public ItemValueRestriction(InterpretationContext context, T filter, JpaEntityDefinition baseEntityDefinition, Restriction parent) {
-        super(context, filter, filter.getFullPath(), baseEntityDefinition, parent);
+        super(context, filter, filter.getFullPath(), filter.getDefinition(), baseEntityDefinition, parent);
     }
 
     @Override
@@ -66,7 +65,7 @@ public abstract class ItemValueRestriction<T extends ValueFilter> extends ItemRe
         if (ItemPath.isNullOrEmpty(path)) {
             throw new QueryException("Null or empty path for ItemValueRestriction in " + filter.debugDump());
         }
-        HqlDataInstance dataInstance = getItemPathResolver().resolveItemPath(path, getBaseHqlEntity(), false);
+        HqlDataInstance dataInstance = getItemPathResolver().resolveItemPath(path, itemDefinition, getBaseHqlEntity(), false);
         setHqlDataInstance(dataInstance);
 
         Condition condition = interpretInternal();
@@ -75,7 +74,22 @@ public abstract class ItemValueRestriction<T extends ValueFilter> extends ItemRe
 
     public abstract Condition interpretInternal() throws QueryException;
 
-    protected Condition createCondition(String hqlPropertyPath, Object value, ValueFilter filter) throws QueryException {
+    protected Condition createPropertyVsConstantCondition(String hqlPropertyPath, Object value, ValueFilter filter) throws QueryException {
+        ItemRestrictionOperation operation = findOperationForFilter(filter);
+
+        InterpretationContext context = getContext();
+        QueryInterpreter2 interpreter = context.getInterpreter();
+        Matcher matcher = interpreter.findMatcher(value);
+
+        String matchingRule = null;
+        if (filter.getMatchingRule() != null){
+        	matchingRule = filter.getMatchingRule().getLocalPart();
+        }
+
+        return matcher.match(context.getHibernateQuery(), operation, hqlPropertyPath, value, matchingRule);
+    }
+
+    protected ItemRestrictionOperation findOperationForFilter(ValueFilter filter) throws QueryException {
         ItemRestrictionOperation operation;
         if (filter instanceof EqualFilter) {
             operation = ItemRestrictionOperation.EQ;
@@ -97,31 +111,19 @@ public abstract class ItemValueRestriction<T extends ValueFilter> extends ItemRe
         } else {
             throw new QueryException("Can't translate filter '" + filter + "' to operation.");
         }
-
-        InterpretationContext context = getContext();
-        QueryInterpreter2 interpreter = context.getInterpreter();
-        Matcher matcher = interpreter.findMatcher(value);
-
-        String matchingRule = null;
-        if (filter.getMatchingRule() != null){
-        	matchingRule = filter.getMatchingRule().getLocalPart();
-        }
-
-        return matcher.match(context.getHibernateQuery(), operation, hqlPropertyPath, value, matchingRule);
+        return operation;
     }
 
-    protected Object getValue(List<? extends PrismValue> values) {
-        if (values == null || values.isEmpty()) {
+    protected Object getValue(PropertyValueFilter filter) throws QueryException {
+        PrismValue val = filter.getSingleValue();
+        if (val == null) {
             return null;
-        }
-
-        PrismValue val = values.get(0);
-        if (val instanceof PrismPropertyValue) {
+        } else if (val instanceof PrismPropertyValue) {
             PrismPropertyValue propertyValue = (PrismPropertyValue) val;
             return propertyValue.getValue();
+        } else {
+            throw new QueryException("Non-property value in filter: " + filter + ": " + val.getClass());
         }
-
-        return null;
     }
 
     /**
