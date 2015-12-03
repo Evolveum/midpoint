@@ -278,7 +278,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 			if (object.getAssociations() != null) {
 				for (PrismProperty property : object.getAssociations()) {
 					// TODO: fix this -> for now, read only is supported..
-					PropertyWrapper propertyWrapper = new PropertyWrapper(this, property, true,
+					PropertyWrapper propertyWrapper = new PropertyWrapper(this, property, false,
 							ValueStatus.NOT_CHANGED);
 					properties.add(propertyWrapper);
 				}
