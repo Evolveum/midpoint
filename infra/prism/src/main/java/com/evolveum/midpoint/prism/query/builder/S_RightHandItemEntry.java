@@ -16,16 +16,17 @@
 
 package com.evolveum.midpoint.prism.query.builder;
 
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author mederly
  */
-public interface S_QueryExit {
-
-    ObjectQuery build() throws SchemaException;
-    ObjectFilter buildFilter() throws SchemaException;
-
+public interface S_RightHandItemEntry {
+    // TODO add support for matching rules
+    S_AtomicFilterExit item(QName... names) throws SchemaException;
+    S_AtomicFilterExit item(ItemPath itemPath, ItemDefinition itemDefinition) throws SchemaException;
 }

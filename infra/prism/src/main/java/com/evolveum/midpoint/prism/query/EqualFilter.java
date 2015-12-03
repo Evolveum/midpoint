@@ -183,6 +183,7 @@ public class EqualFilter<T extends Object> extends PropertyValueFilter<PrismProp
 		EqualFilter<T> clone = new EqualFilter(getFullPath(), getDefinition(), getMatchingRule(), (List<PrismPropertyValue<T>>) getValues());
 		clone.setExpression(getExpression());
 		cloneValues(clone);
+		clone.copyRightSideThingsFrom(this);
 		return clone;
 	}
 
@@ -202,7 +203,7 @@ public class EqualFilter<T extends Object> extends PropertyValueFilter<PrismProp
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("EQUAL(");
+		sb.append("EQUAL: ");
 		return toString(sb);
 	}
 

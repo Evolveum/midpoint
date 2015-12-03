@@ -20,10 +20,19 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.InOidFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectOrdering;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrderDirection;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -45,12 +54,28 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationD
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REVIEW_STAGE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STATE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_CURRENT_STAGE_NUMBER;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_DECISION;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_REVIEWER_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType.F_RESPONSE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType.F_STAGE_NUMBER;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
 
 /**
  * @author mederly
@@ -103,13 +128,19 @@ public class AccCertQueryHelper {
      *   objectRef -> objectRef/@/name
      *   campaignRef -> ../name
      *
+     * Plus adds ID as secondary criteria, in order to avoid random shuffling the result set.
+     *
      * Temporary solution - until we implement that in GUI.
      */
     private ObjectQuery hackPaging(ObjectQuery query) {
-        if (query.getPaging() == null || ItemPath.isNullOrEmpty(query.getPaging().getOrderBy())) {
+        if (query.getPaging() == null || !query.getPaging().hasOrdering()) {
+            return query;
+        }
+        if (query.getPaging().getOrderingInstructions().size() > 1) {
             return query;
         }
         ItemPath oldPath = query.getPaging().getOrderBy();
+        OrderDirection oldDirection = query.getPaging().getDirection();
         if (oldPath.size() != 1 || !(oldPath.first() instanceof NameItemPathSegment)) {
             return query;
         }
@@ -120,12 +151,14 @@ public class AccCertQueryHelper {
         } else if (QNameUtil.match(oldName, AccessCertificationCaseType.F_OBJECT_REF)) {
             newPath = new ItemPath(AccessCertificationCaseType.F_OBJECT_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
         } else if (QNameUtil.match(oldName, AccessCertificationCaseType.F_CAMPAIGN_REF)) {
-            newPath = new ItemPath(PrismConstants.T_PARENT, ObjectType.F_NAME);
+            newPath = new ItemPath(T_PARENT, ObjectType.F_NAME);
         } else {
-            return query;
+            newPath = oldPath;
         }
         ObjectPaging paging1 = query.getPaging().clone();
-        paging1.setOrderBy(newPath);
+        ObjectOrdering primary = ObjectOrdering.createOrdering(newPath, oldDirection);
+        ObjectOrdering secondary = ObjectOrdering.createOrdering(new ItemPath(PrismConstants.T_ID), OrderDirection.ASCENDING);     // to avoid random shuffling if first criteria is too vague
+        paging1.setOrdering(primary, secondary);
         ObjectQuery query1 = query.clone();
         query1.setPaging(paging1);
         return query1;
@@ -133,25 +166,49 @@ public class AccCertQueryHelper {
 
     protected List<AccessCertificationCaseType> searchDecisions(ObjectQuery query, String reviewerOid, boolean notDecidedOnly, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 
-        // TODO FILTER BY NOT_DECIDED_ONLY
-
         // enhance filter with reviewerRef + enabled
         ObjectQuery newQuery;
-        ObjectReferenceType reviewerRef = ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER);
-        ObjectFilter reviewerFilter = RefFilter.createReferenceEqual(
-                new ItemPath(AccessCertificationCaseType.F_REVIEWER_REF),
-                AccessCertificationCaseType.class, prismContext, reviewerRef.asReferenceValue());
-        ObjectFilter enabledFilter = EqualFilter.createEqual(
-                AccessCertificationCaseType.F_ENABLED, AccessCertificationCaseType.class, prismContext, Boolean.TRUE);
-        ObjectFilter reviewerAndEnabledFilter = AndFilter.createAnd(reviewerFilter, enabledFilter);
+
+        PrismReferenceValue reviewerRef = ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER).asReferenceValue();
+        ObjectFilter reviewerAndEnabledFilter = getReviewerAndEnabledFilter(reviewerOid);
+
+        ObjectFilter filterToAdd;
+        if (notDecidedOnly) {
+            /*
+             * This filter is intended to return all cases that do not have a decision for a current stage.
+             *
+             * Unfortunately, what it really says is "return all cases that have a NULL or NO_RESPONSE decision
+             * for a current stage. In order to write original filter we'd need to have NOT EXISTS filter
+             * that would probably require using nested SELECTs (that is not possible now, and overall, it is
+             * questionable from the point of view of performance).
+             *
+             * So, until it's fixed, we assume that on stage opening, NULL decisions are created for all
+             * cases and all reviewers.
+             */
+            ObjectFilter noResponseFilter = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+                    .exists(F_DECISION)
+                    .block()
+                        .item(AccessCertificationDecisionType.F_REVIEWER_REF).ref(reviewerRef)
+                        .and().item(F_STAGE_NUMBER).eq().item(T_PARENT, F_CURRENT_STAGE_NUMBER)
+                        .and().block()
+                            .item(F_RESPONSE).eq(NO_RESPONSE)
+                            .or().item(F_RESPONSE).isNull()
+                        .endBlock()
+                    .endBlock()
+                    .buildFilter();
+            filterToAdd = AndFilter.createAnd(reviewerAndEnabledFilter, noResponseFilter);
+        } else {
+            filterToAdd = reviewerAndEnabledFilter;
+        }
+
         if (query == null) {
-            newQuery = ObjectQuery.createObjectQuery(reviewerAndEnabledFilter);
+            newQuery = ObjectQuery.createObjectQuery(filterToAdd);
         } else {
             newQuery = query.clone();
             if (query.getFilter() == null) {
-                newQuery.setFilter(reviewerAndEnabledFilter);
+                newQuery.setFilter(filterToAdd);
             } else {
-                newQuery.setFilter(AndFilter.createAnd(query.getFilter(), reviewerAndEnabledFilter));
+                newQuery.setFilter(AndFilter.createAnd(query.getFilter(), filterToAdd));
             }
         }
 
@@ -177,7 +234,7 @@ public class AccCertQueryHelper {
                 campaigns.put(campaignOid, campaign);
             }
 
-            int stage = campaign.getCurrentStageNumber();
+            int stage = campaign.getStageNumber();
             Iterator<AccessCertificationDecisionType> decisionIterator = _case.getDecision().iterator();
             while (decisionIterator.hasNext()) {
                 AccessCertificationDecisionType decision = decisionIterator.next();
@@ -195,6 +252,20 @@ public class AccCertQueryHelper {
         return caseList;
     }
 
+    private ObjectFilter getReviewerAndEnabledFilter(String reviewerOid) throws SchemaException {
+        // we have to find definition ourselves, as ../state cannot be currently resolved by query builder
+        ItemPath statePath = new ItemPath(T_PARENT, F_STATE);
+        PrismPropertyDefinition stateDef =
+                prismContext.getSchemaRegistry()
+                        .findComplexTypeDefinitionByCompileTimeClass(AccessCertificationCampaignType.class)
+                        .findPropertyDefinition(F_STATE);
+        return QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+                    .item(F_REVIEWER_REF).ref(reviewerOid, UserType.COMPLEX_TYPE)
+                    .and().item(F_CURRENT_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
+                    .and().item(statePath, stateDef).eq(IN_REVIEW_STAGE)
+                    .buildFilter();
+    }
+
     // we expect that only one decision item (the relevant one) is present
     private boolean isDecided(AccessCertificationCaseType _case) {
         if (_case.getDecision() == null || _case.getDecision().isEmpty()) {
@@ -204,24 +275,14 @@ public class AccCertQueryHelper {
             throw new IllegalStateException("More than 1 decision in case");
         }
         AccessCertificationResponseType response = _case.getDecision().get(0).getResponse();
-        return response != null && response != AccessCertificationResponseType.NO_RESPONSE;
+        return response != null && response != NO_RESPONSE;
     }
 
     public List<AccessCertificationCaseType> getCasesForReviewer(AccessCertificationCampaignType campaign,
                                                                  String reviewerOid, Task task, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
-        ObjectFilter filter = AndFilter.createAnd(
-                RefFilter.createReferenceEqual(
-                        new ItemPath(AccessCertificationCaseType.F_REVIEWER_REF),
-                        AccessCertificationCaseType.class,
-                        prismContext,
-                        ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER).asReferenceValue()),
-                EqualFilter.createEqual(
-                        new ItemPath(AccessCertificationCaseType.F_ENABLED),
-                        AccessCertificationCaseType.class,
-                        prismContext,
-                        true)
-                );
+
+        ObjectFilter filter = getReviewerAndEnabledFilter(reviewerOid);
 
         List<AccessCertificationCaseType> caseList = searchCases(campaign.getOid(), ObjectQuery.createObjectQuery(filter), null, task, result);
         return caseList;
@@ -244,10 +305,11 @@ public class AccCertQueryHelper {
         }
     }
 
-    public List<AccessCertificationCaseType> selectCasesForReviewer(List<AccessCertificationCaseType> caseList, String reviewerOid) {
+    public List<AccessCertificationCaseType> selectCasesForReviewer(AccessCertificationCampaignType campaign, List<AccessCertificationCaseType> caseList, String reviewerOid) {
+
         List<AccessCertificationCaseType> rv = new ArrayList<>();
         for (AccessCertificationCaseType aCase : caseList) {
-            if (Boolean.TRUE.equals(aCase.isEnabled())) {
+            if (aCase.getCurrentStageNumber() == campaign.getStageNumber()) {
                 for (ObjectReferenceType reviewerRef : aCase.getReviewerRef()) {
                     if (reviewerOid.equals(reviewerRef.getOid())) {
                         rv.add(aCase.clone());

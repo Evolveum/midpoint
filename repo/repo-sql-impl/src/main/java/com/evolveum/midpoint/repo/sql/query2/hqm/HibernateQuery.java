@@ -57,8 +57,17 @@ public abstract class HibernateQuery {
      */
     private List<Condition> conditions = new ArrayList<>();
 
-    private String orderByProperty;
-    private OrderDirection orderDirection;
+    class Ordering {
+        String byProperty;
+        OrderDirection direction;
+
+        public Ordering(String byProperty, OrderDirection direction) {
+            this.byProperty = byProperty;
+            this.direction = direction;
+        }
+    }
+
+    private List<Ordering> orderingList = new ArrayList<>();
 
     public HibernateQuery(JpaEntityDefinition primaryEntityDef) {
         Validate.notNull(primaryEntityDef, "primaryEntityDef");
@@ -107,15 +116,24 @@ public abstract class HibernateQuery {
             sb.append("where\n");
             Condition.dumpToHql(sb, conditions, indent+1);
         }
-        if (orderByProperty != null) {
+        if (!orderingList.isEmpty()) {
             sb.append("\n");
             indent(sb, indent);
-            sb.append("order by ").append(orderByProperty);
-            if (orderDirection != null) {
-                switch (orderDirection) {
-                    case DESCENDING: sb.append(" desc"); break;
-                    case ASCENDING: sb.append(" asc"); break;
-                    default: throw new IllegalStateException("Unknown ordering: " + orderDirection);
+            sb.append("order by ");
+            boolean first = true;
+            for (Ordering ordering : orderingList) {
+                if (first) {
+                    first = false;
+                } else {
+                    sb.append(", ");
+                }
+                sb.append(ordering.byProperty);
+                if (ordering.direction != null) {
+                    switch (ordering.direction) {
+                        case DESCENDING: sb.append(" desc"); break;
+                        case ASCENDING: sb.append(" asc"); break;
+                        default: throw new IllegalStateException("Unknown ordering: " + ordering.direction);
+                    }
                 }
             }
         }
@@ -177,9 +195,8 @@ public abstract class HibernateQuery {
         return getPrimaryEntity().getAlias();
     }
 
-    public void setOrder(String propertyPath, OrderDirection direction) {
-        this.orderByProperty = propertyPath;
-        this.orderDirection = direction;
+    public void addOrdering(String propertyPath, OrderDirection direction) {
+        orderingList.add(new Ordering(propertyPath, direction));
     }
 
     public abstract RootHibernateQuery getRootQuery();

@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
@@ -115,7 +116,7 @@ public class QueryInterpreter2 {
     private static final Map<Class, Matcher> AVAILABLE_MATCHERS;
 
     static {
-        Map<Class, Matcher> matchers = new HashMap<Class, Matcher>();
+        Map<Class, Matcher> matchers = new HashMap<>();
         //default matcher with null key
         matchers.put(null, new DefaultMatcher());
         matchers.put(PolyString.class, new PolyStringMatcher());
@@ -287,7 +288,7 @@ public class QueryInterpreter2 {
             if (query.getPaging() instanceof ObjectPagingAfterOid) {
                 updatePagingAndSortingByOid(hibernateQuery, (ObjectPagingAfterOid) query.getPaging());                // very special case - ascending ordering by OID (nothing more)
             } else {
-                updatePagingAndSorting(context, hibernateQuery, query.getPaging());
+                updatePagingAndSorting(context, query.getPaging());
             }
         }
     }
@@ -297,17 +298,20 @@ public class QueryInterpreter2 {
         if (paging.getOrderBy() != null || paging.getDirection() != null || paging.getOffset() != null) {
             throw new IllegalArgumentException("orderBy, direction nor offset is allowed on ObjectPagingAfterOid");
         }
-        hibernateQuery.setOrder(rootAlias + ".oid", OrderDirection.ASCENDING);
+        hibernateQuery.addOrdering(rootAlias + ".oid", OrderDirection.ASCENDING);
         if (paging.getMaxSize() != null) {
             hibernateQuery.setMaxResults(paging.getMaxSize());
         }
     }
 
-    public <T extends Containerable> void updatePagingAndSorting(InterpretationContext context, RootHibernateQuery hibernateQuery,
+    public <T extends Containerable> void updatePagingAndSorting(InterpretationContext context,
                                                                  ObjectPaging paging) throws QueryException {
+
         if (paging == null) {
             return;
         }
+
+        RootHibernateQuery hibernateQuery = context.getHibernateQuery();
         if (paging.getOffset() != null) {
             hibernateQuery.setFirstResult(paging.getOffset());
         }
@@ -315,21 +319,26 @@ public class QueryInterpreter2 {
             hibernateQuery.setMaxResults(paging.getMaxSize());
         }
 
-        ItemPath orderByPath = paging.getOrderBy();
-        if (ItemPath.isNullOrEmpty(orderByPath)) {
-            if (paging.getDirection() == null) {
-                return;
-            } else {
-                throw new QueryException("Ordering by empty property path is not possible");
-            }
+        if (!paging.hasOrdering()) {
+            return;
         }
+
+        for (ObjectOrdering ordering : paging.getOrderingInstructions()) {
+            addOrdering(context, ordering);
+        }
+    }
+
+    private void addOrdering(InterpretationContext context, ObjectOrdering ordering) throws QueryException {
+
+        ItemPath orderByPath = ordering.getOrderBy();
 
         // TODO if we'd like to have order-by extension properties, we'd need to provide itemDefinition for them
         ProperDataSearchResult<JpaDataNodeDefinition> result = context.getItemPathResolver().findProperDataDefinition(
                 context.getRootEntityDefinition(), orderByPath, null, JpaDataNodeDefinition.class);
         if (result == null) {
-            throw new QueryException("Unknown path '" + orderByPath + "', couldn't find definition for it, "
+            LOGGER.error("Unknown path '" + orderByPath + "', couldn't find definition for it, "
                     + "list will not be ordered by it.");
+            return;
         }
         JpaDataNodeDefinition targetDefinition = result.getLinkDefinition().getTargetDefinition();
         if (targetDefinition instanceof JpaAnyContainerDefinition) {
@@ -352,18 +361,21 @@ public class QueryInterpreter2 {
         if (RPolyString.class.equals(orderByDefinition.getJpaClass())) {
             hqlPropertyPath += ".orig";
         }
-        if (paging.getDirection() != null) {
-            switch (paging.getDirection()) {
+
+        RootHibernateQuery hibernateQuery = context.getHibernateQuery();
+        if (ordering.getDirection() != null) {
+            switch (ordering.getDirection()) {
                 case ASCENDING:
-                    hibernateQuery.setOrder(hqlPropertyPath, OrderDirection.ASCENDING);
+                    hibernateQuery.addOrdering(hqlPropertyPath, OrderDirection.ASCENDING);
                     break;
                 case DESCENDING:
-                    hibernateQuery.setOrder(hqlPropertyPath, OrderDirection.DESCENDING);
+                    hibernateQuery.addOrdering(hqlPropertyPath, OrderDirection.DESCENDING);
                     break;
             }
         } else {
-            hibernateQuery.setOrder(hqlPropertyPath, OrderDirection.ASCENDING);
+            hibernateQuery.addOrdering(hqlPropertyPath, OrderDirection.ASCENDING);
         }
+
     }
 
     public <T extends Object> Matcher<T> findMatcher(T value) {

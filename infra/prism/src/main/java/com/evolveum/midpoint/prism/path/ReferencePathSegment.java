@@ -18,7 +18,7 @@ package com.evolveum.midpoint.prism.path;
 
 /**
  * Denotes reference path segment: either ".." meaning owner, or "@" meaning referenced object.
- * (Note that these are to be used only in filters, for now.)
+ * (Note that these are to be used only in filters and order instructions, for now.)
  *
  * @author mederly
  */

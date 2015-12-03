@@ -28,6 +28,6 @@ import java.nio.file.attribute.AclEntry;
 public interface S_FilterExit extends S_QueryExit {
 
     S_AtomicFilterExit endBlock() throws SchemaException;
-    S_QueryExit asc(QName... names) throws SchemaException;
-    S_QueryExit desc(QName... names) throws SchemaException;
+    S_FilterExit asc(QName... names) throws SchemaException;
+    S_FilterExit desc(QName... names) throws SchemaException;
 }

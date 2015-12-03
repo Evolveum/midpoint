@@ -16,6 +16,9 @@
 
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
+import com.evolveum.midpoint.prism.path.IdentifierPathSegment;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.path.ParentPathSegment;
 import com.evolveum.midpoint.repo.sql.data.Marker;
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
@@ -154,9 +157,20 @@ public class ClassDefinitionParser {
             //todo implement also lookup for @Table indexes
             boolean indexed = method.isAnnotationPresent(Index.class);
             Class jaxbClass = getJaxbClass(method, jpaClass);
+
+            ItemPathSegment itemPathSegment;
+            if (method.isAnnotationPresent(IdQueryProperty.class)) {
+                if (collectionSpecification != null) {
+                    throw new IllegalStateException("ID property is not allowed to be multivalued; for method " + method);
+                }
+                itemPathSegment = new IdentifierPathSegment();
+            } else {
+                itemPathSegment = new NameItemPathSegment(jaxbName);
+            }
+
             JpaPropertyDefinition propertyDefinition = new JpaPropertyDefinition(jpaClass, jaxbClass, lob, enumerated, indexed);
             // Note that properties are considered to be embedded
-            linkDefinition = new JpaLinkDefinition<JpaDataNodeDefinition>(jaxbName, jpaName, collectionSpecification, true, propertyDefinition);
+            linkDefinition = new JpaLinkDefinition<JpaDataNodeDefinition>(itemPathSegment, jpaName, collectionSpecification, true, propertyDefinition);
         }
         return linkDefinition;
     }

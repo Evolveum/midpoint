@@ -14,18 +14,28 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.prism.query.builder;
-
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.util.exception.SchemaException;
+package com.evolveum.midpoint.prism.path;
 
 /**
+ * Denotes identifier of the object or container (i.e. OID or container ID).
+ * Currently supported only for sorting (not even for filtering!).
+ *
  * @author mederly
  */
-public interface S_QueryExit {
+public class IdentifierPathSegment extends ItemPathSegment {
 
-    ObjectQuery build() throws SchemaException;
-    ObjectFilter buildFilter() throws SchemaException;
+    @Override
+    public boolean equivalent(Object obj) {
+        return equals(obj);
+    }
 
+    @Override
+    public ItemPathSegment clone() {
+        return new IdentifierPathSegment();
+    }
+
+    @Override
+    public String toString() {
+        return "#";
+    }
 }

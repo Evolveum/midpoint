@@ -119,7 +119,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
 
     protected void assertStateAndStage(AccessCertificationCampaignType campaign, AccessCertificationCampaignStateType state, int stage) {
         assertEquals("Unexpected campaign state", state, campaign.getState());
-        assertEquals("Unexpected stage number", stage, campaign.getCurrentStageNumber());
+        assertEquals("Unexpected stage number", stage, campaign.getStageNumber());
     }
 
     @Test
@@ -791,7 +791,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
 
         campaign = getObject(AccessCertificationCampaignType.class, campaignOid).asObjectable();
         assertEquals("wrong campaign state", CLOSED, campaign.getState());
-        assertEquals("wrong campaign stage", 3, campaign.getCurrentStageNumber());
+        assertEquals("wrong campaign stage", 3, campaign.getStageNumber());
         assertDefinitionAndOwner(campaign, certificationDefinition);
         // TODO assertApproximateTime("end time", new Date(), campaign.getEnd());
         assertEquals("wrong # of stages", 2, campaign.getStage().size());

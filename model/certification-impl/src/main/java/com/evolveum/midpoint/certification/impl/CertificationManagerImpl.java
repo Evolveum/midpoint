@@ -175,7 +175,7 @@ public class CertificationManagerImpl implements CertificationManager {
                 LOGGER.debug("openNextStage starting for {}", ObjectTypeUtil.toShortString(campaign));
             }
 
-            final int currentStageNumber = campaign.getCurrentStageNumber();
+            final int currentStageNumber = campaign.getStageNumber();
             final int stages = CertCampaignTypeUtil.getNumberOfStages(campaign);
             final AccessCertificationCampaignStateType state = campaign.getState();
             LOGGER.trace("openNextStage: currentStageNumber={}, stages={}, requestedStageNumber={}, state={}", currentStageNumber, stages, requestedStageNumber, state);
@@ -225,7 +225,7 @@ public class CertificationManagerImpl implements CertificationManager {
                 LOGGER.debug("closeCurrentStage starting for {}", ObjectTypeUtil.toShortString(campaign));
             }
 
-            final int currentStageNumber = campaign.getCurrentStageNumber();
+            final int currentStageNumber = campaign.getStageNumber();
             final int stages = CertCampaignTypeUtil.getNumberOfStages(campaign);
             final AccessCertificationCampaignStateType state = campaign.getState();
             LOGGER.trace("closeCurrentStage: currentStageNumber={}, stages={}, stageNumberToClose={}, state={}", currentStageNumber, stages, stageNumberToClose, state);
@@ -262,7 +262,7 @@ public class CertificationManagerImpl implements CertificationManager {
                 LOGGER.debug("startRemediation starting for {}", ObjectTypeUtil.toShortString(campaign));
             }
 
-            final int currentStageNumber = campaign.getCurrentStageNumber();
+            final int currentStageNumber = campaign.getStageNumber();
             final int lastStageNumber = CertCampaignTypeUtil.getNumberOfStages(campaign);
             final AccessCertificationCampaignStateType state = campaign.getState();
             LOGGER.trace("startRemediation: currentStageNumber={}, stages={}, state={}", currentStageNumber, lastStageNumber, state);
@@ -383,14 +383,14 @@ public class CertificationManagerImpl implements CertificationManager {
             AccessCertificationCasesStatisticsType stat = new AccessCertificationCasesStatisticsType(prismContext);
 
             AccessCertificationCampaignType campaign = helper.getCampaign(campaignOid, null, task, result);
-            int currentStageNumber = campaign.getCurrentStageNumber();
+            int currentStageNumber = campaign.getStageNumber();
             AccessCertificationCampaignStateType state = campaign.getState();
 
             List<AccessCertificationCaseType> campaignCases = queryHelper.searchCases(campaign.getOid(), null, null, task, result);
 
             int accept=0, revoke=0, revokeRemedied=0, reduce=0, reduceRemedied=0, delegate=0, noDecision=0, noResponse=0;
             for (AccessCertificationCaseType _case : campaignCases) {
-                if (currentStageOnly && !_case.isEnabled()) {
+                if (currentStageOnly && _case.getCurrentStageNumber() != campaign.getStageNumber()) {
                     continue;
                 }
                 AccessCertificationResponseType response = _case.getCurrentResponse();

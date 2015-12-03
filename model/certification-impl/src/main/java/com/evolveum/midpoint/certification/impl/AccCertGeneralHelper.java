@@ -163,7 +163,7 @@ public class AccCertGeneralHelper {
         newCampaign.setStart(null);
         newCampaign.setEnd(null);
         newCampaign.setState(CREATED);
-        newCampaign.setCurrentStageNumber(0);
+        newCampaign.setStageNumber(0);
 
         return newCampaign;
     }

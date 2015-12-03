@@ -64,12 +64,12 @@ public class QueryBuilder {
         return R_Filter.create(builder);
     }
 
-    ItemDefinition findItemDefinition(ItemPath itemPath) throws SchemaException {
-        ItemDefinition itemDefinition = containerCTD.findItemDefinition(itemPath);
-        if (itemDefinition == null) {
-            throw new SchemaException("Couldn't find definition for '" + itemPath + "' in " + containerCTD);
-        }
-        return itemDefinition;
-    }
+//    ItemDefinition findItemDefinition(ItemPath itemPath) throws SchemaException {
+//        ItemDefinition itemDefinition = containerCTD.findItemDefinition(itemPath);
+//        if (itemDefinition == null) {
+//            throw new SchemaException("Couldn't find definition for '" + itemPath + "' in " + containerCTD);
+//        }
+//        return itemDefinition;
+//    }
 
 }

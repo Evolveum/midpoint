@@ -37,6 +37,7 @@ import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualEntity;
+import com.evolveum.midpoint.repo.sql.query2.definition.IdQueryProperty;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.query.definition.QueryEntity;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualAny;
@@ -179,7 +180,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     @GeneratedValue(generator = "ObjectOidGenerator")
     @GenericGenerator(name = "ObjectOidGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ObjectOidGenerator")
     @Column(name = "oid", nullable = false, updatable = false, length = RUtil.COLUMN_LENGTH_OID)
-    @NotQueryable
+    @IdQueryProperty
     public String getOid() {
         return oid;
     }

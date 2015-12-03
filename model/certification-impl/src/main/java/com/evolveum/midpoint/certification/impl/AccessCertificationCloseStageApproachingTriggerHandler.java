@@ -83,9 +83,9 @@ public class AccessCertificationCloseStageApproachingTriggerHandler implements T
 
 			eventHelper.onCampaignStageDeadlineApproaching(campaign, task, result);
 			List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaign.getOid(), null, null, task, result);
-			Collection<String> reviewers = eventHelper.getCurrentReviewers(caseList);
+			Collection<String> reviewers = eventHelper.getCurrentReviewers(campaign, caseList);
 			for (String reviewerOid : reviewers) {
-				List<AccessCertificationCaseType> reviewerCaseList = queryHelper.selectCasesForReviewer(caseList, reviewerOid);
+				List<AccessCertificationCaseType> reviewerCaseList = queryHelper.selectCasesForReviewer(campaign, caseList, reviewerOid);
 				ObjectReferenceType reviewerRef = ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER);
 				eventHelper.onReviewDeadlineApproaching(reviewerRef, reviewerCaseList, campaign, task, result);
 			}

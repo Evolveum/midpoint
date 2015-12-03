@@ -73,6 +73,8 @@ public class ItemPath implements Serializable, Cloneable {
 			return PrismConstants.T_PARENT;
 		} else if ("@".equals(name)) {
 			return PrismConstants.T_OBJECT_REFERENCE;
+		} else if ("#".equals(name)) {
+			return PrismConstants.T_ID;
 		} else {
 			return new QName(name);
 		}
@@ -151,6 +153,8 @@ public class ItemPath implements Serializable, Cloneable {
 			this.segments.add(new ParentPathSegment());
 		} else if (PrismConstants.T_OBJECT_REFERENCE.equals(qname)) {
 			this.segments.add(new ObjectReferencePathSegment());
+		} else if (PrismConstants.T_ID.equals(qname)) {
+			this.segments.add(new IdentifierPathSegment());
 		} else {
 			this.segments.add(new NameItemPathSegment(qname));
 		}
@@ -573,13 +577,13 @@ public class ItemPath implements Serializable, Cloneable {
         return clone;
     }
 
-	public static boolean containsReferences(ItemPath path) {
-		return path != null && path.containsReferences();
+	public static boolean containsSpecialSymbols(ItemPath path) {
+		return path != null && path.containsSpecialSymbols();
 	}
 
-	public boolean containsReferences() {
+	public boolean containsSpecialSymbols() {
 		for (ItemPathSegment segment : segments) {
-			if (segment instanceof ReferencePathSegment) {
+			if (segment instanceof ReferencePathSegment || segment instanceof IdentifierPathSegment) {
 				return true;
 			}
 		}
@@ -587,7 +591,7 @@ public class ItemPath implements Serializable, Cloneable {
 	}
 
 	public static void checkNoReferences(ItemPath path) {
-		if (containsReferences(path)) {
+		if (containsSpecialSymbols(path)) {
 			throw new IllegalStateException("Item path shouldn't contain references but it does: " + path);
 		}
 	}

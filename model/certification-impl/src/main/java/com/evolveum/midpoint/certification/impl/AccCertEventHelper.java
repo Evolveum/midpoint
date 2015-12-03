@@ -95,10 +95,10 @@ public class AccCertEventHelper implements AccessCertificationEventListener {
         }
     }
 
-    public Collection<String> getCurrentReviewers(List<AccessCertificationCaseType> caseList) {
+    public Collection<String> getCurrentReviewers(AccessCertificationCampaignType campaign, List<AccessCertificationCaseType> caseList) {
         Set<String> oids = new HashSet<>();
         for (AccessCertificationCaseType aCase : caseList) {
-            if (Boolean.TRUE.equals(aCase.isEnabled())) {
+            if (aCase.getCurrentStageNumber() == campaign.getStageNumber()) {
                 for (ObjectReferenceType reviewerRef : aCase.getReviewerRef()) {
                     oids.add(reviewerRef.getOid());
                 }

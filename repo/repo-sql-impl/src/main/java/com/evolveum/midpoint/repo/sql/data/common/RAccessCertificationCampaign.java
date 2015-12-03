@@ -20,10 +20,12 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationCase;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.data.common.enums.RAccessCertificationCampaignState;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
@@ -31,11 +33,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 
+import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -53,22 +58,21 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
     private REmbeddedReference definitionRef;
     private Set<RAccessCertificationCase> cases;
 
+    private REmbeddedReference ownerRef;
+    private String handlerUri;
+    private XMLGregorianCalendar start;
+    private XMLGregorianCalendar end;
+    private RAccessCertificationCampaignState state;
+    private Integer stageNumber;
+
     @Embedded
     public RPolyString getName() {
         return name;
     }
 
-    public void setName(RPolyString name) {
-        this.name = name;
-    }
-
     @Embedded
     public REmbeddedReference getDefinitionRef() {
         return definitionRef;
-    }
-
-    public void setDefinitionRef(REmbeddedReference definitionRef) {
-        this.definitionRef = definitionRef;
     }
 
     @OneToMany(mappedBy = RAccessCertificationCase.F_OWNER, orphanRemoval = true)
@@ -81,33 +85,98 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
         return cases;
     }
 
+    @Embedded
+    public REmbeddedReference getOwnerRef() {
+        return ownerRef;
+    }
+
+    public String getHandlerUri() {
+        return handlerUri;
+    }
+
+    @Column(name = "startTimestamp")
+    public XMLGregorianCalendar getStart() {
+        return start;
+    }
+
+    @Column(name = "endTimestamp")
+    public XMLGregorianCalendar getEnd() {
+        return end;
+    }
+
+    public RAccessCertificationCampaignState getState() {
+        return state;
+    }
+
+    public Integer getStageNumber() {
+        return stageNumber;
+    }
+
+    public void setName(RPolyString name) {
+        this.name = name;
+    }
+
+    public void setDefinitionRef(REmbeddedReference definitionRef) {
+        this.definitionRef = definitionRef;
+    }
+
     public void setCase(Set<RAccessCertificationCase> cases) {
         this.cases = cases;
+    }
+
+    public void setOwnerRef(REmbeddedReference ownerRef) {
+        this.ownerRef = ownerRef;
+    }
+
+    public void setHandlerUri(String handlerUri) {
+        this.handlerUri = handlerUri;
+    }
+
+    public void setStart(XMLGregorianCalendar start) {
+        this.start = start;
+    }
+
+    public void setEnd(XMLGregorianCalendar end) {
+        this.end = end;
+    }
+
+    public void setState(RAccessCertificationCampaignState state) {
+        this.state = state;
+    }
+
+    public void setStageNumber(Integer stageNumber) {
+        this.stageNumber = stageNumber;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof RAccessCertificationCampaign)) return false;
         if (!super.equals(o)) return false;
 
-        RAccessCertificationCampaign rACR = (RAccessCertificationCampaign) o;
+        RAccessCertificationCampaign that = (RAccessCertificationCampaign) o;
 
-        if (name != null ? !name.equals(rACR.name) : rACR.name != null)
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (definitionRef != null ? !definitionRef.equals(that.definitionRef) : that.definitionRef != null)
             return false;
-        if (definitionRef != null ? !definitionRef.equals(rACR.definitionRef) : rACR.definitionRef != null)
-            return false;
+        if (ownerRef != null ? !ownerRef.equals(that.ownerRef) : that.ownerRef != null) return false;
+        if (handlerUri != null ? !handlerUri.equals(that.handlerUri) : that.handlerUri != null) return false;
+        if (start != null ? !start.equals(that.start) : that.start != null) return false;
+        if (end != null ? !end.equals(that.end) : that.end != null) return false;
+        if (state != that.state) return false;
+        return !(stageNumber != null ? !stageNumber.equals(that.stageNumber) : that.stageNumber != null);
 
-        // TODO what about cases?
-
-        return true;
     }
 
     @Override
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + (name != null ? name.hashCode() : 0);
-        // TODO definitionRef ?
+        result = 31 * result + (handlerUri != null ? handlerUri.hashCode() : 0);
+        result = 31 * result + (start != null ? start.hashCode() : 0);
+        result = 31 * result + (end != null ? end.hashCode() : 0);
+        result = 31 * result + (state != null ? state.hashCode() : 0);
+        result = 31 * result + (stageNumber != null ? stageNumber.hashCode() : 0);
         return result;
     }
 
@@ -129,6 +198,12 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
             }
         }
 
+        repo.setOwnerRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOwnerRef(), prismContext));
+        repo.setHandlerUri(jaxb.getHandlerUri());
+        repo.setStart(jaxb.getStart());
+        repo.setEnd(jaxb.getEnd());
+        repo.setState(RUtil.getRepoEnumValue(jaxb.getState(), RAccessCertificationCampaignState.class));
+        repo.setStageNumber(jaxb.getStageNumber());
     }
 
     @Override

@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.prism.query.builder;
+package com.evolveum.midpoint.repo.sql.query2.definition;
 
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
+ * Target of "#" (ID) queries.
+ *
  * @author mederly
  */
-public interface S_QueryExit {
-
-    ObjectQuery build() throws SchemaException;
-    ObjectFilter buildFilter() throws SchemaException;
+@Target({ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface IdQueryProperty {
 
 }

@@ -99,7 +99,9 @@ public class LessFilter<T> extends ComparativeFilter<T> {
 	}	
 	@Override
 	public LessFilter clone() {
-		return new LessFilter(getFullPath(), getDefinition(), (PrismPropertyValue<T>) getValues().get(0), isEquals());
+		LessFilter clone = new LessFilter(getFullPath(), getDefinition(), getSingleValue(), isEquals());
+		clone.copyRightSideThingsFrom(this);
+		return clone;
 	}
 
 	@Override

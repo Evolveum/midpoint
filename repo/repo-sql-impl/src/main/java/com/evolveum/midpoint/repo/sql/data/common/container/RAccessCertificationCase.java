@@ -27,6 +27,7 @@ import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.query.definition.OwnerGetter;
+import com.evolveum.midpoint.repo.sql.query2.definition.IdQueryProperty;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -90,13 +91,12 @@ public class RAccessCertificationCase implements Container {
     private REmbeddedReference objectRef;
     private REmbeddedReference targetRef;
 
-    private boolean enabled;
     private XMLGregorianCalendar reviewRequestedTimestamp;
     private XMLGregorianCalendar reviewDeadline;
     private XMLGregorianCalendar remediedTimestamp;
     private Set<RAccessCertificationDecision> decisions;
     private RAccessCertificationResponse currentResponse;
-    private Integer currentResponseStage;
+    private Integer currentStageNumber;
 
     public RAccessCertificationCase() {
         this(null);
@@ -128,7 +128,7 @@ public class RAccessCertificationCase implements Container {
     @GeneratedValue(generator = "ContainerIdGenerator")
     @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator")
     @Column(name = "id")
-    @NotQueryable
+    @IdQueryProperty
     public Integer getId() {
         return id;
     }
@@ -158,12 +158,6 @@ public class RAccessCertificationCase implements Container {
         return objectRef;
     }
 
-    @Deprecated // probably will be replaced by query "case.currentResponseStage = campaign.currentStage"
-    @Column(name = "case_enabled")
-    public boolean isEnabled() {
-        return enabled;
-    }
-
     public XMLGregorianCalendar getReviewRequestedTimestamp() {
         return reviewRequestedTimestamp;
     }
@@ -190,8 +184,8 @@ public class RAccessCertificationCase implements Container {
         return currentResponse;
     }
 
-    public Integer getCurrentResponseStage() {
-        return currentResponseStage;
+    public Integer getCurrentStageNumber() {
+        return currentStageNumber;
     }
 
     public void setOwner(RObject owner) {
@@ -214,10 +208,6 @@ public class RAccessCertificationCase implements Container {
         this.objectRef = objectRef;
     }
 
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
     public void setReviewRequestedTimestamp(XMLGregorianCalendar reviewRequestedTimestamp) {
         this.reviewRequestedTimestamp = reviewRequestedTimestamp;
     }
@@ -238,8 +228,8 @@ public class RAccessCertificationCase implements Container {
         this.currentResponse = currentResponse;
     }
 
-    public void setCurrentResponseStage(Integer currentResponseStage) {
-        this.currentResponseStage = currentResponseStage;
+    public void setCurrentStageNumber(Integer currentStageNumber) {
+        this.currentStageNumber = currentStageNumber;
     }
 
     @Lob
@@ -258,7 +248,6 @@ public class RAccessCertificationCase implements Container {
 
         RAccessCertificationCase that = (RAccessCertificationCase) o;
 
-        if (enabled != that.enabled) return false;
         if (!Arrays.equals(fullObject, that.fullObject)) return false;
         if (ownerOid != null ? !ownerOid.equals(that.ownerOid) : that.ownerOid != null) return false;
         if (id != null ? !id.equals(that.id) : that.id != null) return false;
@@ -273,7 +262,7 @@ public class RAccessCertificationCase implements Container {
             return false;
         if (decisions != null ? !decisions.equals(that.decisions) : that.decisions != null) return false;
         if (currentResponse != that.currentResponse) return false;
-        return !(currentResponseStage != null ? !currentResponseStage.equals(that.currentResponseStage) : that.currentResponseStage != null);
+        return !(currentStageNumber != null ? !currentStageNumber.equals(that.currentStageNumber) : that.currentStageNumber != null);
 
     }
 
@@ -284,12 +273,11 @@ public class RAccessCertificationCase implements Container {
         result = 31 * result + (reviewerRef != null ? reviewerRef.hashCode() : 0);
         result = 31 * result + (objectRef != null ? objectRef.hashCode() : 0);
         result = 31 * result + (targetRef != null ? targetRef.hashCode() : 0);
-        result = 31 * result + (enabled ? 1 : 0);
         result = 31 * result + (reviewRequestedTimestamp != null ? reviewRequestedTimestamp.hashCode() : 0);
         result = 31 * result + (reviewDeadline != null ? reviewDeadline.hashCode() : 0);
         result = 31 * result + (remediedTimestamp != null ? remediedTimestamp.hashCode() : 0);
         result = 31 * result + (currentResponse != null ? currentResponse.hashCode() : 0);
-        result = 31 * result + (currentResponseStage != null ? currentResponseStage.hashCode() : 0);
+        result = 31 * result + (currentStageNumber != null ? currentStageNumber.hashCode() : 0);
         return result;
     }
 
@@ -329,18 +317,21 @@ public class RAccessCertificationCase implements Container {
 
     private static RAccessCertificationCase toRepo(AccessCertificationCaseType case1, IdGeneratorResult generatorResult, PrismContext prismContext) {
         RAccessCertificationCase rCase = new RAccessCertificationCase();
-        rCase.setTransient(generatorResult.isTransient(case1.asPrismContainerValue()));
+        if (generatorResult == null) {
+            rCase.setTransient(true);
+        } else {
+            rCase.setTransient(generatorResult.isTransient(case1.asPrismContainerValue()));
+        }
         rCase.setId(RUtil.toInteger(case1.getId()));
         rCase.setObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(case1.getObjectRef(), prismContext));
         rCase.setTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(case1.getTargetRef(), prismContext));
         rCase.getReviewerRef().addAll(RCertCaseReference.safeListReferenceToSet(
                 case1.getReviewerRef(), prismContext, rCase, RCReferenceOwner.CASE_REVIEWER));
-        rCase.setEnabled(case1.isEnabled());
         rCase.setReviewRequestedTimestamp(case1.getReviewRequestedTimestamp());
         rCase.setReviewDeadline(case1.getReviewDeadline());
         rCase.setRemediedTimestamp(case1.getRemediedTimestamp());
         rCase.setCurrentResponse(RUtil.getRepoEnumValue(case1.getCurrentResponse(), RAccessCertificationResponse.class));
-        rCase.setCurrentResponseStage(case1.getCurrentResponseStage());
+        rCase.setCurrentStageNumber(case1.getCurrentStageNumber());
         for (AccessCertificationDecisionType decision : case1.getDecision()) {
             RAccessCertificationDecision rDecision = RAccessCertificationDecision.toRepo(rCase, decision, generatorResult, prismContext);
             rCase.getDecision().add(rDecision);

@@ -186,7 +186,11 @@ public class RAccessCertificationDecision implements L2Container<RAccessCertific
 
     private static RAccessCertificationDecision toRepo(AccessCertificationDecisionType decision, IdGeneratorResult generatorResult, PrismContext prismContext) {
         RAccessCertificationDecision rDecision = new RAccessCertificationDecision();
-        rDecision.setTransient(generatorResult.isTransient(decision.asPrismContainerValue()));
+        if (generatorResult == null) {
+            rDecision.setTransient(true);
+        } else {
+            rDecision.setTransient(generatorResult.isTransient(decision.asPrismContainerValue()));
+        }
         rDecision.setId(RUtil.toInteger(decision.getId()));
         rDecision.setStageNumber(decision.getStageNumber());
         rDecision.setReviewerRef(RUtil.jaxbRefToEmbeddedRepoRef(decision.getReviewerRef(), prismContext));

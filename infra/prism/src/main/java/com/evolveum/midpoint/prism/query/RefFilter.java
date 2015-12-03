@@ -138,7 +138,7 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue> {
 
 	}
 	
-	private static RefFilter createNullRefFilter(ItemPath path, PrismReferenceDefinition refDef){
+	public static RefFilter createNullRefFilter(ItemPath path, PrismReferenceDefinition refDef){
 		return new RefFilter(path, refDef, null, null);
 	}
 
@@ -237,6 +237,4 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue> {
 		// TODO Auto-generated method stub
 		return (PrismReferenceDefinition) super.getDefinition();
 	}
-
-
 }

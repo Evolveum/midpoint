@@ -12407,7 +12407,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="currentStageNumber" type="xsd:int" minOccurs="1">
+                    <xsd:element name="stageNumber" type="xsd:int" minOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
                                 The stage this campaign is in.
@@ -12717,12 +12717,16 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="currentResponseStage" type="xsd:int" minOccurs="0" maxOccurs="1">
+            <xsd:element name="currentStageNumber" type="xsd:int" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The number of current stage to which the "currentResponse" relates to.
-                        If the case is not transferred into the next stage, the value of this item stays to be set as it is -
-                        indicating the last stage this case took part in.
+                        The number of current stage in which this case is.
+                        E.g. currentResponse relates to the currentStage.
+                        Case is "enabled" for a current campaign stage if and only if case.currentStage == campaign.stageNumber.
+
+                        When opening a campaign stage, case's currentStage either advances (if it is transferred to stage being opened)
+                        or stays at the existing value (if it is not). It then indicates the last stage this case
+                        took part of.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -12733,14 +12737,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>-->
-            <xsd:element name="enabled" type="xsd:boolean" minOccurs="1" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Is the case enabled for the current stage? E.g. cases that have been marked as "remove" in a given stage
-                        may be disabled for later stages.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
+            <!--<xsd:element name="enabled" type="xsd:boolean" minOccurs="1" maxOccurs="1">-->
+                <!--<xsd:annotation>-->
+                    <!--<xsd:documentation>-->
+                        <!--Is the case enabled for the current stage? E.g. cases that have been marked as "remove" in a given stage-->
+                        <!--may be disabled for later stages.-->
+                    <!--</xsd:documentation>-->
+                <!--</xsd:annotation>-->
+            <!--</xsd:element>-->
             <xsd:element name="remediedTimestamp" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

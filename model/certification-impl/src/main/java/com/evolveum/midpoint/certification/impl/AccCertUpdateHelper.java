@@ -19,6 +19,7 @@ package com.evolveum.midpoint.certification.impl;
 import com.evolveum.midpoint.certification.impl.handlers.CertificationHandler;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -143,7 +144,7 @@ public class AccCertUpdateHelper {
         decision = decision.clone();        // to not modify the original decision
 
         // filling-in missing pieces (if any)
-        int currentStage = campaign.getCurrentStageNumber();
+        int currentStage = campaign.getStageNumber();
         if (decision.getStageNumber() == 0) {
             decision.setStageNumber(currentStage);
         } else {
@@ -163,9 +164,9 @@ public class AccCertUpdateHelper {
         if (_case == null) {
             throw new ObjectNotFoundException("Case " + caseId + " was not found in campaign " + ObjectTypeUtil.toShortString(campaign));
         }
-        if (!_case.isEnabled()) {
-            throw new IllegalStateException("Cannot update case because it is not update-enabled in this stage");
-        }
+//        if (!_case.isEnabled()) {
+//            throw new IllegalStateException("Cannot update case because it is not update-enabled in this stage");
+//        }
 
         AccessCertificationDecisionType existingDecision = CertCampaignTypeUtil.findDecision(_case, currentStage, decision.getReviewerRef().getOid());
 
@@ -206,7 +207,7 @@ public class AccCertUpdateHelper {
     }
 
     void closeCampaign(AccessCertificationCampaignType campaign, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
-        int currentStageNumber = campaign.getCurrentStageNumber();
+        int currentStageNumber = campaign.getStageNumber();
         int lastStageNumber = CertCampaignTypeUtil.getNumberOfStages(campaign);
         AccessCertificationCampaignStateType currentState = campaign.getState();
         // TODO issue a warning if we are not in a correct state
@@ -243,7 +244,7 @@ public class AccCertUpdateHelper {
     }
 
     private PropertyDelta<Integer> createStageNumberDelta(int number) {
-        return PropertyDelta.createReplaceDelta(helper.getCampaignObjectDefinition(), AccessCertificationCampaignType.F_CURRENT_STAGE_NUMBER, number);
+        return PropertyDelta.createReplaceDelta(helper.getCampaignObjectDefinition(), AccessCertificationCampaignType.F_STAGE_NUMBER, number);
     }
 
     private PropertyDelta<AccessCertificationCampaignStateType> createStateDelta(AccessCertificationCampaignStateType state) {
@@ -259,7 +260,7 @@ public class AccCertUpdateHelper {
         Validate.notNull(campaign, "certificationCampaign");
         Validate.notNull(campaign.getOid(), "certificationCampaign.oid");
 
-        int stageNumber = campaign.getCurrentStageNumber();
+        int stageNumber = campaign.getStageNumber();
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("moveToNextStage starting; campaign = {}, stage number = {}",
@@ -364,15 +365,17 @@ public class AccCertUpdateHelper {
             AccessCertificationCaseType _case = caseList.get(i);
             _case.setReviewRequestedTimestamp(stage.getStart());
             _case.setReviewDeadline(stage.getEnd());
-            _case.setEnabled(true);
             _case.setCurrentResponse(null);
-            _case.setCurrentResponseStage(1);
+            _case.setCurrentStageNumber(1);
+
+            reviewersHelper.setupReviewersForCase(_case, campaign, reviewerSpec, task, result);
+
+            List<AccessCertificationDecisionType> decisions = createEmptyDecisionsForCase(_case.getReviewerRef(), 1);
+            _case.getDecision().addAll(decisions);
 
             PrismContainerValue<AccessCertificationCaseType> caseCVal = _case.asPrismContainerValue();
             caseCVal.setId((long) (i + 1));
             caseDelta.addValueToAdd(caseCVal);
-
-            reviewersHelper.setupReviewersForCase(_case, campaign, reviewerSpec, task, result);
 
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Adding certification case:\n{}", caseCVal.debugDump());
@@ -394,11 +397,29 @@ public class AccCertUpdateHelper {
         LOGGER.trace("Created stage and {} cases for campaign {}", caseList.size(), campaignShortName);
     }
 
+    // BRUTAL HACK: we fill-in decisions when in stage 1 (to be fixed in repository implementation)
+    private List<AccessCertificationDecisionType> createEmptyDecisionsForCase(List<ObjectReferenceType> forReviewers, int forStage) {
+        long id = 1;
+        List<AccessCertificationDecisionType> decisions = new ArrayList<>();
+        for (ObjectReferenceType reviewer : forReviewers) {
+            AccessCertificationDecisionType decision = new AccessCertificationDecisionType(prismContext);
+            decision.setReviewerRef(reviewer);
+            decision.setStageNumber(forStage);
+            decision.setResponse(null);
+            decision.setTimestamp(null);
+            if (forStage == 1) {
+                decision.setId(id++);
+            }
+            decisions.add(decision);
+        }
+        return decisions;
+    }
+
     private void updateCases(AccessCertificationCampaignType campaign, AccessCertificationStageType stage, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
         LOGGER.trace("Updating reviewers and timestamps for cases in {}", ObjectTypeUtil.toShortString(campaign));
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaign.getOid(), null, null, task, result);
 
-        int stageToBe = campaign.getCurrentStageNumber() + 1;
+        int stageToBe = campaign.getStageNumber() + 1;
 
         AccessCertificationReviewerSpecificationType reviewerSpec =
                 reviewersHelper.findReviewersSpecification(campaign, stageToBe, task, result);
@@ -407,14 +428,14 @@ public class AccCertUpdateHelper {
         for (int i = 0; i < caseList.size(); i++) {
             AccessCertificationCaseType _case = caseList.get(i);
 
-            boolean enabled = computationHelper.computeEnabled(_case);
-            PropertyDelta enabledDelta = PropertyDelta.createModificationReplaceProperty(
-                    new ItemPath(
-                            new NameItemPathSegment(AccessCertificationCampaignType.F_CASE),
-                            new IdItemPathSegment(_case.asPrismContainerValue().getId()),
-                            new NameItemPathSegment(AccessCertificationCaseType.F_ENABLED)),
-                    helper.getCampaignObjectDefinition(), enabled);
-            campaignDeltaList.add(enabledDelta);
+            boolean enabled = computationHelper.computeEnabled(campaign, _case);
+//            PropertyDelta enabledDelta = PropertyDelta.createModificationReplaceProperty(
+//                    new ItemPath(
+//                            new NameItemPathSegment(AccessCertificationCampaignType.F_CASE),
+//                            new IdItemPathSegment(_case.asPrismContainerValue().getId()),
+//                            new NameItemPathSegment(AccessCertificationCaseType.F_ENABLED)),
+//                    helper.getCampaignObjectDefinition(), enabled);
+//            campaignDeltaList.add(enabledDelta);
 
             if (enabled) {
                 reviewersHelper.setupReviewersForCase(_case, campaign, reviewerSpec, task, result);
@@ -429,6 +450,13 @@ public class AccCertUpdateHelper {
                             new NameItemPathSegment(AccessCertificationCaseType.F_REVIEWER_REF)),
                     helper.getCampaignObjectDefinition(), CloneUtil.cloneCollectionMembers(reviewersRef.getValues()));
             campaignDeltaList.add(reviewerDelta);
+
+            List<AccessCertificationDecisionType> newDecisions = createEmptyDecisionsForCase(_case.getReviewerRef(), stageToBe);
+            PrismContainerDefinition decisionDef =
+                    prismContext.getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(AccessCertificationCaseType.class)
+                        .findContainerDefinition(AccessCertificationCaseType.F_DECISION);
+            ContainerDelta decisionDelta = ContainerDelta.createDelta(AccessCertificationCaseType.F_DECISION, decisionDef);
+            decisionDelta.addValuesToAdd(newDecisions);
 
             PropertyDelta reviewRequestedTimestampDelta = PropertyDelta.createModificationReplaceProperty(
                     new ItemPath(
@@ -461,7 +489,7 @@ public class AccCertUpdateHelper {
                         new ItemPath(
                                 new NameItemPathSegment(AccessCertificationCampaignType.F_CASE),
                                 new IdItemPathSegment(_case.asPrismContainerValue().getId()),
-                                new NameItemPathSegment(AccessCertificationCaseType.F_CURRENT_RESPONSE_STAGE)),
+                                new NameItemPathSegment(AccessCertificationCaseType.F_CURRENT_STAGE_NUMBER)),
                         helper.getCampaignObjectDefinition(),
                         stageToBe);
                 campaignDeltaList.add(currentResponseStageDelta);
@@ -526,11 +554,11 @@ public class AccCertUpdateHelper {
 
         // notifications
         campaign = refreshCampaign(campaign, task, result);
-        if (campaign.getCurrentStageNumber() == 1) {
+        if (campaign.getStageNumber() == 1) {
             eventHelper.onCampaignStart(campaign, task, result);
         }
         eventHelper.onCampaignStageStart(campaign, task, result);
-        Collection<String> reviewers = eventHelper.getCurrentReviewers(caseList);
+        Collection<String> reviewers = eventHelper.getCurrentReviewers(campaign, caseList);
         for (String reviewerOid : reviewers) {
             List<AccessCertificationCaseType> cases = queryHelper.getCasesForReviewer(campaign, reviewerOid, task, result);
             ObjectReferenceType reviewerRef = ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER);
@@ -562,7 +590,7 @@ public class AccCertUpdateHelper {
 
         for (int i = 0; i < caseList.size(); i++) {
             AccessCertificationCaseType _case = caseList.get(i);
-            if (Boolean.FALSE.equals(_case.isEnabled())) {
+            if (_case.getCurrentStageNumber() != campaign.getStageNumber()) {
                 continue;
             }
             AccessCertificationResponseType newResponse = computationHelper.computeResponseForStage(_case, campaign);

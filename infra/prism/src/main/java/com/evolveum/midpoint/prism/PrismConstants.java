@@ -95,6 +95,7 @@ public class PrismConstants {
 	// Path constants
 	public static final QName T_PARENT = new QName(NS_TYPES, "parent");
 	public static final QName T_OBJECT_REFERENCE = new QName(NS_TYPES, "objectReference");
+	public static final QName T_ID = new QName(NS_TYPES, "id");
 
 	// Misc
 	

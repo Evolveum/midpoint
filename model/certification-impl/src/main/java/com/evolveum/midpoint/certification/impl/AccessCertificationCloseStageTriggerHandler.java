@@ -76,7 +76,7 @@ public class AccessCertificationCloseStageTriggerHandler implements TriggerHandl
 			AccessCertificationCampaignType campaign = (AccessCertificationCampaignType) object;
 			LOGGER.info("Automatically closing current stage of {}", ObjectTypeUtil.toShortString(campaign));
 
-			int currentStageNumber = campaign.getCurrentStageNumber();
+			int currentStageNumber = campaign.getStageNumber();
 			certificationManager.closeCurrentStage(campaign.getOid(), currentStageNumber, task, result);
 			if (currentStageNumber < CertCampaignTypeUtil.getNumberOfStages(campaign)) {
 				LOGGER.info("Automatically opening next stage of {}", ObjectTypeUtil.toShortString(campaign));

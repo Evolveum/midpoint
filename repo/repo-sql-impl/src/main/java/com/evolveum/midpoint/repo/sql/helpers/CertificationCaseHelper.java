@@ -97,7 +97,7 @@ public class CertificationCaseHelper {
             AccessCertificationCaseType caseType = new AccessCertificationCaseType();
             caseType.setupContainerValue(value);
             caseType.setCampaignRef(ObjectTypeUtil.createObjectRef(campaignOid, ObjectTypes.ACCESS_CERTIFICATION_CAMPAIGN));
-            RAccessCertificationCase row = RAccessCertificationCase.toRepo(campaignOid, caseType, new IdGeneratorResult(), prismContext);
+            RAccessCertificationCase row = RAccessCertificationCase.toRepo(campaignOid, caseType, null, prismContext);
             row.setId(currentId);
             currentId++;
             session.save(row);
@@ -163,6 +163,8 @@ public class CertificationCaseHelper {
                 throw new IllegalStateException("Wrong campaign delta sneaked into updateCampaignCases: class=" + delta.getClass() + ", path=" + deltaPath);
             }
 
+            // TODO treat missing decision IDs somehow
+
             if (deltaPath.size() == 1) {
                 if (delta.getValuesToDelete() != null) {
                     // todo do 'bulk' delete like delete from ... where oid=? and id in (...)
@@ -180,7 +182,7 @@ public class CertificationCaseHelper {
                 }
                 if (delta.getValuesToAdd() != null) {
                     int currentId = generalHelper.findLastIdInRepo(session, campaignOid, "get.campaignCaseLastId") + 1;
-                    affectedIds.add((long) currentId);
+                    affectedIds.add((long) currentId);      // TODO !!!!!!!!!!!!!!!!!! clear bug
                     addCertificationCampaignCases(session, campaignOid, delta.getValuesToAdd(), currentId);
                 }
                 if (delta.getValuesToReplace() != null) {

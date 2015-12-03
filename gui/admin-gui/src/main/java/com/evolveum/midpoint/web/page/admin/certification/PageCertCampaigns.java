@@ -627,7 +627,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 	}
 
 	protected String determineAction(AccessCertificationCampaignType campaign) {
-		int currentStage = campaign.getCurrentStageNumber();
+		int currentStage = campaign.getStageNumber();
 		int numOfStages = CertCampaignTypeUtil.getNumberOfStages(campaign);
 		AccessCertificationCampaignStateType state = campaign.getState();
 		String button;
@@ -674,7 +674,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 		CertificationManager cm = getCertificationManager();
 		try {
 			Task task = createSimpleTask(OPERATION_OPEN_NEXT_STAGE);
-			int currentStage = campaign.getCurrentStageNumber();
+			int currentStage = campaign.getStageNumber();
 			cm.openNextStage(campaign.getOid(), currentStage + 1, task, result);
 		} catch (Exception ex) {
 			result.recordFatalError(ex);
@@ -714,7 +714,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 		try {
 			CertificationManager cm = getCertificationManager();
 			Task task = createSimpleTask(OPERATION_CLOSE_STAGE);
-			cm.closeCurrentStage(campaign.getOid(), campaign.getCurrentStageNumber(), task, result);
+			cm.closeCurrentStage(campaign.getOid(), campaign.getStageNumber(), task, result);
 		}catch (Exception ex) {
 			result.recordFatalError(ex);
 		} finally {

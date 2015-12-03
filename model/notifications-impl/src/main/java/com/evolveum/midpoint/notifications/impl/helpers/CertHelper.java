@@ -78,7 +78,7 @@ public class CertHelper {
     }
 
     private String formatStage(AccessCertificationCampaignType campaign) {
-        String rv = campaign.getCurrentStageNumber() + "/" + CertCampaignTypeUtil.getNumberOfStages(campaign);
+        String rv = campaign.getStageNumber() + "/" + CertCampaignTypeUtil.getNumberOfStages(campaign);
 
         AccessCertificationStageType stage = CertCampaignTypeUtil.findCurrentStage(campaign);
         if (StringUtils.isNotEmpty(stage.getName())) {
@@ -91,7 +91,7 @@ public class CertHelper {
         if (campaign.getState() == AccessCertificationCampaignStateType.IN_REMEDIATION) {
             return "remediation stage";
         } else {
-            return "stage " + campaign.getCurrentStageNumber() + "/" + CertCampaignTypeUtil.getNumberOfStages(campaign);
+            return "stage " + campaign.getStageNumber() + "/" + CertCampaignTypeUtil.getNumberOfStages(campaign);
         }
     }
 

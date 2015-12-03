@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.prism.query.builder;
 
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -28,20 +29,22 @@ import java.nio.file.attribute.AclEntry;
  */
 public interface S_ConditionEntry {
     S_MatchingRuleEntry eq(Object value);
+    S_RightHandItemEntry eq();
     S_MatchingRuleEntry eqPoly(String orig, String norm);
-    S_MatchingRuleEntry eqItem(QName... value);
     S_MatchingRuleEntry gt(Object value) throws SchemaException;
-    S_MatchingRuleEntry gtItem(QName... names) throws SchemaException;
+    S_RightHandItemEntry gt();
     S_MatchingRuleEntry ge(Object value) throws SchemaException;
-    S_MatchingRuleEntry geItem(QName... names);
+    S_RightHandItemEntry ge();
     S_MatchingRuleEntry lt(Object value) throws SchemaException;
-    S_MatchingRuleEntry ltItem(QName... names);
+    S_RightHandItemEntry lt();
     S_MatchingRuleEntry le(Object value) throws SchemaException;
-    S_MatchingRuleEntry leItem(QName... names);
+    S_RightHandItemEntry le();
     S_AtomicFilterExit startsWith(String value);
     S_AtomicFilterExit endsWith(String value);
     S_AtomicFilterExit contains(String value);
     S_AtomicFilterExit ref(PrismReferenceValue value);
     S_AtomicFilterExit ref(String oid);
+    S_AtomicFilterExit ref(String oid, QName targetTypeName);
     S_AtomicFilterExit isNull();
+
 }

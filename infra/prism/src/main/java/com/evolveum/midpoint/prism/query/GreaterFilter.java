@@ -25,7 +25,6 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
@@ -88,7 +87,9 @@ public class GreaterFilter<T> extends ComparativeFilter<T> {
 	
 	@Override
 	public GreaterFilter clone() {
-		return new GreaterFilter(getFullPath(), getDefinition(), (PrismPropertyValue<T>) getValues().get(0), isEquals());
+		GreaterFilter clone = new GreaterFilter(getFullPath(), getDefinition(), getSingleValue(), isEquals());
+		clone.copyRightSideThingsFrom(this);
+		return clone;
 	}
 
 	@Override
