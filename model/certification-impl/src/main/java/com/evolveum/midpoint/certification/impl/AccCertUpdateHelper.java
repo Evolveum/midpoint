@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -456,7 +457,9 @@ public class AccCertUpdateHelper {
                     prismContext.getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(AccessCertificationCaseType.class)
                         .findContainerDefinition(AccessCertificationCaseType.F_DECISION);
             ContainerDelta decisionDelta = ContainerDelta.createDelta(AccessCertificationCaseType.F_DECISION, decisionDef);
-            decisionDelta.addValuesToAdd(newDecisions);
+            for (AccessCertificationDecisionType newDecision : newDecisions) {
+                decisionDelta.addValueToAdd(new PrismPropertyValue<>(newDecision));
+            }
 
             PropertyDelta reviewRequestedTimestampDelta = PropertyDelta.createModificationReplaceProperty(
                     new ItemPath(
