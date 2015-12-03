@@ -158,7 +158,8 @@ public class AccCertQueryHelper {
         ObjectPaging paging1 = query.getPaging().clone();
         ObjectOrdering primary = ObjectOrdering.createOrdering(newPath, oldDirection);
         ObjectOrdering secondary = ObjectOrdering.createOrdering(new ItemPath(PrismConstants.T_ID), OrderDirection.ASCENDING);     // to avoid random shuffling if first criteria is too vague
-        paging1.setOrdering(primary, secondary);
+        ObjectOrdering tertiary = ObjectOrdering.createOrdering(new ItemPath(T_PARENT, PrismConstants.T_ID), OrderDirection.ASCENDING); // campaign OID
+        paging1.setOrdering(primary, secondary, tertiary);
         ObjectQuery query1 = query.clone();
         query1.setPaging(paging1);
         return query1;

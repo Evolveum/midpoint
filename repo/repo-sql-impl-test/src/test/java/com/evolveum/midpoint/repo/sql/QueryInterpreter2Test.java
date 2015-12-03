@@ -3010,6 +3010,59 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
+    @Test
+    public void test925DecisionsNotAnsweredOrderBy() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+                    .exists(F_DECISION)
+                    .block()
+                        .item(AccessCertificationDecisionType.F_REVIEWER_REF).ref("123456")
+                        .and().item(F_STAGE_NUMBER).eq().item(T_PARENT, F_CURRENT_STAGE_NUMBER)
+                        .and().block()
+                            .item(F_RESPONSE).isNull()
+                            .or().item(F_RESPONSE).eq(NO_RESPONSE)
+                        .endBlock()
+                    .endBlock()
+                    .asc(T_PARENT, F_NAME)
+                    .asc(T_ID)
+                    .asc(T_PARENT, T_ID)
+                    .build();
+
+            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query);
+            String expected = "select\n" +
+                    "  a.fullObject\n" +
+                    "from\n" +
+                    "  RAccessCertificationCase a\n" +
+                    "    left join a.decision d\n" +
+                    "    left join a.owner o\n" +
+                    "    left join a.owner o2\n" +
+                    "where\n" +
+                    "  (\n" +
+                    "    (\n" +
+                    "      d.reviewerRef.targetOid = :targetOid and\n" +
+                    "      d.reviewerRef.relation = :relation\n" +
+                    "    ) and\n" +
+                    "    (\n" +
+                    "      d.stageNumber = a.currentStageNumber or\n" +
+                    "      (\n" +
+                    "        d.stageNumber is null and\n" +
+                    "        a.currentStageNumber is null\n" +
+                    "      )\n" +
+                    "    ) and\n" +
+                    "    (\n" +
+                    "      d.response is null or\n" +
+                    "      d.response = :response\n" +
+                    "    )\n" +
+                    "  )\n" +
+                    "order by o.name.orig asc, a.id asc, o2.oid asc\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
 //    @Test
 //    public void test930OrganizationEqualsCostCenter() throws Exception {
 //        Session session = open();
