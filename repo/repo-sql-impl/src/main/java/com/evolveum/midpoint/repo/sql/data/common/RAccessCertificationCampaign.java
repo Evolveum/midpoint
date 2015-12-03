@@ -38,6 +38,7 @@ import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -75,9 +76,7 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
         return definitionRef;
     }
 
-    @OneToMany(mappedBy = RAccessCertificationCase.F_OWNER, orphanRemoval = true)
-    @ForeignKey(name = "none")
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @Transient
     public Set<RAccessCertificationCase> getCase() {
         if (cases == null) {
             cases = new HashSet<>();

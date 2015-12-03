@@ -18,10 +18,12 @@ package com.evolveum.midpoint.prism.query;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 
+import java.io.Serializable;
+
 /**
  * @author mederly
  */
-public class ObjectOrdering {
+public class ObjectOrdering implements Serializable {
 
     final private ItemPath orderBy;
     final private OrderDirection direction;

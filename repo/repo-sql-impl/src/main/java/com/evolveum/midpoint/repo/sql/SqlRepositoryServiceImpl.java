@@ -1252,6 +1252,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 options = null;
             }
 
+            // TODO skip processing if there are no modifications other than row/case ones
+
             // get object
             PrismObject<T> prismObject = getObject(session, type, oid, options, true);
             // apply diff

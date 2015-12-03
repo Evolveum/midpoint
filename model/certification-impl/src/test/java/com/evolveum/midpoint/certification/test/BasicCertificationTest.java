@@ -158,7 +158,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        AccessCertificationCampaignType campaign = getObject(AccessCertificationCampaignType.class, campaignOid).asObjectable();
+        AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 1", campaign);
 
         assertStateAndStage(campaign, IN_REVIEW_STAGE, 1);
@@ -426,7 +426,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        AccessCertificationCampaignType campaign = getObject(AccessCertificationCampaignType.class, campaignOid).asObjectable();
+        AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 1", campaign);
 
         assertStateAndStage(campaign, REVIEW_STAGE_DONE, 1);
@@ -459,7 +459,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertInProgressOrSuccess(result);
 
-        AccessCertificationCampaignType campaign = getObject(AccessCertificationCampaignType.class, campaignOid).asObjectable();
+        AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign after remediation start", campaign);
         assertTrue("wrong campaign state: " + campaign.getState(), campaign.getState() == CLOSED || campaign.getState() == IN_REMEDIATION);
 
@@ -468,7 +468,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         assertEquals("unexpected number of related tasks", 1, tasks.size());
         waitForTaskFinish(tasks.get(0).getOid(), true);
 
-        campaign = getObject(AccessCertificationCampaignType.class, campaignOid).asObjectable();
+        campaign = getCampaignWithCases(campaignOid);
         assertEquals("wrong campaign state", CLOSED, campaign.getState());
         assertEquals("wrong campaign stage", 2, campaign.getStageNumber());
         assertDefinitionAndOwner(campaign, certificationDefinition);
