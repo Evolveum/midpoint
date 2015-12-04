@@ -1,8 +1,11 @@
 package com.evolveum.midpoint.web.component.form;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ObjectSelectionPage;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import org.apache.wicket.Page;
@@ -55,14 +58,22 @@ public class ValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
 
 	private static final String CLASS_MULTI_VALUE = "multivalue-form";
 
-	public ValueChoosePanel(String id, IModel<T> value, List<PrismReferenceValue> values, boolean required, Class<C> type) {
-		super(id, value);
-		setOutputMarkupId(true);
+    private Collection<SelectorOptions<GetOperationOptions>> options = null;
 
-		initLayout(value, values, required, type);
+    public ValueChoosePanel(String id, IModel<T> value, List<PrismReferenceValue> values, boolean required, Class<C> type) {
+        this(id, value, values, required, type, null, null);
 	}
 
-	private void initLayout(final IModel<T> value, final List<PrismReferenceValue> values, final boolean required, Class<C> type) {
+    public ValueChoosePanel(String id, IModel<T> value, List<PrismReferenceValue> values, boolean required, Class<C> type,
+                            ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options){
+        super(id, value);
+        setOutputMarkupId(true);
+        this.options = options;
+        initLayout(value, values, required, type, query);
+    }
+
+        private void initLayout(final IModel<T> value, final List<PrismReferenceValue> values,
+                                final boolean required, Class<C> type, ObjectQuery query) {
 
 		
 		WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
@@ -92,7 +103,7 @@ public class ValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
 		textWrapper.add(edit);
 		add(textWrapper);
 
-		initDialog(type, values);
+		initDialog(type, values, query);
 
 	}
 	
@@ -108,19 +119,19 @@ public class ValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
 		 
 	  }
 
-	protected void initDialog(final Class<C> type, List<PrismReferenceValue> values) {
+	protected void initDialog(final Class<C> type, List<PrismReferenceValue> values, ObjectQuery query) {
 		
 		if (FocusType.class.equals(type)){
 			 initUserOrgDialog();
          } else {
-        	 initGenericDialog(type, values);
+        	 initGenericDialog(type, values, query);
 		
 		
          }
 	}
 
 	// for ModalWindow treatment see comments in ChooseTypePanel
-	private void initGenericDialog(final Class<C> type, final List<PrismReferenceValue> values) {
+	private void initGenericDialog(final Class<C> type, final List<PrismReferenceValue> values, final ObjectQuery query) {
 		final ModalWindow dialog = new ModalWindow(MODAL_ID_OBJECT_SELECTION_POPUP);
 
 		ObjectSelectionPanel.Context context = new ObjectSelectionPanel.Context(this) {
@@ -135,14 +146,23 @@ public class ValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
 				getRealParent().choosePerformed(target, object);
 			}
 
+            @Override
+            public Collection<SelectorOptions<GetOperationOptions>> getDataProviderOptions(){
+                return options;
+            }
+
 			@Override
 			public ObjectQuery getDataProviderQuery() {
-				return getRealParent().createChooseQuery(values);
+                if (query != null){
+                    return query;
+                } else {
+                    return getRealParent().createChooseQuery(values);
+                }
 			}
 
 			@Override
 			public boolean isSearchEnabled() {
-				return true;
+				return false;
 			}
 
 			@Override

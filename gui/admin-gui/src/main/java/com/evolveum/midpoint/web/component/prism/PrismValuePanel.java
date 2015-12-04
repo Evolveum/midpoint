@@ -29,10 +29,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -414,45 +411,22 @@ public class PrismValuePanel extends Panel {
               ContainerWrapper containerWrapper = itemWrapper.getContainer();
               if(containerWrapper != null && containerWrapper.getPath() != null){
                   if(ShadowType.F_ASSOCIATION.getLocalPart().equals(containerWrapper.getPath().toString())){
-                      Class typeFromName = null;
                       PrismContext prismContext = item.getPrismContext();
                       if (prismContext == null) {
                           prismContext = pageBase.getPrismContext();
                       }
 
                       PrismContainerValue assocContainer = (PrismContainerValue)item.getParent();
-                      PrismProperty assocObjectClassItem = (PrismProperty)assocContainer.findItem(ShadowType.F_OBJECT_CLASS);
-                      QName objectClassName = null;
-                      if (assocObjectClassItem != null && assocObjectClassItem.getValues() != null
-                              && assocObjectClassItem.getValues().size() > 0) {
-                          objectClassName = (QName)((PrismPropertyValue)assocObjectClassItem.getValues().get(0)).getValue();
-                      }
-
+                      PrismProperty objectClassItem = (PrismProperty)assocContainer.findItem(ShadowType.F_OBJECT_CLASS);
                       PrismProperty kindItem = (PrismProperty)assocContainer.findItem(ShadowType.F_KIND);
-                      ShadowKindType shadowKindType = null;
-                      if (kindItem != null){
-                          shadowKindType = kindItem.getValues() != null && kindItem.getValues().size() > 0 ?
-                                          (ShadowKindType)((PrismPropertyValue)kindItem.getValues().get(0)).getValue() : null;
-                      }
-
                       PrismProperty intentItem = (PrismProperty)assocContainer.findItem(ShadowType.F_INTENT);
-                      String intentValue = "";
-                      if (intentItem != null){
-                          intentValue = intentItem.getValues() != null && intentItem.getValues().size() > 0 ?
-                                          (String)((PrismPropertyValue)intentItem.getValues().get(0)).getValue() : "";
-                      }
-
-                      List<PrismObject<ShadowType>> values = loadAssociationShadows(assocObjectClassItem, kindItem, intentItem);
+                      PrismObject<ResourceType> resource = ((ShadowType)containerWrapper.getObject().getObject().asObjectable()).getResource().asPrismObject();
+                      ObjectQuery query = getAssociationsSearchQuery(resource,
+                              objectClassItem, kindItem, intentItem);
+                      List<PrismObject<ShadowType>> values = loadAssociationShadows(query);
 
                       return new ValueChoosePanel(id,
-                              new PropertyModel<>(model, "value"), values, false, ShadowType.class);
-//                      return new TextDetailsPanel(id, new PropertyModel<String>(model, baseExpression)){
-//
-//                          @Override
-//                          public String createAssociationTooltip(){
-//                              return createAssociationTooltipText(property);
-//                          }
-//                      };
+                              new PropertyModel<>(model, "value"), values, false, ShadowType.class, query, getAssociationsSearchOptions());
                   }
               }
 
@@ -798,30 +772,38 @@ public class PrismValuePanel extends Panel {
         target.add(parent.getParent());
     }
 
-    private List<PrismObject<ShadowType>> loadAssociationShadows(PrismProperty objectClass, PrismProperty kind,
-                                                                 PrismProperty intent) {
+    private List<PrismObject<ShadowType>> loadAssociationShadows(ObjectQuery query) {
         Task task = pageBase.createSimpleTask(OPERATION_LOAD_ASSOC_SHADOWS);
         OperationResult result = new OperationResult(OPERATION_LOAD_ASSOC_SHADOWS);
 
         List<PrismObject<ShadowType>> assocShadows = null;
         try {
-            ObjectFilter andFilter = AndFilter.createAnd(EqualFilter.createEqual(new ItemPath(ShadowType.F_OBJECT_CLASS), objectClass),
-                    EqualFilter.createEqual(new ItemPath(ShadowType.F_KIND), kind),
-                    EqualFilter.createEqual(new ItemPath(ShadowType.F_INTENT), intent));
-            ObjectQuery objectQuery =  ObjectQuery.createObjectQuery(andFilter);
 
-            objectQuery.setFilter(andFilter);
-            Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
-
-            assocShadows = pageBase.getModelService().searchObjects(ShadowType.class, new ObjectQuery(), null, task, result);
+            assocShadows = pageBase.getModelService().searchObjects(ShadowType.class, query, getAssociationsSearchOptions(), task, result);
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Unable to load association shadow", ex);
             result.recordFatalError("Unable to load association shadow", ex);
         } finally {
             result.computeStatus();
         }
-
         return assocShadows;
     }
 
+    private ObjectQuery getAssociationsSearchQuery(PrismObject resource, PrismProperty objectClass, PrismProperty kind,
+                                                   PrismProperty intent){
+        ObjectFilter andFilter = AndFilter.createAnd(
+                EqualFilter.createEqual(new ItemPath(ShadowType.F_OBJECT_CLASS), objectClass),
+                EqualFilter.createEqual(new ItemPath(ShadowType.F_KIND), kind),
+                EqualFilter.createEqual(new ItemPath(ShadowType.F_INTENT), intent),
+                RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resource));
+        ObjectQuery query =  ObjectQuery.createObjectQuery(andFilter);
+        return query;
+    }
+
+    private Collection<SelectorOptions<GetOperationOptions>> getAssociationsSearchOptions(){
+        Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<SelectorOptions<GetOperationOptions>>();
+        options.add(SelectorOptions.create(ItemPath.EMPTY_PATH, GetOperationOptions.createRaw()));
+        options.add(SelectorOptions.create(ItemPath.EMPTY_PATH, GetOperationOptions.createNoFetch()));
+        return options;
+    }
 }
