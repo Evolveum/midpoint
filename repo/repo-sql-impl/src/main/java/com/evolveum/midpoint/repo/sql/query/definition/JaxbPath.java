@@ -14,21 +14,26 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.repo.sql.query2.definition;
+package com.evolveum.midpoint.repo.sql.query.definition;
 
-import java.lang.annotation.ElementType;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+
 import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
 /**
- * Target of "#" (ID) queries.
- * Actually, a shorthand for @jaxbName(t:ID)
- *
- * @author mederly
+ * @author lazyman
  */
-@Target({ElementType.METHOD})
-@Retention(RetentionPolicy.RUNTIME)
-public @interface IdQueryProperty {
+@Target({TYPE, METHOD, FIELD})
+@Retention(RUNTIME)
+public @interface JaxbPath {
+
+    JaxbName[] itemPath();
 
 }

@@ -30,17 +30,18 @@ import org.apache.commons.lang.Validate;
  * Defines piece of JPA data - entity, property, reference, or "any" container. Used to convert ItemPath to HQL query,
  * or, specifically, to a property path with left outer joins where appropriate.
  *
- * The conversion works like running DFA (deterministic finite automaton) where
- * data definitions are states, and ItemPathSegments are alphabet symbols.
+ * The conversion works like running state machine where data definitions are states, and transitions are labeled
+ * with non-empty ItemPaths. Input paths are used to navigate through states until all of input path is consumed.
  *
- * In addition to recognize input words, this automaton produces HQL path and property joins. That's why
- * each possible transition is labeled with (ItemPathSegment, JPA name, other transition data) tuple.
- * ItemPathSegment is used to match the input word (path), while JPA name + other transition data, along
+ * In addition to recognize input paths, this automaton produces HQL path and property joins. That's why
+ * each possible transition is labeled with (ItemPath prefix, JPA name, other transition data) tuple.
+ * ItemPath prefix is used to match the input path, while JPA name + other transition data, along
  * with target state information (potentially) are used to generate HQL property path with appropriate join,
  * if necessary.
  *
  * Note that some transitions may have empty JPA name - when the data is contained directly in owner entity
- * (e.g. metadata, construction, object extension, shadow attributes).
+ * (e.g. object extension, shadow attributes). Most transitions have single item paths. However, some have two,
+ * e.g. construction/resourceRef, owner/id, metadata/*.
  *
  * By other transition data we currently mean: collection specification, or "embedded" flag.
  *

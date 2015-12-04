@@ -28,7 +28,7 @@ public class PrismConstants {
 
 	public static final String EXTENSION_LOCAL_NAME = "extension";
 	public static final String NAME_LOCAL_NAME = "name";
-	
+
 	public static final String ATTRIBUTE_ID_LOCAL_NAME = "id";
 	public static final String ATTRIBUTE_OID_LOCAL_NAME = "oid";
 	public static final String ATTRIBUTE_VERSION_LOCAL_NAME = "version";
@@ -93,9 +93,11 @@ public class PrismConstants {
 	public static final QName Q_ANY = new QName(NS_QUERY, "any");
 
 	// Path constants
-	public static final QName T_PARENT = new QName(NS_TYPES, "parent");
+	public static final String T_PARENT_LOCAL_PART = "parent";
+	public static final QName T_PARENT = new QName(NS_TYPES, T_PARENT_LOCAL_PART);
 	public static final QName T_OBJECT_REFERENCE = new QName(NS_TYPES, "objectReference");
-	public static final QName T_ID = new QName(NS_TYPES, "id");
+	public static final String T_ID_LOCAL_PART = "id";
+	public static final QName T_ID = new QName(NS_TYPES, T_ID_LOCAL_PART);
 
 	// Misc
 	

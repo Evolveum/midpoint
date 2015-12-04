@@ -36,6 +36,7 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbPath;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualEntity;
 import com.evolveum.midpoint.repo.sql.query2.definition.IdQueryProperty;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
@@ -116,15 +117,16 @@ import java.util.Set;
 @QueryEntity(
         anyElements = {
                 @VirtualAny(jaxbNameLocalPart = "extension", ownerType = RObjectExtensionType.EXTENSION)
-        },
-        entities = {
-                @VirtualEntity(
-                        jaxbName = @JaxbName(localPart = "metadata"),
-                        jaxbType = MetadataType.class,
-                        jpaName = "",
-                        jpaType = Serializable.class            // dummy value (ignored)
-                )
         }
+//        ,
+//        entities = {
+//                @VirtualEntity(
+//                        jaxbName = @JaxbName(localPart = "metadata"),
+//                        jaxbType = MetadataType.class,
+//                        jpaName = "",
+//                        jpaType = Serializable.class            // dummy value (ignored)
+//                )
+//        }
     )
 @Entity
 @Table(name = "m_object", indexes = {
@@ -244,6 +246,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
 //    @JoinTable(foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "createApproverRef") })
     public Set<RObjectReference<RFocus>> getCreateApproverRef() {
         if (createApproverRef == null) {
             createApproverRef = new HashSet<>();
@@ -251,20 +254,24 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return createApproverRef;
     }
 
+    @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "createChannel") })
     public String getCreateChannel() {
         return createChannel;
     }
 
+    @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "createTimestamp") })
     public XMLGregorianCalendar getCreateTimestamp() {
         return createTimestamp;
     }
 
     @Embedded
+    @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "creatorRef") })
     public REmbeddedReference getCreatorRef() {
         return creatorRef;
     }
 
     @Embedded
+    @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifierRef") })
     public REmbeddedReference getModifierRef() {
         return modifierRef;
     }
@@ -273,6 +280,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
 //    @JoinTable(foreignKey = @ForeignKey(name = "none"))
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifyApproverRef") })
     public Set<RObjectReference<RFocus>> getModifyApproverRef() {
         if (modifyApproverRef == null) {
             modifyApproverRef = new HashSet<>();
@@ -280,10 +288,12 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return modifyApproverRef;
     }
 
+    @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifyChannel") })
     public String getModifyChannel() {
         return modifyChannel;
     }
 
+    @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifyTimestamp") })
     public XMLGregorianCalendar getModifyTimestamp() {
         return modifyTimestamp;
     }

@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
 import com.evolveum.midpoint.prism.path.IdentifierPathSegment;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.path.ParentPathSegment;
@@ -26,8 +27,10 @@ import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.query.definition.Any;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbPath;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.query.definition.OwnerGetter;
+import com.evolveum.midpoint.repo.sql.query.definition.OwnerIdGetter;
 import com.evolveum.midpoint.repo.sql.query.definition.QueryEntity;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualAny;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualCollection;
@@ -51,6 +54,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -121,7 +126,7 @@ public class ClassDefinitionParser {
             collectionSpecification = null;
         }
 
-        QName jaxbName = getJaxbName(method);
+        ItemPath itemPath = getJaxbName(method);
         String jpaName = getJpaName(method);
         Class jpaClass = getClass(returnedContentType);
 
@@ -146,11 +151,11 @@ public class ClassDefinitionParser {
                 referencedJpaClass = RObject.class;
             }
             JpaReferenceDefinition targetDefinition = new JpaReferenceDefinition(jpaClass, referencedJpaClass);
-            linkDefinition = new JpaLinkDefinition<>(jaxbName, jpaName, collectionSpecification, embedded, targetDefinition);
+            linkDefinition = new JpaLinkDefinition<>(itemPath, jpaName, collectionSpecification, embedded, targetDefinition);
         } else if (isEntity(jpaClass)) {
             JpaEntityDefinition content = parseClass(jpaClass);
             boolean embedded = method.isAnnotationPresent(Embedded.class) || jpaClass.isAnnotationPresent(Embeddable.class);
-            linkDefinition = new JpaLinkDefinition<JpaDataNodeDefinition>(jaxbName, jpaName, collectionSpecification, embedded, content);
+            linkDefinition = new JpaLinkDefinition<JpaDataNodeDefinition>(itemPath, jpaName, collectionSpecification, embedded, content);
         } else {
             boolean lob = method.isAnnotationPresent(Lob.class);
             boolean enumerated = method.isAnnotationPresent(Enumerated.class);
@@ -158,19 +163,21 @@ public class ClassDefinitionParser {
             boolean indexed = method.isAnnotationPresent(Index.class);
             Class jaxbClass = getJaxbClass(method, jpaClass);
 
-            ItemPathSegment itemPathSegment;
             if (method.isAnnotationPresent(IdQueryProperty.class)) {
                 if (collectionSpecification != null) {
                     throw new IllegalStateException("ID property is not allowed to be multivalued; for method " + method);
                 }
-                itemPathSegment = new IdentifierPathSegment();
-            } else {
-                itemPathSegment = new NameItemPathSegment(jaxbName);
+                itemPath = new ItemPath(new IdentifierPathSegment());
+            } else if (method.isAnnotationPresent(OwnerIdGetter.class)) {
+                if (collectionSpecification != null) {
+                    throw new IllegalStateException("Owner ID property is not allowed to be multivalued; for method " + method);
+                }
+                itemPath = new ItemPath(new ParentPathSegment(), new IdentifierPathSegment());
             }
 
             JpaPropertyDefinition propertyDefinition = new JpaPropertyDefinition(jpaClass, jaxbClass, lob, enumerated, indexed);
             // Note that properties are considered to be embedded
-            linkDefinition = new JpaLinkDefinition<JpaDataNodeDefinition>(itemPathSegment, jpaName, collectionSpecification, true, propertyDefinition);
+            linkDefinition = new JpaLinkDefinition<JpaDataNodeDefinition>(itemPath, jpaName, collectionSpecification, true, propertyDefinition);
         }
         return linkDefinition;
     }
@@ -249,12 +256,19 @@ public class ClassDefinitionParser {
         return type.getAnnotation(Entity.class) != null || type.getAnnotation(Embeddable.class) != null;
     }
 
-    private QName getJaxbName(Method method) {
+    private ItemPath getJaxbName(Method method) {
         if (method.isAnnotationPresent(JaxbName.class)) {
             JaxbName jaxbName = method.getAnnotation(JaxbName.class);
-            return new QName(jaxbName.namespace(), jaxbName.localPart());
+            return new ItemPath(new QName(jaxbName.namespace(), jaxbName.localPart()));
+        } else if (method.isAnnotationPresent(JaxbPath.class)) {
+            JaxbPath jaxbPath = method.getAnnotation(JaxbPath.class);
+            List<QName> names = new ArrayList<>(jaxbPath.itemPath().length);
+            for (JaxbName jaxbName : jaxbPath.itemPath()) {
+                names.add(new QName(jaxbName.namespace(), jaxbName.localPart()));
+            }
+            return new ItemPath(names.toArray(new QName[0]));
         } else {
-            return new QName(SchemaConstantsGenerated.NS_COMMON, getPropertyName(method.getName()));
+            return new ItemPath(new QName(SchemaConstantsGenerated.NS_COMMON, getPropertyName(method.getName())));
         }
     }
 

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql.query2.definition;
 
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -31,20 +32,25 @@ import javax.xml.namespace.QName;
  */
 public class JpaLinkDefinition<D extends JpaDataNodeDefinition> implements Visitable, DebugDumpable {
 
-    private ItemPathSegment itemPathSegment;
+    private ItemPath itemPath;                                  // usually single item, but might be longer
     private String jpaName;                                     // beware - null for "same entity" transitions (metadata, construction, ...)
     private CollectionSpecification collectionSpecification;    // null if single valued
     private boolean embedded;
     private D targetDefinition;
 
-    public JpaLinkDefinition(ItemPathSegment itemPathSegment, String jpaName, CollectionSpecification collectionSpecification, boolean embedded, D targetDefinition) {
-        Validate.notNull(itemPathSegment, "itemPathSegment");
+    public JpaLinkDefinition(ItemPath itemPath, String jpaName, CollectionSpecification collectionSpecification, boolean embedded, D targetDefinition) {
+        Validate.notNull(itemPath, "itemPath");
         Validate.notNull(targetDefinition, "targetDefinition");
-        this.itemPathSegment = itemPathSegment;
+        this.itemPath = itemPath;
         this.jpaName = jpaName;
         this.collectionSpecification = collectionSpecification;
         this.embedded = embedded;
         this.targetDefinition = targetDefinition;
+    }
+
+    public JpaLinkDefinition(ItemPathSegment itemPathSegment, String jpaName, CollectionSpecification collectionSpecification, boolean embedded, D targetDefinition) {
+        this(new ItemPath(itemPathSegment), jpaName, collectionSpecification, embedded, targetDefinition);
+        Validate.notNull(itemPathSegment, "itemPathSegment");
     }
 
     public JpaLinkDefinition(QName jaxbName, String jpaName, CollectionSpecification collectionSpecification, boolean embedded, D targetDefinition) {
@@ -53,8 +59,15 @@ public class JpaLinkDefinition<D extends JpaDataNodeDefinition> implements Visit
 
     }
 
+    public ItemPath getItemPath() {
+        return itemPath;
+    }
+
     public ItemPathSegment getItemPathSegment() {
-        return itemPathSegment;
+        if (itemPath.size() != 1) {
+            throw new IllegalStateException("Expected single-item path, found '" + itemPath + "' instead.");
+        }
+        return itemPath.first();
     }
 
     public String getJpaName() {
@@ -73,8 +86,12 @@ public class JpaLinkDefinition<D extends JpaDataNodeDefinition> implements Visit
         return targetDefinition;
     }
 
-    public boolean matches(ItemPathSegment itemPathSegment) {
-        return this.itemPathSegment.equivalent(itemPathSegment);
+    public boolean matchesExactly(ItemPath itemPath) {
+        return this.itemPath.equivalent(itemPath);
+    }
+
+    public boolean matchesStartOf(ItemPath itemPath) {
+        return itemPath.startsWith(this.itemPath);
     }
 
     public Class<D> getTargetClass() {
@@ -114,7 +131,7 @@ public class JpaLinkDefinition<D extends JpaDataNodeDefinition> implements Visit
     }
 
     private void dumpLink(StringBuilder sb) {
-        sb.append(itemPathSegment.toString()).append(" => ").append(jpaName);
+        sb.append(itemPath).append(" => ").append(jpaName);
         if (collectionSpecification != null) {
             sb.append(collectionSpecification.getShortInfo());
         }

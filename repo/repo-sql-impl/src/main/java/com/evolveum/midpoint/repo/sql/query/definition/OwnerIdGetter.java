@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.repo.sql.query2.definition;
+package com.evolveum.midpoint.repo.sql.query.definition;
+
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -22,13 +24,12 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Target of "#" (ID) queries.
- * Actually, a shorthand for @jaxbName(t:ID)
+ * Denotes method that is used to access the container parent ID.
  *
  * @author mederly
  */
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface IdQueryProperty {
+public @interface OwnerIdGetter {
 
 }

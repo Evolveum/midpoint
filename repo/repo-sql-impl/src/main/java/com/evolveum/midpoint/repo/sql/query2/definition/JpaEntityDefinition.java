@@ -54,7 +54,7 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition implements DebugD
     }
 
     public void addDefinition(JpaLinkDefinition definition) {
-        JpaLinkDefinition oldDef = findRawLinkDefinition(definition.getItemPathSegment(), JpaDataNodeDefinition.class);
+        JpaLinkDefinition oldDef = findRawLinkDefinition(definition.getItemPath(), JpaDataNodeDefinition.class, true);
         if (oldDef != null) {
             definitions.remove(oldDef);
         }
@@ -65,13 +65,19 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition implements DebugD
         Collections.sort(definitions, new LinkDefinitionComparator());
     }
 
-    private <D extends JpaDataNodeDefinition> JpaLinkDefinition<D> findRawLinkDefinition(ItemPathSegment itemPathSegment, Class<D> type) {
-        Validate.notNull(itemPathSegment, "ItemPathSegment must not be null.");
+    private <D extends JpaDataNodeDefinition> JpaLinkDefinition<D> findRawLinkDefinition(ItemPath itemPath, Class<D> type, boolean exact) {
+        Validate.notNull(itemPath, "ItemPath must not be null.");
         Validate.notNull(type, "Definition type must not be null.");
 
         for (JpaLinkDefinition definition : definitions) {
-            if (!definition.matches(itemPathSegment)) {
-                continue;
+            if (exact) {
+                if (!definition.matchesExactly(itemPath)) {
+                    continue;
+                }
+            } else {
+                if (!definition.matchesStartOf(itemPath)) {
+                    continue;
+                }
             }
             if (type.isAssignableFrom(definition.getTargetClass())) {
                 return definition;
@@ -147,12 +153,12 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition implements DebugD
             throw new QueryException("'@' path segment cannot be used in the context of an entity " + this);
         }
 
-        JpaLinkDefinition link = findRawLinkDefinition(path.first(), JpaDataNodeDefinition.class);
+        JpaLinkDefinition link = findRawLinkDefinition(path, JpaDataNodeDefinition.class, false);
         if (link == null) {
             return null;
         } else {
             link.resolveEntityPointer();
-            return new DataSearchResult(link, path.tail());
+            return new DataSearchResult(link, path.tail(link.getItemPath().size()));
         }
     }
 

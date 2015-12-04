@@ -364,6 +364,13 @@ public class ItemPath implements Serializable, Cloneable {
 		}
 	}
 
+	public boolean startsWith(ItemPath other) {
+		if (other == null) {
+			return true;
+		}
+		return other.isSubPathOrEquivalent(this);
+	}
+
 	public QName asSingleName() {
 		if (size() == 1 && startsWith(NameItemPathSegment.class)) {
 			return ((NameItemPathSegment) first()).getName();

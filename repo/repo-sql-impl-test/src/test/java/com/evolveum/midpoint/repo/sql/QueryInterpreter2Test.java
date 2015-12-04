@@ -40,11 +40,11 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.OrgFilter;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.TypeFilter;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -107,7 +107,8 @@ import java.util.List;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_ID;
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
-import static com.evolveum.midpoint.prism.query.OrderDirection.*;
+import static com.evolveum.midpoint.prism.query.OrderDirection.ASCENDING;
+import static com.evolveum.midpoint.prism.query.OrderDirection.DESCENDING;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REVIEW_STAGE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STATE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_CURRENT_STAGE_NUMBER;
@@ -118,7 +119,13 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType.F_RESPONSE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType.F_STAGE_NUMBER;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType.F_CONSTRUCTION;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType.F_RESOURCE_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.F_ASSIGNMENT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType.F_CREATE_APPROVER_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType.F_CREATOR_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_EXTENSION;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_METADATA;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
 
 /**
@@ -710,14 +717,14 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             /*
              * ### UserType: Exists (assignment, Equal (activation/administrativeStatus = Enabled))
              */
-            ExistsFilter filter = ExistsFilter.createExists(new ItemPath(UserType.F_ASSIGNMENT), UserType.class, prismContext,
+            ExistsFilter filter = ExistsFilter.createExists(new ItemPath(F_ASSIGNMENT), UserType.class, prismContext,
                     EqualFilter.createEqual(new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
                             AssignmentType.class, prismContext, null, ActivationStatusType.ENABLED));
             ObjectQuery query0 = ObjectQuery.createObjectQuery(filter);
             query0.setPaging(ObjectPaging.createPaging(F_NAME, ASCENDING));
 
             ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
-                    .exists(UserType.F_ASSIGNMENT)
+                    .exists(F_ASSIGNMENT)
                         .item(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS)
                             .eq(ActivationStatusType.ENABLED)
                     .asc(F_NAME)
@@ -974,7 +981,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             ort.setOid("123");
             ort.setType(RoleType.COMPLEX_TYPE);
             RefFilter filter = RefFilter.createReferenceEqual(
-                    new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF),
+                    new ItemPath(F_ASSIGNMENT, AssignmentType.F_TARGET_REF),
                     UserType.class, prismContext, ort.asReferenceValue());
             String real = getInterpretedQuery2(session, UserType.class, ObjectQuery.createObjectQuery(filter));
             String expected = "select\n" +
@@ -1042,7 +1049,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         try {
             SchemaRegistry registry = prismContext.getSchemaRegistry();
             PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(UserType.class);
-            ItemPath activationPath = new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
+            ItemPath activationPath = new ItemPath(F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
             ObjectFilter filter = EqualFilter.createEqual(activationPath, objectDef, ActivationStatusType.ENABLED);
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
             String real = getInterpretedQuery2(session, UserType.class, query);
@@ -1118,7 +1125,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(RoleType.class);
 
             //filter1
-            ItemPath activationPath1 = new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
+            ItemPath activationPath1 = new ItemPath(F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
             ObjectFilter filter1 = EqualFilter.createEqual(activationPath1, objectDef, ActivationStatusType.ENABLED);
 
             //filter2
@@ -1421,9 +1428,9 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                         thisScanTimestamp, true),
                 LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef,
                         thisScanTimestamp, true),
-                LessFilter.createLess(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM),
+                LessFilter.createLess(new ItemPath(F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM),
                         focusObjectDef, thisScanTimestamp, true),
-                LessFilter.createLess(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO),
+                LessFilter.createLess(new ItemPath(F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO),
                         focusObjectDef, thisScanTimestamp, true)
         );
         ObjectQuery query0 = ObjectQuery.createObjectQuery(filter);
@@ -1431,8 +1438,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         ObjectQuery query = QueryBuilder.queryFor(FocusType.class, prismContext)
                 .item(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM).le(thisScanTimestamp)
                 .or().item(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO).le(thisScanTimestamp)
-                .or().item(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM).le(thisScanTimestamp)
-                .or().item(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO).le(thisScanTimestamp)
+                .or().item(F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM).le(thisScanTimestamp)
+                .or().item(F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO).le(thisScanTimestamp)
                 .build();
 
         Session session = open();
@@ -1482,7 +1489,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                         thisScanTimestamp, true),
                 LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef,
                         thisScanTimestamp, true),
-                ExistsFilter.createExists(new ItemPath(FocusType.F_ASSIGNMENT), focusObjectDef,
+                ExistsFilter.createExists(new ItemPath(F_ASSIGNMENT), focusObjectDef,
                         OrFilter.createOr(
                                 LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
                                         assignmentDef, thisScanTimestamp, true),
@@ -1493,7 +1500,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         ObjectQuery query = QueryBuilder.queryFor(FocusType.class, prismContext)
                 .item(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM).le(thisScanTimestamp)
                 .or().item(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO).le(thisScanTimestamp)
-                .or().exists(FocusType.F_ASSIGNMENT)
+                .or().exists(F_ASSIGNMENT)
                     .block()
                         .item(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM).le(thisScanTimestamp)
                         .or().item(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO).le(thisScanTimestamp)
@@ -1553,15 +1560,15 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                                 thisScanTimestamp, true)
                 ),
                 AndFilter.createAnd(
-                        GreaterFilter.createGreater(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
+                        GreaterFilter.createGreater(new ItemPath(F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
                                 focusObjectDef, lastScanTimestamp, false),
-                        LessFilter.createLess(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
+                        LessFilter.createLess(new ItemPath(F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
                                 focusObjectDef, thisScanTimestamp, true)
                 ),
                 AndFilter.createAnd(
-                        GreaterFilter.createGreater(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_TO),
+                        GreaterFilter.createGreater(new ItemPath(F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_TO),
                                 focusObjectDef, lastScanTimestamp, false),
-                        LessFilter.createLess(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_TO),
+                        LessFilter.createLess(new ItemPath(F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_TO),
                                 focusObjectDef, thisScanTimestamp, true)
                 )
         );
@@ -1577,12 +1584,12 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .and().item(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO).le(thisScanTimestamp)
                 .endBlock()
                 .or().block()
-                    .item(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM).gt(lastScanTimestamp)
-                    .and().item(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM).le(thisScanTimestamp)
+                    .item(F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM).gt(lastScanTimestamp)
+                    .and().item(F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM).le(thisScanTimestamp)
                 .endBlock()
                 .or().block()
-                    .item(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO).gt(lastScanTimestamp)
-                    .and().item(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO).le(thisScanTimestamp)
+                    .item(F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO).gt(lastScanTimestamp)
+                    .and().item(F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO).le(thisScanTimestamp)
                 .endBlock()
                 .build();
 
@@ -1657,7 +1664,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                                 thisScanTimestamp, true)
                 ),
                 AndFilter.createAnd(
-                        ExistsFilter.createExists(new ItemPath(FocusType.F_ASSIGNMENT), focusObjectDef,
+                        ExistsFilter.createExists(new ItemPath(F_ASSIGNMENT), focusObjectDef,
                                 OrFilter.createOr(
                                         AndFilter.createAnd(
                                                 GreaterFilter.createGreater(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
@@ -1684,7 +1691,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .and().item(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO).le(thisScanTimestamp)
                 .endBlock()
                 .or()
-                    .exists(FocusType.F_ASSIGNMENT)
+                    .exists(F_ASSIGNMENT)
                         .block()
                             .item(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM).gt(lastScanTimestamp)
                             .and().item(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM).le(thisScanTimestamp)
@@ -2380,11 +2387,11 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         try {
             SchemaRegistry registry = prismContext.getSchemaRegistry();
             PrismObjectDefinition userDef = registry.findObjectDefinitionByCompileTimeClass(UserType.class);
-            PrismContainerDefinition assignmentDef = userDef.findContainerDefinition(UserType.F_ASSIGNMENT);
+            PrismContainerDefinition assignmentDef = userDef.findContainerDefinition(F_ASSIGNMENT);
             PrismPropertyDefinition propDef = assignmentDef.createPropertyDefinition(SKIP_AUTOGENERATION, DOMUtil.XSD_BOOLEAN);
 
             EqualFilter eq = EqualFilter.createEqual(
-                    new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_EXTENSION, SKIP_AUTOGENERATION),
+                    new ItemPath(F_ASSIGNMENT, AssignmentType.F_EXTENSION, SKIP_AUTOGENERATION),
                     propDef, null, true);
 
             ObjectQuery objectQuery = ObjectQuery.createObjectQuery(eq);
@@ -2738,7 +2745,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
              */
 
             ObjectFilter filter = EqualFilter.createEqual(
-                    new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, RoleType.F_ROLE_TYPE),
+                    new ItemPath(F_ASSIGNMENT, AssignmentType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, RoleType.F_ROLE_TYPE),
                     UserType.class, prismContext, "type1");
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
@@ -3086,7 +3093,84 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "      d.response = :response\n" +
                     "    )\n" +
                     "  )\n" +
-                    "order by o.name.orig asc, a.id asc, o.oid asc\n";
+                    "order by o.name.orig asc, a.id asc, a.ownerOid asc\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test930ResourceRef() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                    .item(F_ASSIGNMENT, F_CONSTRUCTION, F_RESOURCE_REF).ref("1234567")
+                    .build();
+
+            String real = getInterpretedQuery2(session, UserType.class, query);
+            String expected = "select\n" +
+                    "  u.fullObject, u.stringsCount, u.longsCount, u.datesCount, u.referencesCount, u.polysCount, u.booleansCount\n" +
+                    "from\n" +
+                    "  RUser u\n" +
+                    "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n" +
+                    "where\n" +
+                    "  (\n" +
+                    "    a.resourceRef.targetOid = :targetOid and\n" +
+                    "    a.resourceRef.relation = :relation\n" +
+                    "  )\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test932CreatorRef() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                    .item(F_METADATA, F_CREATOR_REF).ref("1234567")
+                    .build();
+
+            String real = getInterpretedQuery2(session, UserType.class, query);
+            String expected = "select\n" +
+                    "  u.fullObject, u.stringsCount, u.longsCount, u.datesCount, u.referencesCount, u.polysCount, u.booleansCount\n" +
+                    "from\n" +
+                    "  RUser u\n" +
+                    "where\n" +
+                    "  (\n" +
+                    "    u.creatorRef.targetOid = :targetOid and\n" +
+                    "    u.creatorRef.relation = :relation\n" +
+                    "  )\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test934CreateApproverRef() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                    .item(F_METADATA, F_CREATE_APPROVER_REF).ref("1234567")
+                    .build();
+
+            String real = getInterpretedQuery2(session, UserType.class, query);
+            String expected = "select\n" +
+                    "  u.fullObject, u.stringsCount, u.longsCount, u.datesCount, u.referencesCount, u.polysCount, u.booleansCount\n" +
+                    "from\n" +
+                    "  RUser u\n" +
+                    "    left join u.createApproverRef c\n" +
+                    "where\n" +
+                    "  (\n" +
+                    "    c.targetOid = :targetOid and\n" +
+                    "    c.relation = :relation\n" +
+                    "  )\n";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);

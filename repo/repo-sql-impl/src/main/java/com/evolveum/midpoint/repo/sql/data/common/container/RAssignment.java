@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.Metadata;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
@@ -27,7 +28,9 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbPath;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
+import com.evolveum.midpoint.repo.sql.query.definition.OwnerIdGetter;
 import com.evolveum.midpoint.repo.sql.query.definition.QueryEntity;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualEntity;
 import com.evolveum.midpoint.repo.sql.query2.definition.IdQueryProperty;
@@ -59,18 +62,19 @@ import java.util.Set;
 @Entity
 @QueryEntity(
         entities = {
-                @VirtualEntity(
-                        jaxbName = @JaxbName(localPart = "metadata"),
-                        jaxbType = MetadataType.class,
-                        jpaName = "",
-                        jpaType = Serializable.class            // dummy value (ignored)
-                ),
-                @VirtualEntity(
-                        jaxbName = @JaxbName(localPart = "construction"),
-                        jaxbType = ConstructionType.class,
-                        jpaName = "",
-                        jpaType = Serializable.class            // dummy value (ignored)
-                )
+//                @VirtualEntity(
+//                        jaxbName = @JaxbName(localPart = "metadata"),
+//                        jaxbType = MetadataType.class,
+//                        jpaName = "",
+//                        jpaType = Serializable.class            // dummy value (ignored)
+//                )
+//                ,
+//                @VirtualEntity(
+//                        jaxbName = @JaxbName(localPart = "construction"),
+//                        jaxbType = ConstructionType.class,
+//                        jpaName = "",
+//                        jpaType = Serializable.class            // dummy value (ignored)
+//                )
         }
 )
 @IdClass(RContainerId.class)
@@ -138,7 +142,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     }
 
     @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
-    @NotQueryable
+    @OwnerIdGetter()
     public String getOwnerOid() {
         if (owner != null && ownerOid == null) {
             ownerOid = owner.getOid();
@@ -176,6 +180,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     }
 
     @Embedded
+    @JaxbPath(itemPath = { @JaxbName(localPart = "construction"), @JaxbName(localPart = "resourceRef") })
     public REmbeddedReference getResourceRef() {
         return resourceRef;
     }
@@ -207,6 +212,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     @org.hibernate.annotations.ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     //@JoinTable(foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "createApproverRef") })
     public Set<RAssignmentReference> getCreateApproverRef() {
         if (createApproverRef == null) {
             createApproverRef = new HashSet<>();
@@ -214,20 +220,24 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         return createApproverRef;
     }
 
+    @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "createChannel") })
     public String getCreateChannel() {
         return createChannel;
     }
 
+    @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "createTimestamp") })
     public XMLGregorianCalendar getCreateTimestamp() {
         return createTimestamp;
     }
 
     @Embedded
+    @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "creatorRef") })
     public REmbeddedReference getCreatorRef() {
         return creatorRef;
     }
 
     @Embedded
+    @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifierRef") })
     public REmbeddedReference getModifierRef() {
         return modifierRef;
     }
@@ -236,6 +246,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     @OneToMany(mappedBy = RAssignmentReference.F_OWNER, orphanRemoval = true)
 //    @JoinTable(foreignKey = @ForeignKey(name = "none"))
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifyApproverRef") })
     public Set<RAssignmentReference> getModifyApproverRef() {
         if (modifyApproverRef == null) {
             modifyApproverRef = new HashSet<>();
@@ -243,10 +254,12 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         return modifyApproverRef;
     }
 
+    @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifyChannel") })
     public String getModifyChannel() {
         return modifyChannel;
     }
 
+    @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifyTimestamp") })
     public XMLGregorianCalendar getModifyTimestamp() {
         return modifyTimestamp;
     }

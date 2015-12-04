@@ -25,6 +25,14 @@ public class LinkDefinitionComparator implements Comparator<JpaLinkDefinition> {
 
     @Override
     public int compare(JpaLinkDefinition o1, JpaLinkDefinition o2) {
+
+        // longer paths have to come first, in order for matching to work
+
+        int sizeDiff = o1.getItemPath().size() - o2.getItemPath().size();
+        if (sizeDiff != 0) {
+            return -sizeDiff;
+        }
+
         JpaDataNodeDefinition target1 = o1.getTargetDefinition();
         JpaDataNodeDefinition target2 = o2.getTargetDefinition();
 
