@@ -243,10 +243,10 @@ public class TestDummy extends AbstractDummyTest {
 		display("getObject result", result);
 		TestUtil.assertSuccess(result);
 		
-		
-
 		// Check connector schema
 		ProvisioningTestUtil.assertConnectorSchemaSanity(connector, prismContext);
+		
+		IntegrationTestTools.assertNoSchema(resource);
 	}
 
 	/**
@@ -257,11 +257,11 @@ public class TestDummy extends AbstractDummyTest {
 	 * 
 	 */
 	@Test
-	public void test001Connectors() throws SchemaException {
-		TestUtil.displayTestTile("test001Connectors");
+	public void test010Connectors() throws Exception {
+		final String TEST_NAME = "test010Connectors";
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ ".test001Connectors");
+		OperationResult result = new OperationResult(TestDummy.class.getName() + "."  + TEST_NAME);
 
 		// WHEN
 		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class,
@@ -308,11 +308,11 @@ public class TestDummy extends AbstractDummyTest {
 	 * new was installed in the meantime.
 	 */
 	@Test
-	public void test002ConnectorRediscovery() {
-		TestUtil.displayTestTile("test002ConnectorRediscovery");
+	public void test012ConnectorRediscovery() {
+		final String TEST_NAME = "test012ConnectorRediscovery";
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ ".test002ConnectorRediscovery");
+		OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
 
 		// WHEN
 		Set<ConnectorType> discoverLocalConnectors = connectorManager.discoverLocalConnectors(result);
@@ -332,11 +332,11 @@ public class TestDummy extends AbstractDummyTest {
 	 * that executes testResource and checks whether the schema was generated.
 	 */
 	@Test
-	public void test003Connection() throws ObjectNotFoundException, SchemaException {
-		TestUtil.displayTestTile("test003Connection");
+	public void test020Connection() throws Exception {
+		final String TEST_NAME = "test020Connection";
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ ".test003Connection");
+		OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
 		
 		// Some connector initialization and other things might happen in previous tests.
 		// The monitor is static, not part of spring context, it will not be cleared
@@ -356,9 +356,7 @@ public class TestDummy extends AbstractDummyTest {
 		ConnectorType connector = repositoryService.getObject(ConnectorType.class,
 				resourceTypeBefore.getConnectorRef().getOid(), null, result).asObjectable();
 		assertNotNull(connector);
-		XmlSchemaType xmlSchemaTypeBefore = resourceTypeBefore.getSchema();
-		Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchema(resourceTypeBefore);
-		AssertJUnit.assertNull("Found schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
+		IntegrationTestTools.assertNoSchema("Found schema before test connection. Bad test setup?", resourceTypeBefore);
 
 		// WHEN
 		OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_OID);
@@ -402,12 +400,11 @@ public class TestDummy extends AbstractDummyTest {
 	}
 
 	@Test
-	public void test004Configuration() throws ObjectNotFoundException, CommunicationException, SchemaException,
-			ConfigurationException, SecurityViolationException {
-		TestUtil.displayTestTile("test004Configuration");
+	public void test021Configuration() throws Exception {
+		final String TEST_NAME = "test021Configuration";
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ ".test004Configuration");
+		OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
 
 		// WHEN
 		resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, null, result);
@@ -453,9 +450,9 @@ public class TestDummy extends AbstractDummyTest {
 	}
 
 	@Test
-	public void test005ParsedSchema() throws ObjectNotFoundException, CommunicationException, SchemaException,
-			ConfigurationException {
-		TestUtil.displayTestTile("test005ParsedSchema");
+	public void test022ParsedSchema() throws Exception {
+		final String TEST_NAME = "test022ParsedSchema";
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 
 		// THEN
@@ -481,8 +478,8 @@ public class TestDummy extends AbstractDummyTest {
 	}
 
 	@Test
-	public void test006RefinedSchema() throws Exception {
-		final String TEST_NAME = "test006RefinedSchema";
+	public void test023RefinedSchema() throws Exception {
+		final String TEST_NAME = "test023RefinedSchema";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 
@@ -546,8 +543,8 @@ public class TestDummy extends AbstractDummyTest {
 	}
 
 	@Test
-	public void test007Capabilities() throws Exception {
-		final String TEST_NAME = "test007Capabilities";
+	public void test024Capabilities() throws Exception {
+		final String TEST_NAME = "test024Capabilities";
 		TestUtil.displayTestTile(TEST_NAME);
 
 		// GIVEN
@@ -619,8 +616,8 @@ public class TestDummy extends AbstractDummyTest {
 	 * Check if the cached native capabilities were properly stored in the repo 
 	 */
 	@Test
-	public void test008CapabilitiesRepo() throws Exception {
-		final String TEST_NAME = "test008CapabilitiesRepo";
+	public void test025CapabilitiesRepo() throws Exception {
+		final String TEST_NAME = "test025CapabilitiesRepo";
 		TestUtil.displayTestTile(TEST_NAME);
 
 		// GIVEN
@@ -680,8 +677,8 @@ public class TestDummy extends AbstractDummyTest {
 	}
 
 	@Test
-	public void test010ResourceAndConnectorCaching() throws Exception {
-		TestUtil.displayTestTile("test010ResourceAndConnectorCaching");
+	public void test030ResourceAndConnectorCaching() throws Exception {
+		TestUtil.displayTestTile("test030ResourceAndConnectorCaching");
 
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
@@ -760,8 +757,8 @@ public class TestDummy extends AbstractDummyTest {
 	}
 
 	@Test
-	public void test011ResourceAndConnectorCachingForceFresh() throws Exception {
-		TestUtil.displayTestTile("test011ResourceAndConnectorCachingForceFresh");
+	public void test031ResourceAndConnectorCachingForceFresh() throws Exception {
+		TestUtil.displayTestTile("test031ResourceAndConnectorCachingForceFresh");
 
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
@@ -817,8 +814,8 @@ public class TestDummy extends AbstractDummyTest {
 
 	
 	@Test
-	public void test020ApplyDefinitionShadow() throws Exception {
-		final String TEST_NAME = "test020ApplyDefinitionShadow";
+	public void test040ApplyDefinitionShadow() throws Exception {
+		final String TEST_NAME = "test040ApplyDefinitionShadow";
 		TestUtil.displayTestTile(TEST_NAME);
 
 		// GIVEN
@@ -843,8 +840,8 @@ public class TestDummy extends AbstractDummyTest {
 	}
 
 	@Test
-	public void test021ApplyDefinitionAddShadowDelta() throws Exception {
-		final String TEST_NAME = "test021ApplyDefinitionAddShadowDelta";
+	public void test041ApplyDefinitionAddShadowDelta() throws Exception {
+		final String TEST_NAME = "test041ApplyDefinitionAddShadowDelta";
 		TestUtil.displayTestTile(TEST_NAME);
 
 		// GIVEN
@@ -870,8 +867,8 @@ public class TestDummy extends AbstractDummyTest {
 	}
 	
 	@Test
-	public void test022ApplyDefinitionResource() throws Exception {
-		final String TEST_NAME = "test022ApplyDefinitionResource";
+	public void test042ApplyDefinitionResource() throws Exception {
+		final String TEST_NAME = "test042ApplyDefinitionResource";
 		TestUtil.displayTestTile(TEST_NAME);
 
 		// GIVEN
@@ -900,8 +897,8 @@ public class TestDummy extends AbstractDummyTest {
 	}
 	
 	@Test
-	public void test023ApplyDefinitionAddResourceDelta() throws Exception {
-		final String TEST_NAME = "test023ApplyDefinitionAddResourceDelta";
+	public void test043ApplyDefinitionAddResourceDelta() throws Exception {
+		final String TEST_NAME = "test043ApplyDefinitionAddResourceDelta";
 		TestUtil.displayTestTile(TEST_NAME);
 
 		// GIVEN
