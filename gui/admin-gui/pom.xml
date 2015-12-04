@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2014 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -293,10 +293,6 @@
             		<artifactId>jaxb-core</artifactId>
             		<groupId>com.sun.xml.bind</groupId>
             	</exclusion>
-      <!--      	<exclusion>
-            		<artifactId>javax.servlet</artifactId>
-            		<groupId>org.eclipse.jetty.orbit</groupId>
-            	</exclusion> -->
             </exclusions>
         </dependency>
         <dependency>
@@ -359,12 +355,6 @@
             <version>3.4-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
-<!--         <dependency> -->
-<!--             <groupId>com.evolveum.midpoint.model</groupId> -->
-<!--             <artifactId>report-api</artifactId> -->
-<!--             <version>3.2-SNAPSHOT</version> -->
-<!--             <scope>runtime</scope> -->
-<!--         </dependency> -->
 	<dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>report-impl</artifactId>
@@ -448,8 +438,8 @@
             <version>4.0.0.Final</version>
         </dependency>
 
-        <!-- Xtext DSL
-        <dependency>
+        <!-- Xtext DSL: IDE schema support (experimental) -->
+<!--        <dependency>
             <groupId>com.evolveum.midpoint.msl</groupId>
             <artifactId>com.evolveum.midpoint.msl</artifactId>
             <version>1.0.0-SNAPSHOT</version>
