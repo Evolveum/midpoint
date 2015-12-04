@@ -252,13 +252,10 @@ public class TestDummy extends AbstractDummyTest {
 	/**
 	 * Check whether the connectors were discovered correctly and were added to
 	 * the repository.
-	 * 
-	 * @throws SchemaException
-	 * 
 	 */
 	@Test
-	public void test010Connectors() throws Exception {
-		final String TEST_NAME = "test010Connectors";
+	public void test010ListConnectors() throws Exception {
+		final String TEST_NAME = "test010ListConnectors";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName() + "."  + TEST_NAME);
@@ -325,6 +322,48 @@ public class TestDummy extends AbstractDummyTest {
 	}
 
 	/**
+	 * List resources with noFetch option. This is what GUI does. This operation
+	 * should be harmless and should not change resource state.
+	 */
+	@Test
+	public void test015ListResourcesNoFetch() throws Exception {
+		final String TEST_NAME = "test015ListResourcesNoFetch";
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "."  + TEST_NAME);
+		OperationResult result = task.getResult();
+		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
+
+		// WHEN
+		SearchResultList<PrismObject<ResourceType>> resources = provisioningService.searchObjects(ResourceType.class, null, options, task, result);
+
+		// THEN
+		result.computeStatus();
+		display("searchObjects result", result);
+		TestUtil.assertSuccess(result);
+
+		assertFalse("No resources found", resources.isEmpty());
+		for (PrismObject<ResourceType> resource : resources) {
+			ResourceType resourceType = resource.asObjectable();
+			display("Found resource " + resourceType, resourceType);
+
+			display("XML " + resourceType, PrismTestUtil.serializeObjectToString(resource, PrismContext.LANG_XML));
+
+			XmlSchemaType xmlSchemaType = resourceType.getSchema();
+			if (xmlSchemaType != null) {
+				Element xsdSchemaElement = ResourceTypeUtil.getResourceXsdSchema(resourceType);
+				assertNull("Found schema in "+resource, xsdSchemaElement);
+			}
+		}
+		
+		assertConnectorSchemaParseIncrement(1);
+		assertConnectorCapabilitiesFetchIncrement(0);
+		assertConnectorInitializationCountIncrement(0);
+		assertResourceSchemaFetchIncrement(0);
+		assertResourceSchemaParseCountIncrement(0);
+	}
+	
+	/**
 	 * This should be the very first test that works with the resource.
 	 * 
 	 * The original repository object does not have resource schema. The schema
@@ -390,7 +429,7 @@ public class TestDummy extends AbstractDummyTest {
 		// schema will be checked in next test
 		
 		assertResourceSchemaFetchIncrement(1);
-		assertConnectorSchemaParseIncrement(1);
+		assertConnectorSchemaParseIncrement(0);
 		assertConnectorCapabilitiesFetchIncrement(1);
 		assertConnectorInitializationCountIncrement(1);
 		assertResourceSchemaParseCountIncrement(1);

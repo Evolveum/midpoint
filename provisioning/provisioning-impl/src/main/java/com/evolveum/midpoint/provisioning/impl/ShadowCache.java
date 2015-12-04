@@ -639,8 +639,6 @@ public abstract class ShadowCache {
 			throw e;
 		}
 	}
-
-	
 	
 	protected ResourceType getResource(ResourceShadowDiscriminator coords, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
@@ -648,7 +646,7 @@ public abstract class ShadowCache {
 		if (resourceOid == null) {
 			throw new IllegalArgumentException("No resource OID in " + coords);
 		}
-		return resourceManager.getResource(resourceOid, parentResult).asObjectable();
+		return resourceManager.getResource(resourceOid, null, parentResult).asObjectable();
 	}
 
 	@SuppressWarnings("rawtypes")
