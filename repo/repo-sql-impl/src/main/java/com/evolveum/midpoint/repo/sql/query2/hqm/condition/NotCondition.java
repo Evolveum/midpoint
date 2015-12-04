@@ -39,4 +39,20 @@ public class NotCondition extends Condition {
         sb.append("not ");
         child.dumpToHql(sb, -1);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        NotCondition that = (NotCondition) o;
+
+        return child.equals(that.child);
+
+    }
+
+    @Override
+    public int hashCode() {
+        return child.hashCode();
+    }
 }

@@ -54,4 +54,27 @@ public class PropertyPropertyComparisonCondition extends PropertyCondition {
 
         sb.append(finalPropertyPath).append(" ").append(operator).append(" ").append(finalRightSidePropertyPath);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        PropertyPropertyComparisonCondition that = (PropertyPropertyComparisonCondition) o;
+
+        if (ignoreCase != that.ignoreCase) return false;
+        if (!rightSidePath.equals(that.rightSidePath)) return false;
+        return operator.equals(that.operator);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + rightSidePath.hashCode();
+        result = 31 * result + operator.hashCode();
+        result = 31 * result + (ignoreCase ? 1 : 0);
+        return result;
+    }
 }

@@ -60,4 +60,27 @@ public class SimpleComparisonCondition extends PropertyCondition {
         String parameterName = rootHibernateQuery.addParameter(parameterNamePrefix, finalPropertyValue);
         sb.append(finalPropertyPath).append(" ").append(operator).append(" :").append(parameterName);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        SimpleComparisonCondition that = (SimpleComparisonCondition) o;
+
+        if (ignoreCase != that.ignoreCase) return false;
+        if (value != null ? !value.equals(that.value) : that.value != null) return false;
+        return operator.equals(that.operator);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (value != null ? value.hashCode() : 0);
+        result = 31 * result + operator.hashCode();
+        result = 31 * result + (ignoreCase ? 1 : 0);
+        return result;
+    }
 }

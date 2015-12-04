@@ -32,4 +32,5 @@ public class OrCondition extends JunctionCondition {
         super.dumpToHql(sb, indent, "or");
     }
 
+    // inherited "equals" is OK
 }

@@ -118,6 +118,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType.F_RESPONSE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType.F_STAGE_NUMBER;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_EXTENSION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
 
 /**
@@ -560,6 +561,40 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "where\n" +
                     "  ( g.name.norm = :norm and l.value = :value )\n";
 
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test071QueryGenericLongTwice() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(GenericObjectType.class, prismContext)
+                    .item(F_NAME).eqPoly("generic object", "generic object").matchingNorm()
+                    .and().item(F_EXTENSION, new QName("intType")).ge(100)
+                    .and().item(F_EXTENSION, new QName("intType")).lt(200)
+                    .and().item(F_EXTENSION, new QName("longType")).eq(335)
+                    .build();
+
+            String real = getInterpretedQuery2(session, GenericObjectType.class, query);
+
+            String expected = "select\n" +
+                    "  g.fullObject, g.stringsCount, g.longsCount, g.datesCount, g.referencesCount, g.polysCount, g.booleansCount\n" +
+                    "from\n" +
+                    "  RGenericObject g\n" +
+                    "    left join g.longs l with ( l.ownerType = :ownerType and l.name = :name )\n" +
+                    "    left join g.longs l2 with ( l2.ownerType = :ownerType2 and l2.name = :name2 )\n" +
+                    "where\n" +
+                    "  (\n" +
+                    "    g.name.norm = :norm and\n" +
+                    "    l.value >= :value and\n" +
+                    "    l.value < :value2 and\n" +
+                    "    l2.value = :value3\n" +
+                    "  )";
+
+            // note l and l2 cannot be merged as they point to different extension properties (intType, longType)
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -2583,16 +2618,12 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
 
-            // TODO TODO TODO
-            // when referencing singleton more times (like a.owner here) we should do only 1 join
-
             String expected = "select\n" +
                     "  a.fullObject\n" +
                     "from\n" +
                     "  RAccessCertificationCase a\n" +
                     "    left join a.reviewerRef r\n" +
                     "    left join a.owner o\n" +
-                    "    left join a.owner o2\n" +
                     "where\n" +
                     "  (\n" +
                     "    (\n" +
@@ -2607,7 +2638,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "        o.stageNumber is null\n" +
                     "      )\n" +
                     "    ) and\n" +
-                    "    o2.state = :state\n" +
+                    "    o.state = :state\n" +
                     "  )\n" +
                     "order by a.reviewRequestedTimestamp desc";
             assertEqualsIgnoreWhitespace(expected, real);
@@ -3037,7 +3068,6 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  RAccessCertificationCase a\n" +
                     "    left join a.decision d\n" +
                     "    left join a.owner o\n" +
-                    "    left join a.owner o2\n" +
                     "where\n" +
                     "  (\n" +
                     "    (\n" +
@@ -3056,7 +3086,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "      d.response = :response\n" +
                     "    )\n" +
                     "  )\n" +
-                    "order by o.name.orig asc, a.id asc, o2.oid asc\n";
+                    "order by o.name.orig asc, a.id asc, o.oid asc\n";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);

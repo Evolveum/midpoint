@@ -37,4 +37,6 @@ public class AndCondition extends JunctionCondition {
     public void dumpToHql(StringBuilder sb, int indent) {
         super.dumpToHql(sb, indent, "and");
     }
+
+    // inherited "equals" is OK
 }

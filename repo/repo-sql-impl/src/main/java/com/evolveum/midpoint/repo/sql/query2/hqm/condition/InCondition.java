@@ -55,4 +55,25 @@ public class InCondition extends PropertyCondition {
             sb.append(propertyPath).append(" in (").append(innerQueryText).append(")");
         }
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        InCondition that = (InCondition) o;
+
+        if (values != null ? !values.equals(that.values) : that.values != null) return false;
+        return !(innerQueryText != null ? !innerQueryText.equals(that.innerQueryText) : that.innerQueryText != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (values != null ? values.hashCode() : 0);
+        result = 31 * result + (innerQueryText != null ? innerQueryText.hashCode() : 0);
+        return result;
+    }
 }

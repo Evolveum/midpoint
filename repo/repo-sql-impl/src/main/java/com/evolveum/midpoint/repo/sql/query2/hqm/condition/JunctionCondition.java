@@ -69,4 +69,20 @@ public abstract class JunctionCondition extends Condition {
             sb.append(")");
         }
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        JunctionCondition that = (JunctionCondition) o;
+
+        return components.equals(that.components);
+
+    }
+
+    @Override
+    public int hashCode() {
+        return components.hashCode();
+    }
 }

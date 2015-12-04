@@ -50,4 +50,20 @@ public abstract class PropertyCondition extends Condition {
             }
         }
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        PropertyCondition that = (PropertyCondition) o;
+
+        return propertyPath.equals(that.propertyPath);
+
+    }
+
+    @Override
+    public int hashCode() {
+        return propertyPath.hashCode();
+    }
 }

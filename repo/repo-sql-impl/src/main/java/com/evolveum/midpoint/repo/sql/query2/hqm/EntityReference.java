@@ -95,4 +95,13 @@ public class EntityReference {
         }
         return false;
     }
+
+    public JoinSpecification findJoinFor(String path) {
+        for (JoinSpecification join : joins) {
+            if (path.equals(join.getPath())) {
+                return join;
+            }
+        }
+        return null;
+    }
 }

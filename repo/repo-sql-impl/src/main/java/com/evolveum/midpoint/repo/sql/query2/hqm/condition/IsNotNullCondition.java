@@ -33,4 +33,6 @@ public class IsNotNullCondition extends PropertyCondition {
         HibernateQuery.indent(sb, indent);
         sb.append(propertyPath).append(" is not null");
     }
+
+    // inherited "equals" is OK
 }
