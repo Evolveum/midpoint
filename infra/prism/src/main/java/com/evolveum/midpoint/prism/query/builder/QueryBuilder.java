@@ -34,6 +34,34 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Here is the language structure:
+
+ Query ::= Filter? ('ASC(path)' | 'DESC(path)')*
+
+ Filter ::= 'NOT'? SimpleFilter ( ('AND'|'OR') 'NOT'? SimpleFilter )*
+
+ SimpleFilter ::= PrimitiveFilter |
+                  'BLOCK' Filter 'END-BLOCK' |
+                  'TYPE(type)' Filter |
+                  'EXISTS(path)' Filter
+
+ PrimitiveFilter ::= 'ALL' | 'NONE' | 'UNDEFINED' |
+                     ('ITEM(path)' ( ValueComparisonCondition | 'IS-NULL' | ( ItemComparisonCondition 'ITEM(path)') ) ) |
+                     ('ID(values)') | ('OWNER-ID(values)')
+
+ ValueComparisonCondition ::= 'EQ(value)' | 'GT(value)' | 'GE(value)' | 'LT(value)' | 'LE(value)' | 'STARTSWITH(value)' | 'ENDSWITH(value)' | 'CONTAINS(value)' | 'REF(value)' | 'ORG(value)'
+ ItemComparisonCondition ::= 'EQ' | 'GT' | 'GE' | 'LT' | 'LE'
+
+ *
+ * It can be visualized e.g. using http://www.bottlecaps.de/rr/ui
+ *
+ * Individual keywords ('AND', 'OR', 'BLOCK', ...) are mapped to methods.
+ * Connections between these keywords are mapped to interfaces.
+ * It can be viewed as interfaces = states, keywords = transitions. (Or vice versa, but this is more natural.)
+ * The interfaces have names starting with S_ (for "state").
+ *
+ * Interfaces are implemented by classes that aggregate state of the query being created. This is quite hacked for now... to be implemented more seriously.
+ *
  * @author mederly
  */
 public class QueryBuilder {
