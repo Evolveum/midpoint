@@ -1368,7 +1368,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test330OwnerInOidTest() throws Exception {
+    public void test335OwnerInOidTest() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
@@ -1376,17 +1376,11 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
             String expected = "select\n" +
-                    "  o.fullObject,\n" +
-                    "  o.stringsCount,\n" +
-                    "  o.longsCount,\n" +
-                    "  o.datesCount,\n" +
-                    "  o.referencesCount,\n" +
-                    "  o.polysCount,\n" +
-                    "  o.booleansCount\n" +
+                    "  a.fullObject\n" +
                     "from\n" +
-                    "  RObject o\n" +
+                    "  RAccessCertificationCase a\n" +
                     "where\n" +
-                    "  o.ownerOid in :oid\n";
+                    "  a.ownerOid in :ownerOid";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -1459,8 +1453,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "from\n" +
                     "  ROrg o\n" +
                     "where\n" +
-                    "  o.oid in (select ref.ownerOid from RObjectReference ref where ref.referenceType = com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner.OBJECT_PARENT_ORG and ref.targetOid = :orgOid)\n" +
-                    "order by o.name.orig asc\n";
+                    "  o.oid in (select ref.ownerOid from RObjectReference ref where ref.referenceType = com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner.OBJECT_PARENT_ORG and ref.targetOid in (select descendantOid from ROrgClosure where ancestorOid = :orgOid))\n" +
+                    "order by o.name.orig asc";
 
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
@@ -1494,8 +1488,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "from\n" +
                     "  ROrg o\n" +
                     "where\n" +
-                    "  o.oid in (select ref.ownerOid from RObjectReference ref where ref.referenceType = com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner.OBJECT_PARENT_ORG and ref.targetOid = :orgOid)\n" +
-                    "order by o.name.orig asc\n";
+                    "  o.oid in (select descendantOid from ROrgClosure group by descendantOid having count(descendantOid) = 1)\n" +
+                    "order by o.name.orig asc";
 
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
@@ -2024,7 +2018,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             objectQuery = ObjectQuery.createObjectQuery(substring);
             objectQuery.setUseNewQueryInterpreter(true);
             count = repositoryService.countObjects(ObjectType.class, objectQuery, result);
-            AssertJUnit.assertEquals(18, count);
+            AssertJUnit.assertEquals(19, count);
 
         } finally {
             close(session);

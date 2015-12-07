@@ -213,7 +213,7 @@ public class CertificationCaseHelper {
                 if (fullObject == null) {
                     throw new ObjectNotFoundException("Couldn't update cert campaign " + campaignOid + " + by delta with path " + deltaPath + " - specified case does not exist");
                 }
-                AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(fullObject, prismContext);
+                AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(fullObject, prismContext, false);
 
                 delta.setParentPath(delta.getParentPath().tail(2));         // remove "case[id]" from the delta path
                 delta.applyTo(aCase.asPrismContainerValue());
@@ -254,7 +254,7 @@ public class CertificationCaseHelper {
                                                                      Collection<SelectorOptions<GetOperationOptions>> options,
                                                                      Session session) throws SchemaException {
 
-        AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(result.getFullObject(), prismContext);
+        AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(result.getFullObject(), prismContext, false);
         nameResolutionHelper.resolveNamesIfRequested(session, aCase.asPrismContainerValue(), options);
         generalHelper.validateContainerable(aCase, AccessCertificationCaseType.class);
         return aCase;

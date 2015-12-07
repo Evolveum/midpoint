@@ -352,11 +352,11 @@ public class RAccessCertificationCase implements Container {
     }
 
     public AccessCertificationCaseType toJAXB(PrismContext prismContext) throws SchemaException {
-        return createJaxb(fullObject, prismContext);
+        return createJaxb(fullObject, prismContext, true);
     }
 
     // TODO find appropriate name
-    public static AccessCertificationCaseType createJaxb(byte[] fullObject, PrismContext prismContext) throws SchemaException {
+    public static AccessCertificationCaseType createJaxb(byte[] fullObject, PrismContext prismContext, boolean removeCampaignRef) throws SchemaException {
         String xml = RUtil.getXmlFromByteArray(fullObject, false);
         PrismContainer<AccessCertificationCaseType> caseContainer;
         try {
@@ -369,6 +369,8 @@ public class RAccessCertificationCase implements Container {
             LOGGER.debug("Couldn't parse certification case because of unexpected exception ({}):\nData: {}", e, xml);
             throw e;
         }
-        return caseContainer.getValue().asContainerable().clone();      // clone in order to make it parent-less
+        AccessCertificationCaseType aCase = caseContainer.getValue().asContainerable().clone();      // clone in order to make it parent-less
+        aCase.asPrismContainerValue().removeReference(AccessCertificationCaseType.F_CAMPAIGN_REF);
+        return aCase;
     }
 }

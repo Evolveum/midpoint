@@ -80,7 +80,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl.ObjectPagingAfterOid;
+import com.evolveum.midpoint.repo.sql.ObjectPagingAfterOid;
 
 /**
  * Interprets midPoint queries by translating them to hibernate (HQL) ones.

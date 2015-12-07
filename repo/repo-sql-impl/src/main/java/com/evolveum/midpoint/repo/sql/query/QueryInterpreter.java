@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.sql.ObjectPagingAfterOid;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.query.definition.Definition;
 import com.evolveum.midpoint.repo.sql.query.definition.EntityDefinition;
@@ -51,8 +52,6 @@ import org.hibernate.criterion.Restrictions;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
-
-import static com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl.*;
 
 /**
  * @author lazyman

@@ -12154,7 +12154,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="accessCertificationDefinition" type="tns:AccessCertificationDefinitionType" />
+    <xsd:element name="accessCertificationDefinition" type="tns:AccessCertificationDefinitionType" substitutionGroup="c:object"/>
 
     <xsd:complexType name="AccessCertificationStageDefinitionType">
         <xsd:annotation>
@@ -12435,7 +12435,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="accessCertificationCampaign" type="tns:AccessCertificationCampaignType" />
+    <xsd:element name="accessCertificationCampaign" type="tns:AccessCertificationCampaignType" substitutionGroup="c:object" />
 
     <xsd:complexType name="AccessCertificationStageType">
         <xsd:annotation>

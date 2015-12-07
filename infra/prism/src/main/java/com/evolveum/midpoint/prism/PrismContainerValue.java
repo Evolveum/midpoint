@@ -873,7 +873,15 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		removeItem(itemPath, PrismContainer.class);
 	}
 
-	// Expects that "self" path is NOT present in propPath
+    public void removeReference(QName name) {
+        removeReference(new ItemPath(name));
+    }
+
+    public void removeReference(ItemPath path) {
+        removeItem(path, PrismReference.class);
+    }
+
+    // Expects that "self" path is NOT present in propPath
 	<IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> void removeItem(ItemPath propPath, Class<I> itemType) {
 		if (items == null){
     		return;
