@@ -22,19 +22,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.AllFilter;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.ExistsFilter;
-import com.evolveum.midpoint.prism.query.NoneFilter;
-import com.evolveum.midpoint.prism.query.NotFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectOrdering;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrFilter;
-import com.evolveum.midpoint.prism.query.OrderDirection;
-import com.evolveum.midpoint.prism.query.TypeFilter;
-import com.evolveum.midpoint.prism.query.UndefinedFilter;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.apache.commons.lang.Validate;
 
@@ -180,48 +168,62 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
     // TODO .............................................
 
     @Override
-    public S_AtomicFilterExit id(String... identifiers) {
-        return null;
+    public S_AtomicFilterExit id(String... identifiers) throws SchemaException {
+        return addSubfilter(InOidFilter.createInOid(identifiers));
     }
 
     @Override
-    public S_AtomicFilterExit id(long... identifiers) {
-        return null;
+    public S_AtomicFilterExit id(long... identifiers) throws SchemaException {
+        List<String> ids = longsToStrings(identifiers);
+        return addSubfilter(InOidFilter.createInOid(ids));
+    }
+
+    private List<String> longsToStrings(long[] identifiers) {
+        List<String> ids = new ArrayList<>(identifiers.length);
+        for (long id : identifiers) {
+            ids.add(String.valueOf(id));
+        }
+        return ids;
     }
 
     @Override
-    public S_AtomicFilterExit ownerId(String... identifiers) {
-        return null;
+    public S_AtomicFilterExit ownerId(String... identifiers) throws SchemaException {
+        return addSubfilter(InOidFilter.createOwnerHasOidIn(identifiers));
     }
 
     @Override
-    public S_AtomicFilterExit ownerId(long... identifiers) {
-        return null;
+    public S_AtomicFilterExit ownerId(long... identifiers) throws SchemaException {
+        return addSubfilter(InOidFilter.createOwnerHasOidIn(longsToStrings(identifiers)));
     }
 
     @Override
-    public S_AtomicFilterExit isDirectChildOf(PrismReferenceValue value) {
-        return null;
+    public S_AtomicFilterExit isDirectChildOf(PrismReferenceValue value) throws SchemaException {
+        OrgFilter orgFilter = OrgFilter.createOrg(value, OrgFilter.Scope.ONE_LEVEL);
+        return addSubfilter(orgFilter);
     }
 
     @Override
-    public S_AtomicFilterExit isChildOf(PrismReferenceValue value) {
-        return null;
+    public S_AtomicFilterExit isChildOf(PrismReferenceValue value) throws SchemaException {
+        OrgFilter orgFilter = OrgFilter.createOrg(value, OrgFilter.Scope.SUBTREE);
+        return addSubfilter(orgFilter);
     }
 
     @Override
-    public S_AtomicFilterExit isDirectChildOf(String oid) {
-        return null;
+    public S_AtomicFilterExit isDirectChildOf(String oid) throws SchemaException {
+        OrgFilter orgFilter = OrgFilter.createOrg(oid, OrgFilter.Scope.ONE_LEVEL);
+        return addSubfilter(orgFilter);
     }
 
     @Override
-    public S_AtomicFilterExit isChildOf(String oid) {
-        return null;
+    public S_AtomicFilterExit isChildOf(String oid) throws SchemaException {
+        OrgFilter orgFilter = OrgFilter.createOrg(oid, OrgFilter.Scope.SUBTREE);
+        return addSubfilter(orgFilter);
     }
 
     @Override
-    public S_AtomicFilterExit isRoot() {
-        return null;
+    public S_AtomicFilterExit isRoot() throws SchemaException {
+        OrgFilter orgFilter = OrgFilter.createRootOrg();
+        return addSubfilter(orgFilter);
     }
 
     @Override

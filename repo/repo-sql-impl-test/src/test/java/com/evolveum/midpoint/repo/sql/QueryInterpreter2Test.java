@@ -1345,12 +1345,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     public void test330InOidTest() throws Exception {
         Session session = open();
         try {
-            InOidFilter filter = InOidFilter.createInOid(Arrays.asList("1", "2"));
-
-            ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-
-//            ObjectQuery query1 = QueryBuilder.queryFor(ObjectType.class, prismContext)
-//                    .id("1", "2").build();
+            ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, prismContext)
+                    .id("1", "2").build();
 
             String real = getInterpretedQuery2(session, ObjectType.class, query, false);
             String expected = "select\n" +
@@ -1372,25 +1368,120 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     @Test
+    public void test330OwnerInOidTest() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+                    .ownerId("1", "2").build();
+
+            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
+            String expected = "select\n" +
+                    "  o.fullObject,\n" +
+                    "  o.stringsCount,\n" +
+                    "  o.longsCount,\n" +
+                    "  o.datesCount,\n" +
+                    "  o.referencesCount,\n" +
+                    "  o.polysCount,\n" +
+                    "  o.booleansCount\n" +
+                    "from\n" +
+                    "  RObject o\n" +
+                    "where\n" +
+                    "  o.ownerOid in :oid\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
     public void test340QueryOrgTreeFindOrgs() throws Exception {
         Session session = open();
 
         try {
-
             OrgFilter orgFilter = OrgFilter.createOrg("some oid", OrgFilter.Scope.ONE_LEVEL);
-            ObjectQuery objectQuery = ObjectQuery.createObjectQuery(orgFilter);
-            objectQuery.setPaging(ObjectPaging.createPaging(null, null, F_NAME, ASCENDING));
-            objectQuery.setUseNewQueryInterpreter(true);
+            ObjectQuery query0 = ObjectQuery.createObjectQuery(orgFilter);
+            query0.setPaging(ObjectPaging.createPaging(null, null, F_NAME, ASCENDING));
+            query0.setUseNewQueryInterpreter(true);
 
-//            ObjectQuery query1 = QueryBuilder.queryFor(OrgType.class, prismContext)
-//                    .isDirectChildOf("some oid")
-//                    .asc(ObjectType.F_NAME)
-//                    .build();
+            ObjectQuery query = QueryBuilder.queryFor(OrgType.class, prismContext)
+                    .isDirectChildOf("some oid")
+                    .asc(ObjectType.F_NAME)
+                    .build();
 
-            String real = getInterpretedQuery2(session, OrgType.class, objectQuery);
+            String real = getInterpretedQuery2(session, OrgType.class, query);
 
             OperationResult result = new OperationResult("query org structure");
-            repositoryService.searchObjects(OrgType.class, objectQuery, null, result);
+            repositoryService.searchObjects(OrgType.class, query, null, result);
+
+            String expected = "select\n" +
+                    "  o.fullObject,\n" +
+                    "  o.stringsCount,\n" +
+                    "  o.longsCount,\n" +
+                    "  o.datesCount,\n" +
+                    "  o.referencesCount,\n" +
+                    "  o.polysCount,\n" +
+                    "  o.booleansCount\n" +
+                    "from\n" +
+                    "  ROrg o\n" +
+                    "where\n" +
+                    "  o.oid in (select ref.ownerOid from RObjectReference ref where ref.referenceType = com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner.OBJECT_PARENT_ORG and ref.targetOid = :orgOid)\n" +
+                    "order by o.name.orig asc\n";
+
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test345QueryOrgAllLevels() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(OrgType.class, prismContext)
+                    .isChildOf(new PrismReferenceValue("123"))
+                    .asc(ObjectType.F_NAME)
+                    .build();
+
+            String real = getInterpretedQuery2(session, OrgType.class, query);
+
+            OperationResult result = new OperationResult("query org structure");
+            repositoryService.searchObjects(OrgType.class, query, null, result);
+
+            String expected = "select\n" +
+                    "  o.fullObject,\n" +
+                    "  o.stringsCount,\n" +
+                    "  o.longsCount,\n" +
+                    "  o.datesCount,\n" +
+                    "  o.referencesCount,\n" +
+                    "  o.polysCount,\n" +
+                    "  o.booleansCount\n" +
+                    "from\n" +
+                    "  ROrg o\n" +
+                    "where\n" +
+                    "  o.oid in (select ref.ownerOid from RObjectReference ref where ref.referenceType = com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner.OBJECT_PARENT_ORG and ref.targetOid = :orgOid)\n" +
+                    "order by o.name.orig asc\n";
+
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test348QueryRoots() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(OrgType.class, prismContext)
+                    .isRoot()
+                    .asc(ObjectType.F_NAME)
+                    .build();
+
+            String real = getInterpretedQuery2(session, OrgType.class, query);
+
+            OperationResult result = new OperationResult("query org structure");
+            repositoryService.searchObjects(OrgType.class, query, null, result);
 
             String expected = "select\n" +
                     "  o.fullObject,\n" +
