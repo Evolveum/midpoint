@@ -854,7 +854,8 @@ public final class WebMiscUtil {
         String path = object.getPageRelativePath();
         T retval = (T) containingPage.get(path);
         if (retval == null) {
-            throw new IllegalStateException("There is no component like " + object + " (path '" + path + "') on " + containingPage);
+            return object;
+//            throw new IllegalStateException("There is no component like " + object + " (path '" + path + "') on " + containingPage);
         }
         return retval;
     }

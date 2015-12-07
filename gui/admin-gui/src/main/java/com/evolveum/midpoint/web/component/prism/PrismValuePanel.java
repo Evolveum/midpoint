@@ -397,6 +397,8 @@ public class PrismValuePanel extends Panel {
     // normally this method returns an InputPanel;
     // however, for some special readonly types (like ObjectDeltaType) it will return a Panel
     private Panel createTypedInputComponent(String id) {
+//        ValueWrapper valueWrapper = model.getObject();
+//        ItemWrapper itemWrapper =
         final Item item = model.getObject().getItem().getItem();
         
         Panel panel = null;
@@ -421,12 +423,12 @@ public class PrismValuePanel extends Panel {
                       PrismProperty kindItem = (PrismProperty)assocContainer.findItem(ShadowType.F_KIND);
                       PrismProperty intentItem = (PrismProperty)assocContainer.findItem(ShadowType.F_INTENT);
                       PrismObject<ResourceType> resource = ((ShadowType)containerWrapper.getObject().getObject().asObjectable()).getResource().asPrismObject();
-                      ObjectQuery query = getAssociationsSearchQuery(resource,
+                      ObjectQuery query = getAssociationsSearchQuery(prismContext, resource,
                               objectClassItem, kindItem, intentItem);
                       List<PrismObject<ShadowType>> values = loadAssociationShadows(query);
 
                       return new ValueChoosePanel(id,
-                              new PropertyModel<>(model, "value"), values, false, ShadowType.class, query, getAssociationsSearchOptions());
+                              new PropertyModel<>(model, "value"), item.getValues(), false, ShadowType.class, query, getAssociationsSearchOptions());
                   }
               }
 
@@ -772,6 +774,23 @@ public class PrismValuePanel extends Panel {
         target.add(parent.getParent());
     }
 
+    private ObjectQuery getAssociationsSearchQuery(PrismContext prismContext, PrismObject resource, PrismProperty objectClass, PrismProperty kind,
+                                                   PrismProperty intent){
+        try {
+            ObjectFilter andFilter = AndFilter.createAnd(
+                    EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, objectClass.getRealValue()),
+                    EqualFilter.createEqual(ShadowType.F_KIND, ShadowType.class, prismContext, kind.getRealValue()),
+                    EqualFilter.createEqual(ShadowType.F_INTENT, ShadowType.class, prismContext, intent.getRealValue()),
+                    RefFilter.createReferenceEqual(new ItemPath(ShadowType.F_RESOURCE_REF), ShadowType.class, prismContext, resource.getOid()));
+            ObjectQuery query = ObjectQuery.createObjectQuery(andFilter);
+            return query;
+        } catch (SchemaException ex) {
+            LoggingUtils.logException(LOGGER, "Unable to create associations search query", ex);
+            return null;
+        }
+
+    }
+
     private List<PrismObject<ShadowType>> loadAssociationShadows(ObjectQuery query) {
         Task task = pageBase.createSimpleTask(OPERATION_LOAD_ASSOC_SHADOWS);
         OperationResult result = new OperationResult(OPERATION_LOAD_ASSOC_SHADOWS);
@@ -787,17 +806,6 @@ public class PrismValuePanel extends Panel {
             result.computeStatus();
         }
         return assocShadows;
-    }
-
-    private ObjectQuery getAssociationsSearchQuery(PrismObject resource, PrismProperty objectClass, PrismProperty kind,
-                                                   PrismProperty intent){
-        ObjectFilter andFilter = AndFilter.createAnd(
-                EqualFilter.createEqual(new ItemPath(ShadowType.F_OBJECT_CLASS), objectClass),
-                EqualFilter.createEqual(new ItemPath(ShadowType.F_KIND), kind),
-                EqualFilter.createEqual(new ItemPath(ShadowType.F_INTENT), intent),
-                RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resource));
-        ObjectQuery query =  ObjectQuery.createObjectQuery(andFilter);
-        return query;
     }
 
     private Collection<SelectorOptions<GetOperationOptions>> getAssociationsSearchOptions(){

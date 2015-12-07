@@ -4,10 +4,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ObjectSelectionPage;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import javafx.beans.property.ObjectProperty;
 import org.apache.wicket.Page;
 import org.apache.wicket.PageReference;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -112,11 +115,17 @@ public class ValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
 //	    }
 	  
 	  protected void replaceIfEmpty(Object object) {
-		  boolean added = false;
-		 	  ObjectReferenceType ort = ObjectTypeUtil.createObjectRef((ObjectType) object);
-		 	  ort.setTargetName(((ObjectType) object).getName());
-			  getModel().setObject((T)ort.asReferenceValue());
-		 
+          T old = getModelObject();
+          ObjectReferenceType ort = ObjectTypeUtil.createObjectRef((ObjectType) object);
+          ort.setTargetName(((ObjectType) object).getName());
+          if (old instanceof PrismPropertyValue) {      // let's assume we are working with associations panel
+//              ObjectType newValue= (ObjectType)object;
+//              getModel().setObject((T)newValue);
+              //TODO
+              getModel().setObject((T) ort.asReferenceValue());
+          } else {
+               getModel().setObject((T) ort.asReferenceValue());
+          }
 	  }
 
 	protected void initDialog(final Class<C> type, List<PrismReferenceValue> values, ObjectQuery query) {
@@ -125,8 +134,6 @@ public class ValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
 			 initUserOrgDialog();
          } else {
         	 initGenericDialog(type, values, query);
-		
-		
          }
 	}
 
@@ -162,6 +169,7 @@ public class ValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
 
 			@Override
 			public boolean isSearchEnabled() {
+                //TODO don't commit
 				return false;
 			}
 
@@ -304,13 +312,22 @@ public class ValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
 	protected boolean isObjectUnique(C object) {
 
 		// for(T o: ){
-		PrismReferenceValue old = (PrismReferenceValue)getModelObject();
-		if (old == null || old.isEmpty()){
-			return true;
-		}
-		if (old.getOid().equals(object.getOid())) {
-			return false;
-		}
+        T old = getModelObject();
+        if (old instanceof PrismPropertyValue){
+            if (old == null || ((PrismPropertyValue)old).isEmpty()){
+                return true;
+            }
+            if (((PrismPropertyValue)old).getValue().equals(object.asPrismObject().getValue())) {
+                return false;
+            }
+        } else {
+            if (old == null || ((PrismReferenceValue)old).isEmpty()){
+                return true;
+            }
+            if (((PrismReferenceValue)old).getOid().equals(object.getOid())) {
+                return false;
+            }}
+
 		// }
 		return true;
 	}
