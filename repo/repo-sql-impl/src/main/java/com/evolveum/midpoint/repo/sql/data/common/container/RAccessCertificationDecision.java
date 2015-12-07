@@ -42,7 +42,13 @@ import javax.xml.datatype.XMLGregorianCalendar;
 @JaxbType(type = AccessCertificationDecisionType.class)
 @Entity
 @IdClass(RL2ContainerId.class)
-@Table(name = "m_acc_cert_decision", indexes = {
+@Table(name = "m_acc_cert_decision",
+        uniqueConstraints =
+            @UniqueConstraint(
+                    name = "uc_case_stage_reviewer",
+                    columnNames = {"owner_owner_oid", "owner_id", "stageNumber", "reviewerRef_targetOid" }),
+
+        indexes = {
 //        @Index(name = "iObjectRefTargetOid", columnList = "objectRef_targetOid"),
 //        @Index(name = "iTargetRefTargetOid", columnList = "targetRef_targetOid")
 })
