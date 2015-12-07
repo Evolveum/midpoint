@@ -127,6 +127,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType.
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_EXTENSION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_METADATA;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType.F_TIMESTAMP;
 
 /**
  * @author lazyman
@@ -1018,24 +1019,50 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             SchemaRegistry registry = prismContext.getSchemaRegistry();
             PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(ObjectType.class);
-            ItemPath triggerPath = new ItemPath(ObjectType.F_TRIGGER, TriggerType.F_TIMESTAMP);
+            ItemPath triggerPath = new ItemPath(ObjectType.F_TRIGGER, F_TIMESTAMP);
             ObjectFilter filter = LessFilter.createLess(triggerPath, objectDef, thisScanTimestamp, true);
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
             String real = getInterpretedQuery2(session, ObjectType.class, query);
 
             String expected = "select\n" +
-                    "  o.fullObject,\n" +
-                    "  o.stringsCount,\n" +
-                    "  o.longsCount,\n" +
-                    "  o.datesCount,\n" +
-                    "  o.referencesCount,\n" +
-                    "  o.polysCount,\n" +
-                    "  o.booleansCount\n" +
+                    "  o.fullObject, o.stringsCount, o.longsCount, o.datesCount, o.referencesCount, o.polysCount, o.booleansCount\n" +
                     "from\n" +
                     "  RObject o\n" +
                     "    left join o.trigger t\n" +
                     "where\n" +
                     "  t.timestamp <= :timestamp\n";
+
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test162QueryTriggerBeforeAfter() throws Exception {
+        final Date NOW = new Date();
+
+        Session session = open();
+        try {
+            XMLGregorianCalendar lastScanTimestamp = XmlTypeConverter.createXMLGregorianCalendar(NOW.getTime());
+            XMLGregorianCalendar thisScanTimestamp = XmlTypeConverter.createXMLGregorianCalendar(NOW.getTime());
+
+            ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, prismContext)
+                    .exists(ObjectType.F_TRIGGER)
+                    .block()
+                        .item(F_TIMESTAMP).gt(lastScanTimestamp)
+                        .and().item(F_TIMESTAMP).le(thisScanTimestamp)
+                    .endBlock()
+                    .build();
+            String real = getInterpretedQuery2(session, ObjectType.class, query);
+
+            String expected = "select\n" +
+                    "  o.fullObject, o.stringsCount, o.longsCount, o.datesCount, o.referencesCount, o.polysCount, o.booleansCount\n" +
+                    "from\n" +
+                    "  RObject o\n" +
+                    "    left join o.trigger t\n" +
+                    "where\n" +
+                    "  ( t.timestamp > :timestamp and t.timestamp <= :timestamp2 )\n";
 
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
@@ -1208,7 +1235,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             SchemaRegistry registry = prismContext.getSchemaRegistry();
             PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(ObjectType.class);
-            ItemPath triggerPath = new ItemPath(ObjectType.F_TRIGGER, TriggerType.F_TIMESTAMP);
+            ItemPath triggerPath = new ItemPath(ObjectType.F_TRIGGER, F_TIMESTAMP);
             ObjectFilter greater = GreaterFilter.createGreater(triggerPath, objectDef, thisScanTimestamp, false);
             ObjectFilter lesser = LessFilter.createLess(triggerPath, objectDef, thisScanTimestamp, false);
             AndFilter and = AndFilter.createAnd(greater, lesser);
