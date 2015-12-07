@@ -927,4 +927,13 @@ public class IntegrationTestTools {
 			}
 		}
 	}
+
+	public static void assertNoSchema(ResourceType resourceType) {
+		assertNoSchema("Found schema in resource "+resourceType+" while not expecting it", resourceType);
+	}
+	
+	public static void assertNoSchema(String message, ResourceType resourceType) {
+		Element resourceXsdSchema = ResourceTypeUtil.getResourceXsdSchema(resourceType);
+		AssertJUnit.assertNull(message, resourceXsdSchema);
+	}
 }

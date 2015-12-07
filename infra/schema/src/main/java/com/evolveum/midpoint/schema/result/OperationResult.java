@@ -1271,7 +1271,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 			OperationResult subresult = iterator.next();
 			if (subresult.getStatus() == OperationResultStatus.UNKNOWN) {
 				String message = "Subresult "+subresult.getOperation()+" of operation "+operation+" is still UNKNOWN during cleanup";
-				LOGGER.error("{}:\n{}", message, this.debugDump());
+				LOGGER.error("{}:\n{}", message, this.debugDump(), e);
 				if (e == null) {
 					throw new IllegalStateException(message);
 				} else {

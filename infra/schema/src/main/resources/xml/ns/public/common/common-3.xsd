@@ -46,7 +46,7 @@
             <a href="https://wiki.evolveum.com/display/midPoint/Data+Model">https://wiki.evolveum.com/display/midPoint/Data+Model</a>
             for more details.
 
-            <p>Version: 3.3</p>
+            <p>Version: 3.4-SNAPSHOT</p>
 
             <p>Recommended namespace prefix: (default), c</p>
         </xsd:documentation>
@@ -7132,6 +7132,19 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
+					<xsd:element name="adminGuiConfiguration" type="tns:AdminGuiConfigurationType" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								<p>
+									Specifies the admin GUI configuration that should be used
+									for the members of this role.
+								</p>
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.4</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -8805,6 +8818,19 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="objectForms" type="tns:ObjectFormsType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Specifies the set of default forms that are used for displaying and
+      						editing of objects, such as User, Role, Org, ...
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.4</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -13502,6 +13528,80 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="sequence" type="tns:SequenceType" />
+    
+    
+    
+  <!-- ============================================================== -->
+  <!--  FORMS                                                         -->
+  <!-- ============================================================== -->
+
+
+    <xsd:complexType name="ObjectFormsType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Specifies the set of forms that are used for displaying and
+        		editing of objects, such as User, Role, Org, ...
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+       		<xsd:sequence>
+           		<xsd:element name="objectForm" type="tns:ObjectFormType" minOccurs="0" maxOccurs="unbounded"/>
+           	</xsd:sequence>	
+    </xsd:complexType>
+
+    <xsd:complexType name="ObjectFormType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Specifies form that are used for displaying and
+        		editing of specific object type
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+       		<xsd:sequence>
+       			<xsd:element name="type" type="xsd:QName" minOccurs="1" maxOccurs="1"/>
+           		<xsd:element name="formSpecification" type="tns:FormSpecificationType" minOccurs="0" maxOccurs="1"/>
+           	</xsd:sequence>	
+    </xsd:complexType>
+    
+    <xsd:complexType name="FormSpecificationType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Specifies a form using several different methods, e.g. by
+        		specification of Java class, internal form OID, etc.
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+       		<xsd:sequence>
+           		<xsd:element name="formRef" type="tns:ObjectReferenceType"
+                                 minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Reference to midPoint form object
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:objectReferenceTargetType>tns:FormType</a:objectReferenceTargetType>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+       			<xsd:element name="panelClass" type="xsd:string" minOccurs="0" maxOccurs="1">
+       				<xsd:annotation>
+       					<xsd:documentation>
+       						Name of the Java class that will be used as the form implementation.
+       					</xsd:documentation>
+       				</xsd:annotation>
+       			</xsd:element>
+           	</xsd:sequence>	
+    </xsd:complexType>
+    
     
     <xsd:complexType name="FormType">
         <xsd:annotation>

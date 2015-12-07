@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -517,9 +517,11 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 		} else {
 			valuesToReplace.clear();
 		}
-		valuesToReplace.add(newValue);
-		newValue.setParent(this);
-		newValue.recompute();
+		if (newValue != null) {
+			valuesToReplace.add(newValue);
+			newValue.setParent(this);
+			newValue.recompute();
+		}
 	}
 	
 	public void mergeValuesToReplace(Collection<V> newValues) {
