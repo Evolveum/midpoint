@@ -126,7 +126,7 @@ public class ObjectUpdater {
 
             RObject rObject = createDataObjectFromJAXB(object, operation);
 
-            session = beginTransaction();
+            session = transactionHelper.beginTransaction();
 
             closureContext = closureManager.onBeginTransactionAdd(session, object, options.isOverwrite());
 
@@ -169,10 +169,6 @@ public class ObjectUpdater {
         }
 
         return oid;
-    }
-
-    private Session beginTransaction() {
-        return transactionHelper.beginTransaction();
     }
 
     private <T extends ObjectType> String overwriteAddObjectAttempt(PrismObject<T> object, RObject rObject,
@@ -305,7 +301,7 @@ public class ObjectUpdater {
         Session session = null;
         OrgClosureManager.Context closureContext = null;
         try {
-            session = beginTransaction();
+            session = transactionHelper.beginTransaction();
 
             closureContext = closureManager.onBeginTransactionDelete(session, type, oid);
 
@@ -356,7 +352,7 @@ public class ObjectUpdater {
         Session session = null;
         OrgClosureManager.Context closureContext = null;
         try {
-            session = beginTransaction();
+            session = transactionHelper.beginTransaction();
 
             closureContext = closureManager.onBeginTransactionModify(session, type, oid, modifications);
 

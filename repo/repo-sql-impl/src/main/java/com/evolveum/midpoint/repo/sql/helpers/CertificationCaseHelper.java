@@ -105,10 +105,18 @@ public class CertificationCaseHelper {
     }
 
     public void deleteCertificationCampaignCases(Session session, String oid) {
-        Query query = session.getNamedQuery("delete.campaignCases");
-        query.setParameter("oid", oid);
+        // TODO couldn't this cascading be done by hibernate itself?
+        Query deleteDecisions = session.getNamedQuery("delete.campaignCasesDecisions");
+        deleteDecisions.setParameter("oid", oid);
+        deleteDecisions.executeUpdate();
 
-        query.executeUpdate();
+        Query deleteReferences = session.getNamedQuery("delete.campaignCasesReferences");
+        deleteReferences.setParameter("oid", oid);
+        deleteReferences.executeUpdate();
+
+        Query deleteCases = session.getNamedQuery("delete.campaignCases");
+        deleteCases.setParameter("oid", oid);
+        deleteCases.executeUpdate();
     }
 
     public <T extends ObjectType> Collection<? extends ItemDelta> filterCampaignCaseModifications(Class<T> type,
@@ -174,10 +182,20 @@ public class CertificationCaseHelper {
                             throw new SchemaException("Couldn't delete certification case with null id");
                         }
                         affectedIds.add(id);
-                        Query query = session.getNamedQuery("delete.campaignCase");
-                        query.setString("oid", campaignOid);
-                        query.setInteger("id", RUtil.toInteger(id));
-                        query.executeUpdate();
+                        // TODO couldn't this cascading be done by hibernate itself?
+                        Integer integerCaseId = RUtil.toInteger(id);
+                        Query deleteCaseDecisions = session.getNamedQuery("delete.campaignCaseDecisions");
+                        deleteCaseDecisions.setString("oid", campaignOid);
+                        deleteCaseDecisions.setInteger("id", integerCaseId);
+                        deleteCaseDecisions.executeUpdate();
+                        Query deleteCaseReferences = session.getNamedQuery("delete.campaignCaseReferences");
+                        deleteCaseReferences.setString("oid", campaignOid);
+                        deleteCaseReferences.setInteger("id", integerCaseId);
+                        deleteCaseReferences.executeUpdate();
+                        Query deleteCase = session.getNamedQuery("delete.campaignCase");
+                        deleteCase.setString("oid", campaignOid);
+                        deleteCase.setInteger("id", integerCaseId);
+                        deleteCase.executeUpdate();
                     }
                 }
                 if (delta.getValuesToAdd() != null) {
