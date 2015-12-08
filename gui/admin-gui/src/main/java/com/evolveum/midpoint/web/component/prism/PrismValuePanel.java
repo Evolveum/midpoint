@@ -35,6 +35,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
+import com.evolveum.midpoint.web.page.admin.users.component.AssociationValueChoosePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.Validate;
@@ -283,7 +284,7 @@ public class PrismValuePanel extends Panel {
             return false;
         }
         Component inputPanel = this.get(ID_VALUE_CONTAINER).get(ID_INPUT);
-        if (inputPanel instanceof  ValueChoosePanel){
+        if (inputPanel instanceof  ValueChoosePanel || inputPanel instanceof AssociationValueChoosePanel){
             return true;
         }
 
@@ -413,6 +414,14 @@ public class PrismValuePanel extends Panel {
               ContainerWrapper containerWrapper = itemWrapper.getContainer();
               if(containerWrapper != null && containerWrapper.getPath() != null){
                   if(ShadowType.F_ASSOCIATION.getLocalPart().equals(containerWrapper.getPath().toString())){
+
+
+
+
+
+
+
+
                       PrismContext prismContext = item.getPrismContext();
                       if (prismContext == null) {
                           prismContext = pageBase.getPrismContext();
@@ -425,10 +434,10 @@ public class PrismValuePanel extends Panel {
                       PrismObject<ResourceType> resource = ((ShadowType)containerWrapper.getObject().getObject().asObjectable()).getResource().asPrismObject();
                       ObjectQuery query = getAssociationsSearchQuery(prismContext, resource,
                               objectClassItem, kindItem, intentItem);
-                      List<PrismObject<ShadowType>> values = loadAssociationShadows(query);
 
-                      return new ValueChoosePanel(id,
-                              new PropertyModel<>(model, "value"), item.getValues(), false, ShadowType.class, query, getAssociationsSearchOptions());
+                      PropertyModel propertyModel = new PropertyModel<>(model, "value");
+List values = item.getValues();
+                      return new AssociationValueChoosePanel(id, propertyModel, values, false, ShadowType.class, query);
                   }
               }
 
@@ -791,27 +800,5 @@ public class PrismValuePanel extends Panel {
 
     }
 
-    private List<PrismObject<ShadowType>> loadAssociationShadows(ObjectQuery query) {
-        Task task = pageBase.createSimpleTask(OPERATION_LOAD_ASSOC_SHADOWS);
-        OperationResult result = new OperationResult(OPERATION_LOAD_ASSOC_SHADOWS);
 
-        List<PrismObject<ShadowType>> assocShadows = null;
-        try {
-
-            assocShadows = pageBase.getModelService().searchObjects(ShadowType.class, query, getAssociationsSearchOptions(), task, result);
-        } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Unable to load association shadow", ex);
-            result.recordFatalError("Unable to load association shadow", ex);
-        } finally {
-            result.computeStatus();
-        }
-        return assocShadows;
-    }
-
-    private Collection<SelectorOptions<GetOperationOptions>> getAssociationsSearchOptions(){
-        Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<SelectorOptions<GetOperationOptions>>();
-        options.add(SelectorOptions.create(ItemPath.EMPTY_PATH, GetOperationOptions.createRaw()));
-        options.add(SelectorOptions.create(ItemPath.EMPTY_PATH, GetOperationOptions.createNoFetch()));
-        return options;
-    }
 }

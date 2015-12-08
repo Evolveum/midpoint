@@ -1,12 +1,23 @@
-package com.evolveum.midpoint.web.component.form;
+package com.evolveum.midpoint.web.page.admin.users.component;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.InOidFilter;
+import com.evolveum.midpoint.prism.query.NotFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ObjectSelectionPage;
+import com.evolveum.midpoint.web.page.admin.configuration.component.ObjectSelectionPanel;
+import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
+import com.evolveum.midpoint.web.page.admin.roles.component.UserOrgReferenceChoosePanel;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import org.apache.wicket.Page;
-import org.apache.wicket.PageReference;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -18,28 +29,22 @@ import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.NotFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.page.admin.configuration.component.ObjectSelectionPanel;
-import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
-import com.evolveum.midpoint.web.page.admin.roles.component.UserOrgReferenceChoosePanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
-public class ValueChoosePanel<T, C extends ObjectType> extends SimplePanel<T> {
+/**
+ * Created by Kate Honchar
+ *
+ */
+    //TODO the class is created as a copy of ValueChoosePanel but
+    //with the possibility to work with PrismPropertyValue objects
+    // (for now ValueChoosePanel works only with PrismReferenceValue);
+    //in future some super class is to be created to union the common
+    // functionality of these 2 classes
+public class AssociationValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(MultiValueChoosePanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AssociationValueChoosePanel.class);
 
     private static final String ID_LABEL = "label";
 
@@ -53,16 +58,19 @@ public class ValueChoosePanel<T, C extends ObjectType> extends SimplePanel<T> {
 
     protected static final String MODAL_ID_OBJECT_SELECTION_POPUP = "objectSelectionPopup";
 
-    private static final String CLASS_MULTI_VALUE = "multivalue-form";
 
-    public ValueChoosePanel(String id, IModel<T> value, List<PrismReferenceValue> values, boolean required, Class<C> type) {
+    private ObjectQuery query = null;
+
+    public AssociationValueChoosePanel(String id, IModel<T> value, List<PrismPropertyValue> values, boolean required, Class<C> type,
+                                       ObjectQuery query){
         super(id, value);
+        this.query = query;
         setOutputMarkupId(true);
-
         initLayout(value, values, required, type);
     }
 
-    private void initLayout(final IModel<T> value, final List<PrismReferenceValue> values, final boolean required, Class<C> type) {
+    private void initLayout(final IModel<T> value, final List<PrismPropertyValue> values,
+                            final boolean required, Class<C> type) {
 
 
         WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
@@ -101,33 +109,45 @@ public class ValueChoosePanel<T, C extends ObjectType> extends SimplePanel<T> {
 //	    }
 
     protected void replaceIfEmpty(Object object) {
-        boolean added = false;
+        T old = getModelObject();
         ObjectReferenceType ort = ObjectTypeUtil.createObjectRef((ObjectType) object);
         ort.setTargetName(((ObjectType) object).getName());
-        getModel().setObject((T) ort.asReferenceValue());
+        if (old instanceof PrismPropertyValue) {      // let's assume we are working with associations panel
+            IModel<T> modelT = getModel();
+            T objectT = modelT.getObject();
+            if (objectT == null){
 
+            }
+
+            ShadowType shadowType = (ShadowType) object;
+
+            PrismProperty newValue = (PrismProperty)shadowType.asPrismObject().getValue().getItems().get(0);
+            PrismPropertyValue ppv = (PrismPropertyValue)newValue.getValues().get(0);
+            //TODO
+            getModel().setObject((T)ppv);
+        } else {
+            getModel().setObject((T) ort.asReferenceValue());
+        }
     }
 
-    protected void initDialog(final Class<C> type, List<PrismReferenceValue> values) {
+    protected void initDialog(final Class<C> type, List<PrismPropertyValue> values) {
 
-        if (FocusType.class.equals(type)) {
+        if (FocusType.class.equals(type)){
             initUserOrgDialog();
         } else {
             initGenericDialog(type, values);
-
-
         }
     }
 
     // for ModalWindow treatment see comments in ChooseTypePanel
-    private void initGenericDialog(final Class<C> type, final List<PrismReferenceValue> values) {
+    private void initGenericDialog(final Class<C> type, final List<PrismPropertyValue> values) {
         final ModalWindow dialog = new ModalWindow(MODAL_ID_OBJECT_SELECTION_POPUP);
 
         ObjectSelectionPanel.Context context = new ObjectSelectionPanel.Context(this) {
 
             // See analogous discussion in ChooseTypePanel
-            public ValueChoosePanel getRealParent() {
-                return WebMiscUtil.theSameForPage(ValueChoosePanel.this, getCallingPageReference());
+            public AssociationValueChoosePanel getRealParent() {
+                return WebMiscUtil.theSameForPage(AssociationValueChoosePanel.this, getCallingPageReference());
             }
 
             @Override
@@ -136,13 +156,20 @@ public class ValueChoosePanel<T, C extends ObjectType> extends SimplePanel<T> {
             }
 
             @Override
+            public Collection<SelectorOptions<GetOperationOptions>> getDataProviderOptions(){
+                return getAssociationsSearchOptions();
+            }
+
+            @Override
             public ObjectQuery getDataProviderQuery() {
-                return getRealParent().createChooseQuery(values);
+
+                    return getRealParent().createChooseQuery(values);
             }
 
             @Override
             public boolean isSearchEnabled() {
-                return true;
+                //TODO don't commit
+                return false;
             }
 
             @Override
@@ -162,8 +189,8 @@ public class ValueChoosePanel<T, C extends ObjectType> extends SimplePanel<T> {
         ObjectSelectionPanel.Context context = new ObjectSelectionPanel.Context(this) {
 
             // See analogous discussion in ChooseTypePanel
-            public ValueChoosePanel getRealParent() {
-                return WebMiscUtil.theSameForPage(ValueChoosePanel.this, getCallingPageReference());
+            public AssociationValueChoosePanel getRealParent() {
+                return WebMiscUtil.theSameForPage(AssociationValueChoosePanel.this, getCallingPageReference());
             }
 
             @Override
@@ -196,7 +223,7 @@ public class ValueChoosePanel<T, C extends ObjectType> extends SimplePanel<T> {
         add(dialog);
     }
 
-    protected ObjectQuery createChooseQuery(List<PrismReferenceValue> values) {
+    protected ObjectQuery createChooseQuery(List<PrismPropertyValue> values) {
         ArrayList<String> oidList = new ArrayList<>();
         ObjectQuery query = new ObjectQuery();
 //TODO we should add to filter currently displayed value
@@ -225,7 +252,7 @@ public class ValueChoosePanel<T, C extends ObjectType> extends SimplePanel<T> {
 
     /**
      * @return css class for off-setting other values (not first, left to the
-     * first there is a label)
+     *         first there is a label)
      */
     protected String getOffsetClass() {
         return "col-md-offset-4";
@@ -238,7 +265,7 @@ public class ValueChoosePanel<T, C extends ObjectType> extends SimplePanel<T> {
             public String getObject() {
                 T ort = (T) model.getObject();
 
-                if (ort instanceof PrismReferenceValue) {
+                if (ort instanceof PrismReferenceValue){
                     PrismReferenceValue prv = (PrismReferenceValue) ort;
                     return prv == null ? null : (prv.getTargetName() != null ? prv.getTargetName().getOrig() : prv.getOid());
                 } else if (ort instanceof ObjectViewDto) {
@@ -250,7 +277,7 @@ public class ValueChoosePanel<T, C extends ObjectType> extends SimplePanel<T> {
         };
     }
 
-    protected void editValuePerformed(List<PrismReferenceValue> values, AjaxRequestTarget target) {
+    protected void editValuePerformed(List<PrismPropertyValue> values, AjaxRequestTarget target) {
         ModalWindow window = (ModalWindow) get(MODAL_ID_OBJECT_SELECTION_POPUP);
         window.show(target);
         ObjectSelectionPanel dialog = (ObjectSelectionPanel) window.get(createComponentPath(window.getContentId(), ObjectSelectionPage.ID_OBJECT_SELECTION_PANEL));
@@ -269,7 +296,7 @@ public class ValueChoosePanel<T, C extends ObjectType> extends SimplePanel<T> {
         ModalWindow window = (ModalWindow) get(MODAL_ID_OBJECT_SELECTION_POPUP);
         window.close(target);
 
-        if (isObjectUnique(object)) {
+        if(isObjectUnique(object)){
             replaceIfEmpty(object);
         }
 
@@ -284,13 +311,22 @@ public class ValueChoosePanel<T, C extends ObjectType> extends SimplePanel<T> {
     protected boolean isObjectUnique(C object) {
 
         // for(T o: ){
-        PrismReferenceValue old = (PrismReferenceValue) getModelObject();
-        if (old == null || old.isEmpty()) {
-            return true;
-        }
-        if (old.getOid().equals(object.getOid())) {
-            return false;
-        }
+        T old = getModelObject();
+        if (old instanceof PrismPropertyValue){
+            if (old == null || ((PrismPropertyValue)old).isEmpty()){
+                return true;
+            }
+            if (((PrismPropertyValue)old).getValue().equals(object.asPrismObject().getValue())) {
+                return false;
+            }
+        } else {
+            if (old == null || ((PrismReferenceValue)old).isEmpty()){
+                return true;
+            }
+            if (((PrismReferenceValue)old).getOid().equals(object.getOid())) {
+                return false;
+            }}
+
         // }
         return true;
     }
@@ -299,8 +335,20 @@ public class ValueChoosePanel<T, C extends ObjectType> extends SimplePanel<T> {
     /**
      * A custom code in form of hook that can be run on event of choosing new
      * object with this chooser component
-     */
+     * */
     protected void choosePerformedHook(AjaxRequestTarget target, C object) {
+    }
+
+    private Collection<SelectorOptions<GetOperationOptions>> getAssociationsSearchOptions() {
+        Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<SelectorOptions<GetOperationOptions>>();
+        options.add(SelectorOptions.create(ItemPath.EMPTY_PATH, GetOperationOptions.createRaw()));
+        options.add(SelectorOptions.create(ItemPath.EMPTY_PATH, GetOperationOptions.createNoFetch()));
+        return options;
+    }
+
+    //TODO move query creating code from PrismValuePanel
+    private ObjectQuery getAssociationsSearchQuery() {
+        return new ObjectQuery();
     }
 
 }
