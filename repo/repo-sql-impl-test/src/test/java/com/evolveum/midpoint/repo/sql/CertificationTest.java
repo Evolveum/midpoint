@@ -40,6 +40,7 @@ import java.util.Arrays;
 
 import static com.evolveum.midpoint.schema.RetrieveOption.INCLUDE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_CASE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_CAMPAIGN_REF;
 
 /**
  * @author lazyman
@@ -72,7 +73,14 @@ public class CertificationTest extends BaseSQLRepoTest {
         SelectorOptions<GetOperationOptions> retrieve = SelectorOptions.create(F_CASE, GetOperationOptions.createRetrieve(INCLUDE));
         PrismObject<AccessCertificationCampaignType> campaign = repositoryService.getObject(AccessCertificationCampaignType.class, campaignOid, Arrays.asList(retrieve), result);
         expectedObject.setOid(campaignOid);
+        removeCampaignRef(campaign.asObjectable());
         PrismAsserts.assertEquivalent("Campaign is not as expected", expectedObject, campaign);
+    }
+
+    private void removeCampaignRef(AccessCertificationCampaignType campaign) {
+        for (AccessCertificationCaseType aCase : campaign.getCase()) {
+            aCase.asPrismContainerValue().removeReference(F_CAMPAIGN_REF);
+        }
     }
 
     @Test(expectedExceptions = ObjectAlreadyExistsException.class)
@@ -86,6 +94,7 @@ public class CertificationTest extends BaseSQLRepoTest {
     public void test108AddCampaignOverwriteExisting() throws Exception {
         PrismObject<AccessCertificationCampaignType> campaign = prismContext.parseObject(new File(TEST_DIR, "cert-campaign-1.xml"));
         OperationResult result = new OperationResult("test108AddCampaignOverwriteExisting");
+        campaign.setOid(campaignOid);       // doesn't work without specifying OID
         campaignOid = repositoryService.addObject(campaign, RepoAddOptions.createOverwrite(), result);
 
         // rereading, as repo strips cases from the campaign (!)

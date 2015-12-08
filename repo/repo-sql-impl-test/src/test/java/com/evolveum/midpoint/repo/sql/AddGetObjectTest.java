@@ -166,6 +166,11 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                             GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
                 }
                 PrismObject<? extends ObjectType> newObject = repositoryService.getObject(clazz, oids.get(i), o, result);
+
+                if (AccessCertificationCampaignType.class.equals(clazz)) {
+                    removeCampaignRef((AccessCertificationCampaignType) (newObject.asObjectable()));
+                }
+
                 LOGGER.info("Old\n{}\nnew\n{}", new Object[]{object.debugDump(3), newObject.debugDump(3)});
                 checkContainersSize(newObject, object);
                 System.out.println("OLD: " + object.findProperty(ObjectType.F_NAME).getValue());
@@ -201,6 +206,12 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         }
 
         AssertJUnit.assertEquals("Found changes during add/get test " + count, 0, count);
+    }
+
+    private void removeCampaignRef(AccessCertificationCampaignType campaign) {
+        for (AccessCertificationCaseType aCase : campaign.getCase()) {
+            aCase.asPrismContainerValue().removeReference(AccessCertificationCaseType.F_CAMPAIGN_REF);
+        }
     }
 
     private Integer size(PrismContainerValue value) {

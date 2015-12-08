@@ -185,6 +185,8 @@ public class ObjectUpdater {
                 ObjectDelta<T> delta = object.diff(oldObject);
                 modifications = delta.getModifications();
 
+                LOGGER.trace("overwriteAddObjectAttempt: originalOid={}, modifications={}", originalOid, modifications);
+
                 //we found existing object which will be overwritten, therefore we increment version
                 Integer version = RUtil.getIntegerFromString(oldObject.getVersion());
                 version = (version == null) ? 0 : ++version;

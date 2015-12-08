@@ -370,7 +370,7 @@ public class RAccessCertificationCase implements Container {
             throw e;
         }
         AccessCertificationCaseType aCase = caseContainer.getValue().asContainerable().clone();      // clone in order to make it parent-less
-        aCase.asPrismContainerValue().removeReference(AccessCertificationCaseType.F_CAMPAIGN_REF);
+        //aCase.asPrismContainerValue().removeReference(AccessCertificationCaseType.F_CAMPAIGN_REF);
         return aCase;
     }
 }
