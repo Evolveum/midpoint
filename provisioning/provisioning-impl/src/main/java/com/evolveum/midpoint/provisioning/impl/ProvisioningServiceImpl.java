@@ -201,7 +201,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				// (fresh)
 				// schema
 				try {
-					resultingObject = (PrismObject<T>) resourceManager.getResource(oid, result);
+					resultingObject = (PrismObject<T>) resourceManager.getResource(oid, SelectorOptions.findRootOptions(options), result);
 				} catch (ObjectNotFoundException ex) {
 					ProvisioningUtil.recordFatalError(LOGGER, result, "Resource object not found", ex);
 					throw ex;
@@ -497,7 +497,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		SearchResultMetadata metadata;
 		try {
 			if (!ShadowType.class.isAssignableFrom(type)) {
-				SearchResultList<PrismObject<T>> objects = searchRepoObjects(type, query, result);
+				SearchResultList<PrismObject<T>> objects = searchRepoObjects(type, query, options, result);
 				result.computeStatus();
 				result.recordSuccessIfUnknown();
 				result.cleanupResult();
@@ -543,7 +543,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 
 	@SuppressWarnings("unchecked")
-	private <T extends ObjectType> SearchResultList<PrismObject<T>> searchRepoObjects(Class<T> type, ObjectQuery query, OperationResult result) throws SchemaException {
+	private <T extends ObjectType> SearchResultList<PrismObject<T>> searchRepoObjects(Class<T> type, ObjectQuery query, 
+			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
 
 		List<PrismObject<T>> repoObjects = null;
 
@@ -558,7 +559,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 			try {
 
-				PrismObject<T> completeResource = completeObject(type, repoObject, objResult);
+				PrismObject<T> completeResource = completeObject(type, repoObject, options, objResult);
 				newObjListType.add((PrismObject<T>) completeResource);
 
                 objResult.computeStatusIfUnknown();
@@ -626,12 +627,13 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	}
 	
-	private <T extends ObjectType> PrismObject<T> completeObject(Class<T> type, PrismObject<T> inObject, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+	private <T extends ObjectType> PrismObject<T> completeObject(Class<T> type, PrismObject<T> inObject, 
+			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
 
 		if (ResourceType.class.equals(type)) {
 
-				PrismObject<ResourceType> completeResource = resourceManager.getResource((PrismObject<ResourceType>) inObject,
-						result);
+				PrismObject<ResourceType> completeResource = resourceManager.getResource((PrismObject<ResourceType>) inObject, 
+						SelectorOptions.findRootOptions(options), result);
 				return (PrismObject<T>) completeResource;
 		} else {
 
@@ -1026,7 +1028,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(final Class<T> type, ObjectQuery query,
-																			  Collection<SelectorOptions<GetOperationOptions>> options,
+																			  final Collection<SelectorOptions<GetOperationOptions>> options,
 																			  final ResultHandler<T> handler, Task task, final OperationResult parentResult) throws SchemaException,
 				ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -1072,7 +1074,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				public boolean handle(PrismObject<T> object, OperationResult objResult) {
 					PrismObject<T> completeObject;
 					try {
-						completeObject = completeObject(type, object, objResult);
+						completeObject = completeObject(type, object, options, objResult);
 					} catch (SchemaException e) {
 						LOGGER.error("Error while completing {}: {}. Using non-complete object.", new Object[] {
 								object, e.getMessage(), e });
@@ -1270,7 +1272,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	        if (ShadowType.class.isAssignableFrom(delta.getObjectTypeClass())){
 	            getShadowCache(Mode.STANDARD).applyDefinition((ObjectDelta<ShadowType>) delta, (ShadowType) object, result);
 	        } else if (ResourceType.class.isAssignableFrom(delta.getObjectTypeClass())){
-	            resourceManager.applyDefinition((ObjectDelta<ResourceType>) delta, (ResourceType) object, result);
+	            resourceManager.applyDefinition((ObjectDelta<ResourceType>) delta, (ResourceType) object, null, result);
 	        } else {
 	            throw new IllegalArgumentException("Could not apply definition to deltas for object type: " + delta.getObjectTypeClass());
 	        }

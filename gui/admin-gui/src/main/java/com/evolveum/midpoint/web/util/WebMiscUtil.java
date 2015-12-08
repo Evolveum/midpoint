@@ -141,6 +141,13 @@ public final class WebMiscUtil {
             return true;
         }
         List<String> actions = Arrays.asList(action);
+        return isAuthorized(actions);
+    }
+    
+    public static boolean isAuthorized(Collection<String> actions) {
+        if (actions == null) {
+            return true;
+        }
         Roles roles = new Roles(AuthorizationConstants.AUTZ_ALL_URL);
         roles.addAll(actions);
         if (((AuthenticatedWebApplication) AuthenticatedWebApplication.get()).hasAnyRole(roles)) {

@@ -1,27 +1,35 @@
-midPoint 3.2 "Tycho"
+midPoint 3.3 "Lincoln"
 -------------------------------
 
-Release 3.2 is a tenth midPoint release code-named Tycho. The Tycho release
-brings new advanced LDAP connector, internal improvements and governance
-technology preview.
+Release 3.3 is a fifteenth midPoint release code-named Lincoln. The 3.3
+release brings major GUI look&feel improvements and miscellaneous new
+features that improve practical usability of midPoint.
 
-Release date: 5th August 2015
+Release date: 1st December 2015
 
-* Password recovery (security questions)
-* Access certification (technology preview)
-* referenceSearch expression to create a generic reference in expressions and mappings
-* Reworked LDAP Connector
-* LifeRay Portal connector
-* Support for native attribute names
-* Support for entitlement shortcut attributes (e.g. memberOf LDAP attribute)
-* Support for auxiliary object classes
-* Matching rule for LDAP distringuished name
-* Support for synchronization of all object classes
-* Asynchronous bulk delete task
-* Improved logging of authorization processing
-* Old values in audit deltas
-* Improved audit log report
-* Support "minimal" fetch strategy to avoid fetching of expensive attributes
-* Support for recomputation of other than user objects
-* GUI enhancements
-* Minor improvements for international environments
+Changes with respect to version 3.2:
+* Significant GUI look&feel improvements
+* New self-service GUI pages
+    End-user home page (end-user dashboard)
+    End-user profile page
+    End-user credentials change page
+* Sequences
+* Improvement of associationTargetSearch expression
+* Aligned default value for user activation
+* Aligned default value for allowEmptyValues in expressions
+* LDAP-based connector for Active Directory (experimental)
+* Run-time support for Java 8 environment
+* Options for interpretation of expression empty values in queries
+* Option to force legacy object class names in connectors
+* Displaying role members on role details page
+* Expanded audit record table for easier search in deltas
+* Support for storing old values and object names in audit records
+* Improved audit report
+* Localization files switched to UTF-8 and single-file format
+* Using transifex.com to support community localization
+* Support for provisioning of user photo (jpeg binary data)
+* Indirect role membership index (roleMembershipRef)
+* Consistency mechanism improvements (self-healing)
+* Improved reliability of strong mappings
+
+XPath2 scripting is deprecated and it is not supported in Java8 environment.

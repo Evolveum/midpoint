@@ -359,11 +359,18 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		PrismObjectDefinition<SystemConfigurationType> objectDefinition = prismContext.getSchemaRegistry()
 				.findObjectDefinitionByCompileTimeClass(SystemConfigurationType.class);
 
-		PrismReferenceValue userTemplateRefVal = new PrismReferenceValue(userTemplateOid);
+		Collection<? extends ItemDelta> modifications;
 		
-		Collection<? extends ItemDelta> modifications = ReferenceDelta.createModificationReplaceCollection(
+		if (userTemplateOid == null) {
+			modifications = ReferenceDelta.createModificationReplaceCollection(
+					SystemConfigurationType.F_DEFAULT_USER_TEMPLATE_REF,
+					objectDefinition, null);
+		} else {
+			PrismReferenceValue userTemplateRefVal = new PrismReferenceValue(userTemplateOid);
+			modifications = ReferenceDelta.createModificationReplaceCollection(
 						SystemConfigurationType.F_DEFAULT_USER_TEMPLATE_REF,
 						objectDefinition, userTemplateRefVal);
+		}
 
 		OperationResult result = new OperationResult("Aplying default user template");
 
