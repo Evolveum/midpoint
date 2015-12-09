@@ -213,12 +213,15 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 
 	}
 
-	protected AccessCertificationCaseType checkCase(Collection<AccessCertificationCaseType> caseList, String subjectOid, String targetOid, FocusType focus) {
+	protected AccessCertificationCaseType checkCase(Collection<AccessCertificationCaseType> caseList, String subjectOid, String targetOid, FocusType focus, String campaignOid) {
 		AccessCertificationCaseType ccase = findCase(caseList, subjectOid, targetOid);
 		assertNotNull("Certification case for " + subjectOid + ":" + targetOid + " was not found", ccase);
 		assertNotNull("reviewRequestedTimestamp", ccase.getReviewRequestedTimestamp());
 		assertNotNull("deadline", ccase.getReviewDeadline());
 		assertNull("remediedTimestamp", ccase.getRemediedTimestamp());
+		if (campaignOid != null) {
+			assertEquals("incorrect campaign OID in case", campaignOid, ccase.getCampaignRef().getOid());
+		}
 		return checkSpecificCase(ccase, focus);
 	}
 

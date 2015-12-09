@@ -170,7 +170,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         assertEquals("wrong stage #", 1, stage.getNumber());
         assertApproximateTime("stage 1 start", new Date(), stage.getStart());
         assertNotNull("stage 1 end", stage.getEnd());       // too lazy to compute exact datetime
-        checkAllCases(campaign.getCase());
+        checkAllCases(campaign.getCase(), campaignOid);
     }
 
     protected void assertDefinitionAndOwner(AccessCertificationCampaignType campaign, PrismObject<? extends ObjectType> certificationDefinition) {
@@ -199,7 +199,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         TestUtil.assertSuccess(result);
 
         display("caseList", caseList);
-        checkAllCases(caseList);
+        checkAllCases(caseList, campaignOid);
     }
 
     @Test
@@ -234,8 +234,8 @@ public class BasicCertificationTest extends AbstractCertificationTest {
 
         display("caseList", caseList);
         assertEquals("Wrong number of certification cases", 2, caseList.size());
-        checkCase(caseList, USER_ADMINISTRATOR_OID, ROLE_COO_OID, userAdministrator);
-        checkCase(caseList, USER_ADMINISTRATOR_OID, ROLE_CEO_OID, userAdministrator);
+        checkCase(caseList, USER_ADMINISTRATOR_OID, ROLE_COO_OID, userAdministrator, campaignOid);
+        checkCase(caseList, USER_ADMINISTRATOR_OID, ROLE_CEO_OID, userAdministrator, campaignOid);
         assertEquals("Wrong target OID in case #0", ROLE_COO_OID, caseList.get(0).getTargetRef().getOid());
         assertEquals("Wrong target OID in case #1", ROLE_CEO_OID, caseList.get(1).getTargetRef().getOid());
     }
@@ -261,7 +261,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
 
         display("caseList", caseList);
         assertEquals("Wrong number of certification cases", 6, caseList.size());
-        checkAllCases(caseList);
+        checkAllCases(caseList, campaignOid);
     }
 
     @Test
@@ -294,7 +294,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
 
         caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
         display("caseList", caseList);
-        checkAllCases(caseList);
+        checkAllCases(caseList, campaignOid);
 
         superuserCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID);
         assertEquals("changed case ID", Long.valueOf(id), superuserCase.asPrismContainerValue().getId());
@@ -338,7 +338,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
 
         caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
         display("caseList", caseList);
-        checkAllCases(caseList);
+        checkAllCases(caseList, campaignOid);
 
         ceoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
         assertEquals("changed case ID", Long.valueOf(id), ceoCase.asPrismContainerValue().getId());
@@ -382,7 +382,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
 
         caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
         display("caseList", caseList);
-        checkAllCases(caseList);
+        checkAllCases(caseList, campaignOid);
 
         ceoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
         display("CEO case", ceoCase.asPrismContainerValue());
@@ -398,14 +398,14 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         //assertEquals("wrong enabled", true, ceoCase.isEnabled());
     }
 
-    protected void checkAllCases(Collection<AccessCertificationCaseType> caseList) {
+    protected void checkAllCases(Collection<AccessCertificationCaseType> caseList, String campaignOid) {
         assertEquals("Wrong number of certification cases", 6, caseList.size());
-        checkCase(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID, userAdministrator);
-        checkCase(caseList, USER_ADMINISTRATOR_OID, ROLE_COO_OID, userAdministrator);
-        checkCase(caseList, USER_ADMINISTRATOR_OID, ROLE_CEO_OID, userAdministrator);
-        checkCase(caseList, USER_ADMINISTRATOR_OID, ORG_EROOT_OID, userAdministrator);
-        checkCase(caseList, USER_JACK_OID, ROLE_CEO_OID, userJack);
-        checkCase(caseList, USER_JACK_OID, ORG_EROOT_OID, userJack);
+        checkCase(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID, userAdministrator, campaignOid);
+        checkCase(caseList, USER_ADMINISTRATOR_OID, ROLE_COO_OID, userAdministrator, campaignOid);
+        checkCase(caseList, USER_ADMINISTRATOR_OID, ROLE_CEO_OID, userAdministrator, campaignOid);
+        checkCase(caseList, USER_ADMINISTRATOR_OID, ORG_EROOT_OID, userAdministrator, campaignOid);
+        checkCase(caseList, USER_JACK_OID, ROLE_CEO_OID, userJack, campaignOid);
+        checkCase(caseList, USER_JACK_OID, ORG_EROOT_OID, userJack, campaignOid);
     }
 
     @Test
@@ -437,7 +437,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         assertEquals("wrong stage #", 1, stage.getNumber());
         assertApproximateTime("stage 1 start", new Date(), stage.getStart());
         //assertApproximateTime("stage 1 end", new Date(), stage.getStart());       // TODO when implemented
-        checkAllCases(campaign.getCase());
+        checkAllCases(campaign.getCase(), campaignOid);
     }
 
     @Test
