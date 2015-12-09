@@ -55,10 +55,12 @@ import java.util.Set;
 @JaxbType(type = ObjectReferenceType.class)
 @Entity
 @IdClass(RCObjectReferenceId.class)
-@Table(name = "m_acc_cert_case_reference", indexes = {
+@Table(name = RCertCaseReference.TABLE, indexes = {
         @javax.persistence.Index(name = "iAccCertCaseReferenceTargetOid", columnList = "targetOid")
 })
 public class RCertCaseReference extends RContainerReference {
+
+    public static final String TABLE = "m_acc_cert_case_reference";
 
     private RAccessCertificationCase owner;
 

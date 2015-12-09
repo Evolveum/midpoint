@@ -89,7 +89,7 @@ import java.util.List;
 @Component
 public class ObjectRetriever {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ObjectRetriever.class);
     private static final Trace LOGGER_PERFORMANCE = TraceManager.getTrace(SqlRepositoryServiceImpl.PERFORMANCE_LOG_NAME);
 
     @Autowired

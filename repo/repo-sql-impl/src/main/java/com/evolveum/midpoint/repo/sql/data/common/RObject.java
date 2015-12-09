@@ -114,7 +114,8 @@ import java.util.Set;
         @NamedQuery(name = "delete.campaignCasesReferences", query = "delete RCertCaseReference r where r.ownerOid = :oid"),
         @NamedQuery(name = "delete.campaignCase", query = "delete RAccessCertificationCase c where c.ownerOid = :oid and c.id = :id"),
         @NamedQuery(name = "delete.campaignCaseDecisions", query = "delete RAccessCertificationDecision d where d.ownerOwnerOid = :oid and d.ownerId = :id"),
-        @NamedQuery(name = "delete.campaignCaseReferences", query = "delete RCertCaseReference r where r.ownerOid = :oid and r.id = :id"),
+        // doesn't work; generates SQL of "delete from m_acc_cert_case_reference where owner_owner_oid=? and owner_id=? and owner_owner_oid=? and reference_type=? and relation=? and targetOid=?"
+        //@NamedQuery(name = "delete.campaignCaseReferences", query = "delete RCertCaseReference r where r.ownerOid = :oid and r.id = :id"),
         @NamedQuery(name = "resolveReferences", query = "select o.oid, o.name from RObject as o where o.oid in (:oid)"),
         @NamedQuery(name = "get.campaignCase", query = "select c.fullObject from RAccessCertificationCase c where c.ownerOid=:ownerOid and c.id=:id")
 })

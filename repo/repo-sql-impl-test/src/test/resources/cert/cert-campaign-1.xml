@@ -220,6 +220,11 @@
             <response>reduce</response>
             <timestamp>2015-12-04T01:10:15.375+01:00</timestamp>
         </decision>
+        <decision id="2">
+            <stageNumber>2</stageNumber>
+            <reviewerRef oid="00000000-0000-0000-0000-000000000002"
+                         type="c:UserType"><!-- administrator --></reviewerRef>
+        </decision>
         <currentResponse>reduce</currentResponse>
         <currentStageNumber>1</currentStageNumber>
         <assignment id="2">
@@ -228,9 +233,9 @@
         <isInducement>false</isInducement>
     </case>
     <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          id="7"
-          xsi:type="c:AccessCertificationAssignmentCaseType">
+          xsi:type="c:AccessCertificationAssignmentCaseType">   <!-- ID removed on purpose -->
         <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+        <reviewerRef oid="99999999-0000-0000-0000-000000000002" type="c:UserType"></reviewerRef>
         <objectRef oid="86591a19-bbbc-41cd-ad46-4cc3b6acfe55" type="c:UserType"><!-- u1 --></objectRef>
         <targetRef oid="214a489c-459d-4ac4-9778-585a00af11df" type="c:RoleType"><!-- r1 --></targetRef>
         <reviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</reviewRequestedTimestamp>
@@ -241,6 +246,13 @@
                          type="c:UserType"><!-- administrator --></reviewerRef>
             <response>revoke</response>
             <timestamp>2015-12-04T01:10:16.136+01:00</timestamp>
+        </decision>
+        <decision>      <!-- ID removed on purpose -->
+            <stageNumber>1</stageNumber>
+            <reviewerRef oid="99999999-0000-0000-0000-000000000002"
+                         type="c:UserType"></reviewerRef>
+            <response>accept</response>
+            <timestamp>2015-12-04T01:15:00.000+01:00</timestamp>
         </decision>
         <currentResponse>revoke</currentResponse>
         <currentStageNumber>1</currentStageNumber>

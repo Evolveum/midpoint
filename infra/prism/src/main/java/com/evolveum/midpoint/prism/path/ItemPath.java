@@ -40,7 +40,7 @@ public class ItemPath implements Serializable, Cloneable {
 	
 	private List<ItemPathSegment> segments;
 	private Map<String, String> namespaceMap;
-	
+
 	public void setNamespaceMap(Map<String, String> namespaceMap) {
 		this.namespaceMap = namespaceMap;
 	}
@@ -66,6 +66,23 @@ public class ItemPath implements Serializable, Cloneable {
             add(stringToQName(name));
         }
     }
+
+	public ItemPath(Object[] namesOrIds) {
+		this.segments = new ArrayList<>(namesOrIds.length);
+		for (Object nameOrId : namesOrIds) {
+			if (nameOrId instanceof QName) {
+				add((QName) nameOrId);
+			} else if (nameOrId instanceof String) {
+				add(stringToQName((String) nameOrId));
+			} else if (nameOrId instanceof Long) {
+				this.segments.add(new IdItemPathSegment((Long) nameOrId));
+			} else if (nameOrId instanceof Integer) {
+				this.segments.add(new IdItemPathSegment(((Integer) nameOrId).longValue()));
+			} else {
+				throw new IllegalArgumentException("Invalid item path segment value: " + nameOrId);
+			}
+		}
+	}
 
 	private QName stringToQName(String name) {
 		Validate.notNull(name, "name");
@@ -124,6 +141,10 @@ public class ItemPath implements Serializable, Cloneable {
 	public ItemPath subPath(QName subName) {
 		return new ItemPath(segments, subName);
 	}
+
+	public ItemPath subPath(Long id) {
+		return subPath(new IdItemPathSegment(id));
+	}
 	
 	public ItemPath subPath(ItemPathSegment subSegment) {
 		return new ItemPath(segments, subSegment);
@@ -159,7 +180,7 @@ public class ItemPath implements Serializable, Cloneable {
 			this.segments.add(new NameItemPathSegment(qname));
 		}
 	}
-		
+
 	public List<ItemPathSegment> getSegments() {
 		return segments;
 	}

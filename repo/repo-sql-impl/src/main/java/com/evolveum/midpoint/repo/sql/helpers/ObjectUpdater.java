@@ -76,7 +76,7 @@ import java.util.List;
 @Component
 public class ObjectUpdater {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ObjectUpdater.class);
     private static final Trace LOGGER_PERFORMANCE = TraceManager.getTrace(SqlRepositoryServiceImpl.PERFORMANCE_LOG_NAME);
 
     @Autowired
@@ -345,10 +345,9 @@ public class ObjectUpdater {
         modifications = new ArrayList<>(modifications);
 
         LOGGER.debug("Modifying object '{}' with oid '{}'.", new Object[]{type.getSimpleName(), oid});
-        LOGGER_PERFORMANCE.debug("> modify object {}, oid={}, modifications={}",
-                new Object[]{type.getSimpleName(), oid, modifications});
+        LOGGER_PERFORMANCE.debug("> modify object {}, oid={}, modifications={}", type.getSimpleName(), oid, modifications);
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Modifications:\n{}", new Object[]{DebugUtil.debugDump(modifications)});
+            LOGGER.trace("Modifications:\n{}", DebugUtil.debugDump(modifications));
         }
 
         Session session = null;
@@ -409,6 +408,7 @@ public class ObjectUpdater {
             rObject.setVersion(rObject.getVersion() + 1);
 
             updateFullObject(rObject, prismObject);
+            LOGGER.trace("Starting merge.");
             session.merge(rObject);
 
             lookupTableHelper.updateLookupTableData(session, rObject, lookupTableModifications);

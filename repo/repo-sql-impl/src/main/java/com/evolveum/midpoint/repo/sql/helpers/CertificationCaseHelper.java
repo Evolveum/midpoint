@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.repo.sql.data.common.RAccessCertificationCampaign;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationCase;
+import com.evolveum.midpoint.repo.sql.data.common.container.RCertCaseReference;
 import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.PrismIdentifierGenerator;
@@ -83,6 +84,7 @@ public class CertificationCaseHelper {
         RAccessCertificationCampaign campaign = (RAccessCertificationCampaign) object;
 
         if (merge) {
+            LOGGER.info("Deleting existing cases for {}", campaign.getOid());
             deleteCertificationCampaignCases(session, campaign.getOid());
         }
         if (campaign.getCase() != null) {
@@ -92,14 +94,18 @@ public class CertificationCaseHelper {
         }
     }
 
-    public void addCertificationCampaignCases(Session session, String campaignOid, Collection<PrismContainerValue> values, int currentId) {
+    public void addCertificationCampaignCases(Session session, String campaignOid, Collection<PrismContainerValue> values, int currentId, List<Long> affectedIds) {
         for (PrismContainerValue value : values) {
             AccessCertificationCaseType caseType = new AccessCertificationCaseType();
             caseType.setupContainerValue(value);
             caseType.setCampaignRef(ObjectTypeUtil.createObjectRef(campaignOid, ObjectTypes.ACCESS_CERTIFICATION_CAMPAIGN));
+            if (caseType.getId() == null) {
+                caseType.setId((long) currentId);
+                currentId++;
+            }
             RAccessCertificationCase row = RAccessCertificationCase.toRepo(campaignOid, caseType, null, prismContext);
-            row.setId(currentId);
-            currentId++;
+            row.setId(RUtil.toInteger(caseType.getId()));
+            affectedIds.add(caseType.getId());
             session.save(row);
         }
     }
@@ -188,7 +194,8 @@ public class CertificationCaseHelper {
                         deleteCaseDecisions.setString("oid", campaignOid);
                         deleteCaseDecisions.setInteger("id", integerCaseId);
                         deleteCaseDecisions.executeUpdate();
-                        Query deleteCaseReferences = session.getNamedQuery("delete.campaignCaseReferences");
+                        Query deleteCaseReferences = session.createSQLQuery("delete from " + RCertCaseReference.TABLE +
+                                " where owner_owner_oid=:oid and owner_id=:id");
                         deleteCaseReferences.setString("oid", campaignOid);
                         deleteCaseReferences.setInteger("id", integerCaseId);
                         deleteCaseReferences.executeUpdate();
@@ -200,12 +207,11 @@ public class CertificationCaseHelper {
                 }
                 if (delta.getValuesToAdd() != null) {
                     int currentId = generalHelper.findLastIdInRepo(session, campaignOid, "get.campaignCaseLastId") + 1;
-                    affectedIds.add((long) currentId);      // TODO !!!!!!!!!!!!!!!!!! clear bug
-                    addCertificationCampaignCases(session, campaignOid, delta.getValuesToAdd(), currentId);
+                    addCertificationCampaignCases(session, campaignOid, delta.getValuesToAdd(), currentId, affectedIds);
                 }
                 if (delta.getValuesToReplace() != null) {
                     deleteCertificationCampaignCases(session, campaignOid);
-                    addCertificationCampaignCases(session, campaignOid, delta.getValuesToReplace(), 1);
+                    addCertificationCampaignCases(session, campaignOid, delta.getValuesToReplace(), 1, affectedIds);
                     replacePresent = true;
                 }
 
@@ -233,6 +239,7 @@ public class CertificationCaseHelper {
                 }
                 AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(fullObject, prismContext, false);
 
+                delta = delta.clone();                                      // to avoid changing original modifications
                 delta.setParentPath(delta.getParentPath().tail(2));         // remove "case[id]" from the delta path
                 delta.applyTo(aCase.asPrismContainerValue());
 

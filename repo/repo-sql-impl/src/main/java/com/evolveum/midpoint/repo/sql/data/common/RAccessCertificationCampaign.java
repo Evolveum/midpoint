@@ -192,7 +192,7 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
             for (AccessCertificationCaseType case1 : cases) {
                 case1.setCampaignRef(ObjectTypeUtil.createObjectRef(jaxb));
                 RAccessCertificationCase rCase = RAccessCertificationCase.toRepo(repo, case1, generatorResult, prismContext);
-                rCase.setTransient(generatorResult.isTransient(case1.asPrismContainerValue()));
+                rCase.setTransient(generatorResult.isTransient(case1.asPrismContainerValue()));     // redundant?
                 repo.getCase().add(rCase);
             }
         }
