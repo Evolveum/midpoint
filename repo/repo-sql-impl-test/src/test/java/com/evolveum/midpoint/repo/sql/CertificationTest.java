@@ -76,7 +76,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
 
 /**
- * @author lazyman
+ * @author mederly
  */
 @ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -103,7 +103,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         result.recomputeStatus();
         AssertJUnit.assertTrue(result.isSuccess());
 
-        checkCampaign(campaign1Oid, result, (PrismObject) prismContext.parseObject(CAMPAIGN_1_FILE), null);
+        checkCampaign(campaign1Oid, result, (PrismObject) prismContext.parseObject(CAMPAIGN_1_FILE), null, null);
     }
 
     @Test(expectedExceptions = ObjectAlreadyExistsException.class)
@@ -120,7 +120,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         campaign.setOid(campaign1Oid);       // doesn't work without specifying OID
         campaign1Oid = repositoryService.addObject(campaign, RepoAddOptions.createOverwrite(), result);
 
-        checkCampaign(campaign1Oid, result, (PrismObject) prismContext.parseObject(CAMPAIGN_1_FILE), null);
+        checkCampaign(campaign1Oid, result, (PrismObject) prismContext.parseObject(CAMPAIGN_1_FILE), null, null);
     }
 
     @Test
@@ -131,7 +131,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         modifications.add(createModificationReplaceProperty(F_NAME, campaignDef, new PolyString("Campaign 1+", "campaign 1")));
         modifications.add(createModificationReplaceProperty(F_STATE, campaignDef, IN_REVIEW_STAGE));
 
-        executeAndCheckModification(modifications, result);
+        executeAndCheckModification(modifications, result, 1);
     }
 
     @Test
@@ -143,7 +143,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         modifications.add(createModificationReplaceProperty(case1.subPath(F_CURRENT_RESPONSE), campaignDef, DELEGATE));
         modifications.add(createModificationReplaceProperty(case1.subPath(F_CURRENT_STAGE_NUMBER), campaignDef, 300));
 
-        executeAndCheckModification(modifications, result);
+        executeAndCheckModification(modifications, result, 0);
     }
 
     @Test
@@ -155,7 +155,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         modifications.add(createModificationReplaceProperty(d1.subPath(F_RESPONSE), campaignDef, DELEGATE));
         modifications.add(createModificationReplaceProperty(d1.subPath(F_COMMENT), campaignDef, "hi"));
 
-        executeAndCheckModification(modifications, result);
+        executeAndCheckModification(modifications, result, 0);
     }
 
     @Test
@@ -171,7 +171,7 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .item(F_CASE, 1, F_DECISION, 1, F_COMMENT).replace("low")
                 .asItemDeltas();
 
-        executeAndCheckModification(modifications, result);
+        executeAndCheckModification(modifications, result, 1);
     }
 
     @Test
@@ -183,6 +183,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         caseNoId.setTargetRef(createObjectRef("456", ObjectTypes.ROLE));
         caseNoId.setCurrentStageNumber(1);
 
+        // explicit ID is dangerous (possibility of conflict!)
         AccessCertificationCaseType case100 = new AccessCertificationCaseType(prismContext);
         case100.setId(100L);
         case100.setObjectRef(createObjectRef("100123", ObjectTypes.USER));
@@ -194,7 +195,7 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .item(F_CASE).add(caseNoId, case100)
                 .asItemDeltas();
 
-        executeAndCheckModification(modifications, result);
+        executeAndCheckModification(modifications, result, 0);
     }
 
     @Test
@@ -208,7 +209,7 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .item(F_CASE).delete(case7)
                 .asItemDeltas();
 
-        executeAndCheckModification(modifications, result);
+        executeAndCheckModification(modifications, result, 0);
     }
 
     @Test
@@ -224,7 +225,7 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .item(F_CASE, 100, F_REVIEWER_REF).delete(reviewerToDelete)
                 .asItemDeltas();
 
-        executeAndCheckModification(modifications, result);
+        executeAndCheckModification(modifications, result, 0);
     }
 
 
@@ -237,6 +238,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         caseNoId.setTargetRef(createObjectRef("x456", ObjectTypes.ROLE));
         caseNoId.setCurrentStageNumber(1);
 
+        // explicit ID is dangerous
         AccessCertificationCaseType case110 = new AccessCertificationCaseType(prismContext);
         case110.setId(110L);
         case110.setObjectRef(createObjectRef("x100123", ObjectTypes.USER));
@@ -252,7 +254,7 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .item(F_CASE, 3, F_CURRENT_STAGE_NUMBER).replace(400)
                 .asItemDeltas();
 
-        executeAndCheckModification(modifications, result);
+        executeAndCheckModification(modifications, result, 0);
     }
 
     @Test
@@ -264,7 +266,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         decNoId.setStageNumber(1);
 
         AccessCertificationDecisionType dec200 = new AccessCertificationDecisionType(prismContext);
-        dec200.setId(200L);
+        dec200.setId(200L);         // this is dangerous
         dec200.setStageNumber(1);
         dec200.setReviewerRef(createObjectRef("200888", ObjectTypes.USER));
 
@@ -277,7 +279,7 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .item(F_CASE, 6, F_DECISION, 2, F_RESPONSE).replace(ACCEPT)
                 .asItemDeltas();
 
-        executeAndCheckModification(modifications, result);
+        executeAndCheckModification(modifications, result, 0);
     }
 
     @Test
@@ -285,7 +287,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("test260ReplaceDecisions");
 
         AccessCertificationDecisionType dec200 = new AccessCertificationDecisionType(prismContext);
-        dec200.setId(200L);
+        dec200.setId(200L);             //dangerous
         dec200.setStageNumber(44);
         dec200.setReviewerRef(createObjectRef("999999", ObjectTypes.USER));
 
@@ -293,7 +295,7 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .item(F_CASE, 6, F_DECISION).replace(dec200)
                 .asItemDeltas();
 
-        executeAndCheckModification(modifications, result);
+        executeAndCheckModification(modifications, result, 0);
     }
 
     @Test
@@ -301,7 +303,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("test265ReplaceDecisions");
 
         AccessCertificationDecisionType dec250 = new AccessCertificationDecisionType(prismContext);
-        dec250.setId(250L);
+        dec250.setId(250L);         //dangerous
         dec250.setStageNumber(440);
         dec250.setReviewerRef(createObjectRef("250-999999", ObjectTypes.USER));
 
@@ -313,13 +315,14 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .item(F_CASE, 6, F_DECISION).replace(dec250, dec251)
                 .asItemDeltas();
 
-        executeAndCheckModification(modifications, result);
+        executeAndCheckModification(modifications, result, 0);
     }
 
     @Test
     public void test270ReplaceCase() throws Exception {
         OperationResult result = new OperationResult("test270ReplaceCase");
 
+        // explicit ID is dangerous
         AccessCertificationDecisionType dec777 = new AccessCertificationDecisionType(prismContext);
         dec777.setId(777L);
         dec777.setStageNumber(888);
@@ -341,7 +344,7 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .item(F_CASE).replace(caseNoId)
                 .asItemDeltas();
 
-        executeAndCheckModification(modifications, result);
+        executeAndCheckModification(modifications, result, 0);
     }
 
     @Test
@@ -353,12 +356,12 @@ public class CertificationTest extends BaseSQLRepoTest {
         campaign.setOid(campaign1Oid);       // doesn't work without specifying OID
         campaign1Oid = repositoryService.addObject(campaign, RepoAddOptions.createOverwrite(), result);
 
-        checkCampaign(campaign1Oid, result, (PrismObject) prismContext.parseObject(CAMPAIGN_1_FILE), null);
+        checkCampaign(campaign1Oid, result, (PrismObject) prismContext.parseObject(CAMPAIGN_1_FILE), null, null);
 
         PrismObject<AccessCertificationCampaignType> campaign2 = prismContext.parseObject(CAMPAIGN_2_FILE);
         campaign2Oid = repositoryService.addObject(campaign2, null, result);
 
-        checkCampaign(campaign2Oid, result, (PrismObject) prismContext.parseObject(CAMPAIGN_2_FILE), null);
+        checkCampaign(campaign2Oid, result, (PrismObject) prismContext.parseObject(CAMPAIGN_2_FILE), null, null);
     }
 
     @Test
@@ -460,16 +463,17 @@ public class CertificationTest extends BaseSQLRepoTest {
         AssertJUnit.assertTrue(result.isSuccess());
     }
 
-    protected void executeAndCheckModification(List<ItemDelta> modifications, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, IOException {
+    protected void executeAndCheckModification(List<ItemDelta> modifications, OperationResult result, int versionDelta) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, IOException {
         PrismObject<AccessCertificationCampaignType> before = getFullCampaign(campaign1Oid, result);
+        int expectedVersion = Integer.parseInt(before.getVersion()) + versionDelta;
         List<ItemDelta> savedModifications = (List) CloneUtil.cloneCollectionMembers(modifications);
 
         repositoryService.modifyObject(AccessCertificationCampaignType.class, campaign1Oid, modifications, result);
 
-        checkCampaign(campaign1Oid, result, before, savedModifications);
+        checkCampaign(campaign1Oid, result, before, savedModifications, expectedVersion);
     }
 
-    private void checkCampaign(String campaignOid, OperationResult result, PrismObject<AccessCertificationCampaignType> expectedObject, List<ItemDelta> modifications) throws SchemaException, ObjectNotFoundException, IOException {
+    private void checkCampaign(String campaignOid, OperationResult result, PrismObject<AccessCertificationCampaignType> expectedObject, List<ItemDelta> modifications, Integer expectedVersion) throws SchemaException, ObjectNotFoundException, IOException {
         expectedObject.setOid(campaignOid);
         if (modifications != null) {
             ItemDelta.applyTo(modifications, expectedObject);
@@ -484,6 +488,9 @@ public class CertificationTest extends BaseSQLRepoTest {
         removeCampaignRef(expectedObject.asObjectable());
         removeCampaignRef(campaign.asObjectable());
         PrismAsserts.assertEquivalent("Campaign is not as expected", expectedObject, campaign);
+        if (expectedVersion != null) {
+            AssertJUnit.assertEquals("Incorrect version", (int) expectedVersion, Integer.parseInt(campaign.getVersion()));
+        }
     }
 
     private PrismObject<AccessCertificationCampaignType> getFullCampaign(String campaignOid, OperationResult result) throws ObjectNotFoundException, SchemaException {

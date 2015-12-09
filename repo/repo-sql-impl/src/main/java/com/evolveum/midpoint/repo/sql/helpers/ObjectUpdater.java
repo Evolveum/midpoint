@@ -342,7 +342,7 @@ public class ObjectUpdater {
                                                            OperationResult result) throws ObjectNotFoundException,
             SchemaException, ObjectAlreadyExistsException, SerializationRelatedException {
 
-        // clone - because some methods, e.g. filterLookupTableModifications manipulate this collection
+        // clone - because some certification and lookup table related methods manipulate this collection and even their constituent deltas
         modifications = CloneUtil.cloneCollectionMembers(modifications);
 
         LOGGER.debug("Modifying object '{}' with oid '{}'.", new Object[]{type.getSimpleName(), oid});
@@ -361,71 +361,76 @@ public class ObjectUpdater {
             Collection<? extends ItemDelta> lookupTableModifications = lookupTableHelper.filterLookupTableModifications(type, modifications);
             Collection<? extends ItemDelta> campaignCaseModifications = caseHelper.filterCampaignCaseModifications(type, modifications);
 
-            // JpegPhoto (RFocusPhoto) is a special kind of entity. First of all, it is lazily loaded, because photos are really big.
-            // Each RFocusPhoto naturally belongs to one RFocus, so it would be appropriate to set orphanRemoval=true for focus-photo
-            // association. However, this leads to a strange problem when merging in-memory RFocus object with the database state:
-            // If in-memory RFocus object has no photo associated (because of lazy loading), then the associated RFocusPhoto is deleted.
-            //
-            // To prevent this behavior, we've set orphanRemoval to false. Fortunately, the remove operation on RFocus
-            // seems to be still cascaded to RFocusPhoto. What we have to implement ourselves, however, is removal of RFocusPhoto
-            // _without_ removing of RFocus. In order to know whether the photo has to be removed, we have to retrieve
-            // its value, apply the delta (e.g. if the delta is a DELETE VALUE X, we have to know whether X matches current
-            // value of the photo), and if the resulting value is empty, we have to manually delete the RFocusPhoto instance.
-            //
-            // So the first step is to retrieve the current value of photo - we obviously do this only if the modifications
-            // deal with the jpegPhoto property.
-            Collection<SelectorOptions<GetOperationOptions>> options;
-            boolean containsFocusPhotoModification = FocusType.class.isAssignableFrom(type) && containsPhotoModification(modifications);
-            if (containsFocusPhotoModification) {
-                options = Arrays.asList(SelectorOptions.create(FocusType.F_JPEG_PHOTO, GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
-            } else {
-                options = null;
+            if (!modifications.isEmpty()) {
+
+                // JpegPhoto (RFocusPhoto) is a special kind of entity. First of all, it is lazily loaded, because photos are really big.
+                // Each RFocusPhoto naturally belongs to one RFocus, so it would be appropriate to set orphanRemoval=true for focus-photo
+                // association. However, this leads to a strange problem when merging in-memory RFocus object with the database state:
+                // If in-memory RFocus object has no photo associated (because of lazy loading), then the associated RFocusPhoto is deleted.
+                //
+                // To prevent this behavior, we've set orphanRemoval to false. Fortunately, the remove operation on RFocus
+                // seems to be still cascaded to RFocusPhoto. What we have to implement ourselves, however, is removal of RFocusPhoto
+                // _without_ removing of RFocus. In order to know whether the photo has to be removed, we have to retrieve
+                // its value, apply the delta (e.g. if the delta is a DELETE VALUE X, we have to know whether X matches current
+                // value of the photo), and if the resulting value is empty, we have to manually delete the RFocusPhoto instance.
+                //
+                // So the first step is to retrieve the current value of photo - we obviously do this only if the modifications
+                // deal with the jpegPhoto property.
+                Collection<SelectorOptions<GetOperationOptions>> options;
+                boolean containsFocusPhotoModification = FocusType.class.isAssignableFrom(type) && containsPhotoModification(modifications);
+                if (containsFocusPhotoModification) {
+                    options = Arrays.asList(SelectorOptions.create(FocusType.F_JPEG_PHOTO, GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+                } else {
+                    options = null;
+                }
+
+                // get object
+                PrismObject<T> prismObject = objectRetriever.getObjectInternal(session, type, oid, options, true);
+                // apply diff
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("OBJECT before:\n{}", new Object[]{prismObject.debugDump()});
+                }
+                PrismObject<T> originalObject = null;
+                if (closureManager.isEnabled()) {
+                    originalObject = prismObject.clone();
+                }
+                ItemDelta.applyTo(modifications, prismObject);
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("OBJECT after:\n{}", prismObject.debugDump());
+                }
+
+                // Continuing the photo treatment: should we remove the (now obsolete) focus photo?
+                // We have to test prismObject at this place, because updateFullObject (below) removes photo property from the prismObject.
+                boolean shouldPhotoBeRemoved = containsFocusPhotoModification && ((FocusType) prismObject.asObjectable()).getJpegPhoto() == null;
+
+                // merge and update object
+                LOGGER.trace("Translating JAXB to data type.");
+                RObject rObject = createDataObjectFromJAXB(prismObject, PrismIdentifierGenerator.Operation.MODIFY);
+                rObject.setVersion(rObject.getVersion() + 1);
+
+                updateFullObject(rObject, prismObject);
+                LOGGER.trace("Starting merge.");
+                session.merge(rObject);
+
+                if (closureManager.isEnabled()) {
+                    closureManager.updateOrgClosure(originalObject, modifications, session, oid, type, OrgClosureManager.Operation.MODIFY, closureContext);
+                }
+
+                // JpegPhoto cleanup: As said before, if a focus has to have no photo (after modifications are applied),
+                // we have to remove the photo manually.
+                if (shouldPhotoBeRemoved) {
+                    Query query = session.createQuery("delete RFocusPhoto where ownerOid = :oid");
+                    query.setParameter("oid", prismObject.getOid());
+                    query.executeUpdate();
+                    LOGGER.trace("Focus photo for {} was deleted", prismObject.getOid());
+                }
             }
 
-            // TODO skip processing if there are no modifications other than row/case ones
-
-            // get object
-            PrismObject<T> prismObject = objectRetriever.getObjectInternal(session, type, oid, options, true);
-            // apply diff
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("OBJECT before:\n{}", new Object[]{prismObject.debugDump()});
+            if (LookupTableType.class.isAssignableFrom(type)) {
+                lookupTableHelper.updateLookupTableData(session, oid, lookupTableModifications);
             }
-            PrismObject<T> originalObject = null;
-            if (closureManager.isEnabled()) {
-                originalObject = prismObject.clone();
-            }
-            ItemDelta.applyTo(modifications, prismObject);
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("OBJECT after:\n{}", prismObject.debugDump());
-            }
-
-            // Continuing the photo treatment: should we remove the (now obsolete) focus photo?
-            // We have to test prismObject at this place, because updateFullObject (below) removes photo property from the prismObject.
-            boolean shouldPhotoBeRemoved = containsFocusPhotoModification && ((FocusType) prismObject.asObjectable()).getJpegPhoto() == null;
-
-            // merge and update object
-            LOGGER.trace("Translating JAXB to data type.");
-            RObject rObject = createDataObjectFromJAXB(prismObject, PrismIdentifierGenerator.Operation.MODIFY);
-            rObject.setVersion(rObject.getVersion() + 1);
-
-            updateFullObject(rObject, prismObject);
-            LOGGER.trace("Starting merge.");
-            session.merge(rObject);
-
-            lookupTableHelper.updateLookupTableData(session, rObject, lookupTableModifications);
-            caseHelper.updateCampaignCases(session, rObject, campaignCaseModifications);
-
-            if (closureManager.isEnabled()) {
-                closureManager.updateOrgClosure(originalObject, modifications, session, oid, type, OrgClosureManager.Operation.MODIFY, closureContext);
-            }
-
-            // JpegPhoto cleanup: As said before, if a focus has to have no photo (after modifications are applied),
-            // we have to remove the photo manually.
-            if (shouldPhotoBeRemoved) {
-                Query query = session.createQuery("delete RFocusPhoto where ownerOid = :oid");
-                query.setParameter("oid", prismObject.getOid());
-                query.executeUpdate();
-                LOGGER.trace("Focus photo for {} was deleted", prismObject.getOid());
+            if (AccessCertificationCampaignType.class.isAssignableFrom(type)) {
+                caseHelper.updateCampaignCases(session, oid, campaignCaseModifications);
             }
 
             LOGGER.trace("Before commit...");

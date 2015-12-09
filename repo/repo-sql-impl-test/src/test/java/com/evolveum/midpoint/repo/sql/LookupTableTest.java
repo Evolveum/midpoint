@@ -52,7 +52,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableTy
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
 
 /**
- * @author lazyman
+ * @author mederly
  */
 @ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -105,7 +105,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
                 .item(F_NAME).replace(new PolyString("Table 1", "table 1"))
                 .asItemDeltas();
 
-        executeAndCheckModification(modifications, result);
+        executeAndCheckModification(modifications, result, 1);
     }
 
     @Test(enabled = false)          // row modification is not supported
@@ -117,7 +117,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
                 .item(F_ROW, 1, F_LAST_CHANGE_TIMESTAMP).replace()
                 .asItemDeltas();
 
-        executeAndCheckModification(modifications, result);
+        executeAndCheckModification(modifications, result, 0);
     }
 
     @Test(enabled = false)
@@ -130,7 +130,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
                 .item(F_ROW, 2, F_VALUE).replace("value 2")
                 .asItemDeltas();
 
-        executeAndCheckModification(modifications, result);
+        executeAndCheckModification(modifications, result, 1);
     }
 
     @Test
@@ -157,9 +157,9 @@ public class LookupTableTest extends BaseSQLRepoTest {
                 .item(F_ROW).add(rowNoId, rowNoId2, row4)
                 .asItemDeltas();
 
-        executeAndCheckModification(modifications, result);
+        executeAndCheckModification(modifications, result, 0);
 
-        // beware, ID for row4 was re-generated
+        // beware, ID for row4 was re-generated -- using client-provided IDs is not recommended anyway
     }
 
     @Test
@@ -173,7 +173,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
                 .item(F_ROW).delete(row3)
                 .asItemDeltas();
 
-        executeAndCheckModification(modifications, result);
+        executeAndCheckModification(modifications, result, 0);
     }
 
     @Test(enabled = false)
@@ -195,7 +195,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
                 .item(F_ROW).add(rowNoId, row5).delete(row4)
                 .asItemDeltas();
 
-        executeAndCheckModification(modifications, result);
+        executeAndCheckModification(modifications, result, 0);
     }
 
     @Test
@@ -203,7 +203,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("test260ReplaceRowsExistingId");
 
         LookupTableRowType row5 = new LookupTableRowType(prismContext);
-        row5.setId(5L);
+        row5.setId(5L);         // dangerous
         row5.setKey("key 5 plus");
         row5.setValue("value 5 plus");
         row5.setLastChangeTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date(99, 3, 10)));
@@ -212,7 +212,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
                 .item(F_ROW).replace(row5)
                 .asItemDeltas();
 
-        executeAndCheckModification(modifications, result);
+        executeAndCheckModification(modifications, result, 0);
     }
 
     @Test
@@ -228,7 +228,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
                 .item(F_ROW).replace(rowNoId)
                 .asItemDeltas();
 
-        executeAndCheckModification(modifications, result);
+        executeAndCheckModification(modifications, result, 0);
     }
 
     @Test
@@ -246,15 +246,15 @@ public class LookupTableTest extends BaseSQLRepoTest {
         PrismAsserts.assertEquivalent("Table is not as expected", expectedObject, table);
     }
 
-    protected void executeAndCheckModification(List<ItemDelta> modifications, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, IOException {
+    protected void executeAndCheckModification(List<ItemDelta> modifications, OperationResult result, int versionDelta) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, IOException {
         PrismObject<LookupTableType> before = getFullTable(tableOid, result);
 
         repositoryService.modifyObject(LookupTableType.class, tableOid, modifications, result);
 
-        checkTable(tableOid, result, before, modifications);
+        checkTable(tableOid, result, before, modifications, Integer.parseInt(before.getVersion()) + versionDelta);
     }
 
-    private void checkTable(String oid, OperationResult result, PrismObject<LookupTableType> expectedObject, List<ItemDelta> modifications) throws SchemaException, ObjectNotFoundException, IOException {
+    private void checkTable(String oid, OperationResult result, PrismObject<LookupTableType> expectedObject, List<ItemDelta> modifications, int expectedVersion) throws SchemaException, ObjectNotFoundException, IOException {
         expectedObject.setOid(oid);
         if (modifications != null) {
             ItemDelta.applyTo(modifications, expectedObject);
@@ -264,6 +264,8 @@ public class LookupTableTest extends BaseSQLRepoTest {
         PrismObject<LookupTableType> table = getFullTable(oid, result);
         LOGGER.trace("Actual object from repo = \n{}", table.debugDump());
         PrismAsserts.assertEquivalent("Table is not as expected", expectedObject, table);
+
+        AssertJUnit.assertEquals("Incorrect version", expectedVersion, Integer.parseInt(table.getVersion()));
     }
 
     private PrismObject<LookupTableType> getFullTable(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {

@@ -111,16 +111,10 @@ public class LookupTableHelper {
         query.executeUpdate();
     }
 
-    public void updateLookupTableData(Session session, RObject object, Collection<? extends ItemDelta> modifications) {
+    public void updateLookupTableData(Session session, String tableOid, Collection<? extends ItemDelta> modifications) {
         if (modifications.isEmpty()) {
             return;
         }
-
-        if (!(object instanceof RLookupTable)) {
-            throw new IllegalStateException("Object being modified is not a LookupTable; it is " + object.getClass());
-        }
-        final RLookupTable rLookupTable = (RLookupTable) object;
-        final String tableOid = object.getOid();
 
         for (ItemDelta delta : modifications) {
             if (!(delta instanceof ContainerDelta) || delta.getPath().size() != 1) {

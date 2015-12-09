@@ -84,7 +84,7 @@ public class CertificationCaseHelper {
         RAccessCertificationCampaign campaign = (RAccessCertificationCampaign) object;
 
         if (merge) {
-            LOGGER.info("Deleting existing cases for {}", campaign.getOid());
+            LOGGER.trace("Deleting existing cases for {}", campaign.getOid());
             deleteCertificationCampaignCases(session, campaign.getOid());
         }
         if (campaign.getCase() != null) {
@@ -154,17 +154,11 @@ public class CertificationCaseHelper {
         return caseDelta;
     }
 
-    public <T extends ObjectType> void updateCampaignCases(Session session, RObject object,
+    public <T extends ObjectType> void updateCampaignCases(Session session, String campaignOid,
                                                            Collection<? extends ItemDelta> modifications) throws SchemaException, ObjectNotFoundException {
         if (modifications.isEmpty()) {
             return;
         }
-
-        if (!(object instanceof RAccessCertificationCampaign)) {
-            throw new IllegalStateException("Object being modified is not a RAccessCertificationCampaign; it is " + object.getClass());
-        }
-        final RAccessCertificationCampaign rCampaign = (RAccessCertificationCampaign) object;
-        final String campaignOid = object.getOid();
 
         List<Long> casesAddedOrDeleted = addOrDeleteCases(session, campaignOid, modifications);
         LOGGER.trace("Cases added/deleted (null means REPLACE operation) = {}", casesAddedOrDeleted);
@@ -181,8 +175,6 @@ public class CertificationCaseHelper {
             if (!casePath.isSubPathOrEquivalent(deltaPath)) {
                 throw new IllegalStateException("Wrong campaign delta sneaked into updateCampaignCases: class=" + delta.getClass() + ", path=" + deltaPath);
             }
-
-            // TODO treat missing decision IDs somehow
 
             if (deltaPath.size() == 1) {
                 if (delta.getValuesToDelete() != null) {
@@ -210,6 +202,9 @@ public class CertificationCaseHelper {
                         deleteCase.executeUpdate();
                     }
                 }
+                // TODO generated IDs might conflict with client-provided ones
+                // also, client-provided IDs might conflict with those that are already in the database
+                // So it's safest not to provide any IDs by the client
                 if (delta.getValuesToAdd() != null) {
                     int currentId = generalHelper.findLastIdInRepo(session, campaignOid, "get.campaignCaseLastId") + 1;
                     addCertificationCampaignCases(session, campaignOid, delta.getValuesToAdd(), currentId, affectedIds);
