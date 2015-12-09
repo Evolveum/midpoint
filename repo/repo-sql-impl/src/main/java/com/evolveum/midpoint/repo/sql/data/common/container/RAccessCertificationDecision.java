@@ -177,26 +177,15 @@ public class RAccessCertificationDecision implements L2Container<RAccessCertific
         this.trans = trans;
     }
 
-    public static RAccessCertificationDecision toRepo(RAccessCertificationCase owningCase, AccessCertificationDecisionType decision, IdGeneratorResult generatorResult, PrismContext prismContext) {
-        RAccessCertificationDecision rDecision = toRepo(decision, generatorResult, prismContext);
+    public static RAccessCertificationDecision toRepo(RAccessCertificationCase owningCase, AccessCertificationDecisionType decision, PrismContext prismContext) {
+        RAccessCertificationDecision rDecision = toRepo(decision, prismContext);
         rDecision.setOwner(owningCase);
         return rDecision;
     }
 
-//    public static RAccessCertificationDecision toRepo(String campaignOid, int caseId, AccessCertificationDecisionType decision, PrismContext prismContext) {
-//        RAccessCertificationDecision rCase = toRepo(decision, prismContext);
-//        rCase.setOwnerOwnerOid(campaignOid);
-//        rCase.setOwnerId(caseId);
-//        return rCase;
-//    }
-
-    private static RAccessCertificationDecision toRepo(AccessCertificationDecisionType decision, IdGeneratorResult generatorResult, PrismContext prismContext) {
+    private static RAccessCertificationDecision toRepo(AccessCertificationDecisionType decision, PrismContext prismContext) {
         RAccessCertificationDecision rDecision = new RAccessCertificationDecision();
-        if (generatorResult == null) {
-            rDecision.setTransient(true);
-        } else {
-            rDecision.setTransient(generatorResult.isTransient(decision.asPrismContainerValue()));
-        }
+        rDecision.setTransient(null);       // we don't try to advise hibernate - let it do its work, even if it would cost some SELECTs
         rDecision.setId(RUtil.toInteger(decision.getId()));
         rDecision.setStageNumber(decision.getStageNumber());
         rDecision.setReviewerRef(RUtil.jaxbRefToEmbeddedRepoRef(decision.getReviewerRef(), prismContext));

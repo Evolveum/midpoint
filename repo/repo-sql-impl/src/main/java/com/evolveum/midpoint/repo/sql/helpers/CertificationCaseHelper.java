@@ -103,7 +103,7 @@ public class CertificationCaseHelper {
                 caseType.setId((long) currentId);
                 currentId++;
             }
-            RAccessCertificationCase row = RAccessCertificationCase.toRepo(campaignOid, caseType, null, prismContext);
+            RAccessCertificationCase row = RAccessCertificationCase.toRepo(campaignOid, caseType, prismContext);
             row.setId(RUtil.toInteger(caseType.getId()));
             affectedIds.add(caseType.getId());
             session.save(row);
@@ -243,11 +243,11 @@ public class CertificationCaseHelper {
                 delta.setParentPath(delta.getParentPath().tail(2));         // remove "case[id]" from the delta path
                 delta.applyTo(aCase.asPrismContainerValue());
 
-                // TODO fix this temporary hack: doesn't work quite as expected (new decisions are marked as non-transient)
+                // we need to generate IDs but we (currently) do not use that for setting "isTransient" flag
                 PrismIdentifierGenerator generator = new PrismIdentifierGenerator();
-                IdGeneratorResult generatorResult = generator.generate(aCase, PrismIdentifierGenerator.Operation.MODIFY);
+                generator.generate(aCase, PrismIdentifierGenerator.Operation.MODIFY);
 
-                RAccessCertificationCase rCase = RAccessCertificationCase.toRepo(campaignOid, aCase, generatorResult, prismContext);
+                RAccessCertificationCase rCase = RAccessCertificationCase.toRepo(campaignOid, aCase, prismContext);
                 session.merge(rCase);
 
                 LOGGER.trace("Access certification case " + rCase + " merged.");
