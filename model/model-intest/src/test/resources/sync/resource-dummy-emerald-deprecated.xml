@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2014 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -71,8 +71,37 @@
 				<displayName>Full Name</displayName>
 				<inbound>
 					<strength>strong</strength>
+					<expression>
+				      <script>
+				        <code>
+				          if (input == null || input.contains('NULL')) {
+				            return null;
+				          }
+				          return input;
+				        </code>
+				      </script>
+				    </expression>
 					<target>
 						<path>$user/fullName</path>
+					</target>
+				</inbound>
+			</attribute>
+			<attribute>
+				<ref>ri:title</ref>
+				<inbound>
+					<strength>strong</strength>
+					<expression>
+				      <script>
+				        <code>
+				          if (input == null || input.contains('NULL')) {
+				            return null;
+				          }
+				          return input;
+				        </code>
+				      </script>
+				    </expression>
+					<target>
+						<path>title</path>
 					</target>
 				</inbound>
 			</attribute>
