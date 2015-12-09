@@ -78,6 +78,7 @@ import java.util.Set;
         }
 )
 @IdClass(RContainerId.class)
+// TODO prefix last 4 index names with "iAssignment" (some day)
 @Table(name = "m_assignment", indexes = {
         @Index(name = "iAssignmentAdministrative", columnList = "administrativeStatus"),
         @Index(name = "iAssignmentEffective", columnList = "effectiveStatus"),

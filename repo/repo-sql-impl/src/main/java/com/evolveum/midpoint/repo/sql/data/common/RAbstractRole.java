@@ -57,7 +57,7 @@ import java.util.Set;
 @Entity
 @ForeignKey(name = "fk_abstract_role")
 @org.hibernate.annotations.Table(appliesTo = "m_abstract_role",
-        indexes = {@Index(name = "iRequestable", columnNames = "requestable")})
+        indexes = {@Index(name = "iRequestable", columnNames = "requestable")})             // TODO correct index name
 public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T> {
 
     private Set<RExclusion> exclusion;

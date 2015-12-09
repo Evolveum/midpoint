@@ -71,8 +71,8 @@ import java.util.Set;
 @Entity
 @IdClass(RContainerId.class)
 @Table(name = "m_acc_cert_case", indexes = {
-        @Index(name = "iObjectRefTargetOid", columnList = "objectRef_targetOid"),
-        @Index(name = "iTargetRefTargetOid", columnList = "targetRef_targetOid")
+        @Index(name = "iCaseObjectRefTargetOid", columnList = "objectRef_targetOid"),
+        @Index(name = "iCaseTargetRefTargetOid", columnList = "targetRef_targetOid")
 })
 public class RAccessCertificationCase implements Container {
 

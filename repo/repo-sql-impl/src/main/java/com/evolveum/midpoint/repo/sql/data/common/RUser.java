@@ -43,7 +43,7 @@ import java.util.Set;
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(name="uc_user_name", columnNames = {"name_norm"}))
 @org.hibernate.annotations.Table(appliesTo = "m_user",
-        indexes = {@Index(name = "iFullName", columnNames = "fullName_orig"),
+        indexes = {@Index(name = "iFullName", columnNames = "fullName_orig"),           // TODO correct indices names
                 @Index(name = "iFamilyName", columnNames = "familyName_orig"),
                 @Index(name = "iGivenName", columnNames = "givenName_orig"),
                 @Index(name = "iLocality", columnNames = "locality_orig")})
@@ -141,7 +141,7 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         return localityUser;
     }
 
-    @Index(name = "iEmployeeNumber")
+    @Index(name = "iEmployeeNumber")            // TODO correct index name
     public String getEmployeeNumber() {
         return employeeNumber;
     }
