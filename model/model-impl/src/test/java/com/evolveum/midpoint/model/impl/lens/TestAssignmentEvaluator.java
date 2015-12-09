@@ -150,6 +150,8 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 		Construction<UserType> construction = evaluatedAssignment.getConstructions().getZeroSet().iterator().next();
 		display("Evaluated construction", construction);
 		assertNotNull("No object class definition in construction", construction.getRefinedObjectClassDefinition());
+		
+		assertEquals("Wrong number of admin GUI configs", 0, evaluatedAssignment.getAdminGuiConfigurations().size());
 	}
 	
 	@Test
@@ -189,6 +191,8 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 		
 		Construction<UserType> construction = evaluatedAssignment.getConstructions().getZeroSet().iterator().next();
 		assertNotNull("No object class definition in construction", construction.getRefinedObjectClassDefinition());
+		
+		assertEquals("Wrong number of admin GUI configs", 0, evaluatedAssignment.getAdminGuiConfigurations().size());
 	}
 	
 	@Test
@@ -255,6 +259,8 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
         assertConstruction(evaluatedAssignment, ZERO, "title", MINUS, "The best pirate the world has ever seen");
         assertNoConstruction(evaluatedAssignment, PLUS, "title");
         assertNoConstruction(evaluatedAssignment, MINUS, "title");
+        
+        assertEquals("Wrong number of admin GUI configs", 0, evaluatedAssignment.getAdminGuiConfigurations().size());
     }
 	
 	@Test
@@ -322,6 +328,8 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
         assertConstruction(evaluatedAssignment, ZERO, "title", MINUS, "The best man the world has ever seen");
         assertNoConstruction(evaluatedAssignment, PLUS, "title");
         assertNoConstruction(evaluatedAssignment, MINUS, "title");
+        
+        assertEquals("Wrong number of admin GUI configs", 0, evaluatedAssignment.getAdminGuiConfigurations().size());
 	}
 
     /*
@@ -392,6 +400,8 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
         assertConstruction(evaluatedAssignment, ZERO, "location", MINUS);
         assertNoConstruction(evaluatedAssignment, PLUS, "location");
         assertNoConstruction(evaluatedAssignment, MINUS, "location");
+        
+        assertEquals("Wrong number of admin GUI configs", 0, evaluatedAssignment.getAdminGuiConfigurations().size());
     }
 
     @Test
@@ -440,6 +450,8 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
         assertConstruction(evaluatedAssignment, ZERO, "location", MINUS);
         assertNoConstruction(evaluatedAssignment, PLUS, "location");
         assertNoConstruction(evaluatedAssignment, MINUS, "location");
+        
+        assertEquals("Wrong number of admin GUI configs", 1, evaluatedAssignment.getAdminGuiConfigurations().size());
     }
 
     @Test
@@ -478,7 +490,7 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 
         assertNotNull(evaluatedAssignment);
         display("Evaluated assignment",evaluatedAssignment.debugDump());
-        assertEquals(4, evaluatedAssignment.getConstructions().size());
+        assertEquals("Wrong number of constructions", 4, evaluatedAssignment.getConstructions().size());
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
         /*
@@ -505,6 +517,8 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
         assertConstruction(evaluatedAssignment, ZERO, "location", MINUS);
         assertNoConstruction(evaluatedAssignment, PLUS, "location");
         assertNoConstruction(evaluatedAssignment, MINUS, "location");
+        
+        assertEquals("Wrong number of admin GUI configs", 1, evaluatedAssignment.getAdminGuiConfigurations().size());
     }
 
     /**

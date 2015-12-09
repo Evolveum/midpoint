@@ -41,6 +41,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -63,6 +64,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	private Collection<PrismReferenceValue> membershipRefVals;
 	private Collection<Authorization> authorizations;
 	private Collection<Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>>> focusMappings;
+	private Collection<AdminGuiConfigurationType> adminGuiConfigurations;
 	private PrismObject<?> target;
 	private boolean isValid;
 	private boolean forceRecon;         // used also to force recomputation of parentOrgRefs
@@ -76,6 +78,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		membershipRefVals = new ArrayList<>();
 		authorizations = new ArrayList<>();
 		focusMappings = new ArrayList<>();
+		adminGuiConfigurations = new ArrayList<>(); 
 	}
 
 	public ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> getAssignmentIdi() {
@@ -177,6 +180,14 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		authorizations.add(authorization);
 	}
 	
+	public Collection<AdminGuiConfigurationType> getAdminGuiConfigurations() {
+		return adminGuiConfigurations;
+	}
+	
+	public void addAdminGuiConfiguration(AdminGuiConfigurationType adminGuiConfiguration) {
+		adminGuiConfigurations.add(adminGuiConfiguration);
+	}
+
 	public Collection<Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>>> getFocusMappings() {
 		return focusMappings;
 	}

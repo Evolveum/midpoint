@@ -39,6 +39,7 @@ import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.security.api.Authorization;
@@ -64,6 +65,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -105,9 +107,10 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 
     @Override
     public MidPointPrincipal getPrincipal(String username) throws ObjectNotFoundException {
+    	OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
     	PrismObject<UserType> user = null;
         try {
-            user = findByUsername(username);
+            user = findByUsername(username, result);
         } catch (ObjectNotFoundException ex) {
         	LOGGER.trace("Couldn't find user with name '{}', reason: {}.",
                     new Object[]{username, ex.getMessage(), ex});
@@ -118,38 +121,52 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
             throw new SystemException(ex.getMessage(), ex);
         }
 
-        return getPrincipal(user);
+        return createPrincipal(user, result);
     }
 
     @Override
     public MidPointPrincipal getPrincipal(PrismObject<UserType> user) {
+    	OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
+    	return createPrincipal(user, result);
+    }
+    
+    private MidPointPrincipal createPrincipal(PrismObject<UserType> user, OperationResult result) {
         if (user == null) {
             return null;
         }
+        
+        PrismObject<SystemConfigurationType> systemConfiguration = null;
+        try {
+        	systemConfiguration = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), 
+					null, result);
+		} catch (ObjectNotFoundException | SchemaException e) {
+			LOGGER.warn("No system configuration: {}", e.getMessage(), e);
+		}
 
     	userComputer.recompute(user);
         MidPointPrincipal principal = new MidPointPrincipal(user.asObjectable());
-        addAuthorizations(principal);
+        initializePrincipalFromAssignments(principal, systemConfiguration);
         return principal;
     }
 
     @Override
     public void updateUser(MidPointPrincipal principal) {
+    	OperationResult result = new OperationResult(OPERATION_UPDATE_USER);
         try {
-            save(principal);
+            save(principal, result);
         } catch (RepositoryException ex) {
             LOGGER.warn("Couldn't save user '{}, ({})', reason: {}.",
                     new Object[]{principal.getFullName(), principal.getOid(), ex.getMessage()});
         }
     }
 
-    private PrismObject<UserType> findByUsername(String username) throws SchemaException, ObjectNotFoundException {
+    private PrismObject<UserType> findByUsername(String username, OperationResult result) throws SchemaException, ObjectNotFoundException {
         PolyString usernamePoly = new PolyString(username);
         ObjectQuery query = ObjectQueryUtil.createNormNameQuery(usernamePoly, prismContext);
         LOGGER.trace("Looking for user, query:\n" + query.debugDump());
 
         List<PrismObject<UserType>> list = repositoryService.searchObjects(UserType.class, query, null, 
-                new OperationResult("Find by username"));
+                result);
         LOGGER.trace("Users found: {}.", (list != null ? list.size() : 0));
         if (list == null || list.size() != 1) {
             return null;
@@ -158,13 +175,17 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         return list.get(0);
     }
         
-	private void addAuthorizations(MidPointPrincipal principal) {
+	private void initializePrincipalFromAssignments(MidPointPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration) {
 		UserType userType = principal.getUser();
 
 		Collection<Authorization> authorizations = principal.getAuthorities();
+		Collection<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
         CredentialsType credentials = userType.getCredentials();
 
         if (userType.getAssignment().isEmpty()) {
+        	if (systemConfiguration != null) {
+        		principal.setAdminGuiConfiguration(systemConfiguration.asObjectable().getAdminGuiConfiguration());
+        	}
             return;
         }
 		
@@ -199,6 +220,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 				EvaluatedAssignment<UserType> assignment = assignmentEvaluator.evaluate(assignmentIdi, false, userType, userType.toString(), task, result);
 				if (assignment.isValid()) {
 					authorizations.addAll(assignment.getAuthorizations());
+					adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());
 				}
 			} catch (SchemaException e) {
 				LOGGER.error("Schema violation while processing assignment of {}: {}; assignment: {}", 
@@ -214,11 +236,12 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 						new Object[]{userType, e.getMessage(), assignmentType, e});
 			}
         }
+        principal.setAdminGuiConfiguration(AdminGuiConfigTypeUtil.compileAdminGuiConfiguration(adminGuiConfigurations, systemConfiguration));
 	}
 
-	private MidPointPrincipal save(MidPointPrincipal person) throws RepositoryException {
+	private MidPointPrincipal save(MidPointPrincipal person, OperationResult result) throws RepositoryException {
         try {
-            UserType oldUserType = getUserByOid(person.getOid());
+            UserType oldUserType = getUserByOid(person.getOid(), result);
             PrismObject<UserType> oldUser = oldUserType.asPrismObject();
 
             PrismObject<UserType> newUser = person.getUser().asPrismObject();
@@ -233,9 +256,9 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         return person;
     }
 
-    private UserType getUserByOid(String oid) throws ObjectNotFoundException, SchemaException {
+    private UserType getUserByOid(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
         ObjectType object = repositoryService.getObject(UserType.class, oid,
-        		null, new OperationResult(OPERATION_GET_USER)).asObjectable();
+        		null, result).asObjectable();
         if (object != null && (object instanceof UserType)) {
             return (UserType) object;
         }

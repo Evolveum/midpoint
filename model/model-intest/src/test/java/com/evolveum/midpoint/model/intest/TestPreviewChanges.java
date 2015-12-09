@@ -464,8 +464,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 		
-		assertNotNull("Null config", adminGuiConfiguration);
-		assertEquals("Unexpected number of links", 1, adminGuiConfiguration.getUserDashboardLink().size());
+		assertAdminGuiConfigurations(adminGuiConfiguration, 0, 1, 1);
 		RichHyperlinkType link = adminGuiConfiguration.getUserDashboardLink().get(0);
 		assertEquals("Bad link label", "Foo", link.getLabel());
 		assertEquals("Bad link targetUrl", "/foo", link.getTargetUrl());

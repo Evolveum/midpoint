@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2010-2015 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.web.page.self;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -41,6 +56,7 @@ import java.util.List;
 
 /**
  * @author Viliam Repan (lazyman)
+ * @author Kate Honchar
  */
 @PageDescriptor(url = {"/self/dashboard", "/self"}, action = {
         @AuthorizationAction(actionUri = PageSelf.AUTH_SELF_ALL_URI,
@@ -263,7 +279,7 @@ public class PageSelfDashboard extends PageSelf {
         return user;
     }
 
-    private List<RichHyperlinkType> loadLinksList(){
+    private List<RichHyperlinkType> loadLinksList() {
         List<RichHyperlinkType> list = new ArrayList<RichHyperlinkType>();
 
         PrismObject<UserType> user = principalModel.getObject();
@@ -274,8 +290,9 @@ public class PageSelfDashboard extends PageSelf {
         OperationResult result = new OperationResult(OPERATION_LOAD_WORK_ITEMS);
 
         Task task = createSimpleTask(TASK_GET_SYSTEM_CONFIG);
-        try{
+        try {
             AdminGuiConfigurationType adminGuiConfig = getModelInteractionService().getAdminGuiConfiguration(task, result);
+//            LOGGER.trace("Admin GUI config: {}", adminGuiConfig);
             list = adminGuiConfig.getUserDashboardLink();
             result.recordSuccess();
         } catch(Exception ex){
@@ -285,7 +302,7 @@ public class PageSelfDashboard extends PageSelf {
         return list;
     }
 
-    private void createLinksPanelModel(){
+    private void createLinksPanelModel() {
         linksPanelModel = new IModel<List<RichHyperlinkType>>() {
             @Override
             public List<RichHyperlinkType> getObject() {
