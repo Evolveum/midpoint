@@ -11,6 +11,8 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.prism.ItemWrapper;
+import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ObjectSelectionPage;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ObjectSelectionPanel;
@@ -25,9 +27,11 @@ import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -54,19 +58,21 @@ public class AssociationValueChoosePanel <T, C extends ObjectType> extends Simpl
     private static final String ID_ADD = "add";
     private static final String ID_REMOVE = "remove";
     private static final String ID_BUTTON_GROUP = "buttonGroup";
-    private static final String ID_EDIT = "edit";
+//    private static final String ID_EDIT = "edit";
+private IModel<ValueWrapper> model;
 
     protected static final String MODAL_ID_OBJECT_SELECTION_POPUP = "objectSelectionPopup";
 
 
     private ObjectQuery query = null;
 
-    public AssociationValueChoosePanel(String id, IModel<T> value, List<PrismPropertyValue> values, boolean required, Class<C> type,
+    public AssociationValueChoosePanel(String id, IModel<ValueWrapper> model, List<PrismPropertyValue> values, boolean required, Class<C> type,
                                        ObjectQuery query){
-        super(id, value);
+        super(id, (IModel<T>)new PropertyModel<>(model, "value"));
+        this.model = model;
         this.query = query;
         setOutputMarkupId(true);
-        initLayout(value, values, required, type);
+        initLayout((IModel<T>)new PropertyModel<>(model, "value"), values, required, type);
     }
 
     private void initLayout(final IModel<T> value, final List<PrismPropertyValue> values,
@@ -90,14 +96,14 @@ public class AssociationValueChoosePanel <T, C extends ObjectType> extends Simpl
         FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK, new ComponentFeedbackMessageFilter(text));
         textWrapper.add(feedback);
 
-        AjaxLink edit = new AjaxLink(ID_EDIT) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                editValuePerformed(values, target);
-            }
-        };
-        textWrapper.add(edit);
+//        AjaxLink edit = new AjaxLink(ID_EDIT) {
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                editValuePerformed(values, target);
+//            }
+//        };
+//        textWrapper.add(edit);
         add(textWrapper);
 
         initDialog(type, values);
@@ -162,8 +168,7 @@ public class AssociationValueChoosePanel <T, C extends ObjectType> extends Simpl
 
             @Override
             public ObjectQuery getDataProviderQuery() {
-
-                    return getRealParent().createChooseQuery(values);
+                    return query;
             }
 
             @Override
@@ -277,34 +282,31 @@ public class AssociationValueChoosePanel <T, C extends ObjectType> extends Simpl
         };
     }
 
-    protected void editValuePerformed(List<PrismPropertyValue> values, AjaxRequestTarget target) {
+    public void editValuePerformed(AjaxRequestTarget target) {
         ModalWindow window = (ModalWindow) get(MODAL_ID_OBJECT_SELECTION_POPUP);
         window.show(target);
-        ObjectSelectionPanel dialog = (ObjectSelectionPanel) window.get(createComponentPath(window.getContentId(), ObjectSelectionPage.ID_OBJECT_SELECTION_PANEL));
-        if (dialog != null) {
-            dialog.updateTablePerformed(target, createChooseQuery(values));
-        }
+//        ObjectSelectionPanel dialog = (ObjectSelectionPanel) window.get(createComponentPath(window.getContentId(), ObjectSelectionPage.ID_OBJECT_SELECTION_PANEL));
+//        if (dialog != null) {
+//            dialog.updateTablePerformed(target, createChooseQuery(values));
+//        }
     }
 
-    /*
-     * TODO - this method contains check, if chosen object already is not in
-     * selected values array This is a temporary solution until we well be able
-     * to create "already-chosen" query
-     */
     protected void choosePerformed(AjaxRequestTarget target, C object) {
-        choosePerformedHook(target, object);
         ModalWindow window = (ModalWindow) get(MODAL_ID_OBJECT_SELECTION_POPUP);
         window.close(target);
 
-        if(isObjectUnique(object)){
+        ValueWrapper wrapper = model.getObject();
+        ItemWrapper propertyWrapper = wrapper.getItem();
+        propertyWrapper.addValue();
+
+        ListView parent = findParent(ListView.class).findParent(ListView.class);
+        target.add(parent.getParent());
+
             replaceIfEmpty(object);
-        }
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("New object instance has been added to the model.");
         }
-        // has to be done in the context of parent page
-        //target.add(this);
     }
 
 

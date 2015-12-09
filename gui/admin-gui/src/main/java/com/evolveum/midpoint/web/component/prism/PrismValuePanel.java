@@ -148,7 +148,12 @@ public class PrismValuePanel extends Panel {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                addValue(target);
+                Component inputPanel = this.getParent().get(ID_INPUT);
+                if (inputPanel instanceof AssociationValueChoosePanel) {
+                    ((AssociationValueChoosePanel)inputPanel).editValuePerformed(target);
+                } else {
+                    addValue(target);
+                }
             }
         };
         addButton.add(new VisibleEnableBehaviour() {
@@ -301,6 +306,11 @@ public class PrismValuePanel extends Panel {
     }
 
     private boolean isAddButtonVisible() {
+        Component inputPanel = this.get(ID_VALUE_CONTAINER).get(ID_INPUT);
+        if (inputPanel instanceof AssociationValueChoosePanel) {
+            return isAssocAddButtonVisible();
+        }
+
         ValueWrapper valueWrapper = model.getObject();
 
         if (valueWrapper.isReadonly()){
@@ -414,14 +424,6 @@ public class PrismValuePanel extends Panel {
               ContainerWrapper containerWrapper = itemWrapper.getContainer();
               if(containerWrapper != null && containerWrapper.getPath() != null){
                   if(ShadowType.F_ASSOCIATION.getLocalPart().equals(containerWrapper.getPath().toString())){
-
-
-
-
-
-
-
-
                       PrismContext prismContext = item.getPrismContext();
                       if (prismContext == null) {
                           prismContext = pageBase.getPrismContext();
@@ -436,8 +438,8 @@ public class PrismValuePanel extends Panel {
                               objectClassItem, kindItem, intentItem);
 
                       PropertyModel propertyModel = new PropertyModel<>(model, "value");
-List values = item.getValues();
-                      return new AssociationValueChoosePanel(id, propertyModel, values, false, ShadowType.class, query);
+                      List values = item.getValues();
+                      return new AssociationValueChoosePanel(id, model, values, false, ShadowType.class, query);
                   }
               }
 
@@ -767,14 +769,27 @@ List values = item.getValues();
                 error("Couldn't delete already deleted item: " + wrapper.toString());
                 target.add(((PageBase) getPage()).getFeedbackPanel());
             case NOT_CHANGED:
+                if (inputPanel instanceof AssociationValueChoosePanel) {
+                    ((PropertyWrapper)propertyWrapper).setStatus(ValueStatus.DELETED);
+                }
                 wrapper.setStatus(ValueStatus.DELETED);
                 break;
         }
+
+//        wrapper.getItem().getContainer().
+
 
         int count = countUsableValues(propertyWrapper);
         if (count == 0 && !hasEmptyPlaceholder(propertyWrapper)) {
             if (inputPanel instanceof ValueChoosePanel) {
                 values.add(new ValueWrapper(propertyWrapper, new PrismReferenceValue(null), ValueStatus.ADDED));
+            } else if (inputPanel instanceof AssociationValueChoosePanel) {
+                Item item = propertyWrapper.getItem();
+                ItemPath path = item.getPath();
+                if (path != null){
+
+                }
+//                values.add(new ValueWrapper(propertyWrapper, new PrismPropertyValue(null), ValueStatus.ADDED));
             } else {
                 values.add(new ValueWrapper(propertyWrapper, new PrismPropertyValue(null), ValueStatus.ADDED));
             }
@@ -800,5 +815,26 @@ List values = item.getValues();
 
     }
 
+    //show Add button only for the last association container item
+    private boolean isAssocAddButtonVisible(){
+        ItemWrapper itemWrapper = model.getObject().getItem();
+        ContainerWrapper containerWrapper = itemWrapper.getContainer();
+
+        List<ItemWrapper> associationsList = containerWrapper.getItems();
+        int associationsListSize = associationsList.size();
+        int associationIndex = -1;
+        if (associationsList != null) {
+            for (ItemWrapper assocItemWrapper : associationsList){
+                if (itemWrapper.equals(assocItemWrapper)){
+                    associationIndex = associationsList.indexOf(assocItemWrapper);
+                    break;
+                }
+            }
+        }
+        if (associationsListSize - 1 == associationIndex){
+            return true;
+        }
+        return false;
+    }
 
 }

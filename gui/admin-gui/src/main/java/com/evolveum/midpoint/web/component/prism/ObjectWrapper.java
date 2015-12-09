@@ -27,6 +27,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
@@ -49,11 +50,6 @@ import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Revivable;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
@@ -584,33 +580,55 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 		Collections.sort(containers, new PathSizeComparator());
 
 		for (ContainerWrapper containerWrapper : getContainers()) {
-			if (!containerWrapper.hasChanged()) {
-				continue;
-			}
+            //create ContainerDelta for association container
+            if (containerWrapper.getItemDefinition().getName().equals(ShadowType.F_ASSOCIATION)) {
+                ContainerDelta containerDelta = ContainerDelta.createDelta(ShadowType.F_ASSOCIATION, containerWrapper.getItemDefinition());
+                List<ItemWrapper> itemsList = (List<ItemWrapper>) containerWrapper.getItems();
+                int index = 0;
+                for (ItemWrapper vals : itemsList) {
+                    if (vals instanceof PropertyWrapper) {
+                        PropertyWrapper assocValue =(PropertyWrapper) vals;
+                        if ((assocValue).getStatus() == ValueStatus.DELETED) {
+                            PrismContainer prismContainer = containerWrapper.getItem();
+                            List<PrismContainerValue> containerValues = prismContainer.getValues();
+                            for (PrismContainerValue containerValue : containerValues){
+                                if (containerValues.indexOf(containerValue) == index){
+                                    containerDelta.addValueToDelete(containerValue);
+                                }
+                            }
+                        }
+                    }
+                    index++;
+                }
+                delta.addModification(containerDelta);
+            } else {
+                if (!containerWrapper.hasChanged()) {
+                    continue;
+                }
 
-			for (ItemWrapper itemWrapper : (List<ItemWrapper>) containerWrapper.getItems()) {
-				if (!itemWrapper.hasChanged()) {
-					continue;
-				}
-				ItemPath path = containerWrapper.getPath() != null ? containerWrapper.getPath()
-						: new ItemPath();
-				if (itemWrapper instanceof PropertyWrapper) {
-					PropertyDelta pDelta = computePropertyDeltas((PropertyWrapper) itemWrapper, path);
-					if (!pDelta.isEmpty()) {
-						delta.addModification(pDelta);
-					}
-				}
+                for (ItemWrapper itemWrapper : (List<ItemWrapper>) containerWrapper.getItems()) {
+                    if (!itemWrapper.hasChanged()) {
+                        continue;
+                    }
+                    ItemPath path = containerWrapper.getPath() != null ? containerWrapper.getPath()
+                            : new ItemPath();
+                    if (itemWrapper instanceof PropertyWrapper) {
+                        PropertyDelta pDelta = computePropertyDeltas((PropertyWrapper) itemWrapper, path);
+                        if (!pDelta.isEmpty()) {
+                            delta.addModification(pDelta);
+                        }
+                    }
 
-				if (itemWrapper instanceof ReferenceWrapper) {
-					ReferenceDelta pDelta = computeReferenceDeltas((ReferenceWrapper) itemWrapper, path);
-					if (!pDelta.isEmpty()) {
-						delta.addModification(pDelta);
-					}
-				}
+                    if (itemWrapper instanceof ReferenceWrapper) {
+                        ReferenceDelta pDelta = computeReferenceDeltas((ReferenceWrapper) itemWrapper, path);
+                        if (!pDelta.isEmpty()) {
+                            delta.addModification(pDelta);
+                        }
+                    }
 
-			}
-		}
-
+                }
+            }
+        }
 		// returning container to previous order
 		Collections.sort(containers, new ItemWrapperComparator());
 

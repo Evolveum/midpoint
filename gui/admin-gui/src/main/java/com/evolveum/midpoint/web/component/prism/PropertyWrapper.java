@@ -124,6 +124,10 @@ public class PropertyWrapper implements ItemWrapper, Serializable, DebugDumpable
         return status;
     }
 
+    public void setStatus(ValueStatus status) {
+        this.status = status;
+    }
+
     public List<ValueWrapper> getValues() {
         return values;
     }
