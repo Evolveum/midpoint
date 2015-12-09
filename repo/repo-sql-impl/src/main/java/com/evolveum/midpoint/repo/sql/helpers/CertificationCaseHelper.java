@@ -103,6 +103,11 @@ public class CertificationCaseHelper {
                 caseType.setId((long) currentId);
                 currentId++;
             }
+
+            // we need to generate IDs but we (currently) do not use that for setting "isTransient" flag
+            PrismIdentifierGenerator generator = new PrismIdentifierGenerator();
+            generator.generate(caseType, PrismIdentifierGenerator.Operation.MODIFY);
+
             RAccessCertificationCase row = RAccessCertificationCase.toRepo(campaignOid, caseType, prismContext);
             row.setId(RUtil.toInteger(caseType.getId()));
             affectedIds.add(caseType.getId());

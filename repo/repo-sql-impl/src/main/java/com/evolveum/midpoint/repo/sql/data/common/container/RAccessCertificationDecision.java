@@ -32,6 +32,8 @@ import org.hibernate.annotations.GenericGenerator;
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType.F_STAGE_NUMBER;
+
 /**
  * Although being an image of a Containerable, this class is not a container in the sense of Container class:
  * its owner is not a RObject.
@@ -186,7 +188,14 @@ public class RAccessCertificationDecision implements L2Container<RAccessCertific
     private static RAccessCertificationDecision toRepo(AccessCertificationDecisionType decision, PrismContext prismContext) {
         RAccessCertificationDecision rDecision = new RAccessCertificationDecision();
         rDecision.setTransient(null);       // we don't try to advise hibernate - let it do its work, even if it would cost some SELECTs
-        rDecision.setId(RUtil.toInteger(decision.getId()));
+        Integer idInt = RUtil.toInteger(decision.getId());
+        if (idInt == null) {
+            throw new IllegalArgumentException("No ID for access certification decision: " + decision);
+        }
+        rDecision.setId(idInt);
+        if (!decision.asPrismContainerValue().contains(F_STAGE_NUMBER)) {       // this check should be part of prism container maybe
+            throw new IllegalArgumentException("No stage number for access certification decision: " + decision);
+        }
         rDecision.setStageNumber(decision.getStageNumber());
         rDecision.setReviewerRef(RUtil.jaxbRefToEmbeddedRepoRef(decision.getReviewerRef(), prismContext));
         rDecision.setResponse(RUtil.getRepoEnumValue(decision.getResponse(), RAccessCertificationResponse.class));

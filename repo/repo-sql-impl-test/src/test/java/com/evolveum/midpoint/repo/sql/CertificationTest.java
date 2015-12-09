@@ -20,11 +20,12 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
@@ -32,7 +33,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -41,7 +41,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -51,7 +50,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 import static com.evolveum.midpoint.prism.delta.PropertyDelta.createModificationReplaceProperty;
@@ -84,8 +82,10 @@ public class CertificationTest extends BaseSQLRepoTest {
     private static final Trace LOGGER = TraceManager.getTrace(CertificationTest.class);
     private static final File TEST_DIR = new File("src/test/resources/cert");
     public static final File CAMPAIGN_1_FILE = new File(TEST_DIR, "cert-campaign-1.xml");
+    public static final File CAMPAIGN_2_FILE = new File(TEST_DIR, "cert-campaign-2.xml");
 
-    private String campaignOid;
+    private String campaign1Oid;
+    private String campaign2Oid;
     private PrismObjectDefinition<AccessCertificationCampaignType> campaignDef;
 
     @Test
@@ -95,12 +95,12 @@ public class CertificationTest extends BaseSQLRepoTest {
 
         OperationResult result = new OperationResult("test100AddCampaignNonOverwrite");
 
-        campaignOid = repositoryService.addObject(campaign, null, result);
+        campaign1Oid = repositoryService.addObject(campaign, null, result);
 
         result.recomputeStatus();
         AssertJUnit.assertTrue(result.isSuccess());
 
-        checkCampaign(campaignOid, result, (PrismObject) prismContext.parseObject(CAMPAIGN_1_FILE), null);
+        checkCampaign(campaign1Oid, result, (PrismObject) prismContext.parseObject(CAMPAIGN_1_FILE), null);
     }
 
     @Test(expectedExceptions = ObjectAlreadyExistsException.class)
@@ -114,10 +114,10 @@ public class CertificationTest extends BaseSQLRepoTest {
     public void test108AddCampaignOverwriteExisting() throws Exception {
         PrismObject<AccessCertificationCampaignType> campaign = prismContext.parseObject(CAMPAIGN_1_FILE);
         OperationResult result = new OperationResult("test108AddCampaignOverwriteExisting");
-        campaign.setOid(campaignOid);       // doesn't work without specifying OID
-        campaignOid = repositoryService.addObject(campaign, RepoAddOptions.createOverwrite(), result);
+        campaign.setOid(campaign1Oid);       // doesn't work without specifying OID
+        campaign1Oid = repositoryService.addObject(campaign, RepoAddOptions.createOverwrite(), result);
 
-        checkCampaign(campaignOid, result, (PrismObject) prismContext.parseObject(CAMPAIGN_1_FILE), null);
+        checkCampaign(campaign1Oid, result, (PrismObject) prismContext.parseObject(CAMPAIGN_1_FILE), null);
     }
 
     @Test
@@ -277,22 +277,150 @@ public class CertificationTest extends BaseSQLRepoTest {
         executeAndCheckModification(modifications, result);
     }
 
+    @Test
+    public void test260ReplaceDecisionsExistingId() throws Exception {
+        OperationResult result = new OperationResult("test260ReplaceDecisions");
+
+        AccessCertificationDecisionType dec200 = new AccessCertificationDecisionType(prismContext);
+        dec200.setId(200L);
+        dec200.setStageNumber(44);
+        dec200.setReviewerRef(createObjectRef("999999", ObjectTypes.USER));
+
+        List<ItemDelta> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+                .item(F_CASE, 6, F_DECISION).replace(dec200)
+                .asItemDeltas();
+
+        executeAndCheckModification(modifications, result);
+    }
+
+    @Test
+    public void test265ReplaceDecisionsNewId() throws Exception {
+        OperationResult result = new OperationResult("test265ReplaceDecisions");
+
+        AccessCertificationDecisionType dec250 = new AccessCertificationDecisionType(prismContext);
+        dec250.setId(250L);
+        dec250.setStageNumber(440);
+        dec250.setReviewerRef(createObjectRef("250-999999", ObjectTypes.USER));
+
+        AccessCertificationDecisionType dec251 = new AccessCertificationDecisionType(prismContext);
+        dec251.setId(251L);
+        dec251.setStageNumber(1);
+
+        List<ItemDelta> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+                .item(F_CASE, 6, F_DECISION).replace(dec250, dec251)
+                .asItemDeltas();
+
+        executeAndCheckModification(modifications, result);
+    }
+
+    @Test
+    public void test270ReplaceCase() throws Exception {
+        OperationResult result = new OperationResult("test270ReplaceCase");
+
+        AccessCertificationDecisionType dec777 = new AccessCertificationDecisionType(prismContext);
+        dec777.setId(777L);
+        dec777.setStageNumber(888);
+        dec777.setReviewerRef(createObjectRef("999", ObjectTypes.USER));
+
+        AccessCertificationDecisionType decNoId = new AccessCertificationDecisionType(prismContext);
+        decNoId.setStageNumber(889);
+        decNoId.setReviewerRef(createObjectRef("9999", ObjectTypes.USER));
+
+        AccessCertificationCaseType caseNoId = new AccessCertificationCaseType(prismContext);
+        caseNoId.setObjectRef(createObjectRef("aaa", ObjectTypes.USER));
+        caseNoId.setTargetRef(createObjectRef("bbb", ObjectTypes.ROLE));
+        caseNoId.getReviewerRef().add(createObjectRef("ccc", ObjectTypes.USER));
+        caseNoId.setCurrentStageNumber(1);
+        caseNoId.getDecision().add(dec777);
+        caseNoId.getDecision().add(decNoId);
+
+        List<ItemDelta> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+                .item(F_CASE).replace(caseNoId)
+                .asItemDeltas();
+
+        executeAndCheckModification(modifications, result);
+    }
+
+    @Test
+    public void test300PrepareForQueryCases() throws Exception {
+        OperationResult result = new OperationResult("test300QueryCases");
+
+        // overwrite the campaign
+        PrismObject<AccessCertificationCampaignType> campaign = prismContext.parseObject(CAMPAIGN_1_FILE);
+        campaign.setOid(campaign1Oid);       // doesn't work without specifying OID
+        campaign1Oid = repositoryService.addObject(campaign, RepoAddOptions.createOverwrite(), result);
+
+        checkCampaign(campaign1Oid, result, (PrismObject) prismContext.parseObject(CAMPAIGN_1_FILE), null);
+
+        PrismObject<AccessCertificationCampaignType> campaign2 = prismContext.parseObject(CAMPAIGN_2_FILE);
+        campaign2Oid = repositoryService.addObject(campaign2, null, result);
+
+        checkCampaign(campaign2Oid, result, (PrismObject) prismContext.parseObject(CAMPAIGN_2_FILE), null);
+    }
+
+    @Test
+    public void test310CasesForCampaign() throws Exception {
+        OperationResult result = new OperationResult("test310CasesForCampaign");
+
+        checkCasesForCampaign(campaign1Oid, result);
+        checkCasesForCampaign(campaign2Oid, result);
+    }
+
+    @Test
+    public void test320AllCases() throws Exception {
+        OperationResult result = new OperationResult("test320AllCases");
+
+        List<AccessCertificationCaseType> cases = repositoryService.searchContainers(AccessCertificationCaseType.class, null, null, result);
+
+        AccessCertificationCampaignType campaign1 = getFullCampaign(campaign1Oid, result).asObjectable();
+        AccessCertificationCampaignType campaign2 = getFullCampaign(campaign2Oid, result).asObjectable();
+        List<AccessCertificationCaseType> expectedCases = new ArrayList<>();
+        expectedCases.addAll(campaign1.getCase());
+        expectedCases.addAll(campaign2.getCase());
+        PrismAsserts.assertEqualsCollectionUnordered("list of cases is different", cases, expectedCases.toArray(new AccessCertificationCaseType[0]));
+    }
+
+//    @Test
+//    public void test330CurrentUnansweredCases() throws Exception {
+//        OperationResult result = new OperationResult("test330CurrentUnansweredCases");
+//
+//        List<AccessCertificationCaseType> cases = repositoryService.searchContainers(AccessCertificationCaseType.class, null, null, result);
+//
+//        AccessCertificationCampaignType campaign1 = getFullCampaign(campaign1Oid, result).asObjectable();
+//        AccessCertificationCampaignType campaign2 = getFullCampaign(campaign2Oid, result).asObjectable();
+//        List<AccessCertificationCaseType> expectedCases = new ArrayList<>();
+//        expectedCases.addAll(campaign1.getCase());
+//        expectedCases.addAll(campaign2.getCase());
+//        PrismAsserts.assertEqualsCollectionUnordered("list of cases is different", cases, expectedCases.toArray(new AccessCertificationCaseType[0]));
+//    }
+
+    private void checkCasesForCampaign(String oid, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+                .ownerId(oid)
+                .build();
+        List<AccessCertificationCaseType> cases = repositoryService.searchContainers(AccessCertificationCaseType.class, query, null, result);
+        for (AccessCertificationCaseType aCase : cases) {
+            AssertJUnit.assertEquals("wrong campaign ref", oid, aCase.getCampaignRef().getOid());
+        }
+        AccessCertificationCampaignType campaign = getFullCampaign(oid, result).asObjectable();
+        PrismAsserts.assertEqualsCollectionUnordered("list of cases is different", cases, campaign.getCase().toArray(new AccessCertificationCaseType[0]));
+    }
 
     @Test
     public void test900DeleteCampaign() throws Exception {
         OperationResult result = new OperationResult("test900DeleteCampaign");
-        repositoryService.deleteObject(AccessCertificationCampaignType.class, campaignOid, result);
+        repositoryService.deleteObject(AccessCertificationCampaignType.class, campaign1Oid, result);
         result.recomputeStatus();
         AssertJUnit.assertTrue(result.isSuccess());
     }
 
     protected void executeAndCheckModification(List<ItemDelta> modifications, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, IOException {
-        PrismObject<AccessCertificationCampaignType> before = getFullCampaign(campaignOid, result);
+        PrismObject<AccessCertificationCampaignType> before = getFullCampaign(campaign1Oid, result);
         List<ItemDelta> savedModifications = (List) CloneUtil.cloneCollectionMembers(modifications);
 
-        repositoryService.modifyObject(AccessCertificationCampaignType.class, campaignOid, modifications, result);
+        repositoryService.modifyObject(AccessCertificationCampaignType.class, campaign1Oid, modifications, result);
 
-        checkCampaign(campaignOid, result, before, savedModifications);
+        checkCampaign(campaign1Oid, result, before, savedModifications);
     }
 
     private void checkCampaign(String campaignOid, OperationResult result, PrismObject<AccessCertificationCampaignType> expectedObject, List<ItemDelta> modifications) throws SchemaException, ObjectNotFoundException, IOException {

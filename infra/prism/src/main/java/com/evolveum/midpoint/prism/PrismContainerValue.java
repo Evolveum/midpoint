@@ -511,6 +511,10 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
     	}
     	return false;
     }
+
+    public boolean contains(QName itemName) {
+        return findItem(itemName) != null;
+    }
     
     @Override
     public Object find(ItemPath path) {
