@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.SerializationRelatedException;
@@ -341,8 +342,8 @@ public class ObjectUpdater {
                                                            OperationResult result) throws ObjectNotFoundException,
             SchemaException, ObjectAlreadyExistsException, SerializationRelatedException {
 
-        // shallow clone - because some methods, e.g. filterLookupTableModifications manipulate this collection
-        modifications = new ArrayList<>(modifications);
+        // clone - because some methods, e.g. filterLookupTableModifications manipulate this collection
+        modifications = CloneUtil.cloneCollectionMembers(modifications);
 
         LOGGER.debug("Modifying object '{}' with oid '{}'.", new Object[]{type.getSimpleName(), oid});
         LOGGER_PERFORMANCE.debug("> modify object {}, oid={}, modifications={}", type.getSimpleName(), oid, modifications);

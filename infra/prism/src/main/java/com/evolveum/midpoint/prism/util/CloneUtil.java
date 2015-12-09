@@ -133,6 +133,14 @@ public class CloneUtil {
 		return clonedCollection;
 	}
 
+	public static <T> List<T> cloneListMembers(List<T> list) {
+		List<T> clonedCollection = new ArrayList<>(list.size());
+		for (T element : list) {
+			clonedCollection.add(clone(element));
+		}
+		return clonedCollection;
+	}
+
 	private static <T> T cloneArray(T orig) {
 		int length = Array.getLength(orig);
 		T clone = (T) Array.newInstance(orig.getClass().getComponentType(), length);

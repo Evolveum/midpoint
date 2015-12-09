@@ -164,6 +164,7 @@ public class DeltaBuilder implements S_ItemEntry, S_MaybeDelete, S_ValuesEntry {
 
     @Override
     public S_MaybeDelete add(Object... realValues) {
+        checkNullMisuse(realValues);
         for (Object v : realValues) {
             currentDelta.addValueToAdd(toPrismValue(currentDelta, v));
         }
@@ -178,10 +179,17 @@ public class DeltaBuilder implements S_ItemEntry, S_MaybeDelete, S_ValuesEntry {
 
     @Override
     public S_ItemEntry delete(Object... realValues) {
+        checkNullMisuse(realValues);
         for (Object v : realValues) {
             currentDelta.addValueToDelete(toPrismValue(currentDelta, v));
         }
         return this;
+    }
+
+    protected void checkNullMisuse(Object[] realValues) {
+        if (realValues.length == 1 && realValues[0] == null) {
+            throw new IllegalArgumentException("NULL value should be represented as no value, not as 'null'");
+        }
     }
 
     @Override
@@ -192,6 +200,7 @@ public class DeltaBuilder implements S_ItemEntry, S_MaybeDelete, S_ValuesEntry {
 
     @Override
     public S_ItemEntry replace(Object... realValues) {
+        checkNullMisuse(realValues);
         List<PrismValue> prismValues = new ArrayList<>();
         for (Object v : realValues) {
             prismValues.add(toPrismValue(currentDelta, v));

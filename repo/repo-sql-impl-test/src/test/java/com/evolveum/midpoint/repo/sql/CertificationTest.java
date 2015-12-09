@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
@@ -52,6 +53,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.prism.delta.PropertyDelta.createModificationReplaceProperty;
 import static com.evolveum.midpoint.schema.RetrieveOption.INCLUDE;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
@@ -66,6 +68,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_REVIEWER_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType.F_COMMENT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType.F_RESPONSE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType.F_STAGE_NUMBER;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.ACCEPT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.DELEGATE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NOT_DECIDED;
@@ -380,19 +383,62 @@ public class CertificationTest extends BaseSQLRepoTest {
         PrismAsserts.assertEqualsCollectionUnordered("list of cases is different", cases, expectedCases.toArray(new AccessCertificationCaseType[0]));
     }
 
-//    @Test
-//    public void test330CurrentUnansweredCases() throws Exception {
-//        OperationResult result = new OperationResult("test330CurrentUnansweredCases");
-//
-//        List<AccessCertificationCaseType> cases = repositoryService.searchContainers(AccessCertificationCaseType.class, null, null, result);
-//
-//        AccessCertificationCampaignType campaign1 = getFullCampaign(campaign1Oid, result).asObjectable();
-//        AccessCertificationCampaignType campaign2 = getFullCampaign(campaign2Oid, result).asObjectable();
-//        List<AccessCertificationCaseType> expectedCases = new ArrayList<>();
-//        expectedCases.addAll(campaign1.getCase());
-//        expectedCases.addAll(campaign2.getCase());
-//        PrismAsserts.assertEqualsCollectionUnordered("list of cases is different", cases, expectedCases.toArray(new AccessCertificationCaseType[0]));
-//    }
+    @Test
+    public void test330CurrentUnansweredCases() throws Exception {
+        OperationResult result = new OperationResult("test330CurrentUnansweredCases");
+
+        // we have to find definition ourselves, as ../state cannot be currently resolved by query builder
+        ItemPath statePath = new ItemPath(T_PARENT, F_STATE);
+        PrismPropertyDefinition stateDef =
+                prismContext.getSchemaRegistry()
+                        .findComplexTypeDefinitionByCompileTimeClass(AccessCertificationCampaignType.class)
+                        .findPropertyDefinition(F_STATE);
+        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+                .item(F_CURRENT_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
+                .and().item(statePath, stateDef).eq(IN_REVIEW_STAGE)
+                .and().exists(F_DECISION).block()
+                    .item(F_STAGE_NUMBER).eq().item(T_PARENT, F_CURRENT_STAGE_NUMBER)
+                    .and().block()
+                        .item(F_RESPONSE).eq(NO_RESPONSE)
+                        .or().item(F_RESPONSE).isNull()
+                    .endBlock()
+                .endBlock()
+                .build();
+
+        List<AccessCertificationCaseType> cases = repositoryService.searchContainers(AccessCertificationCaseType.class, query, null, result);
+
+        AccessCertificationCampaignType campaign1 = getFullCampaign(campaign1Oid, result).asObjectable();
+        AccessCertificationCampaignType campaign2 = getFullCampaign(campaign2Oid, result).asObjectable();
+        List<AccessCertificationCaseType> expectedCases = new ArrayList<>();
+        addUnansweredActiveCases(expectedCases, campaign1.getCase(), campaign1);
+        addUnansweredActiveCases(expectedCases, campaign2.getCase(), campaign2);
+        PrismAsserts.assertEqualsCollectionUnordered("list of cases is different", cases, expectedCases.toArray(new AccessCertificationCaseType[0]));
+    }
+
+    private void addUnansweredActiveCases(List<AccessCertificationCaseType> expectedCases, List<AccessCertificationCaseType> caseList, AccessCertificationCampaignType campaign) {
+        for (AccessCertificationCaseType aCase : caseList) {
+            if (aCase.getCurrentStageNumber() != campaign.getStageNumber()) {
+                continue;
+            }
+            if (campaign.getState() != IN_REVIEW_STAGE) {
+                continue;
+            }
+            boolean emptyDecisionFound = false;
+            for (AccessCertificationDecisionType decision : aCase.getDecision()) {
+                if (decision.getStageNumber() != aCase.getCurrentStageNumber()) {
+                    continue;
+                }
+                if (decision.getResponse() == null || decision.getResponse() == NO_RESPONSE) {
+                    emptyDecisionFound = true;
+                    break;
+                }
+            }
+            if (emptyDecisionFound) {
+                LOGGER.info("Expecting case of {}:{}", campaign.getOid(), aCase.getId());
+                expectedCases.add(aCase);
+            }
+        }
+    }
 
     private void checkCasesForCampaign(String oid, OperationResult result) throws SchemaException, ObjectNotFoundException {
         ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)

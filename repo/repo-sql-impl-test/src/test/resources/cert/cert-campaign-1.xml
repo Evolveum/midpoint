@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-
 <!--
   ~ Copyright (c) 2010-2015 Evolveum
   ~
@@ -85,7 +84,7 @@
             <stageNumber>1</stageNumber>
             <reviewerRef oid="00000000-0000-0000-0000-000000000002"
                          type="c:UserType"><!-- administrator --></reviewerRef>
-            <response>notDecided</response>
+            <response>noResponse</response>
             <timestamp>2015-12-04T01:10:20.032+01:00</timestamp>
         </decision>
         <currentResponse>notDecided</currentResponse>
@@ -129,8 +128,6 @@
             <stageNumber>1</stageNumber>
             <reviewerRef oid="00000000-0000-0000-0000-000000000002"
                          type="c:UserType"><!-- administrator --></reviewerRef>
-            <response>noResponse</response>
-            <timestamp>2015-12-04T01:10:08.670+01:00</timestamp>
         </decision>
         <currentResponse>noResponse</currentResponse>
         <currentStageNumber>1</currentStageNumber>
