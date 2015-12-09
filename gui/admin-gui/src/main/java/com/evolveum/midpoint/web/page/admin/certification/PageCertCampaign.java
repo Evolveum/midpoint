@@ -257,11 +257,12 @@ public class PageCertCampaign extends PageAdminCertification {
 		provider.setQuery(createCaseQuery());
 		provider.setCampaignOid(getCampaignOid());
 		provider.setSort(AccessCertificationCaseType.F_OBJECT_REF.getLocalPart(), SortOrder.ASCENDING);        // default sorting
+		int itemsPerPage = (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_CERT_CAMPAIGN_DECISIONS_PANEL);
 		BoxedTablePanel table = new BoxedTablePanel<>(ID_DECISIONS_TABLE, provider, initColumns(),
-				UserProfileStorage.TableId.PAGE_CERT_CAMPAIGN_DECISIONS_PANEL,
-				(int) getItemsPerPage(UserProfileStorage.TableId.PAGE_CERT_CAMPAIGN_DECISIONS_PANEL));
+				UserProfileStorage.TableId.PAGE_CERT_CAMPAIGN_DECISIONS_PANEL, itemsPerPage);
 		table.setShowPaging(true);
 		table.setOutputMarkupId(true);
+		table.setItemsPerPage(itemsPerPage);
 		mainForm.add(table);
 	}
 

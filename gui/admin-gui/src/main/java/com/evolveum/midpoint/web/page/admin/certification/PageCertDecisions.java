@@ -116,26 +116,6 @@ public class PageCertDecisions extends PageAdminCertification {
 
     private ObjectQuery createCaseQuery() {
         ObjectQuery query = new ObjectQuery();
-
-        // implemented as a special notDecidedOnly parameter
-//		Boolean notDecidedOnly = showNotDecidedOnlyModel.getObject();
-//		if (Boolean.TRUE.equals(notDecidedOnly)) {
-//
-//			PrismContainerDefinition pcd = getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(AccessCertificationCaseType.class);
-//
-//			ObjectFilter filter;
-//			try {
-//				filter = OrFilter.createOr(
-//						EqualFilter.createEqual(new ItemPath(AccessCertificationCaseType.F_DECISION,
-//								AccessCertificationDecisionType.F_RESPONSE), pcd, null),
-//						EqualFilter.createEqual(new ItemPath(AccessCertificationCaseType.F_DECISION,
-//								AccessCertificationDecisionType.F_RESPONSE), pcd, AccessCertificationResponseType.NO_RESPONSE));
-//			} catch (SchemaException e) {
-//				throw new SystemException("Unexpected schema exception: " + e.getMessage(), e);
-//			}
-//
-//			query.setFilter(filter);
-//		}
         return query;
     }
 
@@ -160,9 +140,9 @@ public class PageCertDecisions extends PageAdminCertification {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
         CertDecisionDtoProvider provider = createProvider();
+        int itemsPerPage = (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_CERT_DECISIONS_PANEL);
         BoxedTablePanel table = new BoxedTablePanel(ID_DECISIONS_TABLE, provider, initColumns(),
-                UserProfileStorage.TableId.PAGE_CERT_DECISIONS_PANEL,
-                (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_CERT_DECISIONS_PANEL)) {
+                UserProfileStorage.TableId.PAGE_CERT_DECISIONS_PANEL, itemsPerPage) {
 
             @Override
             protected WebMarkupContainer createHeader(String headerId) {
@@ -171,6 +151,7 @@ public class PageCertDecisions extends PageAdminCertification {
         };
         table.setShowPaging(true);
         table.setOutputMarkupId(true);
+        table.setItemsPerPage(itemsPerPage);        // really don't know why this is necessary, as e.g. in PageRoles the size setting works without it
         mainForm.add(table);
 
         // adding this on outer feedback panel prevents displaying the error messages

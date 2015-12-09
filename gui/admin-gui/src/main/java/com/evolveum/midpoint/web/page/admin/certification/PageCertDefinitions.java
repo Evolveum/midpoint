@@ -120,11 +120,12 @@ public class PageCertDefinitions extends PageAdminWorkItems {
                 deleteDefinitionPerformed(target, singleDelete);
             }
         });
+        int itemsPerPage = (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_CERT_DEFINITIONS_PANEL);
         BoxedTablePanel table = new BoxedTablePanel<>(ID_DEFINITIONS_TABLE, provider, initColumns(),
-                UserProfileStorage.TableId.PAGE_CERT_DEFINITIONS_PANEL,
-                (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_CERT_DEFINITIONS_PANEL));
+                UserProfileStorage.TableId.PAGE_CERT_DEFINITIONS_PANEL, itemsPerPage);
         table.setShowPaging(false);
         table.setOutputMarkupId(true);
+        table.setItemsPerPage(itemsPerPage);
         mainForm.add(table);
     }
     

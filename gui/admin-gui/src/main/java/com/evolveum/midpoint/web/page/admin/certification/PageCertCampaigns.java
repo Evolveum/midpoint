@@ -262,12 +262,13 @@ public class PageCertCampaigns extends PageAdminCertification {
 		});
 
 		CertCampaignListItemDtoProvider provider = createProvider();
+		int itemsPerPage = (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_CERT_CAMPAIGNS_PANEL);
 		BoxedTablePanel<CertCampaignListItemDto> table = new BoxedTablePanel<>(
 				ID_CAMPAIGNS_TABLE, provider, initColumns(),
-				UserProfileStorage.TableId.PAGE_CERT_CAMPAIGNS_PANEL,
-				(int) getItemsPerPage(UserProfileStorage.TableId.PAGE_CERT_CAMPAIGNS_PANEL));
+				UserProfileStorage.TableId.PAGE_CERT_CAMPAIGNS_PANEL, itemsPerPage);
 		table.setShowPaging(true);
 		table.setOutputMarkupId(true);
+		table.setItemsPerPage(itemsPerPage);
 		mainForm.add(table);
 	}
 
