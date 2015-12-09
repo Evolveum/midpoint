@@ -543,6 +543,9 @@ public class AssignmentEvaluator<F extends FocusType> {
 				Authorization authorization = createAuthorization(authorizationType, roleType.toString());
 				assignment.addAuthorization(authorization);
 			}
+			if (roleType.getAdminGuiConfiguration() != null) {
+				assignment.addAdminGuiConfiguration(roleType.getAdminGuiConfiguration());
+			}
 		}
 		
 		return mode != PlusMinusZero.MINUS;

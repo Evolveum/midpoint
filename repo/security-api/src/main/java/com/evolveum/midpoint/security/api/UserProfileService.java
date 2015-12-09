@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public interface UserProfileService extends OwnerResolver {
     
     String DOT_CLASS = UserProfileService.class.getName() + ".";
-    String OPERATION_GET_USER = DOT_CLASS + "getUser";
+    String OPERATION_GET_PRINCIPAL = DOT_CLASS + "getPrincipal";
     String OPERATION_UPDATE_USER = DOT_CLASS + "updateUser";
 
     public MidPointPrincipal getPrincipal(String username) throws ObjectNotFoundException;

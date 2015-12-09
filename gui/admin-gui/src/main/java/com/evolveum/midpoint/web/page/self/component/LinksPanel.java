@@ -1,8 +1,26 @@
+/*
+ * Copyright (c) 2015 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.web.page.self.component;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -13,10 +31,11 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.protocol.http.WebApplication;
 
 import javax.servlet.ServletContext;
+
 import java.util.List;
 
 /**
- * Created by Kate on 23.09.2015.
+ * @author Kate Honchar
  */
 public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
     private static final String DOT_CLASS = LinksPanel.class.getName() + ".";
@@ -26,7 +45,10 @@ public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
     private static final String ID_DESCRIPTION = "descriptionId";
     private static final String ID_LINKS_ROW = "linksRow";
     private static final String ID_LINKS_COLUMN = "linksColumn";
-    private static final String OPERATION_LOAD_LINKS = DOT_CLASS + "loadLinks";
+    
+    private static final String ICON_DEFAULT_CSS_CLASS = "fa fa-angle-double-right";
+    
+    private static final Trace LOGGER = TraceManager.getTrace(LinksPanel.class);
 
     IModel<List<RichHyperlinkType>> model;
 
@@ -85,9 +107,13 @@ public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
                         @Override
                         protected void onComponentTag(final ComponentTag tag) {
                             super.onComponentTag(tag);
+                            String cssClass = ICON_DEFAULT_CSS_CLASS;
+                            if (link.getIcon() != null) {
+                            	cssClass = link.getIcon().getCssClass();
+                            }
                             tag.put("class", "info-box-icon " + (link.getColor() != null ?
                                     (link.getColor().startsWith("bg-") ? link.getColor() : "bg-" + link.getColor()) : "") + " "
-                                    + link.getIcon().getCssClass());
+                                    + cssClass);
                         }
                     });
 
@@ -113,6 +139,8 @@ public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
                     } else {
                         currentColumn++;
                     }
+                } else {
+                	LOGGER.trace("Link {} not authorized, skipping", link);
                 }
             }
         }

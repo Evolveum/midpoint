@@ -499,6 +499,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertNotAuthorized(principal, AUTZ_LOOT_URL, AuthorizationPhaseType.REQUEST);
         assertNotAuthorized(principal, AUTZ_LOOT_URL, null);
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
+        
+        assertAdminGuiConfigurations(principal, 1, 2, 2);
 	}
 	
 	@Test
@@ -523,6 +525,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         
         assertNotAuthorized(principal, AUTZ_LOOT_URL);
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
+        
+        assertAdminGuiConfigurations(principal, 0, 1, 1);
 	}
 	
 	@Test

@@ -432,7 +432,7 @@ public class InboundProcessor {
     		LOGGER.trace("Inbound value construction for {} returned triple:\n{}", accountAttributeName, triple == null ? "null" : triple.debugDump());
     	}
         
-    	if (triple != null) {
+    	if (triple != null && !triple.isEmpty()) {
     		
 	        if (triple.hasPlusSet()) {
 

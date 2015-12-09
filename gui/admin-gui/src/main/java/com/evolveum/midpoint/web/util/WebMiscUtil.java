@@ -137,7 +137,7 @@ public final class WebMiscUtil {
     }
 
     public static boolean isAuthorized(String... action) {
-        if (action == null) {
+        if (action == null || action.length == 0) {
             return true;
         }
         List<String> actions = Arrays.asList(action);
@@ -145,7 +145,7 @@ public final class WebMiscUtil {
     }
     
     public static boolean isAuthorized(Collection<String> actions) {
-        if (actions == null) {
+        if (actions == null || actions.isEmpty()) {
             return true;
         }
         Roles roles = new Roles(AuthorizationConstants.AUTZ_ALL_URL);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
 import org.apache.commons.lang.Validate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -42,6 +44,7 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable {
     private UserType user;
     private Collection<Authorization> authorizations = new ArrayList<Authorization>();
     private ActivationStatusType effectiveActivationStatus;
+    private AdminGuiConfigurationType adminGuiConfiguration;
 
     public MidPointPrincipal(UserType user) {
         Validate.notNull(user, "User must not be null.");
@@ -172,6 +175,14 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable {
     public String getOid() {
         return getUser().getOid();
     }
+
+	public AdminGuiConfigurationType getAdminGuiConfiguration() {
+		return adminGuiConfiguration;
+	}
+
+	public void setAdminGuiConfiguration(AdminGuiConfigurationType adminGuiConfiguration) {
+		this.adminGuiConfiguration = adminGuiConfiguration;
+	}
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.util.DebugDumpable#debugDump()
