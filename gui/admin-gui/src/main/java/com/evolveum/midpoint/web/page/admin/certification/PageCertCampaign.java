@@ -38,6 +38,8 @@ import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCampaignDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCaseDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCaseDtoProvider;
+import com.evolveum.midpoint.web.page.admin.certification.dto.CertDecisionDto;
+import com.evolveum.midpoint.web.page.admin.certification.helpers.AvailableResponses;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -292,24 +294,14 @@ public class PageCertCampaign extends PageAdminCertification {
 		column = new PropertyColumn(createStringResource("PageCertCampaign.table.reviewedInStage"), CertCaseDto.F_CURRENT_RESPONSE_STAGE_NUMBER);
 		columns.add(column);
 
-		column = new MultiButtonColumn<CertCaseDto>(new Model(), 6) {
+		final AvailableResponses availableResponses = new AvailableResponses(getPage());
+		final int responses = availableResponses.getCount();
 
-			private final String[] captionKeys = {
-					"PageCertCampaign.menu.accept",
-					"PageCertCampaign.menu.revoke",
-					"PageCertCampaign.menu.reduce",
-					"PageCertCampaign.menu.notDecided",
-					"PageCertCampaign.menu.delegate",
-					"PageCertCampaign.menu.noResponse"
-			};
-
-			private final AccessCertificationResponseType[] responses = {
-					ACCEPT, REVOKE, REDUCE, NOT_DECIDED, DELEGATE, NO_RESPONSE
-			};
+		column = new MultiButtonColumn<CertCaseDto>(new Model(), responses+1) {
 
 			@Override
 			public String getCaption(int id) {
-				return PageCertCampaign.this.createStringResource(captionKeys[id]).getString();
+				return availableResponses.getCaption(id);
 			}
 
 			@Override
@@ -318,8 +310,21 @@ public class PageCertCampaign extends PageAdminCertification {
 			}
 
 			@Override
+			public boolean isButtonVisible(int id, IModel<CertCaseDto> model) {
+				if (id < responses) {
+					return true;
+				} else {
+					return !availableResponses.isAvailable(model.getObject().getCurrentResponse());
+				}
+			}
+
+			@Override
 			public String getButtonColorCssClass(int id) {
-				return getDecisionButtonColor(getRowModel(), responses[id]);
+				if (id < responses) {
+					return getDecisionButtonColor(getRowModel(), availableResponses.getResponseValues().get(id));
+				} else {
+					return BUTTON_COLOR_CLASS.DANGER.toString();
+				}
 			}
 		};
 		columns.add(column);

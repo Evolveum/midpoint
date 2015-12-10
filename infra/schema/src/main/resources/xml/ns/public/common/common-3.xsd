@@ -8733,6 +8733,14 @@
                         </xsd:annotation>
                     </xsd:element>
 
+                    <xsd:element name="accessCertification" type="tns:AccessCertificationConfigurationType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                A configuration for access certifications.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+
                     <xsd:element name="profilingConfiguration" type="tns:ProfilingConfigurationType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -12176,6 +12184,36 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="lastCampaignIdUsed" type="xsd:int" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                ID that was used to auto-generate campaign name last time (null if none so far).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="lastCampaignStartedTimestamp" type="xsd:dateTime" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                When the last campaign of this type was started?
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="lastCampaignClosedTimestamp" type="xsd:dateTime" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                When the last campaign of this type was closed? Deletion is not recorded in this attribute.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="campaignSchedulingInterval" type="xsd:duration" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                How often should a campaign of this type be automatically started?
+                                (null if automated scheduling is not required)
+                                Scheduling is based on last campaign started timestamp.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -13241,6 +13279,27 @@
             <xsd:element name="orgType" type="xsd:string" minOccurs="0" />
             <xsd:element name="allowSelf" type="xsd:boolean" minOccurs="0" default="false" />
             <!-- todo whether to search in upper layers (by default: yes) -->
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AccessCertificationConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration for access certification.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="availableResponse" minOccurs="0" maxOccurs="unbounded" type="tns:AccessCertificationResponseType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        What response types are available to reviewers? Empty list means all responses.
+                        TODO should we configure also names of the responses? (probably no)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

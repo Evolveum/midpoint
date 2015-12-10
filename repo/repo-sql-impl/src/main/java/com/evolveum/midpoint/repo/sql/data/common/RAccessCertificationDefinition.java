@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
@@ -30,6 +31,7 @@ import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.Collection;
 
 @Entity
@@ -41,6 +43,11 @@ public class RAccessCertificationDefinition extends RObject<AccessCertificationD
     public static final String TABLE_NAME = "m_acc_cert_definition";
 
     private RPolyString name;
+    private String handlerUri;
+    private REmbeddedReference ownerRef;
+    private XMLGregorianCalendar lastCampaignStartedTimestamp;
+    private XMLGregorianCalendar lastCampaignClosedTimestamp;
+    private String campaignSchedulingInterval;
 
     @Embedded
     public RPolyString getName() {
@@ -51,24 +58,71 @@ public class RAccessCertificationDefinition extends RObject<AccessCertificationD
         this.name = name;
     }
 
+    public String getHandlerUri() {
+        return handlerUri;
+    }
+
+    @Embedded
+    public REmbeddedReference getOwnerRef() {
+        return ownerRef;
+    }
+
+    public XMLGregorianCalendar getLastCampaignStartedTimestamp() {
+        return lastCampaignStartedTimestamp;
+    }
+
+    public XMLGregorianCalendar getLastCampaignClosedTimestamp() {
+        return lastCampaignClosedTimestamp;
+    }
+
+    public String getCampaignSchedulingInterval() {
+        return campaignSchedulingInterval;
+    }
+
+    public void setHandlerUri(String handlerUri) {
+        this.handlerUri = handlerUri;
+    }
+
+    public void setOwnerRef(REmbeddedReference ownerRef) {
+        this.ownerRef = ownerRef;
+    }
+
+    public void setLastCampaignStartedTimestamp(XMLGregorianCalendar lastCampaignStartedTimestamp) {
+        this.lastCampaignStartedTimestamp = lastCampaignStartedTimestamp;
+    }
+
+    public void setLastCampaignClosedTimestamp(XMLGregorianCalendar lastCampaignClosedTimestamp) {
+        this.lastCampaignClosedTimestamp = lastCampaignClosedTimestamp;
+    }
+
+    public void setCampaignSchedulingInterval(String campaignSchedulingInterval) {
+        this.campaignSchedulingInterval = campaignSchedulingInterval;
+    }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof RAccessCertificationDefinition)) return false;
         if (!super.equals(o)) return false;
 
-        RAccessCertificationDefinition rACD = (RAccessCertificationDefinition) o;
+        RAccessCertificationDefinition that = (RAccessCertificationDefinition) o;
 
-        if (name != null ? !name.equals(rACD.name) : rACD.name != null)
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (handlerUri != null ? !handlerUri.equals(that.handlerUri) : that.handlerUri != null) return false;
+        if (ownerRef != null ? !ownerRef.equals(that.ownerRef) : that.ownerRef != null) return false;
+        if (lastCampaignStartedTimestamp != null ? !lastCampaignStartedTimestamp.equals(that.lastCampaignStartedTimestamp) : that.lastCampaignStartedTimestamp != null)
             return false;
-        return true;
+        if (lastCampaignClosedTimestamp != null ? !lastCampaignClosedTimestamp.equals(that.lastCampaignClosedTimestamp) : that.lastCampaignClosedTimestamp != null)
+            return false;
+        return !(campaignSchedulingInterval != null ? !campaignSchedulingInterval.equals(that.campaignSchedulingInterval) : that.campaignSchedulingInterval != null);
+
     }
 
     @Override
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (handlerUri != null ? handlerUri.hashCode() : 0);
         return result;
     }
 

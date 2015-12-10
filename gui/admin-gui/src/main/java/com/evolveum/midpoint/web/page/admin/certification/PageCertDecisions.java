@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.certification;
 
+import com.evolveum.midpoint.common.SystemConfigurationHolder;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -33,13 +34,16 @@ import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn.BUTTON
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertDecisionDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertDecisionDtoProvider;
+import com.evolveum.midpoint.web.page.admin.certification.helpers.AvailableResponses;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import org.apache.wicket.AttributeModifier;
@@ -262,40 +266,49 @@ public class PageCertDecisions extends PageAdminCertification {
         };
         columns.add(column);
 
-        column = new MultiButtonColumn<CertDecisionDto>(new Model(), 6) {
+        final AvailableResponses availableResponses = new AvailableResponses(getPage());
+        final int responses = availableResponses.getResponseKeys().size();
 
-            private final String[] captionKeys = {
-                    "PageCertDecisions.menu.accept",
-                    "PageCertDecisions.menu.revoke",
-                    "PageCertDecisions.menu.reduce",
-                    "PageCertDecisions.menu.notDecided",
-                    "PageCertDecisions.menu.delegate",
-                    "PageCertDecisions.menu.noResponse"
-            };
-
-            private final AccessCertificationResponseType[] responses = {
-                    ACCEPT, REVOKE, REDUCE, NOT_DECIDED, DELEGATE, NO_RESPONSE
-            };
+        column = new MultiButtonColumn<CertDecisionDto>(new Model(), responses+1) {
 
             @Override
             public String getCaption(int id) {
-                return PageCertDecisions.this.createStringResource(captionKeys[id]).getString();
+                return availableResponses.getCaption(id);
             }
 
             @Override
             public boolean isButtonEnabled(int id, IModel<CertDecisionDto> model) {
-                return !decisionEquals(model, responses[id]);
+                if (id < responses) {
+                    return !decisionEquals(model, availableResponses.getResponseValues().get(id));
+                } else {
+                    return false;
+                }
+            }
+
+            @Override
+            public boolean isButtonVisible(int id, IModel<CertDecisionDto> model) {
+                if (id < responses) {
+                    return true;
+                } else {
+                    return !availableResponses.isAvailable(model.getObject().getResponse());
+                }
             }
 
             @Override
             public String getButtonColorCssClass(int id) {
-                return getDecisionButtonColor(getRowModel(), responses[id]);
+                if (id < responses) {
+                    return getDecisionButtonColor(getRowModel(), availableResponses.getResponseValues().get(id));
+                } else {
+                    return BUTTON_COLOR_CLASS.DANGER.toString();
+                }
             }
 
             @Override
             public void clickPerformed(int id, AjaxRequestTarget target,
                                        IModel<CertDecisionDto> model) {
-                recordActionPerformed(target, model.getObject(), responses[id]);
+                if (id < responses) {      // should be always the case
+                    recordActionPerformed(target, model.getObject(), availableResponses.getResponseValues().get(id));
+                }
             }
 
         };
@@ -312,19 +325,31 @@ public class PageCertDecisions extends PageAdminCertification {
         };
         columns.add(column);
 
-        columns.add(new InlineMenuHeaderColumn(createInlineMenu()));
+        columns.add(new InlineMenuHeaderColumn(createInlineMenu(availableResponses)));
 
         return columns;
     }
 
-    private List<InlineMenuItem> createInlineMenu() {
+    private List<InlineMenuItem> createInlineMenu(AvailableResponses availableResponses) {
         List<InlineMenuItem> items = new ArrayList<>();
-        items.add(createMenu("PageCertDecisions.menu.acceptSelected", ACCEPT));
-        items.add(createMenu("PageCertDecisions.menu.revokeSelected", REVOKE));
-        items.add(createMenu("PageCertDecisions.menu.reduceSelected", REDUCE));
-        items.add(createMenu("PageCertDecisions.menu.notDecidedSelected", NOT_DECIDED));
-        items.add(createMenu("PageCertDecisions.menu.delegateSelected", DELEGATE));
-        items.add(createMenu("PageCertDecisions.menu.noResponseSelected", NO_RESPONSE));
+        if (availableResponses.isAvailable(ACCEPT)) {
+            items.add(createMenu("PageCertDecisions.menu.acceptSelected", ACCEPT));
+        }
+        if (availableResponses.isAvailable(REVOKE)) {
+            items.add(createMenu("PageCertDecisions.menu.revokeSelected", REVOKE));
+        }
+        if (availableResponses.isAvailable(REDUCE)) {
+            items.add(createMenu("PageCertDecisions.menu.reduceSelected", REDUCE));
+        }
+        if (availableResponses.isAvailable(NOT_DECIDED)) {
+            items.add(createMenu("PageCertDecisions.menu.notDecidedSelected", NOT_DECIDED));
+        }
+        if (availableResponses.isAvailable(DELEGATE)) {
+            items.add(createMenu("PageCertDecisions.menu.delegateSelected", DELEGATE));
+        }
+        if (availableResponses.isAvailable(NO_RESPONSE)) {
+            items.add(createMenu("PageCertDecisions.menu.noResponseSelected", NO_RESPONSE));
+        }
         return items;
     }
 

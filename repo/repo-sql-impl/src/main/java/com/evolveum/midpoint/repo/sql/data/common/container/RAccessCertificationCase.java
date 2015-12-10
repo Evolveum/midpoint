@@ -289,6 +289,9 @@ public class RAccessCertificationCase implements Container {
         if (reviewerRef != null ? !reviewerRef.equals(that.reviewerRef) : that.reviewerRef != null) return false;
         if (objectRef != null ? !objectRef.equals(that.objectRef) : that.objectRef != null) return false;
         if (targetRef != null ? !targetRef.equals(that.targetRef) : that.targetRef != null) return false;
+        if (tenantRef != null ? !tenantRef.equals(that.tenantRef) : that.tenantRef != null) return false;
+        if (orgRef != null ? !orgRef.equals(that.orgRef) : that.orgRef != null) return false;
+        if (activation != null ? !activation.equals(that.activation) : that.activation != null) return false;
         if (reviewRequestedTimestamp != null ? !reviewRequestedTimestamp.equals(that.reviewRequestedTimestamp) : that.reviewRequestedTimestamp != null)
             return false;
         if (reviewDeadline != null ? !reviewDeadline.equals(that.reviewDeadline) : that.reviewDeadline != null)
