@@ -70,7 +70,7 @@ public class RCertCaseReference extends RContainerReference {
 //        return targetName;
 //    }
 
-    @ForeignKey(name = "fk_acc_cert_case_reference_owner")
+    @ForeignKey(name = "fk_acc_cert_case_ref_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable

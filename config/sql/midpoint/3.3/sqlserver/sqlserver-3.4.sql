@@ -867,7 +867,7 @@ FOREIGN KEY (owner_oid)
 REFERENCES m_object;
 
 ALTER TABLE m_acc_cert_case_reference
-ADD CONSTRAINT fk_acc_cert_case_reference_owner
+ADD CONSTRAINT fk_acc_cert_case_ref_owner
 FOREIGN KEY (owner_id, owner_owner_oid)
 REFERENCES m_acc_cert_case;
 
