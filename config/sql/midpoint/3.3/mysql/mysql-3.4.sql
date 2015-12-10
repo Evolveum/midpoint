@@ -110,14 +110,21 @@ CREATE TABLE m_acc_cert_decision (
   ENGINE = InnoDB;
 
 CREATE TABLE m_acc_cert_definition (
-    name_norm VARCHAR(255),
-    name_orig VARCHAR(255),
-    oid VARCHAR(36) NOT NULL,
-    PRIMARY KEY (oid)
+  campaignSchedulingInterval   VARCHAR(255),
+  handlerUri                   VARCHAR(255),
+  lastCampaignClosedTimestamp  DATETIME(6),
+  lastCampaignStartedTimestamp DATETIME(6),
+  name_norm                    VARCHAR(255),
+  name_orig                    VARCHAR(255),
+  ownerRef_relation            VARCHAR(157),
+  ownerRef_targetOid           VARCHAR(36),
+  ownerRef_type                INTEGER,
+  oid                          VARCHAR(36) NOT NULL,
+  PRIMARY KEY (oid)
 )
   DEFAULT CHARACTER SET utf8
   COLLATE utf8_bin
-  ENGINE=InnoDB;
+  ENGINE = InnoDB;
 
 CREATE TABLE m_assignment (
   id                      INTEGER     NOT NULL,

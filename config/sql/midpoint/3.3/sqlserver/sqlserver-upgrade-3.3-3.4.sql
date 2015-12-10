@@ -8,6 +8,15 @@ stageNumber             INT,
 startTimestamp          DATETIME2,
 state                   INT;
 
+ALTER TABLE m_acc_cert_definition ADD
+campaignSchedulingInterval NVARCHAR(255) COLLATE database_default,
+handlerUri NVARCHAR(255) COLLATE database_default,
+lastCampaignClosedTimestamp DATETIME2,
+lastCampaignStartedTimestamp DATETIME2,
+ownerRef_relation NVARCHAR(157) COLLATE database_default,
+ownerRef_targetOid NVARCHAR(36) COLLATE database_default,
+ownerRef_type INT;
+
 CREATE TABLE m_acc_cert_case (
   id                       INT                                   NOT NULL,
   owner_oid                NVARCHAR(36) COLLATE database_default NOT NULL,

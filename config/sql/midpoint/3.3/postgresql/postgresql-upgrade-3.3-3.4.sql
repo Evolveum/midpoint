@@ -8,6 +8,15 @@ ADD stageNumber INT4,
 ADD startTimestamp TIMESTAMP,
 ADD state INT4;
 
+ALTER TABLE m_acc_cert_definition
+ADD campaignSchedulingInterval VARCHAR(255),
+ADD handlerUri VARCHAR(255),
+ADD lastCampaignClosedTimestamp TIMESTAMP,
+ADD lastCampaignStartedTimestamp TIMESTAMP,
+ADD ownerRef_relation VARCHAR(157),
+ADD ownerRef_targetOid VARCHAR(36),
+ADD ownerRef_type INT4;
+
 CREATE TABLE m_acc_cert_case (
   id                       INT4        NOT NULL,
   owner_oid                VARCHAR(36) NOT NULL,

@@ -82,10 +82,17 @@ CREATE TABLE m_acc_cert_decision (
 );
 
 CREATE TABLE m_acc_cert_definition (
-    name_norm NVARCHAR(255) COLLATE database_default,
-    name_orig NVARCHAR(255) COLLATE database_default,
-    oid NVARCHAR(36) COLLATE database_default NOT NULL,
-    PRIMARY KEY (oid)
+  campaignSchedulingInterval   NVARCHAR(255) COLLATE database_default,
+  handlerUri                   NVARCHAR(255) COLLATE database_default,
+  lastCampaignClosedTimestamp  DATETIME2,
+  lastCampaignStartedTimestamp DATETIME2,
+  name_norm                    NVARCHAR(255) COLLATE database_default,
+  name_orig                    NVARCHAR(255) COLLATE database_default,
+  ownerRef_relation            NVARCHAR(157) COLLATE database_default,
+  ownerRef_targetOid           NVARCHAR(36) COLLATE database_default,
+  ownerRef_type                INT,
+  oid                          NVARCHAR(36) COLLATE database_default NOT NULL,
+  PRIMARY KEY (oid)
 );
 
 CREATE TABLE m_assignment (

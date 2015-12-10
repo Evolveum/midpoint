@@ -7,6 +7,14 @@ ALTER TABLE m_acc_cert_campaign ADD stageNumber INTEGER;
 ALTER TABLE m_acc_cert_campaign ADD startTimestamp TIMESTAMP;
 ALTER TABLE m_acc_cert_campaign ADD state INTEGER;
 
+ALTER TABLE m_acc_cert_definition ADD campaignSchedulingInterval VARCHAR(255);
+ALTER TABLE m_acc_cert_definition ADD handlerUri VARCHAR(255);
+ALTER TABLE m_acc_cert_definition ADD lastCampaignClosedTimestamp TIMESTAMP;
+ALTER TABLE m_acc_cert_definition ADD lastCampaignStartedTimestamp TIMESTAMP;
+ALTER TABLE m_acc_cert_definition ADD ownerRef_relation VARCHAR(157);
+ALTER TABLE m_acc_cert_definition ADD ownerRef_targetOid VARCHAR(36);
+ALTER TABLE m_acc_cert_definition ADD ownerRef_type INTEGER;
+
 CREATE TABLE m_acc_cert_case (
   id                       INTEGER     NOT NULL,
   owner_oid                VARCHAR(36) NOT NULL,

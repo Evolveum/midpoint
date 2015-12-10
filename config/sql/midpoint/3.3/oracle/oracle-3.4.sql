@@ -85,10 +85,17 @@ CREATE TABLE m_acc_cert_decision (
 ) INITRANS 30;
 
 CREATE TABLE m_acc_cert_definition (
-    name_norm VARCHAR2(255 CHAR),
-    name_orig VARCHAR2(255 CHAR),
-    oid VARCHAR2(36 CHAR) NOT NULL,
-    PRIMARY KEY (oid)
+  campaignSchedulingInterval   VARCHAR2(255 CHAR),
+  handlerUri                   VARCHAR2(255 CHAR),
+  lastCampaignClosedTimestamp  TIMESTAMP,
+  lastCampaignStartedTimestamp TIMESTAMP,
+  name_norm                    VARCHAR2(255 CHAR),
+  name_orig                    VARCHAR2(255 CHAR),
+  ownerRef_relation            VARCHAR2(157 CHAR),
+  ownerRef_targetOid           VARCHAR2(36 CHAR),
+  ownerRef_type                NUMBER(10, 0),
+  oid                          VARCHAR2(36 CHAR) NOT NULL,
+  PRIMARY KEY (oid)
 ) INITRANS 30;
 
 CREATE TABLE m_assignment (
