@@ -9,7 +9,6 @@ startTimestamp          DATETIME2,
 state                   INT;
 
 ALTER TABLE m_acc_cert_definition ADD
-campaignSchedulingInterval NVARCHAR(255) COLLATE database_default,
 handlerUri NVARCHAR(255) COLLATE database_default,
 lastCampaignClosedTimestamp DATETIME2,
 lastCampaignStartedTimestamp DATETIME2,

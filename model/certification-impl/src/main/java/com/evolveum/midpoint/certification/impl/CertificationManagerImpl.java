@@ -136,17 +136,21 @@ public class CertificationManagerImpl implements CertificationManager {
     }
 
     @Override
-    public AccessCertificationCampaignType createCampaign(AccessCertificationDefinitionType certDefinition, AccessCertificationCampaignType campaign,
+    public AccessCertificationCampaignType createCampaign(String definitionOid, AccessCertificationCampaignType campaign,
                                                           Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
         Validate.notNull(task, "task");
         Validate.notNull(parentResult, "parentResult");
-        if (certDefinition == null && campaign == null) {
-            throw new IllegalArgumentException("Both certDefinition and campaign are null");
+        if (definitionOid == null && campaign == null) {
+            throw new IllegalArgumentException("Both definitionOid and campaign are null");
         }
 
         OperationResult result = parentResult.createSubresult(OPERATION_CREATE_CAMPAIGN);
         try {
-            AccessCertificationCampaignType newCampaign = helper.createCampaignObject(certDefinition, campaign, task, result);
+            AccessCertificationDefinitionType definition = null;
+            if (definitionOid != null) {
+                definition = modelService.getObject(AccessCertificationDefinitionType.class, definitionOid, null, task, result).asObjectable();
+            }
+            AccessCertificationCampaignType newCampaign = helper.createCampaignObject(definition, campaign, task, result);
             updateHelper.addObject(newCampaign, task, result);
             return newCampaign;
         } catch (RuntimeException e) {

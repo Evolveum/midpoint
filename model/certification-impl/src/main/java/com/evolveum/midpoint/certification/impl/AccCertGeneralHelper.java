@@ -73,7 +73,7 @@ public class AccCertGeneralHelper {
     protected RepositoryService repositoryService;
 
     @Autowired
-    private CertificationManagerImpl certificationManager;
+    private AccCertUpdateHelper updateHelper;
 
     private PrismObjectDefinition<AccessCertificationCampaignType> campaignObjectDefinition = null;     // lazily evaluated
 
@@ -104,7 +104,7 @@ public class AccCertGeneralHelper {
         if (campaign != null && campaign.getName() != null) {
             campaign.setName(campaign.getName());
         } else if (definition != null && definition.getName() != null) {
-            newCampaign.setName(generateCampaignName(definition.getName().getOrig(), task, result));
+            newCampaign.setName(generateCampaignName(definition, task, result));
         } else {
             throw new SchemaException("Couldn't create a campaign without name");
         }
@@ -168,10 +168,13 @@ public class AccCertGeneralHelper {
         return newCampaign;
     }
 
-    private PolyStringType generateCampaignName(String prefix, Task task, OperationResult result) throws SchemaException {
-        for (int i = 1;; i++) {
+    private PolyStringType generateCampaignName(AccessCertificationDefinitionType definition, Task task, OperationResult result) throws SchemaException {
+        String prefix = definition.getName().getOrig();
+        Integer lastCampaignIdUsed = definition.getLastCampaignIdUsed() != null ? definition.getLastCampaignIdUsed() : 0;
+        for (int i = lastCampaignIdUsed+1;; i++) {
             String name = generateName(prefix, i);
             if (!campaignExists(name, task, result)) {
+                updateHelper.recordLastCampaignIdUsed(definition.getOid(), i, task, result);
                 return new PolyStringType(name);
             }
         }

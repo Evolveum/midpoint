@@ -82,7 +82,6 @@ CREATE TABLE m_acc_cert_decision (
 );
 
 CREATE TABLE m_acc_cert_definition (
-  campaignSchedulingInterval   NVARCHAR(255) COLLATE database_default,
   handlerUri                   NVARCHAR(255) COLLATE database_default,
   lastCampaignClosedTimestamp  DATETIME2,
   lastCampaignStartedTimestamp DATETIME2,

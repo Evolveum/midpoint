@@ -82,7 +82,6 @@ CREATE TABLE m_acc_cert_decision (
 );
 
 CREATE TABLE m_acc_cert_definition (
-  campaignSchedulingInterval   VARCHAR(255),
   handlerUri                   VARCHAR(255),
   lastCampaignClosedTimestamp  TIMESTAMP,
   lastCampaignStartedTimestamp TIMESTAMP,

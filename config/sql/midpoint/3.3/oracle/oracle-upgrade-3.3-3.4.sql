@@ -9,7 +9,6 @@ startTimestamp TIMESTAMP,
 state NUMBER(10, 0));
 
 ALTER TABLE m_acc_cert_definition ADD (
-campaignSchedulingInterval VARCHAR2(255 CHAR),
 handlerUri VARCHAR2(255 CHAR),
 lastCampaignClosedTimestamp TIMESTAMP,
 lastCampaignStartedTimestamp TIMESTAMP,

@@ -9,7 +9,6 @@ ADD startTimestamp DATETIME(6),
 ADD state INTEGER;
 
 ALTER TABLE m_acc_cert_definition
-ADD campaignSchedulingInterval VARCHAR(255),
 ADD handlerUri VARCHAR(255),
 ADD lastCampaignClosedTimestamp DATETIME(6),
 ADD lastCampaignStartedTimestamp DATETIME(6),

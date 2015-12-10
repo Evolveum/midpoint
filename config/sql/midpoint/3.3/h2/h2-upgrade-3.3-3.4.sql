@@ -7,7 +7,6 @@ ALTER TABLE m_acc_cert_campaign ADD stageNumber INTEGER;
 ALTER TABLE m_acc_cert_campaign ADD startTimestamp TIMESTAMP;
 ALTER TABLE m_acc_cert_campaign ADD state INTEGER;
 
-ALTER TABLE m_acc_cert_definition ADD campaignSchedulingInterval VARCHAR(255);
 ALTER TABLE m_acc_cert_definition ADD handlerUri VARCHAR(255);
 ALTER TABLE m_acc_cert_definition ADD lastCampaignClosedTimestamp TIMESTAMP;
 ALTER TABLE m_acc_cert_definition ADD lastCampaignStartedTimestamp TIMESTAMP;

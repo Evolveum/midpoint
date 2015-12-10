@@ -12195,6 +12195,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 When the last campaign of this type was started?
+                                CURRENTLY NOT USED.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -12202,18 +12203,19 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 When the last campaign of this type was closed? Deletion is not recorded in this attribute.
+                                CURRENTLY NOT USED.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="campaignSchedulingInterval" type="xsd:duration" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                How often should a campaign of this type be automatically started?
-                                (null if automated scheduling is not required)
-                                Scheduling is based on last campaign started timestamp.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
+                    <!--<xsd:element name="campaignSchedulingInterval" type="xsd:duration" minOccurs="0">-->
+                        <!--<xsd:annotation>-->
+                            <!--<xsd:documentation>-->
+                                <!--How often should a campaign of this type be automatically started?-->
+                                <!--(null if automated scheduling is not required)-->
+                                <!--Scheduling is based on last campaign started timestamp.-->
+                            <!--</xsd:documentation>-->
+                        <!--</xsd:annotation>-->
+                    <!--</xsd:element>-->
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

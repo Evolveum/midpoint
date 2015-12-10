@@ -33,6 +33,7 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -472,6 +473,11 @@ public abstract class PageBase extends PageTemplate {
         submenu.add(menu);
         menu = new MenuItem(createStringResource("PageAdmin.menu.top.certification.campaigns"),
                 PageCertCampaigns.class);
+        submenu.add(menu);
+        PageParameters params = new PageParameters();
+        params.add(PageTasks.SELECTED_CATEGORY, TaskCategory.ACCESS_CERTIFICATION);
+        menu = new MenuItem(createStringResource("PageAdmin.menu.top.certification.scheduling"),
+                PageTasks.class, params, null);
         submenu.add(menu);
         menu = new MenuItem(createStringResource("PageAdmin.menu.top.certification.decisions"),
                 PageCertDecisions.class);

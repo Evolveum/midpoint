@@ -85,7 +85,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         AccessCertificationCampaignType campaign =
-                certificationManager.createCampaign(certificationDefinition, null, task, result);
+                certificationManager.createCampaign(certificationDefinition.getOid(), null, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);

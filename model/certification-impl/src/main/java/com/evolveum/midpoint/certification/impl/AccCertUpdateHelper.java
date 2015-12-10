@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -56,12 +57,14 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationObjectBasedScopeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationReviewerSpecificationType;
@@ -84,12 +87,14 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REVIEW_STAGE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.REVIEW_STAGE_DONE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType.F_LAST_CAMPAIGN_ID_USED;
 
 /**
  * @author mederly
@@ -629,4 +634,14 @@ public class AccCertUpdateHelper {
         repositoryService.modifyObject(AccessCertificationCampaignType.class, campaignOid, Arrays.asList(reviewRemediedDelta), parentResult);
     }
 
+    public void recordLastCampaignIdUsed(String definitionOid, int lastIdUsed, Task task, OperationResult result) {
+        try {
+            List<ItemDelta> modifications = DeltaBuilder.deltaFor(AccessCertificationDefinitionType.class, prismContext)
+                    .item(F_LAST_CAMPAIGN_ID_USED).replace(lastIdUsed)
+                    .asItemDeltas();
+            repositoryService.modifyObject(AccessCertificationDefinitionType.class, definitionOid, modifications, result);
+        } catch (SchemaException|ObjectNotFoundException|RuntimeException|ObjectAlreadyExistsException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't update last campaign ID for definition {}", e, definitionOid);
+        }
+    }
 }

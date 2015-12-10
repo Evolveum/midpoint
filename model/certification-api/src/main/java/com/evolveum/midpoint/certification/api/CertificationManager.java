@@ -70,14 +70,14 @@ public interface CertificationManager {
      *
      * The campaign will NOT be started upon creation. It should be started explicitly by calling openNextStage method.
      *
-     * @param certificationDefinition Certification definition for this campaign.
+     * @param definitionOid OID of certification definition for this campaign.
      * @param campaign Specific values for this campaign (optional).
      *                It must not be persistent, i.e. its OID must not be set.
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
      * @return Object for the created campaign. It will be stored in the repository as well.
      */
-    AccessCertificationCampaignType createCampaign(AccessCertificationDefinitionType certificationDefinition, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult)
+    AccessCertificationCampaignType createCampaign(String definitionOid, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult)
             throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
 
     /**

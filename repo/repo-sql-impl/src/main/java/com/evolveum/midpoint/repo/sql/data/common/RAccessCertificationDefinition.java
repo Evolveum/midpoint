@@ -47,7 +47,7 @@ public class RAccessCertificationDefinition extends RObject<AccessCertificationD
     private REmbeddedReference ownerRef;
     private XMLGregorianCalendar lastCampaignStartedTimestamp;
     private XMLGregorianCalendar lastCampaignClosedTimestamp;
-    private String campaignSchedulingInterval;
+//    private String campaignSchedulingInterval;
 
     @Embedded
     public RPolyString getName() {
@@ -75,9 +75,9 @@ public class RAccessCertificationDefinition extends RObject<AccessCertificationD
         return lastCampaignClosedTimestamp;
     }
 
-    public String getCampaignSchedulingInterval() {
-        return campaignSchedulingInterval;
-    }
+//    public String getCampaignSchedulingInterval() {
+//        return campaignSchedulingInterval;
+//    }
 
     public void setHandlerUri(String handlerUri) {
         this.handlerUri = handlerUri;
@@ -95,9 +95,9 @@ public class RAccessCertificationDefinition extends RObject<AccessCertificationD
         this.lastCampaignClosedTimestamp = lastCampaignClosedTimestamp;
     }
 
-    public void setCampaignSchedulingInterval(String campaignSchedulingInterval) {
-        this.campaignSchedulingInterval = campaignSchedulingInterval;
-    }
+//    public void setCampaignSchedulingInterval(String campaignSchedulingInterval) {
+//        this.campaignSchedulingInterval = campaignSchedulingInterval;
+//    }
 
     @Override
     public boolean equals(Object o) {
@@ -114,7 +114,8 @@ public class RAccessCertificationDefinition extends RObject<AccessCertificationD
             return false;
         if (lastCampaignClosedTimestamp != null ? !lastCampaignClosedTimestamp.equals(that.lastCampaignClosedTimestamp) : that.lastCampaignClosedTimestamp != null)
             return false;
-        return !(campaignSchedulingInterval != null ? !campaignSchedulingInterval.equals(that.campaignSchedulingInterval) : that.campaignSchedulingInterval != null);
+        //return !(campaignSchedulingInterval != null ? !campaignSchedulingInterval.equals(that.campaignSchedulingInterval) : that.campaignSchedulingInterval != null);
+        return true;
 
     }
 

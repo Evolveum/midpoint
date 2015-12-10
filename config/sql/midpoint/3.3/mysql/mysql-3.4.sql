@@ -110,7 +110,6 @@ CREATE TABLE m_acc_cert_decision (
   ENGINE = InnoDB;
 
 CREATE TABLE m_acc_cert_definition (
-  campaignSchedulingInterval   VARCHAR(255),
   handlerUri                   VARCHAR(255),
   lastCampaignClosedTimestamp  DATETIME(6),
   lastCampaignStartedTimestamp DATETIME(6),

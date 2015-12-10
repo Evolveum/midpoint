@@ -85,7 +85,6 @@ CREATE TABLE m_acc_cert_decision (
 ) INITRANS 30;
 
 CREATE TABLE m_acc_cert_definition (
-  campaignSchedulingInterval   VARCHAR2(255 CHAR),
   handlerUri                   VARCHAR2(255 CHAR),
   lastCampaignClosedTimestamp  TIMESTAMP,
   lastCampaignStartedTimestamp TIMESTAMP,
