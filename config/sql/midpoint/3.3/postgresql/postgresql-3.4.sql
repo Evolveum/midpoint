@@ -6,188 +6,254 @@ CREATE TABLE m_abstract_role (
 );
 
 CREATE TABLE m_acc_cert_campaign (
-    definitionRef_relation VARCHAR(157),
-    definitionRef_targetOid VARCHAR(36),
-    definitionRef_type INTEGER,
-    name_norm VARCHAR(255),
-    name_orig VARCHAR(255),
-    oid VARCHAR(36) NOT NULL,
-    PRIMARY KEY (oid)
+  definitionRef_relation  VARCHAR(157),
+  definitionRef_targetOid VARCHAR(36),
+  definitionRef_type      INT4,
+  endTimestamp            TIMESTAMP,
+  handlerUri              VARCHAR(255),
+  name_norm               VARCHAR(255),
+  name_orig               VARCHAR(255),
+  ownerRef_relation       VARCHAR(157),
+  ownerRef_targetOid      VARCHAR(36),
+  ownerRef_type           INT4,
+  stageNumber             INT4,
+  startTimestamp          TIMESTAMP,
+  state                   INT4,
+  oid                     VARCHAR(36) NOT NULL,
+  PRIMARY KEY (oid)
+);
+
+CREATE TABLE m_acc_cert_case (
+  id                       INT4        NOT NULL,
+  owner_oid                VARCHAR(36) NOT NULL,
+  administrativeStatus     INT4,
+  archiveTimestamp         TIMESTAMP,
+  disableReason            VARCHAR(255),
+  disableTimestamp         TIMESTAMP,
+  effectiveStatus          INT4,
+  enableTimestamp          TIMESTAMP,
+  validFrom                TIMESTAMP,
+  validTo                  TIMESTAMP,
+  validityChangeTimestamp  TIMESTAMP,
+  validityStatus           INT4,
+  currentResponse          INT4,
+  currentStageNumber       INT4,
+  fullObject               BYTEA,
+  objectRef_relation       VARCHAR(157),
+  objectRef_targetOid      VARCHAR(36),
+  objectRef_type           INT4,
+  orgRef_relation          VARCHAR(157),
+  orgRef_targetOid         VARCHAR(36),
+  orgRef_type              INT4,
+  remediedTimestamp        TIMESTAMP,
+  reviewDeadline           TIMESTAMP,
+  reviewRequestedTimestamp TIMESTAMP,
+  targetRef_relation       VARCHAR(157),
+  targetRef_targetOid      VARCHAR(36),
+  targetRef_type           INT4,
+  tenantRef_relation       VARCHAR(157),
+  tenantRef_targetOid      VARCHAR(36),
+  tenantRef_type           INT4,
+  PRIMARY KEY (id, owner_oid)
+);
+
+CREATE TABLE m_acc_cert_case_reference (
+  owner_id        INT4         NOT NULL,
+  owner_owner_oid VARCHAR(36)  NOT NULL,
+  reference_type  INT4         NOT NULL,
+  relation        VARCHAR(157) NOT NULL,
+  targetOid       VARCHAR(36)  NOT NULL,
+  containerType   INT4,
+  PRIMARY KEY (owner_id, owner_owner_oid, reference_type, relation, targetOid)
+);
+
+CREATE TABLE m_acc_cert_decision (
+  id                    INT4        NOT NULL,
+  owner_id              INT4        NOT NULL,
+  owner_owner_oid       VARCHAR(36) NOT NULL,
+  reviewerComment       VARCHAR(255),
+  response              INT4,
+  reviewerRef_relation  VARCHAR(157),
+  reviewerRef_targetOid VARCHAR(36),
+  reviewerRef_type      INT4,
+  stageNumber           INT4        NOT NULL,
+  timestamp             TIMESTAMP,
+  PRIMARY KEY (id, owner_id, owner_owner_oid)
 );
 
 CREATE TABLE m_acc_cert_definition (
-    name_norm VARCHAR(255),
-    name_orig VARCHAR(255),
-    oid VARCHAR(36) NOT NULL,
-    PRIMARY KEY (oid)
+  name_norm VARCHAR(255),
+  name_orig VARCHAR(255),
+  oid       VARCHAR(36) NOT NULL,
+  PRIMARY KEY (oid)
 );
 
 CREATE TABLE m_assignment (
-  id                      INTEGER     NOT NULL,
+  id                      INT4        NOT NULL,
   owner_oid               VARCHAR(36) NOT NULL,
-  administrativeStatus    INTEGER,
+  administrativeStatus    INT4,
   archiveTimestamp        TIMESTAMP,
   disableReason           VARCHAR(255),
   disableTimestamp        TIMESTAMP,
-  effectiveStatus         INTEGER,
+  effectiveStatus         INT4,
   enableTimestamp         TIMESTAMP,
   validFrom               TIMESTAMP,
   validTo                 TIMESTAMP,
   validityChangeTimestamp TIMESTAMP,
-  validityStatus          INTEGER,
-  assignmentOwner         INTEGER,
+  validityStatus          INT4,
+  assignmentOwner         INT4,
   createChannel           VARCHAR(255),
   createTimestamp         TIMESTAMP,
   creatorRef_relation     VARCHAR(157),
   creatorRef_targetOid    VARCHAR(36),
-  creatorRef_type         INTEGER,
+  creatorRef_type         INT4,
   modifierRef_relation    VARCHAR(157),
   modifierRef_targetOid   VARCHAR(36),
-  modifierRef_type        INTEGER,
+  modifierRef_type        INT4,
   modifyChannel           VARCHAR(255),
   modifyTimestamp         TIMESTAMP,
-  orderValue              INTEGER,
+  orderValue              INT4,
   orgRef_relation         VARCHAR(157),
   orgRef_targetOid        VARCHAR(36),
-  orgRef_type             INTEGER,
+  orgRef_type             INT4,
   resourceRef_relation    VARCHAR(157),
   resourceRef_targetOid   VARCHAR(36),
-  resourceRef_type        INTEGER,
+  resourceRef_type        INT4,
   targetRef_relation      VARCHAR(157),
   targetRef_targetOid     VARCHAR(36),
-  targetRef_type          INTEGER,
+  targetRef_type          INT4,
   tenantRef_relation      VARCHAR(157),
   tenantRef_targetOid     VARCHAR(36),
-  tenantRef_type          INTEGER,
-  extId                   INTEGER,
+  tenantRef_type          INT4,
+  extId                   INT4,
   extOid                  VARCHAR(36),
   PRIMARY KEY (id, owner_oid)
 );
 
 CREATE TABLE m_assignment_ext_boolean (
   eName                        VARCHAR(157) NOT NULL,
-  anyContainer_owner_id        INTEGER      NOT NULL,
+  anyContainer_owner_id        INT4         NOT NULL,
   anyContainer_owner_owner_oid VARCHAR(36)  NOT NULL,
   booleanValue                 BOOLEAN      NOT NULL,
-  extensionType                INTEGER,
+  extensionType                INT4,
   dynamicDef                   BOOLEAN,
   eType                        VARCHAR(157),
-  valueType                    INTEGER,
+  valueType                    INT4,
   PRIMARY KEY (eName, anyContainer_owner_id, anyContainer_owner_owner_oid, booleanValue)
 );
 
 CREATE TABLE m_assignment_ext_date (
   eName                        VARCHAR(157) NOT NULL,
-  anyContainer_owner_id        INTEGER      NOT NULL,
+  anyContainer_owner_id        INT4         NOT NULL,
   anyContainer_owner_owner_oid VARCHAR(36)  NOT NULL,
   dateValue                    TIMESTAMP    NOT NULL,
-  extensionType                INTEGER,
+  extensionType                INT4,
   dynamicDef                   BOOLEAN,
   eType                        VARCHAR(157),
-  valueType                    INTEGER,
+  valueType                    INT4,
   PRIMARY KEY (eName, anyContainer_owner_id, anyContainer_owner_owner_oid, dateValue)
 );
 
 CREATE TABLE m_assignment_ext_long (
   eName                        VARCHAR(157) NOT NULL,
-  anyContainer_owner_id        INTEGER      NOT NULL,
+  anyContainer_owner_id        INT4         NOT NULL,
   anyContainer_owner_owner_oid VARCHAR(36)  NOT NULL,
-  longValue                    BIGINT       NOT NULL,
-  extensionType                INTEGER,
+  longValue                    INT8         NOT NULL,
+  extensionType                INT4,
   dynamicDef                   BOOLEAN,
   eType                        VARCHAR(157),
-  valueType                    INTEGER,
+  valueType                    INT4,
   PRIMARY KEY (eName, anyContainer_owner_id, anyContainer_owner_owner_oid, longValue)
 );
 
 CREATE TABLE m_assignment_ext_poly (
   eName                        VARCHAR(157) NOT NULL,
-  anyContainer_owner_id        INTEGER      NOT NULL,
+  anyContainer_owner_id        INT4         NOT NULL,
   anyContainer_owner_owner_oid VARCHAR(36)  NOT NULL,
   orig                         VARCHAR(255) NOT NULL,
-  extensionType                INTEGER,
+  extensionType                INT4,
   dynamicDef                   BOOLEAN,
   norm                         VARCHAR(255),
   eType                        VARCHAR(157),
-  valueType                    INTEGER,
+  valueType                    INT4,
   PRIMARY KEY (eName, anyContainer_owner_id, anyContainer_owner_owner_oid, orig)
 );
 
 CREATE TABLE m_assignment_ext_reference (
   eName                        VARCHAR(157) NOT NULL,
-  anyContainer_owner_id        INTEGER      NOT NULL,
+  anyContainer_owner_id        INT4         NOT NULL,
   anyContainer_owner_owner_oid VARCHAR(36)  NOT NULL,
   targetoid                    VARCHAR(36)  NOT NULL,
-  extensionType                INTEGER,
+  extensionType                INT4,
   dynamicDef                   BOOLEAN,
   relation                     VARCHAR(157),
-  targetType                   INTEGER,
+  targetType                   INT4,
   eType                        VARCHAR(157),
-  valueType                    INTEGER,
+  valueType                    INT4,
   PRIMARY KEY (eName, anyContainer_owner_id, anyContainer_owner_owner_oid, targetoid)
 );
 
 CREATE TABLE m_assignment_ext_string (
   eName                        VARCHAR(157) NOT NULL,
-  anyContainer_owner_id        INTEGER      NOT NULL,
+  anyContainer_owner_id        INT4         NOT NULL,
   anyContainer_owner_owner_oid VARCHAR(36)  NOT NULL,
   stringValue                  VARCHAR(255) NOT NULL,
-  extensionType                INTEGER,
+  extensionType                INT4,
   dynamicDef                   BOOLEAN,
   eType                        VARCHAR(157),
-  valueType                    INTEGER,
+  valueType                    INT4,
   PRIMARY KEY (eName, anyContainer_owner_id, anyContainer_owner_owner_oid, stringValue)
 );
 
 CREATE TABLE m_assignment_extension (
-  owner_id        INTEGER     NOT NULL,
+  owner_id        INT4        NOT NULL,
   owner_owner_oid VARCHAR(36) NOT NULL,
-  booleansCount   SMALLINT,
-  datesCount      SMALLINT,
-  longsCount      SMALLINT,
-  polysCount      SMALLINT,
-  referencesCount SMALLINT,
-  stringsCount    SMALLINT,
+  booleansCount   INT2,
+  datesCount      INT2,
+  longsCount      INT2,
+  polysCount      INT2,
+  referencesCount INT2,
+  stringsCount    INT2,
   PRIMARY KEY (owner_id, owner_owner_oid)
 );
 
 CREATE TABLE m_assignment_reference (
-  owner_id        INTEGER      NOT NULL,
+  owner_id        INT4         NOT NULL,
   owner_owner_oid VARCHAR(36)  NOT NULL,
-  reference_type  INTEGER      NOT NULL,
+  reference_type  INT4         NOT NULL,
   relation        VARCHAR(157) NOT NULL,
   targetOid       VARCHAR(36)  NOT NULL,
-  containerType   INTEGER,
+  containerType   INT4,
   PRIMARY KEY (owner_id, owner_owner_oid, reference_type, relation, targetOid)
 );
 
 CREATE TABLE m_audit_delta (
   checksum          VARCHAR(32) NOT NULL,
-  record_id         BIGINT      NOT NULL,
-  delta             CLOB,
+  record_id         INT8        NOT NULL,
+  delta             TEXT,
   deltaOid          VARCHAR(36),
-  deltaType         INTEGER,
-  fullResult        CLOB,
+  deltaType         INT4,
+  fullResult        TEXT,
   objectName_norm   VARCHAR(255),
   objectName_orig   VARCHAR(255),
   resourceName_norm VARCHAR(255),
   resourceName_orig VARCHAR(255),
-  resourceOid       varchar(36),
-  status            INTEGER,
+  resourceOid       VARCHAR(36),
+  status            INT4,
   PRIMARY KEY (checksum, record_id)
 );
 
 CREATE TABLE m_audit_event (
-  id                BIGINT NOT NULL,
+  id                INT8 NOT NULL,
   channel           VARCHAR(255),
   eventIdentifier   VARCHAR(255),
-  eventStage        INTEGER,
-  eventType         INTEGER,
+  eventStage        INT4,
+  eventType         INT4,
   hostIdentifier    VARCHAR(255),
   initiatorName     VARCHAR(255),
   initiatorOid      VARCHAR(36),
   message           VARCHAR(1024),
-  outcome           INTEGER,
+  outcome           INT4,
   parameter         VARCHAR(255),
   result            VARCHAR(255),
   sessionIdentifier VARCHAR(255),
@@ -195,7 +261,7 @@ CREATE TABLE m_audit_event (
   targetOid         VARCHAR(36),
   targetOwnerName   VARCHAR(255),
   targetOwnerOid    VARCHAR(36),
-  targetType        INTEGER,
+  targetType        INT4,
   taskIdentifier    VARCHAR(255),
   taskOID           VARCHAR(255),
   timestampValue    TIMESTAMP,
@@ -206,7 +272,7 @@ CREATE TABLE m_connector (
   connectorBundle            VARCHAR(255),
   connectorHostRef_relation  VARCHAR(157),
   connectorHostRef_targetOid VARCHAR(36),
-  connectorHostRef_type      INTEGER,
+  connectorHostRef_type      INT4,
   connectorType              VARCHAR(255),
   connectorVersion           VARCHAR(255),
   framework                  VARCHAR(255),
@@ -231,26 +297,26 @@ CREATE TABLE m_connector_target_system (
 );
 
 CREATE TABLE m_exclusion (
-  id                  INTEGER     NOT NULL,
+  id                  INT4        NOT NULL,
   owner_oid           VARCHAR(36) NOT NULL,
-  policy              INTEGER,
+  policy              INT4,
   targetRef_relation  VARCHAR(157),
   targetRef_targetOid VARCHAR(36),
-  targetRef_type      INTEGER,
+  targetRef_type      INT4,
   PRIMARY KEY (id, owner_oid)
 );
 
 CREATE TABLE m_focus (
-  administrativeStatus    INTEGER,
+  administrativeStatus    INT4,
   archiveTimestamp        TIMESTAMP,
   disableReason           VARCHAR(255),
   disableTimestamp        TIMESTAMP,
-  effectiveStatus         INTEGER,
+  effectiveStatus         INT4,
   enableTimestamp         TIMESTAMP,
   validFrom               TIMESTAMP,
   validTo                 TIMESTAMP,
   validityChangeTimestamp TIMESTAMP,
-  validityStatus          INTEGER,
+  validityStatus          INT4,
   hasPhoto                BOOLEAN DEFAULT FALSE NOT NULL,
   oid                     VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
@@ -258,7 +324,7 @@ CREATE TABLE m_focus (
 
 CREATE TABLE m_focus_photo (
   owner_oid VARCHAR(36) NOT NULL,
-  photo     BLOB,
+  photo     BYTEA,
   PRIMARY KEY (owner_oid)
 );
 
@@ -278,7 +344,7 @@ CREATE TABLE m_lookup_table (
 );
 
 CREATE TABLE m_lookup_table_row (
-  id                  INTEGER     NOT NULL,
+  id                  INT4        NOT NULL,
   owner_oid           VARCHAR(36) NOT NULL,
   row_key             VARCHAR(255),
   label_norm          VARCHAR(255),
@@ -298,106 +364,106 @@ CREATE TABLE m_node (
 
 CREATE TABLE m_object (
   oid                   VARCHAR(36) NOT NULL,
-  booleansCount         SMALLINT,
+  booleansCount         INT2,
   createChannel         VARCHAR(255),
   createTimestamp       TIMESTAMP,
   creatorRef_relation   VARCHAR(157),
   creatorRef_targetOid  VARCHAR(36),
-  creatorRef_type       INTEGER,
-  datesCount            SMALLINT,
-  fullObject            BLOB,
-  longsCount            SMALLINT,
+  creatorRef_type       INT4,
+  datesCount            INT2,
+  fullObject            BYTEA,
+  longsCount            INT2,
   modifierRef_relation  VARCHAR(157),
   modifierRef_targetOid VARCHAR(36),
-  modifierRef_type      INTEGER,
+  modifierRef_type      INT4,
   modifyChannel         VARCHAR(255),
   modifyTimestamp       TIMESTAMP,
   name_norm             VARCHAR(255),
   name_orig             VARCHAR(255),
-  objectTypeClass       INTEGER,
-  polysCount            SMALLINT,
-  referencesCount       SMALLINT,
-  stringsCount          SMALLINT,
+  objectTypeClass       INT4,
+  polysCount            INT2,
+  referencesCount       INT2,
+  stringsCount          INT2,
   tenantRef_relation    VARCHAR(157),
   tenantRef_targetOid   VARCHAR(36),
-  tenantRef_type        INTEGER,
-  version               INTEGER     NOT NULL,
+  tenantRef_type        INT4,
+  version               INT4        NOT NULL,
   PRIMARY KEY (oid)
 );
 
 CREATE TABLE m_object_ext_boolean (
   eName        VARCHAR(157) NOT NULL,
   owner_oid    VARCHAR(36)  NOT NULL,
-  ownerType    INTEGER      NOT NULL,
+  ownerType    INT4         NOT NULL,
   booleanValue BOOLEAN      NOT NULL,
   dynamicDef   BOOLEAN,
   eType        VARCHAR(157),
-  valueType    INTEGER,
+  valueType    INT4,
   PRIMARY KEY (eName, owner_oid, ownerType, booleanValue)
 );
 
 CREATE TABLE m_object_ext_date (
   eName      VARCHAR(157) NOT NULL,
   owner_oid  VARCHAR(36)  NOT NULL,
-  ownerType  INTEGER      NOT NULL,
+  ownerType  INT4         NOT NULL,
   dateValue  TIMESTAMP    NOT NULL,
   dynamicDef BOOLEAN,
   eType      VARCHAR(157),
-  valueType  INTEGER,
+  valueType  INT4,
   PRIMARY KEY (eName, owner_oid, ownerType, dateValue)
 );
 
 CREATE TABLE m_object_ext_long (
   eName      VARCHAR(157) NOT NULL,
   owner_oid  VARCHAR(36)  NOT NULL,
-  ownerType  INTEGER      NOT NULL,
-  longValue  BIGINT       NOT NULL,
+  ownerType  INT4         NOT NULL,
+  longValue  INT8         NOT NULL,
   dynamicDef BOOLEAN,
   eType      VARCHAR(157),
-  valueType  INTEGER,
+  valueType  INT4,
   PRIMARY KEY (eName, owner_oid, ownerType, longValue)
 );
 
 CREATE TABLE m_object_ext_poly (
   eName      VARCHAR(157) NOT NULL,
   owner_oid  VARCHAR(36)  NOT NULL,
-  ownerType  INTEGER      NOT NULL,
+  ownerType  INT4         NOT NULL,
   orig       VARCHAR(255) NOT NULL,
   dynamicDef BOOLEAN,
   norm       VARCHAR(255),
   eType      VARCHAR(157),
-  valueType  INTEGER,
+  valueType  INT4,
   PRIMARY KEY (eName, owner_oid, ownerType, orig)
 );
 
 CREATE TABLE m_object_ext_reference (
   eName      VARCHAR(157) NOT NULL,
   owner_oid  VARCHAR(36)  NOT NULL,
-  ownerType  INTEGER      NOT NULL,
+  ownerType  INT4         NOT NULL,
   targetoid  VARCHAR(36)  NOT NULL,
   dynamicDef BOOLEAN,
   relation   VARCHAR(157),
-  targetType INTEGER,
+  targetType INT4,
   eType      VARCHAR(157),
-  valueType  INTEGER,
+  valueType  INT4,
   PRIMARY KEY (eName, owner_oid, ownerType, targetoid)
 );
 
 CREATE TABLE m_object_ext_string (
   eName       VARCHAR(157) NOT NULL,
   owner_oid   VARCHAR(36)  NOT NULL,
-  ownerType   INTEGER      NOT NULL,
+  ownerType   INT4         NOT NULL,
   stringValue VARCHAR(255) NOT NULL,
   dynamicDef  BOOLEAN,
   eType       VARCHAR(157),
-  valueType   INTEGER,
+  valueType   INT4,
   PRIMARY KEY (eName, owner_oid, ownerType, stringValue)
 );
 
 CREATE TABLE m_object_template (
   name_norm VARCHAR(255),
   name_orig VARCHAR(255),
-  type      INTEGER,
+  type      INT4,
   oid       VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );
@@ -406,7 +472,7 @@ CREATE TABLE m_org (
   costCenter       VARCHAR(255),
   displayName_norm VARCHAR(255),
   displayName_orig VARCHAR(255),
-  displayOrder     INTEGER,
+  displayOrder     INT4,
   identifier       VARCHAR(255),
   locality_norm    VARCHAR(255),
   locality_orig    VARCHAR(255),
@@ -420,7 +486,7 @@ CREATE TABLE m_org (
 CREATE TABLE m_org_closure (
   ancestor_oid   VARCHAR(36) NOT NULL,
   descendant_oid VARCHAR(36) NOT NULL,
-  val            INTEGER,
+  val            INT4,
   PRIMARY KEY (ancestor_oid, descendant_oid)
 );
 
@@ -431,18 +497,18 @@ CREATE TABLE m_org_org_type (
 
 CREATE TABLE m_reference (
   owner_oid      VARCHAR(36)  NOT NULL,
-  reference_type INTEGER      NOT NULL,
+  reference_type INT4         NOT NULL,
   relation       VARCHAR(157) NOT NULL,
   targetOid      VARCHAR(36)  NOT NULL,
-  containerType  INTEGER,
+  containerType  INT4,
   PRIMARY KEY (owner_oid, reference_type, relation, targetOid)
 );
 
 CREATE TABLE m_report (
-  export              INTEGER,
+  export              INT4,
   name_norm           VARCHAR(255),
   name_orig           VARCHAR(255),
-  orientation         INTEGER,
+  orientation         INT4,
   parent              BOOLEAN,
   useHibernateSession BOOLEAN,
   oid                 VARCHAR(36) NOT NULL,
@@ -454,19 +520,19 @@ CREATE TABLE m_report_output (
   name_orig           VARCHAR(255),
   reportRef_relation  VARCHAR(157),
   reportRef_targetOid VARCHAR(36),
-  reportRef_type      INTEGER,
+  reportRef_type      INT4,
   oid                 VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );
 
 CREATE TABLE m_resource (
-  administrativeState        INTEGER,
+  administrativeState        INT4,
   connectorRef_relation      VARCHAR(157),
   connectorRef_targetOid     VARCHAR(36),
-  connectorRef_type          INTEGER,
+  connectorRef_type          INT4,
   name_norm                  VARCHAR(255),
   name_orig                  VARCHAR(255),
-  o16_lastAvailabilityStatus INTEGER,
+  o16_lastAvailabilityStatus INT4,
   oid                        VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );
@@ -494,21 +560,21 @@ CREATE TABLE m_sequence (
 );
 
 CREATE TABLE m_shadow (
-  attemptNumber                INTEGER,
+  attemptNumber                INT4,
   dead                         BOOLEAN,
   exist                        BOOLEAN,
-  failedOperationType          INTEGER,
+  failedOperationType          INT4,
   fullSynchronizationTimestamp TIMESTAMP,
   intent                       VARCHAR(255),
-  kind                         INTEGER,
+  kind                         INT4,
   name_norm                    VARCHAR(255),
   name_orig                    VARCHAR(255),
   objectClass                  VARCHAR(157),
   resourceRef_relation         VARCHAR(157),
   resourceRef_targetOid        VARCHAR(36),
-  resourceRef_type             INTEGER,
-  status                       INTEGER,
-  synchronizationSituation     INTEGER,
+  resourceRef_type             INT4,
+  status                       INT4,
+  synchronizationSituation     INT4,
   synchronizationTimestamp     TIMESTAMP,
   oid                          VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
@@ -522,11 +588,11 @@ CREATE TABLE m_system_configuration (
 );
 
 CREATE TABLE m_task (
-  binding                INTEGER,
+  binding                INT4,
   canRunOnNode           VARCHAR(255),
   category               VARCHAR(255),
   completionTimestamp    TIMESTAMP,
-  executionStatus        INTEGER,
+  executionStatus        INT4,
   handlerUri             VARCHAR(255),
   lastRunFinishTimestamp TIMESTAMP,
   lastRunStartTimestamp  TIMESTAMP,
@@ -535,16 +601,16 @@ CREATE TABLE m_task (
   node                   VARCHAR(255),
   objectRef_relation     VARCHAR(157),
   objectRef_targetOid    VARCHAR(36),
-  objectRef_type         INTEGER,
+  objectRef_type         INT4,
   ownerRef_relation      VARCHAR(157),
   ownerRef_targetOid     VARCHAR(36),
-  ownerRef_type          INTEGER,
+  ownerRef_type          INT4,
   parent                 VARCHAR(255),
-  recurrence             INTEGER,
-  status                 INTEGER,
+  recurrence             INT4,
+  status                 INT4,
   taskIdentifier         VARCHAR(255),
-  threadStopAction       INTEGER,
-  waitingReason          INTEGER,
+  threadStopAction       INT4,
+  waitingReason          INT4,
   oid                    VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );
@@ -555,7 +621,7 @@ CREATE TABLE m_task_dependent (
 );
 
 CREATE TABLE m_trigger (
-  id             INTEGER     NOT NULL,
+  id             INT4        NOT NULL,
   owner_oid      VARCHAR(36) NOT NULL,
   handlerUri     VARCHAR(255),
   timestampValue TIMESTAMP,
@@ -586,7 +652,7 @@ CREATE TABLE m_user (
   nickName_norm        VARCHAR(255),
   nickName_orig        VARCHAR(255),
   preferredLanguage    VARCHAR(255),
-  status               INTEGER,
+  status               INT4,
   telephoneNumber      VARCHAR(255),
   timezone             VARCHAR(255),
   title_norm           VARCHAR(255),
@@ -623,6 +689,19 @@ CREATE INDEX iRequestable ON m_abstract_role (requestable);
 
 ALTER TABLE m_acc_cert_campaign
     ADD CONSTRAINT uc_acc_cert_campaign_name  UNIQUE (name_norm);
+
+CREATE INDEX iCaseObjectRefTargetOid ON m_acc_cert_case (objectRef_targetOid);
+
+CREATE INDEX iCaseTargetRefTargetOid ON m_acc_cert_case (targetRef_targetOid);
+
+CREATE INDEX iCaseTenantRefTargetOid ON m_acc_cert_case (tenantRef_targetOid);
+
+CREATE INDEX iCaseOrgRefTargetOid ON m_acc_cert_case (orgRef_targetOid);
+
+CREATE INDEX iCaseReferenceTargetOid ON m_acc_cert_case_reference (targetOid);
+
+ALTER TABLE m_acc_cert_decision
+ADD CONSTRAINT uc_case_stage_reviewer UNIQUE (owner_owner_oid, owner_id, stageNumber, reviewerRef_targetOid);
 
 ALTER TABLE m_acc_cert_definition
     ADD CONSTRAINT uc_acc_cert_definition_name  UNIQUE (name_norm);
@@ -775,6 +854,21 @@ ALTER TABLE m_acc_cert_campaign
     ADD CONSTRAINT fk_acc_cert_campaign
     FOREIGN KEY (oid)
     REFERENCES m_object;
+
+ALTER TABLE m_acc_cert_case
+ADD CONSTRAINT fk_acc_cert_case_owner
+FOREIGN KEY (owner_oid)
+REFERENCES m_object;
+
+ALTER TABLE m_acc_cert_case_reference
+ADD CONSTRAINT fk_acc_cert_case_reference_owner
+FOREIGN KEY (owner_id, owner_owner_oid)
+REFERENCES m_acc_cert_case;
+
+ALTER TABLE m_acc_cert_decision
+ADD CONSTRAINT fk_acc_cert_decision_owner
+FOREIGN KEY (owner_id, owner_owner_oid)
+REFERENCES m_acc_cert_case;
 
 ALTER TABLE m_acc_cert_definition
     ADD CONSTRAINT fk_acc_cert_definition
@@ -1016,4 +1110,4 @@ ADD CONSTRAINT fk_value_policy
 FOREIGN KEY (oid)
 REFERENCES m_object;
 
-CREATE SEQUENCE hibernate_sequence START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE hibernate_sequence START 1 INCREMENT 1;

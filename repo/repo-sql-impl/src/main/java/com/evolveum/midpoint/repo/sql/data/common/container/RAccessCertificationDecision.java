@@ -27,9 +27,11 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
-import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType.F_STAGE_NUMBER;
@@ -77,7 +79,7 @@ public class RAccessCertificationDecision implements L2Container<RAccessCertific
     }
 
     @Id
-    //@org.hibernate.annotations.ForeignKey(name = "fk_ac_case_owner")
+    @org.hibernate.annotations.ForeignKey(name = "fk_acc_cert_decision_owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("owner")
     @NotQueryable
@@ -126,6 +128,7 @@ public class RAccessCertificationDecision implements L2Container<RAccessCertific
         return response;
     }
 
+    @Column(name = "reviewerComment")           // in Oracle, 'comment' is a reserved word
     public String getComment() {
         return comment;
     }

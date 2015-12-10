@@ -56,7 +56,7 @@ import java.util.Set;
 @Entity
 @IdClass(RCObjectReferenceId.class)
 @Table(name = RCertCaseReference.TABLE, indexes = {
-        @javax.persistence.Index(name = "iAccCertCaseReferenceTargetOid", columnList = "targetOid")
+        @javax.persistence.Index(name = "iCaseReferenceTargetOid", columnList = "targetOid")
 })
 public class RCertCaseReference extends RContainerReference {
 
@@ -70,7 +70,7 @@ public class RCertCaseReference extends RContainerReference {
 //        return targetName;
 //    }
 
-    @ForeignKey(name = "fk_acc_cert_case_reference")
+    @ForeignKey(name = "fk_acc_cert_case_reference_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable

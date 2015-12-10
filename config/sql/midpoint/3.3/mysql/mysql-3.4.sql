@@ -22,17 +22,92 @@ CREATE TABLE m_abstract_role (
   ENGINE = InnoDB;
 
 CREATE TABLE m_acc_cert_campaign (
-    definitionRef_relation VARCHAR(157),
-    definitionRef_targetOid VARCHAR(36),
-    definitionRef_type INTEGER,
-    name_norm VARCHAR(255),
-    name_orig VARCHAR(255),
-    oid VARCHAR(36) NOT NULL,
-    PRIMARY KEY (oid)
+  definitionRef_relation  VARCHAR(157),
+  definitionRef_targetOid VARCHAR(36),
+  definitionRef_type      INTEGER,
+  endTimestamp            DATETIME(6),
+  handlerUri              VARCHAR(255),
+  name_norm               VARCHAR(255),
+  name_orig               VARCHAR(255),
+  ownerRef_relation       VARCHAR(157),
+  ownerRef_targetOid      VARCHAR(36),
+  ownerRef_type           INTEGER,
+  stageNumber             INTEGER,
+  startTimestamp          DATETIME(6),
+  state                   INTEGER,
+  oid                     VARCHAR(36) NOT NULL,
+  PRIMARY KEY (oid)
 )
   DEFAULT CHARACTER SET utf8
   COLLATE utf8_bin
-  ENGINE=InnoDB;
+  ENGINE = InnoDB;
+
+CREATE TABLE m_acc_cert_case (
+  id                       INTEGER     NOT NULL,
+  owner_oid                VARCHAR(36) NOT NULL,
+  administrativeStatus     INTEGER,
+  archiveTimestamp         DATETIME(6),
+  disableReason            VARCHAR(255),
+  disableTimestamp         DATETIME(6),
+  effectiveStatus          INTEGER,
+  enableTimestamp          DATETIME(6),
+  validFrom                DATETIME(6),
+  validTo                  DATETIME(6),
+  validityChangeTimestamp  DATETIME(6),
+  validityStatus           INTEGER,
+  currentResponse          INTEGER,
+  currentStageNumber       INTEGER,
+  fullObject               LONGBLOB,
+  objectRef_relation       VARCHAR(157),
+  objectRef_targetOid      VARCHAR(36),
+  objectRef_type           INTEGER,
+  orgRef_relation          VARCHAR(157),
+  orgRef_targetOid         VARCHAR(36),
+  orgRef_type              INTEGER,
+  remediedTimestamp        DATETIME(6),
+  reviewDeadline           DATETIME(6),
+  reviewRequestedTimestamp DATETIME(6),
+  targetRef_relation       VARCHAR(157),
+  targetRef_targetOid      VARCHAR(36),
+  targetRef_type           INTEGER,
+  tenantRef_relation       VARCHAR(157),
+  tenantRef_targetOid      VARCHAR(36),
+  tenantRef_type           INTEGER,
+  PRIMARY KEY (id, owner_oid)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
+  ENGINE = InnoDB;
+
+CREATE TABLE m_acc_cert_case_reference (
+  owner_id        INTEGER      NOT NULL,
+  owner_owner_oid VARCHAR(36)  NOT NULL,
+  reference_type  INTEGER      NOT NULL,
+  relation        VARCHAR(157) NOT NULL,
+  targetOid       VARCHAR(36)  NOT NULL,
+  containerType   INTEGER,
+  PRIMARY KEY (owner_id, owner_owner_oid, reference_type, relation, targetOid)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
+  ENGINE = InnoDB;
+
+CREATE TABLE m_acc_cert_decision (
+  id                    INTEGER     NOT NULL,
+  owner_id              INTEGER     NOT NULL,
+  owner_owner_oid       VARCHAR(36) NOT NULL,
+  reviewerComment       VARCHAR(255),
+  response              INTEGER,
+  reviewerRef_relation  VARCHAR(157),
+  reviewerRef_targetOid VARCHAR(36),
+  reviewerRef_type      INTEGER,
+  stageNumber           INTEGER     NOT NULL,
+  timestamp             DATETIME(6),
+  PRIMARY KEY (id, owner_id, owner_owner_oid)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
+  ENGINE = InnoDB;
 
 CREATE TABLE m_acc_cert_definition (
     name_norm VARCHAR(255),
@@ -793,6 +868,19 @@ CREATE INDEX iRequestable ON m_abstract_role (requestable);
 ALTER TABLE m_acc_cert_campaign
     ADD CONSTRAINT uc_acc_cert_campaign_name  UNIQUE (name_norm);
 
+CREATE INDEX iCaseObjectRefTargetOid ON m_acc_cert_case (objectRef_targetOid);
+
+CREATE INDEX iCaseTargetRefTargetOid ON m_acc_cert_case (targetRef_targetOid);
+
+CREATE INDEX iCaseTenantRefTargetOid ON m_acc_cert_case (tenantRef_targetOid);
+
+CREATE INDEX iCaseOrgRefTargetOid ON m_acc_cert_case (orgRef_targetOid);
+
+CREATE INDEX iCaseReferenceTargetOid ON m_acc_cert_case_reference (targetOid);
+
+ALTER TABLE m_acc_cert_decision
+ADD CONSTRAINT uc_case_stage_reviewer UNIQUE (owner_owner_oid, owner_id, stageNumber, reviewerRef_targetOid);
+
 ALTER TABLE m_acc_cert_definition
     ADD CONSTRAINT uc_acc_cert_definition_name  UNIQUE (name_norm);
 
@@ -946,6 +1034,21 @@ ALTER TABLE m_acc_cert_campaign
     ADD CONSTRAINT fk_acc_cert_campaign
     FOREIGN KEY (oid)
     REFERENCES m_object (oid);
+
+ALTER TABLE m_acc_cert_case
+ADD CONSTRAINT fk_acc_cert_case_owner
+FOREIGN KEY (owner_oid)
+REFERENCES m_object (oid);
+
+ALTER TABLE m_acc_cert_case_reference
+ADD CONSTRAINT fk_acc_cert_case_reference_owner
+FOREIGN KEY (owner_id, owner_owner_oid)
+REFERENCES m_acc_cert_case (id, owner_oid);
+
+ALTER TABLE m_acc_cert_decision
+ADD CONSTRAINT fk_acc_cert_decision_owner
+FOREIGN KEY (owner_id, owner_owner_oid)
+REFERENCES m_acc_cert_case (id, owner_oid);
 
 ALTER TABLE m_acc_cert_definition
     ADD CONSTRAINT fk_acc_cert_definition

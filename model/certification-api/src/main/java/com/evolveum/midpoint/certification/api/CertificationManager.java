@@ -178,7 +178,7 @@ public interface CertificationManager {
      * @param caseQuery Specification of the cases to retrieve. (In future it may contain restrictions on owning campaign(s).)
      * @param reviewerOid OID of the reviewer whose decisions we want to retrieve.
      * @param notDecidedOnly If true, only response==(NO_DECISION or null) should be returned.
-     *                       Although it can be formulate in Query API terms, this would refer to implementation details - so
+     *                       Although it can be formulated in Query API terms, this would refer to implementation details - so
      *                       the cleaner way is keep this knowledge inside certification module only.
      * @param options Options to use (currently supported is RESOLVE_NAMES).
      * @param task Task in context of which all operations will take place.

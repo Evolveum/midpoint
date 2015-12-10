@@ -115,7 +115,7 @@ public class RAccessCertificationCase implements Container {
     }
 
     @Id
-    @org.hibernate.annotations.ForeignKey(name = "fk_ac_case_owner")
+    @org.hibernate.annotations.ForeignKey(name = "fk_acc_cert_case_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @OwnerGetter(ownerClass = RAccessCertificationCampaign.class)
