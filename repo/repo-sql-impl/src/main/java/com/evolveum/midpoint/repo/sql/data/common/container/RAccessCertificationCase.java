@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.RAccessCertificationCampaign;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RAccessCertificationResponse;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
@@ -30,6 +31,7 @@ import com.evolveum.midpoint.repo.sql.query.definition.OwnerGetter;
 import com.evolveum.midpoint.repo.sql.query.definition.OwnerIdGetter;
 import com.evolveum.midpoint.repo.sql.query2.definition.IdQueryProperty;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
+import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -72,7 +74,9 @@ import java.util.Set;
 @IdClass(RContainerId.class)
 @Table(name = "m_acc_cert_case", indexes = {
         @Index(name = "iCaseObjectRefTargetOid", columnList = "objectRef_targetOid"),
-        @Index(name = "iCaseTargetRefTargetOid", columnList = "targetRef_targetOid")
+        @Index(name = "iCaseTargetRefTargetOid", columnList = "targetRef_targetOid"),
+        @Index(name = "iCaseTenantRefTargetOid", columnList = "tenantRef_targetOid"),
+        @Index(name = "iCaseOrgRefTargetOid", columnList = "orgRef_targetOid")
 })
 public class RAccessCertificationCase implements Container {
 
@@ -91,6 +95,9 @@ public class RAccessCertificationCase implements Container {
     private Set<RCertCaseReference> reviewerRef;
     private REmbeddedReference objectRef;
     private REmbeddedReference targetRef;
+    private REmbeddedReference tenantRef;
+    private REmbeddedReference orgRef;
+    private RActivation activation;                 // we need mainly validFrom + validTo + maybe adminStatus; for simplicity we added whole ActivationType here
 
     private XMLGregorianCalendar reviewRequestedTimestamp;
     private XMLGregorianCalendar reviewDeadline;
@@ -159,6 +166,21 @@ public class RAccessCertificationCase implements Container {
         return objectRef;
     }
 
+    @Embedded
+    public REmbeddedReference getTenantRef() {
+        return tenantRef;
+    }
+
+    @Embedded
+    public REmbeddedReference getOrgRef() {
+        return orgRef;
+    }
+
+    @Embedded
+    public RActivation getActivation() {
+        return activation;
+    }
+
     public XMLGregorianCalendar getReviewRequestedTimestamp() {
         return reviewRequestedTimestamp;
     }
@@ -207,6 +229,18 @@ public class RAccessCertificationCase implements Container {
 
     public void setObjectRef(REmbeddedReference objectRef) {
         this.objectRef = objectRef;
+    }
+
+    public void setTenantRef(REmbeddedReference tenantRef) {
+        this.tenantRef = tenantRef;
+    }
+
+    public void setOrgRef(REmbeddedReference orgRef) {
+        this.orgRef = orgRef;
+    }
+
+    public void setActivation(RActivation activation) {
+        this.activation = activation;
     }
 
     public void setReviewRequestedTimestamp(XMLGregorianCalendar reviewRequestedTimestamp) {
@@ -304,24 +338,31 @@ public class RAccessCertificationCase implements Container {
         this.trans = trans;
     }
 
-    public static RAccessCertificationCase toRepo(RAccessCertificationCampaign owner, AccessCertificationCaseType case1, PrismContext prismContext) {
+    public static RAccessCertificationCase toRepo(RAccessCertificationCampaign owner, AccessCertificationCaseType case1, PrismContext prismContext) throws DtoTranslationException {
         RAccessCertificationCase rCase = toRepo(case1, prismContext);
         rCase.setOwner(owner);
         return rCase;
     }
 
-    public static RAccessCertificationCase toRepo(String ownerOid, AccessCertificationCaseType case1, PrismContext prismContext) {
+    public static RAccessCertificationCase toRepo(String ownerOid, AccessCertificationCaseType case1, PrismContext prismContext) throws DtoTranslationException {
         RAccessCertificationCase rCase = toRepo(case1, prismContext);
         rCase.setOwnerOid(ownerOid);
         return rCase;
     }
 
-    private static RAccessCertificationCase toRepo(AccessCertificationCaseType case1, PrismContext prismContext) {
+    private static RAccessCertificationCase toRepo(AccessCertificationCaseType case1, PrismContext prismContext) throws DtoTranslationException {
         RAccessCertificationCase rCase = new RAccessCertificationCase();
         rCase.setTransient(null);       // we don't try to advise hibernate - let it do its work, even if it would cost some SELECTs
         rCase.setId(RUtil.toInteger(case1.getId()));
         rCase.setObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(case1.getObjectRef(), prismContext));
         rCase.setTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(case1.getTargetRef(), prismContext));
+        rCase.setTenantRef(RUtil.jaxbRefToEmbeddedRepoRef(case1.getTenantRef(), prismContext));
+        rCase.setOrgRef(RUtil.jaxbRefToEmbeddedRepoRef(case1.getOrgRef(), prismContext));
+        if (case1.getActivation() != null) {
+            RActivation activation = new RActivation();
+            RActivation.copyFromJAXB(case1.getActivation(), activation, prismContext);
+            rCase.setActivation(activation);
+        }
         rCase.getReviewerRef().addAll(RCertCaseReference.safeListReferenceToSet(
                 case1.getReviewerRef(), prismContext, rCase, RCReferenceOwner.CASE_REVIEWER));
         rCase.setReviewRequestedTimestamp(case1.getReviewRequestedTimestamp());

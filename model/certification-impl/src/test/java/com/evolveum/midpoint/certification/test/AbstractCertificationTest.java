@@ -47,6 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -223,6 +224,19 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 			assertEquals("incorrect campaign OID in case", campaignOid, ccase.getCampaignRef().getOid());
 		}
 		return checkSpecificCase(ccase, focus);
+	}
+
+	protected AccessCertificationCaseType checkCase(Collection<AccessCertificationCaseType> caseList, String objectOid,
+													String targetOid, FocusType focus, String campaignOid,
+													String tenantOid, String orgOid, ActivationStatusType administrativeStatus) {
+		AccessCertificationCaseType aCase = checkCase(caseList, objectOid, targetOid, focus, campaignOid);
+		String realTenantOid = aCase.getTenantRef() != null ? aCase.getTenantRef().getOid() : null;
+		String realOrgOid = aCase.getOrgRef() != null ? aCase.getOrgRef().getOid() : null;
+		ActivationStatusType realStatus = aCase.getActivation() != null ? aCase.getActivation().getAdministrativeStatus() : null;
+		assertEquals("incorrect tenant org", tenantOid, realTenantOid);
+		assertEquals("incorrect org org", orgOid, realOrgOid);
+		assertEquals("incorrect admin status", administrativeStatus, realStatus);
+		return aCase;
 	}
 
 	protected AccessCertificationCaseType checkSpecificCase(AccessCertificationCaseType ccase, FocusType focus) {

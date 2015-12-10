@@ -12696,6 +12696,37 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="tenantRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        For parameterized certification items (e.g. assignments): a tenant parameter, if applicable.
+                        See discussion on tenantRef in AssignmentType.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="orgRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        For parameterized certification items (e.g. assignments): an org parameter, if applicable.
+                        See discussion on orgRef in AssignmentType.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="activation" type="tns:ActivationType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If the target is assigned with activation information (e.g. validFrom/validTo/administrativeStatus)
+                        here is the information copied. Note that other activation information (e.g. effectiveStatus) are
+                        _not_ updated here and probably should be ignored.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <!--
 <xsd:element name="targetQualification" type="xsd:string" minOccurs="0">
     <xsd:annotation>

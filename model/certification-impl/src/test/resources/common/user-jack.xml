@@ -23,10 +23,15 @@
     <name>jack</name>
     <parentOrgRef oid="00000000-8888-6666-0000-300000000000" type="c:OrgType"/>
     <assignment id="1">
-        <targetRef oid="00000000-8888-6666-0000-300000000000" type="c:OrgType"/>
+        <targetRef oid="00000000-8888-6666-0000-300000000000" type="c:OrgType"/>    <!-- org eroot -->
     </assignment>
     <assignment id="2">
-        <targetRef oid="00000000-d34d-b33f-f00d-000000000001" type="c:RoleType"/>
+        <targetRef oid="00000000-d34d-b33f-f00d-000000000001" type="c:RoleType"/>   <!-- role CEO -->
+        <activation>
+            <administrativeStatus>enabled</administrativeStatus>
+        </activation>
+        <tenantRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType"/>    <!-- governor office - has no meaning: just to test tenant ref in cert cases -->
+        <orgRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType"/>       <!-- scumm bar - only to test orgRef -->
     </assignment>
     <activation>
         <administrativeStatus>enabled</administrativeStatus>

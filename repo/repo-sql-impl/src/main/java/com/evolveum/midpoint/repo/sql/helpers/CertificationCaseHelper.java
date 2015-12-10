@@ -27,6 +27,7 @@ import com.evolveum.midpoint.repo.sql.data.common.RAccessCertificationCampaign;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationCase;
 import com.evolveum.midpoint.repo.sql.data.common.container.RCertCaseReference;
+import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.PrismIdentifierGenerator;
@@ -94,7 +95,7 @@ public class CertificationCaseHelper {
         }
     }
 
-    public void addCertificationCampaignCases(Session session, String campaignOid, Collection<PrismContainerValue> values, int currentId, List<Long> affectedIds) {
+    public void addCertificationCampaignCases(Session session, String campaignOid, Collection<PrismContainerValue> values, int currentId, List<Long> affectedIds) throws DtoTranslationException {
         for (PrismContainerValue value : values) {
             AccessCertificationCaseType caseType = new AccessCertificationCaseType();
             caseType.setupContainerValue(value);
@@ -155,7 +156,7 @@ public class CertificationCaseHelper {
     }
 
     public <T extends ObjectType> void updateCampaignCases(Session session, String campaignOid,
-                                                           Collection<? extends ItemDelta> modifications) throws SchemaException, ObjectNotFoundException {
+                                                           Collection<? extends ItemDelta> modifications) throws SchemaException, ObjectNotFoundException, DtoTranslationException {
         if (modifications.isEmpty()) {
             return;
         }
@@ -166,7 +167,7 @@ public class CertificationCaseHelper {
         updateCasesContent(session, campaignOid, modifications, casesAddedOrDeleted);
     }
 
-    protected List<Long> addOrDeleteCases(Session session, String campaignOid, Collection<? extends ItemDelta> modifications) throws SchemaException {
+    protected List<Long> addOrDeleteCases(Session session, String campaignOid, Collection<? extends ItemDelta> modifications) throws SchemaException, DtoTranslationException {
         final ItemPath casePath = new ItemPath(AccessCertificationCampaignType.F_CASE);
         boolean replacePresent = false;
         List<Long> affectedIds = new ArrayList<>();
@@ -220,7 +221,7 @@ public class CertificationCaseHelper {
         return replacePresent ? null : affectedIds;
     }
 
-    private void updateCasesContent(Session session, String campaignOid, Collection<? extends ItemDelta> modifications, List<Long> casesAddedOrDeleted) throws SchemaException, ObjectNotFoundException {
+    private void updateCasesContent(Session session, String campaignOid, Collection<? extends ItemDelta> modifications, List<Long> casesAddedOrDeleted) throws SchemaException, ObjectNotFoundException, DtoTranslationException {
         for (ItemDelta delta : modifications) {
             ItemPath deltaPath = delta.getPath();
             if (deltaPath.size() > 1) {

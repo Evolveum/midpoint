@@ -150,6 +150,10 @@ public class AccCertQueryHelper {
             newPath = new ItemPath(AccessCertificationCaseType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
         } else if (QNameUtil.match(oldName, AccessCertificationCaseType.F_OBJECT_REF)) {
             newPath = new ItemPath(AccessCertificationCaseType.F_OBJECT_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
+        } else if (QNameUtil.match(oldName, AccessCertificationCaseType.F_TENANT_REF)) {
+            newPath = new ItemPath(AccessCertificationCaseType.F_TENANT_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
+        } else if (QNameUtil.match(oldName, AccessCertificationCaseType.F_ORG_REF)) {
+            newPath = new ItemPath(AccessCertificationCaseType.F_ORG_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
         } else if (QNameUtil.match(oldName, AccessCertificationCaseType.F_CAMPAIGN_REF)) {
             newPath = new ItemPath(T_PARENT, ObjectType.F_NAME);
         } else {

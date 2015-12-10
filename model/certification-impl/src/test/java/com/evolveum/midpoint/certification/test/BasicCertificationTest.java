@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -37,9 +38,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationD
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -55,6 +59,9 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REMEDIATION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REVIEW_STAGE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.REVIEW_STAGE_DONE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_ACTIVATION;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.ENABLED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType.F_ADMINISTRATIVE_STATUS;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
@@ -265,6 +272,87 @@ public class BasicCertificationTest extends AbstractCertificationTest {
     }
 
     @Test
+    public void test052SearchDecisionsByTenantRef() throws Exception {
+        final String TEST_NAME = "test052SearchDecisionsByTenantRef";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+                .item(AccessCertificationCaseType.F_TENANT_REF).ref(ORG_GOVERNOR_OFFICE_OID)
+                .build();
+        List<AccessCertificationCaseType> caseList =
+                certificationManager.searchDecisions(query, USER_ADMINISTRATOR_OID, false, null, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        display("caseList", caseList);
+        assertEquals("Wrong number of certification cases", 1, caseList.size());
+        checkCase(caseList, USER_JACK_OID, ROLE_CEO_OID, userJack, campaignOid, ORG_GOVERNOR_OFFICE_OID, ORG_SCUMM_BAR_OID, ENABLED);
+    }
+
+    @Test
+    public void test054SearchDecisionsByOrgRef() throws Exception {
+        final String TEST_NAME = "test054SearchDecisionsByOrgRef";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+                .item(AccessCertificationCaseType.F_ORG_REF).ref(ORG_SCUMM_BAR_OID)
+                .build();
+        List<AccessCertificationCaseType> caseList =
+                certificationManager.searchDecisions(query, USER_ADMINISTRATOR_OID, false, null, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        display("caseList", caseList);
+        assertEquals("Wrong number of certification cases", 1, caseList.size());
+        checkCase(caseList, USER_JACK_OID, ROLE_CEO_OID, userJack, campaignOid, ORG_GOVERNOR_OFFICE_OID, ORG_SCUMM_BAR_OID, ENABLED);
+    }
+
+    @Test
+    public void test056SearchDecisionsByAdminStatus() throws Exception {
+        final String TEST_NAME = "test056SearchDecisionsByAdminStatus";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+                .item(F_ACTIVATION, F_ADMINISTRATIVE_STATUS).eq(ENABLED)
+                .build();
+        List<AccessCertificationCaseType> caseList =
+                certificationManager.searchDecisions(query, USER_ADMINISTRATOR_OID, false, null, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        display("caseList", caseList);
+        assertEquals("Wrong number of certification cases", 1, caseList.size());
+        checkCase(caseList, USER_JACK_OID, ROLE_CEO_OID, userJack, campaignOid, ORG_GOVERNOR_OFFICE_OID, ORG_SCUMM_BAR_OID, ENABLED);
+    }
+
+    @Test
     public void test100RecordDecision() throws Exception {
         final String TEST_NAME = "test100RecordDecision";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -404,7 +492,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         checkCase(caseList, USER_ADMINISTRATOR_OID, ROLE_COO_OID, userAdministrator, campaignOid);
         checkCase(caseList, USER_ADMINISTRATOR_OID, ROLE_CEO_OID, userAdministrator, campaignOid);
         checkCase(caseList, USER_ADMINISTRATOR_OID, ORG_EROOT_OID, userAdministrator, campaignOid);
-        checkCase(caseList, USER_JACK_OID, ROLE_CEO_OID, userJack, campaignOid);
+        checkCase(caseList, USER_JACK_OID, ROLE_CEO_OID, userJack, campaignOid, ORG_GOVERNOR_OFFICE_OID, ORG_SCUMM_BAR_OID, ENABLED);
         checkCase(caseList, USER_JACK_OID, ORG_EROOT_OID, userJack, campaignOid);
     }
 
