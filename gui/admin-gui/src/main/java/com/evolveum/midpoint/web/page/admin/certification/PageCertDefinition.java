@@ -31,9 +31,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertDefinitionDto;
@@ -44,13 +44,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationD
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
+import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author mederly
@@ -72,12 +78,12 @@ public class PageCertDefinition extends PageAdminCertification {
 	private static final String ID_DESCRIPTION = "description";
 	private static final String ID_OWNER = "owner";
 	private static final String ID_NUMBER_OF_STAGES = "numberOfStages";
-	private static final String ID_ACE_EDITOR = "aceEditor";
 
 	private static final String ID_BACK_BUTTON = "backButton";
 	private static final String ID_SAVE_BUTTON = "saveButton";
 
 	private static final String OPERATION_SAVE_DEFINITION = DOT_CLASS + "saveDefinition";
+	private static final String ID_TAB_PANEL = "tabPanel";
 
 	private LoadableModel<CertDefinitionDto> definitionModel;
 
@@ -143,11 +149,70 @@ public class PageCertDefinition extends PageAdminCertification {
 		add(mainForm);
 
 		initBasicInfoLayout(mainForm);
-
-		AceEditor editor = new AceEditor(ID_ACE_EDITOR, new PropertyModel<String>(definitionModel, CertDefinitionDto.F_XML));
-		mainForm.add(editor);
-
+		initTabs(mainForm);
 		initButtons(mainForm);
+	}
+
+	private void initTabs(Form mainForm) {
+
+		List<ITab> tabs = new ArrayList<>();
+		tabs.add(new AbstractTab(createStringResource("PageCertDefinition.scopeDefinition")) {
+			@Override
+			public WebMarkupContainer getPanel(String panelId) {
+				return new DefinitionScopePanel(panelId, definitionModel);
+			}
+		});
+		tabs.add(new AbstractTab(createStringResource("PageCertDefinition.stagesDefinition")) {
+			@Override
+			public WebMarkupContainer getPanel(String panelId) {
+				return new DefinitionStagesPanel(panelId, definitionModel);
+			}
+		});
+
+		tabs.add(new AbstractTab(createStringResource("PageCertDefinition.campaigns")) {
+			@Override
+			public WebMarkupContainer getPanel(String panelId) {
+				// TODO campaigns panel (extract from PageCertCampaigns)
+				return new WebMarkupContainer(panelId);
+			}
+		});
+		tabs.add(new AbstractTab(createStringResource("PageCertDefinition.xmlDefinition")) {
+			@Override
+			public WebMarkupContainer getPanel(String panelId) {
+				return new DefinitionXmlPanel(panelId, definitionModel);
+			}
+		});
+
+		// copied from somewhere ... don't understand it yet ;)
+		TabbedPanel tabPanel = new TabbedPanel(ID_TAB_PANEL, tabs) {
+			@Override
+			protected WebMarkupContainer newLink(String linkId, final int index) {
+				return new AjaxSubmitLink(linkId) {
+
+					@Override
+					protected void onError(AjaxRequestTarget target,
+										   org.apache.wicket.markup.html.form.Form<?> form) {
+						super.onError(target, form);
+						target.add(getFeedbackPanel());
+					}
+
+					@Override
+					protected void onSubmit(AjaxRequestTarget target,
+											org.apache.wicket.markup.html.form.Form<?> form) {
+						super.onSubmit(target, form);
+
+						setSelectedTab(index);
+						if (target != null) {
+							target.add(findParent(TabbedPanel.class));
+						}
+					}
+
+				};
+			}
+		};
+		tabPanel.setOutputMarkupId(true);
+
+		mainForm.add(tabPanel);
 	}
 
 	private void initBasicInfoLayout(Form mainForm) {
