@@ -608,10 +608,10 @@ public class ObjectRetriever {
             session = transactionHelper.beginReadOnlyTransaction();
             RQuery rQuery;
             if (isUseNewQueryInterpreter(query)) {
-                QueryEngine engine = new QueryEngine(getConfiguration(), prismContext);
+                QueryEngine2 engine = new QueryEngine2(getConfiguration(), prismContext);
                 rQuery = engine.interpret(query, type, options, false, session);
             } else {
-                QueryEngine2 engine = new QueryEngine2(getConfiguration(), prismContext);
+                QueryEngine engine = new QueryEngine(getConfiguration(), prismContext);
                 rQuery = engine.interpret(query, type, options, false, session);
             }
 
@@ -821,7 +821,8 @@ main:       for (;;) {
     }
 
     private boolean isUseNewQueryInterpreter(ObjectQuery query) {
-        return query == null || query.isUseNewQueryInterpreter();
+        //return query == null || query.isUseNewQueryInterpreter();
+        return true;
     }
 
 
