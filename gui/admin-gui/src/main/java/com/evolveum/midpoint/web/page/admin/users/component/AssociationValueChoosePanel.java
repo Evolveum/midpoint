@@ -11,8 +11,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ObjectSelectionPage;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ObjectSelectionPanel;
@@ -27,7 +26,6 @@ import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -58,8 +56,8 @@ public class AssociationValueChoosePanel <T, C extends ObjectType> extends Simpl
     private static final String ID_ADD = "add";
     private static final String ID_REMOVE = "remove";
     private static final String ID_BUTTON_GROUP = "buttonGroup";
-//    private static final String ID_EDIT = "edit";
-private IModel<ValueWrapper> model;
+    private static final String ID_EDIT = "edit";
+    private IModel<ValueWrapper> model;
 
     protected static final String MODAL_ID_OBJECT_SELECTION_POPUP = "objectSelectionPopup";
 
@@ -96,14 +94,15 @@ private IModel<ValueWrapper> model;
         FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK, new ComponentFeedbackMessageFilter(text));
         textWrapper.add(feedback);
 
-//        AjaxLink edit = new AjaxLink(ID_EDIT) {
-//
-//            @Override
-//            public void onClick(AjaxRequestTarget target) {
-//                editValuePerformed(values, target);
-//            }
-//        };
-//        textWrapper.add(edit);
+        AjaxLink edit = new AjaxLink(ID_EDIT) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                editValuePerformed(target);
+            }
+        };
+        edit.setVisible(true);
+        textWrapper.add(edit);
         add(textWrapper);
 
         initDialog(type, values);
@@ -114,26 +113,12 @@ private IModel<ValueWrapper> model;
 //	        return ty;
 //	    }
 
-    protected void replaceIfEmpty(Object object) {
-        T old = getModelObject();
-        ObjectReferenceType ort = ObjectTypeUtil.createObjectRef((ObjectType) object);
-        ort.setTargetName(((ObjectType) object).getName());
-        if (old instanceof PrismPropertyValue) {      // let's assume we are working with associations panel
-            IModel<T> modelT = getModel();
-            T objectT = modelT.getObject();
-            if (objectT == null){
-
-            }
-
-            ShadowType shadowType = (ShadowType) object;
-
-            PrismProperty newValue = (PrismProperty)shadowType.asPrismObject().getValue().getItems().get(0);
-            PrismPropertyValue ppv = (PrismPropertyValue)newValue.getValues().get(0);
-            //TODO
-            getModel().setObject((T)ppv);
-        } else {
-            getModel().setObject((T) ort.asReferenceValue());
-        }
+    protected void replace(Object object) {
+        //TODO  be careful , non systematic hack
+        ShadowType shadowType = (ShadowType) object;
+        PrismProperty newValue = (PrismProperty) shadowType.asPrismObject().getValue().getItems().get(0);
+        PrismPropertyValue ppv = (PrismPropertyValue) newValue.getValues().get(0);
+        getModel().setObject((T) ppv);
     }
 
     protected void initDialog(final Class<C> type, List<PrismPropertyValue> values) {
@@ -295,14 +280,7 @@ private IModel<ValueWrapper> model;
         ModalWindow window = (ModalWindow) get(MODAL_ID_OBJECT_SELECTION_POPUP);
         window.close(target);
 
-        ValueWrapper wrapper = model.getObject();
-        ItemWrapper propertyWrapper = wrapper.getItem();
-        propertyWrapper.addValue();
-
-        ListView parent = findParent(ListView.class).findParent(ListView.class);
-        target.add(parent.getParent());
-
-            replaceIfEmpty(object);
+        replace(object);
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("New object instance has been added to the model.");

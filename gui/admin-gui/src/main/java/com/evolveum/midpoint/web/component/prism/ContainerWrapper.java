@@ -27,21 +27,12 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -654,11 +645,15 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 		return null;
 	}
 
-	@Override
-	public void addValue() {
-		// TODO Auto-generated method stub
+    //TODO add new PrismContainerValue to association container
+    public void addValue() {
+        getItems().add(createItem());
+    }
 
-	}
+    public ItemWrapper createItem() {
+        ValueWrapper wrapper = new ValueWrapper(this, new PrismPropertyValue(null), ValueStatus.ADDED);
+        return wrapper.getItem();
+    }
 
 	@Override
 	public String debugDump() {

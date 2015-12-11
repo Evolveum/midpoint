@@ -26,15 +26,11 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.users.component.AssociationValueChoosePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.ClassUtils;
@@ -44,13 +40,11 @@ import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTextField;
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
@@ -80,7 +74,6 @@ import com.evolveum.midpoint.web.component.input.AutoCompleteTextPanel;
 import com.evolveum.midpoint.web.component.input.DatePanel;
 import com.evolveum.midpoint.web.component.input.PasswordPanel;
 import com.evolveum.midpoint.web.component.input.TextAreaPanel;
-import com.evolveum.midpoint.web.component.input.TextDetailsPanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.input.TriStateComboPanel;
 import com.evolveum.midpoint.web.component.input.UploadDownloadPanel;
@@ -149,11 +142,7 @@ public class PrismValuePanel extends Panel {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 Component inputPanel = this.getParent().get(ID_INPUT);
-                if (inputPanel instanceof AssociationValueChoosePanel) {
-                    ((AssociationValueChoosePanel)inputPanel).editValuePerformed(target);
-                } else {
-                    addValue(target);
-                }
+                addValue(target);
             }
         };
         addButton.add(new VisibleEnableBehaviour() {
@@ -746,10 +735,15 @@ public class PrismValuePanel extends Panel {
 	}
 
 	private void addValue(AjaxRequestTarget target) {
+        Component inputPanel = this.get(ID_VALUE_CONTAINER).get(ID_INPUT);
         ValueWrapper wrapper = model.getObject();
         ItemWrapper propertyWrapper = wrapper.getItem();
-        propertyWrapper.addValue();
-
+        if (inputPanel instanceof AssociationValueChoosePanel) {
+            //TODO add new PrismContainerValue
+           propertyWrapper.getContainer().addValue();
+        } else {
+            propertyWrapper.addValue();
+        }
         ListView parent = findParent(ListView.class);
         target.add(parent.getParent());
     }
@@ -804,7 +798,7 @@ public class PrismValuePanel extends Panel {
             ObjectFilter andFilter = AndFilter.createAnd(
                     EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, objectClass.getRealValue()),
                     EqualFilter.createEqual(ShadowType.F_KIND, ShadowType.class, prismContext, kind.getRealValue()),
-                    EqualFilter.createEqual(ShadowType.F_INTENT, ShadowType.class, prismContext, intent.getRealValue()),
+//                    EqualFilter.createEqual(ShadowType.F_INTENT, ShadowType.class, prismContext, intent.getRealValue()),
                     RefFilter.createReferenceEqual(new ItemPath(ShadowType.F_RESOURCE_REF), ShadowType.class, prismContext, resource.getOid()));
             ObjectQuery query = ObjectQuery.createObjectQuery(andFilter);
             return query;

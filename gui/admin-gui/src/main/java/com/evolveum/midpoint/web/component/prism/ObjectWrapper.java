@@ -581,19 +581,31 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 
 		for (ContainerWrapper containerWrapper : getContainers()) {
             //create ContainerDelta for association container
+            //TODO create correct procession for association container data
+            //according to its structure
             if (containerWrapper.getItemDefinition().getName().equals(ShadowType.F_ASSOCIATION)) {
                 ContainerDelta containerDelta = ContainerDelta.createDelta(ShadowType.F_ASSOCIATION, containerWrapper.getItemDefinition());
                 List<ItemWrapper> itemsList = (List<ItemWrapper>) containerWrapper.getItems();
+                //TODO how to get the correct item (instead of index)?
                 int index = 0;
                 for (ItemWrapper vals : itemsList) {
+                    List<ValueWrapper> valuesList = (List<ValueWrapper>) itemsList.get(index).getValues();
                     if (vals instanceof PropertyWrapper) {
                         PropertyWrapper assocValue =(PropertyWrapper) vals;
-                        if ((assocValue).getStatus() == ValueStatus.DELETED) {
+                        if (assocValue.getStatus() == ValueStatus.DELETED) {
                             PrismContainer prismContainer = containerWrapper.getItem();
                             List<PrismContainerValue> containerValues = prismContainer.getValues();
                             for (PrismContainerValue containerValue : containerValues){
                                 if (containerValues.indexOf(containerValue) == index){
-                                    containerDelta.addValueToDelete(containerValue);
+                                    containerDelta.addValueToDelete(containerValue.clone());
+                                }
+                            }
+                        } else if (assocValue.getStatus().equals(ValueStatus.ADDED)){
+                           PrismContainer prismContainer = containerWrapper.getItem();
+                            List<PrismContainerValue> containerValues = prismContainer.getValues();
+                            for (PrismContainerValue containerValue : containerValues){
+                                if (containerValues.indexOf(containerValue) == index){
+                                    containerDelta.addValueToAdd(containerValue.clone());
                                 }
                             }
                         }
