@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -26,6 +27,7 @@ import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import java.io.Serializable;
 
@@ -77,5 +79,24 @@ public class CertDefinitionDto implements Serializable {
 
     public AccessCertificationDefinitionType getDefinition() {
         return definition;
+    }
+
+    public void setDefinition(AccessCertificationDefinitionType definition) {
+        this.definition = definition;
+    }
+
+    public void setOwnerName(String ownerName) {
+//        definition.setOwnerRef();
+    }
+
+    public void setName(String name){
+        PolyStringType namePolyString  = new PolyStringType(name);
+        definition.setName(namePolyString);
+        String test = "";
+        test.substring(0,0);
+    }
+
+    public void setDescription(String description){
+        definition.setDescription(description);
     }
 }

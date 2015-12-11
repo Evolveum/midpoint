@@ -27,15 +27,27 @@
                 <table class="table table-striped">
                     <tr>
                         <td><wicket:message key="PageCertDefinition.name"/></td>
-                        <td><div wicket:id="name" /></td>   <!-- TODO make editable -->
+                        <td>
+                            <div class="col-md-8">
+                            <input type="text" class="form-control input-sm" wicket:id="name"/>
+                        </div>
+                        </td>
                     </tr>
                     <tr>
                         <td><wicket:message key="PageCertDefinition.description"/></td>
-                        <td><div wicket:id="description" /></td>  <!-- TODO make editable -->
+                        <td>
+                            <div class="col-md-8">
+                                <input type="text" class="form-control input-sm" wicket:id="description"/>
+                            </div>
+                        </td>
                     </tr>
                     <tr>
                         <td><wicket:message key="PageCertDefinition.owner"/></td>
-                        <td><div wicket:id="owner" /></td> <!-- TODO make editable -->
+                        <td>
+                            <div class="col-md-8">
+                                <input type="text" class="form-control input-sm" wicket:id="owner"/>
+                            </div>
+                        </td>
                     </tr>
                     <tr>
                         <td><wicket:message key="PageCertDefinition.numberOfStages"/></td>

@@ -35,6 +35,7 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertDefinitionDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -49,7 +50,7 @@ import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
@@ -216,9 +217,31 @@ public class PageCertDefinition extends PageAdminCertification {
 	}
 
 	private void initBasicInfoLayout(Form mainForm) {
-		mainForm.add(new Label(ID_NAME, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NAME)));
-		mainForm.add(new Label(ID_DESCRIPTION, new PropertyModel<>(definitionModel, CertDefinitionDto.F_DESCRIPTION)));
-		mainForm.add(new Label(ID_OWNER, new PropertyModel<>(definitionModel, CertDefinitionDto.F_OWNER_NAME)));
+        final TextField nameField = new TextField(ID_NAME, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NAME));
+        nameField.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isEnabled() {
+                return true;
+            }
+        });
+        mainForm.add(nameField);
+
+        final TextField descriptionField = new TextField(ID_DESCRIPTION, new PropertyModel<>(definitionModel, CertDefinitionDto.F_DESCRIPTION));
+        descriptionField.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isEnabled() {
+                return true;
+            }
+        });
+        mainForm.add(descriptionField);
+
+        final TextField ownerNameField = new TextField(ID_OWNER, new PropertyModel<>(definitionModel, CertDefinitionDto.F_OWNER_NAME));
+        ownerNameField.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isEnabled() {
+                return true;
+            }
+        });		mainForm.add(ownerNameField);
 		mainForm.add(new Label(ID_NUMBER_OF_STAGES, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NUMBER_OF_STAGES)));
 	}
 
@@ -267,7 +290,7 @@ public class PageCertDefinition extends PageAdminCertification {
 				// TODO implement better
 				CertCampaignTypeUtil.checkStageDefinitionConsistency(newObject.asObjectable().getStageDefinition());
 
-				ObjectDelta<AccessCertificationDefinitionType> delta = oldObject.diff(newObject, true, true);
+				ObjectDelta<AccessCertificationDefinitionType> delta = newObject.diff(oldObject, true, true);
 
 				if (delta.getPrismContext() == null) {
 					LOGGER.warn("No prism context in delta {} after diff, adding it", delta);
