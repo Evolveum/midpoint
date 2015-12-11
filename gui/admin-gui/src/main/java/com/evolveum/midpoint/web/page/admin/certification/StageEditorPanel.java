@@ -175,11 +175,11 @@ public class StageEditorPanel extends SimplePanel<AssignmentEditorDto> {
 //        Label nameLabel = new Label(ID_NAME_LABEL, createAssignmentNameLabelModel());
 //        name.add(nameLabel);
 
-        WebMarkupContainer main = new WebMarkupContainer(ID_MAIN);
-        main.setOutputMarkupId(true);
-        add(main);
-
         WebMarkupContainer body = new WebMarkupContainer(ID_BODY);
+        body.setOutputMarkupId(true);
+        add(body);
+
+        WebMarkupContainer main = new WebMarkupContainer(ID_MAIN);
         body.add(new VisibleEnableBehaviour() {
 
             @Override
@@ -189,7 +189,7 @@ public class StageEditorPanel extends SimplePanel<AssignmentEditorDto> {
 //                return !editorDto.isMinimized();
             }
         });
-        main.add(body);
+        body.add(main);
 
 //        initBodyLayout(body);
     }

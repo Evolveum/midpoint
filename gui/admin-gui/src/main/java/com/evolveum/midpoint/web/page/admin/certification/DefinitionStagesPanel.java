@@ -38,7 +38,6 @@ public class DefinitionStagesPanel extends SimplePanel<CertDefinitionDto> {
 
     public DefinitionStagesPanel(String id, IModel<CertDefinitionDto> model) {
         super(id, model);
-        initLayout();
     }
 
     @Override

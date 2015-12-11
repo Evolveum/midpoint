@@ -32,7 +32,6 @@ public class DefinitionXmlPanel extends SimplePanel<CertDefinitionDto> {
 
     public DefinitionXmlPanel(String id, IModel<CertDefinitionDto> model) {
         super(id, model);
-        initLayout();
     }
 
     @Override
