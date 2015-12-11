@@ -72,6 +72,8 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentTableDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
+import com.evolveum.midpoint.web.component.detailspanel.AbstractObjectDetailsPanel;
+import com.evolveum.midpoint.web.component.detailspanel.AbstractRoleDetailsPanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -87,6 +89,7 @@ import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.PageAdminAbstractRole;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
@@ -128,7 +131,6 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 		initialize(null);
 	}
 
-	// todo improve [erik]
 	public PageOrgUnit(final PrismObject<OrgType> unitToEdit) {
 		initialize(unitToEdit);
 	}
@@ -138,47 +140,14 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 		setPreviousPage(previousPage);
 		initialize(null);
 	}
-
-
-
 	
-
-
-	private IModel<String> createStyleClassModel(final IModel<PropertyWrapper> wrapper) {
-		return new AbstractReadOnlyModel<String>() {
-
-			@Override
-			public String getObject() {
-				PropertyWrapper property = wrapper.getObject();
-				return property.isVisible() ? "visible" : null;
-			}
-		};
-	}
-
-
-	
-	protected void setSpecificResponsePage() {
-		if (getSessionStorage().getPreviousPage() != null){
-			goBack(getSessionStorage().getPreviousPage());
-		} else {
-			goBack(PageOrgTree.class);
-		}
-	}
-
-
-	protected void reviveCustomModels() throws SchemaException {
-
-	}
-
 	@Override
-	protected OrgType createNewFocus() {
+	protected OrgType createNewObject() {
 		return new OrgType();
-	}
-
-	
+	}	
 
 	@Override
-	protected Class getCompileTimeClass() {
+	protected Class<OrgType> getCompileTimeClass() {
 		return OrgType.class;
 	}
 
@@ -188,16 +157,18 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 	}
 
 	@Override
-	protected void initTabs(List<ITab> tabs) {
-		super.initTabs(tabs);
-		
-	}
-	
-	@Override
 	protected FocusSummaryPanel<OrgType> createSummaryPanel() {
-		
-    	return new OrgSummaryPanel(ID_SUMMARY_PANEL, getFocusModel());
-    	
+    	return new OrgSummaryPanel(ID_SUMMARY_PANEL, getObjectModel());
     }
+
+	@Override
+	protected AbstractObjectDetailsPanel<OrgType> createMainPanel(String id) {
+		return new AbstractRoleDetailsPanel<>(id, getObjectModel(), getProjectionModel(), getInducementsModel(), this);
+	}
+
+	@Override
+	protected PageBase getDefaultBackPage() {
+		return new PageOrgTree();
+	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,22 +83,24 @@ public class ProgressReporter implements Serializable {
     private int refreshInterval;
     private boolean asynchronousExecution;
     private boolean abortEnabled;
+    
+    public ProgressPanel getProgressPanel() {
+		return progressPanel;
+	}
 
-    /**
+	/**
      * Creates and initializes a progress reporter instance. Should be called during initialization
      * of respective wicket page.
      *
      * @param parentPage The parent page (user, org, role, ...)
-     * @param mainForm A form onto which progress panel should be put
      * @param id Wicket ID of the progress panel
      * @return Progress reporter instance
      */
-    public static ProgressReporter create(ProgressReportingAwarePage parentPage, Form mainForm, String id) {
+    public static ProgressReporter create(String id, ProgressReportingAwarePage parentPage) {
         ProgressReporter reporter = new ProgressReporter();
         reporter.progressPanel = new ProgressPanel(id, new Model<>(new ProgressDto()));
         reporter.progressPanel.setOutputMarkupId(true);
         reporter.progressPanel.hide();
-        mainForm.add(reporter.progressPanel);
 
         WebApplicationConfiguration config = parentPage.getWebApplicationConfiguration();
         reporter.refreshInterval = config.getProgressRefreshInterval();

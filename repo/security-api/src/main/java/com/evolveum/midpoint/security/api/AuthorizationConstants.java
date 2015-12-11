@@ -273,8 +273,6 @@ public class AuthorizationConstants {
 	public static final QName AUTZ_UI_PERMIT_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "permitAll");
 	public static final String AUTZ_UI_PERMIT_ALL_URL = QNameUtil.qNameToUri(AUTZ_UI_PERMIT_ALL_QNAME);
     public static final String AUTZ_UI_PERMIT_ALL = NS_AUTHORIZATION + "#permitAll";
-	
-	
 
 	
 	//About
@@ -283,5 +281,8 @@ public class AuthorizationConstants {
 //	
 //	public static final QName AUTZ_UI_ABOUT_SYSTEM_QNAME = new QName(NS_AUTHORIZATION, "abountSystem");
 //	public static final String AUTZ_UI_ABOUT_SYSTEM_URL = QNameUtil.qNameToUri(AUTZ_UI_ABOUT_SYSTEM_QNAME);
-	
+
+    // Does not really belong here. But there is no better place now.
+    public static final String ANONYMOUS_USER_PRINCIPAL = "anonymousUser";
+    
 }

@@ -16,8 +16,23 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
-<wicket:extend>
+<wicket:panel>
+	<form wicket:id="mainForm" class="form-horizontal">
+	
+		<div wicket:id="tabPanel" class="nav-tabs-custom" />
+   	    
    	    <wicket:child />
-</wicket:extend>
+
+      	<div style="margin: 20px 0;" class="form-group" wicket:id="executeOptions" />
+
+   	    <div class="main-button-bar">       
+            <span class="button-group">
+                <a class="btn btn-default" wicket:id="back"/>
+            </span>
+            <a class="btn btn-primary" wicket:id="save"/>
+            <!-- <a class="btn btn-danger" wicket:id="abort"/>  -->
+        </div>
+	</form>
+</wicket:panel>
 </body>
 </html>

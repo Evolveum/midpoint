@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,17 +18,27 @@ package com.evolveum.midpoint.web.component.form;
 
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.MarkupStream;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.Response;
+
+import com.evolveum.midpoint.web.page.PageTemplate;
 
 /**
  *  @author shood
- * */
-public class Form<T> extends org.apache.wicket.markup.html.form.Form<T>{
+ *  @author Radovan Semancik
+ */
+public class Form<T> extends org.apache.wicket.markup.html.form.Form<T> {
 
-    private static final String ID_CONTAINER = "fake";
+    private boolean addFakeInputFields = false;
 
-    public Form(String id){
-        this(id, false);
+    public Form(String id) {
+    	super(id);
+    }
+    
+    public Form(String id, final IModel<T> model) {
+    	super(id);
     }
 
     /**
@@ -37,18 +47,29 @@ public class Form<T> extends org.apache.wicket.markup.html.form.Form<T>{
      *  &lt;input type="password" style="display:none"&gt;
      *
      *  To overcome Chrome auto-completion of password and other form fields
-     * */
+     */
     public Form(String id, boolean addFakeInputFields){
         super(id);
+        this.addFakeInputFields = addFakeInputFields;
     }
 
-    @Override
+    public boolean isAddFakeInputFields() {
+		return addFakeInputFields;
+	}
+
+	public void setAddFakeInputFields(boolean addFakeInputFields) {
+		this.addFakeInputFields = addFakeInputFields;
+	}
+
+	@Override
     public void onComponentTagBody(MarkupStream markupStream, ComponentTag openTag) {
         super.onComponentTagBody(markupStream, openTag);
 
-        final Response response = getResponse();
-
-        response.write("<input style=\"display:none\">\n" +
+        if (addFakeInputFields) {
+        	final Response response = getResponse();
+        	response.write("<input style=\"display:none\">\n" +
                 "<input type=\"password\" style=\"display:none\">");
+        }
     }
+	
 }
