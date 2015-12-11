@@ -30,7 +30,6 @@ public class DefinitionScopePanel extends SimplePanel<CertDefinitionDto> {
 
     public DefinitionScopePanel(String id, IModel<CertDefinitionDto> model) {
         super(id, model);
-        initLayout();
     }
 
     @Override
