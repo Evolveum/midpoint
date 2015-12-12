@@ -105,7 +105,7 @@ public class ValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
 		 	  ObjectReferenceType ort = ObjectTypeUtil.createObjectRef((ObjectType) object);
 		 	  ort.setTargetName(((ObjectType) object).getName());
 			  getModel().setObject((T)ort.asReferenceValue());
-		 
+
 	  }
 
 	protected void initDialog(final Class<C> type, List<PrismReferenceValue> values) {
@@ -244,7 +244,7 @@ public class ValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
 				} else if (ort instanceof ObjectViewDto) {
 					return ((ObjectViewDto) ort).getName();
 				}
-				return ort.toString();
+				return ort != null ? ort.toString() : null;
 				
 			}
 		};
