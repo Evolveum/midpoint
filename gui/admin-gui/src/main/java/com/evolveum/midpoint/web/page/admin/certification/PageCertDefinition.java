@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.certification;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
+import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageTemplate;
@@ -42,7 +44,9 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
@@ -51,6 +55,7 @@ import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
@@ -79,6 +84,10 @@ public class PageCertDefinition extends PageAdminCertification {
 	private static final String ID_DESCRIPTION = "description";
 	private static final String ID_OWNER = "owner";
 	private static final String ID_NUMBER_OF_STAGES = "numberOfStages";
+	private static final String ID_REVIEW_STAGE_CAMPAIGNS = "campaignsInReviewStage";
+	private static final String ID_CAMPAIGNS_TOTAL = "campaignsTotal";
+	private static final String ID_LAST_STARTED = "campaignLastStarted";
+	private static final String ID_LAST_CLOSED = "campaignLastClosed";
 
 	private static final String ID_BACK_BUTTON = "backButton";
 	private static final String ID_SAVE_BUTTON = "saveButton";
@@ -235,14 +244,29 @@ public class PageCertDefinition extends PageAdminCertification {
         });
         mainForm.add(descriptionField);
 
-        final TextField ownerNameField = new TextField(ID_OWNER, new PropertyModel<>(definitionModel, CertDefinitionDto.F_OWNER_NAME));
+        PropertyModel ownerModel = new PropertyModel<>(definitionModel, CertDefinitionDto.F_OWNER);
+
+        List<PrismReferenceValue> values = new ArrayList<>();
+        values.add(definitionModel.getObject().getOwner());
+
+
+        final ValueChoosePanel ownerNameField = new ValueChoosePanel(ID_OWNER, ownerModel,
+                values,false, UserType.class);
         ownerNameField.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isEnabled() {
                 return true;
             }
-        });		mainForm.add(ownerNameField);
-		mainForm.add(new Label(ID_NUMBER_OF_STAGES, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NUMBER_OF_STAGES)));
+        });
+        mainForm.add(ownerNameField);
+
+        mainForm.add(new Label(ID_NUMBER_OF_STAGES, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NUMBER_OF_STAGES)));
+        mainForm.add(new Label(ID_REVIEW_STAGE_CAMPAIGNS, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NUMBER_OF_STAGES)));
+        mainForm.add(new Label(ID_CAMPAIGNS_TOTAL, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NUMBER_OF_STAGES)));
+        mainForm.add(new Label(ID_LAST_STARTED, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NUMBER_OF_STAGES)));
+        mainForm.add(new Label(ID_LAST_CLOSED, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NUMBER_OF_STAGES)));
+
+
 	}
 
 	private void initButtons(final Form mainForm) {
