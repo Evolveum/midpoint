@@ -20,10 +20,9 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.prism.polystring.PolyString;
+
 import java.io.File;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -83,6 +82,14 @@ public class ReportUtils {
         }
 
         return timestamp;
+    }
+
+    public static String prettyPrintForReport(XMLGregorianCalendar dateTime) {
+        if (dateTime == null) {
+            return "";
+        }
+        SimpleDateFormat formatDate = new SimpleDateFormat();
+        return formatDate.format(new Date(dateTime.toGregorianCalendar().getTimeInMillis()));
     }
 
     public static String getDateTime() {
@@ -213,9 +220,36 @@ public class ReportUtils {
     }
 
     public static String prettyPrintForReport(PrismReferenceValue prv) {
+        return prettyPrintForReport(prv, true);
+    }
+
+    public static String prettyPrintForReport(PrismReferenceValue prv, boolean showType) {
         StringBuilder sb = new StringBuilder();
-        sb.append(prettyPrintForReport(prv.getTargetType()));
-        sb.append(": ");
+        if (showType) {
+            sb.append(prettyPrintForReport(prv.getTargetType()));
+            sb.append(": ");
+        }
+        if (prv.getTargetName() != null) {
+            sb.append(prv.getTargetName());
+        } else {
+            sb.append(prv.getOid());
+        }
+        return sb.toString();
+    }
+
+    public static String prettyPrintForReport(ObjectReferenceType prv) {
+        return prettyPrintForReport(prv, true);
+    }
+
+    public static String prettyPrintForReport(ObjectReferenceType prv, boolean showType) {
+        if (prv == null) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        if (showType || prv.getTargetName() == null) {
+            sb.append(prettyPrintForReport(prv.getType()));
+            sb.append(": ");
+        }
         if (prv.getTargetName() != null) {
             sb.append(prv.getTargetName());
         } else {

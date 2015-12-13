@@ -23,6 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationRemediationStyleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
 
@@ -129,5 +130,64 @@ public class CertCampaignTypeUtil {
     // expects that the currentStageNumber is reasonable
     public static AccessCertificationStageType findCurrentStage(AccessCertificationCampaignType campaign) {
         return findStage(campaign, campaign.getStageNumber());
+    }
+
+    // active cases = cases that are to be responded to in this stage
+    public static int getActiveCases(List<AccessCertificationCaseType> caseList, int campaignStageNumber, AccessCertificationCampaignStateType state) {
+        int open = 0;
+        if (state == AccessCertificationCampaignStateType.IN_REMEDIATION || state == AccessCertificationCampaignStateType.CLOSED) {
+            campaignStageNumber = campaignStageNumber - 1;          // move to last campaign state
+        }
+        for (AccessCertificationCaseType aCase : caseList) {
+            if (aCase.getCurrentStageNumber() != campaignStageNumber) {
+                continue;
+            }
+            open++;
+        }
+        return open;
+    }
+
+    // unanswered cases = cases where one or more answers from reviewers are missing
+    public static int getUnansweredCases(List<AccessCertificationCaseType> caseList, int campaignStageNumber, AccessCertificationCampaignStateType state) {
+        int unanswered = 0;
+        if (state == AccessCertificationCampaignStateType.IN_REMEDIATION || state == AccessCertificationCampaignStateType.CLOSED) {
+            campaignStageNumber = campaignStageNumber - 1;          // move to last campaign state
+        }
+        for (AccessCertificationCaseType aCase : caseList) {
+            if (aCase.getCurrentStageNumber() != campaignStageNumber) {
+                continue;
+            }
+            boolean done;
+            if (aCase.getReviewerRef().isEmpty()) {
+                done = false;       // no reviewers => this case cannot be 'answered' (points to a misconfiguration)
+            } else {
+                done = true;
+            }
+            // we assume that empty decision was created for each reviewer
+            for (AccessCertificationDecisionType decision : aCase.getDecision()) {
+                if (decision.getStageNumber() != aCase.getCurrentStageNumber()) {
+                    continue;
+                }
+                if (decision.getResponse() != null && decision.getResponse() != AccessCertificationResponseType.NO_RESPONSE) {
+                    continue;
+                }
+                done = false;
+                break;
+            }
+            if (!done) {
+                unanswered++;
+            }
+        }
+        return unanswered;
+    }
+
+    public static int getPercentComplete(List<AccessCertificationCaseType> caseList, int campaignStageNumber, AccessCertificationCampaignStateType state) {
+        int active = getActiveCases(caseList, campaignStageNumber, state);
+        if (active > 0) {
+            int unanswered = getUnansweredCases(caseList, campaignStageNumber, state);
+            return 100 * (active - unanswered) / active;
+        } else {
+            return 100;
+        }
     }
 }
