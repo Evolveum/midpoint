@@ -18,7 +18,12 @@ package com.evolveum.midpoint.web.page.admin.certification;
 
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertDefinitionDto;
+import com.evolveum.midpoint.web.page.admin.certification.dto.DefinitionScopeDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationScopeType;
+import org.apache.wicket.markup.html.form.TextArea;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -26,15 +31,36 @@ import org.apache.wicket.model.PropertyModel;
  * @author mederly
  */
 
-public class DefinitionScopePanel extends SimplePanel<CertDefinitionDto> {
+public class DefinitionScopePanel extends SimplePanel<DefinitionScopeDto> {
 
-    public DefinitionScopePanel(String id, IModel<CertDefinitionDto> model) {
+    IModel<DefinitionScopeDto> model;
+    private static final String ID_NAME = "name";
+    private static final String ID_DESCRIPTION = "description";
+
+    public DefinitionScopePanel(String id, IModel<DefinitionScopeDto> model) {
         super(id, model);
+        this.model = model;
     }
 
     @Override
     protected void initLayout() {
-//        AceEditor editor = new AceEditor(ID_ACE_EDITOR, new PropertyModel<String>(getModel(), CertDefinitionDto.F_XML));
-//        add(editor);
+        final TextField nameField = new TextField(ID_NAME, new PropertyModel<>(getModel(), DefinitionScopeDto.F_NAME));
+        nameField.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isEnabled() {
+                return true;
+            }
+        });
+        add(nameField);
+
+        final TextArea descriptionField = new TextArea(ID_DESCRIPTION, new PropertyModel<>(getModel(), DefinitionScopeDto.F_DESCRIPTION));
+        descriptionField.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isEnabled() {
+                return true;
+            }
+        });
+        add(descriptionField);
+
     }
 }
