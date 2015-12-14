@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -27,10 +28,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import java.io.Serializable;
@@ -46,8 +44,10 @@ public class CertDefinitionDto implements Serializable {
     public static final String F_NUMBER_OF_STAGES = "numberOfStages";
     public static final String F_XML = "xml";
     public static final String F_OWNER= "owner";
+    public static final String F_SCOPE_DEFINITION = "scopeDefinition";
 
     private AccessCertificationDefinitionType definition;           // TODO consider replacing this by constituent primitive data items
+    private DefinitionScopeDto definitionScopeDto = null;
     private String ownerName;
     private String xml;
     private PrismReferenceValue owner;
@@ -107,12 +107,48 @@ public class CertDefinitionDto implements Serializable {
     }
 
     public PrismReferenceValue getOwner() {
-        return definition.getOwnerRef().asReferenceValue();
+        return definition.getOwnerRef() != null ? definition.getOwnerRef().asReferenceValue() : null;
     }
 
     public void setOwner(PrismReferenceValue owner) {
         ObjectReferenceType ownerRef = new ObjectReferenceType();
         ownerRef.setupReferenceValue(owner);
         definition.setOwnerRef(ownerRef);
+    }
+
+    public DefinitionScopeDto getScopeDefinition() {
+        if (definitionScopeDto == null){
+            AccessCertificationAssignmentReviewScopeType scopeTypeObj = (AccessCertificationAssignmentReviewScopeType)definition.getScopeDefinition();
+            if (scopeTypeObj != null){
+                definitionScopeDto = new DefinitionScopeDto();
+                definitionScopeDto.setName(scopeTypeObj.getName());
+                definitionScopeDto.setDescription(scopeTypeObj.getDescription());
+                definitionScopeDto.setObjectType(scopeTypeObj.getObjectType());
+                definitionScopeDto.setSearchFilter(scopeTypeObj.getSearchFilter());
+                definitionScopeDto.setIncludeAssignments(scopeTypeObj.isIncludeAssignments() == null ? false : scopeTypeObj.isIncludeAssignments());
+                definitionScopeDto.setIncludeInducements(scopeTypeObj.isIncludeInducements() == null ? false : scopeTypeObj.isIncludeInducements());
+                definitionScopeDto.setIncludeResources(scopeTypeObj.isIncludeResources() == null ? false : scopeTypeObj.isIncludeResources());
+                definitionScopeDto.setIncludeOrgs(scopeTypeObj.isIncludeOrgs() == null ? false : scopeTypeObj.isIncludeOrgs());
+                definitionScopeDto.setEnabledItemsOnly(scopeTypeObj.isEnabledItemsOnly() == null ? false : scopeTypeObj.isEnabledItemsOnly());
+            }
+        }
+        return definitionScopeDto == null ? new DefinitionScopeDto() : definitionScopeDto;
+    }
+
+    public void setScopeDefinition(DefinitionScopeDto scopeType) {
+        AccessCertificationAssignmentReviewScopeType scopeTypeObj = null;
+        if (scopeType != null){
+            scopeTypeObj = new AccessCertificationAssignmentReviewScopeType();
+            scopeTypeObj.setName(definitionScopeDto.getName());
+            scopeTypeObj.setDescription(definitionScopeDto.getDescription());
+            scopeTypeObj.setObjectType(definitionScopeDto.getObjectType());
+            scopeTypeObj.setSearchFilter(definitionScopeDto.getSearchFilter());
+            scopeTypeObj.setIncludeAssignments(definitionScopeDto.isIncludeAssignments());
+            scopeTypeObj.setIncludeInducements(definitionScopeDto.isIncludeInducements());
+            scopeTypeObj.setIncludeResources(definitionScopeDto.isIncludeResources());
+            scopeTypeObj.setIncludeOrgs(definitionScopeDto.isIncludeOrgs());
+            scopeTypeObj.setEnabledItemsOnly(definitionScopeDto.isEnabledItemsOnly());
+        }
+        definition.setScopeDefinition(scopeTypeObj);
     }
 }

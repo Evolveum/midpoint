@@ -36,20 +36,22 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
+import com.evolveum.midpoint.web.component.form.multivalue.GenericMultiValueLabelEditPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertDefinitionDto;
+import com.evolveum.midpoint.web.page.admin.certification.dto.DefinitionScopeDto;
+import com.evolveum.midpoint.web.page.admin.roles.component.MultiplicityPolicyDialog;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -169,7 +171,7 @@ public class PageCertDefinition extends PageAdminCertification {
 		tabs.add(new AbstractTab(createStringResource("PageCertDefinition.scopeDefinition")) {
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
-				return new DefinitionScopePanel(panelId, definitionModel);
+				return new DefinitionScopePanel(panelId, new PropertyModel<DefinitionScopeDto>(definitionModel, CertDefinitionDto.F_SCOPE_DEFINITION));
 			}
 		});
 		tabs.add(new AbstractTab(createStringResource("PageCertDefinition.stagesDefinition")) {
@@ -235,7 +237,7 @@ public class PageCertDefinition extends PageAdminCertification {
         });
         mainForm.add(nameField);
 
-        final TextField descriptionField = new TextField(ID_DESCRIPTION, new PropertyModel<>(definitionModel, CertDefinitionDto.F_DESCRIPTION));
+        final TextArea descriptionField = new TextArea(ID_DESCRIPTION, new PropertyModel<>(definitionModel, CertDefinitionDto.F_DESCRIPTION));
         descriptionField.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isEnabled() {
@@ -251,13 +253,22 @@ public class PageCertDefinition extends PageAdminCertification {
 
 
         final ValueChoosePanel ownerNameField = new ValueChoosePanel(ID_OWNER, ownerModel,
-                values,false, UserType.class);
+                null,false, UserType.class){
+            @Override
+            protected void choosePerformed(AjaxRequestTarget target, ObjectType object) {
+                super.choosePerformed(target, object);
+
+                Component comp = this.get("textWrapper").get("text");
+                target.add(comp);
+            }
+            };
         ownerNameField.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isEnabled() {
                 return true;
             }
         });
+        ownerNameField.setOutputMarkupId(true);
         mainForm.add(ownerNameField);
 
         mainForm.add(new Label(ID_NUMBER_OF_STAGES, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NUMBER_OF_STAGES)));
