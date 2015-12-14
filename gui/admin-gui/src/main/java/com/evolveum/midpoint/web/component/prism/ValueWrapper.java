@@ -26,6 +26,8 @@ import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.commons.lang.Validate;
@@ -37,6 +39,8 @@ import java.io.Serializable;
  * @author lazyman
  */
 public class ValueWrapper<T> implements Serializable, DebugDumpable {
+	
+	private static final Trace LOGGER = TraceManager.getTrace(ValueWrapper.class);
 
     private ItemWrapper item;
     private PrismValue value;
@@ -141,6 +145,10 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
 
     public boolean isReadonly() {
         return item.isReadonly();
+    }
+    
+    public boolean isEmpty() {
+    	return value.isEmpty();
     }
 
     @Override

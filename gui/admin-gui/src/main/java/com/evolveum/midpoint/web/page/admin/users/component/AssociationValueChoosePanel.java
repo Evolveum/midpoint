@@ -24,16 +24,20 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ObjectSelectionPage;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ObjectSelectionPanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.roles.component.UserOrgReferenceChoosePanel;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -45,6 +49,7 @@ import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+import org.w3c.dom.Element;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -59,7 +64,7 @@ import java.util.List;
     // (for now ValueChoosePanel works only with PrismReferenceValue);
     //in future some super class is to be created to union the common
     // functionality of these 2 classes
-public class AssociationValueChoosePanel <T, C extends ObjectType> extends SimplePanel<T> {
+public class AssociationValueChoosePanel <C extends ObjectType> extends SimplePanel<PrismContainerValue<ShadowAssociationType>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssociationValueChoosePanel.class);
 
@@ -74,19 +79,19 @@ public class AssociationValueChoosePanel <T, C extends ObjectType> extends Simpl
     private static final String ID_EDIT = "edit";
     protected static final String MODAL_ID_OBJECT_SELECTION_POPUP = "objectSelectionPopup";
 
-    private IModel<ValueWrapper> model;
+    private IModel<ValueWrapper<PrismContainerValue<ShadowAssociationType>>> model;
     private ObjectQuery query = null;
 
-    public AssociationValueChoosePanel(String id, IModel<ValueWrapper> model, List<PrismPropertyValue> values, boolean required, Class<C> type,
+    public AssociationValueChoosePanel(String id, IModel<ValueWrapper<PrismContainerValue<ShadowAssociationType>>> model, List<PrismPropertyValue> values, boolean required, Class<C> type,
                                        ObjectQuery query){
-        super(id, (IModel<T>)new PropertyModel<>(model, "value"));
+        super(id, (IModel)new PropertyModel<>(model, "value"));
         this.model = model;
         this.query = query;
         setOutputMarkupId(true);
-        initLayout((IModel<T>)new PropertyModel<>(model, "value"), values, required, type);
+        initLayout((IModel)new PropertyModel<>(model, "value"), values, required, type);
     }
 
-    private void initLayout(final IModel<T> value, final List<PrismPropertyValue> values,
+    private void initLayout(final IModel<PrismContainerValue<ShadowAssociationType>> value, final List<PrismPropertyValue> values,
                             final boolean required, Class<C> type) {
 
 
@@ -114,7 +119,12 @@ public class AssociationValueChoosePanel <T, C extends ObjectType> extends Simpl
                 editValuePerformed(target);
             }
         };
-        edit.setVisible(true);
+        edit.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return model.getObject().isEmpty();
+            }
+        });
         textWrapper.add(edit);
         add(textWrapper);
 
@@ -122,16 +132,21 @@ public class AssociationValueChoosePanel <T, C extends ObjectType> extends Simpl
 
     }
 
-//	  protected T createNewEmptyItem() throws InstantiationException, IllegalAccessException {
-//	        return ty;
-//	    }
-
     protected void replace(Object object) {
-        //TODO  be careful , non systematic hack
+    	//TODO  be careful , non systematic hack
+    	LOGGER.debug("Replacing value of {} with {}", this, object);
         ShadowType shadowType = (ShadowType) object;
-        PrismProperty newValue = (PrismProperty) shadowType.asPrismObject().getValue().getItems().get(0);
-        PrismPropertyValue ppv = (PrismPropertyValue) newValue.getValues().get(0);
-        getModel().setObject((T) ppv);
+        PrismContainerValue<ShadowAssociationType> old = getModel().getObject();
+        ShadowAssociationType assocType = new ShadowAssociationType();
+        ObjectReferenceType shadowRef = new ObjectReferenceType();
+        shadowRef.setOid(shadowType.getOid());
+        shadowRef.asReferenceValue().setObject(shadowType.asPrismObject());
+		assocType.setShadowRef(shadowRef);
+		assocType.setName(model.getObject().getItem().getName());
+		LOGGER.debug("XXX {}", assocType);
+		PrismContainerValue<ShadowAssociationType> ppv = assocType.asPrismContainerValue();
+        getModel().setObject(ppv);
+        LOGGER.debug("Replaced value of {} with {} ({})", this, ppv, assocType);
     }
 
     protected void initDialog(final Class<C> type, List<PrismPropertyValue> values) {
@@ -261,20 +276,23 @@ public class AssociationValueChoosePanel <T, C extends ObjectType> extends Simpl
         return "col-md-offset-4";
     }
 
-    protected IModel<String> createTextModel(final IModel<T> model) {
+    protected IModel<String> createTextModel(final IModel<PrismContainerValue<ShadowAssociationType>> model) {
         return new AbstractReadOnlyModel<String>() {
 
             @Override
             public String getObject() {
-                T ort = (T) model.getObject();
-
-                if (ort instanceof PrismReferenceValue){
-                    PrismReferenceValue prv = (PrismReferenceValue) ort;
-                    return prv == null ? null : (prv.getTargetName() != null ? prv.getTargetName().getOrig() : prv.getOid());
-                } else if (ort instanceof ObjectViewDto) {
-                    return ((ObjectViewDto) ort).getName();
-                }
-                return ort.toString();
+            	PrismContainerValue<ShadowAssociationType> cval = model.getObject();
+            	if (cval == null || cval.isEmpty()) {
+            		return "";
+            	}
+            	PrismReferenceValue shadowRef = cval.findReference(ShadowAssociationType.F_SHADOW_REF).getValue();
+            	if (shadowRef.getObject() == null) {
+            		ShadowIdentifiersType identifiers = cval.asContainerable().getIdentifiers();
+            		Element e = (Element) identifiers.getAny().get(0);
+            		return e.getTextContent();
+            	} else {
+            		return shadowRef.getObject().getName().toString();
+            	}
 
             }
         };
@@ -303,24 +321,14 @@ public class AssociationValueChoosePanel <T, C extends ObjectType> extends Simpl
 
     protected boolean isObjectUnique(C object) {
 
-        // for(T o: ){
-        T old = getModelObject();
-        if (old instanceof PrismPropertyValue){
-            if (old == null || ((PrismPropertyValue)old).isEmpty()){
-                return true;
-            }
-            if (((PrismPropertyValue)old).getValue().equals(object.asPrismObject().getValue())) {
-                return false;
-            }
-        } else {
-            if (old == null || ((PrismReferenceValue)old).isEmpty()){
-                return true;
-            }
-            if (((PrismReferenceValue)old).getOid().equals(object.getOid())) {
-                return false;
-            }}
+    	PrismContainerValue<ShadowAssociationType> old = getModelObject();
+        if (old == null || old.isEmpty()){
+            return true;
+        }
+        if (old.asContainerable().getShadowRef().getOid().equals(object.getOid())) {
+            return false;
+        }
 
-        // }
         return true;
     }
 

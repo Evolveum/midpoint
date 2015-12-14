@@ -106,6 +106,7 @@ public class PrismValuePanel extends Panel {
     private static final String ID_VALUE_CONTAINER = "valueContainer";
     private static final String DOT_CLASS = PrismValuePanel.class.getName() + ".";
     private static final String OPERATION_LOAD_ASSOC_SHADOWS =  DOT_CLASS + "loadAssociationShadows";
+    
     private static final Trace LOGGER = TraceManager.getTrace(PrismValuePanel.class);
 
     private IModel<ValueWrapper> model;
@@ -303,10 +304,6 @@ public class PrismValuePanel extends Panel {
 
     private boolean isAddButtonVisible() {
         Component inputPanel = this.get(ID_VALUE_CONTAINER).get(ID_INPUT);
-        if (inputPanel instanceof AssociationValueChoosePanel) {
-            return isAssocAddButtonVisible();
-        }
-
         ValueWrapper valueWrapper = model.getObject();
 
         if (valueWrapper.isReadonly()){
@@ -638,6 +635,14 @@ public class PrismValuePanel extends Panel {
 	            
 	            ShadowType shadowType = ((ShadowType)itemWrapper.getContainer().getObject().getObject().asObjectable());
 	            PrismObject<ResourceType> resource = shadowType.getResource().asPrismObject();
+	            // HACK. The revive should not be here. Revive is no good. The next use of the resource will
+	            // cause parsing of resource schema. We need some centralized place to maintain live cached copies
+	            // of resources.
+	            try {
+					resource.revive(prismContext);
+				} catch (SchemaException e) {
+					throw new SystemException(e.getMessage(), e);
+				}
 	            RefinedResourceSchema refinedSchema;
 	            CompositeRefinedObjectClassDefinition rOcDef;
 	            try {
@@ -758,12 +763,8 @@ public class PrismValuePanel extends Panel {
         Component inputPanel = this.get(ID_VALUE_CONTAINER).get(ID_INPUT);
         ValueWrapper wrapper = model.getObject();
         ItemWrapper propertyWrapper = wrapper.getItem();
-        if (inputPanel instanceof AssociationValueChoosePanel) {
-            //TODO add new PrismContainerValue
-           propertyWrapper.getContainer().addValue();
-        } else {
-            propertyWrapper.addValue();
-        }
+        LOGGER.debug("Adding value of {}", propertyWrapper);
+        propertyWrapper.addValue();
         ListView parent = findParent(ListView.class);
         target.add(parent.getParent());
     }
@@ -771,6 +772,7 @@ public class PrismValuePanel extends Panel {
     private void removeValue(AjaxRequestTarget target) {
         ValueWrapper wrapper = model.getObject();
         ItemWrapper propertyWrapper = wrapper.getItem();
+        LOGGER.debug("Removing value of {}", propertyWrapper);
 
         List<ValueWrapper> values = propertyWrapper.getValues();
         Component inputPanel = this.get(ID_VALUE_CONTAINER).get(ID_INPUT);
@@ -827,28 +829,6 @@ public class PrismValuePanel extends Panel {
             return null;
         }
 
-    }
-
-    //show Add button only for the last association container item
-    private boolean isAssocAddButtonVisible(){
-        ItemWrapper itemWrapper = model.getObject().getItem();
-        ContainerWrapper containerWrapper = itemWrapper.getContainer();
-
-        List<ItemWrapper> associationsList = containerWrapper.getItems();
-        int associationsListSize = associationsList.size();
-        int associationIndex = -1;
-        if (associationsList != null) {
-            for (ItemWrapper assocItemWrapper : associationsList){
-                if (itemWrapper.equals(assocItemWrapper)){
-                    associationIndex = associationsList.indexOf(assocItemWrapper);
-                    break;
-                }
-            }
-        }
-        if (associationsListSize - 1 == associationIndex){
-            return true;
-        }
-        return false;
     }
 
 }

@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -19,17 +19,16 @@
 <wicket:panel>
     <div wicket:id="objectSelectionPopup" />
 
-          <div wicket:id="textWrapper">
-            <div class="input-group input-group-sm">
-                <span class="input-group-btn">
-                    <button wicket:id="edit" class="btn btn-primary" type="button">
-                        <wicket:message key="PageBase.button.edit" />
-                    </button>
-                </span>
-                <input type="text" class="form-control input-sm" wicket:id="text" />
-                <span class="text-danger" wicket:id="feedback" />
-            </div>
-        </div>
- 
+     <div wicket:id="textWrapper">
+       <div class="input-group input-group-sm">
+           <input type="text" class="form-control input-sm" wicket:id="text" />
+           <span class="input-group-btn">
+               <button wicket:id="edit" class="btn btn-primary" type="button">
+                   <wicket:message key="PageBase.button.edit" />
+               </button>
+           </span>
+           <span class="text-danger" wicket:id="feedback" />
+       </div>
+   </div> 
 </wicket:panel>
 </html>

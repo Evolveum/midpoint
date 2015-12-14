@@ -74,7 +74,7 @@ public class PageError extends PageBase {
         
         if (ex == null) {
         	// Log this on debug level, this is normal during application initialization
-        	LOGGER.debug("Creating error page for code {}, no exception", code, new RuntimeException("call stack"));
+        	LOGGER.debug("Creating error page for code {}, no exception", code);
         } else {
         	LOGGER.warn("Creating error page for code {}, exception {}: {}", ex.getClass().getName(), ex.getMessage(), ex);	
         }

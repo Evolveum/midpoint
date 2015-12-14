@@ -308,7 +308,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 				
 				for (Entry<QName,PrismContainer<ShadowAssociationType>> assocEntry: assocMap.entrySet()) {
 					// HACK HACK HACK, the container wrapper should not parse itself. This code should not be here.
-					PropertyWrapper assocWrapper = new PropertyWrapper(this, assocEntry.getValue(), this.isReadonly(), ValueStatus.NOT_CHANGED);
+					AssociationWrapper assocWrapper = new AssociationWrapper(this, assocEntry.getValue(), this.isReadonly(), ValueStatus.NOT_CHANGED);
 					properties.add(assocWrapper);
 				}
 			}
@@ -685,6 +685,11 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 	public boolean isVisible() {
 		// TODO Auto-generated method stub
 		return false;
+	}
+	
+	@Override
+	public boolean isEmpty() {
+		return getItem().isEmpty();
 	}
 
 	@Override

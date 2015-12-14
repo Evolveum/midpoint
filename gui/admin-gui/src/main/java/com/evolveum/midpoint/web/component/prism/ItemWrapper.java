@@ -41,7 +41,9 @@ public interface ItemWrapper extends Revivable, DebugDumpable {
     ItemDefinition getItemDefinition();
     
     boolean isReadonly();
-    
+
+	boolean isEmpty();
+
     boolean hasChanged();
     
     public List<ValueWrapper> getValues();
@@ -51,4 +53,5 @@ public interface ItemWrapper extends Revivable, DebugDumpable {
     ContainerWrapper getContainer();
     
     public void addValue();
+
 }

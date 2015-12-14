@@ -196,6 +196,11 @@ public class ReferenceWrapper implements ItemWrapper, Serializable {
 	    public void setReadonly(boolean readonly) {
 	        this.readonly = readonly;
 	    }
+	    
+	    @Override
+		public boolean isEmpty() {
+			return getItem().isEmpty();
+		}
 
 	    @Override
 		public String debugDump() {

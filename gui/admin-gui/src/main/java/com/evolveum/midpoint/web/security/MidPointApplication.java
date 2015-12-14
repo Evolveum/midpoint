@@ -352,10 +352,10 @@ public class MidPointApplication extends AuthenticatedWebApplication {
             
         });
         
-        if (REQUEST_LOGGER.isInfoEnabled()) {
+        if (REQUEST_LOGGER.isDebugEnabled()) {
 	        IRequestLoggerSettings requestLoggerSettings = getRequestLoggerSettings();
 	        requestLoggerSettings.setRequestLoggerEnabled(true);
-	        if (REQUEST_LOGGER.isDebugEnabled()) {
+	        if (REQUEST_LOGGER.isTraceEnabled()) {
 	        	requestLoggerSettings.setRecordSessionSize(true);
 	        }
         }

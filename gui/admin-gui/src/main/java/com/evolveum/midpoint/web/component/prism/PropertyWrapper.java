@@ -145,6 +145,10 @@ public class PropertyWrapper<I extends Item> implements ItemWrapper, Serializabl
     public I getItem() {
         return property;
     }
+    
+    public ItemDefinition getDefinition() {
+    	return property.getDefinition();
+    }
 
     private List<ValueWrapper> createValues() {
         List<ValueWrapper> values = new ArrayList<ValueWrapper>();
@@ -250,6 +254,11 @@ public class PropertyWrapper<I extends Item> implements ItemWrapper, Serializabl
     public void setReadonly(boolean readonly) {
         this.readonly = readonly;
     }
+    
+    @Override
+	public boolean isEmpty() {
+		return getItem().isEmpty();
+	}
 
 	@Override
 	public String debugDump() {
