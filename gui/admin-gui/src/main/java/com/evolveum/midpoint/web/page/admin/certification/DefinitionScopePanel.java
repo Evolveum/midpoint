@@ -21,6 +21,8 @@ import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertDefinitionDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.DefinitionScopeDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationAssignmentReviewScopeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationObjectBasedScopeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationScopeType;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
@@ -31,15 +33,17 @@ import org.apache.wicket.model.PropertyModel;
  * @author mederly
  */
 
-public class DefinitionScopePanel extends SimplePanel<DefinitionScopeDto> {
+public class DefinitionScopePanel extends SimplePanel<AccessCertificationScopeType> {
 
-    IModel<DefinitionScopeDto> model;
+    IModel<AccessCertificationScopeType> model;
+    DefinitionScopeDto definitionScopeDto;
     private static final String ID_NAME = "name";
     private static final String ID_DESCRIPTION = "description";
 
-    public DefinitionScopePanel(String id, IModel<DefinitionScopeDto> model) {
+    public DefinitionScopePanel(String id, IModel<AccessCertificationScopeType> model) {
         super(id, model);
         this.model = model;
+        definitionScopeDto = createScopeDefinition();
     }
 
     @Override
@@ -53,7 +57,7 @@ public class DefinitionScopePanel extends SimplePanel<DefinitionScopeDto> {
         });
         add(nameField);
 
-        final TextArea descriptionField = new TextArea(ID_DESCRIPTION, new PropertyModel<>(getModel(), DefinitionScopeDto.F_DESCRIPTION));
+        final TextField descriptionField = new TextField(ID_DESCRIPTION, new PropertyModel<>(getModel(), DefinitionScopeDto.F_DESCRIPTION));
         descriptionField.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isEnabled() {
@@ -63,4 +67,29 @@ public class DefinitionScopePanel extends SimplePanel<DefinitionScopeDto> {
         add(descriptionField);
 
     }
+
+    public DefinitionScopeDto createScopeDefinition() {
+        DefinitionScopeDto scopeDefinition = new DefinitionScopeDto();
+        AccessCertificationScopeType scopeTypeObj = model.getObject();
+        if (scopeTypeObj != null) {
+            scopeDefinition.setName(scopeTypeObj.getName());
+            scopeDefinition.setDescription(scopeTypeObj.getDescription());
+            if (scopeTypeObj instanceof AccessCertificationObjectBasedScopeType) {
+                AccessCertificationObjectBasedScopeType objScopeType = (AccessCertificationObjectBasedScopeType) scopeTypeObj;
+                scopeDefinition.setObjectType(objScopeType.getObjectType());
+                scopeDefinition.setSearchFilter(objScopeType.getSearchFilter());
+                if (objScopeType instanceof AccessCertificationAssignmentReviewScopeType) {
+                    AccessCertificationAssignmentReviewScopeType assignmentScope =
+                            (AccessCertificationAssignmentReviewScopeType) objScopeType;
+                    scopeDefinition.setIncludeAssignments(Boolean.TRUE.equals(assignmentScope.isIncludeAssignments()));
+                    scopeDefinition.setIncludeInducements(Boolean.TRUE.equals(assignmentScope.isIncludeInducements()));
+                    scopeDefinition.setIncludeResources(Boolean.TRUE.equals(assignmentScope.isIncludeResources()));
+                    scopeDefinition.setIncludeOrgs(Boolean.TRUE.equals(assignmentScope.isIncludeOrgs()));
+                    scopeDefinition.setEnabledItemsOnly(Boolean.TRUE.equals(assignmentScope.isEnabledItemsOnly()));
+                }
+            }
+        }
+        return scopeDefinition;
+    }
+
 }
