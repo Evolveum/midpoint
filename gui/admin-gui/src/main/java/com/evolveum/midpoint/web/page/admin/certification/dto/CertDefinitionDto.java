@@ -16,13 +16,9 @@
 
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -43,16 +39,18 @@ public class CertDefinitionDto implements Serializable {
     public static final String F_OWNER_NAME = "ownerName";
     public static final String F_NUMBER_OF_STAGES = "numberOfStages";
     public static final String F_XML = "xml";
-    public static final String F_OWNER= "owner";
+    public static final String F_OWNER = "owner";
     public static final String F_SCOPE_DEFINITION = "scopeDefinition";
 
-    private AccessCertificationDefinitionType definition;           // TODO consider replacing this by constituent primitive data items
-    private AccessCertificationScopeType scopeDefinition = null;
+    private AccessCertificationDefinitionType oldDefinition;            // to be able to compute the delta when saving
+    private AccessCertificationDefinitionType definition;               // definition that is (at least partially) dynamically updated when editing the form
+    private final DefinitionScopeDto definitionScopeDto;
     private String ownerName;
     private String xml;
     private PrismReferenceValue owner;
 
     public CertDefinitionDto(AccessCertificationDefinitionType definition, PageBase page, Task task, OperationResult result) {
+        this.oldDefinition = definition.clone();
         this.definition = definition;
         ownerName = CertCampaignDto.resolveOwnerName(definition.getOwnerRef(), page, task, result);
 
@@ -61,6 +59,8 @@ public class CertDefinitionDto implements Serializable {
         } catch (SchemaException e) {
             throw new SystemException("Couldn't serialize campaign definition to XML", e);
         }
+
+        definitionScopeDto = createDefinitionScopeDto(definition.getScopeDefinition());
     }
 
     public String getOwnerName() {
@@ -85,6 +85,15 @@ public class CertDefinitionDto implements Serializable {
 
     public AccessCertificationDefinitionType getDefinition() {
         return definition;
+    }
+
+    public AccessCertificationDefinitionType getUpdatedDefinition() {
+        updateScopeDefinition();
+        return definition;
+    }
+
+    public AccessCertificationDefinitionType getOldDefinition() {
+        return oldDefinition;
     }
 
     public void setDefinition(AccessCertificationDefinitionType definition) {
@@ -114,23 +123,48 @@ public class CertDefinitionDto implements Serializable {
         definition.setOwnerRef(ownerRef);
     }
 
-    public AccessCertificationScopeType getScopeDefinition() {
-        return definition.getScopeDefinition() == null ? new AccessCertificationScopeType() : definition.getScopeDefinition();
+    private DefinitionScopeDto createDefinitionScopeDto(AccessCertificationScopeType scopeTypeObj) {
+        DefinitionScopeDto dto = new DefinitionScopeDto();
+        if (scopeTypeObj != null) {
+            dto.setName(scopeTypeObj.getName());
+            dto.setDescription(scopeTypeObj.getDescription());
+            if (scopeTypeObj instanceof AccessCertificationObjectBasedScopeType) {
+                AccessCertificationObjectBasedScopeType objScopeType = (AccessCertificationObjectBasedScopeType) scopeTypeObj;
+                dto.setObjectType(objScopeType.getObjectType());
+                dto.setSearchFilter(objScopeType.getSearchFilter());
+                if (objScopeType instanceof AccessCertificationAssignmentReviewScopeType) {
+                    AccessCertificationAssignmentReviewScopeType assignmentScope =
+                            (AccessCertificationAssignmentReviewScopeType) objScopeType;
+                    dto.setIncludeAssignments(Boolean.TRUE.equals(assignmentScope.isIncludeAssignments()));
+                    dto.setIncludeInducements(Boolean.TRUE.equals(assignmentScope.isIncludeInducements()));
+                    dto.setIncludeResources(Boolean.TRUE.equals(assignmentScope.isIncludeResources()));
+                    dto.setIncludeOrgs(Boolean.TRUE.equals(assignmentScope.isIncludeOrgs()));
+                    dto.setEnabledItemsOnly(Boolean.TRUE.equals(assignmentScope.isEnabledItemsOnly()));
+                }
+            }
+        }
+        return dto;
     }
 
-    public void setScopeDefinition(AccessCertificationScopeType scopeType) {
+    public DefinitionScopeDto getScopeDefinition() {
+        return definitionScopeDto;
+    }
+
+    public void updateScopeDefinition() {
         AccessCertificationAssignmentReviewScopeType scopeTypeObj = null;
-        if (scopeType != null){
+        if (definitionScopeDto != null) {
             scopeTypeObj = new AccessCertificationAssignmentReviewScopeType();
-            scopeTypeObj.setName(scopeDefinition.getName());
-            scopeTypeObj.setDescription(scopeDefinition.getDescription());
-//            scopeTypeObj.setObjectType(scopeDefinition.getObjectType());
-//            scopeTypeObj.setSearchFilter(scopeDefinition.getSearchFilter());
-//            scopeTypeObj.setIncludeAssignments(scopeDefinition.isIncludeAssignments());
-//            scopeTypeObj.setIncludeInducements(scopeDefinition.isIncludeInducements());
-//            scopeTypeObj.setIncludeResources(scopeDefinition.isIncludeResources());
-//            scopeTypeObj.setIncludeOrgs(scopeDefinition.isIncludeOrgs());
-//            scopeTypeObj.setEnabledItemsOnly(scopeDefinition.isEnabledItemsOnly());
+            scopeTypeObj.setName(definitionScopeDto.getName());
+            scopeTypeObj.setDescription(definitionScopeDto.getDescription());
+            scopeTypeObj.setObjectType(definitionScopeDto.getObjectType());
+            scopeTypeObj.setSearchFilter(definitionScopeDto.getSearchFilter());
+            scopeTypeObj.setIncludeAssignments(definitionScopeDto.isIncludeAssignments());
+            scopeTypeObj.setIncludeInducements(definitionScopeDto.isIncludeInducements());
+            scopeTypeObj.setIncludeResources(definitionScopeDto.isIncludeResources());
+            scopeTypeObj.setIncludeOrgs(definitionScopeDto.isIncludeOrgs());
+            scopeTypeObj.setEnabledItemsOnly(definitionScopeDto.isEnabledItemsOnly());
+            // needed because of prism implementation limitation (because the scopeDefinition is declared as AccessCertificationScopeType)
+            scopeTypeObj.asPrismContainerValue().setConcreteType(AccessCertificationAssignmentReviewScopeType.COMPLEX_TYPE);
         }
         definition.setScopeDefinition(scopeTypeObj);
     }

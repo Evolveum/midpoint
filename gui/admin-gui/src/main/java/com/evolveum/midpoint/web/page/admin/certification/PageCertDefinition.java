@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.page.admin.certification;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -171,7 +172,7 @@ public class PageCertDefinition extends PageAdminCertification {
 		tabs.add(new AbstractTab(createStringResource("PageCertDefinition.scopeDefinition")) {
             @Override
             public WebMarkupContainer getPanel(String panelId) {
-                return new DefinitionScopePanel(panelId, new PropertyModel<AccessCertificationScopeType>(definitionModel, CertDefinitionDto.F_SCOPE_DEFINITION));
+                return new DefinitionScopePanel(panelId, new PropertyModel<DefinitionScopeDto>(definitionModel, CertDefinitionDto.F_SCOPE_DEFINITION));
             }
         });
 		tabs.add(new AbstractTab(createStringResource("PageCertDefinition.stagesDefinition")) {
@@ -311,36 +312,24 @@ public class PageCertDefinition extends PageAdminCertification {
 		Task task = createSimpleTask(OPERATION_SAVE_DEFINITION);
 		OperationResult result = task.getResult();
 		try {
+			AccessCertificationDefinitionType oldObject = dto.getOldDefinition();
+			oldObject.asPrismObject().revive(getPrismContext());
 
-			PrismObject<AccessCertificationDefinitionType> oldObject = dto.getDefinition().asPrismObject();
-			oldObject.revive(getPrismContext());
+			AccessCertificationDefinitionType newObject = dto.getUpdatedDefinition();
+			newObject.asPrismObject().revive(getPrismContext());
 
-			Holder<PrismObject<AccessCertificationDefinitionType>> objectHolder = new Holder<>(null);
-			validateObject(definitionModel.getObject().getXml(), objectHolder, false, result);
-
-			if (result.isAcceptable()) {
-				PrismObject<AccessCertificationDefinitionType> newObject = objectHolder.getValue();
-
-				// TODO implement better
-				CertCampaignTypeUtil.checkStageDefinitionConsistency(newObject.asObjectable().getStageDefinition());
-
-				ObjectDelta<AccessCertificationDefinitionType> delta = newObject.diff(oldObject, true, true);
-
-				if (delta.getPrismContext() == null) {
-					LOGGER.warn("No prism context in delta {} after diff, adding it", delta);
-					delta.revive(getPrismContext());
-				}
-
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Delta to be applied:\n{}", delta.debugDump());
-				}
-
-				Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(delta);
+			ObjectDelta<AccessCertificationDefinitionType> delta = DiffUtil.diff(oldObject, newObject);
+			delta.normalize();
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Access definition delta:\n{}", delta.debugDump());
+			}
+			if (delta != null && !delta.isEmpty()) {
+				getPrismContext().adopt(delta);
 				ModelExecuteOptions options = new ModelExecuteOptions();
 				options.setRaw(true);
-				getModelService().executeChanges(deltas, options, task, result);
-				result.computeStatus();
+				getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), options, task, result);
 			}
+			result.computeStatus();
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't save object: " + ex.getMessage(), ex);
 		}

@@ -33,17 +33,13 @@ import org.apache.wicket.model.PropertyModel;
  * @author mederly
  */
 
-public class DefinitionScopePanel extends SimplePanel<AccessCertificationScopeType> {
+public class DefinitionScopePanel extends SimplePanel<DefinitionScopeDto> {
 
-    IModel<AccessCertificationScopeType> model;
-    DefinitionScopeDto definitionScopeDto;
     private static final String ID_NAME = "name";
     private static final String ID_DESCRIPTION = "description";
 
-    public DefinitionScopePanel(String id, IModel<AccessCertificationScopeType> model) {
+    public DefinitionScopePanel(String id, IModel<DefinitionScopeDto> model) {
         super(id, model);
-        this.model = model;
-        definitionScopeDto = createScopeDefinition();
     }
 
     @Override
@@ -67,29 +63,4 @@ public class DefinitionScopePanel extends SimplePanel<AccessCertificationScopeTy
         add(descriptionField);
 
     }
-
-    public DefinitionScopeDto createScopeDefinition() {
-        DefinitionScopeDto scopeDefinition = new DefinitionScopeDto();
-        AccessCertificationScopeType scopeTypeObj = model.getObject();
-        if (scopeTypeObj != null) {
-            scopeDefinition.setName(scopeTypeObj.getName());
-            scopeDefinition.setDescription(scopeTypeObj.getDescription());
-            if (scopeTypeObj instanceof AccessCertificationObjectBasedScopeType) {
-                AccessCertificationObjectBasedScopeType objScopeType = (AccessCertificationObjectBasedScopeType) scopeTypeObj;
-                scopeDefinition.setObjectType(objScopeType.getObjectType());
-                scopeDefinition.setSearchFilter(objScopeType.getSearchFilter());
-                if (objScopeType instanceof AccessCertificationAssignmentReviewScopeType) {
-                    AccessCertificationAssignmentReviewScopeType assignmentScope =
-                            (AccessCertificationAssignmentReviewScopeType) objScopeType;
-                    scopeDefinition.setIncludeAssignments(Boolean.TRUE.equals(assignmentScope.isIncludeAssignments()));
-                    scopeDefinition.setIncludeInducements(Boolean.TRUE.equals(assignmentScope.isIncludeInducements()));
-                    scopeDefinition.setIncludeResources(Boolean.TRUE.equals(assignmentScope.isIncludeResources()));
-                    scopeDefinition.setIncludeOrgs(Boolean.TRUE.equals(assignmentScope.isIncludeOrgs()));
-                    scopeDefinition.setEnabledItemsOnly(Boolean.TRUE.equals(assignmentScope.isEnabledItemsOnly()));
-                }
-            }
-        }
-        return scopeDefinition;
-    }
-
 }
