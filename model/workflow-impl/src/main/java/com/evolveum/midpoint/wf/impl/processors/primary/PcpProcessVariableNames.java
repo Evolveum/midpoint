@@ -32,5 +32,11 @@ public class PcpProcessVariableNames {
     // XML representation of the delta to be approved. (Note that technically a process
     // can approve more deltas; if necessary, this variable would have to be changed.)
     // [StringHolder]
+    @Deprecated         // use more generic "changes requested" variable
     public static final String VARIABLE_MIDPOINT_DELTA = "midPointDelta";
+
+    // XML representation of the deltas to be approved. (Note that technically a process
+    // can approve more than one focus/projection deltas; if necessary, this variable would have to be changed.)
+    // [StringHolder]
+    public static final String VARIABLE_MIDPOINT_CHANGES_REQUESTED = "midPointChangesRequested";
 }

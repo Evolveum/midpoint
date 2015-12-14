@@ -131,7 +131,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     // =================================================================================== Processing model invocation
 
     @Override
-    public HookOperationMode processModelInvocation(ModelContext context, WfConfigurationType wfConfigurationType, Task taskFromModel, OperationResult result) throws SchemaException {
+    public HookOperationMode processModelInvocation(ModelContext context, WfConfigurationType wfConfigurationType, Task taskFromModel, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
         if (context.getState() != ModelState.PRIMARY || context.getFocusContext() == null) {
             return null;
@@ -160,7 +160,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     private List<PcpChildJobCreationInstruction> gatherStartInstructions(ModelContext<? extends ObjectType> context,
                                                                          WfConfigurationType wfConfigurationType,
                                                                          ChangesRequested changesBeingDecomposed,
-                                                                         Task taskFromModel, OperationResult result) throws SchemaException {
+                                                                         Task taskFromModel, OperationResult result) throws SchemaException, ObjectNotFoundException {
         List<PcpChildJobCreationInstruction> startProcessInstructions = new ArrayList<>();
 
         PrimaryChangeProcessorConfigurationType processorConfigurationType =

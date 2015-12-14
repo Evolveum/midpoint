@@ -73,7 +73,7 @@ public interface PrimaryChangeAspect {
      * @param result Operation result - the method should report any errors here (TODO what about creating subresults?)    @return list of start process instructions
      * @see com.evolveum.midpoint.wf.impl.jobs.JobCreationInstruction
      */
-    List<PcpChildJobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ChangesRequested changesRequested, Task taskFromModel, OperationResult result) throws SchemaException;
+    List<PcpChildJobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ChangesRequested changesRequested, Task taskFromModel, OperationResult result) throws SchemaException, ObjectNotFoundException;
 
     /**
      * On process instance end, prepares deltaOut based in deltaIn and information gathered during approval process.

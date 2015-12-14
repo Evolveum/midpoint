@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.impl.processors.primary.assignments;
+package com.evolveum.midpoint.wf.impl.processors.primary.entitlements;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
@@ -44,15 +44,10 @@ import com.evolveum.midpoint.wf.impl.processors.primary.ChangesRequested;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildJobCreationInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
+import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspectHelper;
+import com.evolveum.midpoint.wf.impl.processors.primary.assignments.AssignmentHelper;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PcpAspectConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.AssignmentCreationApprovalFormType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.QuestionFormType;
 import org.apache.commons.lang.Validate;
@@ -87,14 +82,17 @@ public abstract class AddEntitlementAspect extends BasePrimaryChangeAspect {
     @Autowired
     protected AssignmentHelper assignmentHelper;
 
+    @Autowired
+    protected PrimaryChangeAspectHelper primaryChangeAspectHelper;
+
     //region ------------------------------------------------------------ Things that execute on request arrival
 
     @Override
-    public List<PcpChildJobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ChangesRequested changesRequested, Task taskFromModel, OperationResult result) throws SchemaException {
+    public List<PcpChildJobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ChangesRequested changesRequested, Task taskFromModel, OperationResult result) throws SchemaException, ObjectNotFoundException {
         if (!isFocusRelevant(modelContext)) {
             return null;
         }
-        List<ApprovalRequest<ShadowAssociationType>> approvalRequestList = getApprovalRequests(modelContext, wfConfigurationType, changesRequested, result);
+        List<ApprovalRequest<AssociationAdditionType>> approvalRequestList = getApprovalRequests(modelContext, wfConfigurationType, changesRequested, result);
         if (approvalRequestList == null || approvalRequestList.isEmpty()) {
             return null;
         }
@@ -106,10 +104,10 @@ public abstract class AddEntitlementAspect extends BasePrimaryChangeAspect {
         return true;
     }
 
-    private List<ApprovalRequest<ShadowAssociationType>> getApprovalRequests(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType,
+    private List<ApprovalRequest<AssociationAdditionType>> getApprovalRequests(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType,
                                                                              ChangesRequested changes, OperationResult result) {
 
-        List<ApprovalRequest<ShadowAssociationType>> requests = new ArrayList<>();
+        List<ApprovalRequest<AssociationAdditionType>> requests = new ArrayList<>();
 
         PcpAspectConfigurationType config = primaryChangeAspectHelper.getPcpAspectConfigurationType(wfConfigurationType, this);
         for (Object o : changes.getProjectionChangeMapEntries()) {
@@ -117,10 +115,10 @@ public abstract class AddEntitlementAspect extends BasePrimaryChangeAspect {
                 (Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>>) o;
             ObjectDelta<ShadowType> delta = entry.getValue();
             if (delta.isAdd()) {
-                requests.addAll(getApprovalRequestsFromShadowAdd(config, entry.getValue(), result));
+                requests.addAll(getApprovalRequestsFromShadowAdd(config, entry.getValue(), entry.getKey(), result));
             } else if (delta.isModify()) {
                 ModelProjectionContext projectionContext = modelContext.findProjectionContext(entry.getKey());
-                requests.addAll(getApprovalRequestsFromShadowModify(config, projectionContext.getObjectOld(), entry.getValue(), result));
+                requests.addAll(getApprovalRequestsFromShadowModify(config, projectionContext.getObjectOld(), entry.getValue(), entry.getKey(), result));
             } else {
                 // no-op
             }
@@ -128,11 +126,12 @@ public abstract class AddEntitlementAspect extends BasePrimaryChangeAspect {
         return requests;
     }
 
-    private List<ApprovalRequest<ShadowAssociationType>> getApprovalRequestsFromShadowAdd(PcpAspectConfigurationType config,
-                                                                                   ObjectDelta<ShadowType> change, OperationResult result) {
+    private List<ApprovalRequest<AssociationAdditionType>>
+    getApprovalRequestsFromShadowAdd(PcpAspectConfigurationType config, ObjectDelta<ShadowType> change,
+                                     ResourceShadowDiscriminator rsd, OperationResult result) {
         LOGGER.trace("Relevant associations in shadow add delta:");
 
-        List<ApprovalRequest<ShadowAssociationType>> approvalRequestList = new ArrayList<>();
+        List<ApprovalRequest<AssociationAdditionType>> approvalRequestList = new ArrayList<>();
         ShadowType shadowType = change.getObjectToAdd().asObjectable();
         Iterator<ShadowAssociationType> associationIterator = shadowType.getAssociation().iterator();
         while (associationIterator.hasNext()) {
@@ -140,19 +139,20 @@ public abstract class AddEntitlementAspect extends BasePrimaryChangeAspect {
             if (isAssociationRelevant(a)) {
                 LOGGER.trace(" - {}", a);
                 ShadowAssociationType aCopy = cloneAndCanonicalizeAssociation(a);
-                approvalRequestList.add(createApprovalRequest(config, aCopy));
+                approvalRequestList.add(createApprovalRequest(config, aCopy, rsd));
                 associationIterator.remove();
             }
         }
         return approvalRequestList;
     }
 
-    private List<ApprovalRequest<ShadowAssociationType>> getApprovalRequestsFromShadowModify(PcpAspectConfigurationType config,
-                                                                                      PrismObject<ShadowType> shadowOld,
-                                                                                      ObjectDelta<ShadowType> change, OperationResult result) {
+    private List<ApprovalRequest<AssociationAdditionType>>
+    getApprovalRequestsFromShadowModify(PcpAspectConfigurationType config, PrismObject<ShadowType> shadowOld,
+                                        ObjectDelta<ShadowType> change, ResourceShadowDiscriminator rsd,
+                                        OperationResult result) {
         LOGGER.trace("Relevant associations in shadow modify delta:");
 
-        List<ApprovalRequest<ShadowAssociationType>> approvalRequestList = new ArrayList<>();
+        List<ApprovalRequest<AssociationAdditionType>> approvalRequestList = new ArrayList<>();
         Iterator<? extends ItemDelta> deltaIterator = change.getModifications().iterator();
 
         final ItemPath ASSOCIATION_PATH = new ItemPath(ShadowType.F_ASSOCIATION);
@@ -167,7 +167,7 @@ public abstract class AddEntitlementAspect extends BasePrimaryChangeAspect {
                 Iterator<PrismContainerValue<ShadowAssociationType>> valueIterator = delta.getValuesToAdd().iterator();
                 while (valueIterator.hasNext()) {
                     PrismContainerValue<ShadowAssociationType> association = valueIterator.next();
-                    ApprovalRequest<ShadowAssociationType> req = processAssociationToAdd(config, association, result);
+                    ApprovalRequest<AssociationAdditionType> req = processAssociationToAdd(config, association, rsd, result);
                     if (req != null) {
                         approvalRequestList.add(req);
                         valueIterator.remove();
@@ -181,7 +181,7 @@ public abstract class AddEntitlementAspect extends BasePrimaryChangeAspect {
                     if (existsEquivalentValue(shadowOld, association)) {
                         continue;
                     }
-                    ApprovalRequest<ShadowAssociationType> req = processAssociationToAdd(config, association, result);
+                    ApprovalRequest<AssociationAdditionType> req = processAssociationToAdd(config, association, rsd, result);
                     if (req != null) {
                         approvalRequestList.add(req);
                         valueIterator.remove();
@@ -209,34 +209,36 @@ public abstract class AddEntitlementAspect extends BasePrimaryChangeAspect {
         return false;
     }
 
-    private ApprovalRequest<ShadowAssociationType> processAssociationToAdd(PcpAspectConfigurationType config,
-                                                                           PrismContainerValue<ShadowAssociationType> associationCval,
-                                                                           OperationResult result) {
+    private ApprovalRequest<AssociationAdditionType>
+    processAssociationToAdd(PcpAspectConfigurationType config, PrismContainerValue<ShadowAssociationType> associationCval,
+                            ResourceShadowDiscriminator rsd, OperationResult result) {
         ShadowAssociationType association = associationCval.asContainerable();
         if (isAssociationRelevant(association)) {
             LOGGER.trace(" - {}", association);
             ShadowAssociationType aCopy = cloneAndCanonicalizeAssociation(association);
-            return createApprovalRequest(config, aCopy);
+            return createApprovalRequest(config, aCopy, rsd);
         }
         return null;
     }
 
-    private List<PcpChildJobCreationInstruction> prepareJobCreateInstructions(ModelContext<?> modelContext, Task taskFromModel,
-                                                                              OperationResult result, List<ApprovalRequest<AssignmentType>> approvalRequestList) throws SchemaException {
+    private List<PcpChildJobCreationInstruction>
+    prepareJobCreateInstructions(ModelContext<?> modelContext, Task taskFromModel,
+                                 OperationResult result, List<ApprovalRequest<AssociationAdditionType>> approvalRequestList) throws SchemaException, ObjectNotFoundException {
 
         List<PcpChildJobCreationInstruction> instructions = new ArrayList<>();
         String assigneeName = MiscDataUtil.getFocusObjectName(modelContext);
         String assigneeOid = primaryChangeAspectHelper.getObjectOid(modelContext);
         PrismObject<UserType> requester = primaryChangeAspectHelper.getRequester(taskFromModel, result);
 
-        for (ApprovalRequest<AssignmentType> approvalRequest : approvalRequestList) {
+        for (ApprovalRequest<AssociationAdditionType> approvalRequest : approvalRequestList) {
 
             assert approvalRequest.getPrismContext() != null;
 
             LOGGER.trace("Approval request = {}", approvalRequest);
-            AssignmentType assignmentType = approvalRequest.getItemToApprove();
-            T target = getAssignmentApprovalTarget(assignmentType, result);
-            Validate.notNull(target, "No target in assignment to be approved");
+            AssociationAdditionType AssociationAdditionType = approvalRequest.getItemToApprove();
+            ShadowAssociationType association = AssociationAdditionType.getAssociation();
+            ShadowType target = getAssociationApprovalTarget(association, result);
+            Validate.notNull(target, "No target in association to be approved");
 
             String targetName = target.getName() != null ? target.getName().getOrig() : "(unnamed)";
 
@@ -248,8 +250,8 @@ public abstract class AddEntitlementAspect extends BasePrimaryChangeAspect {
             instruction.prepareCommonAttributes(this, modelContext, assigneeOid, requester);
 
             // prepare and set the delta that has to be approved
-            ObjectDelta<? extends ObjectType> delta = assignmentToDelta(modelContext, assignmentType, assigneeOid);
-            instruction.setDeltaProcessAndTaskVariables(delta);
+            ChangesRequested changesRequested = entitlementAdditionToDelta(modelContext, AssociationAdditionType, assigneeOid);
+            instruction.setChangesRequestedProcessAndTaskVariables(changesRequested);
 
             // set the names of midPoint task and activiti process instance
             String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and executing " : "";
@@ -268,8 +270,8 @@ public abstract class AddEntitlementAspect extends BasePrimaryChangeAspect {
         return instructions;
     }
 
-    // creates an ObjectDelta that will be executed after successful approval of the given assignment
-    private ObjectDelta<? extends ObjectType> assignmentToDelta(ModelContext<?> modelContext, AssignmentType assignmentType, String objectOid) {
+    // creates an ChangesRequested that will be executed after successful approval of the given assignment
+    private ChangesRequested entitlementAdditionToDelta(ModelContext<?> modelContext, AssociationAdditionType eat, String objectOid) {
         PrismObject<FocusType> focus = (PrismObject<FocusType>) modelContext.getFocusContext().getObjectNew();
         PrismContainerDefinition<AssignmentType> prismContainerDefinition = focus.getDefinition().findContainerDefinition(FocusType.F_ASSIGNMENT);
 
@@ -301,7 +303,7 @@ public abstract class AddEntitlementAspect extends BasePrimaryChangeAspect {
         AssignmentType assignment = (AssignmentType) request.getItemToApprove();
         Validate.notNull(assignment, "Approval request does not contain as assignment");
 
-        T target = getAssignmentApprovalTarget(assignment, result);     // may throw an (unchecked) exception
+        T target = getAssociationApprovalTarget(assignment, result);     // may throw an (unchecked) exception
 
         PrismObjectDefinition<AssignmentCreationApprovalFormType> formDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByType(AssignmentCreationApprovalFormType.COMPLEX_TYPE);
         PrismObject<AssignmentCreationApprovalFormType> formPrism = formDefinition.instantiate();
@@ -351,7 +353,7 @@ public abstract class AddEntitlementAspect extends BasePrimaryChangeAspect {
         if (approvalRequest == null) {
             throw new IllegalStateException("No approval request in activiti task " + task);
         }
-        T target = getAssignmentApprovalTarget(approvalRequest.getItemToApprove(), result);
+        T target = getAssociationApprovalTarget(approvalRequest.getItemToApprove(), result);
         return target != null ? target.asPrismObject() : null;
     }
     //endregion
@@ -371,12 +373,19 @@ public abstract class AddEntitlementAspect extends BasePrimaryChangeAspect {
     }
 
     // creates an approval requests (e.g. by providing approval schema) for a given assignment and a target
-    protected ApprovalRequest<ShadowAssociationType> createApprovalRequest(PcpAspectConfigurationType config, ShadowAssociationType association) {
-        return new ApprovalRequestImpl<ShadowAssociationType>(...)
+    protected ApprovalRequest<AssociationAdditionType>
+    createApprovalRequest(PcpAspectConfigurationType config, ShadowAssociationType association,
+                          ResourceShadowDiscriminator resourceShadowDiscriminator) {
+        AssociationAdditionType eat = new AssociationAdditionType();
+        eat.setAssociation(association);
+        eat.setResourceShadowDiscriminator(resourceShadowDiscriminator.toResourceShadowDiscriminatorType());
+        return new ApprovalRequestImpl<>(eat, config, prismContext);
     }
 
     // retrieves the relevant target for a given assignment - a role, an org, or a resource
-    protected abstract T getAssignmentApprovalTarget(AssignmentType assignmentType, OperationResult result);
+    protected ShadowType getAssociationApprovalTarget(ShadowAssociationType association, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        return primaryChangeAspectHelper.resolveTargetUnchecked(association, result);
+    }
 
     // creates name to be displayed in the question form (may be overriden by child objects)
     protected String getTargetDisplayName(T target) {
