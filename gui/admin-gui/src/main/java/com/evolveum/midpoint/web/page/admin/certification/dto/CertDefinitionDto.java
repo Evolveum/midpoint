@@ -47,7 +47,7 @@ public class CertDefinitionDto implements Serializable {
     public static final String F_SCOPE_DEFINITION = "scopeDefinition";
 
     private AccessCertificationDefinitionType definition;           // TODO consider replacing this by constituent primitive data items
-    private DefinitionScopeDto definitionScopeDto = null;
+    private AccessCertificationScopeType scopeDefinition = null;
     private String ownerName;
     private String xml;
     private PrismReferenceValue owner;
@@ -98,8 +98,6 @@ public class CertDefinitionDto implements Serializable {
     public void setName(String name){
         PolyStringType namePolyString  = new PolyStringType(name);
         definition.setName(namePolyString);
-        String test = "";
-        test.substring(0,0);
     }
 
     public void setDescription(String description){
@@ -116,39 +114,25 @@ public class CertDefinitionDto implements Serializable {
         definition.setOwnerRef(ownerRef);
     }
 
-    public DefinitionScopeDto getScopeDefinition() {
-        if (definitionScopeDto == null){
-            AccessCertificationAssignmentReviewScopeType scopeTypeObj = (AccessCertificationAssignmentReviewScopeType)definition.getScopeDefinition();
-            if (scopeTypeObj != null){
-                definitionScopeDto = new DefinitionScopeDto();
-                definitionScopeDto.setName(scopeTypeObj.getName());
-                definitionScopeDto.setDescription(scopeTypeObj.getDescription());
-                definitionScopeDto.setObjectType(scopeTypeObj.getObjectType());
-                definitionScopeDto.setSearchFilter(scopeTypeObj.getSearchFilter());
-                definitionScopeDto.setIncludeAssignments(scopeTypeObj.isIncludeAssignments() == null ? false : scopeTypeObj.isIncludeAssignments());
-                definitionScopeDto.setIncludeInducements(scopeTypeObj.isIncludeInducements() == null ? false : scopeTypeObj.isIncludeInducements());
-                definitionScopeDto.setIncludeResources(scopeTypeObj.isIncludeResources() == null ? false : scopeTypeObj.isIncludeResources());
-                definitionScopeDto.setIncludeOrgs(scopeTypeObj.isIncludeOrgs() == null ? false : scopeTypeObj.isIncludeOrgs());
-                definitionScopeDto.setEnabledItemsOnly(scopeTypeObj.isEnabledItemsOnly() == null ? false : scopeTypeObj.isEnabledItemsOnly());
-            }
-        }
-        return definitionScopeDto == null ? new DefinitionScopeDto() : definitionScopeDto;
+    public AccessCertificationScopeType getScopeDefinition() {
+        return definition.getScopeDefinition() == null ? new AccessCertificationScopeType() : definition.getScopeDefinition();
     }
 
-    public void setScopeDefinition(DefinitionScopeDto scopeType) {
+    public void setScopeDefinition(AccessCertificationScopeType scopeType) {
         AccessCertificationAssignmentReviewScopeType scopeTypeObj = null;
         if (scopeType != null){
             scopeTypeObj = new AccessCertificationAssignmentReviewScopeType();
-            scopeTypeObj.setName(definitionScopeDto.getName());
-            scopeTypeObj.setDescription(definitionScopeDto.getDescription());
-            scopeTypeObj.setObjectType(definitionScopeDto.getObjectType());
-            scopeTypeObj.setSearchFilter(definitionScopeDto.getSearchFilter());
-            scopeTypeObj.setIncludeAssignments(definitionScopeDto.isIncludeAssignments());
-            scopeTypeObj.setIncludeInducements(definitionScopeDto.isIncludeInducements());
-            scopeTypeObj.setIncludeResources(definitionScopeDto.isIncludeResources());
-            scopeTypeObj.setIncludeOrgs(definitionScopeDto.isIncludeOrgs());
-            scopeTypeObj.setEnabledItemsOnly(definitionScopeDto.isEnabledItemsOnly());
+            scopeTypeObj.setName(scopeDefinition.getName());
+            scopeTypeObj.setDescription(scopeDefinition.getDescription());
+//            scopeTypeObj.setObjectType(scopeDefinition.getObjectType());
+//            scopeTypeObj.setSearchFilter(scopeDefinition.getSearchFilter());
+//            scopeTypeObj.setIncludeAssignments(scopeDefinition.isIncludeAssignments());
+//            scopeTypeObj.setIncludeInducements(scopeDefinition.isIncludeInducements());
+//            scopeTypeObj.setIncludeResources(scopeDefinition.isIncludeResources());
+//            scopeTypeObj.setIncludeOrgs(scopeDefinition.isIncludeOrgs());
+//            scopeTypeObj.setEnabledItemsOnly(scopeDefinition.isEnabledItemsOnly());
         }
         definition.setScopeDefinition(scopeTypeObj);
     }
+
 }

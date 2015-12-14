@@ -169,17 +169,17 @@ public class PageCertDefinition extends PageAdminCertification {
 
 		List<ITab> tabs = new ArrayList<>();
 		tabs.add(new AbstractTab(createStringResource("PageCertDefinition.scopeDefinition")) {
-			@Override
-			public WebMarkupContainer getPanel(String panelId) {
-				return new DefinitionScopePanel(panelId, new PropertyModel<DefinitionScopeDto>(definitionModel, CertDefinitionDto.F_SCOPE_DEFINITION));
-			}
-		});
+            @Override
+            public WebMarkupContainer getPanel(String panelId) {
+                return new DefinitionScopePanel(panelId, new PropertyModel<AccessCertificationScopeType>(definitionModel, CertDefinitionDto.F_SCOPE_DEFINITION));
+            }
+        });
 		tabs.add(new AbstractTab(createStringResource("PageCertDefinition.stagesDefinition")) {
-			@Override
-			public WebMarkupContainer getPanel(String panelId) {
-				return new DefinitionStagesPanel(panelId, definitionModel);
-			}
-		});
+            @Override
+            public WebMarkupContainer getPanel(String panelId) {
+                return new DefinitionStagesPanel(panelId, definitionModel);
+            }
+        });
 
 		tabs.add(new AbstractTab(createStringResource("PageCertDefinition.campaigns")) {
 			@Override
@@ -237,7 +237,7 @@ public class PageCertDefinition extends PageAdminCertification {
         });
         mainForm.add(nameField);
 
-        final TextArea descriptionField = new TextArea(ID_DESCRIPTION, new PropertyModel<>(definitionModel, CertDefinitionDto.F_DESCRIPTION));
+            final TextField descriptionField = new TextField(ID_DESCRIPTION, new PropertyModel<>(definitionModel, CertDefinitionDto.F_DESCRIPTION));
         descriptionField.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isEnabled() {
@@ -249,19 +249,18 @@ public class PageCertDefinition extends PageAdminCertification {
         PropertyModel ownerModel = new PropertyModel<>(definitionModel, CertDefinitionDto.F_OWNER);
 
         List<PrismReferenceValue> values = new ArrayList<>();
-        values.add(definitionModel.getObject().getOwner());
-
-
-        final ValueChoosePanel ownerNameField = new ValueChoosePanel(ID_OWNER, ownerModel,
-                null,false, UserType.class){
-            @Override
-            protected void choosePerformed(AjaxRequestTarget target, ObjectType object) {
-                super.choosePerformed(target, object);
-
-                Component comp = this.get("textWrapper").get("text");
-                target.add(comp);
-            }
-            };
+        values.add(definitionModel.getObject() == null ? new PrismReferenceValue() : definitionModel.getObject().getOwner());
+        final ValueChoosePanel ownerNameField = new ValueChoosePanel(ID_OWNER, ownerModel, values
+                ,false, UserType.class);
+//        {
+//            @Override
+//            protected void choosePerformed(AjaxRequestTarget target, ObjectType object) {
+//                super.choosePerformed(target, object);
+//
+//                Component comp = this.get("textWrapper");
+////                target.add(comp);
+//            }
+//            };
         ownerNameField.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isEnabled() {
