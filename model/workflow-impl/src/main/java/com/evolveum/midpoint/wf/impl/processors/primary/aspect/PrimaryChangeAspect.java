@@ -25,6 +25,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
+import com.evolveum.midpoint.wf.impl.processors.primary.ChangesRequested;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildJobCreationInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpJob;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -67,12 +68,12 @@ public interface PrimaryChangeAspect {
      *
      * @param modelContext Original model context (e.g. to be able to get information about whole context of the operation)
      * @param wfConfigurationType
-     * @param change Change to be examined and modified by implementation of this method
+     * @param changesRequested Change to be examined and modified by implementation of this method
      * @param taskFromModel General context of the operation - the method should not modify the task.
      * @param result Operation result - the method should report any errors here (TODO what about creating subresults?)    @return list of start process instructions
      * @see com.evolveum.midpoint.wf.impl.jobs.JobCreationInstruction
      */
-    List<PcpChildJobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) throws SchemaException;
+    List<PcpChildJobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ChangesRequested changesRequested, Task taskFromModel, OperationResult result) throws SchemaException;
 
     /**
      * On process instance end, prepares deltaOut based in deltaIn and information gathered during approval process.

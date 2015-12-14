@@ -17,17 +17,18 @@
 package com.evolveum.midpoint.wf.impl.processors.primary.assignments;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.addrole.AddRoleVariableNames;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequest;
+import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequestImpl;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalProcessInterface;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processors.primary.ChangesRequested;
@@ -47,6 +49,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PcpAspectConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.AssignmentCreationApprovalFormType;
@@ -63,17 +67,16 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Aspect for adding assignments of any type (abstract role or resource).
+ * Aspect for adding entitlements.
  *
- * T is type of the objects being assigned (AbstractRoleType, ResourceType).
- * F is the type of the objects to which assignments are made (UserType, AbstractRoleType).
+ * In current version it treats entitlements that are DIRECTLY added, i.e. not as a part of an assignment.
  *
  * @author mederly
  */
 @Component
-public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusType> extends BasePrimaryChangeAspect {
+public abstract class AddEntitlementAspect extends BasePrimaryChangeAspect {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AddAssignmentAspect.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AddEntitlementAspect.class);
 
     @Autowired
     protected PrismContext prismContext;
@@ -91,71 +94,80 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
         if (!isFocusRelevant(modelContext)) {
             return null;
         }
-        List<ApprovalRequest<AssignmentType>> approvalRequestList = getApprovalRequests(modelContext, wfConfigurationType, changesRequested.getFocusChange(), result);
+        List<ApprovalRequest<ShadowAssociationType>> approvalRequestList = getApprovalRequests(modelContext, wfConfigurationType, changesRequested, result);
         if (approvalRequestList == null || approvalRequestList.isEmpty()) {
             return null;
         }
         return prepareJobCreateInstructions(modelContext, taskFromModel, result, approvalRequestList);
     }
 
-    private List<ApprovalRequest<AssignmentType>> getApprovalRequests(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ObjectDelta<? extends ObjectType> change, OperationResult result) {
-        if (change.getChangeType() != ChangeType.ADD && change.getChangeType() != ChangeType.MODIFY) {
-            return null;
-        }
-        PcpAspectConfigurationType config = primaryChangeAspectHelper.getPcpAspectConfigurationType(wfConfigurationType, this);
-        if (change.getChangeType() == ChangeType.ADD) {
-            return getApprovalRequestsFromFocusAdd(config, change, result);
-        } else {
-            return getApprovalRequestsFromFocusModify(config, modelContext.getFocusContext().getObjectOld(), change, result);
-        }
+    protected boolean isFocusRelevant(ModelContext modelContext) {
+        //return modelContext.getFocusClass() != null && UserType.class.isAssignableFrom(modelContext.getFocusClass());
+        return true;
     }
 
-    private List<ApprovalRequest<AssignmentType>> getApprovalRequestsFromFocusAdd(PcpAspectConfigurationType config, ObjectDelta<? extends ObjectType> change, OperationResult result) {
-        LOGGER.trace("Relevant assignments in focus add delta:");
+    private List<ApprovalRequest<ShadowAssociationType>> getApprovalRequests(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType,
+                                                                             ChangesRequested changes, OperationResult result) {
 
-        List<ApprovalRequest<AssignmentType>> approvalRequestList = new ArrayList<>();
-        FocusType focusType = (FocusType) change.getObjectToAdd().asObjectable();
-        Iterator<AssignmentType> assignmentTypeIterator = focusType.getAssignment().iterator();
-        while (assignmentTypeIterator.hasNext()) {
-            AssignmentType a = assignmentTypeIterator.next();
-            if (isAssignmentRelevant(a)) {
-                T specificObjectType = getAssignmentApprovalTarget(a, result);
-                boolean approvalRequired = shouldAssignmentBeApproved(config, specificObjectType);
-                LOGGER.trace(" - {} (approval required = {})", specificObjectType, approvalRequired);
-                if (approvalRequired) {
-                    AssignmentType aCopy = cloneAndCanonicalizeAssignment(a);
-                    approvalRequestList.add(createApprovalRequest(config, aCopy, specificObjectType));
-                    assignmentTypeIterator.remove();
-                }
+        List<ApprovalRequest<ShadowAssociationType>> requests = new ArrayList<>();
+
+        PcpAspectConfigurationType config = primaryChangeAspectHelper.getPcpAspectConfigurationType(wfConfigurationType, this);
+        for (Object o : changes.getProjectionChangeMapEntries()) {
+            Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> entry =
+                (Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>>) o;
+            ObjectDelta<ShadowType> delta = entry.getValue();
+            if (delta.isAdd()) {
+                requests.addAll(getApprovalRequestsFromShadowAdd(config, entry.getValue(), result));
+            } else if (delta.isModify()) {
+                ModelProjectionContext projectionContext = modelContext.findProjectionContext(entry.getKey());
+                requests.addAll(getApprovalRequestsFromShadowModify(config, projectionContext.getObjectOld(), entry.getValue(), result));
+            } else {
+                // no-op
+            }
+        }
+        return requests;
+    }
+
+    private List<ApprovalRequest<ShadowAssociationType>> getApprovalRequestsFromShadowAdd(PcpAspectConfigurationType config,
+                                                                                   ObjectDelta<ShadowType> change, OperationResult result) {
+        LOGGER.trace("Relevant associations in shadow add delta:");
+
+        List<ApprovalRequest<ShadowAssociationType>> approvalRequestList = new ArrayList<>();
+        ShadowType shadowType = change.getObjectToAdd().asObjectable();
+        Iterator<ShadowAssociationType> associationIterator = shadowType.getAssociation().iterator();
+        while (associationIterator.hasNext()) {
+            ShadowAssociationType a = associationIterator.next();
+            if (isAssociationRelevant(a)) {
+                LOGGER.trace(" - {}", a);
+                ShadowAssociationType aCopy = cloneAndCanonicalizeAssociation(a);
+                approvalRequestList.add(createApprovalRequest(config, aCopy));
+                associationIterator.remove();
             }
         }
         return approvalRequestList;
     }
 
-    private List<ApprovalRequest<AssignmentType>> getApprovalRequestsFromFocusModify(PcpAspectConfigurationType config,
-                                                                                     PrismObject<? extends ObjectType> focusOld,
-                                                                                     ObjectDelta<? extends ObjectType> change, OperationResult result) {
-        LOGGER.trace("Relevant assignments in focus modify delta:");
+    private List<ApprovalRequest<ShadowAssociationType>> getApprovalRequestsFromShadowModify(PcpAspectConfigurationType config,
+                                                                                      PrismObject<ShadowType> shadowOld,
+                                                                                      ObjectDelta<ShadowType> change, OperationResult result) {
+        LOGGER.trace("Relevant associations in shadow modify delta:");
 
-        List<ApprovalRequest<AssignmentType>> approvalRequestList = new ArrayList<>();
+        List<ApprovalRequest<ShadowAssociationType>> approvalRequestList = new ArrayList<>();
         Iterator<? extends ItemDelta> deltaIterator = change.getModifications().iterator();
 
-        final ItemPath ASSIGNMENT_PATH = new ItemPath(FocusType.F_ASSIGNMENT);
+        final ItemPath ASSOCIATION_PATH = new ItemPath(ShadowType.F_ASSOCIATION);
 
         while (deltaIterator.hasNext()) {
             ItemDelta delta = deltaIterator.next();
-            if (!ASSIGNMENT_PATH.equivalent(delta.getPath())) {
+            if (!ASSOCIATION_PATH.equivalent(delta.getPath())) {
                 continue;
             }
 
             if (delta.getValuesToAdd() != null && !delta.getValuesToAdd().isEmpty()) {
-                Iterator<PrismContainerValue<AssignmentType>> valueIterator = delta.getValuesToAdd().iterator();
+                Iterator<PrismContainerValue<ShadowAssociationType>> valueIterator = delta.getValuesToAdd().iterator();
                 while (valueIterator.hasNext()) {
-                    PrismContainerValue<AssignmentType> assignmentValue = valueIterator.next();
-                    if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("Assignment to add = {}", assignmentValue.debugDump());
-                    }
-                    ApprovalRequest<AssignmentType> req = processAssignmentToAdd(config, assignmentValue, result);
+                    PrismContainerValue<ShadowAssociationType> association = valueIterator.next();
+                    ApprovalRequest<ShadowAssociationType> req = processAssociationToAdd(config, association, result);
                     if (req != null) {
                         approvalRequestList.add(req);
                         valueIterator.remove();
@@ -163,16 +175,13 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
                 }
             }
             if (delta.getValuesToReplace() != null && !delta.getValuesToReplace().isEmpty()) {
-                Iterator<PrismContainerValue<AssignmentType>> valueIterator = delta.getValuesToReplace().iterator();
+                Iterator<PrismContainerValue<ShadowAssociationType>> valueIterator = delta.getValuesToReplace().iterator();
                 while (valueIterator.hasNext()) {
-                    PrismContainerValue<AssignmentType> assignmentValue = valueIterator.next();
-                    if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("Assignment to replace = {}", assignmentValue.debugDump());
-                    }
-                    if (existsEquivalentValue(focusOld, assignmentValue)) {
+                    PrismContainerValue<ShadowAssociationType> association = valueIterator.next();
+                    if (existsEquivalentValue(shadowOld, association)) {
                         continue;
                     }
-                    ApprovalRequest<AssignmentType> req = processAssignmentToAdd(config, assignmentValue, result);
+                    ApprovalRequest<ShadowAssociationType> req = processAssociationToAdd(config, association, result);
                     if (req != null) {
                         approvalRequestList.add(req);
                         valueIterator.remove();
@@ -190,26 +199,24 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
         return approvalRequestList;
     }
 
-    private boolean existsEquivalentValue(PrismObject<? extends ObjectType> focusOld, PrismContainerValue<AssignmentType> assignmentValue) {
-        FocusType focusType = (FocusType) focusOld.asObjectable();
-        for (AssignmentType existing : focusType.getAssignment()) {
-            if (existing.asPrismContainerValue().equalsRealValue(assignmentValue)) {
+    private boolean existsEquivalentValue(PrismObject<ShadowType> shadowOld, PrismContainerValue<ShadowAssociationType> association) {
+        ShadowType shadowType = shadowOld.asObjectable();
+        for (ShadowAssociationType existing : shadowType.getAssociation()) {
+            if (existing.asPrismContainerValue().equalsRealValue(association)) {        // TODO better check
                 return true;
             }
         }
         return false;
     }
 
-    private ApprovalRequest<AssignmentType> processAssignmentToAdd(PcpAspectConfigurationType config, PrismContainerValue<AssignmentType> assignmentCVal, OperationResult result) {
-        AssignmentType assignmentType = assignmentCVal.asContainerable();
-        if (isAssignmentRelevant(assignmentType)) {
-            T specificObjectType = getAssignmentApprovalTarget(assignmentType, result);
-            boolean approvalRequired = shouldAssignmentBeApproved(config, specificObjectType);
-            LOGGER.trace(" - {} (approval required = {})", specificObjectType, approvalRequired);
-            if (approvalRequired) {
-                AssignmentType aCopy = cloneAndCanonicalizeAssignment(assignmentType);
-                return createApprovalRequest(config, aCopy, specificObjectType);
-            }
+    private ApprovalRequest<ShadowAssociationType> processAssociationToAdd(PcpAspectConfigurationType config,
+                                                                           PrismContainerValue<ShadowAssociationType> associationCval,
+                                                                           OperationResult result) {
+        ShadowAssociationType association = associationCval.asContainerable();
+        if (isAssociationRelevant(association)) {
+            LOGGER.trace(" - {}", association);
+            ShadowAssociationType aCopy = cloneAndCanonicalizeAssociation(association);
+            return createApprovalRequest(config, aCopy);
         }
         return null;
     }
@@ -351,20 +358,22 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
 
     //region ------------------------------------------------------------ Things to override in concrete aspect classes
 
-    // a quick check whether expected focus type (User, Role) matches the actual focus type in current model operation context
-    protected abstract boolean isFocusRelevant(ModelContext modelContext);
 
-    // is the assignment relevant for a given aspect? (e.g. is this an assignment of a role?)
-    protected abstract boolean isAssignmentRelevant(AssignmentType assignmentType);
 
-    // should the given assignment be approved? (typically, does the target object have an approver specified?)
-    protected abstract boolean shouldAssignmentBeApproved(PcpAspectConfigurationType config, T target);
 
-    // before creating a delta for the assignment, it has to be cloned and canonicalized by removing full target object
-    protected abstract AssignmentType cloneAndCanonicalizeAssignment(AssignmentType a);
+    protected boolean isAssociationRelevant(ShadowAssociationType association) {
+        return true;
+        // TODO implement some expression evaluation
+    }
+
+    protected ShadowAssociationType cloneAndCanonicalizeAssociation(ShadowAssociationType a) {
+        return a.clone();       // TODO
+    }
 
     // creates an approval requests (e.g. by providing approval schema) for a given assignment and a target
-    protected abstract ApprovalRequest<AssignmentType> createApprovalRequest(PcpAspectConfigurationType config, AssignmentType assignmentType, T target);
+    protected ApprovalRequest<ShadowAssociationType> createApprovalRequest(PcpAspectConfigurationType config, ShadowAssociationType association) {
+        return new ApprovalRequestImpl<ShadowAssociationType>(...)
+    }
 
     // retrieves the relevant target for a given assignment - a role, an org, or a resource
     protected abstract T getAssignmentApprovalTarget(AssignmentType assignmentType, OperationResult result);

@@ -147,6 +147,9 @@ public class AbstractWfTest extends AbstractInternalModelIntegrationTest {
     public static final String R3BOSS_OID = "00000000-d34d-b33f-f00d-111111111113";
     public static final String DUMMYBOSS_OID = "00000000-d34d-b33f-f00d-111111111333";
 
+    public static final String GROUP_TESTERS_OID = "20000000-0000-0000-3333-000000000002";
+    public static final String GROUP_TESTERS_FILENAME = AbstractIntegrationTest.COMMON_DIR_PATH + "/group-testers-dummy.xml";
+
     public AbstractWfTest() throws JAXBException {
 		super();
 	}
@@ -177,6 +180,8 @@ public class AbstractWfTest extends AbstractInternalModelIntegrationTest {
 
         ObjectReferenceType approver = role2.getApprovalSchema().getLevel().get(0).getApproverRef().get(0);
         assertEquals("Wrong OID of Role2's approver", R2BOSS_OID, approver.getOid());
+
+        importObjectFromFile(GROUP_TESTERS_FILENAME, initResult);
 	}
 
     protected void checkUserApprovers(String oid, List<String> expectedApprovers, OperationResult result) throws SchemaException, ObjectNotFoundException {

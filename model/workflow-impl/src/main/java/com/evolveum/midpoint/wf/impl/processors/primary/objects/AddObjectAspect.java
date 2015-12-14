@@ -30,6 +30,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequest;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequestImpl;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ProcessVariableNames;
+import com.evolveum.midpoint.wf.impl.processors.primary.ChangesRequested;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildJobCreationInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -62,7 +63,7 @@ public abstract class AddObjectAspect<T extends ObjectType> extends BasePrimaryC
     @Override
     public List<PcpChildJobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext,
                                                                                WfConfigurationType wfConfigurationType,
-                                                                               ObjectDelta<? extends ObjectType> change,
+                                                                               ChangesRequested changesRequested,
                                                                                Task taskFromModel, OperationResult result) throws SchemaException {
         PcpAspectConfigurationType config = primaryChangeAspectHelper.getPcpAspectConfigurationType(wfConfigurationType, this);
         if (config == null) {
@@ -71,7 +72,7 @@ public abstract class AddObjectAspect<T extends ObjectType> extends BasePrimaryC
         if (!primaryChangeAspectHelper.isRelatedToType(modelContext, getObjectClass())) {
             return null;
         }
-        List<ApprovalRequest<T>> approvalRequestList = getApprovalRequests(modelContext, config, change, result);
+        List<ApprovalRequest<T>> approvalRequestList = getApprovalRequests(modelContext, config, changesRequested.getFocusChange(), result);
         if (approvalRequestList == null || approvalRequestList.isEmpty()) {
             return null;
         }
