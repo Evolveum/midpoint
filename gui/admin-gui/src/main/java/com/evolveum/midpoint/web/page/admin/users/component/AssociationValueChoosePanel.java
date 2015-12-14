@@ -134,7 +134,6 @@ public class AssociationValueChoosePanel <C extends ObjectType> extends SimplePa
 
     protected void replace(Object object) {
     	//TODO  be careful , non systematic hack
-    	LOGGER.debug("Replacing value of {} with {}", this, object);
         ShadowType shadowType = (ShadowType) object;
         PrismContainerValue<ShadowAssociationType> old = getModel().getObject();
         ShadowAssociationType assocType = new ShadowAssociationType();
@@ -143,14 +142,13 @@ public class AssociationValueChoosePanel <C extends ObjectType> extends SimplePa
         shadowRef.asReferenceValue().setObject(shadowType.asPrismObject());
 		assocType.setShadowRef(shadowRef);
 		assocType.setName(model.getObject().getItem().getName());
-		LOGGER.debug("XXX {}", assocType);
 		PrismContainerValue<ShadowAssociationType> ppv = assocType.asPrismContainerValue();
         getModel().setObject(ppv);
-        LOGGER.debug("Replaced value of {} with {} ({})", this, ppv, assocType);
+        LOGGER.trace("Replaced value of {} with {} ({})", this, ppv, assocType);
     }
 
     protected void initDialog(final Class<C> type, List<PrismPropertyValue> values) {
-
+    	LOGGER.debug("Initializing dialog for type {}", type);
         if (FocusType.class.equals(type)){
             initUserOrgDialog();
         } else {
@@ -342,6 +340,7 @@ public class AssociationValueChoosePanel <C extends ObjectType> extends SimplePa
 
     private Collection<SelectorOptions<GetOperationOptions>> getAssociationsSearchOptions() {
         Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<SelectorOptions<GetOperationOptions>>();
+        // HACK: raw shoudl not be here. noFetch should be enough. But it does not work
         options.add(SelectorOptions.create(ItemPath.EMPTY_PATH, GetOperationOptions.createRaw()));
         options.add(SelectorOptions.create(ItemPath.EMPTY_PATH, GetOperationOptions.createNoFetch()));
         return options;

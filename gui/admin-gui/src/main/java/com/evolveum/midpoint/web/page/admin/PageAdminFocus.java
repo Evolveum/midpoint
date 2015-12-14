@@ -780,7 +780,7 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin
 	}
 
 	protected void savePerformed(AjaxRequestTarget target) {
-		LOGGER.debug("Save user.");
+		LOGGER.debug("Save focus.");
 		OperationResult result = new OperationResult(OPERATION_SAVE);
 		ObjectWrapper userWrapper = getFocusWrapper();
 		// todo: improve, delta variable is quickfix for MID-1006
@@ -912,6 +912,7 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin
 
 						progressReporter.executeChanges(deltas, options, task, result, target);
 					} else {
+						LOGGER.debug("Skipping modification because deltas are empty");
 						result.recordSuccess();
 					}
 
