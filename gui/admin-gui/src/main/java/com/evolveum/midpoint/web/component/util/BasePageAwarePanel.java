@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,23 +18,24 @@ package com.evolveum.midpoint.web.component.util;
 
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.web.page.PageBase;
+
 /**
- * @author lazyman
  * @author semancik
  */
-public class BaseSimplePanel<T> extends BasePanel<T> {
+public class BasePageAwarePanel<T> extends BasePanel<T> {
 
-    public BaseSimplePanel(String id) {
-        this(id, null);
+    public BasePageAwarePanel(String id, PageBase parentPage) {
+        this(id, null, parentPage);
     }
 
-    public BaseSimplePanel(String id, IModel<T> model) {
+    public BasePageAwarePanel(String id, IModel<T> model, PageBase parentPage) {
         super(id, model);
 
-        initLayout();
+        initLayout(parentPage);
     }
 
-    protected void initLayout() {
+    protected void initLayout(PageBase parentPage) {
 
     }
 }

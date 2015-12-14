@@ -18,6 +18,8 @@ package com.evolveum.midpoint.web.component.prism;
 
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Revivable;
@@ -28,6 +30,8 @@ import com.evolveum.midpoint.util.DebugDumpable;
  */
 public interface ItemWrapper extends Revivable, DebugDumpable {
 
+	QName getName();
+	
     String getDisplayName();
 
     void setDisplayName(String name);

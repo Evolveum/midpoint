@@ -28,7 +28,7 @@ import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentSearchDto;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.util.BasePanel;
+import com.evolveum.midpoint.web.component.util.BaseDeprecatedPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
@@ -51,7 +51,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ResourcesSelectionPanel extends BasePanel {
+public class ResourcesSelectionPanel extends BaseDeprecatedPanel {
 
     private static final String ID_BASIC_SEARCH = "basicSearch";
     private static final String ID_SEARCH_FORM = "searchForm";

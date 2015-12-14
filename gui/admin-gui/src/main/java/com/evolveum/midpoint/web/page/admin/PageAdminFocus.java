@@ -73,6 +73,7 @@ import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -91,11 +92,13 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.component.IRequestablePage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
 import javax.xml.namespace.QName;
+
 import java.io.Serializable;
 import java.util.*;
 
@@ -207,40 +210,47 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin
 	}
 
 	public void initialize(final PrismObject<T> userToEdit) {
-		focusModel = new LoadableModel<ObjectWrapper<T>>(false) {
-
-			@Override
-			protected ObjectWrapper<T> load() {
-				return loadFocusWrapper(userToEdit);
-			}
-		};
-		shadowModel = new LoadableModel<List<FocusProjectionDto>>(false) {
-
-			@Override
-			protected List<FocusProjectionDto> load() {
-				return loadShadowWrappers();
-			}
-		};
-
-		orgModel = new LoadableModel<List<FocusProjectionDto>>(false) {
-
-			@Override
-			protected List<FocusProjectionDto> load() {
-				return loadOrgWrappers();
-			}
-		};
-
-		assignmentsModel = new LoadableModel<List<AssignmentEditorDto>>(false) {
-
-			@Override
-			protected List<AssignmentEditorDto> load() {
-				return loadAssignments();
-			}
-		};
-
-		performCustomInitialization();
-
-		initLayout();
+		try {
+			
+			focusModel = new LoadableModel<ObjectWrapper<T>>(false) {
+	
+				@Override
+				protected ObjectWrapper<T> load() {
+					return loadFocusWrapper(userToEdit);
+				}
+			};
+			shadowModel = new LoadableModel<List<FocusProjectionDto>>(false) {
+	
+				@Override
+				protected List<FocusProjectionDto> load() {
+					return loadShadowWrappers();
+				}
+			};
+	
+			orgModel = new LoadableModel<List<FocusProjectionDto>>(false) {
+	
+				@Override
+				protected List<FocusProjectionDto> load() {
+					return loadOrgWrappers();
+				}
+			};
+	
+			assignmentsModel = new LoadableModel<List<AssignmentEditorDto>>(false) {
+	
+				@Override
+				protected List<AssignmentEditorDto> load() {
+					return loadAssignments();
+				}
+			};
+	
+			performCustomInitialization();
+	
+			initLayout();
+			
+			LOGGER.trace("Page {} initialized", this);
+		} catch (Exception e) {
+			LoggingUtils.logException(LOGGER, "Error initializing page "+this, e);
+		}
 	}
 
 	protected void performCustomInitialization() {
@@ -681,9 +691,9 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin
 					PrismContainer<ShadowAssociationType> associationContainer = projection
 							.findContainer(ShadowType.F_ASSOCIATION);
 					if (associationContainer != null && associationContainer.getValues() != null) {
-						List<PrismProperty> associations = new ArrayList<>(
+						List<PrismContainerValue<ShadowAssociationType>> associations = new ArrayList<>(
 								associationContainer.getValues().size());
-						for (PrismContainerValue associationVal : associationContainer.getValues()) {
+						for (PrismContainerValue<ShadowAssociationType> associationVal : associationContainer.getValues()) {
 							ShadowAssociationType associationType = (ShadowAssociationType) associationVal
 									.asContainerable();
 							ObjectReferenceType shadowRef = associationType.getShadowRef();
@@ -691,12 +701,11 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin
 							// associations we can safely eliminate fetching
 							// from resource, because we need only the name
 							if (shadowRef != null) {
-								PrismObject<ShadowType> association = getModelService()
-										.getObject(ShadowType.class, shadowRef.getOid(),
-												SelectorOptions.createCollection(
-														GetOperationOptions.createNoFetch()),
-												task, subResult);
-								associations.add(association.findProperty(ShadowType.F_NAME));
+								PrismObject<ShadowType> associationTargetShadow = getModelService().getObject(ShadowType.class, 
+										shadowRef.getOid(), SelectorOptions.createCollection(GetOperationOptions.createNoFetch()),
+										task, subResult);
+								shadowRef.asReferenceValue().setObject(associationTargetShadow);
+								associations.add(associationVal);
 							}
 						}
 						wrapper.setAssociations(associations);
@@ -1704,7 +1713,7 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin
 				warn(getString("pageAdminFocus.message.noEnabledPropertyFound", wrapper.getDisplayName()));
 				continue;
 			}
-			ValueWrapper value = enabledProperty.getValues().get(0);
+			ValueWrapper value = (ValueWrapper) enabledProperty.getValues().get(0);
 			ActivationStatusType status = enabled ? ActivationStatusType.ENABLED
 					: ActivationStatusType.DISABLED;
 			((PrismPropertyValue) value.getValue()).setValue(status);
@@ -1940,7 +1949,7 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin
 		// };
 		// add(dialog);
 	}
-
+	
 	protected abstract void setSpecificResponsePage();
 
 }

@@ -23,7 +23,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.assignment.AssignmentSearchDto;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.util.BasePanel;
+import com.evolveum.midpoint.web.component.util.BaseDeprecatedPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -43,7 +43,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class AbstractAssignableSelectionPanel<T extends ObjectType> extends BasePanel {
+public abstract class AbstractAssignableSelectionPanel<T extends ObjectType> extends BaseDeprecatedPanel {
 
     private static final String ID_ADD = "add";
     protected Class<T> type = (Class<T>) RoleType.class;

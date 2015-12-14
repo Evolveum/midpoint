@@ -150,7 +150,7 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
         if (enabledProperty == null || enabledProperty.getValues().isEmpty()) {
             return false;
         }
-        ValueWrapper value = enabledProperty.getValues().get(0);
+        ValueWrapper value = (ValueWrapper) enabledProperty.getValues().get(0);
         if (value.getValue() == null) {
             return false;
         }

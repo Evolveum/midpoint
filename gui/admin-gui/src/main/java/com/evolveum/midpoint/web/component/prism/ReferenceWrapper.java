@@ -19,6 +19,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
@@ -98,8 +100,13 @@ public class ReferenceWrapper implements ItemWrapper, Serializable {
 	    public void setDisplayName(String displayName) {
 	        this.displayName = displayName;
 	    }
+	    
+	    @Override
+		public QName getName() {
+			return getItem().getElementName();
+		}
 
-	    public ValueStatus getStatus() {
+		public ValueStatus getStatus() {
 	        return status;
 	    }
 

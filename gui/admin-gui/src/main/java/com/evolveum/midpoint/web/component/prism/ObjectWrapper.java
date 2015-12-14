@@ -28,6 +28,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.*;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
@@ -123,7 +124,7 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 	private OperationResult result;
 	private boolean protectedAccount;
 
-	private List<PrismProperty> associations;
+	private List<PrismContainerValue<ShadowAssociationType>> associations;
 	private Collection<PrismObject<OrgType>> parentOrgs = new ArrayList<>();
 
 	private OperationResult fetchResult;
@@ -178,11 +179,11 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 		}
 	}
 
-	public List<PrismProperty> getAssociations() {
+	public List<PrismContainerValue<ShadowAssociationType>> getAssociations() {
 		return associations;
 	}
 
-	public void setAssociations(List<PrismProperty> associations) {
+	public void setAssociations(List<PrismContainerValue<ShadowAssociationType>> associations) {
 		this.associations = associations;
 	}
 
@@ -625,7 +626,7 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
                     ItemPath path = containerWrapper.getPath() != null ? containerWrapper.getPath()
                             : new ItemPath();
                     if (itemWrapper instanceof PropertyWrapper) {
-                        PropertyDelta pDelta = computePropertyDeltas((PropertyWrapper) itemWrapper, path);
+                    	ItemDelta pDelta = computePropertyDeltas((PropertyWrapper) itemWrapper, path);
                         if (!pDelta.isEmpty()) {
                             delta.addModification(pDelta);
                         }
@@ -647,14 +648,15 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 		return delta;
 	}
 
-	private PropertyDelta computePropertyDeltas(PropertyWrapper propertyWrapper, ItemPath path) {
-		PrismPropertyDefinition propertyDef = propertyWrapper.getItem().getDefinition();
+	private ItemDelta computePropertyDeltas(PropertyWrapper propertyWrapper, ItemPath path) {
+		ItemDefinition itemDef = propertyWrapper.getItem().getDefinition();
 
-		PropertyDelta pDelta = new PropertyDelta(path, propertyDef.getName(), propertyDef,
-				propertyDef.getPrismContext()); // hoping the
-												// prismContext is there
+		ItemDelta pDelta = itemDef.createEmptyDelta(path);
+//		PropertyDelta pDelta = new PropertyDelta(path, itemDef.getName(), itemDef,
+//				itemDef.getPrismContext()); // hoping the
+//												// prismContext is there
 
-		addItemDelta(propertyWrapper, pDelta, propertyDef, path);
+		addItemDelta(propertyWrapper, pDelta, itemDef, path);
 		return pDelta;
 
 	}

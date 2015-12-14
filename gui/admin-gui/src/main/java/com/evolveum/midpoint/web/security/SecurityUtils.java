@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,13 +46,13 @@ public class SecurityUtils {
 
     public static MidPointPrincipal getPrincipalUser(Authentication authentication) {
         if (authentication == null) {
-            LOGGER.debug("Authentication not available in security current context holder.");
+            LOGGER.debug("Authentication not available in security context.");
             return null;
         }
 
         Object principal = authentication.getPrincipal();
         if (!(principal instanceof MidPointPrincipal)) {
-            LOGGER.debug("Principal user in security context holder is {} but not type of {}",
+            LOGGER.debug("Principal user in security context is {} but not type of {}",
                     new Object[]{principal, MidPointPrincipal.class.getName()});
             return null;
         }
