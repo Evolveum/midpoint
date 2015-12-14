@@ -21,9 +21,16 @@ import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertDefinitionDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.DefinitionScopeDto;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.AEPlevel;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.SystemConfigurationDto;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationAssignmentReviewScopeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationObjectBasedScopeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationScopeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
@@ -39,6 +46,7 @@ public class DefinitionScopePanel extends SimplePanel<AccessCertificationScopeTy
     DefinitionScopeDto definitionScopeDto;
     private static final String ID_NAME = "name";
     private static final String ID_DESCRIPTION = "description";
+    private static final String ID_OBJECT_TYPE_CHOOSER = "objectTypeChooser";
 
     public DefinitionScopePanel(String id, IModel<AccessCertificationScopeType> model) {
         super(id, model);
@@ -66,6 +74,16 @@ public class DefinitionScopePanel extends SimplePanel<AccessCertificationScopeTy
         });
         add(descriptionField);
 
+//        DropDownChoice<ObjectType> aepLevel = new DropDownChoice<>(ID_OBJECT_TYPE_CHOOSER,
+//                new PropertyModel<ObjectType>(getModel(), DefinitionScopeDto.F_OBJECT_TYPE),
+//                WebMiscUtil.createReadonlyModelFromEnum(ObjectType.class),
+//                new EnumChoiceRenderer<ObjectType>(DefinitionScopePanel.this));
+//        aepLevel.setOutputMarkupId(true);
+//        if(aepLevel.getModel().getObject() == null){
+//            aepLevel.getModel().setObject(null);
+//        }
+//        aepLevel.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
+//        add(aepLevel);
     }
 
     public DefinitionScopeDto createScopeDefinition() {
