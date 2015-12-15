@@ -43,8 +43,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 public class AccCertResponseComputationHelper {
 
     // should be the case enabled in the following stage?
-    public boolean computeEnabled(AccessCertificationCaseType _case) {
-        if (!Boolean.TRUE.equals(_case.isEnabled())) {
+    public boolean computeEnabled(AccessCertificationCampaignType campaign, AccessCertificationCaseType _case) {
+        if (_case.getCurrentStageNumber() != campaign.getStageNumber()) {
             return false;
         }
         if (_case.getCurrentResponse() == null) {
@@ -63,18 +63,18 @@ public class AccCertResponseComputationHelper {
 
     public AccessCertificationResponseType computeResponseForStage(AccessCertificationCaseType _case, AccessCertificationDecisionType newDecision,
                                                                    AccessCertificationCampaignType campaign) {
-        int stageNumber = campaign.getCurrentStageNumber();
+        int stageNumber = campaign.getStageNumber();
         List<AccessCertificationDecisionType> allDecisions = getDecisions(_case, newDecision, stageNumber);
         return computeResponseForStageInternal(allDecisions, _case, campaign);
     }
 
     public AccessCertificationResponseType computeResponseForStage(AccessCertificationCaseType _case, AccessCertificationCampaignType campaign) {
-        List<AccessCertificationDecisionType> allDecisions = getDecisions(_case, campaign.getCurrentStageNumber());
+        List<AccessCertificationDecisionType> allDecisions = getDecisions(_case, campaign.getStageNumber());
         return computeResponseForStageInternal(allDecisions, _case, campaign);
     }
 
     private AccessCertificationResponseType computeResponseForStageInternal(List<AccessCertificationDecisionType> allDecisions, AccessCertificationCaseType _case, AccessCertificationCampaignType campaign) {
-        int stageNumber = campaign.getCurrentStageNumber();
+        int stageNumber = campaign.getStageNumber();
         AccessCertificationStageDefinitionType stageDef = CertCampaignTypeUtil.findStageDefinition(campaign, stageNumber);
         AccessCertificationApprovalStrategyType approvalStrategy = null;
         if (stageDef != null && stageDef.getReviewerSpecification() != null) {

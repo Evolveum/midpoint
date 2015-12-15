@@ -46,7 +46,7 @@
             <a href="https://wiki.evolveum.com/display/midPoint/Data+Model">https://wiki.evolveum.com/display/midPoint/Data+Model</a>
             for more details.
 
-            <p>Version: 3.3</p>
+            <p>Version: 3.4-SNAPSHOT</p>
 
             <p>Recommended namespace prefix: (default), c</p>
         </xsd:documentation>
@@ -2010,7 +2010,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-
+    <xsd:element name="focus" type="tns:FocusType"/>
 	    
     <xsd:complexType name="UserType">
         <xsd:annotation>
@@ -7132,11 +7132,25 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
+					<xsd:element name="adminGuiConfiguration" type="tns:AdminGuiConfigurationType" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								<p>
+									Specifies the admin GUI configuration that should be used
+									for the members of this role.
+								</p>
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.4</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    
+    <xsd:element name="abstractRole" type="tns:AbstractRoleType"/>
+
     <xsd:complexType name="AuthorizationType">
         <xsd:annotation>
             <xsd:documentation>
@@ -8719,6 +8733,14 @@
                         </xsd:annotation>
                     </xsd:element>
 
+                    <xsd:element name="accessCertification" type="tns:AccessCertificationConfigurationType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                A configuration for access certifications.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+
                     <xsd:element name="profilingConfiguration" type="tns:ProfilingConfigurationType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -8804,6 +8826,19 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="objectForms" type="tns:ObjectFormsType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Specifies the set of default forms that are used for displaying and
+      						editing of objects, such as User, Role, Org, ...
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.4</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -12149,11 +12184,43 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="lastCampaignIdUsed" type="xsd:int" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                ID that was used to auto-generate campaign name last time (null if none so far).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="lastCampaignStartedTimestamp" type="xsd:dateTime" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                When the last campaign of this type was started?
+                                CURRENTLY NOT USED.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="lastCampaignClosedTimestamp" type="xsd:dateTime" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                When the last campaign of this type was closed? Deletion is not recorded in this attribute.
+                                CURRENTLY NOT USED.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <!--<xsd:element name="campaignSchedulingInterval" type="xsd:duration" minOccurs="0">-->
+                        <!--<xsd:annotation>-->
+                            <!--<xsd:documentation>-->
+                                <!--How often should a campaign of this type be automatically started?-->
+                                <!--(null if automated scheduling is not required)-->
+                                <!--Scheduling is based on last campaign started timestamp.-->
+                            <!--</xsd:documentation>-->
+                        <!--</xsd:annotation>-->
+                    <!--</xsd:element>-->
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="accessCertificationDefinition" type="tns:AccessCertificationDefinitionType" />
+    <xsd:element name="accessCertificationDefinition" type="tns:AccessCertificationDefinitionType" substitutionGroup="c:object"/>
 
     <xsd:complexType name="AccessCertificationStageDefinitionType">
         <xsd:annotation>
@@ -12406,7 +12473,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="currentStageNumber" type="xsd:int" minOccurs="1">
+                    <xsd:element name="stageNumber" type="xsd:int" minOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
                                 The stage this campaign is in.
@@ -12434,7 +12501,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="accessCertificationCampaign" type="tns:AccessCertificationCampaignType" />
+    <xsd:element name="accessCertificationCampaign" type="tns:AccessCertificationCampaignType" substitutionGroup="c:object" />
 
     <xsd:complexType name="AccessCertificationStageType">
         <xsd:annotation>
@@ -12669,6 +12736,37 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="tenantRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        For parameterized certification items (e.g. assignments): a tenant parameter, if applicable.
+                        See discussion on tenantRef in AssignmentType.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="orgRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        For parameterized certification items (e.g. assignments): an org parameter, if applicable.
+                        See discussion on orgRef in AssignmentType.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="activation" type="tns:ActivationType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If the target is assigned with activation information (e.g. validFrom/validTo/administrativeStatus)
+                        here is the information copied. Note that other activation information (e.g. effectiveStatus) are
+                        _not_ updated here and probably should be ignored.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <!--
 <xsd:element name="targetQualification" type="xsd:string" minOccurs="0">
     <xsd:annotation>
@@ -12716,12 +12814,16 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="currentResponseStage" type="xsd:int" minOccurs="0" maxOccurs="1">
+            <xsd:element name="currentStageNumber" type="xsd:int" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The number of current stage to which the "currentResponse" relates to.
-                        If the case is not transferred into the next stage, the value of this item stays to be set as it is -
-                        indicating the last stage this case took part in.
+                        The number of current stage in which this case is.
+                        E.g. currentResponse relates to the currentStage.
+                        Case is "enabled" for a current campaign stage if and only if case.currentStage == campaign.stageNumber.
+
+                        When opening a campaign stage, case's currentStage either advances (if it is transferred to stage being opened)
+                        or stays at the existing value (if it is not). It then indicates the last stage this case
+                        took part of.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -12732,14 +12834,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>-->
-            <xsd:element name="enabled" type="xsd:boolean" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Is the case enabled for the current stage? E.g. cases that have been marked as "remove" in a given stage
-                        may be disabled for later stages.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
+            <!--<xsd:element name="enabled" type="xsd:boolean" minOccurs="1" maxOccurs="1">-->
+                <!--<xsd:annotation>-->
+                    <!--<xsd:documentation>-->
+                        <!--Is the case enabled for the current stage? E.g. cases that have been marked as "remove" in a given stage-->
+                        <!--may be disabled for later stages.-->
+                    <!--</xsd:documentation>-->
+                <!--</xsd:annotation>-->
+            <!--</xsd:element>-->
             <xsd:element name="remediedTimestamp" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -12766,8 +12868,8 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
     <xsd:element name="accessCertificationCase" type="tns:AccessCertificationCaseType"/>
 
@@ -12850,6 +12952,7 @@
             </xsd:element>
             <!-- TODO expiration, delegation ... -->
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
 
     <xsd:simpleType name="AccessCertificationResponseType">
@@ -13181,6 +13284,27 @@
         </xsd:sequence>
     </xsd:complexType>
 
+    <xsd:complexType name="AccessCertificationConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration for access certification.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="availableResponse" minOccurs="0" maxOccurs="unbounded" type="tns:AccessCertificationResponseType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        What response types are available to reviewers? Empty list means all responses.
+                        TODO should we configure also names of the responses? (probably no)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:complexType name="EnvironmentalPerformanceInformationType">
         <xsd:annotation>
             <xsd:documentation>
@@ -13496,6 +13620,80 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="sequence" type="tns:SequenceType" />
+    
+    
+    
+  <!-- ============================================================== -->
+  <!--  FORMS                                                         -->
+  <!-- ============================================================== -->
+
+
+    <xsd:complexType name="ObjectFormsType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Specifies the set of forms that are used for displaying and
+        		editing of objects, such as User, Role, Org, ...
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+       		<xsd:sequence>
+           		<xsd:element name="objectForm" type="tns:ObjectFormType" minOccurs="0" maxOccurs="unbounded"/>
+           	</xsd:sequence>	
+    </xsd:complexType>
+
+    <xsd:complexType name="ObjectFormType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Specifies form that are used for displaying and
+        		editing of specific object type
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+       		<xsd:sequence>
+       			<xsd:element name="type" type="xsd:QName" minOccurs="1" maxOccurs="1"/>
+           		<xsd:element name="formSpecification" type="tns:FormSpecificationType" minOccurs="0" maxOccurs="1"/>
+           	</xsd:sequence>	
+    </xsd:complexType>
+    
+    <xsd:complexType name="FormSpecificationType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Specifies a form using several different methods, e.g. by
+        		specification of Java class, internal form OID, etc.
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+       		<xsd:sequence>
+           		<xsd:element name="formRef" type="tns:ObjectReferenceType"
+                                 minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Reference to midPoint form object
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:objectReferenceTargetType>tns:FormType</a:objectReferenceTargetType>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+       			<xsd:element name="panelClass" type="xsd:string" minOccurs="0" maxOccurs="1">
+       				<xsd:annotation>
+       					<xsd:documentation>
+       						Name of the Java class that will be used as the form implementation.
+       					</xsd:documentation>
+       				</xsd:annotation>
+       			</xsd:element>
+           	</xsd:sequence>	
+    </xsd:complexType>
+    
     
     <xsd:complexType name="FormType">
         <xsd:annotation>

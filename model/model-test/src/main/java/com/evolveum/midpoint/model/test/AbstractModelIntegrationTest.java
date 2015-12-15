@@ -111,6 +111,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
@@ -2874,6 +2875,24 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		boolean isAuthorized = securityEnforcer.isAuthorized(action, phase, null, null, null, null);
 		SecurityContextHolder.setContext(origContext);
 		assertFalse("AuthorizationEvaluator.isAuthorized: Principal " + principal + " IS authorized for action " + action + " (" + phase + ") but he should not be", isAuthorized);
+	}
+	
+	protected void assertAdminGuiConfigurations(MidPointPrincipal principal, int expectedMenuLinks, 
+			int expectedDashboardLinks, int expectedObjectForms) {
+		AdminGuiConfigurationType adminGuiConfiguration = principal.getAdminGuiConfiguration();
+		display("Admin GUI config for "+principal.getUsername(), adminGuiConfiguration);
+		assertAdminGuiConfigurations(adminGuiConfiguration, expectedMenuLinks, expectedDashboardLinks, expectedObjectForms);
+	}
+	
+	protected void assertAdminGuiConfigurations(AdminGuiConfigurationType adminGuiConfiguration, int expectedMenuLinks, 
+			int expectedDashboardLinks, int expectedObjectForms) {
+		assertNotNull("No admin GUI configuration", adminGuiConfiguration);
+		assertEquals("Wrong number of menu links in",
+				expectedMenuLinks, adminGuiConfiguration.getAdditionalMenuLink().size());
+		assertEquals("Wrong number of menu links in",
+				expectedDashboardLinks, adminGuiConfiguration.getUserDashboardLink().size());
+		assertEquals("Wrong number of object forms in admin GUI configuration",
+				expectedObjectForms, adminGuiConfiguration.getObjectForms().getObjectForm().size());
 	}
 
 	protected void createSecurityContext(MidPointPrincipal principal) {

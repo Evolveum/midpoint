@@ -98,7 +98,7 @@ public class CertCaseDto extends CertCaseOrDecisionDto {
     }
 
     public Integer getCurrentResponseStageNumber() {
-        return getCertCase().getCurrentResponseStage();
+        return getCertCase().getCurrentStageNumber();
     }
 
 }

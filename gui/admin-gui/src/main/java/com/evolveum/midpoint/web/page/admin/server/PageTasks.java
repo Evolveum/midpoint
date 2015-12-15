@@ -75,6 +75,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
 
 import java.util.*;
 
@@ -120,6 +121,8 @@ public class PageTasks extends PageAdminTasks {
     private static final String ID_DELETE_TASKS_POPUP = "deleteTasksPopup";
     private static final String ID_TABLE_HEADER = "tableHeader";
 
+    public static final String SELECTED_CATEGORY = "category";
+
     private IModel<TasksSearchDto> searchModel;
     private String searchText = "";
 
@@ -128,14 +131,23 @@ public class PageTasks extends PageAdminTasks {
     }
 
     public PageTasks(boolean clearSessionStorage) {
-        this(true, "");
+        this(true, "", null);
     }
 
     public PageTasks(String searchText) {
-        this(true, searchText);
+        this(true, searchText, null);
     }
 
-    public PageTasks(boolean clearSessionStorage, String searchText) {
+    public PageTasks(PageParameters parameters) {
+        this(true, "", parameters);
+    }
+
+    // TODO clean the mess with constructors
+    public PageTasks(boolean clearSessionStorage, String searchText, PageParameters parameters) {
+        if (parameters != null) {
+            getPageParameters().overwriteWith(parameters);
+        }
+
         this.searchText = searchText;
         searchModel = new LoadableModel<TasksSearchDto>(false) {
 
@@ -156,6 +168,13 @@ public class PageTasks extends PageAdminTasks {
         if (dto == null) {
             dto = new TasksSearchDto();
             dto.setShowSubtasks(false);
+        }
+
+        if (getPageParameters() != null) {
+            StringValue category = getPageParameters().get(SELECTED_CATEGORY);
+            if (category != null && category.toString() != null && !category.toString().isEmpty()) {
+                dto.setCategory(category.toString());
+            }
         }
 
         if (dto.getStatus() == null) {
@@ -202,7 +221,9 @@ public class PageTasks extends PageAdminTasks {
         mainForm.add(taskTable);
 
         List<IColumn<NodeDto, String>> nodeColumns = initNodeColumns();
-        BoxedTablePanel nodeTable = new BoxedTablePanel(ID_NODE_TABLE, new NodeDtoProvider(PageTasks.this), nodeColumns);
+        BoxedTablePanel nodeTable = new BoxedTablePanel(ID_NODE_TABLE, new NodeDtoProvider(PageTasks.this), nodeColumns,
+                UserProfileStorage.TableId.PAGE_TASKS_NODES_PANEL,
+                (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_TASKS_NODES_PANEL));
         nodeTable.setOutputMarkupId(true);
         nodeTable.setShowPaging(false);
         mainForm.add(nodeTable);

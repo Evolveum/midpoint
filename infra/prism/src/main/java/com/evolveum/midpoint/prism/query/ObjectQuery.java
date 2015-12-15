@@ -33,6 +33,8 @@ public class ObjectQuery implements DebugDumpable, Serializable {
 	private ObjectPaging paging;
 	private boolean allowPartialResults = false;
 
+	private boolean useNewQueryInterpreter = true;
+
 	public ObjectFilter getFilter() {
 		return filter;
 	}
@@ -55,6 +57,14 @@ public class ObjectQuery implements DebugDumpable, Serializable {
 
 	public void setAllowPartialResults(boolean allowPartialResults) {
 		this.allowPartialResults = allowPartialResults;
+	}
+
+	public boolean isUseNewQueryInterpreter() {
+		return useNewQueryInterpreter;
+	}
+
+	public void setUseNewQueryInterpreter(boolean useNewQueryInterpreter) {
+		this.useNewQueryInterpreter = useNewQueryInterpreter;
 	}
 
 	public static ObjectQuery createObjectQuery(ObjectFilter filter) {
@@ -106,6 +116,7 @@ public class ObjectQuery implements DebugDumpable, Serializable {
 		if (this.allowPartialResults) {
 			clone.allowPartialResults = true;
 		}
+		clone.useNewQueryInterpreter = this.useNewQueryInterpreter;
 		return clone;
 	}	
 
@@ -120,9 +131,9 @@ public class ObjectQuery implements DebugDumpable, Serializable {
 		
 		DebugUtil.indentDebugDump(sb, indent);
 		if (filter == null) {
-			sb.append("filter: null");
+			sb.append("Filter: null");
 		} else {
-			sb.append("filter:");
+			sb.append("Filter:");
 			sb.append("\n");
 			sb.append(filter.debugDump(indent + 1));
 		}
@@ -130,9 +141,9 @@ public class ObjectQuery implements DebugDumpable, Serializable {
 		sb.append("\n");
 		DebugUtil.indentDebugDump(sb, indent);
 		if (paging == null) {
-			sb.append("paging: null");
+			sb.append("Paging: null");
 		} else {
-			sb.append("paging: ").append(paging.debugDump(0));
+			sb.append(paging.debugDump(0));
 		}
 		
 		if (allowPartialResults) {

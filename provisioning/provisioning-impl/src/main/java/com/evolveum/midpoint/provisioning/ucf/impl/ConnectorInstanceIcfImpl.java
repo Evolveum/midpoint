@@ -31,6 +31,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.provisioning.impl.StateReporter;
@@ -2264,8 +2265,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
             }
             QName orderBy;
             boolean isAscending;
-            if (paging.getOrderBy() != null) {
-                orderBy = paging.getOrderBy();
+			ItemPath orderByPath = paging.getOrderBy();
+            if (orderByPath != null && !orderByPath.isEmpty()) {
+				if (orderByPath.size() > 1 || !(orderByPath.first() instanceof NameItemPathSegment)) {
+					throw new SchemaException("OrderBy has to consist of just one naming segment");
+				}
+				orderBy = ((NameItemPathSegment) (orderByPath.first())).getName();
                 if (SchemaConstants.C_NAME.equals(orderBy)) {
                     orderBy = SchemaConstants.ICFS_NAME;
                 }

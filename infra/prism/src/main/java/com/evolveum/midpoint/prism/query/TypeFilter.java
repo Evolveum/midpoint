@@ -124,4 +124,12 @@ public class TypeFilter extends ObjectFilter {
 		sb.append(")");
 		return sb.toString();
     }
+
+    @Override
+    public void accept(Visitor visitor) {
+        super.accept(visitor);
+        if (filter != null) {
+            visitor.visit(filter);
+        }
+    }
 }

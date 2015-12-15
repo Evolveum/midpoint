@@ -33,6 +33,7 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -473,6 +474,11 @@ public abstract class PageBase extends PageTemplate {
         menu = new MenuItem(createStringResource("PageAdmin.menu.top.certification.campaigns"),
                 PageCertCampaigns.class);
         submenu.add(menu);
+        PageParameters params = new PageParameters();
+        params.add(PageTasks.SELECTED_CATEGORY, TaskCategory.ACCESS_CERTIFICATION);
+        menu = new MenuItem(createStringResource("PageAdmin.menu.top.certification.scheduling"),
+                PageTasks.class, params, null);
+        submenu.add(menu);
         menu = new MenuItem(createStringResource("PageAdmin.menu.top.certification.decisions"),
                 PageCertDecisions.class);
         submenu.add(menu);
@@ -498,6 +504,11 @@ public abstract class PageBase extends PageTemplate {
         menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.repositoryObjectView"),
                 PageDebugView.class, null, createVisibleDisabledBehaviorForEditMenu(PageDebugView.class));
         submenu.add(menu);
+        if (SystemConfigurationHolder.isExperimentalCodeEnabled()) {
+            menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.repoQuery"),
+                    PageRepoQuery.class);
+            submenu.add(menu);
+        }
 
         PageParameters params = new PageParameters();
         params.add(PageSystemConfiguration.SELECTED_TAB_INDEX, PageSystemConfiguration.CONFIGURATION_TAB_BASIC);

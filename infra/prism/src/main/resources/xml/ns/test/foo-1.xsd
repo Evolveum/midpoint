@@ -291,6 +291,7 @@
         </xsd:annotation>
         <xsd:sequence>
         	<xsd:element name="description" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="note" type="xsd:string" minOccurs="0"/>
         	<xsd:element name="accountConstruction" type="tns:AccountConstructionType" minOccurs="0"/>
         	<xsd:element name="activation" type="tns:ActivationType" minOccurs="0"/>
         </xsd:sequence>

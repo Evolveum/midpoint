@@ -451,6 +451,9 @@ public class TextFormatter {
     }
 
     private List<Item> filterAndOrderItems(List<Item> items, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
+        if (items == null) {
+            return new ArrayList<>();
+        }
         List<Item> toBeDisplayed = new ArrayList<Item>(items.size());
         for (Item item : items) {
             if (item.getDefinition() != null) {

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -79,13 +79,6 @@
 			<artifactId>log4j-over-slf4j</artifactId>
 			<scope>test</scope>
 		</dependency>
-		
-<!-- 		<dependency> -->
-<!-- 			<groupId>com.evolveum.midpoint.repo</groupId> -->
-<!-- 			<artifactId>system-init</artifactId> -->
-<!-- 			<version>1.9-SNAPSHOT</version> -->
-<!-- 			<scope>test</scope> -->
-<!-- 		</dependency> -->
 	</dependencies>
 	<profiles>
 		<profile>

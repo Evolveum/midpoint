@@ -662,11 +662,52 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	/**
+	 * Reconcile user Jack, see that everything is OK.
+	 */
+	@Test
+    public void test156ReconcileJack() throws Exception {
+		final String TEST_NAME = "test156ReconcileJack";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+                    
+		// WHEN
+        reconcileUser(USER_JACK_OID, task, result);
+
+		// THEN
+		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+		display("User after", userJack);
+        
+		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
+        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
+        assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
+        assertAssignedOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
+        assertHasOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
+
+        assertOnDemandOrgAssigned("FD001", userJack);
+        
+        assertAssignments(userJack, 3);
+        
+        UserType userJackType = userJack.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
+        
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
+        assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
+        assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
+        assertNull("Unexpected title: "+userJackType.getTitle(), userJackType.getTitle());
+	}
+	
+	/**
 	 * Creates two orgs on demand.
 	 */
 	@Test
-    public void test156ModifyJackOrganizationalUnitFD0023() throws Exception {
-		final String TEST_NAME = "test156ModifyJackOrganizationalUnitFD0023";
+    public void test157ModifyJackOrganizationalUnitFD0023() throws Exception {
+		final String TEST_NAME = "test157ModifyJackOrganizationalUnitFD0023";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -708,8 +749,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Test
-    public void test157ModifyJackDeleteOrganizationalUnitFD002() throws Exception {
-		final String TEST_NAME = "test157ModifyJackDeleteOrganizationalUnitFD002";
+    public void test159ModifyJackDeleteOrganizationalUnitFD002() throws Exception {
+		final String TEST_NAME = "test159ModifyJackDeleteOrganizationalUnitFD002";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -1052,4 +1093,100 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertFailure(result);
 	}
 	
+	@Test
+    public void test950CreateUserJackWithoutTemplate() throws Exception {
+		final String TEST_NAME = "test950CreateUserJackWithoutTemplate";
+        TestUtil.displayTestTile(this, TEST_NAME);
+	
+        // GIVEN
+        setDefaultUserTemplate(null);        
+
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        addObject(USER_JACK_FILE, task, result);
+        
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+		display("User after", userJack);
+        
+		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
+        assertAssignments(userJack, 0);
+        
+        UserType userJackType = userJack.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 0, userJackType.getLinkRef().size());
+
+		PrismAsserts.assertNoItem(userJack, UserType.F_ORGANIZATIONAL_UNIT);
+        
+	}
+	
+	/**
+	 * Would creates org on demand if the template would be active. But it is not.
+	 */
+	@Test
+    public void test952ModifyJackOrganizationalUnitFD004() throws Exception {
+		final String TEST_NAME = "test952ModifyJackOrganizationalUnitFD004";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+                    
+		// WHEN
+        modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("FD004"));
+
+		// THEN
+		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+		display("User after", userJack);
+        
+		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
+		PrismAsserts.assertPropertyValue(userJack, UserType.F_ORGANIZATIONAL_UNIT, PrismTestUtil.createPolyString("FD004"));
+		
+        assertAssignments(userJack, 0);
+        
+        UserType userJackType = userJack.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 0, userJackType.getLinkRef().size());
+        
+        PrismObject<OrgType> org = findObjectByName(OrgType.class, "FD004");
+        assertNull("Found org "+org+" but not expecting it", org);
+	}
+	
+	/**
+	 * Set the template. Reconcile the user that should have org created on demand (but does not).
+	 * The org should be created.
+	 */
+	@Test
+    public void test960ReconcileUserJackWithTemplate() throws Exception {
+		final String TEST_NAME = "test960ModifyUserJackWithTemplate";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        setDefaultUserTemplate(USER_TEMPLATE_COMPLEX_OID);
+        
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+                    
+		// WHEN
+        reconcileUser(USER_JACK_OID, task, result);
+        
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+ 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+ 		display("User after", userJack);
+         
+ 		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
+		assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
+		assertOnDemandOrgAssigned("FD004", userJack);
+		
+		assertAssignments(userJack, 2);
+		
+		UserType userJackType = userJack.asObjectable();
+		assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
+        
+	}
 }

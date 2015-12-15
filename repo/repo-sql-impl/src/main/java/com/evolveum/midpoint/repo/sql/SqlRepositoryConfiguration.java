@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
+import com.evolveum.midpoint.repo.sql.helpers.OrgClosureManager;
 import com.evolveum.midpoint.repo.sql.util.MidPointConnectionCustomizer;
 import com.evolveum.midpoint.repo.sql.util.MidPointMySQLDialect;
 import com.evolveum.midpoint.repo.sql.util.MidPointPostgreSQLDialect;

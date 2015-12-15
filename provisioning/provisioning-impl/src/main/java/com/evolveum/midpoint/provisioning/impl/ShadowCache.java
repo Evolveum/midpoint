@@ -639,8 +639,6 @@ public abstract class ShadowCache {
 			throw e;
 		}
 	}
-
-	
 	
 	protected ResourceType getResource(ResourceShadowDiscriminator coords, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
@@ -648,7 +646,7 @@ public abstract class ShadowCache {
 		if (resourceOid == null) {
 			throw new IllegalArgumentException("No resource OID in " + coords);
 		}
-		return resourceManager.getResource(resourceOid, parentResult).asObjectable();
+		return resourceManager.getResource(resourceOid, null, parentResult).asObjectable();
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -784,11 +782,10 @@ public abstract class ShadowCache {
         }
 
         ObjectQuery attributeQuery = null;
-        List<ObjectFilter> attributeFilter = new ArrayList<ObjectFilter>();
 
-        if (filter instanceof AndFilter){
+        if (filter instanceof AndFilter) {
             List<? extends ObjectFilter> conditions = ((AndFilter) filter).getConditions();
-            attributeFilter = createAttributeQueryInternal(conditions);
+			List<ObjectFilter> attributeFilter = createAttributeQueryInternal(conditions);
             if (attributeFilter.size() > 1){
                 attributeQuery = ObjectQuery.createObjectQuery(AndFilter.createAnd(attributeFilter));
             } else if (attributeFilter.size() < 1){
@@ -840,7 +837,7 @@ public abstract class ShadowCache {
 					} else if (f instanceof AndFilter){
 						attributeFilter.add(AndFilter.createAnd(subFilters));
 					} else {
-						throw new IllegalArgumentException("Could not translate query filter. Unknow type: " + f);
+						throw new IllegalArgumentException("Could not translate query filter. Unknown type: " + f);
 					}
 	            } else if (subFilters.size() < 1){
 	                continue;

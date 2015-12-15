@@ -38,5 +38,7 @@ public @interface QueryEntity {
 
     VirtualEntity[] entities() default {};
 
+    VirtualAny[] anyElements() default {};
+
     VirtualReference[] references() default {};
 }

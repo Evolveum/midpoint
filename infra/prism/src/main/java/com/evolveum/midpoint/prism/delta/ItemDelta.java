@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,6 +82,7 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 
 	protected ItemDelta(ItemPath parentPath, QName elementName, D itemDefinition, PrismContext prismContext) {
         //checkPrismContext(prismContext, itemDefinition);
+		ItemPath.checkNoReferences(parentPath);
         this.prismContext = prismContext;
 		this.elementName = elementName;
 		this.parentPath = parentPath;
@@ -90,6 +91,7 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 
 	protected ItemDelta(ItemPath path, D itemDefinition, PrismContext prismContext) {
         //checkPrismContext(prismContext, itemDefinition);
+		ItemPath.checkNoReferences(path);
         this.prismContext = prismContext;
 
 		if (path == null) {
@@ -515,9 +517,11 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 		} else {
 			valuesToReplace.clear();
 		}
-		valuesToReplace.add(newValue);
-		newValue.setParent(this);
-		newValue.recompute();
+		if (newValue != null) {
+			valuesToReplace.add(newValue);
+			newValue.setParent(this);
+			newValue.recompute();
+		}
 	}
 	
 	public void mergeValuesToReplace(Collection<V> newValues) {
@@ -1080,6 +1084,15 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 		for (ItemDelta delta : deltas) {
 			delta.applyToMatchingPath(propertyContainer);
 		}
+	}
+
+	public void applyTo(PrismContainerValue containerValue) throws SchemaException {
+		ItemPath deltaPath = getPath();
+		if (ItemPath.isNullOrEmpty(deltaPath)) {
+			throw new IllegalArgumentException("Cannot apply empty-path delta " + this + " directly to a PrismContainerValue " + containerValue);
+		}
+		Item subItem = containerValue.findOrCreateItem(deltaPath, getItemClass(), getDefinition());
+		applyToMatchingPath(subItem);
 	}
 	
 	public void applyTo(Item item) throws SchemaException {

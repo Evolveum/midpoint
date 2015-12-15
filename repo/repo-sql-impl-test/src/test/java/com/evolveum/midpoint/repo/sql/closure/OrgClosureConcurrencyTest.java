@@ -29,7 +29,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -41,7 +40,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import static com.evolveum.midpoint.repo.sql.OrgClosureManager.Edge;
+import static com.evolveum.midpoint.repo.sql.helpers.OrgClosureManager.Edge;
 
 /**
  * @author mederly

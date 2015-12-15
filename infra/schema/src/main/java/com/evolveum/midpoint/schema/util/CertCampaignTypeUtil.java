@@ -35,7 +35,7 @@ public class CertCampaignTypeUtil {
 
     public static AccessCertificationStageType getCurrentStage(AccessCertificationCampaignType campaign) {
         for (AccessCertificationStageType stage : campaign.getStage()) {
-            if (stage.getNumber() == campaign.getCurrentStageNumber()) {
+            if (stage.getNumber() == campaign.getStageNumber()) {
                 return stage;
             }
         }
@@ -99,7 +99,7 @@ public class CertCampaignTypeUtil {
     }
 
     public static boolean isCampaignClosed(AccessCertificationCampaignType campaign) {
-        int currentStage = campaign.getCurrentStageNumber();
+        int currentStage = campaign.getStageNumber();
         int stages = getNumberOfStages(campaign);
         return AccessCertificationCampaignStateType.CLOSED.equals(campaign.getState()) || currentStage > stages;
     }
@@ -128,6 +128,6 @@ public class CertCampaignTypeUtil {
 
     // expects that the currentStageNumber is reasonable
     public static AccessCertificationStageType findCurrentStage(AccessCertificationCampaignType campaign) {
-        return findStage(campaign, campaign.getCurrentStageNumber());
+        return findStage(campaign, campaign.getStageNumber());
     }
 }

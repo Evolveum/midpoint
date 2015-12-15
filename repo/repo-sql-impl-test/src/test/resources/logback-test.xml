@@ -28,14 +28,17 @@
     <logger name="com.evolveum.midpoint.util.ClassPathUtil" level="OFF"/>
     <logger name="com.evolveum.midpoint.repo.sql.util.MidPointNamingStrategy" level="OFF"/>
     <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="OFF"/>
-    <logger name="com.evolveum.midpoint" level="OFF"/>
+    <logger name="com.evolveum.midpoint" level="WARN"/>
     <!--<logger name="org.hibernate" level="TRACE"/>-->
     <!--<logger name="org.springframework" level="INFO" />-->
 
     <logger name="org.hibernate.SQL" level="DEBUG"/>
+    <!-- showing also SQL data -->
+    <logger name="org.hibernate.type" level="TRACE"/>
+    <!--<logger name="org.hibernate" level="TRACE"/>-->
     <logger name="com.evolveum.midpoint.init" level="TRACE"/>
     <logger name="com.evolveum.midpoint.repo" level="TRACE"/>
-    <logger name="com.evolveum.midpoint.repo.sql.OrgClosureManager" level="TRACE"/>
+    <logger name="com.evolveum.midpoint.repo.sql.helpers.OrgClosureManager" level="TRACE"/>
     <logger name="com.evolveum.midpoint.testing" level="TRACE"/>
 
     <logger name="com.evolveum.midpoint.repo.sql.query.QueryRegistry" level="OFF"/>

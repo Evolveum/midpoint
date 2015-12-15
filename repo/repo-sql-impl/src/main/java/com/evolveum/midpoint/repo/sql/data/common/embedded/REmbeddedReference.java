@@ -18,7 +18,9 @@ package com.evolveum.midpoint.repo.sql.data.common.embedded;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -28,11 +30,19 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
+import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.MapsId;
 
 /**
  * @author lazyman
@@ -41,6 +51,8 @@ import javax.persistence.Enumerated;
 public class REmbeddedReference implements ObjectReference {
 
     //target
+    @NotFound(action = NotFoundAction.IGNORE)
+    private RObject target;
     private String targetOid;
     //other fields
     private RObjectType type;
@@ -53,9 +65,22 @@ public class REmbeddedReference implements ObjectReference {
         return relation;
     }
 
-    @Column(length = RUtil.COLUMN_LENGTH_OID, insertable = true, updatable = true, nullable = true)
+    //@MapsId("target")
+    @ForeignKey(name="none")
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false, nullable = true)
+    @NotFound(action = NotFoundAction.IGNORE)
+    @NotQueryable
+    public RObject getTarget() {
+        return target;
+    }
+
+    @Column(length = RUtil.COLUMN_LENGTH_OID, insertable = true, updatable = true, nullable = true /*, insertable = false, updatable = false */)
     @Override
     public String getTargetOid() {
+        if (target != null && targetOid == null) {
+            targetOid = target.getOid();
+        }
         return targetOid;
     }
 
@@ -75,6 +100,10 @@ public class REmbeddedReference implements ObjectReference {
 
     public void setType(RObjectType type) {
         this.type = type;
+    }
+
+    public void setTarget(RObject target) {
+        this.target = target;
     }
 
     @Override

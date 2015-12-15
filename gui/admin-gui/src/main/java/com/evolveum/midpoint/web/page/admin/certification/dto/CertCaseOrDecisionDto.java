@@ -115,7 +115,7 @@ public class CertCaseOrDecisionDto extends Selectable {
 
     public Integer getCampaignStageNumber() {
         AccessCertificationCampaignType campaign = getCampaign();
-        return campaign != null ? campaign.getCurrentStageNumber() : null;      // numbers after # of stages should not occur, as there are no cases in these stages
+        return campaign != null ? campaign.getStageNumber() : null;      // numbers after # of stages should not occur, as there are no cases in these stages
     }
 
     public Integer getCampaignStageCount() {
@@ -133,7 +133,7 @@ public class CertCaseOrDecisionDto extends Selectable {
         if (campaign == null) {
             return null;
         }
-        int stageNumber = campaign.getCurrentStageNumber();
+        int stageNumber = campaign.getStageNumber();
         if (stageNumber <= 0 || stageNumber > CertCampaignTypeUtil.getNumberOfStages(campaign)) {
             return null;
         }

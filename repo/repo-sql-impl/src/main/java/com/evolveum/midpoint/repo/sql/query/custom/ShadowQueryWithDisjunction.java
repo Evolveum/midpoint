@@ -224,14 +224,14 @@ public class ShadowQueryWithDisjunction extends CustomQuery {
             query = query.setMaxResults(paging.getMaxSize());
         }
 
-        if (paging.getDirection() == null && paging.getOrderBy() == null) {
+        if (paging.getDirection() == null && (paging.getOrderBy() == null || paging.getOrderBy().isEmpty())) {
             return query;
         }
 
         QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
         // PropertyPath path = new
         // XPathHolder(paging.getOrderBy()).toPropertyPath();
-        if (paging.getOrderBy() == null) {
+        if (paging.getOrderBy() == null || paging.getOrderBy().isEmpty() || paging.getOrderBy().size() > 1 || !(paging.getOrderBy().first() instanceof NameItemPathSegment)) {
             LOGGER.warn("Ordering by property path with size not equal 1 is not supported '" + paging.getOrderBy()
                     + "'.");
             return query;

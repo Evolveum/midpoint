@@ -33,8 +33,13 @@ public class GetObjectResult implements Serializable {
     private Short booleansCount;
 
     public GetObjectResult(Object[] values) {
-        this((byte[]) values[0], (Short) values[1], (Short) values[2], (Short) values[3],
-                (Short) values[4], (Short) values[5], (Short) values[6]);
+        this((byte[]) values[0],
+                values.length > 1 ? (Short) values[1] : null,
+                values.length > 2 ? (Short) values[2] : null,
+                values.length > 3 ? (Short) values[3] : null,
+                values.length > 4 ? (Short) values[4] : null,
+                values.length > 5 ? (Short) values[5] : null,
+                values.length > 6 ? (Short) values[6] : null);
     }
 
     public GetObjectResult(byte[] fullObject, Short stringsCount, Short longsCount, Short datesCount,

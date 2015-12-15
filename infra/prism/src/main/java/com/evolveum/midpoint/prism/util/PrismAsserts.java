@@ -684,9 +684,7 @@ public class PrismAsserts {
 		if (delta.isEmpty()) {
 			suffix += ": Empty delta. The difference is most likely in meta-data";
 		}
-		LOGGER.error("ASSERT: {}: {} and {} not equals, delta:\n{}", new Object[]{
-				message, expected, actual, delta.debugDump()
-		});
+		LOGGER.error("ASSERT: {}: {} and {} not equals, delta:\n{}", message, expected, actual, delta.debugDump());
 		assert false: message + ": " + suffix;
 	}
 	

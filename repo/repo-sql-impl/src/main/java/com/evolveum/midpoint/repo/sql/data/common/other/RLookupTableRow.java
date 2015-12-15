@@ -4,6 +4,9 @@ import com.evolveum.midpoint.repo.sql.data.common.RLookupTable;
 import com.evolveum.midpoint.repo.sql.data.common.container.Container;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
+import com.evolveum.midpoint.repo.sql.query.definition.OwnerIdGetter;
+import com.evolveum.midpoint.repo.sql.query2.definition.IdQueryProperty;
+import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
@@ -47,11 +50,13 @@ public class RLookupTableRow implements Container<RLookupTable> {
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @Override
+    @NotQueryable
     public RLookupTable getOwner() {
         return owner;
     }
 
     @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
+    @OwnerIdGetter()
     public String getOwnerOid() {
         if (owner != null && ownerOid == null) {
             ownerOid = owner.getOid();
@@ -63,6 +68,7 @@ public class RLookupTableRow implements Container<RLookupTable> {
     @GeneratedValue(generator = "ContainerIdGenerator")
     @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator")
     @Column(name = "id")
+    @IdQueryProperty
     public Integer getId() {
         return id;
     }
@@ -190,5 +196,17 @@ public class RLookupTableRow implements Container<RLookupTable> {
         rRow.setValue(row.getValue());
 
         return rRow;
+    }
+
+    @Override
+    public String toString() {
+        return "RLookupTableRow{" +
+                "id=" + id +
+                ", owner=" + owner +
+                ", ownerOid='" + ownerOid + '\'' +
+                ", key='" + key + '\'' +
+                ", value='" + value + '\'' +
+                ", label=" + label +
+                '}';
     }
 }

@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -122,4 +122,22 @@
     	<phase>execution</phase>
     </authorization>
     <requestable>true</requestable>
+    <adminGuiConfiguration>
+    	<additionalMenuLink>
+    		<targetUrl>http://piracy.com/plunder</targetUrl>
+    		<label>Plunder</label>
+    	</additionalMenuLink>
+    	<userDashboardLink>
+    		<targetUrl>http://example.com/swashbuckle</targetUrl>
+    		<label>Swashbuckle</label>
+    	</userDashboardLink>
+    	<objectForms>
+    		<objectForm>
+    			<type>UserType</type>
+    			<formSpecification>
+    				<panelClass>com.piracy.form.PirateUserPanel</panelClass>
+    			</formSpecification>
+    		</objectForm>
+    	</objectForms>
+    </adminGuiConfiguration>
 </role>

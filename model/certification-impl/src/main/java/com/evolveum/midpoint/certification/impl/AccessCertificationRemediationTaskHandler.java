@@ -108,7 +108,7 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
             int revokedOk = 0;
             int revokedError = 0;
 
-            List<AccessCertificationCaseType> caseList = certificationManager.searchCases((String) campaignOid, (com.evolveum.midpoint.prism.query.ObjectQuery) null, (java.util.Collection<com.evolveum.midpoint.schema.SelectorOptions<com.evolveum.midpoint.schema.GetOperationOptions>>) null, (Task) task, (OperationResult) opResult);
+            List<AccessCertificationCaseType> caseList = certificationManager.searchCases(campaignOid, (com.evolveum.midpoint.prism.query.ObjectQuery) null, (java.util.Collection<com.evolveum.midpoint.schema.SelectorOptions<com.evolveum.midpoint.schema.GetOperationOptions>>) null, (Task) task, (OperationResult) opResult);
             for (AccessCertificationCaseType _case : caseList) {
                 if (helper.isRevoke(_case, campaign)) {
                     OperationResult caseResult = opResult.createMinorSubresult(opResult.getOperation()+".revoke");
