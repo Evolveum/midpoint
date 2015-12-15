@@ -364,15 +364,6 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="requesterComment" type="xsd:string" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:appinfo>
-                                <a:displayName>Requester's comment</a:displayName>
-                                <a:displayOrder>130</a:displayOrder>
-                                <a:access>read</a:access>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="comment" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:appinfo>

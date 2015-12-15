@@ -17,12 +17,15 @@
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.model.delta.ContainerValueDto;
 import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
 import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.GeneralChangeApprovalWorkItemContents;
 
@@ -46,6 +49,9 @@ public class WorkItemDetailedDto extends WorkItemDto {
             if (wic.getObjectDelta() != null) {
                 deltaDto = new DeltaDto(DeltaConvertor.createObjectDelta(wic.getObjectDelta(), prismContext));
             }
+        }
+        if (deltaDto == null) { // TODO!!!!
+            deltaDto = new DeltaDto(ObjectDelta.createEmptyDelta(ObjectType.class, "dummy", prismContext, ChangeType.MODIFY));
         }
     }
 

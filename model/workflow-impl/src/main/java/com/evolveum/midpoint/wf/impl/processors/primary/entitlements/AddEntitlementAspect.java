@@ -311,7 +311,6 @@ public class AddEntitlementAspect extends BasePrimaryChangeAspect {
         String focusName = (String) variables.get(AddRoleVariableNames.FOCUS_NAME);
         form.setFocusName(focusName);                                   // TODO distinguish somehow between users/roles/orgs
         form.setAssociatedObjectName(getTargetDisplayName(target));
-        form.setRequesterComment(null);                                 // TODO
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Resulting prism object instance = {}", formPrism.debugDump());
