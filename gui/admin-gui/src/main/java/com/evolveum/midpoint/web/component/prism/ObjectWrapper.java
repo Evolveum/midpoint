@@ -606,17 +606,16 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
                     if (!itemWrapper.hasChanged()) {
                         continue;
                     }
-                    ItemPath path = containerWrapper.getPath() != null ? containerWrapper.getPath()
-                            : new ItemPath();
+                    ItemPath containerPath = containerWrapper.getPath() != null ? containerWrapper.getPath() : new ItemPath();
                     if (itemWrapper instanceof PropertyWrapper) {
-                    	ItemDelta pDelta = computePropertyDeltas((PropertyWrapper) itemWrapper, path);
+                    	ItemDelta pDelta = computePropertyDeltas((PropertyWrapper) itemWrapper, containerPath);
                         if (!pDelta.isEmpty()) {
                             delta.addModification(pDelta);
                         }
                     }
 
                     if (itemWrapper instanceof ReferenceWrapper) {
-                        ReferenceDelta pDelta = computeReferenceDeltas((ReferenceWrapper) itemWrapper, path);
+                        ReferenceDelta pDelta = computeReferenceDeltas((ReferenceWrapper) itemWrapper, containerPath);
                         if (!pDelta.isEmpty()) {
                             delta.addModification(pDelta);
                         }
@@ -633,33 +632,25 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 		return delta;
 	}
 
-	private ItemDelta computePropertyDeltas(PropertyWrapper propertyWrapper, ItemPath path) {
+	private ItemDelta computePropertyDeltas(PropertyWrapper propertyWrapper, ItemPath containerPath) {
 		ItemDefinition itemDef = propertyWrapper.getItem().getDefinition();
-
-		ItemDelta pDelta = itemDef.createEmptyDelta(path);
-//		PropertyDelta pDelta = new PropertyDelta(path, itemDef.getName(), itemDef,
-//				itemDef.getPrismContext()); // hoping the
-//												// prismContext is there
-
-		addItemDelta(propertyWrapper, pDelta, itemDef, path);
+		ItemDelta pDelta = itemDef.createEmptyDelta(containerPath.subPath(itemDef.getName()));
+		addItemDelta(propertyWrapper, pDelta, itemDef, containerPath);
 		return pDelta;
 
 	}
 
-	private ReferenceDelta computeReferenceDeltas(ReferenceWrapper referenceWrapper, ItemPath path) {
+	private ReferenceDelta computeReferenceDeltas(ReferenceWrapper referenceWrapper, ItemPath containerPath) {
 		PrismReferenceDefinition propertyDef = referenceWrapper.getItem().getDefinition();
-
-		ReferenceDelta pDelta = new ReferenceDelta(path, propertyDef.getName(), propertyDef,
-				propertyDef.getPrismContext()); // hoping the
-												// prismContext is there
-
-		addItemDelta(referenceWrapper, pDelta, propertyDef, path);
+		ReferenceDelta pDelta = new ReferenceDelta(containerPath, propertyDef.getName(), propertyDef,
+				propertyDef.getPrismContext());
+		addItemDelta(referenceWrapper, pDelta, propertyDef, containerPath.subPath(propertyDef.getName()));
 		return pDelta;
 
 	}
 
 	private void addItemDelta(ItemWrapper itemWrapper, ItemDelta pDelta, ItemDefinition propertyDef,
-			ItemPath path) {
+			ItemPath containerPath) {
 		for (ValueWrapper valueWrapper : itemWrapper.getValues()) {
 			valueWrapper.normalize(propertyDef.getPrismContext());
 			ValueStatus valueStatus = valueWrapper.getStatus();
@@ -672,7 +663,7 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 			// capabilities
 			// todo this is bad hack because now we have not tri-state
 			// checkbox
-			if (SchemaConstants.PATH_ACTIVATION.equivalent(path)) {
+			if (SchemaConstants.PATH_ACTIVATION.equivalent(containerPath)) {
 
 				if (object.asObjectable() instanceof ShadowType
 						&& (((ShadowType) object.asObjectable()).getActivation() == null || ((ShadowType) object
@@ -690,7 +681,7 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 			switch (valueWrapper.getStatus()) {
 				case ADDED:
 					if (newValCloned != null) {
-						if (SchemaConstants.PATH_PASSWORD.equivalent(path)) {
+						if (SchemaConstants.PATH_PASSWORD.equivalent(containerPath)) {
 							// password change will always look like
 							// add,
 							// therefore we push replace
