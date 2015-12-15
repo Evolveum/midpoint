@@ -30,6 +30,8 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author mederly
@@ -43,10 +45,12 @@ public class CertDefinitionDto implements Serializable {
     public static final String F_XML = "xml";
     public static final String F_OWNER = "owner";
     public static final String F_SCOPE_DEFINITION = "scopeDefinition";
+    public static final String F_STAGE_DEFINITION = "stageDefinition";
 
     private AccessCertificationDefinitionType oldDefinition;            // to be able to compute the delta when saving
     private AccessCertificationDefinitionType definition;               // definition that is (at least partially) dynamically updated when editing the form
     private final DefinitionScopeDto definitionScopeDto;
+    private final List<StageDefinitionDto> stageDefinition;
     private String ownerName;
     private String xml;
     private PrismReferenceValue owner;
@@ -64,6 +68,10 @@ public class CertDefinitionDto implements Serializable {
         }
 
         definitionScopeDto = createDefinitionScopeDto(definition.getScopeDefinition());
+        stageDefinition = new ArrayList<>();
+        for (AccessCertificationStageDefinitionType stageDef  : definition.getStageDefinition()){
+            stageDefinition.add(createStageDefinitionDto(stageDef));
+        }
     }
 
     public String getOwnerName() {
@@ -145,6 +153,36 @@ public class CertDefinitionDto implements Serializable {
                     dto.setEnabledItemsOnly(Boolean.TRUE.equals(assignmentScope.isEnabledItemsOnly()));
                 }
             }
+        }
+        return dto;
+    }
+    private StageDefinitionDto createStageDefinitionDto(AccessCertificationStageDefinitionType stageDefObj) {
+        StageDefinitionDto dto = new StageDefinitionDto();
+        if (stageDefObj != null) {
+            dto.setNumber(stageDefObj.getNumber());
+            dto.setName(stageDefObj.getName());
+            dto.setDescription(stageDefObj.getDescription());
+            dto.setDurationDays(stageDefObj.getDays());
+            dto.setNotifyBeforeDeadline(stageDefObj.getNotifyBeforeDeadline());
+            dto.setNotifyOnlyWhenNoDecision(Boolean.TRUE.equals(stageDefObj.isNotifyOnlyWhenNoDecision()));
+            dto.setReviewerDto(createAccessCertificationReviewerDto(stageDefObj.getReviewerSpecification()));
+        }
+        return dto;
+    }
+
+    private AccessCertificationReviewerDto createAccessCertificationReviewerDto(AccessCertificationReviewerSpecificationType reviewer) {
+        AccessCertificationReviewerDto dto = new AccessCertificationReviewerDto();
+        if (reviewer != null) {
+            dto.setName(reviewer.getName());
+            dto.setDescription(reviewer.getDescription());
+            dto.setUseTargetOwner(Boolean.TRUE.equals(reviewer.isUseTargetOwner()));
+            dto.setUseTargetApprover(Boolean.TRUE.equals(reviewer.isUseTargetApprover()));
+            dto.setUseObjectOwner(Boolean.TRUE.equals(reviewer.isUseObjectOwner()));
+            dto.setUseObjectApprover(Boolean.TRUE.equals(reviewer.isUseObjectApprover()));
+//            dto.setUseObjectManager(reviewer.getUseObjectManager());
+            dto.setDefaultReviewerRef(reviewer.getDefaultReviewerRef());
+            dto.setAdditionalReviewerRef(reviewer.getAdditionalReviewerRef());
+            dto.setApprovalStrategy(reviewer.getApprovalStrategy() != null ? reviewer.getApprovalStrategy().value() : null);
         }
         return dto;
     }
